@@ -4,6 +4,7 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -81,23 +82,21 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, 
             {options.map(({option, inputId, messageId, defaultMessage}) => {
                 return (
                     <div
-                        className='radio'
+                        className='radio no-padding'
                         key={option}
                     >
-                        <label>
-                            <input
-                                id={inputId}
-                                type='radio'
-                                name='renderEmoticonsAsEmoji'
-                                value={option}
-                                checked={value === option}
-                                onChange={handleChange}
-                            />
+                        <Radio
+                            id={inputId}
+                            name='renderEmoticonsAsEmoji'
+                            value={option}
+                            checked={value === option}
+                            onChange={handleChange}
+                        >
                             <FormattedMessage
                                 id={messageId}
                                 defaultMessage={defaultMessage}
                             />
-                        </label>
+                        </Radio>
                         <br/>
                     </div>
                 );

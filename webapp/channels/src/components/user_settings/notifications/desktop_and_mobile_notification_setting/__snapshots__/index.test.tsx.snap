@@ -31,36 +31,90 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
               Send notifications for:
             </legend>
             <div
-              class="radio"
+              class="radio no-padding"
             >
-              <label>
+              <label
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                for="_r_0_"
+              >
                 <input
+                  class="_radio__input_11lrl_13"
+                  id="_r_0_"
+                  name="desktopActivity"
                   type="radio"
                   value="all"
                 />
-                All new messages
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  All new messages
+                </span>
               </label>
             </div>
             <div
-              class="radio"
+              class="radio no-padding"
             >
-              <label>
+              <label
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                for="_r_1_"
+              >
                 <input
+                  class="_radio__input_11lrl_13"
+                  id="_r_1_"
+                  name="desktopActivity"
                   type="radio"
                   value="mention"
                 />
-                Mentions, direct messages, and group messages
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  Mentions, direct messages, and group messages
+                </span>
               </label>
             </div>
             <div
-              class="radio"
+              class="radio no-padding"
             >
-              <label>
+              <label
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                for="_r_2_"
+              >
                 <input
+                  class="_radio__input_11lrl_13"
+                  id="_r_2_"
+                  name="desktopActivity"
                   type="radio"
                   value="none"
                 />
-                Nothing
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  Nothing
+                </span>
               </label>
             </div>
           </fieldset>
@@ -261,36 +315,90 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
               Send notifications for:
             </legend>
             <div
-              class="radio"
+              class="radio no-padding"
             >
-              <label>
+              <label
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                for="_r_3_"
+              >
                 <input
+                  class="_radio__input_11lrl_13"
+                  id="_r_3_"
+                  name="desktopActivity"
                   type="radio"
                   value="all"
                 />
-                All new messages
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  All new messages
+                </span>
               </label>
             </div>
             <div
-              class="radio"
+              class="radio no-padding"
             >
-              <label>
+              <label
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                for="_r_4_"
+              >
                 <input
+                  class="_radio__input_11lrl_13"
+                  id="_r_4_"
+                  name="desktopActivity"
                   type="radio"
                   value="mention"
                 />
-                Mentions, direct messages, and group messages
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  Mentions, direct messages, and group messages
+                </span>
               </label>
             </div>
             <div
-              class="radio"
+              class="radio no-padding"
             >
-              <label>
+              <label
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                for="_r_5_"
+              >
                 <input
+                  class="_radio__input_11lrl_13"
+                  id="_r_5_"
+                  name="desktopActivity"
                   type="radio"
                   value="none"
                 />
-                Nothing
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  Nothing
+                </span>
               </label>
             </div>
           </fieldset>

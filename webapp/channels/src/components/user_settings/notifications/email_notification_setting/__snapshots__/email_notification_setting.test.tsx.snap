@@ -24,33 +24,64 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           <fieldset>
             <fieldset>
               <div
-                class="radio"
+                class="radio no-padding"
               >
-                <label>
+                <label
+                  class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                  for="emailNotificationImmediately"
+                >
                   <input
+                    class="_radio__input_11lrl_13"
                     data-email-interval="30"
                     data-enable-email="true"
                     id="emailNotificationImmediately"
                     name="emailNotifications"
                     type="radio"
                   />
-                  On
+                  <span
+                    class="_radio__circle_11lrl_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_11lrl_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_11lrl_116"
+                  >
+                    On
+                  </span>
                 </label>
               </div>
               <div
-                class="radio"
+                class="radio no-padding"
               >
-                <label>
+                <label
+                  class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                  for="emailNotificationNever"
+                >
                   <input
                     checked=""
-                    class="a11y--active a11y--focused"
+                    class="_radio__input_11lrl_13 a11y--active a11y--focused"
                     data-email-interval="0"
                     data-enable-email="false"
                     id="emailNotificationNever"
                     name="emailNotifications"
                     type="radio"
                   />
-                  Off
+                  <span
+                    class="_radio__circle_11lrl_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_11lrl_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_11lrl_116"
+                  >
+                    Off
+                  </span>
                 </label>
               </div>
             </fieldset>
@@ -238,61 +269,124 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             </legend>
             <fieldset>
               <div
-                class="radio"
+                class="radio no-padding"
               >
-                <label>
+                <label
+                  class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                  for="emailNotificationImmediately"
+                >
                   <input
+                    class="_radio__input_11lrl_13"
                     data-email-interval="30"
                     data-enable-email="true"
                     id="emailNotificationImmediately"
                     name="emailNotifications"
                     type="radio"
                   />
-                  As soon as you’re away for 5 minutes
+                  <span
+                    class="_radio__circle_11lrl_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_11lrl_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_11lrl_116"
+                  >
+                    As soon as you’re away for 5 minutes
+                  </span>
                 </label>
               </div>
               <div
-                class="radio"
+                class="radio no-padding"
               >
-                <label>
+                <label
+                  class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                  for="emailNotificationMinutes"
+                >
                   <input
+                    class="_radio__input_11lrl_13"
                     data-email-interval="900"
                     data-enable-email="true"
                     id="emailNotificationMinutes"
                     name="emailNotifications"
                     type="radio"
                   />
-                  Every 15 minutes
+                  <span
+                    class="_radio__circle_11lrl_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_11lrl_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_11lrl_116"
+                  >
+                    Every 15 minutes
+                  </span>
                 </label>
               </div>
               <div
-                class="radio"
+                class="radio no-padding"
               >
-                <label>
+                <label
+                  class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                  for="emailNotificationHour"
+                >
                   <input
+                    class="_radio__input_11lrl_13"
                     data-email-interval="3600"
                     data-enable-email="true"
                     id="emailNotificationHour"
                     name="emailNotifications"
                     type="radio"
                   />
-                  Every hour
+                  <span
+                    class="_radio__circle_11lrl_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_11lrl_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_11lrl_116"
+                  >
+                    Every hour
+                  </span>
                 </label>
               </div>
               <div
-                class="radio"
+                class="radio no-padding"
               >
-                <label>
+                <label
+                  class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                  for="emailNotificationNever"
+                >
                   <input
                     checked=""
-                    class="a11y--active a11y--focused"
+                    class="_radio__input_11lrl_13 a11y--active a11y--focused"
                     data-email-interval="0"
                     data-enable-email="false"
                     id="emailNotificationNever"
                     name="emailNotifications"
                     type="radio"
                   />
-                  Never
+                  <span
+                    class="_radio__circle_11lrl_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_11lrl_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_11lrl_116"
+                  >
+                    Never
+                  </span>
                 </label>
               </div>
             </fieldset>
@@ -406,33 +500,64 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           <fieldset>
             <fieldset>
               <div
-                class="radio"
+                class="radio no-padding"
               >
-                <label>
+                <label
+                  class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                  for="emailNotificationImmediately"
+                >
                   <input
+                    class="_radio__input_11lrl_13"
                     data-email-interval="30"
                     data-enable-email="true"
                     id="emailNotificationImmediately"
                     name="emailNotifications"
                     type="radio"
                   />
-                  On
+                  <span
+                    class="_radio__circle_11lrl_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_11lrl_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_11lrl_116"
+                  >
+                    On
+                  </span>
                 </label>
               </div>
               <div
-                class="radio"
+                class="radio no-padding"
               >
-                <label>
+                <label
+                  class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                  for="emailNotificationNever"
+                >
                   <input
                     checked=""
-                    class="a11y--active a11y--focused"
+                    class="_radio__input_11lrl_13 a11y--active a11y--focused"
                     data-email-interval="0"
                     data-enable-email="false"
                     id="emailNotificationNever"
                     name="emailNotifications"
                     type="radio"
                   />
-                  Off
+                  <span
+                    class="_radio__circle_11lrl_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_11lrl_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_11lrl_116"
+                  >
+                    Off
+                  </span>
                 </label>
               </div>
             </fieldset>
@@ -521,33 +646,64 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           <fieldset>
             <fieldset>
               <div
-                class="radio"
+                class="radio no-padding"
               >
-                <label>
+                <label
+                  class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                  for="emailNotificationImmediately"
+                >
                   <input
                     checked=""
-                    class="a11y--active a11y--focused"
+                    class="_radio__input_11lrl_13 a11y--active a11y--focused"
                     data-email-interval="30"
                     data-enable-email="true"
                     id="emailNotificationImmediately"
                     name="emailNotifications"
                     type="radio"
                   />
-                  On
+                  <span
+                    class="_radio__circle_11lrl_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_11lrl_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_11lrl_116"
+                  >
+                    On
+                  </span>
                 </label>
               </div>
               <div
-                class="radio"
+                class="radio no-padding"
               >
-                <label>
+                <label
+                  class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                  for="emailNotificationNever"
+                >
                   <input
+                    class="_radio__input_11lrl_13"
                     data-email-interval="0"
                     data-enable-email="false"
                     id="emailNotificationNever"
                     name="emailNotifications"
                     type="radio"
                   />
-                  Off
+                  <span
+                    class="_radio__circle_11lrl_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_11lrl_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_11lrl_116"
+                  >
+                    Off
+                  </span>
                 </label>
               </div>
             </fieldset>
@@ -629,33 +785,64 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           <fieldset>
             <fieldset>
               <div
-                class="radio"
+                class="radio no-padding"
               >
-                <label>
+                <label
+                  class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                  for="emailNotificationImmediately"
+                >
                   <input
+                    class="_radio__input_11lrl_13"
                     data-email-interval="30"
                     data-enable-email="true"
                     id="emailNotificationImmediately"
                     name="emailNotifications"
                     type="radio"
                   />
-                  On
+                  <span
+                    class="_radio__circle_11lrl_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_11lrl_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_11lrl_116"
+                  >
+                    On
+                  </span>
                 </label>
               </div>
               <div
-                class="radio"
+                class="radio no-padding"
               >
-                <label>
+                <label
+                  class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                  for="emailNotificationNever"
+                >
                   <input
                     checked=""
-                    class="a11y--active a11y--focused"
+                    class="_radio__input_11lrl_13 a11y--active a11y--focused"
                     data-email-interval="0"
                     data-enable-email="false"
                     id="emailNotificationNever"
                     name="emailNotifications"
                     type="radio"
                   />
-                  Off
+                  <span
+                    class="_radio__circle_11lrl_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_11lrl_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_11lrl_116"
+                  >
+                    Off
+                  </span>
                 </label>
               </div>
             </fieldset>

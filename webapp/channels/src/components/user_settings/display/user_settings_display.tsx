@@ -9,6 +9,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import type {Timezone} from 'timezones.json';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile, UserTimezone} from '@mattermost/types/users';
 
@@ -490,17 +491,15 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 };
 
                 thirdSection = (
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id={name + 'C'}
-                                type='radio'
-                                name={name}
-                                checked={format[2]}
-                                onChange={(e) => this.handleOnChange(e, thirdDisplay)}
-                            />
+                    <div className='radio no-padding'>
+                        <Radio
+                            id={name + 'C'}
+                            name={name}
+                            checked={format[2]}
+                            onChange={(e) => this.handleOnChange(e, thirdDisplay)}
+                        >
                             {thirdMessage}
-                        </label>
+                        </Radio>
                         <br/>
                     </div>
                 );
@@ -544,34 +543,30 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     <legend className='form-legend hidden-label'>
                         {messageTitle}
                     </legend>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id={name + 'A'}
-                                type='radio'
-                                name={name}
-                                checked={format[0]}
-                                onChange={(e) => this.handleOnChange(e, firstDisplay)}
-                            />
+                    <div className='radio no-padding'>
+                        <Radio
+                            id={name + 'A'}
+                            name={name}
+                            checked={format[0]}
+                            onChange={(e) => this.handleOnChange(e, firstDisplay)}
+                        >
                             {firstMessage}
                             {moreColon}
                             {firstMessageMore}
-                        </label>
+                        </Radio>
                         <br/>
                     </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id={name + 'B'}
-                                type='radio'
-                                name={name}
-                                checked={format[1]}
-                                onChange={(e) => this.handleOnChange(e, secondDisplay)}
-                            />
+                    <div className='radio no-padding'>
+                        <Radio
+                            id={name + 'B'}
+                            name={name}
+                            checked={format[1]}
+                            onChange={(e) => this.handleOnChange(e, secondDisplay)}
+                        >
                             {secondMessage}
                             {moreColon}
                             {secondMessageMore}
-                        </label>
+                        </Radio>
                         <br/>
                     </div>
                     {thirdSection}

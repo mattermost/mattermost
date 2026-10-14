@@ -4,6 +4,7 @@
 import React, {type RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserNotifyProps} from '@mattermost/types/users';
 
@@ -302,74 +303,66 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
         if (this.props.enableEmailBatching) {
             emailOptions = (
                 <fieldset>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='emailNotificationImmediately'
-                                type='radio'
-                                name='emailNotifications'
-                                checked={newInterval === Preferences.INTERVAL_IMMEDIATE}
-                                data-enable-email={'true'}
-                                data-email-interval={Preferences.INTERVAL_IMMEDIATE}
-                                onChange={this.handleChange}
-                            />
+                    <div className='radio no-padding'>
+                        <Radio
+                            id='emailNotificationImmediately'
+                            name='emailNotifications'
+                            checked={newInterval === Preferences.INTERVAL_IMMEDIATE}
+                            data-enable-email={'true'}
+                            data-email-interval={Preferences.INTERVAL_IMMEDIATE}
+                            onChange={this.handleChange}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.email.asSoonAsYouAreAwayForFiveMinutes'
                                 defaultMessage='As soon as you’re away for 5 minutes'
                             />
-                        </label>
+                        </Radio>
                     </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='emailNotificationMinutes'
-                                type='radio'
-                                name='emailNotifications'
-                                checked={newInterval === Preferences.INTERVAL_FIFTEEN_MINUTES}
-                                data-enable-email={'true'}
-                                data-email-interval={Preferences.INTERVAL_FIFTEEN_MINUTES}
-                                onChange={this.handleChange}
-                            />
+                    <div className='radio no-padding'>
+                        <Radio
+                            id='emailNotificationMinutes'
+                            name='emailNotifications'
+                            checked={newInterval === Preferences.INTERVAL_FIFTEEN_MINUTES}
+                            data-enable-email={'true'}
+                            data-email-interval={Preferences.INTERVAL_FIFTEEN_MINUTES}
+                            onChange={this.handleChange}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.email.everyXMinutes'
                                 defaultMessage='Every {count, plural, one {minute} other {{count, number} minutes}}'
                                 values={{count: Preferences.INTERVAL_FIFTEEN_MINUTES / SECONDS_PER_MINUTE}}
                             />
-                        </label>
+                        </Radio>
                     </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='emailNotificationHour'
-                                type='radio'
-                                name='emailNotifications'
-                                checked={newInterval === Preferences.INTERVAL_HOUR}
-                                data-enable-email={'true'}
-                                data-email-interval={Preferences.INTERVAL_HOUR}
-                                onChange={this.handleChange}
-                            />
+                    <div className='radio no-padding'>
+                        <Radio
+                            id='emailNotificationHour'
+                            name='emailNotifications'
+                            checked={newInterval === Preferences.INTERVAL_HOUR}
+                            data-enable-email={'true'}
+                            data-email-interval={Preferences.INTERVAL_HOUR}
+                            onChange={this.handleChange}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.email.everyHour'
                                 defaultMessage='Every hour'
                             />
-                        </label>
+                        </Radio>
                     </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='emailNotificationNever'
-                                type='radio'
-                                name='emailNotifications'
-                                checked={newInterval === Preferences.INTERVAL_NEVER}
-                                data-enable-email={'false'}
-                                data-email-interval={Preferences.INTERVAL_NEVER}
-                                onChange={this.handleChange}
-                            />
+                    <div className='radio no-padding'>
+                        <Radio
+                            id='emailNotificationNever'
+                            name='emailNotifications'
+                            checked={newInterval === Preferences.INTERVAL_NEVER}
+                            data-enable-email={'false'}
+                            data-email-interval={Preferences.INTERVAL_NEVER}
+                            onChange={this.handleChange}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.email.never'
                                 defaultMessage='Never'
                             />
-                        </label>
+                        </Radio>
                     </div>
                 </fieldset>
             );
@@ -392,39 +385,35 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
         } else {
             emailOptions = (
                 <fieldset>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='emailNotificationImmediately'
-                                type='radio'
-                                name='emailNotifications'
-                                checked={newInterval === Preferences.INTERVAL_IMMEDIATE}
-                                data-enable-email={'true'}
-                                data-email-interval={Preferences.INTERVAL_IMMEDIATE}
-                                onChange={this.handleChange}
-                            />
+                    <div className='radio no-padding'>
+                        <Radio
+                            id='emailNotificationImmediately'
+                            name='emailNotifications'
+                            checked={newInterval === Preferences.INTERVAL_IMMEDIATE}
+                            data-enable-email={'true'}
+                            data-email-interval={Preferences.INTERVAL_IMMEDIATE}
+                            onChange={this.handleChange}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.email.on'
                                 defaultMessage='On'
                             />
-                        </label>
+                        </Radio>
                     </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='emailNotificationNever'
-                                type='radio'
-                                name='emailNotifications'
-                                checked={newInterval === Preferences.INTERVAL_NEVER}
-                                data-enable-email={'false'}
-                                data-email-interval={Preferences.INTERVAL_NEVER}
-                                onChange={this.handleChange}
-                            />
+                    <div className='radio no-padding'>
+                        <Radio
+                            id='emailNotificationNever'
+                            name='emailNotifications'
+                            checked={newInterval === Preferences.INTERVAL_NEVER}
+                            data-enable-email={'false'}
+                            data-email-interval={Preferences.INTERVAL_NEVER}
+                            onChange={this.handleChange}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.email.off'
                                 defaultMessage='Off'
                             />
-                        </label>
+                        </Radio>
                     </div>
                 </fieldset>
             );

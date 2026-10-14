@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl, defineMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, Options} from 'react-select';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {UserNotifyProps} from '@mattermost/types/users';
 
 import SettingItemMax from 'components/setting_item_max';
@@ -120,17 +121,16 @@ function DesktopAndMobileNotificationSettings({
                 {optionsOfSendNotifications.map((optionOfSendNotifications) => (
                     <div
                         key={optionOfSendNotifications.value}
-                        className='radio'
+                        className='radio no-padding'
                     >
-                        <label>
-                            <input
-                                type='radio'
-                                checked={desktopActivity === optionOfSendNotifications.value}
-                                value={optionOfSendNotifications.value}
-                                onChange={handleChangeForSendDesktopNotificationsRadio}
-                            />
+                        <Radio
+                            name='desktopActivity'
+                            checked={desktopActivity === optionOfSendNotifications.value}
+                            value={optionOfSendNotifications.value}
+                            onChange={handleChangeForSendDesktopNotificationsRadio}
+                        >
                             {formatAsComponent(optionOfSendNotifications.label)}
-                        </label>
+                        </Radio>
                     </div>
                 ))}
             </fieldset>

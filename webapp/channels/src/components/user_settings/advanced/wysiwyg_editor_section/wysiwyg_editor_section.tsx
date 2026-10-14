@@ -5,6 +5,7 @@ import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -97,23 +98,21 @@ const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, 
                 </legend>
                 {options.map(({option, inputId, messageId, defaultMessage}) => (
                     <div
-                        className='radio'
+                        className='radio no-padding'
                         key={option}
                     >
-                        <label>
-                            <input
-                                id={inputId}
-                                type='radio'
-                                name='wysiwygEditor'
-                                value={option}
-                                checked={value === option}
-                                onChange={handleChange}
-                            />
+                        <Radio
+                            id={inputId}
+                            name='wysiwygEditor'
+                            value={option}
+                            checked={value === option}
+                            onChange={handleChange}
+                        >
                             <FormattedMessage
                                 id={messageId}
                                 defaultMessage={defaultMessage}
                             />
-                        </label>
+                        </Radio>
                         <br/>
                     </div>
                 ))}

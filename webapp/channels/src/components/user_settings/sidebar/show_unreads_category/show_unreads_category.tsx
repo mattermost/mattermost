@@ -5,6 +5,7 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
@@ -147,36 +148,32 @@ export default class ShowUnreadsCategory extends React.PureComponent<Props, Stat
                         <legend className='form-legend hidden-label'>
                             {title}
                         </legend>
-                        <div className='radio'>
-                            <label>
-                                <input
-                                    data-testid='showUnreadsCategoryOn'
-                                    type='radio'
-                                    name='showUnreadsCategory'
-                                    checked={this.state.checked}
-                                    onChange={() => this.setState({checked: true})}
-                                />
+                        <div className='radio no-padding'>
+                            <Radio
+                                data-testid='showUnreadsCategoryOn'
+                                name='showUnreadsCategory'
+                                checked={this.state.checked}
+                                onChange={() => this.setState({checked: true})}
+                            >
                                 <FormattedMessage
                                     id='user.settings.sidebar.on'
                                     defaultMessage='On'
                                 />
-                            </label>
+                            </Radio>
                             <br/>
                         </div>
-                        <div className='radio'>
-                            <label>
-                                <input
-                                    data-testid='showUnreadsCategoryOff'
-                                    type='radio'
-                                    name='showUnreadsCategory'
-                                    checked={!this.state.checked}
-                                    onChange={() => this.setState({checked: false})}
-                                />
+                        <div className='radio no-padding'>
+                            <Radio
+                                data-testid='showUnreadsCategoryOff'
+                                name='showUnreadsCategory'
+                                checked={!this.state.checked}
+                                onChange={() => this.setState({checked: false})}
+                            >
                                 <FormattedMessage
                                     id='user.settings.sidebar.off'
                                     defaultMessage='Off'
                                 />
-                            </label>
+                            </Radio>
                             <br/>
                         </div>
                         <div className='mt-5'>

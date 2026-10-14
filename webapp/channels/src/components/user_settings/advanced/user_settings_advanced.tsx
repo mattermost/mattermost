@@ -5,6 +5,7 @@ import React from 'react';
 import type {JSX, ReactNode} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import {isMac} from '@mattermost/shared/utils/user_agent';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
@@ -273,36 +274,32 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                     defaultMessage='Enable Post Formatting'
                                 />
                             </legend>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='postFormattingOn'
-                                        type='radio'
-                                        name='formatting'
-                                        checked={this.state.settings.formatting !== 'false'}
-                                        onChange={this.updateSetting.bind(this, 'formatting', 'true')}
-                                    />
+                            <div className='radio no-padding'>
+                                <Radio
+                                    id='postFormattingOn'
+                                    name='formatting'
+                                    checked={this.state.settings.formatting !== 'false'}
+                                    onChange={this.updateSetting.bind(this, 'formatting', 'true')}
+                                >
                                     <FormattedMessage
                                         id='user.settings.advance.on'
                                         defaultMessage='On'
                                     />
-                                </label>
+                                </Radio>
                                 <br/>
                             </div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='postFormattingOff'
-                                        type='radio'
-                                        name='formatting'
-                                        checked={this.state.settings.formatting === 'false'}
-                                        onChange={this.updateSetting.bind(this, 'formatting', 'false')}
-                                    />
+                            <div className='radio no-padding'>
+                                <Radio
+                                    id='postFormattingOff'
+                                    name='formatting'
+                                    checked={this.state.settings.formatting === 'false'}
+                                    onChange={this.updateSetting.bind(this, 'formatting', 'false')}
+                                >
                                     <FormattedMessage
                                         id='user.settings.advance.off'
                                         defaultMessage='Off'
                                     />
-                                </label>
+                                </Radio>
                                 <br/>
                             </div>
                             <div className='mt-5'>
@@ -359,36 +356,32 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                     defaultMessage='Scroll position when viewing an unread channel'
                                 />
                             </legend>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='unreadPositionStartFromLeftOff'
-                                        type='radio'
-                                        name='unreadScrollPosition'
-                                        checked={this.state.settings.unread_scroll_position === Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT}
-                                        onChange={this.updateSetting.bind(this, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT)}
-                                    />
+                            <div className='radio no-padding'>
+                                <Radio
+                                    id='unreadPositionStartFromLeftOff'
+                                    name='unreadScrollPosition'
+                                    checked={this.state.settings.unread_scroll_position === Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT}
+                                    onChange={this.updateSetting.bind(this, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT)}
+                                >
                                     <FormattedMessage
                                         id='user.settings.advance.startFromLeftOff'
                                         defaultMessage='Start me where I left off'
                                     />
-                                </label>
+                                </Radio>
                                 <br/>
                             </div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='unreadPositionStartFromNewest'
-                                        type='radio'
-                                        name='unreadScrollPosition'
-                                        checked={this.state.settings.unread_scroll_position === Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST}
-                                        onChange={this.updateSetting.bind(this, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST)}
-                                    />
+                            <div className='radio no-padding'>
+                                <Radio
+                                    id='unreadPositionStartFromNewest'
+                                    name='unreadScrollPosition'
+                                    checked={this.state.settings.unread_scroll_position === Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST}
+                                    onChange={this.updateSetting.bind(this, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST)}
+                                >
                                     <FormattedMessage
                                         id='user.settings.advance.startFromNewest'
                                         defaultMessage='Start me at the newest message'
                                     />
-                                </label>
+                                </Radio>
                                 <br/>
                             </div>
                             <div className='mt-5'>
@@ -445,36 +438,32 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                     defaultMessage='Allow message drafts to sync with the server'
                                 />
                             </legend>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='syncDraftsOn'
-                                        type='radio'
-                                        name='syncDrafts'
-                                        checked={this.state.settings.sync_drafts !== 'false'}
-                                        onChange={this.updateSetting.bind(this, 'sync_drafts', 'true')}
-                                    />
+                            <div className='radio no-padding'>
+                                <Radio
+                                    id='syncDraftsOn'
+                                    name='syncDrafts'
+                                    checked={this.state.settings.sync_drafts !== 'false'}
+                                    onChange={this.updateSetting.bind(this, 'sync_drafts', 'true')}
+                                >
                                     <FormattedMessage
                                         id='user.settings.advance.on'
                                         defaultMessage='On'
                                     />
-                                </label>
+                                </Radio>
                                 <br/>
                             </div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='syncDraftsOff'
-                                        type='radio'
-                                        name='syncDrafts'
-                                        checked={this.state.settings.sync_drafts === 'false'}
-                                        onChange={this.updateSetting.bind(this, 'sync_drafts', 'false')}
-                                    />
+                            <div className='radio no-padding'>
+                                <Radio
+                                    id='syncDraftsOff'
+                                    name='syncDrafts'
+                                    checked={this.state.settings.sync_drafts === 'false'}
+                                    onChange={this.updateSetting.bind(this, 'sync_drafts', 'false')}
+                                >
                                     <FormattedMessage
                                         id='user.settings.advance.off'
                                         defaultMessage='Off'
                                     />
-                                </label>
+                                </Radio>
                                 <br/>
                             </div>
                             <div className='mt-5'>
@@ -529,64 +518,58 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     <legend className='form-legend hidden-label'>
                         <FormattedMessage {...ctrlSendTitle}/>
                     </legend>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='ctrlSendOn'
-                                type='radio'
-                                name='sendOnCtrlEnter'
-                                checked={ctrlSendActive[0]}
-                                onChange={(e) => {
-                                    this.updateSetting('send_on_ctrl_enter', 'true');
-                                    this.updateSetting('code_block_ctrl_enter', 'true');
-                                    a11yFocus(e.currentTarget);
-                                }}
-                            />
+                    <div className='radio no-padding'>
+                        <Radio
+                            id='ctrlSendOn'
+                            name='sendOnCtrlEnter'
+                            checked={ctrlSendActive[0]}
+                            onChange={(e) => {
+                                this.updateSetting('send_on_ctrl_enter', 'true');
+                                this.updateSetting('code_block_ctrl_enter', 'true');
+                                a11yFocus(e.currentTarget);
+                            }}
+                        >
                             <FormattedMessage
                                 id='user.settings.advance.onForAllMessages'
                                 defaultMessage='On for all messages'
                             />
-                        </label>
+                        </Radio>
                         <br/>
                     </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='ctrlSendOnForCode'
-                                type='radio'
-                                name='sendOnCtrlEnter'
-                                checked={ctrlSendActive[1]}
-                                onChange={(e) => {
-                                    this.updateSetting('send_on_ctrl_enter', 'false');
-                                    this.updateSetting('code_block_ctrl_enter', 'true');
-                                    a11yFocus(e.currentTarget);
-                                }}
-                            />
+                    <div className='radio no-padding'>
+                        <Radio
+                            id='ctrlSendOnForCode'
+                            name='sendOnCtrlEnter'
+                            checked={ctrlSendActive[1]}
+                            onChange={(e) => {
+                                this.updateSetting('send_on_ctrl_enter', 'false');
+                                this.updateSetting('code_block_ctrl_enter', 'true');
+                                a11yFocus(e.currentTarget);
+                            }}
+                        >
                             <FormattedMessage
                                 id='user.settings.advance.onForCode'
                                 defaultMessage='On only for code blocks starting with ```'
                             />
-                        </label>
+                        </Radio>
                         <br/>
                     </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='ctrlSendOff'
-                                type='radio'
-                                name='sendOnCtrlEnter'
-                                checked={ctrlSendActive[2]}
-                                onChange={(e) => {
-                                    this.updateSetting('send_on_ctrl_enter', 'false');
-                                    this.updateSetting('code_block_ctrl_enter', 'false');
-                                    a11yFocus(e.currentTarget);
-                                }}
-                            />
+                    <div className='radio no-padding'>
+                        <Radio
+                            id='ctrlSendOff'
+                            name='sendOnCtrlEnter'
+                            checked={ctrlSendActive[2]}
+                            onChange={(e) => {
+                                this.updateSetting('send_on_ctrl_enter', 'false');
+                                this.updateSetting('code_block_ctrl_enter', 'false');
+                                a11yFocus(e.currentTarget);
+                            }}
+                        >
                             <FormattedMessage
                                 id='user.settings.advance.off'
                                 defaultMessage='Off'
                             />
-                        </label>
+                        </Radio>
                         <br/>
                     </div>
                     <div>
