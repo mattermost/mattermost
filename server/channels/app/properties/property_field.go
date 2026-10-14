@@ -1096,6 +1096,22 @@ func (ps *PropertyService) translateLegacyPermissionKeys(rctx request.CTX, field
 		return nil
 	}
 
+	// Both paths below rebuild field.Permissions from existing, so a caller
+	// that also submitted a changed object would lose it and still be told the
+	// update succeeded -- keeping a grant or a wider tier it had just removed.
+	// Neither shape can say which of the two it meant to win, so refuse rather
+	// than pick one. A nil object was never submitted, and one equivalent to
+	// existing is an echo.
+	if field.Permissions != nil && (existing.Permissions == nil || !permissionsEquivalent(field.Permissions, existing.Permissions)) {
+		return model.NewAppError(
+			"UpdatePropertyFields",
+			"app.property_field.update.permissions_with_legacy_keys.app_error",
+			nil,
+			"cannot change a field's permissions object and its legacy permission columns or attrs in the same update",
+			http.StatusBadRequest,
+		)
+	}
+
 	opts := model.LegacyConversionOpts{ConvertAttrs: convertAttrs}
 	if template != nil && field.LinkSourceID() != "" {
 		opts.Template = templatePermissionsOrZero(template)

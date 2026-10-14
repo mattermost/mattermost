@@ -6,6 +6,7 @@ package properties
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -1351,6 +1352,56 @@ func TestUpdatePropertyFieldTranslatesLegacyPermissionKeys(t *testing.T) {
 			require.NoError(t, err)
 			assert.NotNil(t, updated.Permissions.MatchingGrant(model.PropertyOwnerTypeUser, newOwner, "", model.PropertyActionValueWrite))
 			assert.NotNil(t, updated.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "attrs-plugin", "", model.PropertyActionFieldWrite))
+		})
+
+		// withoutWildcard returns field's stored object minus the plugin
+		// wildcard grant: a narrowing that translating the legacy keys from
+		// the stored object would otherwise silently undo.
+		withoutWildcard := func(field *model.PropertyField) *model.Permissions {
+			permissions := *field.Permissions
+			permissions.Grants = slices.DeleteFunc(slices.Clone(permissions.Grants), func(g model.Grant) bool {
+				return g.Identity == wildcard
+			})
+			return &permissions
+		}
+		requireMixedRefusal := func(t *testing.T, field *model.PropertyField, err error) {
+			t.Helper()
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+			assert.Equal(t, "app.property_field.update.permissions_with_legacy_keys.app_error", appErr.Id)
+			stored, gErr := th.service.GetPropertyField(rctx, th.CPAGroupID, field.ID)
+			require.NoError(t, gErr)
+			assert.Equal(t, field.Permissions, stored.Permissions)
+		}
+
+		t.Run("a column change alongside a changed permissions object is a 400", func(t *testing.T) {
+			field := createPlain(t)
+			submitted := model.ProjectLegacyPermissions(field)
+			adminLevel := model.PermissionLevelAdmin
+			submitted.PermissionValues = &adminLevel
+			submitted.Permissions = withoutWildcard(field)
+			_, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, submitted)
+			requireMixedRefusal(t, field, err)
+		})
+
+		t.Run("an owners change alongside a changed permissions object is a 400", func(t *testing.T) {
+			field := createPlain(t)
+			submitted := model.ProjectLegacyPermissions(field)
+			submitted.Attrs[model.PropertyAttrsOwners] = append(model.GetPropertyFieldOwners(submitted),
+				model.PropertyOwner{Type: model.PropertyOwnerTypePlugin, ID: "attrs-plugin"})
+			submitted.Permissions = withoutWildcard(field)
+			_, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, submitted)
+			requireMixedRefusal(t, field, err)
+		})
+
+		t.Run("a changed permissions object with the legacy keys echoed is applied", func(t *testing.T) {
+			field := createPlain(t)
+			submitted := model.ProjectLegacyPermissions(field)
+			submitted.Permissions = withoutWildcard(field)
+			updated, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, submitted)
+			require.NoError(t, err)
+			assert.Nil(t, grantFor(updated.Permissions, wildcard))
 		})
 	})
 }
