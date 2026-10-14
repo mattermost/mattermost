@@ -6,6 +6,7 @@ package slashcommands
 import (
 	"errors"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -17,25 +18,40 @@ import (
 
 type failingDeleteRemoteClusterStore struct {
 	store.RemoteClusterStore
-	deleteCalls int
+	wrapper *failingDeleteStoreWrapper
 }
 
-func (s *failingDeleteRemoteClusterStore) Delete(string) (bool, error) {
-	s.deleteCalls++
-	return false, errors.New("database is unavailable")
+func (s *failingDeleteRemoteClusterStore) Delete(remoteClusterId string) (bool, error) {
+	s.wrapper.deleteCalls.Add(1)
+	if remoteClusterId == s.wrapper.failDeleteID {
+		return false, errors.New("database is unavailable")
+	}
+	return s.RemoteClusterStore.Delete(remoteClusterId)
 }
 
-type failingDeleteStore struct {
+// failingDeleteStoreWrapper fails RemoteCluster().Delete for failDeleteID and counts
+// every Delete call; all other calls use the real store.
+type failingDeleteStoreWrapper struct {
 	store.Store
-	remoteCluster *failingDeleteRemoteClusterStore
+	failDeleteID string
+	deleteCalls  atomic.Int32
 }
 
-func (s *failingDeleteStore) RemoteCluster() store.RemoteClusterStore {
-	return s.remoteCluster
+func (w *failingDeleteStoreWrapper) RemoteCluster() store.RemoteClusterStore {
+	return &failingDeleteRemoteClusterStore{RemoteClusterStore: w.Store.RemoteCluster(), wrapper: w}
 }
 
 func TestRemoteProviderDoRemove(t *testing.T) {
-	th := setupForSharedChannels(t).initBasic(t)
+	if testing.Short() {
+		t.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+
+	// The wrapper is installed before the server starts so the live store is never swapped.
+	wrapper := &failingDeleteStoreWrapper{Store: dbStore, failDeleteID: model.NewId()}
+	th := setupTestHelper(wrapper, false, true, t, nil).initBasic(t)
 	th.addPermissionToRole(t, model.PermissionManageSecureConnections.Id, th.BasicUser.Roles)
 
 	runRemove := func(t *testing.T, command string) string {
@@ -50,17 +66,6 @@ func TestRemoteProviderDoRemove(t *testing.T) {
 		resp := (&RemoteProvider{}).DoCommand(th.App, th.Context, args, "")
 		require.NotNil(t, resp)
 		return resp.Text
-	}
-
-	// installFailingStore makes RemoteCluster().Delete fail while every other store
-	// call still reaches the real database, and counts the Delete calls.
-	installFailingStore := func(t *testing.T) *failingDeleteRemoteClusterStore {
-		t.Helper()
-		realStore := th.App.Srv().Store()
-		rcStore := &failingDeleteRemoteClusterStore{RemoteClusterStore: realStore.RemoteCluster()}
-		th.App.Srv().SetStore(&failingDeleteStore{Store: realStore, remoteCluster: rcStore})
-		t.Cleanup(func() { th.App.Srv().SetStore(realStore) })
-		return rcStore
 	}
 
 	t.Run("removes an existing connection", func(t *testing.T) {
@@ -92,25 +97,27 @@ func TestRemoteProviderDoRemove(t *testing.T) {
 	})
 
 	t.Run("reports a store error instead of not found", func(t *testing.T) {
-		installFailingStore(t)
-
-		output := runRemove(t, "/secure-connection remove --connectionID "+model.NewId())
+		output := runRemove(t, "/secure-connection remove --connectionID "+wrapper.failDeleteID)
 
 		require.Equal(t, "Could not remove secure connection: We encountered an error deleting the secure connection.", output)
 	})
 
-	t.Run("rejects a missing or empty connectionID without deleting", func(t *testing.T) {
-		for name, command := range map[string]string{
-			"missing": "/secure-connection remove",
-			"empty":   "/secure-connection remove --connectionID",
+	t.Run("rejects a missing, empty or malformed connectionID without deleting", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			command string
+			reply   string
+		}{
+			"missing":   {"/secure-connection remove", "Missing or empty `connectionID`"},
+			"empty":     {"/secure-connection remove --connectionID", "Missing or empty `connectionID`"},
+			"malformed": {"/secure-connection remove --connectionID foo", "`foo` is not a valid `connectionID`"},
 		} {
 			t.Run(name, func(t *testing.T) {
-				rcStore := installFailingStore(t)
+				callsBefore := wrapper.deleteCalls.Load()
 
-				output := runRemove(t, command)
+				output := runRemove(t, tc.command)
 
-				require.Equal(t, "Missing or empty `connectionID`", output)
-				require.Zero(t, rcStore.deleteCalls, "DeleteRemoteCluster must not be called without a connectionID")
+				require.Equal(t, tc.reply, output)
+				require.Equal(t, callsBefore, wrapper.deleteCalls.Load(), "DeleteRemoteCluster must not be called without a valid connectionID")
 			})
 		}
 	})
