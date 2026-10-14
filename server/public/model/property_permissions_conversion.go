@@ -134,10 +134,12 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 // field unchanged when Permissions is nil — there is nothing to project. Never
 // mutates field or its Attrs map.
 //
-// It is not a lossless inverse of PermissionsFromLegacy. Every grant becomes
-// an owner, including synthesized ones such as the plugin wildcard, and
-// field.write none becomes protected; both read back as human write locks.
-// A caller reconverting a projection must strip those first.
+// It is not a lossless inverse of PermissionsFromLegacy. Every grant naming a
+// specific identity becomes an owner, including synthesized ones such as the
+// source plugin's, and field.write none becomes protected; both read back as
+// human write locks. A caller reconverting a projection must strip those
+// first. A wildcard grant is never projected: v2 has no owner meaning "any
+// plugin", and expresses that access by listing no owners at all.
 func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 	if field.Permissions == nil {
 		return field
@@ -187,18 +189,24 @@ func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 // ownersFromGrants converts each grant into the PropertyOwner shape a v2
 // caller reads from Attrs, carrying the grant's own Allow list rather than
 // enumerating every action.
+//
+// Wildcard grants are skipped. To a v2 reader any owner means the values
+// belong to an integration and no person may set them, so projecting the
+// wildcard the conversion gives every unowned field would lock it for
+// everyone. An unowned field converts back to the same wildcard, so nothing
+// is lost.
 func ownersFromGrants(grants []Grant) []PropertyOwner {
-	if len(grants) == 0 {
-		return nil
-	}
-	owners := make([]PropertyOwner, len(grants))
-	for i, grant := range grants {
-		owners[i] = PropertyOwner{
+	var owners []PropertyOwner
+	for _, grant := range grants {
+		if grant.ID == "*" {
+			continue
+		}
+		owners = append(owners, PropertyOwner{
 			ID:     grant.ID,
 			Type:   grant.Type,
 			Scopes: grant.Scopes,
 			Allow:  grant.Allow,
-		}
+		})
 	}
 	return owners
 }
