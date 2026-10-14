@@ -783,8 +783,20 @@
 }
 
 .user-settings__radio-group-inline {
-    // Counteract the margin-left added by Bootstrap's radio-inline class
-    margin-left: -20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+
+    .radio {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    // Compass Radio defaults to width: 100%; keep Premade / Custom side-by-side
+    label {
+        width: auto;
+    }
 }
 
 .user-settings__submit-checkbox {

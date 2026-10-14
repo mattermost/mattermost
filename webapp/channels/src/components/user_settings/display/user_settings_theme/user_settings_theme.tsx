@@ -5,6 +5,8 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
+
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import ExternalLink from 'components/external_link';
@@ -188,35 +190,33 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                         key='premadeCustom'
                         className='user-settings__radio-group-inline'
                     >
-                        <div className='radio radio-inline'>
-                            <label>
-                                <input
-                                    id='standardThemes'
-                                    type='radio'
-                                    name='theme'
-                                    checked={!displayCustom}
-                                    onChange={this.updateType.bind(this, 'premade')}
-                                />
+                        <div className='radio no-padding'>
+                            <Radio
+                                id='standardThemes'
+                                name='theme'
+                                value='premade'
+                                checked={!displayCustom}
+                                onChange={() => this.updateType('premade')}
+                            >
                                 <FormattedMessage
                                     id='user.settings.display.theme.premadeThemes'
                                     defaultMessage='Premade Themes'
                                 />
-                            </label>
+                            </Radio>
                         </div>
-                        <div className='radio radio-inline'>
-                            <label>
-                                <input
-                                    id='customThemes'
-                                    type='radio'
-                                    name='theme'
-                                    checked={displayCustom}
-                                    onChange={this.updateType.bind(this, 'custom')}
-                                />
+                        <div className='radio no-padding'>
+                            <Radio
+                                id='customThemes'
+                                name='theme'
+                                value='custom'
+                                checked={displayCustom}
+                                onChange={() => this.updateType('custom')}
+                            >
                                 <FormattedMessage
                                     id='user.settings.display.theme.customTheme'
                                     defaultMessage='Custom Theme'
                                 />
-                            </label>
+                            </Radio>
                         </div>
                     </div>,
                 );
