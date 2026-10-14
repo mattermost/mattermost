@@ -419,49 +419,49 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                     class="settings-radio-group"
                   >
                     <label
-                      class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                       for="channel_display_modeFormatA"
                     >
                       <input
-                        class="_radio__input_11lrl_13"
+                        class="_radio__input_1hdqa_14"
                         id="channel_display_modeFormatA"
                         name="channel_display_modeFormat"
                         type="radio"
                       />
                       <span
-                        class="_radio__circle_11lrl_33"
+                        class="_radio__circle_1hdqa_33"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_11lrl_59"
+                          class="_radio__dot_1hdqa_59"
                         />
                       </span>
                       <span
-                        class="_radio__label_11lrl_116"
+                        class="_radio__label_1hdqa_116"
                       >
                         Full width
                       </span>
                     </label>
                     <label
-                      class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                       for="channel_display_modeFormatB"
                     >
                       <input
-                        class="_radio__input_11lrl_13"
+                        class="_radio__input_1hdqa_14"
                         id="channel_display_modeFormatB"
                         name="channel_display_modeFormat"
                         type="radio"
                       />
                       <span
-                        class="_radio__circle_11lrl_33"
+                        class="_radio__circle_1hdqa_33"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_11lrl_59"
+                          class="_radio__dot_1hdqa_59"
                         />
                       </span>
                       <span
-                        class="_radio__label_11lrl_116"
+                        class="_radio__label_1hdqa_116"
                       >
                         Fixed width, centered
                       </span>
@@ -1007,49 +1007,49 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                     class="settings-radio-group"
                   >
                     <label
-                      class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                       for="click_to_replyFormatA"
                     >
                       <input
-                        class="_radio__input_11lrl_13"
+                        class="_radio__input_1hdqa_14"
                         id="click_to_replyFormatA"
                         name="click_to_replyFormat"
                         type="radio"
                       />
                       <span
-                        class="_radio__circle_11lrl_33"
+                        class="_radio__circle_1hdqa_33"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_11lrl_59"
+                          class="_radio__dot_1hdqa_59"
                         />
                       </span>
                       <span
-                        class="_radio__label_11lrl_116"
+                        class="_radio__label_1hdqa_116"
                       >
                         On
                       </span>
                     </label>
                     <label
-                      class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                       for="click_to_replyFormatB"
                     >
                       <input
-                        class="_radio__input_11lrl_13"
+                        class="_radio__input_1hdqa_14"
                         id="click_to_replyFormatB"
                         name="click_to_replyFormat"
                         type="radio"
                       />
                       <span
-                        class="_radio__circle_11lrl_33"
+                        class="_radio__circle_1hdqa_33"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_11lrl_59"
+                          class="_radio__dot_1hdqa_59"
                         />
                       </span>
                       <span
-                        class="_radio__label_11lrl_116"
+                        class="_radio__label_1hdqa_116"
                       >
                         Off
                       </span>
@@ -1369,49 +1369,49 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                     class="settings-radio-group"
                   >
                     <label
-                      class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                       for="clockFormatA"
                     >
                       <input
-                        class="_radio__input_11lrl_13"
+                        class="_radio__input_1hdqa_14"
                         id="clockFormatA"
                         name="clockFormat"
                         type="radio"
                       />
                       <span
-                        class="_radio__circle_11lrl_33"
+                        class="_radio__circle_1hdqa_33"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_11lrl_59"
+                          class="_radio__dot_1hdqa_59"
                         />
                       </span>
                       <span
-                        class="_radio__label_11lrl_116"
+                        class="_radio__label_1hdqa_116"
                       >
                         12-hour clock (example: 4:00 PM)
                       </span>
                     </label>
                     <label
-                      class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                       for="clockFormatB"
                     >
                       <input
-                        class="_radio__input_11lrl_13"
+                        class="_radio__input_1hdqa_14"
                         id="clockFormatB"
                         name="clockFormat"
                         type="radio"
                       />
                       <span
-                        class="_radio__circle_11lrl_33"
+                        class="_radio__circle_1hdqa_33"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_11lrl_59"
+                          class="_radio__dot_1hdqa_59"
                         />
                       </span>
                       <span
-                        class="_radio__label_11lrl_116"
+                        class="_radio__label_1hdqa_116"
                       >
                         24-hour clock (example: 16:00)
                       </span>
@@ -2183,49 +2183,49 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                     class="settings-radio-group"
                   >
                     <label
-                      class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                       for="collapseFormatA"
                     >
                       <input
-                        class="_radio__input_11lrl_13"
+                        class="_radio__input_1hdqa_14"
                         id="collapseFormatA"
                         name="collapseFormat"
                         type="radio"
                       />
                       <span
-                        class="_radio__circle_11lrl_33"
+                        class="_radio__circle_1hdqa_33"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_11lrl_59"
+                          class="_radio__dot_1hdqa_59"
                         />
                       </span>
                       <span
-                        class="_radio__label_11lrl_116"
+                        class="_radio__label_1hdqa_116"
                       >
                         Expanded
                       </span>
                     </label>
                     <label
-                      class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                       for="collapseFormatB"
                     >
                       <input
-                        class="_radio__input_11lrl_13"
+                        class="_radio__input_1hdqa_14"
                         id="collapseFormatB"
                         name="collapseFormat"
                         type="radio"
                       />
                       <span
-                        class="_radio__circle_11lrl_33"
+                        class="_radio__circle_1hdqa_33"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_11lrl_59"
+                          class="_radio__dot_1hdqa_59"
                         />
                       </span>
                       <span
-                        class="_radio__label_11lrl_116"
+                        class="_radio__label_1hdqa_116"
                       >
                         Collapsed
                       </span>
@@ -3795,49 +3795,49 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                     class="settings-radio-group"
                   >
                     <label
-                      class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                       for="linkpreviewFormatA"
                     >
                       <input
-                        class="_radio__input_11lrl_13"
+                        class="_radio__input_1hdqa_14"
                         id="linkpreviewFormatA"
                         name="linkpreviewFormat"
                         type="radio"
                       />
                       <span
-                        class="_radio__circle_11lrl_33"
+                        class="_radio__circle_1hdqa_33"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_11lrl_59"
+                          class="_radio__dot_1hdqa_59"
                         />
                       </span>
                       <span
-                        class="_radio__label_11lrl_116"
+                        class="_radio__label_1hdqa_116"
                       >
                         On
                       </span>
                     </label>
                     <label
-                      class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                       for="linkpreviewFormatB"
                     >
                       <input
-                        class="_radio__input_11lrl_13"
+                        class="_radio__input_1hdqa_14"
                         id="linkpreviewFormatB"
                         name="linkpreviewFormat"
                         type="radio"
                       />
                       <span
-                        class="_radio__circle_11lrl_33"
+                        class="_radio__circle_1hdqa_33"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_11lrl_59"
+                          class="_radio__dot_1hdqa_59"
                         />
                       </span>
                       <span
-                        class="_radio__label_11lrl_116"
+                        class="_radio__label_1hdqa_116"
                       >
                         Off
                       </span>
@@ -4494,25 +4494,25 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                     class="settings-radio-group"
                   >
                     <label
-                      class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                       for="message_displayFormatA"
                     >
                       <input
-                        class="_radio__input_11lrl_13"
+                        class="_radio__input_1hdqa_14"
                         id="message_displayFormatA"
                         name="message_displayFormat"
                         type="radio"
                       />
                       <span
-                        class="_radio__circle_11lrl_33"
+                        class="_radio__circle_1hdqa_33"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_11lrl_59"
+                          class="_radio__dot_1hdqa_59"
                         />
                       </span>
                       <span
-                        class="_radio__label_11lrl_116"
+                        class="_radio__label_1hdqa_116"
                       >
                         Standard
                         : 
@@ -4524,25 +4524,25 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                       </span>
                     </label>
                     <label
-                      class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                       for="message_displayFormatB"
                     >
                       <input
-                        class="_radio__input_11lrl_13"
+                        class="_radio__input_1hdqa_14"
                         id="message_displayFormatB"
                         name="message_displayFormat"
                         type="radio"
                       />
                       <span
-                        class="_radio__circle_11lrl_33"
+                        class="_radio__circle_1hdqa_33"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_11lrl_59"
+                          class="_radio__dot_1hdqa_59"
                         />
                       </span>
                       <span
-                        class="_radio__label_11lrl_116"
+                        class="_radio__label_1hdqa_116"
                       >
                         Compact
                         : 

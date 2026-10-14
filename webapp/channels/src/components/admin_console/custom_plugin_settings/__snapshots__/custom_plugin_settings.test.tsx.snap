@@ -98,59 +98,63 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 <div
                   class="col-sm-8"
                 >
-                  <label
-                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
-                    for="settingbtrue"
+                  <div
+                    class="BooleanRadioGroup-gkBvtd joVEQU"
                   >
-                    <input
-                      checked=""
-                      class="_radio__input_11lrl_13"
-                      data-testid="settingbtrue"
-                      id="settingbtrue"
-                      name="settingb"
-                      type="radio"
-                      value="true"
-                    />
-                    <span
-                      class="_radio__circle_11lrl_33"
+                    <label
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                      for="settingbtrue"
                     >
-                      <span
-                        aria-hidden="true"
-                        class="_radio__dot_11lrl_59"
+                      <input
+                        checked=""
+                        class="_radio__input_1hdqa_14"
+                        data-testid="settingbtrue"
+                        id="settingbtrue"
+                        name="settingb"
+                        type="radio"
+                        value="true"
                       />
-                    </span>
-                    <span
-                      class="_radio__label_11lrl_116"
-                    >
-                      True
-                    </span>
-                  </label>
-                  <label
-                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
-                    for="settingbfalse"
-                  >
-                    <input
-                      class="_radio__input_11lrl_13"
-                      data-testid="settingbfalse"
-                      id="settingbfalse"
-                      name="settingb"
-                      type="radio"
-                      value="false"
-                    />
-                    <span
-                      class="_radio__circle_11lrl_33"
-                    >
                       <span
-                        aria-hidden="true"
-                        class="_radio__dot_11lrl_59"
-                      />
-                    </span>
-                    <span
-                      class="_radio__label_11lrl_116"
+                        class="_radio__circle_1hdqa_33"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_1hdqa_59"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_1hdqa_116"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                      for="settingbfalse"
                     >
-                      False
-                    </span>
-                  </label>
+                      <input
+                        class="_radio__input_1hdqa_14"
+                        data-testid="settingbfalse"
+                        id="settingbfalse"
+                        name="settingb"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_1hdqa_33"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_1hdqa_59"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_1hdqa_116"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="settingbhelp-text"
@@ -219,26 +223,26 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   class="col-sm-8"
                 >
                   <label
-                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 RadioSetting__radio"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio"
                     for="_r_b_"
                   >
                     <input
-                      class="_radio__input_11lrl_13"
+                      class="_radio__input_1hdqa_14"
                       id="_r_b_"
                       name="settingd"
                       type="radio"
                       value="option1"
                     />
                     <span
-                      class="_radio__circle_11lrl_33"
+                      class="_radio__circle_1hdqa_33"
                     >
                       <span
                         aria-hidden="true"
-                        class="_radio__dot_11lrl_59"
+                        class="_radio__dot_1hdqa_59"
                       />
                     </span>
                     <span
-                      class="_radio__label_11lrl_116"
+                      class="_radio__label_1hdqa_116"
                     >
                       <span
                         class="RadioSetting__text"
@@ -248,27 +252,27 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     </span>
                   </label>
                   <label
-                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 RadioSetting__radio"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio"
                     for="_r_c_"
                   >
                     <input
                       checked=""
-                      class="_radio__input_11lrl_13"
+                      class="_radio__input_1hdqa_14"
                       id="_r_c_"
                       name="settingd"
                       type="radio"
                       value="option2"
                     />
                     <span
-                      class="_radio__circle_11lrl_33"
+                      class="_radio__circle_1hdqa_33"
                     >
                       <span
                         aria-hidden="true"
-                        class="_radio__dot_11lrl_59"
+                        class="_radio__dot_1hdqa_59"
                       />
                     </span>
                     <span
-                      class="_radio__label_11lrl_116"
+                      class="_radio__label_1hdqa_116"
                     >
                       <span
                         class="RadioSetting__text"
@@ -278,26 +282,26 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     </span>
                   </label>
                   <label
-                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 RadioSetting__radio"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio"
                     for="_r_d_"
                   >
                     <input
-                      class="_radio__input_11lrl_13"
+                      class="_radio__input_1hdqa_14"
                       id="_r_d_"
                       name="settingd"
                       type="radio"
                       value="option3"
                     />
                     <span
-                      class="_radio__circle_11lrl_33"
+                      class="_radio__circle_1hdqa_33"
                     >
                       <span
                         aria-hidden="true"
-                        class="_radio__dot_11lrl_59"
+                        class="_radio__dot_1hdqa_59"
                       />
                     </span>
                     <span
-                      class="_radio__label_11lrl_116"
+                      class="_radio__label_1hdqa_116"
                     >
                       <span
                         class="RadioSetting__text"
@@ -601,59 +605,63 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 <div
                   class="col-sm-8"
                 >
-                  <label
-                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
-                    for="PluginSettings.Plugins.testplugin.settingbtrue"
+                  <div
+                    class="BooleanRadioGroup-gkBvtd joVEQU"
                   >
-                    <input
-                      class="_radio__input_11lrl_13"
-                      data-testid="PluginSettings.Plugins.testplugin.settingbtrue"
-                      id="PluginSettings.Plugins.testplugin.settingbtrue"
-                      name="PluginSettings.Plugins.testplugin.settingb"
-                      type="radio"
-                      value="true"
-                    />
-                    <span
-                      class="_radio__circle_11lrl_33"
+                    <label
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                      for="PluginSettings.Plugins.testplugin.settingbtrue"
                     >
-                      <span
-                        aria-hidden="true"
-                        class="_radio__dot_11lrl_59"
+                      <input
+                        class="_radio__input_1hdqa_14"
+                        data-testid="PluginSettings.Plugins.testplugin.settingbtrue"
+                        id="PluginSettings.Plugins.testplugin.settingbtrue"
+                        name="PluginSettings.Plugins.testplugin.settingb"
+                        type="radio"
+                        value="true"
                       />
-                    </span>
-                    <span
-                      class="_radio__label_11lrl_116"
-                    >
-                      True
-                    </span>
-                  </label>
-                  <label
-                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
-                    for="PluginSettings.Plugins.testplugin.settingbfalse"
-                  >
-                    <input
-                      checked=""
-                      class="_radio__input_11lrl_13"
-                      data-testid="PluginSettings.Plugins.testplugin.settingbfalse"
-                      id="PluginSettings.Plugins.testplugin.settingbfalse"
-                      name="PluginSettings.Plugins.testplugin.settingb"
-                      type="radio"
-                      value="false"
-                    />
-                    <span
-                      class="_radio__circle_11lrl_33"
-                    >
                       <span
-                        aria-hidden="true"
-                        class="_radio__dot_11lrl_59"
-                      />
-                    </span>
-                    <span
-                      class="_radio__label_11lrl_116"
+                        class="_radio__circle_1hdqa_33"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_1hdqa_59"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_1hdqa_116"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                      for="PluginSettings.Plugins.testplugin.settingbfalse"
                     >
-                      False
-                    </span>
-                  </label>
+                      <input
+                        checked=""
+                        class="_radio__input_1hdqa_14"
+                        data-testid="PluginSettings.Plugins.testplugin.settingbfalse"
+                        id="PluginSettings.Plugins.testplugin.settingbfalse"
+                        name="PluginSettings.Plugins.testplugin.settingb"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_1hdqa_33"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_1hdqa_59"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_1hdqa_116"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="PluginSettings.Plugins.testplugin.settingbhelp-text"
@@ -722,27 +730,27 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   class="col-sm-8"
                 >
                   <label
-                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 RadioSetting__radio"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio"
                     for="_r_2_"
                   >
                     <input
                       checked=""
-                      class="_radio__input_11lrl_13"
+                      class="_radio__input_1hdqa_14"
                       id="_r_2_"
                       name="PluginSettings.Plugins.testplugin.settingd"
                       type="radio"
                       value="option1"
                     />
                     <span
-                      class="_radio__circle_11lrl_33"
+                      class="_radio__circle_1hdqa_33"
                     >
                       <span
                         aria-hidden="true"
-                        class="_radio__dot_11lrl_59"
+                        class="_radio__dot_1hdqa_59"
                       />
                     </span>
                     <span
-                      class="_radio__label_11lrl_116"
+                      class="_radio__label_1hdqa_116"
                     >
                       <span
                         class="RadioSetting__text"
@@ -752,26 +760,26 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     </span>
                   </label>
                   <label
-                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 RadioSetting__radio"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio"
                     for="_r_3_"
                   >
                     <input
-                      class="_radio__input_11lrl_13"
+                      class="_radio__input_1hdqa_14"
                       id="_r_3_"
                       name="PluginSettings.Plugins.testplugin.settingd"
                       type="radio"
                       value="option2"
                     />
                     <span
-                      class="_radio__circle_11lrl_33"
+                      class="_radio__circle_1hdqa_33"
                     >
                       <span
                         aria-hidden="true"
-                        class="_radio__dot_11lrl_59"
+                        class="_radio__dot_1hdqa_59"
                       />
                     </span>
                     <span
-                      class="_radio__label_11lrl_116"
+                      class="_radio__label_1hdqa_116"
                     >
                       <span
                         class="RadioSetting__text"
@@ -781,26 +789,26 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     </span>
                   </label>
                   <label
-                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 RadioSetting__radio"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio"
                     for="_r_4_"
                   >
                     <input
-                      class="_radio__input_11lrl_13"
+                      class="_radio__input_1hdqa_14"
                       id="_r_4_"
                       name="PluginSettings.Plugins.testplugin.settingd"
                       type="radio"
                       value="option3"
                     />
                     <span
-                      class="_radio__circle_11lrl_33"
+                      class="_radio__circle_1hdqa_33"
                     >
                       <span
                         aria-hidden="true"
-                        class="_radio__dot_11lrl_59"
+                        class="_radio__dot_1hdqa_59"
                       />
                     </span>
                     <span
-                      class="_radio__label_11lrl_116"
+                      class="_radio__label_1hdqa_116"
                     >
                       <span
                         class="RadioSetting__text"
