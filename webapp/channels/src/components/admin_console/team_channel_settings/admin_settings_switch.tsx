@@ -21,6 +21,10 @@ type Props = {
  * Admin Console settings row: Compass Switch with primary + secondary labels,
  * optional footer, and the legacy section separator between rows.
  *
+ * Uses `size="medium"` + `semiBold` to match Channel Settings rows. The old
+ * Toggle adapter defaulted to `btn-lg` → Compass `large` (16px label), which
+ * made short state labels like Public/Private look oversized in this panel.
+ *
  * Preserves both `data-testid={id}` (wrapper, for Cypress) and
  * `data-testid={`${id}-button`}` (on the switch input, for unit tests).
  */
