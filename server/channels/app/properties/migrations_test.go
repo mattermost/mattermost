@@ -1366,7 +1366,12 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 		assert.Equal(t, model.PermissionLevelAdmin, otherField.Permissions.Restrictions.Field.Write)
 		assert.Equal(t, model.PermissionLevelMember, otherField.Permissions.Restrictions.Value.Write)
 		assert.Equal(t, model.PermissionLevelMember, otherField.Permissions.Restrictions.Option.Write)
-		assert.Empty(t, otherField.Permissions.Grants)
+		// Neither the source plugin nor the protected attr becomes a grant here;
+		// only the wildcard every plugin already had access through.
+		assert.Equal(t, []model.Grant{{
+			Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"},
+			Allow:    []string{model.PropertyActionFieldWrite, model.PropertyActionOptionRead, model.PropertyActionOptionWrite, model.PropertyActionValueRead, model.PropertyActionValueWrite},
+		}}, otherField.Permissions.Grants)
 	})
 
 	t.Run("two fields linked to one template read that template once", func(t *testing.T) {

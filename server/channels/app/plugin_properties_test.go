@@ -1585,3 +1585,69 @@ func TestPluginProperties(t *testing.T) {
 		require.NoError(t, activationErrors[1])
 	})
 }
+
+// TestPluginAccessToBuiltinGroupOutsideAccessControl guards the access any
+// plugin had to a v2 group the access control hook never covered before it
+// covered every v2 group: reading a builtin field's options and writing a value.
+func TestPluginAccessToBuiltinGroupOutsideAccessControl(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"encoding/json"
+			"fmt"
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnActivate() error {
+			group, err := p.API.GetPropertyGroup(model.BoardsPropertyGroupName)
+			if err != nil {
+				return fmt.Errorf("failed to get the boards group: %w", err)
+			}
+			fields, err := p.API.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 50})
+			if err != nil {
+				return fmt.Errorf("failed to search boards fields: %w", err)
+			}
+			var status, assignee *model.PropertyField
+			for _, f := range fields {
+				switch f.Name {
+				case model.BoardsPropertyFieldStatus:
+					status = f
+				case model.BoardsPropertyFieldAssignee:
+					assignee = f
+				}
+			}
+			if status == nil || assignee == nil {
+				return fmt.Errorf("boards fields not found among %d fields", len(fields))
+			}
+			if options, _ := status.Attrs[model.PropertyFieldAttributeOptions].([]any); len(options) == 0 {
+				return fmt.Errorf("status options were hidden from the plugin: %v", status.Attrs)
+			}
+			_, err = p.API.UpsertPropertyValue(&model.PropertyValue{
+				GroupID:    group.ID,
+				FieldID:    assignee.ID,
+				TargetType: model.PropertyValueTargetTypePost,
+				TargetID:   model.NewId(),
+				Value:      json.RawMessage("\"" + model.NewId() + "\""),
+			})
+			if err != nil {
+				return fmt.Errorf("failed to write an assignee value: %w", err)
+			}
+			return nil
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.Len(t, activationErrors, 1)
+	require.NoError(t, activationErrors[0])
+}
