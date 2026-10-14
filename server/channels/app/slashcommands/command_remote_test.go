@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
 func TestRemoteProviderDoStatus(t *testing.T) {
@@ -102,5 +103,57 @@ func TestRemoteProviderDoStatus(t *testing.T) {
 			require.Greater(t, idx, lastIdx, "expected %q to appear after the previous row", name)
 			lastIdx = idx
 		}
+	})
+}
+
+func TestRemoteProviderDoRemove(t *testing.T) {
+	th := setupForSharedChannels(t).initBasic(t)
+	th.addPermissionToRole(t, model.PermissionManageSecureConnections.Id, th.BasicUser.Roles)
+
+	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		RemoteId:  model.NewId(),
+		Name:      "remote-" + model.NewId(),
+		SiteURL:   "https://" + model.NewId() + ".example.com",
+		Token:     model.NewId(),
+		CreatorId: th.BasicUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	T := i18n.GetUserTranslations("en")
+	run := func(command string) string {
+		resp := (&RemoteProvider{}).DoCommand(th.App, th.Context, &model.CommandArgs{
+			T:         T,
+			UserId:    th.BasicUser.Id,
+			TeamId:    th.BasicTeam.Id,
+			ChannelId: th.BasicChannel.Id,
+			Command:   command,
+		}, "")
+		require.NotNil(t, resp)
+		return resp.Text
+	}
+	missingConnectionID := T("api.command_remote.missing_empty", map[string]any{"Arg": "connectionID"})
+
+	for name, command := range map[string]string{
+		"flag omitted":           "/secure-connection remove",
+		"flag without value":     "/secure-connection remove --connectionID",
+		"flag with empty quotes": `/secure-connection remove --connectionID ""`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, missingConnectionID, run(command))
+
+			stored, appErr := th.App.GetRemoteCluster(rc.RemoteId, true)
+			require.Nil(t, appErr)
+			require.Zero(t, stored.DeleteAt, "an invalid remove command must not delete any connection")
+		})
+	}
+
+	t.Run("valid connectionID removes the connection", func(t *testing.T) {
+		output := run("/secure-connection remove --connectionID " + rc.RemoteId)
+		require.Contains(t, output, rc.RemoteId)
+		require.Contains(t, output, T("api.command_remote.cluster_removed.result_removed"))
+
+		stored, appErr := th.App.GetRemoteCluster(rc.RemoteId, true)
+		require.Nil(t, appErr)
+		require.NotZero(t, stored.DeleteAt)
 	})
 }
