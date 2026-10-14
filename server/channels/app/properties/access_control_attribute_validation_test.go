@@ -1532,8 +1532,10 @@ func TestAccessControlAttributeValidationHookManagedAuthorization(t *testing.T) 
 		// Should succeed because the hook doesn't apply to this group
 		created, createErr := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, createErr)
-		// PermissionValues should NOT be set by the hook for unmanaged groups
-		assert.Nil(t, created.PermissionValues)
+		// The hook didn't pin PermissionValues to sysadmin for this group, so the
+		// unset column converted to value.write none, which is what is stored.
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelNone, *created.PermissionValues)
 	})
 
 	t.Run("empty caller ID is rejected (default-deny for unidentified callers)", func(t *testing.T) {
