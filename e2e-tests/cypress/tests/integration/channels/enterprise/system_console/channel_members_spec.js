@@ -49,9 +49,8 @@ describe('Channel members test', () => {
         cy.get('#channelMembers').scrollIntoView().should('be.visible');
 
         // # Click the sync group members switch
-        cy.findByTestId('syncGroupSwitch').
+        cy.findByTestId('syncGroupSwitch-button').
             scrollIntoView().
-            findByRole('button').
             click({force: true});
 
         // * Assert that the members block is no longer visible

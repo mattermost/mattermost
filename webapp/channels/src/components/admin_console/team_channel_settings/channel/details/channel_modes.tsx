@@ -7,7 +7,7 @@ import {FormattedMessage, defineMessage} from 'react-intl';
 import ExternalLink from 'components/external_link';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
-import LineSwitch from '../../line_switch';
+import AdminSettingsSwitch from '../../admin_settings_switch';
 
 interface Props {
     isPublic: boolean;
@@ -24,24 +24,18 @@ interface Props {
 const SyncGroupsToggle = (props: Props): JSX.Element => {
     const {isPublic, isSynced, isDefault, onToggle, isDisabled, policyEnforced} = props;
     return (
-        <LineSwitch
+        <AdminSettingsSwitch
             id='syncGroupSwitch'
             disabled={isDisabled || isDefault || policyEnforced}
-            toggled={isSynced}
+            checked={isSynced}
             last={isSynced}
-            onToggle={() => {
+            onChange={() => {
                 if (isDefault) {
                     return;
                 }
                 onToggle(!isSynced, isPublic, policyEnforced);
             }}
-            title={(
-                <FormattedMessage
-                    id='admin.channel_settings.channel_details.syncGroupMembers'
-                    defaultMessage='Sync Group Members'
-                />
-            )}
-            subTitle={(
+            secondaryLabel={(
                 <FormattedMessage
                     id='admin.channel_settings.channel_details.syncGroupMembersDescr'
                     defaultMessage='When enabled, adding and removing users from groups will add or remove them from this channel. The only way of inviting members to this channel is by adding the groups they belong to. <link>Learn More</link>'
@@ -57,7 +51,12 @@ const SyncGroupsToggle = (props: Props): JSX.Element => {
                     }}
                 />
             )}
-        />
+        >
+            <FormattedMessage
+                id='admin.channel_settings.channel_details.syncGroupMembers'
+                defaultMessage='Sync Group Members'
+            />
+        </AdminSettingsSwitch>
     );
 };
 
@@ -67,24 +66,18 @@ const AllowAllToggle = (props: Props): JSX.Element | null => {
         return null;
     }
     return (
-        <LineSwitch
+        <AdminSettingsSwitch
             id='allow-all-toggle'
             disabled={isDisabled || isDefault || policyEnforced}
-            toggled={isPublic}
+            checked={isPublic}
             last={false}
-            onToggle={() => {
+            onChange={() => {
                 if (isDefault) {
                     return;
                 }
                 onToggle(isSynced, !isPublic, policyEnforced);
             }}
-            title={(
-                <FormattedMessage
-                    id='admin.channel_settings.channel_details.isPublic'
-                    defaultMessage='Public channel or private channel'
-                />
-            )}
-            subTitle={isDefault ? (
+            secondaryLabel={isDefault ? (
                 <FormattedMessage
                     id='admin.channel_settings.channel_details.isDefaultDescr'
                     defaultMessage='This default channel cannot be converted into a private channel.'
@@ -95,21 +88,20 @@ const AllowAllToggle = (props: Props): JSX.Element | null => {
                     defaultMessage='Select Public for a channel any user can find and join. {br}Select Private to require channel invitations to join. {br}Use this switch to change this channel from public to private or from private to public.'
                     values={{br: (<br/>)}}
                 />
-            )
-            }
-            onText={(
+            )}
+        >
+            {isPublic ? (
                 <FormattedMessage
                     id='channel_toggle_button.public'
                     defaultMessage='Public'
                 />
-            )}
-            offText={(
+            ) : (
                 <FormattedMessage
                     id='channel_toggle_button.private'
                     defaultMessage='Private'
                 />
             )}
-        />
+        </AdminSettingsSwitch>
     );
 };
 
@@ -119,23 +111,23 @@ const PolicyEnforceToggle = (props: Props): JSX.Element | null => {
         return null;
     }
 
-    let subTitle: JSX.Element;
+    let secondaryLabel: JSX.Element;
     if (isDefault) {
-        subTitle = (
+        secondaryLabel = (
             <FormattedMessage
                 id='admin.channel_settings.channel_details.default_channel_not_supported'
                 defaultMessage='The default channel cannot have a membership policy.'
             />
         );
     } else if (isPublic) {
-        subTitle = (
+        secondaryLabel = (
             <FormattedMessage
                 id='admin.channel_settings.channel_details.attribute_based_description_public'
                 defaultMessage='Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.'
             />
         );
     } else {
-        subTitle = (
+        secondaryLabel = (
             <FormattedMessage
                 id='admin.channel_settings.channel_details.attribute_based_description'
                 defaultMessage='Restrict which users can be invited to this channel based on their user attributes and values. Only people who match the specified conditions will be allowed to be selected and added to this channel.'
@@ -144,30 +136,29 @@ const PolicyEnforceToggle = (props: Props): JSX.Element | null => {
     }
 
     return (
-        <LineSwitch
+        <AdminSettingsSwitch
             id='policy-enforce-toggle'
 
             // Keep the visual disabled state aligned with the click guard in
-            // onToggle (which short-circuits when isDefault is true). Without
+            // onChange (which short-circuits when isDefault is true). Without
             // including isDefault here the toggle would look enabled but do
             // nothing on the default channel.
             disabled={isDisabled || isSynced || isDefault || !policyEnforcedToggleAvailable}
-            toggled={policyEnforced}
+            checked={policyEnforced}
             last={true}
-            onToggle={() => {
+            onChange={() => {
                 if (isDefault || !policyEnforcedToggleAvailable) {
                     return;
                 }
                 onToggle(isSynced, isPublic, !policyEnforced);
             }}
-            title={(
-                <FormattedMessage
-                    id='admin.channel_settings.channel_details.policy_enforced_title'
-                    defaultMessage='Enable attribute based channel access'
-                />
-            )}
-            subTitle={subTitle}
-        />
+            secondaryLabel={secondaryLabel}
+        >
+            <FormattedMessage
+                id='admin.channel_settings.channel_details.policy_enforced_title'
+                defaultMessage='Enable attribute based channel access'
+            />
+        </AdminSettingsSwitch>
     );
 };
 
@@ -216,4 +207,3 @@ export const ChannelModes = (props: Props): JSX.Element => {
         </AdminPanel>
     );
 };
-

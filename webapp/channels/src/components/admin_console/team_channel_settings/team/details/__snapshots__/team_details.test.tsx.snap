@@ -61,126 +61,104 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
             <div
               class="group-teams-and-channels--body"
             >
-              <div>
-                <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+              <div
+                data-testid="allowAllToggleSwitch"
+              >
+                <label
+                  class="_switch_1hx2q_2 _switch--size-medium_1hx2q_107 _switch--semi-bold_1hx2q_145 _switch--with-secondary_1hx2q_148"
+                  for="allowAllToggleSwitch"
                 >
-                  <label
-                    class="line-switch__label"
+                  <span
+                    class="_switch__labels_1hx2q_33"
                   >
-                    Anyone can join this team
-                  </label>
-                  <div
-                    class="line-switch__toggle"
-                    data-testid="allowAllToggleSwitch"
-                  >
-                    <label
-                      class="_switch_1hx2q_2 _switch--size-large_1hx2q_126"
-                      for="allowAllToggleSwitch"
+                    <span
+                      class="_switch__label_1hx2q_33"
                     >
-                      <span
-                        class="_switch__track_1hx2q_47"
-                      >
-                        <input
-                          aria-checked="false"
-                          class="_switch__input_1hx2q_12"
-                          data-testid="allowAllToggleSwitch-button"
-                          id="allowAllToggleSwitch"
-                          role="switch"
-                          tabindex="0"
-                          type="checkbox"
-                        />
-                        <span
-                          aria-hidden="true"
-                          class="_switch__knob_1hx2q_77"
-                        />
-                      </span>
-                    </label>
-                  </div>
-                </div>
-                <div
-                  class="row"
-                >
-                  <div
-                    class="col-sm-10"
-                  >
-                    <div
-                      class="help-text-small help-text-no-padding help-text-single-line"
+                      Anyone can join this team
+                    </span>
+                    <span
+                      class="_switch__secondary-label_1hx2q_16"
                     >
                       This team can be discovered allowing anyone with an account to join this team.
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="section-separator"
-                >
-                  <hr
-                    class="separator__hr"
-                  />
-                </div>
+                    </span>
+                  </span>
+                  <span
+                    class="_switch__track_1hx2q_47"
+                  >
+                    <input
+                      aria-checked="false"
+                      class="_switch__input_1hx2q_12"
+                      data-testid="allowAllToggleSwitch-button"
+                      id="allowAllToggleSwitch"
+                      role="switch"
+                      tabindex="0"
+                      type="checkbox"
+                    />
+                    <span
+                      aria-hidden="true"
+                      class="_switch__knob_1hx2q_77"
+                    />
+                  </span>
+                </label>
               </div>
-              <div>
-                <div
-                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
-                >
-                  <label
-                    class="line-switch__label"
-                  >
-                    Only specific email domains can join this team
-                  </label>
-                  <div
-                    class="line-switch__toggle"
-                    data-testid="allowedDomainsToggleSwitch"
-                  >
-                    <label
-                      class="_switch_1hx2q_2 _switch--size-large_1hx2q_126"
-                      for="allowedDomainsToggleSwitch"
-                    >
-                      <span
-                        class="_switch__track_1hx2q_47"
-                      >
-                        <input
-                          aria-checked="false"
-                          class="_switch__input_1hx2q_12"
-                          data-testid="allowedDomainsToggleSwitch-button"
-                          id="allowedDomainsToggleSwitch"
-                          role="switch"
-                          tabindex="0"
-                          type="checkbox"
-                        />
-                        <span
-                          aria-hidden="true"
-                          class="_switch__knob_1hx2q_77"
-                        />
-                      </span>
-                    </label>
-                  </div>
-                </div>
-                <div
-                  class="row"
-                >
-                  <div
-                    class="col-sm-10"
-                  >
-                    <div
-                      class="help-text-small help-text-no-padding help-text-single-line"
-                    >
-                      Users can only join the team if their email matches one of the specified domains
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="help-text csvDomains"
-                >
-                  Comma Separated Email Domain List
-                </div>
-                <input
-                  class="form-control"
-                  placeholder="mattermost.com"
-                  type="text"
-                  value=""
+              <div
+                class="section-separator"
+              >
+                <hr
+                  class="separator__hr"
                 />
               </div>
+              <div
+                data-testid="allowedDomainsToggleSwitch"
+              >
+                <label
+                  class="_switch_1hx2q_2 _switch--size-medium_1hx2q_107 _switch--semi-bold_1hx2q_145 _switch--with-secondary_1hx2q_148"
+                  for="allowedDomainsToggleSwitch"
+                >
+                  <span
+                    class="_switch__labels_1hx2q_33"
+                  >
+                    <span
+                      class="_switch__label_1hx2q_33"
+                    >
+                      Only specific email domains can join this team
+                    </span>
+                    <span
+                      class="_switch__secondary-label_1hx2q_16"
+                    >
+                      Users can only join the team if their email matches one of the specified domains
+                    </span>
+                  </span>
+                  <span
+                    class="_switch__track_1hx2q_47"
+                  >
+                    <input
+                      aria-checked="false"
+                      class="_switch__input_1hx2q_12"
+                      data-testid="allowedDomainsToggleSwitch-button"
+                      id="allowedDomainsToggleSwitch"
+                      role="switch"
+                      tabindex="0"
+                      type="checkbox"
+                    />
+                    <span
+                      aria-hidden="true"
+                      class="_switch__knob_1hx2q_77"
+                    />
+                  </span>
+                </label>
+              </div>
+              <div
+                class="help-text csvDomains"
+              >
+                Comma Separated Email Domain List
+              </div>
+              <input
+                class="form-control"
+                placeholder="mattermost.com"
+                type="text"
+                value=""
+              />
             </div>
           </div>
         </div>

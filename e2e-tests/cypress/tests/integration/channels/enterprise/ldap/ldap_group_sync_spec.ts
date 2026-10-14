@@ -131,9 +131,8 @@ context('ldap', () => {
             cy.wait(TIMEOUTS.TWO_SEC);
 
             // # Turn on sync group members
-            cy.findByTestId('syncGroupSwitch').
+            cy.findByTestId('syncGroupSwitch-button').
                 scrollIntoView().
-                findByRole('button').
                 click({force: true});
 
             // # Add board group to team
@@ -211,17 +210,20 @@ context('ldap', () => {
             cy.wait(TIMEOUTS.TWO_SEC);
 
             // Make it private and then cancel
-            cy.findByTestId('allow-all-toggle').click();
+            cy.findByTestId('allow-all-toggle-button').click({force: true});
             cy.get('#cancelButtonSettings').click();
             cy.get('#confirmModalButton').click();
             cy.visit(`/admin_console/user_management/channels/${testChannel.id}`);
             cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Channel Configuration');
 
             // * Ensure it still public
-            cy.findByTestId('allow-all-toggle').should('has.have.text', 'Public');
+            cy.findByTestId('allow-all-toggle').within(() => {
+                cy.findByText('Public').should('be.visible');
+            });
+            cy.findByTestId('allow-all-toggle-button').should('be.checked');
 
             // Make it private and save
-            cy.findByTestId('allow-all-toggle').click();
+            cy.findByTestId('allow-all-toggle-button').click({force: true});
             cy.get('#saveSetting').should('be.enabled').click();
             cy.get('#confirmModalButton').click();
 
@@ -230,7 +232,10 @@ context('ldap', () => {
             cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Channel Configuration');
 
             // * Ensure it is Private
-            cy.findByTestId('allow-all-toggle').should('has.have.text', 'Private');
+            cy.findByTestId('allow-all-toggle').within(() => {
+                cy.findByText('Private').should('be.visible');
+            });
+            cy.findByTestId('allow-all-toggle-button').should('not.be.checked');
 
             // # Go to team page to look for this channel in public channel directory
             cy.visit(`/${testTeam.name}`);
@@ -256,7 +261,7 @@ context('ldap', () => {
                 cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Channel Configuration');
 
                 // Make it public and then cancel
-                cy.findByTestId('allow-all-toggle').click();
+                cy.findByTestId('allow-all-toggle-button').click({force: true});
                 cy.get('#cancelButtonSettings').click();
                 cy.get('#confirmModalButton').click();
                 cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Mattermost Channels');
@@ -268,7 +273,10 @@ context('ldap', () => {
 
                 // Make it public and save
                 // * Ensure it still showing the channel as private
-                cy.findByTestId('allow-all-toggle').should('has.have.text', 'Private').click();
+                cy.findByTestId('allow-all-toggle').within(() => {
+                    cy.findByText('Private').should('be.visible');
+                });
+                cy.findByTestId('allow-all-toggle-button').should('not.be.checked').click({force: true});
                 cy.get('#saveSetting').should('be.enabled').click();
                 cy.get('#confirmModalButton').click();
                 cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Mattermost Channels');
@@ -277,8 +285,11 @@ context('ldap', () => {
                 cy.visit(`/admin_console/user_management/channels/${privateChannel.id}`);
                 cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Channel Configuration');
 
-                // * Ensure it still showing the channel as private
-                cy.findByTestId('allow-all-toggle').should('has.have.text', 'Public');
+                // * Ensure it is showing the channel as public
+                cy.findByTestId('allow-all-toggle').within(() => {
+                    cy.findByText('Public').should('be.visible');
+                });
+                cy.findByTestId('allow-all-toggle-button').should('be.checked');
 
                 // # Ensure the last message in the message says that it was converted to a public channel
                 cy.visit(`/${testTeam.name}/channels/${privateChannel.name}`);

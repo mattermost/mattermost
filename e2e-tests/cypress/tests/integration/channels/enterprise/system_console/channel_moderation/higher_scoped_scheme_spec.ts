@@ -182,27 +182,36 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         // # Visit Channel page and Search for the channel.
         // * Ensure message is disabled and manage members for members is disabled
         visitChannelConfigPage(testChannel);
-        cy.findByTestId('allow-all-toggle').should('has.have.text', 'Public');
+        cy.findByTestId('allow-all-toggle').within(() => {
+            cy.findByText('Public').should('be.visible');
+        });
+        cy.findByTestId('allow-all-toggle-button').should('be.checked');
         cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
             should('have.text', `Manage members for members are disabled in ${teamOverrideSchemeName} Team Scheme.`);
         cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('be.disabled');
 
         // # Turn channel into a private channel
-        cy.findByTestId('allow-all-toggle').click();
+        cy.findByTestId('allow-all-toggle-button').click({force: true});
         saveConfigForChannel(testChannel.display_name, true);
 
         // * Ensure it is private and no error message is shown and that manage members for members is not disabled
-        cy.findByTestId('allow-all-toggle').should('has.have.text', 'Private');
+        cy.findByTestId('allow-all-toggle').within(() => {
+            cy.findByText('Private').should('be.visible');
+        });
+        cy.findByTestId('allow-all-toggle-button').should('not.be.checked');
         cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
             should('not.have.text', `Manage members for members are disabled in ${teamOverrideSchemeName} Team Scheme.`);
         cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('not.be.disabled');
 
         // # Turn channel back to public channel
-        cy.findByTestId('allow-all-toggle').click();
+        cy.findByTestId('allow-all-toggle-button').click({force: true});
         saveConfigForChannel(testChannel.display_name, true);
 
         // * ensure it got reverted back to a Public channel
-        cy.findByTestId('allow-all-toggle').should('has.have.text', 'Public');
+        cy.findByTestId('allow-all-toggle').within(() => {
+            cy.findByText('Public').should('be.visible');
+        });
+        cy.findByTestId('allow-all-toggle-button').should('be.checked');
     });
 
     it('MM-T1579 Manage Members removed for Private Channels / Permissions inherited when channel converted from Public to Private', () => {
@@ -220,27 +229,36 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         visitChannelConfigPage(testChannel);
 
         // * Ensure that error message is not displayed and manage members for members is not disabled
-        cy.findByTestId('allow-all-toggle').should('has.have.text', 'Public');
+        cy.findByTestId('allow-all-toggle').within(() => {
+            cy.findByText('Public').should('be.visible');
+        });
+        cy.findByTestId('allow-all-toggle-button').should('be.checked');
         cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
             should('not.have.text', `Manage members for members are disabled in ${teamOverrideSchemeName} Team Scheme.`);
         cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('not.be.disabled');
 
         // # Turn it into a private channel
-        cy.findByTestId('allow-all-toggle').click();
+        cy.findByTestId('allow-all-toggle-button').click({force: true});
         saveConfigForChannel(testChannel.display_name, true);
 
         // * Ensure it is a private channel and that a message is disabled and also manage members for members is disabled
-        cy.findByTestId('allow-all-toggle').should('has.have.text', 'Private');
+        cy.findByTestId('allow-all-toggle').within(() => {
+            cy.findByText('Private').should('be.visible');
+        });
+        cy.findByTestId('allow-all-toggle-button').should('not.be.checked');
         cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
             should('have.text', `Manage members for members are disabled in ${teamOverrideSchemeName} Team Scheme.`);
         cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('be.disabled');
 
         // # Turn channel back to public channel
-        cy.findByTestId('allow-all-toggle').click();
+        cy.findByTestId('allow-all-toggle-button').click({force: true});
         saveConfigForChannel(testChannel.display_name, true);
 
         // * Ensure it got reset back to a public channel
-        cy.findByTestId('allow-all-toggle').should('has.have.text', 'Public');
+        cy.findByTestId('allow-all-toggle').within(() => {
+            cy.findByText('Public').should('be.visible');
+        });
+        cy.findByTestId('allow-all-toggle-button').should('be.checked');
     });
 
     it('MM-T1581 Check if user is allowed to Edit or Delete their own posts on a Read-Only channel', () => {
