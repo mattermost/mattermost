@@ -45,6 +45,13 @@ export type AppsFormProps = {
     channelId?: string;
     timezone?: string;
     isEmbedded?: boolean;
+
+    // When this changes, the form is re-fetched from its source with the current values.
+    refreshNonce?: number;
+
+    // Hides the modal (and its backdrop) without unmounting it, e.g. while a child
+    // dialog is open on top, so dialogs don't visually stack and state is kept.
+    hidden?: boolean;
     onExited: () => void;
     onHide?: () => void;
     actions: {
@@ -53,6 +60,7 @@ export type AppsFormProps = {
         }) => Promise<DoAppCallResult<FormResponseData>>;
         performLookupCall: (field: AppField, values: AppFormValues, userInput: string) => Promise<DoAppCallResult<AppLookupResponse>>;
         refreshOnSelect: (field: AppField, values: AppFormValues) => Promise<DoAppCallResult<FormResponseData>>;
+        refreshForm?: (values: AppFormValues) => Promise<DoAppCallResult<FormResponseData>>;
     };
 };
 
@@ -273,6 +281,35 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
     return values;
 };
 
+// Returns the value the user entered for a field, adapted to the refreshed version of
+// that field, or undefined when it no longer fits: the field changed type, or the
+// options the user picked were removed.
+const keepUserValue = (field: AppField, previousField: AppField | undefined, value: AppFormValue): AppFormValue | undefined => {
+    if (previousField && previousField.type !== field.type) {
+        return undefined;
+    }
+
+    const optionValues = new Set((field.options || []).map((option) => option.value));
+    const hasOption = (v: string | AppSelectOption) => optionValues.has(typeof v === 'string' ? v : v.value);
+
+    switch (field.type) {
+    case AppFieldTypes.STATIC_SELECT:
+    case AppFieldTypes.RADIO:
+    case AppFieldTypes.CHECKBOX_GROUP:
+        if (Array.isArray(value)) {
+            return (value as Array<string | AppSelectOption>).filter(hasOption) as AppFormValue;
+        }
+        if (typeof value === 'string' || (value && typeof value === 'object')) {
+            return hasOption(value) ? value : undefined;
+        }
+        return value;
+    default:
+        return value;
+    }
+};
+
+const hiddenStyle: React.CSSProperties = {display: 'none'};
+
 export class AppsForm extends React.PureComponent<Props, State> {
     // Cache sanitized fields to preserve object identity across renders.
     // Without this, createSanitizedField() returns a new object every render,
@@ -280,6 +317,13 @@ export class AppsForm extends React.PureComponent<Props, State> {
     // which re-triggers dynamic select lookups on every keystroke in any field.
     private sanitizedFieldCache = new Map<AppField, AppField>();
     private flattenedFields: AppField[];
+
+    // Latest value the user entered for each field, re-applied after refreshForm so
+    // a refreshed form keeps user input (including edits made while the refresh was
+    // in flight) but still picks up new server values for fields the user never touched.
+    private userValues: AppFormValues = {};
+    private refreshSeq = 0;
+    private unmounted = false;
 
     constructor(props: Props) {
         super(props);
@@ -323,7 +367,72 @@ export class AppsForm extends React.PureComponent<Props, State> {
             this.sanitizedFieldCache.clear();
             this.flattenedFields = flattenFields(this.props.form.fields);
         }
+
+        if (this.props.refreshNonce && prevProps.refreshNonce !== this.props.refreshNonce) {
+            this.refreshForm();
+        }
     }
+
+    componentWillUnmount() {
+        this.unmounted = true;
+    }
+
+    // Element ids are left off while this dialog is hidden under a child dialog, so ids
+    // such as appsModalLabel (used by aria-labelledby) resolve to the visible dialog.
+    elementId = (id: string) => (this.props.hidden ? undefined : id);
+
+    refreshForm = async () => {
+        if (!this.props.actions.refreshForm) {
+            return;
+        }
+
+        const seq = ++this.refreshSeq;
+        const isCurrent = () => !this.unmounted && seq === this.refreshSeq;
+
+        // The container may swap in the refreshed form before this resolves, so keep the
+        // current fields to compare against.
+        const previousFields = new Map(this.flattenedFields.map((field) => [field.name, field]));
+
+        this.setState({loading: true, formError: null});
+        let res: DoAppCallResult<FormResponseData>;
+        try {
+            res = await this.props.actions.refreshForm(this.state.values);
+        } catch (error) {
+            if (isCurrent()) {
+                this.setState({loading: false, formError: error instanceof Error ? error.message : String(error)});
+            }
+            return;
+        }
+
+        // A newer refresh was started, or the dialog closed while this one was in flight.
+        if (!isCurrent()) {
+            return;
+        }
+        this.setState({loading: false});
+
+        // The refreshed form resets fields to their server values; re-apply what the
+        // user entered for fields that still exist. Setting form here too keeps
+        // getDerivedStateFromProps from re-applying defaults over these values.
+        const refreshedForm = res.data?.type === AppCallResponseTypes.FORM ? res.data.form : undefined;
+        if (refreshedForm) {
+            const values = initFormValues(refreshedForm, this.props.timezone);
+            flattenFields(refreshedForm.fields).forEach((field) => {
+                if (!(field.name in this.userValues) || field.type === AppFieldTypes.ACTION_BUTTON) {
+                    return;
+                }
+                const kept = keepUserValue(field, previousFields.get(field.name), this.userValues[field.name]);
+                if (kept !== undefined) {
+                    values[field.name] = kept;
+                }
+            });
+            this.setState({form: refreshedForm, values});
+        }
+
+        if (res.error) {
+            const elements = fieldsAsElements(this.flattenedFields);
+            this.updateErrors(elements, res.error.data?.errors, res.error.text);
+        }
+    };
 
     updateErrors = (elements: DialogElement[], fieldErrors?: {[x: string]: string}, formError?: string): boolean => {
         let hasErrors = false;
@@ -371,8 +480,10 @@ export class AppsForm extends React.PureComponent<Props, State> {
             return;
         }
 
-        const values = this.state.values;
-        if (submitName && value) {
+        // Copy so the clicked button's value is sent with this submit only and isn't
+        // left in state for later submits or refreshes.
+        const values = {...this.state.values};
+        if (submitName && value !== undefined) {
             values[submitName] = value;
         }
 
@@ -411,7 +522,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         };
 
         let submitting = 'submit';
-        if (submitName && value) {
+        if (submitName && value !== undefined) {
             submitting = value;
         }
 
@@ -436,6 +547,10 @@ export class AppsForm extends React.PureComponent<Props, State> {
         switch (callResponse.type) {
         case AppCallResponseTypes.FORM:
             updatedForm = true;
+
+            // The submitted values belong to the previous form; don't re-apply them
+            // on a later refresh.
+            this.userValues = {};
             break;
         case AppCallResponseTypes.OK:
         case AppCallResponseTypes.NAVIGATE:
@@ -550,6 +665,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         const values = {...this.state.values, [name]: value};
+        this.userValues[name] = value;
 
         if (field.refresh) {
             this.setState({loading: true});
@@ -567,6 +683,9 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 const callResponse = res.data!;
                 switch (callResponse.type) {
                 case AppCallResponseTypes.FORM:
+                    // The refreshed form replaced the values the user entered (see
+                    // getDerivedStateFromProps); don't re-apply them on a later refresh.
+                    this.userValues = {};
                     return;
                 case AppCallResponseTypes.OK:
                 case AppCallResponseTypes.NAVIGATE:
@@ -629,15 +748,18 @@ export class AppsForm extends React.PureComponent<Props, State> {
 
         return (
             <Modal
-                id='appsModal'
+                id={this.elementId('appsModal')}
+                className='apps-form-modal'
                 dialogClassName={dialogClassName}
                 enforceFocus={!hasDateTimeFields}
                 show={this.state.show}
+                style={this.props.hidden ? hiddenStyle : undefined}
+                backdropStyle={this.props.hidden ? hiddenStyle : undefined}
                 onHide={this.onHide}
                 onExited={this.props.onExited}
                 backdrop='static'
                 role='none'
-                aria-labelledby='appsModalLabel'
+                aria-labelledby={this.elementId('appsModalLabel')}
             >
                 <form
                     onSubmit={this.handleSubmit}
@@ -649,7 +771,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     >
                         <Modal.Title
                             componentClass='h1'
-                            id='appsModalLabel'
+                            id={this.elementId('appsModalLabel')}
                         >
                             {this.renderHeader()}
                         </Modal.Title>
@@ -706,7 +828,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         if (icon) {
             iconComponent = (
                 <img
-                    id='appsModalIconUrl'
+                    id={this.elementId('appsModalIconUrl')}
                     alt={'modal title icon'}
                     className='more-modal__image'
                     style={{marginRight: '12px'}}
@@ -813,7 +935,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
 
         let submitButtons = [(
             <SpinnerButton
-                id='appsModalSubmit'
+                id={this.elementId('appsModalSubmit')}
                 key='submit'
                 type='submit'
                 autoFocus={flattenFields(fields).length === 0}
@@ -833,7 +955,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
             if (field) {
                 const buttons = field.options?.map((o) => (
                     <SpinnerButton
-                        id={'appsModalSubmit' + o.value}
+                        id={this.elementId('appsModalSubmit' + o.value)}
                         key={o.value}
                         type='submit'
                         spinning={this.state.submitting === o.value}
@@ -861,7 +983,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                         </div>
                     )}
                     <Button
-                        id='appsModalCancel'
+                        id={this.elementId('appsModalCancel')}
                         type='button'
                         emphasis='tertiary'
                         onClick={this.onHide}

@@ -17,6 +17,7 @@ import {
     convertAppFormValuesToDialogSubmission,
     convertDialogToAppForm,
     convertServerDialogResponseToAppForm,
+    DIALOG_REFRESH_PLACEHOLDER_PATH,
     extractPrimitiveValues,
     flattenAppFields,
     flattenDialogElements,
@@ -51,6 +52,9 @@ interface Props extends WrappedComponentProps {
 
     // Enhanced functionality
     sourceUrl?: string; // Optional URL for form refresh functionality
+    isTopDialog?: boolean; // False while a child dialog is stacked on top of this one
+    submitButtons?: string; // Name of a select element whose options render as submit buttons
+    refreshOnReturn?: boolean; // Re-fetch from sourceUrl when a child dialog closes and this one is on top again
     conversionOptions?: Partial<ConversionOptions>;
     timezone?: string;
 
@@ -60,6 +64,12 @@ interface Props extends WrappedComponentProps {
         lookupInteractiveDialog: (submission: DialogSubmission) => Promise<ActionResult<{items: Array<{text: string; value: string}>}>>;
     };
 }
+
+// refreshNonce is incremented each time a child dialog closes and this dialog is on
+// top again; AppsForm watches it to re-fetch the form from sourceUrl.
+type State = {
+    refreshNonce: number;
+};
 
 /**
  * Enhanced InteractiveDialogAdapter with comprehensive validation and type safety
@@ -95,15 +105,33 @@ interface Props extends WrappedComponentProps {
  * />
  * ```
  */
-class InteractiveDialogAdapter extends React.PureComponent<Props> {
+class InteractiveDialogAdapter extends React.PureComponent<Props, State> {
+    state: State = {refreshNonce: 0};
+
+    componentDidUpdate(prevProps: Props) {
+        if (prevProps.elements !== this.props.elements) {
+            this.currentDialogElements = flattenDialogElements(this.props.elements || []);
+            this.currentRefreshOnReturn = Boolean(this.props.refreshOnReturn && this.props.sourceUrl);
+        }
+        if (prevProps.isTopDialog === false && this.props.isTopDialog && this.currentRefreshOnReturn) {
+            this.setState((prev) => ({refreshNonce: prev.refreshNonce + 1}));
+        }
+    }
+
     // Default conversion context - enhanced mode disabled for backwards compatibility
     private readonly conversionContext: ConversionOptions = {
         enhanced: false, // Legacy mode: minimal validation, non-blocking errors
         ...this.props.conversionOptions,
     };
 
-    // Track current dialog elements for validation
-    private currentDialogElements: DialogElement[] | undefined;
+    // Track current dialog elements for validation. Set here and when the elements
+    // prop changes, not in render: render also runs when isTopDialog flips, and must
+    // not discard the elements of a form returned by a submit or refresh.
+    private currentDialogElements: DialogElement[] | undefined = flattenDialogElements(this.props.elements || []);
+
+    // Whether the form currently shown refreshes when a child dialog closes. Starts from
+    // the opened dialog and follows each form returned by a submit or refresh.
+    private currentRefreshOnReturn = Boolean(this.props.refreshOnReturn && this.props.sourceUrl);
 
     // Accumulate form values across multiform steps (client-side accumulation)
     private accumulatedValues: Record<string, any> = {};
@@ -150,8 +178,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     };
 
     private convertToAppForm = (): {form?: AppForm; error?: string} => {
-        const {elements, title, introductionText, iconUrl, submitLabel, sourceUrl, state} = this.props;
-        this.currentDialogElements = flattenDialogElements(elements || []);
+        const {elements, title, introductionText, iconUrl, submitLabel, sourceUrl, state, submitButtons} = this.props;
         const {form, errors} = convertDialogToAppForm(
             elements,
             title,
@@ -161,6 +188,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             sourceUrl || '',
             state || '',
             this.conversionContext,
+            submitButtons,
         );
 
         const {error} = this.handleValidationErrors(errors);
@@ -228,6 +256,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
      */
     private convertServerResponseToForm = (serverForm: any) => {
         const {form, errors} = convertServerDialogResponseToAppForm(serverForm, this.conversionContext);
+        this.currentRefreshOnReturn = Boolean(serverForm?.refresh_on_return && serverForm?.source_url);
 
         // Update current elements for reference, flattening collapsible children
         this.currentDialogElements = flattenAppFields(form.fields || []).map((field) => ({
@@ -533,8 +562,12 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
      */
     private refreshOnSelect = async (call: AppCallRequest = {} as AppCallRequest): Promise<DoAppCallResult<unknown>> => {
         try {
+            // The call's path is the current form's source_url, which differs from the
+            // opened dialog's once a submit or refresh returns a form with its own.
+            const sourceUrl = call.path && call.path !== DIALOG_REFRESH_PLACEHOLDER_PATH ? call.path : this.props.sourceUrl;
+
             // Check if we have a source URL for field refresh
-            if (!this.props.sourceUrl) {
+            if (!sourceUrl) {
                 this.logWarn('Field refresh requested but no sourceUrl provided', {
                     fieldName: call.selected_field,
                     suggestion: 'Add sourceUrl to dialog definition',
@@ -561,7 +594,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             }
 
             const refreshSubmission: DialogSubmission = {
-                url: this.props.sourceUrl,
+                url: sourceUrl,
                 callback_id: this.props.callbackId || '',
                 state: call.state || this.props.state || '',
                 submission: refreshPayload as {[x: string]: string}, // Send complete accumulated payload
@@ -602,7 +635,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             this.logError('Field refresh failed', {
                 error: error instanceof Error ? error.message : String(error),
                 fieldName: call?.selected_field || 'unknown',
-                sourceUrl: this.props.sourceUrl,
+                sourceUrl: call?.path || this.props.sourceUrl,
             });
             return {
                 error: {
@@ -703,6 +736,8 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 form={form}
                 appContext={context}
                 timezone={this.props.timezone}
+                refreshNonce={this.state.refreshNonce}
+                hidden={this.props.isTopDialog === false}
                 onExited={this.props.onExited || (() => {})}
                 onHide={this.cancelAdapter}
                 actions={{

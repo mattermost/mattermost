@@ -2423,6 +2423,281 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         });
     });
 
+    describe('stacked dialogs', () => {
+        const lastContainerProps = () => {
+            const calls = MockAppsFormContainer.mock.calls;
+            return calls[calls.length - 1][0];
+        };
+
+        const renderStacked = async (isTopDialog: boolean | undefined, sourceUrl = 'https://example.com/refresh', refreshOnReturn = true) => {
+            const utils = renderWithContext(
+                <InteractiveDialogAdapter
+                    {...baseProps}
+                    sourceUrl={sourceUrl}
+                    refreshOnReturn={refreshOnReturn}
+                    isTopDialog={isTopDialog}
+                />,
+            );
+            await waitFor(() => {
+                expect(utils.getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+            const rerenderWith = (next: boolean | undefined) => utils.rerender(
+                <InteractiveDialogAdapter
+                    {...baseProps}
+                    sourceUrl={sourceUrl}
+                    refreshOnReturn={refreshOnReturn}
+                    isTopDialog={next}
+                />,
+            );
+            return {rerenderWith};
+        };
+
+        test('bumps refreshNonce when the dialog becomes the top dialog again', async () => {
+            const {rerenderWith} = await renderStacked(false);
+            expect(lastContainerProps().refreshNonce).toBe(0);
+
+            rerenderWith(true);
+
+            await waitFor(() => {
+                expect(lastContainerProps().refreshNonce).toBe(1);
+            });
+        });
+
+        test('does not bump refreshNonce when isTopDialog stays true', async () => {
+            const {rerenderWith} = await renderStacked(true);
+
+            rerenderWith(true);
+
+            expect(lastContainerProps().refreshNonce).toBe(0);
+        });
+
+        test('does not bump refreshNonce when isTopDialog goes from undefined to true', async () => {
+            const {rerenderWith} = await renderStacked(undefined);
+
+            rerenderWith(true);
+
+            expect(lastContainerProps().refreshNonce).toBe(0);
+        });
+
+        test('does not bump refreshNonce when the dialog has no sourceUrl', async () => {
+            const {rerenderWith} = await renderStacked(false, '');
+
+            rerenderWith(true);
+
+            expect(lastContainerProps().refreshNonce).toBe(0);
+        });
+
+        test('does not bump refreshNonce when refreshOnReturn is not set', async () => {
+            const {rerenderWith} = await renderStacked(false, 'https://example.com/refresh', false);
+
+            rerenderWith(true);
+
+            expect(lastContainerProps().refreshNonce).toBe(0);
+        });
+
+        test('hides the form only when isTopDialog is explicitly false', async () => {
+            const {rerenderWith} = await renderStacked(false);
+            expect(lastContainerProps().hidden).toBe(true);
+
+            rerenderWith(true);
+            expect(lastContainerProps().hidden).toBe(false);
+
+            rerenderWith(undefined);
+            expect(lastContainerProps().hidden).toBe(false);
+        });
+
+        test('passes submitButtons through to the converted form', async () => {
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter
+                    {...baseProps}
+                    submitButtons='choice'
+                    elements={[{
+                        name: 'choice',
+                        type: 'select',
+                        display_name: 'Choice',
+                        optional: false,
+                        options: [{text: 'A', value: 'a'}],
+                    } as DialogElement]}
+                />,
+            );
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            expect(lastContainerProps().form.submit_buttons).toBe('choice');
+        });
+
+        test('keeps the elements of a multi-step form when a child dialog opens and closes', async () => {
+            const submitInteractiveDialog = jest.fn().
+                mockResolvedValueOnce({
+                    data: {
+                        type: 'form',
+                        form: {
+                            title: 'Step 2',
+                            elements: [{name: 'attachment', type: 'file', display_name: 'Attachment'}],
+                        },
+                    },
+                }).
+                mockResolvedValue({data: {}});
+            const props = {...baseProps, actions: {...baseProps.actions, submitInteractiveDialog}};
+            const utils = renderWithContext(
+                <InteractiveDialogAdapter
+                    {...props}
+                    isTopDialog={true}
+                />,
+            );
+            await waitFor(() => {
+                expect(utils.getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // # Step 1 submit returns step 2, which adds a file field
+            await lastContainerProps().actions.doAppSubmit({values: {}});
+
+            // # A child dialog opens and closes, re-rendering the adapter
+            utils.rerender(
+                <InteractiveDialogAdapter
+                    {...props}
+                    isTopDialog={false}
+                />,
+            );
+            utils.rerender(
+                <InteractiveDialogAdapter
+                    {...props}
+                    isTopDialog={true}
+                />,
+            );
+
+            // # Submit step 2 with an uploaded file
+            await lastContainerProps().actions.doAppSubmit({values: {attachment: 'file1'}});
+
+            // * The step 2 file field is still known, so its file ID is sent
+            expect(submitInteractiveDialog).toHaveBeenLastCalledWith(expect.objectContaining({file_ids: ['file1']}));
+        });
+
+        describe('refresh_on_return on a returned form', () => {
+            const stepTwo = (extra: Record<string, unknown>) => ({
+                data: {
+                    type: 'form',
+                    form: {title: 'Step 2', elements: [{name: 'note', type: 'text', display_name: 'Note'}], ...extra},
+                },
+            });
+
+            const submitThenReturnToTop = async (openedWith: {sourceUrl?: string; refreshOnReturn?: boolean}, response: ReturnType<typeof stepTwo>) => {
+                const submitInteractiveDialog = jest.fn().mockResolvedValue(response);
+                const props = {...baseProps, ...openedWith, actions: {...baseProps.actions, submitInteractiveDialog}};
+                const utils = renderWithContext(
+                    <InteractiveDialogAdapter
+                        {...props}
+                        isTopDialog={true}
+                    />,
+                );
+                await waitFor(() => {
+                    expect(utils.getByTestId('apps-form-container')).toBeInTheDocument();
+                });
+
+                // # The submit returns the next form
+                await lastContainerProps().actions.doAppSubmit({values: {}});
+
+                // # A child dialog opens and closes
+                utils.rerender(
+                    <InteractiveDialogAdapter
+                        {...props}
+                        isTopDialog={false}
+                    />,
+                );
+                utils.rerender(
+                    <InteractiveDialogAdapter
+                        {...props}
+                        isTopDialog={true}
+                    />,
+                );
+            };
+
+            test('a returned form can turn refresh_on_return on', async () => {
+                await submitThenReturnToTop({}, stepTwo({source_url: 'https://example.com/refresh', refresh_on_return: true}));
+
+                await waitFor(() => {
+                    expect(lastContainerProps().refreshNonce).toBe(1);
+                });
+            });
+
+            test('refreshes from the source_url of a returned form when the dialog opened without one', async () => {
+                const submitInteractiveDialog = jest.fn().
+                    mockResolvedValueOnce(stepTwo({source_url: 'https://example.com/step2', refresh_on_return: true})).
+                    mockResolvedValue({data: {type: 'form', form: {title: 'Step 2 refreshed', elements: []}}});
+                renderWithContext(
+                    <InteractiveDialogAdapter
+                        {...baseProps}
+                        isTopDialog={true}
+                        actions={{...baseProps.actions, submitInteractiveDialog}}
+                    />,
+                );
+                await waitFor(() => {
+                    expect(MockAppsFormContainer).toHaveBeenCalled();
+                });
+
+                // # Step 1 submit returns step 2 with its own source_url
+                const submitResult = await lastContainerProps().actions.doAppSubmit({values: {}});
+                const stepTwoForm = submitResult.data.form;
+                expect(stepTwoForm.source.path).toBe('https://example.com/step2');
+
+                // # The container refreshes step 2 from its source, as AppsFormContainer.refreshForm does
+                const refreshResult = await lastContainerProps().actions.doAppFetchForm({...stepTwoForm.source, values: {}});
+
+                // * The refresh goes to step 2's source_url and returns the refreshed form
+                expect(submitInteractiveDialog).toHaveBeenLastCalledWith(expect.objectContaining({
+                    url: 'https://example.com/step2',
+                    type: 'refresh',
+                }));
+                expect(refreshResult.data.form.title).toBe('Step 2 refreshed');
+            });
+
+            test('a returned form without refresh_on_return turns it off', async () => {
+                await submitThenReturnToTop(
+                    {sourceUrl: 'https://example.com/refresh', refreshOnReturn: true},
+                    stepTwo({source_url: 'https://example.com/refresh'}),
+                );
+
+                expect(lastContainerProps().refreshNonce).toBe(0);
+            });
+        });
+    });
+
+    describe('refresh request url', () => {
+        const renderRefresh = async (sourceUrl?: string) => {
+            const submitInteractiveDialog = jest.fn().mockResolvedValue({data: {}});
+            renderWithContext(
+                <InteractiveDialogAdapter
+                    {...baseProps}
+                    sourceUrl={sourceUrl}
+                    actions={{...baseProps.actions, submitInteractiveDialog}}
+                />,
+            );
+            await waitFor(() => {
+                expect(MockAppsFormContainer).toHaveBeenCalled();
+            });
+            const calls = MockAppsFormContainer.mock.calls;
+            return {submitInteractiveDialog, refresh: calls[calls.length - 1][0].actions.doAppFetchForm};
+        };
+
+        test('falls back to the dialog source_url for the placeholder path', async () => {
+            const {submitInteractiveDialog, refresh} = await renderRefresh('https://example.com/original');
+
+            await refresh({path: '/refresh', selected_field: 'region', values: {}});
+
+            expect(submitInteractiveDialog).toHaveBeenCalledWith(expect.objectContaining({url: 'https://example.com/original'}));
+        });
+
+        test('does not send a refresh when neither the call nor the dialog has a source_url', async () => {
+            const {submitInteractiveDialog, refresh} = await renderRefresh();
+
+            const result = await refresh({path: '/refresh', selected_field: 'region', values: {}});
+
+            expect(submitInteractiveDialog).not.toHaveBeenCalled();
+            expect(result).toEqual({data: {type: 'ok'}});
+        });
+    });
+
     // MM-70251 / ECHO-40: the dialog must submit against the channel its trigger was
     // created in, not whichever channel the user happens to be viewing.
     describe('dialog channel', () => {
