@@ -14560,7 +14560,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Modo do servidor web {{.Value}} inválido. Deve ser 'gzip', 'nogzip' ou 'disabled'."
+    "translation": "Modo do servidor web {{.Value}} inválido. Deve ser 'gzip', 'uncompressed' ou 'disabled'."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

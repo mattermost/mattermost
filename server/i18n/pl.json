@@ -14578,7 +14578,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Nieprawidłowy tryb serwera WWW {{.Value}}. Dozwolone wartości to 'gzip', 'nogzip' lub 'disabled'."
+    "translation": "Nieprawidłowy tryb serwera WWW {{.Value}}. Dozwolone wartości to 'gzip', 'uncompressed' lub 'disabled'."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",
