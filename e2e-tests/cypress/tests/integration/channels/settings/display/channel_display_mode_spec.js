@@ -14,13 +14,10 @@ describe('Settings > Display > Channel Display Mode', () => {
     before(() => {
         // # Login as new user, visit off-topic and post a message
         cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
+            cy.viewport(1500, 660);
             cy.visit(offTopicUrl);
             cy.postMessage('Test for channel display mode');
         });
-    });
-
-    beforeEach(() => {
-        cy.viewport(1500, 660);
     });
 
     it('should render in min setting view', () => {
@@ -46,11 +43,6 @@ describe('Settings > Display > Channel Display Mode', () => {
     });
 
     it('should render in max setting view', () => {
-        // # Re-open Display settings (viewport beforeEach can drop modal state)
-        cy.uiOpenSettingsModal('Display');
-        cy.get('#displayButton').should('be.visible').click();
-        cy.get('#channel_display_modeTitle').scrollIntoView();
-
         // # Click "Edit" to the right of "Channel Display"
         cy.get('#channel_display_modeEdit').click();
 
