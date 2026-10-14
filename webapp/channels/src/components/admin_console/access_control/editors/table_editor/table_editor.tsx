@@ -188,6 +188,14 @@ export interface TableEditorProps {
 
     // Callback to notify parent when masked state changes (for CEL editor integration)
     onMaskedStateChange?: (hasMasked: boolean) => void;
+
+    /** Names of native (built-in) user attributes to omit from the attribute
+     *  picker and from the Add-row default. Rows that already reference one
+     *  still render with its label, operators and values. */
+    hiddenPickerAttributeNames?: string[];
+
+    /** Replaces the default help text under the table. Rendered as Markdown. */
+    helpText?: string;
 }
 
 // Finds the first available (non-disabled) attribute from a list of user attributes.
@@ -378,6 +386,8 @@ function TableEditor({
     testButtonTooltip,
     testButtonLabel,
     onMaskedStateChange,
+    hiddenPickerAttributeNames,
+    helpText,
 }: TableEditorProps): JSX.Element {
     const {formatMessage} = useIntl();
 
@@ -408,6 +418,16 @@ function TableEditor({
         }
         return {userFields: uf, resourceAttributes: ra};
     }, [userAttributes]);
+
+    // Attributes the picker may offer. Rows on a hidden attribute still resolve
+    // against the full userFields (see fieldForRow).
+    const pickerFields = useMemo(() => {
+        if (!hiddenPickerAttributeNames?.length) {
+            return userFields;
+        }
+        const hidden = new Set(hiddenPickerAttributeNames);
+        return userFields.filter((f) => !(isNativeField(f) && hidden.has(f.name)));
+    }, [userFields, hiddenPickerAttributeNames]);
 
     // The field definition behind a row. Resolved by name AND namespace: a CPA
     // and a session attribute can share a name, so object_type disambiguates.
@@ -552,8 +572,8 @@ function TableEditor({
     }, [onChange, onValidate]);
 
     const findFirstAvailableAttribute = useCallback(() => {
-        return findFirstAvailableAttributeFromList(userFields, enableUserManagedAttributes);
-    }, [userFields, enableUserManagedAttributes]);
+        return findFirstAvailableAttributeFromList(pickerFields, enableUserManagedAttributes);
+    }, [pickerFields, enableUserManagedAttributes]);
 
     const addRow = useCallback(() => {
         if (userFields.length === 0) {
@@ -783,6 +803,7 @@ function TableEditor({
                                             currentAttribute={row.attribute}
                                             currentAttributeObjectType={row.attribute_object_type}
                                             availableAttributes={userFields}
+                                            selectableAttributes={pickerFields}
                                             disabled={cellDisabled}
                                             onChange={(attributeId) => updateRowAttribute(index, attributeId)}
                                             menuId={`attribute-selector-menu-${index}`}
@@ -854,7 +875,7 @@ function TableEditor({
                         >
                             <AddAttributeButton
                                 onClick={addRow}
-                                disabled={disabled || userFields.length === 0}
+                                disabled={disabled || pickerFields.length === 0}
                             />
                         </td>
                     </tr>
@@ -863,7 +884,7 @@ function TableEditor({
 
             <div className='table-editor__actions-row'>
                 <HelpText
-                    message={formatMessage({
+                    message={helpText ?? formatMessage({
                         id: 'admin.access_control.table_editor.help_text',
                         defaultMessage: 'Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (`&&`).',
                     })}
