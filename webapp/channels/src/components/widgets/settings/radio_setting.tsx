@@ -57,18 +57,16 @@ const RadioSetting = ({
             helpText={helpText}
             inputId={id}
         >
-            {
-                options.map(({value: option, text}) => {
-                    const radioClassName = classNames({
-                        'inline-choice-setting__radio--label-before': labelPosition === 'before',
-                    });
+            <div className='inline-choice-setting__options'>
+                {
+                    options.map(({value: option, text}) => {
+                        const radioClassName = classNames({
+                            'inline-choice-setting__radio--label-before': labelPosition === 'before',
+                        });
 
-                    return (
-                        <div
-                            className='radio'
-                            key={option}
-                        >
+                        return (
                             <Radio
+                                key={option}
                                 className={radioClassName}
                                 value={option}
                                 name={id}
@@ -78,10 +76,10 @@ const RadioSetting = ({
                             >
                                 <span className='inline-choice-setting__text'>{text}</span>
                             </Radio>
-                        </div>
-                    );
-                })
-            }
+                        );
+                    })
+                }
+            </div>
             {showClear && (
                 <Button
                     type='button'

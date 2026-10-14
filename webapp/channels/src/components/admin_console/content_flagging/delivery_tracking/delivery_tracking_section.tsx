@@ -72,7 +72,7 @@ export default function DeliveryTrackingSection({value, onChange, hasError = fal
 
                         <div className='setting-content-wrapper'>
                             <div className='setting-content'>
-                                <Label isDisabled={false}>
+                                <Label $isDisabled={false}>
                                     <input
                                         data-testid='deliveryTrackingEnable_true'
                                         name='deliveryTrackingEnable'
@@ -87,7 +87,7 @@ export default function DeliveryTrackingSection({value, onChange, hasError = fal
                                     />
                                 </Label>
 
-                                <Label isDisabled={false}>
+                                <Label $isDisabled={false}>
                                     <input
                                         data-testid='deliveryTrackingEnable_false'
                                         name='deliveryTrackingEnable'
@@ -123,7 +123,7 @@ export default function DeliveryTrackingSection({value, onChange, hasError = fal
 
                             <div className='setting-content-wrapper'>
                                 <div className='setting-content'>
-                                    <Label isDisabled={false}>
+                                    <Label $isDisabled={false}>
                                         <input
                                             data-testid='deliveryTrackingAllChannels_true'
                                             name='deliveryTrackingAllChannels'
@@ -138,7 +138,7 @@ export default function DeliveryTrackingSection({value, onChange, hasError = fal
                                         />
                                     </Label>
 
-                                    <Label isDisabled={false}>
+                                    <Label $isDisabled={false}>
                                         <input
                                             data-testid='deliveryTrackingAllChannels_false'
                                             name='deliveryTrackingAllChannels'

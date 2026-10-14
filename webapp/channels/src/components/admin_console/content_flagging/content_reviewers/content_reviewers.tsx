@@ -112,7 +112,7 @@ export default function ContentFlaggingContentReviewers({id, onChange, value, di
                         </div>
 
                         <div className='setting-content'>
-                            <Label isDisabled={disabled}>
+                            <Label $isDisabled={disabled}>
                                 <input
                                     data-testid='sameReviewersForAllTeams_true'
                                     id='sameReviewersForAllTeams_true'
@@ -128,7 +128,7 @@ export default function ContentFlaggingContentReviewers({id, onChange, value, di
                                 />
                             </Label>
 
-                            <Label isDisabled={disabled}>
+                            <Label $isDisabled={disabled}>
                                 <input
                                     data-testid='sameReviewersForAllTeams_false'
                                     id='sameReviewersForAllTeams_false'

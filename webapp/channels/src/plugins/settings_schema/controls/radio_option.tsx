@@ -27,7 +27,7 @@ const RadioOption = ({
     const onChange = useCallback(() => onSelected(option.value), [onSelected, option.value]);
 
     return (
-        <div className='radio'>
+        <div className='radio-option'>
             <Radio
                 name={name}
                 value={option.value}
@@ -36,7 +36,6 @@ const RadioOption = ({
             >
                 {option.text}
             </Radio>
-            <br/>
             {option.helpText && (
                 <Markdown
                     message={option.helpText}

@@ -11,9 +11,9 @@ import * as Utils from 'utils/utils';
 
 import SettingSet from './setting_set';
 
-export const Label = styled.label<{isDisabled: boolean}>`
+export const Label = styled.label<{$isDisabled: boolean}>`
     display: inline-flex;
-    opacity: ${({isDisabled}) => (isDisabled ? 0.5 : 1)};
+    opacity: ${({$isDisabled}) => ($isDisabled ? 0.5 : 1)};
     margin-top: 8px;
     margin-right: 24px;
     width: fit-content;
@@ -69,9 +69,9 @@ export const Label = styled.label<{isDisabled: boolean}>`
     }
 `;
 
-const BooleanRadioOption = styled(Radio)<{isDisabled: boolean}>`
+const BooleanRadioOption = styled(Radio)<{$isDisabled: boolean}>`
     display: inline-flex;
-    opacity: ${({isDisabled}) => (isDisabled ? 0.5 : 1)};
+    opacity: ${({$isDisabled}) => ($isDisabled ? 0.5 : 1)};
     margin-top: 8px;
     margin-right: 24px;
     width: fit-content;
@@ -144,7 +144,7 @@ const BooleanSetting = ({
             setByEnv={setByEnv}
         >
             <BooleanRadioOption
-                isDisabled={isDisabled}
+                $isDisabled={isDisabled}
                 data-testid={id + 'true'}
                 value='true'
                 id={Utils.createSafeId(id) + 'true'}
@@ -156,7 +156,7 @@ const BooleanSetting = ({
                 {trueText}
             </BooleanRadioOption>
             <BooleanRadioOption
-                isDisabled={isDisabled}
+                $isDisabled={isDisabled}
                 data-testid={id + 'false'}
                 value='false'
                 id={Utils.createSafeId(id) + 'false'}

@@ -306,29 +306,57 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="tracetrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="tracetrue"
                   id="tracetrue"
                   name="trace"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="tracefalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="tracefalse"
                   id="tracefalse"
                   name="trace"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -385,29 +413,57 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="disableDatabaseSearchtrue"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="disableDatabaseSearchtrue"
                   id="disableDatabaseSearchtrue"
                   name="disableDatabaseSearch"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="disableDatabaseSearchfalse"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="disableDatabaseSearchfalse"
                   id="disableDatabaseSearchfalse"
                   name="disableDatabaseSearch"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"

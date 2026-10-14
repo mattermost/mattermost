@@ -41,7 +41,7 @@ const RadioButtonGroup = ({
         }
         options.push(
             <div
-                className='radio'
+                className='radio-list__option'
                 key={val}
             >
                 <Radio
