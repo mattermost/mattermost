@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback, useMemo, type JSX} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, useRef, type JSX} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -13,6 +13,7 @@ import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
+import {Client4} from 'mattermost-redux/client';
 import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -30,14 +31,20 @@ import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActio
 import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttributeFields';
 import {getHistory} from 'utils/browser_history';
 
+import {
+    getTableEditorValue,
+    hasBalancedParens,
+    isBotScopePolicy,
+    isMaskingFailureExpression,
+    unwrapBotExpression,
+    wrapBotExpression,
+} from '../../access_control/editors/bot_scope';
 import CELEditor from '../../access_control/editors/cel_editor/editor';
-import {hasUsableAttributes, isSimpleExpression, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
+import {hasUsableAttributes, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
 import TableEditor from '../../access_control/editors/table_editor/table_editor';
-import {AVAILABLE_ROLES, BOT_ROLE_KEY, roleMessages} from '../roles';
+import {AVAILABLE_ROLES, BOT_ROLE_KEY, roleMessages, toServerRole} from '../roles';
 
 import './permission_policy_details.scss';
-
-const SELECTABLE_ROLES = AVAILABLE_ROLES.filter((role) => role.value !== BOT_ROLE_KEY);
 
 const permissionMessages = defineMessages({
     downloadLabel: {id: 'admin.permission_policies.permission.download_file.label', defaultMessage: 'Download Files'},
@@ -46,6 +53,25 @@ const permissionMessages = defineMessages({
     uploadDescription: {id: 'admin.permission_policies.permission.upload_file.description', defaultMessage: 'Allow users to upload files while sending a message'},
     createBorLabel: {id: 'admin.permission_policies.permission.create_bor.label', defaultMessage: 'Create Burn-on-Read Message'},
     createBorDescription: {id: 'admin.permission_policies.permission.create_bor.description', defaultMessage: 'Allow users to send burn-on-read messages'},
+});
+
+const botScopeErrorMessages = defineMessages({
+    invalid: {
+        id: 'admin.permission_policies.edit.error.bot_expression_invalid',
+        defaultMessage: 'This expression isn\'t valid. Check parentheses and quotes.',
+    },
+    invalidWithDetail: {
+        id: 'admin.permission_policies.edit.error.bot_expression_invalid_detail',
+        defaultMessage: 'This expression isn\'t valid. Check parentheses and quotes. Details: {error}',
+    },
+    checkFailed: {
+        id: 'admin.permission_policies.edit.error.bot_expression_check_failed',
+        defaultMessage: 'Couldn\'t validate the expression. Try again.',
+    },
+    scopeLost: {
+        id: 'admin.permission_policies.edit.error.bot_scope_lost',
+        defaultMessage: 'The saved policy no longer applies only to bot accounts. Review the expression and save again.',
+    },
 });
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
@@ -92,11 +118,12 @@ function getPermissionActions(rules: AccessControlPolicyRule[]): string[] {
     return [...new Set(allActions)];
 }
 
-function buildRulesWithActions(expression: string, selectedActions: string[]): AccessControlPolicyRule[] {
-    if (!expression.trim() || selectedActions.length === 0) {
+function buildRulesWithActions(expression: string, selectedActions: string[], botScope: boolean): AccessControlPolicyRule[] {
+    const trimmed = expression.trim();
+    if (!trimmed || selectedActions.length === 0) {
         return [];
     }
-    return [{actions: selectedActions, expression: expression.trim()}];
+    return [{actions: selectedActions, expression: botScope ? wrapBotExpression(trimmed) : trimmed}];
 }
 
 function PermissionPolicyDetails({
@@ -128,6 +155,17 @@ function PermissionPolicyDetails({
     const [pageLoaded, setPageLoaded] = useState(false);
     const [loadFailed, setLoadFailed] = useState(false);
     const [showTest, setShowTest] = useState(false);
+    const [hasFalseRule, setHasFalseRule] = useState(false);
+    const [savedPolicyId, setSavedPolicyId] = useState<string | undefined>(undefined);
+    const submittingRef = useRef(false);
+    const expressionRef = useRef(expression);
+    expressionRef.current = expression;
+
+    const isBotScope = selectedRole === BOT_ROLE_KEY;
+    const botScopeRef = useRef(isBotScope);
+    botScopeRef.current = isBotScope;
+
+    const tableEditorValue = useMemo(() => getTableEditorValue(expression), [expression]);
 
     const {formatMessage} = useIntl();
     const abacActions = useChannelAccessControlActions();
@@ -138,6 +176,13 @@ function PermissionPolicyDetails({
     // that would only surface a backend error. Mirror gate exists on
     // the channel-settings Permissions Policy tab.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
+
+    // The editors' built-in test runs the bare expression, which would list humans as matching a bot-only rule.
+    const legacyTestBlocked = isBotScope && !(policySimulationEnabled && selectedPermissions.length > 0);
+    const legacyTestTooltip = legacyTestBlocked ? formatMessage({
+        id: 'admin.permission_policies.edit.bot_test_unavailable_tooltip',
+        defaultMessage: 'Testing the rule alone isn\'t available for bot account policies.',
+    }) : undefined;
 
     // The autocomplete mixes the requesting user's attributes (user.attributes.*)
     // and the accessed channel's attributes (resource.attributes.*), tagged by
@@ -171,10 +216,6 @@ function PermissionPolicyDetails({
         loadPage().finally(() => setPageLoaded(true));
     }, [policyId]);
 
-    // isSimpleExpression imported from ../../access_control/editors/shared so
-    // native user attributes (user.email, user.createat.youngerThanDays(...), etc.)
-    // are recognized as simple and open in table mode.
-
     const loadPage = async (): Promise<void> => {
         setLoadFailed(false);
 
@@ -197,12 +238,19 @@ function PermissionPolicyDetails({
                     }));
                     return;
                 }
-                const loadedExpression = result.data?.rules?.[0]?.expression || '';
-                setPolicyName(result.data?.name || '');
-                setExpression(loadedExpression);
-                setSelectedRole(result.data?.roles?.[0] || 'system_user');
-                setSelectedPermissions(getPermissionActions(result.data?.rules || []));
-                setEditorMode(isSimpleExpression(loadedExpression) ? 'table' : 'cel');
+                const loaded: AccessControlPolicy | undefined = result.data;
+                const rules = loaded?.rules || [];
+                const botScope = loaded ? isBotScopePolicy(loaded) : false;
+                const raw = rules[0]?.expression || '';
+                const inner = botScope ? unwrapBotExpression(raw) : raw;
+                const tableValue = getTableEditorValue(inner);
+
+                setPolicyName(loaded?.name || '');
+                setSelectedRole(botScope ? BOT_ROLE_KEY : loaded?.roles?.[0] || 'system_user');
+                setExpression(tableValue ?? inner);
+                setSelectedPermissions(getPermissionActions(rules));
+                setEditorMode(tableValue === null ? 'cel' : 'table');
+                setHasFalseRule(rules.some((rule) => isMaskingFailureExpression(rule.expression || '')));
             });
             await Promise.all([fieldsPromise, policyPromise]);
         } else {
@@ -247,18 +295,45 @@ function PermissionPolicyDetails({
         return true;
     };
 
+    const validateBotScopeExpression = async (bare: string): Promise<string | undefined> => {
+        if (!hasBalancedParens(bare)) {
+            return formatMessage(botScopeErrorMessages.invalid);
+        }
+        let errors;
+        try {
+            errors = await Client4.checkAccessControlExpression(bare);
+        } catch {
+            return formatMessage(botScopeErrorMessages.checkFailed);
+        }
+        if (errors?.length) {
+            return formatMessage(botScopeErrorMessages.invalidWithDetail, {error: errors[0].message});
+        }
+        return undefined;
+    };
+
     const handleSubmit = async () => {
-        if (!preSaveCheck()) {
+        if (submittingRef.current || !preSaveCheck()) {
             return;
         }
 
+        submittingRef.current = true;
         setSaving(true);
         try {
+            const botScope = isBotScope;
+            if (botScope) {
+                const validationError = await validateBotScopeExpression(expression.trim());
+                if (validationError) {
+                    setServerError(validationError);
+                    return;
+                }
+                setServerError(undefined);
+            }
+
             const result = await actions.createPolicy({
-                id: policyId || '',
+                id: policyId || savedPolicyId || '',
                 name: policyName,
-                rules: buildRulesWithActions(expression, selectedPermissions),
-                roles: [selectedRole],
+                rules: buildRulesWithActions(expression, selectedPermissions, botScope),
+                roles: [toServerRole(selectedRole)],
                 type: 'permission',
             });
 
@@ -274,12 +349,38 @@ function PermissionPolicyDetails({
                 return;
             }
 
+            const saved: AccessControlPolicy | undefined = result.data;
+            if (botScope && !(saved && isBotScopePolicy(saved))) {
+                if (saved?.id) {
+                    setSavedPolicyId(saved.id);
+                }
+                setServerError(formatMessage(botScopeErrorMessages.scopeLost));
+                return;
+            }
+
             setSaveNeeded(false);
             actions.setNavigationBlocked(false);
             getHistory().push('/admin_console/system_attributes/permission_policies');
         } finally {
+            submittingRef.current = false;
             setSaving(false);
         }
+    };
+
+    const handleTestClick = async () => {
+        if (isBotScope) {
+            const checked = expression.trim();
+            const validationError = await validateBotScopeExpression(checked);
+            if (expressionRef.current.trim() !== checked || !botScopeRef.current) {
+                return;
+            }
+            if (validationError) {
+                setServerError(validationError);
+                return;
+            }
+            setServerError(undefined);
+        }
+        setShowTest(true);
     };
 
     const handleDelete = async () => {
@@ -439,6 +540,22 @@ function PermissionPolicyDetails({
                                 </div>
                             )}
 
+                            {hasFalseRule && (
+                                <div className='admin-console__warning-notice'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={formatMessage({
+                                            id: 'admin.permission_policies.edit.notice.false_rule.title',
+                                            defaultMessage: 'This policy\'s rule couldn\'t be read',
+                                        })}
+                                        text={formatMessage({
+                                            id: 'admin.permission_policies.edit.notice.false_rule.text',
+                                            defaultMessage: 'The server returned `false` for this policy\'s rule. Saving it denies these permissions to everyone it applies to.',
+                                        })}
+                                    />
+                                </div>
+                            )}
+
                             {/* "Who this policy applies to" */}
                             <Card
                                 expanded={true}
@@ -452,12 +569,17 @@ function PermissionPolicyDetails({
                                                 defaultMessage='Who this policy applies to'
                                             />
                                         }
-                                        subtitle={
+                                        subtitle={isBotScope ? (
+                                            <FormattedMessage
+                                                id='admin.permission_policies.edit.who.subtitle_bot'
+                                                defaultMessage='Define rules based on bot attributes and values'
+                                            />
+                                        ) : (
                                             <FormattedMessage
                                                 id='admin.permission_policies.edit.who.subtitle'
                                                 defaultMessage='Define rules based on user attributes and values'
                                             />
-                                        }
+                                        )}
                                     />
                                 </Card.Header>
                                 <Card.Body>
@@ -475,7 +597,7 @@ function PermissionPolicyDetails({
                                                 children: (
                                                     <>
                                                         <span>{(() => {
-                                                            const found = SELECTABLE_ROLES.find((r) => r.value === selectedRole);
+                                                            const found = AVAILABLE_ROLES.find((r) => r.value === selectedRole);
                                                             return found ? formatMessage(found.label) : formatMessage(roleMessages.selectRole);
                                                         })()}</span>
                                                         <i className='icon icon-chevron-down'/>
@@ -490,7 +612,7 @@ function PermissionPolicyDetails({
                                                 }),
                                             }}
                                         >
-                                            {SELECTABLE_ROLES.map((role) => (
+                                            {AVAILABLE_ROLES.map((role) => (
                                                 <Menu.Item
                                                     key={role.value}
                                                     id={`pp-role-option-${role.value}`}
@@ -519,18 +641,28 @@ function PermissionPolicyDetails({
                             >
                                 <Card.Header>
                                     <TitleAndButtonCardHeader
-                                        title={
+                                        title={isBotScope ? (
+                                            <FormattedMessage
+                                                id='admin.permission_policies.edit.who.attributes_title_bot'
+                                                defaultMessage='Bot attribute requirements'
+                                            />
+                                        ) : (
                                             <FormattedMessage
                                                 id='admin.permission_policies.edit.who.attributes_title'
                                                 defaultMessage='User attribute requirements'
                                             />
-                                        }
-                                        subtitle={
+                                        )}
+                                        subtitle={isBotScope ? (
+                                            <FormattedMessage
+                                                id='admin.permission_policies.edit.who.attributes_subtitle_bot'
+                                                defaultMessage='Select attributes and values that bots must have for this policy'
+                                            />
+                                        ) : (
                                             <FormattedMessage
                                                 id='admin.permission_policies.edit.who.attributes_subtitle'
                                                 defaultMessage='Select attributes and values that users must have for this policy'
                                             />
-                                        }
+                                        )}
                                         buttonText={
                                             editorMode === 'table' ? (
                                                 <FormattedMessage
@@ -544,8 +676,20 @@ function PermissionPolicyDetails({
                                                 />
                                             )
                                         }
-                                        onClick={() => setEditorMode(editorMode === 'table' ? 'cel' : 'table')}
-                                        isDisabled={noUsableAttributes || (editorMode === 'cel' && !isSimpleExpression(expression))}
+                                        onClick={() => {
+                                            if (editorMode === 'table') {
+                                                setEditorMode('cel');
+                                                return;
+                                            }
+                                            if (tableEditorValue === null) {
+                                                return;
+                                            }
+                                            if (tableEditorValue !== expression) {
+                                                setExpression(tableEditorValue);
+                                            }
+                                            setEditorMode('table');
+                                        }}
+                                        isDisabled={noUsableAttributes || (editorMode === 'cel' && tableEditorValue === null)}
                                         tooltipText={(() => {
                                             if (noUsableAttributes) {
                                                 return formatMessage({
@@ -553,7 +697,7 @@ function PermissionPolicyDetails({
                                                     defaultMessage: 'Please configure user attributes to use the editor.',
                                                 });
                                             }
-                                            if (editorMode === 'cel' && !isSimpleExpression(expression)) {
+                                            if (editorMode === 'cel' && tableEditorValue === null) {
                                                 return formatMessage({
                                                     id: 'admin.permission_policies.edit.complex_expression_tooltip',
                                                     defaultMessage: 'Complex expression detected. Simple expressions editor is not available at the moment.',
@@ -572,7 +716,7 @@ function PermissionPolicyDetails({
                                                 markDirty();
                                             }}
                                             onValidate={() => {}}
-                                            disabled={noUsableAttributes}
+                                            disabled={noUsableAttributes || saving}
                                             userAttributes={toCELEditorAttributes(mergeSessionAttributes(userFields, sessionFields), accessControlSettings.EnableUserManagedAttributes)}
                                             resourceAttributes={resourceFields.map((attr) => ({
                                                 attribute: attr.name,
@@ -613,7 +757,9 @@ function PermissionPolicyDetails({
                                             // that case lets the legacy
                                             // expression-only test path stay usable
                                             // until the author picks an action.
-                                            onTestClick={policySimulationEnabled && selectedPermissions.length > 0 ? () => setShowTest(true) : undefined}
+                                            testButtonDisabled={legacyTestBlocked || undefined}
+                                            testButtonTooltip={legacyTestTooltip}
+                                            onTestClick={policySimulationEnabled && selectedPermissions.length > 0 ? handleTestClick : undefined}
                                             testButtonLabel={policySimulationEnabled && selectedPermissions.length > 0 ? (
                                                 <FormattedMessage
                                                     id='admin.permission_policies.editor.simulate_rules'
@@ -629,14 +775,20 @@ function PermissionPolicyDetails({
                                                 markDirty();
                                             }}
                                             onValidate={() => {}}
-                                            disabled={noUsableAttributes}
+                                            disabled={noUsableAttributes || saving}
                                             userAttributes={mergedAttributes}
                                             onParseError={() => {
                                                 setEditorMode('cel');
                                             }}
                                             enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
                                             actions={abacActions}
-                                            onTestClick={policySimulationEnabled && selectedPermissions.length > 0 ? () => setShowTest(true) : undefined}
+                                            helpText={isBotScope ? formatMessage({
+                                                id: 'admin.permission_policies.edit.table_help_text_bot',
+                                                defaultMessage: 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).',
+                                            }) : undefined}
+                                            testButtonDisabled={legacyTestBlocked || undefined}
+                                            testButtonTooltip={legacyTestTooltip}
+                                            onTestClick={policySimulationEnabled && selectedPermissions.length > 0 ? handleTestClick : undefined}
                                             testButtonLabel={policySimulationEnabled && selectedPermissions.length > 0 ? (
                                                 <FormattedMessage
                                                     id='admin.permission_policies.editor.simulate_rules'
@@ -817,11 +969,11 @@ function PermissionPolicyDetails({
                         <SimulateAccessModal
                             onExited={() => setShowTest(false)}
                             policy={{
-                                id: policyId || '',
+                                id: policyId || savedPolicyId || '',
                                 name: policyName,
                                 type: 'permission',
-                                roles: [selectedRole],
-                                rules: buildRulesWithActions(expression, selectedPermissions),
+                                roles: [toServerRole(selectedRole)],
+                                rules: buildRulesWithActions(expression, selectedPermissions, isBotScope),
                             }}
                             actions={selectedPermissions}
                             ruleName={policyName}
@@ -830,7 +982,7 @@ function PermissionPolicyDetails({
                                 download_file_attachment: formatMessage(permissionMessages.downloadLabel),
                                 [ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ]: formatMessage(permissionMessages.createBorLabel),
                             }}
-                            targetRole={selectedRole}
+                            targetRole={toServerRole(selectedRole)}
                             targetScope='system'
                             accessControlFields={mergedAttributes}
                         />
@@ -838,7 +990,7 @@ function PermissionPolicyDetails({
 
                     <div className='admin-console-save'>
                         <SaveButton
-                            disabled={!saveNeeded}
+                            disabled={!saveNeeded || saving}
                             saving={saving}
                             onClick={handleSubmit}
                             defaultMessage={

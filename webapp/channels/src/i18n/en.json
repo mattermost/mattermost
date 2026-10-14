@@ -10371,6 +10371,10 @@
     "defaultMessage": "Edit",
     "description": "Menu item that opens a permission policy for editing; used in the policy actions menu and the channel settings permissions tab."
   },
+  "admin.permission_policies.edit.bot_test_unavailable_tooltip": {
+    "defaultMessage": "Testing the rule alone isn't available for bot account policies.",
+    "description": "Tooltip on the disabled 'Test access rule' button in the permission policy table editor when the Bot accounts scope is selected and rule simulation isn't available."
+  },
   "admin.permission_policies.edit.cancel": {
     "defaultMessage": "Cancel",
     "description": "Cancel button on the attribute-based permission policy edit page in the System Console."
@@ -10402,6 +10406,22 @@
   "admin.permission_policies.edit.delete.title": {
     "defaultMessage": "Delete policy",
     "description": "Heading of the delete section on the permission policy edit page."
+  },
+  "admin.permission_policies.edit.error.bot_expression_check_failed": {
+    "defaultMessage": "Couldn't validate the expression. Try again.",
+    "description": "Inline error when the expression check request for a Bot accounts policy fails, so the save or simulation is blocked."
+  },
+  "admin.permission_policies.edit.error.bot_expression_invalid": {
+    "defaultMessage": "This expression isn't valid. Check parentheses and quotes.",
+    "description": "Inline save/simulate error on the permission policy editor when a Bot accounts policy's expression has unbalanced parentheses or quotes."
+  },
+  "admin.permission_policies.edit.error.bot_expression_invalid_detail": {
+    "defaultMessage": "This expression isn't valid. Check parentheses and quotes. Details: {error}",
+    "description": "Same as bot_expression_invalid, when the server's expression check reports an error; {error} is the first error message from the server."
+  },
+  "admin.permission_policies.edit.error.bot_scope_lost": {
+    "defaultMessage": "The saved policy no longer applies only to bot accounts. Review the expression and save again.",
+    "description": "Inline error after saving a Bot accounts policy when the stored rule no longer starts with the bot-only condition."
   },
   "admin.permission_policies.edit.error.delete": {
     "defaultMessage": "Error deleting policy: {error}",
@@ -10450,6 +10470,14 @@
   "admin.permission_policies.edit.notice.button": {
     "defaultMessage": "Configure user attributes",
     "description": "Button in the notice on the permission policy edit page that navigates to the user attributes configuration page."
+  },
+  "admin.permission_policies.edit.notice.false_rule.text": {
+    "defaultMessage": "The server returned `false` for this policy's rule. Saving it denies these permissions to everyone it applies to.",
+    "description": "Warning text (markdown) explaining that the loaded rule is `false` and saving keeps denying the permissions; `false` in backticks is a code literal."
+  },
+  "admin.permission_policies.edit.notice.false_rule.title": {
+    "defaultMessage": "This policy's rule couldn't be read",
+    "description": "Warning title on the permission policy editor when a loaded rule is the literal `false` (the server could not read it)."
   },
   "admin.permission_policies.edit.notice.text": {
     "defaultMessage": "You haven't configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server.",
@@ -10511,6 +10539,10 @@
     "defaultMessage": "Switch to Simple Mode",
     "description": "Button on the permission policy edit page that switches the rule editor from advanced CEL mode back to the simple table mode."
   },
+  "admin.permission_policies.edit.table_help_text_bot": {
+    "defaultMessage": "Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).",
+    "description": "Help text (markdown) under the access-rule table editor for Bot accounts policies; '&&' inside backticks is a code literal for the logical AND operator."
+  },
   "admin.permission_policies.edit.title": {
     "defaultMessage": "Attribute-Based Permission Policy",
     "description": "Page title of the attribute-based permission policy edit page in the System Console."
@@ -10519,9 +10551,17 @@
     "defaultMessage": "Select attributes and values that users must have for this policy",
     "description": "Subtitle above the attribute rule editor on the permission policy edit page."
   },
+  "admin.permission_policies.edit.who.attributes_subtitle_bot": {
+    "defaultMessage": "Select attributes and values that bots must have for this policy",
+    "description": "Subtitle of the attribute rules card when the Bot accounts scope is selected."
+  },
   "admin.permission_policies.edit.who.attributes_title": {
     "defaultMessage": "User attribute requirements",
     "description": "Heading of the user attribute requirements subsection on the permission policy edit page."
+  },
+  "admin.permission_policies.edit.who.attributes_title_bot": {
+    "defaultMessage": "Bot attribute requirements",
+    "description": "Title of the attribute rules card when the Bot accounts scope is selected."
   },
   "admin.permission_policies.edit.who.role_label": {
     "defaultMessage": "Select a role from the predefined list of system roles",
@@ -10534,6 +10574,10 @@
   "admin.permission_policies.edit.who.subtitle": {
     "defaultMessage": "Define rules based on user attributes and values",
     "description": "Subtitle of the 'who this policy applies to' section on the permission policy edit page."
+  },
+  "admin.permission_policies.edit.who.subtitle_bot": {
+    "defaultMessage": "Define rules based on bot attributes and values",
+    "description": "Subtitle of the 'Who this policy applies to' card when the Bot accounts scope is selected."
   },
   "admin.permission_policies.edit.who.title": {
     "defaultMessage": "Who this policy applies to",

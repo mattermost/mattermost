@@ -156,6 +156,111 @@ describe('CELEditor', () => {
         });
         expect(screen.getByText('Access Rule Test Results')).toBeInTheDocument();
     });
+
+    describe('test button overrides', () => {
+        const PARENT_TOOLTIP = 'Testing is unavailable here.';
+        const MASKED_TOOLTIP = 'Test is unavailable because this policy contains restricted attribute values.';
+
+        const testButton = () => screen.getByRole('button', {name: /test access rule/i});
+
+        const hoverTooltip = async () => {
+            await userEvent.hover(testButton(), {pointerEventsCheck: 0});
+            return screen.findByRole('tooltip', {}, {timeout: 2000});
+        };
+
+        test('enables the button for a valid expression when the overrides are omitted', async () => {
+            renderWithContext(<CELEditor {...baseProps}/>, {});
+
+            await waitFor(() => expect(testButton()).toBeEnabled());
+        });
+
+        test('enables the button when testButtonDisabled is false', async () => {
+            renderWithContext(
+                <CELEditor
+                    {...baseProps}
+                    testButtonDisabled={false}
+                    testButtonTooltip={PARENT_TOOLTIP}
+                />,
+                {},
+            );
+
+            await waitFor(() => expect(testButton()).toBeEnabled());
+            await userEvent.hover(testButton());
+            expect(screen.queryByText(PARENT_TOOLTIP)).not.toBeInTheDocument();
+        });
+
+        test('disables a valid expression\'s button and shows the parent tooltip when testButtonDisabled is set', async () => {
+            renderWithContext(
+                <CELEditor
+                    {...baseProps}
+                    testButtonDisabled={true}
+                    testButtonTooltip={PARENT_TOOLTIP}
+                />,
+                {},
+            );
+
+            expect(await screen.findByText('Valid')).toBeInTheDocument();
+            expect(testButton()).toBeDisabled();
+            expect(await hoverTooltip()).toHaveTextContent(PARENT_TOOLTIP);
+        });
+
+        test('does not forward clicks to onTestClick while testButtonDisabled is set', async () => {
+            const onTestClick = jest.fn();
+            renderWithContext(
+                <CELEditor
+                    {...baseProps}
+                    onTestClick={onTestClick}
+                    testButtonDisabled={true}
+                />,
+                {},
+            );
+
+            expect(await screen.findByText('Valid')).toBeInTheDocument();
+            await userEvent.click(testButton(), {pointerEventsCheck: 0});
+            expect(onTestClick).not.toHaveBeenCalled();
+        });
+
+        test('prefers the parent tooltip over the masked-values tooltip when testButtonDisabled is set', async () => {
+            renderWithContext(
+                <CELEditor
+                    {...baseProps}
+                    hasMaskedRows={true}
+                    testButtonDisabled={true}
+                    testButtonTooltip={PARENT_TOOLTIP}
+                />,
+                {},
+            );
+
+            expect(await hoverTooltip()).toHaveTextContent(PARENT_TOOLTIP);
+        });
+
+        test('keeps the masked-values tooltip when testButtonDisabled is not set', async () => {
+            renderWithContext(
+                <CELEditor
+                    {...baseProps}
+                    hasMaskedRows={true}
+                    testButtonTooltip={PARENT_TOOLTIP}
+                />,
+                {},
+            );
+
+            expect(testButton()).toBeDisabled();
+            expect(await hoverTooltip()).toHaveTextContent(MASKED_TOOLTIP);
+        });
+
+        test('shows the masked-values tooltip by default', async () => {
+            renderWithContext(
+                <CELEditor
+                    {...baseProps}
+                    hasMaskedRows={true}
+                />,
+                {},
+            );
+
+            expect(testButton()).toBeDisabled();
+            expect(await hoverTooltip()).toHaveTextContent(MASKED_TOOLTIP);
+        });
+    });
 });
 
 describe('buildCELSchemas', () => {
