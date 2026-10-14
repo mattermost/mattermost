@@ -176,7 +176,16 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", field)
 
-	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
+	// There is no existing field to decide a basis against here -- creation
+	// is its own question, not a field.write -- so only the caller identity
+	// and whether it bypassed the decision are recorded.
+	callerID := sessionCallerID(c)
+	model.AddEventParameterToAuditRec(auditRec, "caller_id", callerID)
+	if callerID == model.CallerIDLocalAdmin {
+		model.AddEventParameterToAuditRec(auditRec, "basis_unrestricted", true)
+	}
+
+	rctx := app.RequestContextWithCallerID(c.AppContext, callerID)
 
 	if field.Protected {
 		c.Err = model.NewAppError("createPropertyField", "api.property_field.create.protected_via_api.app_error", nil, "", http.StatusBadRequest)
@@ -615,17 +624,27 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	if isOptionsOnly && !existingField.Type.SupportsOptions() {
 		isOptionsOnly = false
 	}
+	// basis_action distinguishes the two paths through this handler, since
+	// otherwise they log near-identical meta.
+	patchAction := model.PropertyActionFieldWrite
+	var basis app.PropertyPermissionBasis
 	if isOptionsOnly {
-		if !c.App.SessionHasPermissionToManagePropertyFieldOptions(rctx, *c.AppContext.Session(), existingField) {
+		patchAction = model.PropertyActionOptionWrite
+		basis = c.App.SessionPropertyFieldOptionsBasis(rctx, *c.AppContext.Session(), existingField)
+		if !basis.Allowed {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.update.no_options_permission.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
+		basis = c.App.SessionPropertyFieldEditBasis(rctx, *c.AppContext.Session(), existingField)
+		if !basis.Allowed {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.update.no_field_permission.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 	}
+
+	model.AddEventParameterToAuditRec(auditRec, "basis_action", patchAction)
+	addPropertyPermissionBasisMeta(auditRec, basis)
 
 	// Capture original state for audit before the in-place patch. Attrs is
 	// shallow-copied because Patch mutates it.
@@ -691,10 +710,14 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
+	// Deleting a definition is a field.write -- there is no separate delete
+	// cell in the permission grid.
+	basis := c.App.SessionPropertyFieldEditBasis(rctx, *c.AppContext.Session(), existingField)
+	if !basis.Allowed {
 		c.Err = model.NewAppError("deletePropertyField", "api.property_field.delete.no_permission.app_error", nil, "", http.StatusForbidden)
 		return
 	}
+	addPropertyPermissionBasisMeta(auditRec, basis)
 
 	auditRec.AddEventPriorState(existingField)
 
@@ -1093,6 +1116,31 @@ func sessionCallerID(c *Context) string {
 		return model.CallerIDLocalAdmin
 	}
 	return session.UserId
+}
+
+// addPropertyPermissionBasisMeta records which rule allowed a definition
+// write, the same keys the value-write audit sink records for a value write,
+// so one query over the audit log answers "what allowed this" for either.
+// Empty fields are omitted so a record says only what applied.
+func addPropertyPermissionBasisMeta(auditRec *model.AuditRecord, basis app.PropertyPermissionBasis) {
+	if basis.Tier != "" {
+		model.AddEventParameterToAuditRec(auditRec, "basis_tier", string(basis.Tier))
+	}
+	if basis.GrantID != "" {
+		model.AddEventParameterToAuditRec(auditRec, "basis_grant_id", basis.GrantID)
+	}
+	if basis.GrantScope != "" {
+		model.AddEventParameterToAuditRec(auditRec, "basis_grant_scope", basis.GrantScope)
+	}
+	if basis.GrantWildcard {
+		model.AddEventParameterToAuditRec(auditRec, "basis_grant_wildcard", true)
+	}
+	if basis.Legacy {
+		model.AddEventParameterToAuditRec(auditRec, "basis_legacy", true)
+	}
+	if basis.Unrestricted {
+		model.AddEventParameterToAuditRec(auditRec, "basis_unrestricted", true)
+	}
 }
 
 // isOptionsOnlyPatch checks if the patch only modifies the options attribute.
