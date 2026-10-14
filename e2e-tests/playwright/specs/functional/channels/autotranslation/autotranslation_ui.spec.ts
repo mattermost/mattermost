@@ -462,7 +462,7 @@ test(
         tag: ['@autotranslation'],
     },
     async ({pw}) => {
-        const {adminClient, user, userClient, team} = await pw.initSetup();
+        const {adminClient, user, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(
@@ -470,9 +470,13 @@ test(
             'Skipping test - server does not have Entry or Advanced license',
         );
         const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
+        // Target languages intentionally exclude 'en' so the test user's default locale is
+        // unsupported. Changing the user's own locale instead (e.g. to 'fr') would also switch
+        // the webapp UI language, breaking the literal English text assertions below as soon as
+        // that locale gets a translation for these strings.
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: translationUrl,
-            targetLanguages: ['en', 'es'],
+            targetLanguages: ['es', 'de'],
         });
 
         const channelName = `autotranslation-unsupported-${pw.random.id()}`;
@@ -485,21 +489,27 @@ test(
         await enableChannelAutotranslation(adminClient, created.id);
         await adminClient.addToChannel(user.id, created.id);
 
-        await userClient.patchMe({locale: 'fr'});
-
         const {channelsPage, page} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
         // Re-apply config + reload to ensure the browser reads the latest AutoTranslationSettings.
-        // The badge should still be absent (French locale is not in targetLanguages), but the
-        // server config must be active so the channel header menu shows the "unsupported" notice.
-        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        // The badge should still be absent ('es'/'de' targets don't include the test user's
+        // default 'en' locale), but the server config must be active so the channel header menu
+        // shows the "unsupported" notice. Re-applying again right as the page reloads ensures a
+        // CONFIG_CHANGED WebSocket event firing during load carries our config rather than a
+        // stale reset from another parallel worker's initSetup().
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['es', 'de']});
         await pw.waitUntil(async () => {
             const cfg = await adminClient.getConfig();
             return (cfg as any).AutoTranslationSettings?.Enable === true;
         });
         await channelsPage.page.reload();
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['es', 'de']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
         await channelsPage.toBeVisible();
 
         await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible({timeout: 30000});

@@ -2000,16 +2000,16 @@
     "description": "Title of the modal showing results after testing an attribute-based access rule against real users in the System Console."
   },
   "admin.accesscontrol.enableAuditLogging.desc": {
-    "defaultMessage": "When enabled, attribute-based access control policy decisions are written to the server audit log. Requires server audit logging to be active.",
+    "defaultMessage": "When enabled, membership policy decisions are written to the server audit log. Requires server audit logging to be active.",
     "description": "Admin console help text under the audit-logging toggle on the System Attributes > Attribute-Based Access Control page."
   },
   "admin.accesscontrol.enableAuditLogging.disabled": {
-    "defaultMessage": "When enabled, attribute-based access control policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).",
+    "defaultMessage": "When enabled, membership policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).",
     "description": "Alternate admin console help text for the access-control audit-logging toggle, shown when its prerequisites (ABAC and server audit logging) are not enabled."
   },
   "admin.accesscontrol.enableAuditLogging.title": {
-    "defaultMessage": "Enable audit logging for access control decisions",
-    "description": "Admin console setting label (toggle) on the Attribute-Based Access Control page for logging policy decisions."
+    "defaultMessage": "Enable audit logging for membership policy decisions",
+    "description": "Admin console setting label (toggle) on the Attribute-Based Access Control page for logging membership policy decisions."
   },
   "admin.accesscontrol.enableChannelPolicyIndicatorsDesc": {
     "defaultMessage": "When enabled, channels restricted by a membership access policy display the matching user attributes as tags in the channel members list and the invite dialog. Disable this to avoid revealing policy details to end users.",
@@ -3357,27 +3357,35 @@
   },
   "admin.classification_markings.conflict.channel_field": {
     "defaultMessage": "A channel attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Classification Markings. Body of the blocking notice shown to admins when a channel attribute with the same name as the classification attribute already exists but is not the classification set. {name} is that attribute's display name as the admin typed it (not localized). \"Attribute Management\" is the name of another System Console page."
   },
   "admin.classification_markings.conflict.clearance": {
     "defaultMessage": "A user attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management to enable the clearance attribute.",
-    "description": ""
+    "description": "System Console > Classification Markings. Body of the notice shown to admins when the clearance attribute cannot be created because a user attribute with the same name already exists. {name} is that attribute's display name (not localized). \"Attribute Management\" is the name of another System Console page."
+  },
+  "admin.classification_markings.conflict.clearance_template": {
+    "defaultMessage": "Rename \"{name}\" in Attribute Management so it isn't mistaken for this clearance attribute.",
+    "description": "Non-blocking warning shown next to the clearance checkbox in System Console > Classification Markings when an unrelated attribute in Attribute Management is already called 'clearance'. {name} is that attribute's name, as the admin typed it."
+  },
+  "admin.classification_markings.conflict.clearance_template_title": {
+    "defaultMessage": "Another attribute already uses this name",
+    "description": "Title of the non-blocking warning shown next to the clearance checkbox in System Console > Classification Markings when an unrelated attribute in Attribute Management is already called 'clearance'."
   },
   "admin.classification_markings.conflict.clearance_title": {
     "defaultMessage": "Clearance attribute cannot be created",
-    "description": ""
+    "description": "System Console > Classification Markings. Title of the notice shown when the clearance user attribute cannot be created because of a naming conflict; the body is admin.classification_markings.conflict.clearance."
   },
   "admin.classification_markings.conflict.system_field": {
     "defaultMessage": "A system attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Classification Markings. Body of the blocking notice shown to admins when a system (built-in) attribute with the same name already exists but is not linked to the classification levels. {name} is that attribute's display name (not localized). \"Attribute Management\" is the name of another System Console page."
   },
   "admin.classification_markings.conflict.template": {
     "defaultMessage": "An attribute named \"{name}\" already exists with a different type, so it is not a set of classification levels. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Classification Markings. Body of the blocking notice shown to admins when an attribute with the same name exists but has a different type, so it cannot hold classification levels. {name} is that attribute's display name (not localized). \"Attribute Management\" is the name of another System Console page."
   },
   "admin.classification_markings.conflict.title": {
     "defaultMessage": "Classification markings cannot be configured",
-    "description": ""
+    "description": "System Console > Classification Markings. Title of the blocking notice shown when the page cannot be used because an existing attribute conflicts with the classification attribute; one of the admin.classification_markings.conflict.* bodies follows."
   },
   "admin.classification_markings.enable.description": {
     "defaultMessage": "Use this to enable classification markings as banners at the system and channel level. You can pre-select text and colors for your banner, as well as set a default option for consistency.",
@@ -3397,19 +3405,19 @@
   },
   "admin.classification_markings.enforcement.clearance.checkbox": {
     "defaultMessage": "Enable clearance attribute",
-    "description": "Label next to the checkbox in System Console > Classification Markings that creates the ranked Clearance user attribute. 'Enable' is a verb. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
+    "description": "Label next to the checkbox in System Console > Classification Markings that creates the ranked Clearance user attribute. 'Enable' is a verb. The attribute is created with the hardcoded English display name 'Classification clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.enforcement.clearance.help": {
-    "defaultMessage": "Creates a ranked \"Clearance\" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.",
-    "description": "Help text under the clearance checkbox in System Console > Classification Markings. \"Clearance\" in quotes is the literal name given to the generated user attribute. <link>…</link> wraps the words that become a link to the Membership Policies page in the System Console. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
+    "defaultMessage": "Creates a ranked \"Classification clearance\" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.",
+    "description": "Help text under the clearance checkbox in System Console > Classification Markings. \"Classification clearance\" in quotes is the literal name given to the generated user attribute. <link>…</link> wraps the words that become a link to the Membership Policies page in the System Console. The attribute is created with the hardcoded English display name 'Classification clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.enforcement.clearance.title": {
     "defaultMessage": "Clearance attribute",
-    "description": "Section heading above the clearance checkbox in System Console > Classification Markings. A noun phrase naming the feature, not an instruction. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
+    "description": "Section heading above the clearance checkbox in System Console > Classification Markings. A noun phrase naming the feature, not an instruction. The attribute is created with the hardcoded English display name 'Classification clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.error.create_name_conflict": {
     "defaultMessage": "Could not save because an attribute with a conflicting name already exists: {error} Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Classification Markings. Error shown after a failed save when the server reports that an attribute with a conflicting name already exists. {error} is the server's error message, inserted as a full sentence. \"Attribute Management\" is the name of another System Console page."
   },
   "admin.classification_markings.error.delete_has_dependents": {
     "defaultMessage": "Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.",
@@ -4068,7 +4076,7 @@
     "description": "Admin console setting label (toggle) on Site Configuration > Posts for syncing message drafts to the server."
   },
   "admin.customization.allowSyncedDraftsDesc": {
-    "defaultMessage": "When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.",
+    "defaultMessage": "When enabled, users' message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.",
     "description": "Help text for the setting that lets users' message drafts sync to the server, on a System Console site configuration page."
   },
   "admin.customization.androidAppDownloadLinkDesc": {
@@ -4204,7 +4212,7 @@
     "description": "Admin console setting label (toggle) on the Integrations > GIF page enabling GIF selection from the emoji picker."
   },
   "admin.customization.enableInlineLatexDesc": {
-    "defaultMessage": "Enable rendering of inline Latex code. If false, Latex can only be rendered in a code block using syntax highlighting. Please review our <link>documentation</link> for details about text formatting.",
+    "defaultMessage": "Enable rendering of inline LaTeX code. If false, LaTeX can only be rendered in a code block using syntax highlighting. Please review our <link>documentation</link> for details about text formatting.",
     "description": "Admin console help text for the inline LaTeX toggle on the Site Configuration > Posts page; <link> wraps the word linking to documentation; 'Latex' is the typesetting language name."
   },
   "admin.customization.enableInlineLatexTitle": {
@@ -4284,7 +4292,7 @@
     "description": "Admin console field label on the Customization page for the iOS app download URL."
   },
   "admin.customization.maxMarkdownNodesDesc": {
-    "defaultMessage": "When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.",
+    "defaultMessage": "When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (e.g. emojis, links, table cells, etc.) that can be in a single piece of text. If set to 0, a default limit will be used.",
     "description": "Admin console help text for the maximum Markdown nodes field on the Posts page; applies to the mobile app renderer."
   },
   "admin.customization.maxMarkdownNodesTitle": {
@@ -4903,6 +4911,14 @@
     "defaultMessage": "Enable Elasticsearch for autocomplete queries:",
     "description": "Toggle setting name on the Elasticsearch admin page for using Elasticsearch in autocomplete; ends with a colon."
   },
+  "admin.elasticsearch.enableFileIndexingDescription": {
+    "defaultMessage": "When false, new or updated file attachments are not indexed. File search continues to return previously indexed files, but files uploaded while this setting is false are not searchable until a bulk index is run after re-enabling it.",
+    "description": "Help text under the file indexing toggle on the Elasticsearch admin page, explaining that turning it off stops indexing new or updated file attachments while file search keeps returning previously indexed files."
+  },
+  "admin.elasticsearch.enableFileIndexingTitle": {
+    "defaultMessage": "Enable file indexing:",
+    "description": "Toggle setting name on the Elasticsearch admin page for indexing file attachments; ends with a colon."
+  },
   "admin.elasticsearch.enableIndexingDescription": {
     "defaultMessage": "When true, indexing of new posts occurs automatically. Search queries will use database search until \"Enable Elasticsearch for search queries\" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>",
     "description": "Admin console help text for the Enable Elasticsearch Indexing toggle; <link></link> wraps the sentence linking to documentation, the quoted setting name refers to a sibling setting."
@@ -4976,7 +4992,7 @@
     "description": "Help text for the Purge Indexes button warning about the consequences of deleting indexes."
   },
   "admin.elasticsearch.rebuildChannelsIndex.helpText": {
-    "defaultMessage": "This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.\n\n<b>Note- Please ensure no other indexing job is in progress in the table above.</b>",
+    "defaultMessage": "This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.\n\n<b>Note: Please ensure no other indexing job is in progress in the table above.</b>",
     "description": "Help text for the Rebuild Channels Index button; contains newlines and <b></b> tags around the cautionary note."
   },
   "admin.elasticsearch.rebuildChannelsIndex.title": {
@@ -5404,7 +5420,7 @@
     "description": "Error shown in the invite-members flow when email cannot be sent because SMTP is not configured; <a> wraps the word 'here' linking to the System Console SMTP settings."
   },
   "admin.environment.smtp.smtpPassword.description": {
-    "defaultMessage": "Obtain this credential from administrator setting up your email server.",
+    "defaultMessage": "Obtain this credential from the administrator setting up your email server.",
     "description": "Help text for the SMTP Server Password setting, telling the admin where to get the credential."
   },
   "admin.environment.smtp.smtpPassword.placeholder": {
@@ -5444,7 +5460,7 @@
     "description": "Success message shown after the SMTP Test Connection button sends a test email without errors."
   },
   "admin.environment.smtp.smtpUsername.description": {
-    "defaultMessage": "Obtain this credential from administrator setting up your email server.",
+    "defaultMessage": "Obtain this credential from the administrator setting up your email server.",
     "description": "Help text for the SMTP Server Username setting, telling the admin where to get the credential."
   },
   "admin.environment.smtp.smtpUsername.placeholder": {
@@ -5727,6 +5743,14 @@
     "defaultMessage": "When false, disables file sharing on the server. All file and image uploads on messages are forbidden across clients and devices, including mobile.",
     "description": "Help text for the Allow File Sharing setting on the System Console file storage page."
   },
+  "admin.file.enableFileSearchDesc": {
+    "defaultMessage": "When false, users cannot search for files and the Files tab is hidden from search results.",
+    "description": "Help text under the file search toggle in the System Console File Sharing and Downloads page, explaining that turning it off disables file search for users."
+  },
+  "admin.file.enableFileSearchTitle": {
+    "defaultMessage": "Enable File Search:",
+    "description": "Setting label (toggle) in the System Console controlling whether users can search for files; ends with a colon."
+  },
   "admin.file.enableMobileDownloadDesc": {
     "defaultMessage": "When false, disables file downloads on mobile apps. Users can still download files from a mobile web browser.",
     "description": "Admin console help text under the Allow File Downloads on Mobile toggle on the File Sharing and Downloads page."
@@ -5991,6 +6015,10 @@
     "defaultMessage": "This attribute does not apply to any resource yet.",
     "description": "Empty-state message in the 'Applies to' card on the Classification attribute page in the System Console, shown when the attribute is not applied to channels or any other resource type."
   },
+  "admin.global_attributes.applies_to.read_only_resource": {
+    "defaultMessage": "Applied to {resource} as {name}",
+    "description": "Read-only row in the 'Applies to' card on the Classification attribute page in the System Console, naming a resource this page does not edit. {resource} is a resource name such as Users; {name} is the unique name of the attribute created for it, which policies refer to."
+  },
   "admin.global_attributes.applies_to.subtitle": {
     "defaultMessage": "Resources this attribute applies to, and how it behaves on each.",
     "description": "Subtitle under the 'Applies to' card heading on the Classification attribute page in the System Console. 'Resources' means object types such as channels."
@@ -6090,6 +6118,10 @@
   "admin.global_attributes.attribute_details.applies_to.locked_single_resource_tooltip": {
     "defaultMessage": "This resource cannot be changed — this attribute applies to only one resource.",
     "description": "Tooltip on the disabled row in an attribute's 'Applies to' list (System Console > Attribute Management > attribute details), explaining that the only resource type (e.g. Users) cannot be removed or changed because it is the attribute's sole one."
+  },
+  "admin.global_attributes.attribute_details.applies_to.owned_locked_tooltip": {
+    "defaultMessage": "This attribute is managed by {owners}.",
+    "description": "Tooltip on the locked Users row in an attribute's \"Applies to\" list (System Console > Attribute Management > attribute details), shown while integrations own the attribute so the Users resource cannot be removed. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
   },
   "admin.global_attributes.attribute_details.applies_to.resource_type.channel": {
     "defaultMessage": "Channels",
@@ -6479,6 +6511,18 @@
     "defaultMessage": "Values must be unique.",
     "description": "Inline validation error shown while editing or adding an option value on the attribute detail page, when the typed value duplicates an existing option."
   },
+  "admin.global_attributes.attribute_details.owners_source.helper_text": {
+    "defaultMessage": "Values for users are set by {owners}. Unique name and type are locked; display name, options, and Profile display can still be changed here.",
+    "description": "Helper text under the \"Managed by\" note on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. Explains which fields are locked and which can still be edited. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\"). \"Profile display\" is the name of a setting on the same page."
+  },
+  "admin.global_attributes.attribute_details.owners_source.managed_by": {
+    "defaultMessage": "Managed by {owners}",
+    "description": "Note at the top of the attribute details page in System Console > Attribute Management, naming the integrations that own the attribute and set its user values. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
+  },
+  "admin.global_attributes.attribute_details.owners_source.settings_link": {
+    "defaultMessage": "{pluginName} settings",
+    "description": "Link next to the \"Managed by\" note on the attribute details page in System Console > Attribute Management that opens the owning plugin's settings page. {pluginName} is the plugin's display name."
+  },
   "admin.global_attributes.attribute_details.plugin_source.helper_text": {
     "defaultMessage": "Name, type, and values are owned by the plugin and are read-only here.",
     "description": "Helper text in the attribute details page in System Console > System Attributes > Manage Attributes for a plugin-owned attribute, explaining which fields are read-only."
@@ -6595,6 +6639,10 @@
     "defaultMessage": "Type: {value}. Locked because a hierarchical attribute cannot be converted to another type.",
     "description": "Screen-reader label for the disabled Type field on the attribute edit page in System Console > Attribute Management. {value} is the localized type name (for example 'Hierarchical'). Explains why a hierarchical attribute's type cannot be changed."
   },
+  "admin.global_attributes.attribute_details.type.field_locked_owned_aria_label": {
+    "defaultMessage": "Type: {value}. Locked because this attribute is managed by {owners}.",
+    "description": "Screen-reader label for the locked Type field on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. {value} is the current type. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
+  },
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": {
     "defaultMessage": "Type: {value}. Locked because this attribute is managed by a plugin.",
     "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin manages. {value} is the current type."
@@ -6618,6 +6666,10 @@
   "admin.global_attributes.attribute_details.type.locked_graph_tooltip": {
     "defaultMessage": "Type cannot be changed — a hierarchical attribute cannot be converted to another type. Create a new attribute of the type you need instead.",
     "description": "Tooltip on the disabled Type field on the attribute edit page in System Console > Attribute Management, shown for hierarchical attributes. Explains why the type is locked and what the admin should do instead."
+  },
+  "admin.global_attributes.attribute_details.type.locked_owned_tooltip": {
+    "defaultMessage": "Type cannot be changed — this attribute is managed by {owners}.",
+    "description": "Tooltip on the locked Type field on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
   },
   "admin.global_attributes.attribute_details.type.locked_plugin_orphaned_tooltip": {
     "defaultMessage": "Type cannot be changed — this attribute was managed by a plugin that's no longer installed.",
@@ -6663,6 +6715,14 @@
     "defaultMessage": "Name cannot be changed while this attribute applies to a resource. Remove and save first.",
     "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute applies to a resource."
   },
+  "admin.global_attributes.attribute_details.unique_name.locked_owned_aria_label": {
+    "defaultMessage": "Edit unique name. Locked because this attribute is managed by {owners}.",
+    "description": "Screen-reader label for the locked unique name field on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
+  },
+  "admin.global_attributes.attribute_details.unique_name.locked_owned_tooltip": {
+    "defaultMessage": "Name cannot be changed — this attribute is managed by {owners}.",
+    "description": "Tooltip on the locked unique name field on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
+  },
   "admin.global_attributes.attribute_details.unique_name.locked_plugin_aria_label": {
     "defaultMessage": "Edit unique name. Locked because this attribute is managed by a plugin.",
     "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin manages."
@@ -6705,7 +6765,7 @@
   },
   "admin.global_attributes.classification.name_conflict": {
     "defaultMessage": "An attribute named \"{name}\" already exists but is not part of classification. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Attribute Management > Classification attribute. Notice shown to admins when a user attribute named like the classification attribute already exists but is not the classification attribute. {name} is that attribute's display name (not localized). \"Attribute Management\" is the name of the current System Console section."
   },
   "admin.global_attributes.classification.name_fallback": {
     "defaultMessage": "Classification",
@@ -6759,6 +6819,10 @@
     "defaultMessage": "This attribute was created by the plugin \"{pluginId}\", which is no longer installed.",
     "description": "Extra paragraph in the delete-attribute confirmation dialog, shown only when the attribute came from a plugin that is no longer installed. {pluginId} is the raw plugin identifier string (not translated); it falls back to the literal \"unknown\"."
   },
+  "admin.global_attributes.confirm.delete.orphaned_owners_body": {
+    "defaultMessage": "This attribute was managed by {pluginIds}, which {count, plural, one {is} other {are}} no longer installed.",
+    "description": "Extra paragraph in the delete-attribute confirmation dialog, shown when every integration that owned the attribute has been uninstalled. {pluginIds} is a localized list of raw plugin identifiers (not translated); {count} is how many there are and selects singular or plural."
+  },
   "admin.global_attributes.confirm.delete.title": {
     "defaultMessage": "Delete {name} attribute",
     "description": "Title of the delete confirmation dialog in System Console > System Attributes > Manage Attributes. {name} is the attribute's display name. \"Delete\" is a verb (imperative)."
@@ -6775,9 +6839,29 @@
     "defaultMessage": "Remove {resources}?",
     "description": "Title of the confirmation dialog shown from the attribute details page in System Console > System Attributes > Manage Attributes before removing an attribute from resources. {resources} is a list of resource names."
   },
+  "admin.global_attributes.name_conflict.details_notice": {
+    "defaultMessage": "Another attribute already uses this name.",
+    "description": "Name-conflict notice shown on the attribute details page in System Console > System Attributes > Manage Attributes when another attribute already uses this name. Shown as a danger notice when the match is exact (Users would be blocked) and a warning notice otherwise."
+  },
+  "admin.global_attributes.name_conflict.linked_to_template": {
+    "defaultMessage": "A user attribute named \"{name}\" already exists and is linked to {owner}. Policies that use user.attributes.{name} read {owner}'s options, not this attribute's.",
+    "description": "Warning in System Console > System Attributes > Manage Attributes when another attribute already owns a user attribute of this name. {name} is that attribute's unique name and {owner} is the display name of the attribute it belongs to. 'user.attributes.' is literal policy syntax and must stay English."
+  },
+  "admin.global_attributes.name_conflict.standalone": {
+    "defaultMessage": "A standalone user attribute named \"{name}\" already exists. Policies that use user.attributes.{name} read that attribute, not this one.",
+    "description": "Warning in System Console > System Attributes > Manage Attributes when a user attribute of this name exists on its own rather than belonging to another attribute. {name} is its unique name. 'user.attributes.' is literal policy syntax and must stay English."
+  },
+  "admin.global_attributes.name_conflict.users_blocked_menu_label": {
+    "defaultMessage": "Name already in use",
+    "description": "Secondary label under the disabled Users option in the 'Add resource' menu on the attribute details page in System Console > System Attributes > Manage Attributes, saying why it cannot be chosen."
+  },
   "admin.global_attributes.new_attribute": {
     "defaultMessage": "New attribute",
     "description": "Label of the primary button at the top of System Console > System Attributes > Manage Attributes that opens the attribute creation page. \"New\" is an adjective; keep it identical to the creation page heading."
+  },
+  "admin.global_attributes.owners.scoped": {
+    "defaultMessage": "{owner}: {scopes}",
+    "description": "One entry in the list of integrations that own an attribute, used inside the \"Managed by\" text in System Console > Attribute Management. {owner} is the integration's display name; {scopes} is a comma-separated list of the scopes it owns (not translated)."
   },
   "admin.global_attributes.search.placeholder": {
     "defaultMessage": "Search attributes",
@@ -6802,6 +6886,10 @@
   "admin.global_attributes.table.actions.menu_label": {
     "defaultMessage": "Select an action",
     "description": "Accessible name of the per-row actions dropdown menu in the attributes table."
+  },
+  "admin.global_attributes.table.actions.owner_managed": {
+    "defaultMessage": "Managed by {owners}",
+    "description": "Secondary label next to the disabled Delete item in the attributes table row menu, explaining that integrations own the attribute so it cannot be deleted here. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
   },
   "admin.global_attributes.table.actions.plugin_managed": {
     "defaultMessage": "Plugin-managed",
@@ -6870,6 +6958,10 @@
   "admin.global_attributes.table.source.managed": {
     "defaultMessage": "Managed here",
     "description": "Value in the Source column of the attributes table meaning the attribute's values are maintained inside Mattermost rather than synced from an external directory. \"here\" refers to this admin console screen."
+  },
+  "admin.global_attributes.table.source.owned_by": {
+    "defaultMessage": "Managed by {owners}",
+    "description": "Value in the Source column of the attributes table in System Console > Attribute Management when integrations own the attribute and set its values. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
   },
   "admin.global_attributes.table.source.saml": {
     "defaultMessage": "SAML",
@@ -7075,7 +7167,7 @@
     "defaultMessage": "Remove Membership from the {name} {displayType}?",
     "description": "Title of the confirmation modal when unlinking a group from a team or channel; {name} is the team/channel name and {displayType} is the word 'Team' or 'Channel'."
   },
-  "admin.group_settings.group_details.group_teams_and_channels.no-teams-or-channels-speicified": {
+  "admin.group_settings.group_details.group_teams_and_channels.no-teams-or-channels-specified": {
     "defaultMessage": "No teams or channels specified yet",
     "description": "Empty-state text in the group's team/channel membership table when nothing has been added yet."
   },
@@ -7212,7 +7304,7 @@
     "description": "Headline on the feature discovery (upsell) page for AD/LDAP group sync; mentions the required plan."
   },
   "admin.guest_access_feature_discovery.copy": {
-    "defaultMessage": "Collaborate with users outside of your organization while tightly controlling their access channels and team members.",
+    "defaultMessage": "Collaborate with users outside of your organization while tightly controlling their access to channels and team members.",
     "description": "Body copy on the feature discovery (upsell) page for guest accounts."
   },
   "admin.guest_access_feature_discovery.title": {
@@ -7264,7 +7356,7 @@
     "description": "Admin console toggle setting name for the Guest Access feature; trailing space is intentional."
   },
   "admin.guest_access.helpText": {
-    "defaultMessage": "When true, external guest can be invited to channels within teams. Please see <a>Permissions Schemes</a> for which roles can invite guests.",
+    "defaultMessage": "When true, external guests can be invited to channels within teams. Please see <a>Permissions Schemes</a> for which roles can invite guests.",
     "description": "Admin console help text for the Enable Guest Access toggle; <a></a> wraps a link to the Permissions Schemes page."
   },
   "admin.guest_access.hideTags": {
@@ -7302,6 +7394,298 @@
   "admin.guest_access.whitelistedDomainsTitle": {
     "defaultMessage": "Whitelisted Guest Domains:",
     "description": "Setting label for a text field on the Guest Access admin page; a list of email domains allowed for guest accounts. Ends with a colon."
+  },
+  "admin.health_dashboard.all_clear.body": {
+    "defaultMessage": "Nothing is firing and every check could be evaluated.",
+    "description": "Body of the empty Open tab on the System Console Site health page, shown when no health check is firing or unknown."
+  },
+  "admin.health_dashboard.all_clear.title": {
+    "defaultMessage": "All clear",
+    "description": "Title of the empty Open tab on the System Console Site health page, shown when no health check is firing or unknown."
+  },
+  "admin.health_dashboard.area.auth": {
+    "defaultMessage": "Authentication",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"authentication\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.cluster": {
+    "defaultMessage": "High availability",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"cluster / high availability\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.compliance": {
+    "defaultMessage": "Compliance",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"compliance\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.count": {
+    "defaultMessage": "{count, plural, one {# finding} other {# findings}}",
+    "description": "Secondary line in an area header on the System Console Site health page when findings are grouped by category; {count} is the number of findings in the area."
+  },
+  "admin.health_dashboard.area.database": {
+    "defaultMessage": "Database",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"database\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.jobs": {
+    "defaultMessage": "Jobs",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"background jobs\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.license": {
+    "defaultMessage": "Licensing",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"license\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.notifications": {
+    "defaultMessage": "Notifications",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"notifications\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.platform": {
+    "defaultMessage": "Platform",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"server platform\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.search": {
+    "defaultMessage": "Search",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"search\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.version": {
+    "defaultMessage": "Updates",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"server version and updates\" area; noun, compact space."
+  },
+  "admin.health_dashboard.detail.details": {
+    "defaultMessage": "Details",
+    "description": "Heading of the key/value details list in an expanded finding on the System Console Site health page."
+  },
+  "admin.health_dashboard.detail.first_seen": {
+    "defaultMessage": "First detected",
+    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time such as \"3 days ago\"."
+  },
+  "admin.health_dashboard.detail.go_to_setting": {
+    "defaultMessage": "Go to setting",
+    "description": "Primary button in an expanded finding on the System Console Site health page that opens the System Console setting that resolves the finding."
+  },
+  "admin.health_dashboard.detail.last_seen": {
+    "defaultMessage": "Last checked",
+    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time of the most recent evaluation."
+  },
+  "admin.health_dashboard.detail.node": {
+    "defaultMessage": "Node",
+    "description": "Label in an expanded finding on the System Console Site health page; followed by the hostname of the cluster node the finding applies to."
+  },
+  "admin.health_dashboard.detail.open_setting": {
+    "defaultMessage": "Open this setting in the System Console",
+    "description": "Link card in an expanded finding on the System Console Site health page that opens the related setting in the System Console."
+  },
+  "admin.health_dashboard.detail.read_docs": {
+    "defaultMessage": "Read the documentation",
+    "description": "Link card in an expanded finding on the System Console Site health page that opens the related documentation in a new tab."
+  },
+  "admin.health_dashboard.detail.remediation": {
+    "defaultMessage": "How to fix it",
+    "description": "Heading above the remediation steps in an expanded finding on the System Console Site health page."
+  },
+  "admin.health_dashboard.detail.resolve": {
+    "defaultMessage": "Resolve here",
+    "description": "Heading above the setting and documentation links in an expanded finding on the System Console Site health page."
+  },
+  "admin.health_dashboard.detail.state": {
+    "defaultMessage": "State",
+    "description": "Label in the details list of an expanded finding on the System Console Site health page; the value says how long the finding has been firing, unevaluated or when it resolved."
+  },
+  "admin.health_dashboard.duration.days": {
+    "defaultMessage": "{days}d",
+    "description": "Compact duration in days on the System Console Site health page, such as \"3d\"; d abbreviates days."
+  },
+  "admin.health_dashboard.duration.days_hours": {
+    "defaultMessage": "{days}d {hours}h",
+    "description": "Compact duration in days and hours on the System Console Site health page, such as \"3d 4h\"; d abbreviates days and h hours."
+  },
+  "admin.health_dashboard.duration.hours": {
+    "defaultMessage": "{hours}h",
+    "description": "Compact duration in hours on the System Console Site health page, such as \"5h\"; h abbreviates hours."
+  },
+  "admin.health_dashboard.duration.hours_minutes": {
+    "defaultMessage": "{hours}h {minutes}m",
+    "description": "Compact duration in hours and minutes on the System Console Site health page, such as \"2h 5m\"; h abbreviates hours and m minutes."
+  },
+  "admin.health_dashboard.duration.minutes": {
+    "defaultMessage": "{minutes}m",
+    "description": "Compact duration in minutes on the System Console Site health page, such as \"9m\"; m abbreviates minutes."
+  },
+  "admin.health_dashboard.empty_tab.critical": {
+    "defaultMessage": "No critical findings",
+    "description": "Title of the empty Critical tab on the System Console Site health page, shown when no critical finding is firing."
+  },
+  "admin.health_dashboard.empty_tab.info": {
+    "defaultMessage": "No info findings",
+    "description": "Title of the empty Info tab on the System Console Site health page, shown when no info finding is firing."
+  },
+  "admin.health_dashboard.empty_tab.muted_body": {
+    "defaultMessage": "Muted findings are still checked but hidden from this list. Open Muted to review or unmute them.",
+    "description": "Body of an empty tab on the System Console Site health page when the tab is empty only because its findings are muted; Muted is the toolbar button that lists them."
+  },
+  "admin.health_dashboard.empty_tab.muted_title": {
+    "defaultMessage": "{count, plural, one {# finding here is muted} other {# findings here are muted}}",
+    "description": "Title of an empty tab on the System Console Site health page, shown instead of the all-clear message when every finding in the tab is muted; {count} is how many are muted."
+  },
+  "admin.health_dashboard.empty_tab.resolved": {
+    "defaultMessage": "Nothing resolved in the last 7 days",
+    "description": "Title of the empty Recently resolved tab on the System Console Site health page, shown when no finding resolved in the last 7 days."
+  },
+  "admin.health_dashboard.empty_tab.resolved_body": {
+    "defaultMessage": "Findings that clear on their own are listed here for 7 days.",
+    "description": "Body of the empty Recently resolved tab on the System Console Site health page."
+  },
+  "admin.health_dashboard.empty_tab.severity_body": {
+    "defaultMessage": "Nothing at this severity is firing.",
+    "description": "Body of an empty Critical, Warning or Info tab on the System Console Site health page."
+  },
+  "admin.health_dashboard.empty_tab.unknown": {
+    "defaultMessage": "Every check could be evaluated",
+    "description": "Title of the empty Unknown tab on the System Console Site health page, shown when every health check could be evaluated."
+  },
+  "admin.health_dashboard.empty_tab.unknown_body": {
+    "defaultMessage": "Checks that cannot run are listed here as unknown, never as healthy.",
+    "description": "Body of the empty Unknown tab on the System Console Site health page; stresses that an unknown check is never treated as healthy."
+  },
+  "admin.health_dashboard.empty_tab.warning": {
+    "defaultMessage": "No warning findings",
+    "description": "Title of the empty Warning tab on the System Console Site health page, shown when no warning finding is firing."
+  },
+  "admin.health_dashboard.empty.body": {
+    "defaultMessage": "The first health check runs within an hour of enabling the feature.",
+    "description": "Body of the System Console Site health page empty state shown before the first health check has run."
+  },
+  "admin.health_dashboard.empty.title": {
+    "defaultMessage": "Not evaluated yet",
+    "description": "Title of the System Console Site health page empty state shown before the first health check has run."
+  },
+  "admin.health_dashboard.error.body": {
+    "defaultMessage": "Reload the page to try again.",
+    "description": "Body shown on the System Console Site health page when the health findings request fails."
+  },
+  "admin.health_dashboard.error.title": {
+    "defaultMessage": "Health findings could not be loaded",
+    "description": "Title shown on the System Console Site health page when the health findings request fails."
+  },
+  "admin.health_dashboard.finding.resolved_badge": {
+    "defaultMessage": "Resolved ({severity} when firing)",
+    "description": "Badge on a recently resolved finding row on the System Console Site health page; {severity} is the severity label (Critical, Warning or Info) the finding had while firing."
+  },
+  "admin.health_dashboard.finding.title_on_node": {
+    "defaultMessage": "{title} on {node}",
+    "description": "Finding title on the System Console Site health page for a finding that applies to one cluster node; {title} is the already translated finding title and {node} is a hostname."
+  },
+  "admin.health_dashboard.finding.unknown_badge": {
+    "defaultMessage": "Unknown ({severity} when firing)",
+    "description": "Badge on a finding row of the System Console Site health page for a check that could not be evaluated; {severity} is a severity label (Critical, Warning or Info) the finding would have if it fired."
+  },
+  "admin.health_dashboard.finding.unknown_fallback": {
+    "defaultMessage": "This check could not run, so its result is unknown.",
+    "description": "Cause shown on a finding row of the System Console Site health page when a check could not be evaluated and the server gave no reason."
+  },
+  "admin.health_dashboard.group_by.category": {
+    "defaultMessage": "Category",
+    "description": "Option of the Group by control on the System Console Site health page that groups findings by area, such as Database or Notifications."
+  },
+  "admin.health_dashboard.group_by.label": {
+    "defaultMessage": "Group by",
+    "description": "Label of the control on the System Console Site health page that switches how findings are grouped."
+  },
+  "admin.health_dashboard.group_by.severity": {
+    "defaultMessage": "Severity",
+    "description": "Option of the Group by control on the System Console Site health page that groups findings by severity."
+  },
+  "admin.health_dashboard.just_now": {
+    "defaultMessage": "just now",
+    "description": "Relative time on the System Console Site health page for a moment less than a minute ago, used inside sentences such as \"Last evaluated {time}\" and \"Muted by {name} {time}\"."
+  },
+  "admin.health_dashboard.last_evaluated": {
+    "defaultMessage": "Last evaluated {time}",
+    "description": "Line at the top of the System Console Site health page; {time} is a relative time such as \"38 minutes ago\" of the latest health check run."
+  },
+  "admin.health_dashboard.mute.error": {
+    "defaultMessage": "The finding could not be muted, so it is still in the open list. Try again.",
+    "description": "Error banner on the System Console Site health page when muting a finding failed and the finding was put back in the open list."
+  },
+  "admin.health_dashboard.mute.mute": {
+    "defaultMessage": "Mute",
+    "description": "Button on a finding row of the System Console Site health page that hides the finding from the open list for every admin, immediately."
+  },
+  "admin.health_dashboard.mute.unmute": {
+    "defaultMessage": "Unmute",
+    "description": "Button on a muted finding row of the System Console Site health page that returns the finding to the open list."
+  },
+  "admin.health_dashboard.muted.by": {
+    "defaultMessage": "Muted by {name} {time}",
+    "description": "Shown on a muted finding on the System Console Site health page; {name} is the admin who muted it and {time} a relative time such as \"2 hours ago\"."
+  },
+  "admin.health_dashboard.muted.empty.body": {
+    "defaultMessage": "Findings muted by any admin are listed here, with who muted them and when.",
+    "description": "Body of the empty state of the muted findings list on the System Console Site health page."
+  },
+  "admin.health_dashboard.muted.empty.title": {
+    "defaultMessage": "No muted findings",
+    "description": "Title of the empty state of the muted findings list on the System Console Site health page."
+  },
+  "admin.health_dashboard.muted.note": {
+    "defaultMessage": "Muted findings are hidden from the open list for every admin, and they keep being checked. A different problem with the same check is still reported. Unmute a finding to return it to the open list.",
+    "description": "Explanation above the list of muted findings on the System Console Site health page."
+  },
+  "admin.health_dashboard.muted.toggle": {
+    "defaultMessage": "Muted",
+    "description": "Toolbar button next to the tabs on the System Console Site health page that shows the muted findings; followed by their count."
+  },
+  "admin.health_dashboard.severity.critical": {
+    "defaultMessage": "Critical",
+    "description": "Severity label of a health finding on the System Console Site health page; compact space."
+  },
+  "admin.health_dashboard.severity.info": {
+    "defaultMessage": "Info",
+    "description": "Severity label of a health finding on the System Console Site health page, short for informational; compact space."
+  },
+  "admin.health_dashboard.severity.warning": {
+    "defaultMessage": "Warning",
+    "description": "Severity label of a health finding on the System Console Site health page; compact space."
+  },
+  "admin.health_dashboard.state.resolved": {
+    "defaultMessage": "Recently resolved",
+    "description": "Tab and section label on the System Console Site health page for findings that stopped firing in the last 7 days."
+  },
+  "admin.health_dashboard.state.unknown": {
+    "defaultMessage": "Unknown",
+    "description": "Tab label on the System Console Site health page for health checks that could not be evaluated."
+  },
+  "admin.health_dashboard.tab.open": {
+    "defaultMessage": "Open",
+    "description": "Default tab on the System Console Site health page listing every firing finding and every check that could not be evaluated."
+  },
+  "admin.health_dashboard.tabs.label": {
+    "defaultMessage": "Filter findings",
+    "description": "Screen reader label for the tabs that filter findings on the System Console Site health page."
+  },
+  "admin.health_dashboard.title": {
+    "defaultMessage": "Site health",
+    "description": "Page header of the System Console Site health page, which lists health findings for the workspace."
+  },
+  "admin.health_dashboard.trend.firing": {
+    "defaultMessage": "Firing for {duration}",
+    "description": "Meta line on a finding row of the System Console Site health page; {duration} is a compact duration such as \"3d 4h\"."
+  },
+  "admin.health_dashboard.trend.resolved": {
+    "defaultMessage": "Resolved {time}",
+    "description": "Meta line on a resolved finding row of the System Console Site health page; {time} is a relative time such as \"2 hours ago\"."
+  },
+  "admin.health_dashboard.trend.unknown": {
+    "defaultMessage": "Unevaluated for {duration}",
+    "description": "Meta line on a finding row of the System Console Site health page for a check that could not be evaluated; {duration} is a compact duration such as \"5h\"."
+  },
+  "admin.health_dashboard.unknown.explanation": {
+    "defaultMessage": "These checks could not run, so their result is unknown. Unknown does not mean healthy: each one shows why it could not be checked.",
+    "description": "Explanation under the \"Could not be evaluated\" section of the System Console Site health page; unknown results must not be read as healthy."
+  },
+  "admin.health_dashboard.unknown.title": {
+    "defaultMessage": "Could not be evaluated",
+    "description": "Heading of the section on the System Console Site health page listing health checks that could not be evaluated."
+  },
+  "admin.health_dashboard.unmute.error": {
+    "defaultMessage": "The finding could not be unmuted, so it is still muted. Try again.",
+    "description": "Error banner on the System Console Site health page when unmuting a finding failed and the finding stayed muted."
   },
   "admin.image.amazonS3BucketDescription": {
     "defaultMessage": "Name you selected for your S3 bucket in AWS.",
@@ -8068,7 +8452,7 @@
     "description": "Admin console help text for the Admin Filter field on the AD/LDAP settings page; the filter selects which users become System Admins."
   },
   "admin.ldap.adminFilterFilterDescHover": {
-    "defaultMessage": "The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console. Existing members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in System Console > Session Lengths. It is highly recommend to manually demote users to members in System Console > User Management to ensure access is restricted immediately.\n \nNote: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in System Console > User Management.",
+    "defaultMessage": "The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console. Existing members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in System Console > Session Lengths. It is highly recommended to manually demote users to members in System Console > User Management to ensure access is restricted immediately.\n \nNote: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in System Console > User Management.",
     "description": "Hover tooltip for the Admin Filter field in the AD/LDAP wizard, explaining how the filter promotes/demotes System Admins; audience is system admins."
   },
   "admin.ldap.adminFilterTitle": {
@@ -8228,7 +8612,7 @@
     "description": "Admin console help text for the Group ID Attribute field on the AD/LDAP settings page."
   },
   "admin.ldap.groupIdAttributeDescHover": {
-    "defaultMessage": "This should be a AD/LDAP attribute with a value that does not change such as entryUUID for LDAP or objectGUID for Active Directory.",
+    "defaultMessage": "This should be an AD/LDAP attribute with a value that does not change such as entryUUID for LDAP or objectGUID for Active Directory.",
     "description": "Hover tooltip for the Group ID Attribute field in the AD/LDAP wizard; entryUUID and objectGUID are literal LDAP attribute names."
   },
   "admin.ldap.groupIdAttributeEx": {
@@ -8248,7 +8632,7 @@
     "description": "Admin console help text for the Guest Filter field; 'Guest Access' is another System Console feature that must be enabled first."
   },
   "admin.ldap.guestFilterFilterDescHover": {
-    "defaultMessage": "Only the users selected by the query will be able to access Mattermost as Guests. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel.\n \nNote: If this filter is removed/changed, active guests will not be promoted to a member and will retain their Guest role. Guests can be promoted in System Console > User Management. Existing members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to login next. The next login is based upon Session lengths set in System Console > Session Lengths. It is highly recommend to manually demote users to guests in System Console > User Management  to ensure access is restricted immediately.",
+    "defaultMessage": "Only the users selected by the query will be able to access Mattermost as Guests. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel.\n \nNote: If this filter is removed/changed, active guests will not be promoted to a member and will retain their Guest role. Guests can be promoted in System Console > User Management. Existing members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to log in next. The next login is based upon Session lengths set in System Console > Session Lengths. It is highly recommended to manually demote users to guests in System Console > User Management to ensure access is restricted immediately.",
     "description": "Hover tooltip for the Guest Filter field in the AD/LDAP wizard, explaining how the filter affects guest accounts."
   },
   "admin.ldap.guestFilterTitle": {
@@ -8603,16 +8987,16 @@
     "defaultMessage": "Uploading Private Key...",
     "description": "Transient progress text shown on the private key upload button while the file is uploading."
   },
-  "admin.ldap.userFilterDisc": {
+  "admin.ldap.userFilterDesc": {
     "defaultMessage": "(Optional) Enter an AD/LDAP filter to use when searching for user objects. When blank, defaults to the ID Attribute.\nFor Active Directory, the query to filter out disabled users is\n(&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).",
     "description": "Admin console help text for the User Filter field; the LDAP filter expression on the last line is a literal example and should not be translated."
   },
-  "admin.ldap.userFilterDiscHover": {
+  "admin.ldap.userFilterDescHover": {
     "defaultMessage": "Only the users selected by the query will be able to access Mattermost.",
     "description": "Hover tooltip for the User Filter field in the AD/LDAP wizard."
   },
   "admin.ldap.userFilterEx": {
-    "defaultMessage": "Ex. \"(objectClass=user)\"",
+    "defaultMessage": "E.g.: \"(objectClass=user)\"",
     "description": "Placeholder in the User Filter input showing an example LDAP filter expression."
   },
   "admin.ldap.userFilterTitle": {
@@ -8676,7 +9060,7 @@
     "description": "Title of the danger banner in the license preview modal when the uploaded license is a lower plan tier than the current one."
   },
   "admin.license.diff.banner.entry_to_advanced.description": {
-    "defaultMessage": "Mattermost Enterprise Advanced includes all Enterprise features, unlocks unlimited message history, and adds exclusive capabilities like Zero Trust security, sensitive information controls, and mobile security hardening for mission-critical operations",
+    "defaultMessage": "Mattermost Enterprise Advanced includes all Enterprise features, unlocks unlimited message history, and adds exclusive capabilities like Zero Trust security, sensitive information controls, and mobile security hardening for mission-critical operations.",
     "description": "Body of the success banner in the license preview modal when applying an Enterprise Advanced license over Mattermost Entry."
   },
   "admin.license.diff.banner.entry_to_advanced.title": {
@@ -9160,7 +9544,7 @@
     "description": "Loading text on the restart-server button on the Edition and License page while the server restarts."
   },
   "admin.licenseSettings.teamEdition.teamEditionRightPanel.upgradedRestart": {
-    "defaultMessage": "You have upgraded your binary to mattermost enterprise, please restart the server to start using the new binary. You can do it right here:",
+    "defaultMessage": "You have upgraded your binary to Mattermost Enterprise. Please restart the server to start using the new binary. You can do it right here:",
     "description": "Message shown after the server binary was upgraded to Enterprise Edition, prompting the admin to restart via the button below."
   },
   "admin.lockTeammateNameDisplay": {
@@ -10128,7 +10512,7 @@
     "description": "Button on the permission policy edit page that switches the rule editor from advanced CEL mode back to the simple table mode."
   },
   "admin.permission_policies.edit.title": {
-    "defaultMessage": "Attribute Based Permission Policy",
+    "defaultMessage": "Attribute-Based Permission Policy",
     "description": "Page title of the attribute-based permission policy edit page in the System Console."
   },
   "admin.permission_policies.edit.who.attributes_subtitle": {
@@ -11220,7 +11604,7 @@
     "description": "Role category label ('System Role' as opposed to team/channel roles) shown for the System Admin on the System Roles page."
   },
   "admin.permissions.roles.system_custom_group_admin.deauthorize_reminder": {
-    "defaultMessage": "Don't forget to deauthorize all other system users from administering Custom Groups by unchecking the associated permissions checkbox in System console > User Management > Permissions.",
+    "defaultMessage": "Don't forget to deauthorize all other system users from administering Custom Groups by unchecking the associated permissions checkbox in System Console > User Management > Permissions.",
     "description": "Paragraph in the Privileges panel on the Custom Group Manager role page, reminding admins to remove the equivalent permission from other users; 'System console > User Management > Permissions' is a UI navigation path."
   },
   "admin.permissions.roles.system_custom_group_admin.description": {
@@ -11316,7 +11700,7 @@
     "description": "Name of the 'Edition and License' System Console subsection in the admin role privileges list."
   },
   "admin.permissions.sysconsole_section_about.description": {
-    "defaultMessage": "The ability to install or upgrade your servers enterprise licensing.",
+    "defaultMessage": "The ability to install or upgrade your server's enterprise licensing.",
     "description": "Description of the 'About' System Console section, shown when configuring an admin role's access to that section."
   },
   "admin.permissions.sysconsole_section_about.name": {
@@ -12312,7 +12696,7 @@
     "description": "Setting label (toggle) on the Posts admin page; controls whether guest users can send repeating notifications."
   },
   "admin.posts.persistentNotificationsInterval.desc": {
-    "defaultMessage": "Configure the number of minutes between repeated notifications for urgent messages send with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.",
+    "defaultMessage": "Configure the number of minutes between repeated notifications for urgent messages sent with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.",
     "description": "Admin console help text under the persistent notification frequency field; <link> wraps the word documentation."
   },
   "admin.posts.persistentNotificationsInterval.minValue": {
@@ -12328,7 +12712,7 @@
     "description": "Admin console help text under the persistent notification count field; <link> wraps the word documentation."
   },
   "admin.posts.persistentNotificationsMaxCount.title": {
-    "defaultMessage": "Total number of persistent notification per post",
+    "defaultMessage": "Total number of persistent notifications per post",
     "description": "Setting label for a numeric field on the Posts admin page; post here is a noun (a message). The maximum number of repeat notifications sent per message."
   },
   "admin.posts.persistentNotificationsMaxRecipients.desc": {
@@ -12452,7 +12836,7 @@
     "description": "Error message shown to the admin when the cache purge action fails; {error} is the server error message."
   },
   "admin.rate.enableLimiterDescription": {
-    "defaultMessage": "When true, APIs are throttled at rates specified below. Rate limiting prevents server overload from too many requests. This is useful to prevent third-party applications or malicous attacks from impacting your server.",
+    "defaultMessage": "When true, APIs are throttled at rates specified below. Rate limiting prevents server overload from too many requests. This is useful to prevent third-party applications or malicious attacks from impacting your server.",
     "description": "Admin console help text for the 'Enable Rate Limiting' toggle on the Rate Limiting page."
   },
   "admin.rate.enableLimiterTitle": {
@@ -12484,7 +12868,7 @@
     "description": "Placeholder example value for the Maximum Burst Size input on the System Console Rate Limiting page."
   },
   "admin.rate.memoryDescription": {
-    "defaultMessage": "Maximum number of users sessions connected to the system as determined by \"Vary rate limit by remote address\" and \"Vary rate limit by HTTP header\" settings below.",
+    "defaultMessage": "Maximum number of user sessions connected to the system as determined by \"Vary rate limit by remote address\" and \"Vary rate limit by HTTP header\" settings below.",
     "description": "Admin console help text for the 'Memory Store Size' rate limiting setting; the quoted names refer to the two settings below it on the same page."
   },
   "admin.rate.memoryExample": {
@@ -12744,7 +13128,7 @@
     "description": "Description of the Workspace Optimization check suggesting admins review the default 30-day session length."
   },
   "admin.reporting.workspace_optimization.configuration.session_length.title": {
-    "defaultMessage": "Session lengths is set to default",
+    "defaultMessage": "Session length is set to default",
     "description": "Title of the Workspace Optimization check noting session length is still at its default value."
   },
   "admin.reporting.workspace_optimization.configuration.ssl.description": {
@@ -12972,7 +13356,7 @@
     "description": "Headline on the feature discovery (upsell) page for SAML 2.0; mentions the required plan."
   },
   "admin.saml.adminAttrDesc": {
-    "defaultMessage": "(Optional) The attribute in the SAML Assertion for designating System Admins. The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console.\n \nExisting members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to members in **System Console > User Management** to ensure access is restricted immediately.\n \nNote: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in **System Console > User Management**.",
+    "defaultMessage": "(Optional) The attribute in the SAML Assertion for designating System Admins. The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console.\n \nExisting members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommended to manually demote users to members in **System Console > User Management** to ensure access is restricted immediately.\n \nNote: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in **System Console > User Management**.",
     "description": "Admin console help text for the SAML 'Admin Attribute' setting; supports Markdown (bold path references to other System Console pages)."
   },
   "admin.saml.adminAttrEx": {
@@ -13040,7 +13424,7 @@
     "description": "Admin console help text for the SAML-with-AD/LDAP sync toggle; <strong> wraps a System Console navigation path and <link> wraps 'documentation' as a hyperlink."
   },
   "admin.saml.enableSyncWithLdapIncludeAuthDescription": {
-    "defaultMessage": "When true, Mattermost will override the SAML ID attribute with the AD/LDAP ID attribute if configured or override the SAML Email attribute with the AD/LDAP Email attribute if SAML ID attribute is not present. This will allow you automatically migrate users from Email binding to ID binding to prevent creation of new users when an email address changes for a user. Moving from true to false, will remove the override from happening. <strong>Note:</strong> SAML IDs must match the LDAP IDs to prevent disabling of user accounts. Please review <link>documentation</link> for more information.",
+    "defaultMessage": "When true, Mattermost will override the SAML ID attribute with the AD/LDAP ID attribute if configured or override the SAML Email attribute with the AD/LDAP Email attribute if SAML ID attribute is not present. This will allow you to automatically migrate users from Email binding to ID binding to prevent creation of new users when an email address changes for a user. Moving from true to false will remove the override from happening. <strong>Note:</strong> SAML IDs must match the LDAP IDs to prevent disabling of user accounts. Please review <link>documentation</link> for more information.",
     "description": "Admin console help text for the setting that overrides SAML bind data with AD/LDAP data; <strong> wraps 'Note:' and <link> wraps 'documentation' as a hyperlink."
   },
   "admin.saml.enableSyncWithLdapIncludeAuthTitle": {
@@ -13100,7 +13484,7 @@
     "description": "Button label on the SAML settings page; fetches configuration metadata from the Identity Provider (IdP)."
   },
   "admin.saml.guestAttrDesc": {
-    "defaultMessage": "(Optional) Requires Guest Access to be enabled before being applied. The attribute in the SAML Assertion that will be used to apply a guest role to users in Mattermost. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel.\n \nNote: If this attribute is removed/changed from your guest user in SAML and the user is still active, they will not be promoted to a member and will retain their Guest role. Guests can be promoted in **System Console > User Management**.\n \n \nExisting members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to login next. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to guests in **System Console > User Management ** to ensure access is restricted immediately.",
+    "defaultMessage": "(Optional) Requires Guest Access to be enabled before being applied. The attribute in the SAML Assertion that will be used to apply a guest role to users in Mattermost. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel.\n \nNote: If this attribute is removed/changed from your guest user in SAML and the user is still active, they will not be promoted to a member and will retain their Guest role. Guests can be promoted in **System Console > User Management**.\n \n \nExisting members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to log in next. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommended to manually demote users to guests in **System Console > User Management** to ensure access is restricted immediately.",
     "description": "Admin console help text for the SAML 'Guest Attribute' setting; supports Markdown (bold System Console path references); 'Guest' is a restricted user role."
   },
   "admin.saml.guestAttrEx": {
@@ -13804,7 +14188,7 @@
     "description": "Admin console label for a true/false setting making MFA mandatory at login; ends with a colon before the radio buttons."
   },
   "admin.service.extendSessionLengthActivity.helpText": {
-    "defaultMessage": "When true, sessions will be automatically extended when the user is active in their Mattermost client. Users sessions will only expire if they are not active in their Mattermost client for the entire duration of the session lengths defined in the fields below. When false, sessions will not extend with activity in Mattermost. User sessions will immediately expire at the end of the session length or idle timeouts defined below. ",
+    "defaultMessage": "When true, sessions will be automatically extended when the user is active in their Mattermost client. User sessions will only expire if they are not active in their Mattermost client for the entire duration of the session lengths defined in the fields below. When false, sessions will not extend with activity in Mattermost. User sessions will immediately expire at the end of the session length or idle timeouts defined below. ",
     "description": "Admin console help text for the 'Extend session length with activity' toggle on the Session Lengths page; trailing space is intentional."
   },
   "admin.service.extendSessionLengthActivity.label": {
@@ -13956,7 +14340,7 @@
     "description": "Help text variant for the mobile session length setting, shown when 'extend session length with activity' is enabled."
   },
   "admin.service.outgoingOAuthConnectionsDesc": {
-    "defaultMessage": "When true, outgoing webhooks and slash commands will use set up oauth connections to authenticate with third party services. See <link>documentation</link> to learn more.",
+    "defaultMessage": "When true, outgoing webhooks and slash commands will use the configured OAuth connections to authenticate with third party services. See <link>documentation</link> to learn more.",
     "description": "Admin console help text for the 'Enable Outgoing OAuth Connections' toggle; <link> wraps 'documentation' as a hyperlink."
   },
   "admin.service.outgoingOAuthConnectionsTitle": {
@@ -14643,6 +15027,10 @@
     "defaultMessage": "Site Configuration",
     "description": "Category heading in the System Console left navigation sidebar, grouping site-wide configuration pages; compact space."
   },
+  "admin.sidebar.siteHealth": {
+    "defaultMessage": "Site health",
+    "description": "Navigation item in the System Console sidebar under Reporting; opens the Site health page listing health findings; compact space."
+  },
   "admin.sidebar.smtp": {
     "defaultMessage": "SMTP",
     "description": "Navigation item in the System Console sidebar under Environment; 'SMTP' is the email protocol acronym, should not be translated; compact space."
@@ -14742,6 +15130,14 @@
   "admin.site.localization.autoTranslationLLMServiceTitle": {
     "defaultMessage": "AI Service",
     "description": "Setting label on the System Console Localization page for choosing the AI service used for auto-translation."
+  },
+  "admin.site.localization.autoTranslationLLMServiceUnavailable": {
+    "defaultMessage": "The selected AI service is no longer available in the Agents plugin. Select an available service and save.",
+    "description": "Error shown under the AI Service setting on the System Console Localization page when the saved auto-translation service no longer exists in the Agents plugin."
+  },
+  "admin.site.localization.autoTranslationLLMServiceUnavailableOption": {
+    "defaultMessage": "Unavailable service ({serviceId})",
+    "description": "Dropdown option on the System Console Localization page representing the saved auto-translation AI service that no longer exists; {serviceId} is the saved service ID."
   },
   "admin.site.localization.autoTranslationProviderDescription": {
     "defaultMessage": "<strong>NOTE:</strong> If using external translation services (e.g., cloud-based LLMs), message data may be processed outside your environment.",
@@ -15472,8 +15868,8 @@
     "description": "Floating label of the date range selector input above the System Console users table; refers to the reporting time period."
   },
   "admin.system_users.date_range_selector.menuButtonAriaLabel": {
-    "defaultMessage": "Open menu to select columns to display",
-    "description": "Accessibility (aria) label for the button that opens the date range menu of the System Console users table (English source text mistakenly mentions columns)."
+    "defaultMessage": "Open menu to select a date range",
+    "description": "Accessibility (aria) label for the button that opens the date range menu of the System Console users table."
   },
   "admin.system_users.date_range_selector.trailing_message": {
     "defaultMessage": "Note: This filter will only affect values in the <strong>Last Post, Days Active, and Messages Posted</strong> columns.",
@@ -15900,11 +16296,11 @@
     "description": "Validation error on the admin team configuration page when allowed email domains are required but not entered."
   },
   "admin.team_channel_settings.need_groups": {
-    "defaultMessage": "You must add at least one group to manage this team by sync group members.",
+    "defaultMessage": "You must add at least one group to manage this team by syncing group members.",
     "description": "Validation error on the admin team configuration page when group sync is enabled but no group has been added; audience is system admins."
   },
   "admin.team_channel_settings.need_groups_channel": {
-    "defaultMessage": "You must add at least one group to manage this channel by sync group members.",
+    "defaultMessage": "You must add at least one group to manage this channel by syncing group members.",
     "description": "Validation error on the System Console channel configuration page when group-synced membership is enabled but no groups are added."
   },
   "admin.team_channel_settings.removeConfirmModal.messageChannel": {
@@ -16000,7 +16396,7 @@
     "description": "Confirm button of the modal shown when saving a team that is being archived from the admin console; 'Archive' is a verb."
   },
   "admin.team_settings.team_detail.archive_confirm.message": {
-    "defaultMessage": "Archiving will remove the team from the user interface but it's contents remain in the database and may still be accessible with the API. Are you sure you wish to save and archive this team?",
+    "defaultMessage": "Archiving will remove the team from the user interface but its contents remain in the database and may still be accessible with the API. Are you sure you wish to save and archive this team?",
     "description": "Body text of the confirmation modal shown before saving and archiving a team from the admin console team configuration page."
   },
   "admin.team_settings.team_detail.archive_confirm.title": {
@@ -16308,7 +16704,7 @@
     "description": "Admin console label for the text input holding the URL of the Delete Account link in user profile security settings; ends with a colon."
   },
   "admin.team.emailInvitationsDescription": {
-    "defaultMessage": "When true users can invite others to the system using email.",
+    "defaultMessage": "When true, users can invite others to the system using email.",
     "description": "Admin console help text for the 'Enable Email Invitations' toggle."
   },
   "admin.team.emailInvitationsTitle": {
@@ -16548,7 +16944,7 @@
     "description": "Radio button label for the 'true' choice of boolean settings throughout the System Console."
   },
   "admin.user_attributes_feature_discovery.desc": {
-    "defaultMessage": "Define and manage organization-specific user profile attributes as that can synchronize with your AD/LDAP or SAML identity provider.",
+    "defaultMessage": "Define and manage organization-specific user profile attributes that can synchronize with your AD/LDAP or SAML identity provider.",
     "description": "Body copy on the feature discovery (upsell) page for custom user profile attributes."
   },
   "admin.user_attributes_feature_discovery.title": {
@@ -17955,35 +18351,35 @@
     "defaultMessage": "The session with id {sessionId} was revoked",
     "description": "Row description in the access history / audit table; {sessionId} is the identifier of the login session that was revoked."
   },
-  "audit_table.successfullLicenseAdd": {
+  "audit_table.successfulLicenseAdd": {
     "defaultMessage": "Successfully added new license",
     "description": "Audit log entry: a new license was uploaded successfully."
   },
-  "audit_table.successfullLogin": {
+  "audit_table.successfulLogin": {
     "defaultMessage": "Successfully logged in",
     "description": "Audit log entry: the user logged in successfully."
   },
-  "audit_table.successfullOAuthAccess": {
+  "audit_table.successfulOAuthAccess": {
     "defaultMessage": "Successfully gave a new OAuth service access",
     "description": "Audit log entry: a new OAuth service was authorized successfully."
   },
-  "audit_table.successfullOAuthToken": {
+  "audit_table.successfulOAuthToken": {
     "defaultMessage": "Successfully added a new OAuth service",
     "description": "Audit log entry: a new OAuth service was added successfully."
   },
-  "audit_table.successfullPassword": {
+  "audit_table.successfulPassword": {
     "defaultMessage": "Successfully changed password",
     "description": "Row description in the user's Access History audit table (Profile > Security), describing a past account action."
   },
-  "audit_table.successfullReset": {
+  "audit_table.successfulReset": {
     "defaultMessage": "Successfully reset password",
     "description": "Row description in the user's Access History audit table, describing a past password reset action."
   },
-  "audit_table.successfullWebhookCreate": {
+  "audit_table.successfulWebhookCreate": {
     "defaultMessage": "Successfully created a webhook",
     "description": "Row description in the user's Access History audit table, describing a webhook creation event."
   },
-  "audit_table.successfullWebhookDelete": {
+  "audit_table.successfulWebhookDelete": {
     "defaultMessage": "Successfully deleted a webhook",
     "description": "Row description in the user's Access History audit table, describing a webhook deletion event."
   },
@@ -18116,7 +18512,7 @@
     "description": "Title of a danger banner on the cloud Subscription page when the latest payment attempt failed."
   },
   "billing.subscription.info.mostRecentPaymentFailed.description.mostRecentPaymentFailed": {
-    "defaultMessage": "It looks your most recent payment failed because the credit card on your account has expired. Please <link>update your payment information</link> to avoid any disruption.",
+    "defaultMessage": "It looks like your most recent payment failed because the credit card on your account has expired. Please <link>update your payment information</link> to avoid any disruption.",
     "description": "Warning text on the Cloud billing/subscription admin page when the last payment failed due to an expired card; <link> wraps the clickable 'update your payment information' text."
   },
   "bot.add.default_token.expiry": {
@@ -18435,6 +18831,30 @@
     "defaultMessage": "Call type selector",
     "description": "Accessibility label for the dropdown in the channel header used to pick which call plugin/type to start."
   },
+  "call_button.start_call": {
+    "defaultMessage": "Start call",
+    "description": ""
+  },
+  "call_options.aria_label": {
+    "defaultMessage": "Call options",
+    "description": ""
+  },
+  "call_options.audio": {
+    "defaultMessage": "Start an Audio Call",
+    "description": ""
+  },
+  "call_options.audio_sub": {
+    "defaultMessage": "Mattermost Call",
+    "description": ""
+  },
+  "call_options.phone": {
+    "defaultMessage": "Call {label}",
+    "description": ""
+  },
+  "call_options.phone_sub": {
+    "defaultMessage": "{number} • Phone call",
+    "description": ""
+  },
   "carousel.nextButton": {
     "defaultMessage": "Next",
     "description": "Label of the button that moves to the next slide in a carousel (e.g. trial benefits carousel)."
@@ -18501,15 +18921,15 @@
   },
   "channel_attributes.banner.empty_notice": {
     "defaultMessage": "There's nothing to display until the attributes in the banner text have values.",
-    "description": ""
+    "description": "Channel Settings > Configuration > channel banner preview. Body of the warning shown under the preview when the banner text contains attribute tokens but none of those attributes has a value yet, so the banner would render empty."
   },
   "channel_attributes.banner.empty_notice.no_text": {
     "defaultMessage": "Add banner text to display a banner.",
-    "description": ""
+    "description": "Channel Settings > Configuration > channel banner preview. Body of the warning shown under the preview when the banner text is empty, telling the channel admin to enter some text."
   },
   "channel_attributes.banner.empty_notice.title": {
     "defaultMessage": "The banner will not be displayed",
-    "description": ""
+    "description": "Channel Settings > Configuration > channel banner preview. Title of the warning shown when the banner would render empty; the body is one of the channel_attributes.banner.empty_notice* strings."
   },
   "channel_attributes.banner.insert_attribute": {
     "defaultMessage": "Attributes",
@@ -18529,11 +18949,11 @@
   },
   "channel_attributes.banner.token_value_set": {
     "defaultMessage": "Value on this channel: {value}",
-    "description": ""
+    "description": "Channel Settings > Configuration > banner text editor. Secondary line of a menu item in the \"insert attribute\" picker, showing the attribute's current value on this channel. {value} is that value as entered by a user."
   },
   "channel_attributes.banner.token_value_unset": {
     "defaultMessage": "The attribute has no value set and won't render in the banner, but will appear automatically the moment a value is set.",
-    "description": ""
+    "description": "Channel Settings > Configuration > banner text editor. Tooltip / secondary text shown for an attribute that has no value on this channel yet, both in the insert-attribute picker and next to an inserted token."
   },
   "channel_attributes.chip.label_prefix": {
     "defaultMessage": "{label}: ",
@@ -18550,10 +18970,6 @@
   "channel_attributes.info.add": {
     "defaultMessage": "Add attribute",
     "description": "Button (with a + icon), and its menu's screen-reader label, at the bottom of the Channel Attributes section in the channel info right-hand panel. Opens a list of attributes that can still be set on the channel."
-  },
-  "channel_attributes.info.clear": {
-    "defaultMessage": "Clear {label}",
-    "description": "Menu item or button in the value picker of a channel attribute in the channel info right-hand panel. It removes the attribute's value. {label} is the attribute's display name. 'Clear' is a verb."
   },
   "channel_attributes.info.edit": {
     "defaultMessage": "Edit {label}",
@@ -18585,7 +19001,7 @@
   },
   "channel_attributes.info.remove_value": {
     "defaultMessage": "Remove {value}",
-    "description": ""
+    "description": "Channel Settings > Info > channel attributes. Screen-reader label of the small x button that removes one selected value from a multi-value attribute. {value} is the value being removed. \"Remove\" is a verb."
   },
   "channel_attributes.info.save_failed": {
     "defaultMessage": "Couldn't save {label}. Try again.",
@@ -18625,7 +19041,7 @@
   },
   "channel_banner.banner_text.help": {
     "defaultMessage": "Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the channel. The banner is hidden if there is no text available.",
-    "description": ""
+    "description": "Channel Settings > Configuration > channel banner. Help text under the banner text field when attribute tokens can be inserted into the banner. The symbols in parentheses (· . / ?) are literal examples of separator characters and should be kept as they are."
   },
   "channel_banner.banner_text.label": {
     "defaultMessage": "Banner text",
@@ -19424,7 +19840,7 @@
     "description": "Body of a tooltip in the 'Create channel' dialog promoting the option to also create a (Boards) kanban board with the channel."
   },
   "channel_modal.create_board.tooltip_title": {
-    "defaultMessage": "Manage your task with a board",
+    "defaultMessage": "Manage your tasks with a board",
     "description": "Title of a tooltip in the 'Create channel' dialog promoting the option to also create a (Boards) kanban board with the channel."
   },
   "channel_modal.createNew": {
@@ -19805,7 +20221,7 @@
   },
   "channel_settings.error_attributes_save_failed": {
     "defaultMessage": "Couldn't save one or more channel attributes. Try again.",
-    "description": ""
+    "description": "Channel Settings > Info tab. Error shown at the bottom of the modal when saving the channel's attribute values failed on the server."
   },
   "channel_settings.error_banner_color_required": {
     "defaultMessage": "Banner color is required",
@@ -20113,7 +20529,7 @@
   },
   "channel_settings.save_changes_panel.banner_text.empty_error": {
     "defaultMessage": "Add banner text, or turn off the channel banner.",
-    "description": ""
+    "description": "Channel Settings > Configuration. Error shown in the save-changes panel when the channel banner is turned on but the banner text is empty, and the user is allowed to turn the banner off instead."
   },
   "channel_settings.save_changes_panel.banner_text.required_error": {
     "defaultMessage": "Channel banner text cannot be empty when enabled",
@@ -20172,7 +20588,7 @@
     "description": "Label in the Channel Settings sharing section when the channel is not shared with any connected workspaces; 'workspaces' are other Mattermost servers connected via shared channels."
   },
   "channel_settings.sharing_errors": {
-    "defaultMessage": "There has been errors while sharing the channel with some workspaces. Please try again.",
+    "defaultMessage": "There have been errors while sharing the channel with some workspaces. Please try again.",
     "description": "Error on the Configuration tab when sharing the channel with some remote workspaces failed."
   },
   "channel_settings.tab.archive": {
@@ -20287,7 +20703,7 @@
     "defaultMessage": "You are viewing an archived channel with a <b>deactivated user</b>. New messages cannot be posted.",
     "description": "Notice shown at the bottom of an archived direct-message channel whose other participant was deactivated; <b> renders 'deactivated user' bold."
   },
-  "channelView.login.successfull": {
+  "channelView.login.successful": {
     "defaultMessage": "Login Successful",
     "description": "Screen-reader-only announcement made once after the user logs in and the main channel view loads."
   },
@@ -22259,19 +22675,19 @@
     "defaultMessage": "Export could not be initiated",
     "description": "Title of the error modal shown when a user data export could not be started."
   },
-  "export_user_data_modal.dange_range.all_time": {
+  "export_user_data_modal.date_range.all_time": {
     "defaultMessage": "You're about to export user data for all time. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.",
     "description": "Body of the export confirmation modal on the System Console users page when the 'All time' date range is selected; explains the CSV report is delivered via direct message."
   },
-  "export_user_data_modal.dange_range.last_30_days": {
+  "export_user_data_modal.date_range.last_30_days": {
     "defaultMessage": "You're about to export user data for the last 30 days. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.",
     "description": "Body of the export confirmation modal on the System Console users page when the 'Last 30 days' date range is selected; explains the CSV report is delivered via direct message."
   },
-  "export_user_data_modal.dange_range.last_6_months": {
+  "export_user_data_modal.date_range.last_6_months": {
     "defaultMessage": "You're about to export user data for the last 6 months. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.",
     "description": "Body of the export confirmation modal on the System Console users page when the 'Last 6 months' date range is selected; explains the CSV report is delivered via direct message."
   },
-  "export_user_data_modal.dange_range.previous_month": {
+  "export_user_data_modal.date_range.previous_month": {
     "defaultMessage": "You're about to export user data for the previous month. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.",
     "description": "Body of the export confirmation modal on the System Console users page when the 'Previous month' date range is selected; explains the CSV report is delivered via direct message."
   },
@@ -22424,7 +22840,7 @@
     "description": "File type name for PDF files, shown in file-extension search suggestions; 'Acrobat' refers to Adobe Acrobat."
   },
   "file_type.presentation": {
-    "defaultMessage": "Powerpoint Presentation",
+    "defaultMessage": "PowerPoint Presentation",
     "description": "File type name for PowerPoint presentation files, shown in file-extension search suggestions; 'Powerpoint' is a Microsoft product name."
   },
   "file_type.spreadsheet": {
@@ -22636,7 +23052,7 @@
     "description": "Short badge text next to the Guest option in the Invite People modal during a free trial, indicating a paid-plan feature; compact space."
   },
   "free.professional_feature.try_free": {
-    "defaultMessage": "Professional feature- try it out free",
+    "defaultMessage": "Professional feature - try it out free",
     "description": "Short badge text next to the Guest option in the Invite People modal on a free plan without prior trial, promoting a free trial; compact space."
   },
   "free.professional_feature.upgrade": {
@@ -22831,7 +23247,7 @@
     "defaultMessage": "Edit Icon",
     "description": "Accessibility title for a pencil/edit icon."
   },
-  "generic_icons.elipsisHorizontalIcon": {
+  "generic_icons.ellipsisHorizontalIcon": {
     "defaultMessage": "Ellipsis Horizontal Icon",
     "description": "Accessibility title for the horizontal ellipsis (…) 'more options' icon."
   },
@@ -23632,7 +24048,7 @@
     "description": "Section heading in the mentions help page; '@Mentions' is the feature name."
   },
   "help.mentioning.recent.description": {
-    "defaultMessage": "Click <code>@</code> icon in right side of the top bar next to your profile picture to view your most recent @mentions and words that trigger mentions.",
+    "defaultMessage": "Click the <code>@</code> icon on the right side of the top bar next to your profile picture to view your most recent @mentions and words that trigger mentions.",
     "description": "Paragraph in the mentions help page about viewing recent mentions; <code> wraps the literal '@' character."
   },
   "help.mentioning.recent.title": {
@@ -24111,7 +24527,7 @@
     "defaultMessage": "Are you sure you want to delete {connectionName}?",
     "description": "Confirmation message in the modal shown before deleting an outgoing OAuth connection; {connectionName} is the connection's name."
   },
-  "installed_outgoing_oauth_connections.delete.wanring": {
+  "installed_outgoing_oauth_connections.delete.warning": {
     "defaultMessage": "Deleting this connection will break any integrations using it",
     "description": "Warning line in the delete confirmation modal for an outgoing OAuth connection."
   },
@@ -24431,7 +24847,7 @@
     "defaultMessage": "This is the start of your group message history with these teammates. ",
     "description": "Opening sentence of the channel intro at the top of a group message conversation; a notification-setting sentence is concatenated directly after it, so keep the trailing space."
   },
-  "intro_messages.inviteGropusToChannel.button": {
+  "intro_messages.inviteGroupsToChannel.button": {
     "defaultMessage": "Add groups",
     "description": "Button in the channel introduction area (for group-synced channels) that opens the dialog to add user groups to the channel."
   },
@@ -24780,7 +25196,7 @@
     "description": "In-progress label of the Join button in the Browse Channels modal while the join request is processing."
   },
   "katex.error": {
-    "defaultMessage": "Couldn't compile your Latex code. Please review the syntax and try again.",
+    "defaultMessage": "Couldn't compile your LaTeX code. Please review the syntax and try again.",
     "description": "Error text rendered in place of a LaTeX/math code block or inline math in a message when the LaTeX source fails to compile; shown to end users."
   },
   "keep_remove_quarantined_content_modal.action_keep.body": {
@@ -25387,6 +25803,10 @@
     "defaultMessage": "Mark as read",
     "description": "Title of the confirmation dialog for marking multiple channels as read."
   },
+  "markdown_phone_link.tooltip": {
+    "defaultMessage": "Click to call {phoneNumber}",
+    "description": "Tooltip shown when hovering a phone number link in a message."
+  },
   "marketplace_command.disabled": {
     "defaultMessage": "The marketplace is disabled. Please contact your System Administrator for details.",
     "description": "Error returned when a user runs the /marketplace slash command but the marketplace feature is turned off."
@@ -25483,9 +25903,21 @@
     "defaultMessage": "Download all",
     "description": "Button above a post's media gallery that downloads every attachment in it."
   },
+  "media_gallery.download_all_error": {
+    "defaultMessage": "Unable to download these files.",
+    "description": "Inline error next to the media gallery's Download all button when the archive could not be created and the server gave no reason."
+  },
   "media_gallery.download_all_label": {
     "defaultMessage": "Download all {count, plural, one {# item} other {# items}}",
     "description": "Accessibility label for the button that downloads all attachments in a post's media gallery; {count} is the number of items with plural forms."
+  },
+  "media_gallery.download_all_preparing": {
+    "defaultMessage": "Preparing {done} of {total}...",
+    "description": "Text and accessibility label of the media gallery's Download all button while the zip is being built; {done} is the number of files fetched so far, {total} the number of files."
+  },
+  "media_gallery.download_all_too_large": {
+    "defaultMessage": "These files are too large to download together. Download them one at a time.",
+    "description": "Inline error next to the media gallery's Download all button when the attachments exceed the size limit for a single zip."
   },
   "media_gallery.image_label": {
     "defaultMessage": "Image {current} of {total}: {name}",
@@ -25680,7 +26112,7 @@
     "description": "Title of the dialog prompting the user to reset their \"Out of office\" status."
   },
   "more_channels.channel_purpose": {
-    "defaultMessage": "Channel Information: Membership Indicator: Joined, Member count {memberCount} , Purpose: {channelPurpose}",
+    "defaultMessage": "Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}",
     "description": "Screen-reader description of a channel row in the Browse Channels modal; {memberCount} is the number of members and {channelPurpose} is the channel's purpose text."
   },
   "more_channels.channel_type_filter": {
@@ -26072,7 +26504,7 @@
     "description": "Tooltip on the create-team option during a Cloud free trial, warning that teams created will be archived when the trial ends."
   },
   "navbar_dropdown.entryVersionText": {
-    "defaultMessage": "Entry offers Enterprise Advance capabilities <link>with limits</link> designed to support evaluation.",
+    "defaultMessage": "Entry offers Enterprise Advanced capabilities <link>with limits</link> designed to support evaluation.",
     "description": "Text in the main menu describing the free Entry edition; 'Entry' and 'Enterprise Advanced' are plan names; <link> wraps the linked words."
   },
   "navbar_dropdown.help": {
@@ -26208,7 +26640,7 @@
     "description": "Title of the onboarding task list panel greeting new users; 'Mattermost' is the product name."
   },
   "no_results.channel_files_filtered.subtitle": {
-    "defaultMessage": "This channel doesn't contains any file with the selected file format.",
+    "defaultMessage": "This channel doesn't contain any files with the selected file format.",
     "description": "Explanatory text in the channel Files tab when the selected file-type filter matches no files."
   },
   "no_results.channel_files_filtered.title": {
@@ -26486,14 +26918,6 @@
   "onboarding_wizard.plugins.marketplace": {
     "defaultMessage": "More tools can be added once your workspace is set up. To see all available integrations, <a>visit the Marketplace.</a>",
     "description": "Footnote on the plugin selection step of the setup wizard; the <a> tags wrap a link to the in-product integrations Marketplace."
-  },
-  "onboarding_wizard.plugins.servicenow": {
-    "defaultMessage": "ServiceNow",
-    "description": "Product name on a selectable tool card in the setup wizard's plugin selection step; usually left untranslated."
-  },
-  "onboarding_wizard.plugins.servicenow.tooltip": {
-    "defaultMessage": "This plugin serves as an integration between Mattermost and ServiceNow.",
-    "description": "Tooltip describing the ServiceNow plugin on the onboarding wizard's plugins step."
   },
   "onboarding_wizard.plugins.zoom": {
     "defaultMessage": "Zoom",
@@ -26804,7 +27228,7 @@
     "description": "Acknowledgment button of the dialog shown when a persistent-notification message contains no mentioned recipients."
   },
   "persist_notification.too_few.description": {
-    "defaultMessage": "There are no recipients mentioned in your message. You’ll need add mentions to be able to send persistent notifications.",
+    "defaultMessage": "There are no recipients mentioned in your message. You’ll need to add mentions to be able to send persistent notifications.",
     "description": "Body of the dialog shown when a persistent-notification message mentions no one; explains mentions are required before sending."
   },
   "persist_notification.too_many.confirm": {
@@ -28363,7 +28787,7 @@
     "defaultMessage": "Request to join channel",
     "description": "Title of the modal for requesting to join a private/restricted channel."
   },
-  "restricted_indicator.tooltip.mesage": {
+  "restricted_indicator.tooltip.message": {
     "defaultMessage": "During your trial you are able to use this feature.",
     "description": "Tooltip body on the indicator marking a paid feature, shown while the workspace is on a trial."
   },
@@ -29376,7 +29800,7 @@
     "description": "Keyboard shortcuts modal entry (macOS) for strikethrough formatting; keep the tab and '|' separators between key names."
   },
   "shortcuts.msgs.markdown.unordered": {
-    "defaultMessage": "Bulleted List\tShift|Alt|8",
+    "defaultMessage": "Bulleted List:\tShift|Alt|8",
     "description": "Formatting shortcut entry for a bulleted list; description before the tab, keys after it separated by '|'. Keep the tab and pipes; do not translate key names."
   },
   "shortcuts.msgs.markdown.unordered.mac": {
@@ -30355,49 +30779,53 @@
     "defaultMessage": "Remind Me Later",
     "description": "Button on an in-app system notice that dismisses it temporarily and shows it again later."
   },
-  "system_policy_indicator.base_message": {
-    "defaultMessage": "This {resourceType} has system-level access {policyText} applied",
-    "description": "Compact info banner on a resource; {resourceType} is 'channel', 'team', or 'file', {policyText} is the English word 'policy' or 'policies' inserted as-is."
+  "system_policy_indicator.description_with_names.multiple": {
+    "defaultMessage": "{resourceType, select, team {This team has system-level membership policies applied: {policies}. Any custom membership rules you set here will be applied in addition to these policies.} file {This file has system-level access policies applied: {policies}. Any custom access rules you set here will be applied in addition to these policies.} other {This channel has system-level membership policies applied: {policies}. Any custom membership rules you set here will be applied in addition to these policies.}}",
+    "description": "Body of the detailed info banner, below its heading, naming the policies. Used when two or more policies apply; the number itself is not shown, so this is a fixed \"several policies\" wording rather than a plural. {policies} is the locale-formatted list of the policy names in bold, e.g. \"A, B, and 2 more\", where the last item may be a link to see the rest. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
   },
-  "system_policy_indicator.base_message_membership": {
-    "defaultMessage": "This {resourceType} has system-level membership {policyText} applied",
-    "description": "Compact indicator text on a channel or team noting that a system-level membership policy applies; {resourceType} is 'channel' or 'team' and {policyText} is 'policy' or 'policies' (both inserted in English at runtime)."
+  "system_policy_indicator.description_with_names.single": {
+    "defaultMessage": "{resourceType, select, team {This team has a system-level membership policy applied: {policies}. Any custom membership rules you set here will be applied in addition to this policy.} file {This file has a system-level access policy applied: {policies}. Any custom access rules you set here will be applied in addition to this policy.} other {This channel has a system-level membership policy applied: {policies}. Any custom membership rules you set here will be applied in addition to this policy.}}",
+    "description": "Body of the detailed info banner, below its heading, naming the policy. Used when exactly one policy applies. {policies} is the locale-formatted list of the policy names in bold, e.g. \"A, B, and 2 more\", where the last item may be a link to see the rest. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
   },
-  "system_policy_indicator.description_with_membership_policies": {
-    "defaultMessage": "This {resourceType} has system-level membership policies applied{policySuffix}. Any custom membership rules you set here will be applied in addition to these policies.",
-    "description": "Info banner description when multiple admin-defined membership policies apply; {resourceType} is 'channel' or 'team', {policySuffix} is an optional ': policy names' list appended before the period."
+  "system_policy_indicator.description.multiple": {
+    "defaultMessage": "{resourceType, select, team {This team has system-level membership policies applied. Any custom membership rules you set here will be applied in addition to these policies.} file {This file has system-level access policies applied. Any custom access rules you set here will be applied in addition to these policies.} other {This channel has system-level membership policies applied. Any custom membership rules you set here will be applied in addition to these policies.}}",
+    "description": "Body of the detailed info banner, below its heading, when policy names are hidden. Used when two or more policies apply; the number itself is not shown, so this is a fixed \"several policies\" wording rather than a plural. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
   },
-  "system_policy_indicator.description_with_membership_policy": {
-    "defaultMessage": "This {resourceType} has a system-level membership policy applied{policySuffix}. Any custom membership rules you set here will be applied in addition to this policy.",
-    "description": "Info banner description when one admin-defined membership policy applies; {resourceType} is 'channel' or 'team', {policySuffix} is an optional ': policy name' appended before the period."
+  "system_policy_indicator.description.single": {
+    "defaultMessage": "{resourceType, select, team {This team has a system-level membership policy applied. Any custom membership rules you set here will be applied in addition to this policy.} file {This file has a system-level access policy applied. Any custom access rules you set here will be applied in addition to this policy.} other {This channel has a system-level membership policy applied. Any custom membership rules you set here will be applied in addition to this policy.}}",
+    "description": "Body of the detailed info banner, below its heading, when policy names are hidden. Used when exactly one policy applies. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
   },
-  "system_policy_indicator.description_with_policies": {
-    "defaultMessage": "This {resourceType} has system-level access policies applied{policySuffix}. Any custom access rules you set here will be applied in addition to these policies.",
-    "description": "Info banner description when multiple admin-defined access policies apply to a file; {resourceType} is the resource kind, {policySuffix} is an optional ': policy names' list."
-  },
-  "system_policy_indicator.description_with_policy": {
-    "defaultMessage": "This {resourceType} has a system-level access policy applied{policySuffix}. Any custom access rules you set here will be applied in addition to this policy.",
-    "description": "Info banner description when one admin-defined access policy applies to a file; {resourceType} is the resource kind, {policySuffix} is an optional ': policy name'."
+  "system_policy_indicator.details_aria_label": {
+    "defaultMessage": "System policy details",
+    "description": "Accessibility (aria) label for the region of the info banner that describes which system policies apply to a channel, team or file."
   },
   "system_policy_indicator.more_policies": {
     "defaultMessage": "{count} more",
-    "description": "Link at the end of a truncated policy name list ('A, B and {count} more'); {count} is the number of additional policies."
+    "description": "Link shown as the last item of a truncated, locale-formatted list of policy names (e.g. 'A, B, and {count} more'); {count} is the number of additional policies not named. The list's separators and conjunction come from the locale, so translate only the link text."
   },
-  "system_policy_indicator.multiple_membership_policies_title": {
-    "defaultMessage": "Multiple system membership policies applied to this {resourceType}",
-    "description": "Heading of the info banner when several system membership policies apply; {resourceType} is 'channel' or 'team'."
+  "system_policy_indicator.more_policies_aria_label": {
+    "defaultMessage": "View {count, plural, one {# more policy} other {# more policies}}",
+    "description": "Accessibility (aria) label for the link at the end of a truncated policy name list; {count} is the number of additional policies not shown."
   },
-  "system_policy_indicator.multiple_policies_title": {
-    "defaultMessage": "Multiple system access policies applied to this {resourceType}",
-    "description": "Heading of the info banner when several system access policies apply; {resourceType} is the resource kind (e.g. 'file')."
+  "system_policy_indicator.summary.multiple": {
+    "defaultMessage": "{resourceType, select, team {This team has system-level membership policies applied} file {This file has system-level access policies applied} other {This channel has system-level membership policies applied}}",
+    "description": "Compact info banner on a channel, team or file settings page saying system-level policies apply. Used when two or more policies apply; the number itself is not shown, so this is a fixed \"several policies\" wording rather than a plural. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
   },
-  "system_policy_indicator.single_membership_policy_title": {
-    "defaultMessage": "System membership policy applied to this {resourceType}",
-    "description": "Heading of the info banner when one system membership policy applies; {resourceType} is 'channel' or 'team'."
+  "system_policy_indicator.summary.single": {
+    "defaultMessage": "{resourceType, select, team {This team has a system-level membership policy applied} file {This file has a system-level access policy applied} other {This channel has a system-level membership policy applied}}",
+    "description": "Compact info banner on a channel, team or file settings page saying a system-level policy applies. Used when exactly one policy applies. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
   },
-  "system_policy_indicator.single_policy_title": {
-    "defaultMessage": "System access policy applied to this {resourceType}",
-    "description": "Heading of the info banner when one system access policy applies; {resourceType} is the resource kind (e.g. 'file')."
+  "system_policy_indicator.title.multiple": {
+    "defaultMessage": "{resourceType, select, team {Multiple system membership policies applied to this team} file {Multiple system access policies applied to this file} other {Multiple system membership policies applied to this channel}}",
+    "description": "Heading of the detailed info banner on a channel, team or file settings page. Used when two or more policies apply; the number itself is not shown, so this is a fixed \"several policies\" wording rather than a plural. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
+  },
+  "system_policy_indicator.title.single": {
+    "defaultMessage": "{resourceType, select, team {System membership policy applied to this team} file {System access policy applied to this file} other {System membership policy applied to this channel}}",
+    "description": "Heading of the detailed info banner on a channel, team or file settings page. Used when exactly one policy applies. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
+  },
+  "system_policy_indicator.unknown_policy": {
+    "defaultMessage": "Unknown Policy",
+    "description": "Fallback name shown in the policy list when an access control policy has neither a name nor an ID."
   },
   "tag.default.agent": {
     "defaultMessage": "AGENT",
@@ -32104,7 +32532,7 @@
     "description": "Help text shown when the teammate name display setting is locked by the admin and cannot be changed by the user."
   },
   "user.settings.display.teammateNameDisplayDescription": {
-    "defaultMessage": "Set how to display other user's names in posts and the Direct Messages list.",
+    "defaultMessage": "Set how to display other users' names in posts and the Direct Messages list.",
     "description": "Help text in Settings > Display for the Teammate Name Display setting, explaining where the chosen name format appears."
   },
   "user.settings.display.teammateNameDisplayFullname": {
