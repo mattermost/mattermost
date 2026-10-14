@@ -69,34 +69,59 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
               Enable Join/Leave Messages
             </legend>
             <div
-              class="radio"
+              class="settings-radio-group"
             >
-              <label>
+              <label
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                for="joinLeaveOn"
+              >
                 <input
                   checked=""
-                  class="a11y--active a11y--focused"
+                  class="_radio__input_11lrl_13 a11y--active a11y--focused"
                   id="joinLeaveOn"
                   name="joinLeave"
                   type="radio"
                   value="true"
                 />
-                On
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  On
+                </span>
               </label>
-              <br />
-            </div>
-            <div
-              class="radio"
-            >
-              <label>
+              <label
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+                for="joinLeaveOff"
+              >
                 <input
+                  class="_radio__input_11lrl_13"
                   id="joinLeaveOff"
                   name="joinLeave"
                   type="radio"
                   value="false"
                 />
-                Off
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  Off
+                </span>
               </label>
-              <br />
             </div>
             <div
               class="mt-5"
