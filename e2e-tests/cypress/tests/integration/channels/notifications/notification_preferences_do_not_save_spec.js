@@ -39,10 +39,18 @@ describe('Notifications', () => {
     });
 
     function openSettingsAndClickEmailEdit(shouldBeClicked = false) {
-        // # Open 'Settings' modal
-        cy.uiOpenSettingsModal().within(() => {
+        // # Ensure any prior Settings dialog is closed so the header button is clickable
+        cy.get('body').then(($body) => {
+            if ($body.find('#accountSettingsModal:visible').length > 0) {
+                cy.uiClose();
+            }
+        });
+        cy.get('#accountSettingsModal').should('not.exist');
+
+        // # Open 'Settings' modal → Notifications
+        cy.uiOpenSettingsModal('Notifications').within(() => {
             // # Click on the 'Edit' button next to Email notifications
-            cy.get('#emailEdit').click();
+            cy.get('#emailEdit').should('be.visible').click();
 
             if (shouldBeClicked) {
                 // * Ensure email notifications default to On/Immediately
