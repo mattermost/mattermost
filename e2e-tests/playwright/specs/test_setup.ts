@@ -14,8 +14,10 @@ setup('ensure server deployment', async ({pw}) => {
 });
 
 setup('ensure ABAC is configured', async ({pw}) => {
-    // Upgrade-path runs do not exercise ABAC; patching AccessControlSettings on older
-    // from-images also logs unrecognized sysconsole permission tags and attachment-sanitization noise.
+    // On an upgrade path this runs against the from-image. The upgrade links any attribute created
+    // there to a Global Attribute template, after which the CPA API refuses to edit or delete it.
+    // Patching AccessControlSettings on older from-images also logs unrecognized sysconsole
+    // permission tags and attachment-sanitization noise.
     if (isUpgradePathProjectSelected()) {
         return;
     }

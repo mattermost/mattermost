@@ -217,6 +217,42 @@ func GetLogRootPath() string {
 	return absPath
 }
 
+// maxLogPathDepth caps the ancestor walk in evalSymlinksLenient. It is far beyond any real
+// log path, so reaching it means the path is malformed and validation fails closed.
+const maxLogPathDepth = 256
+
+// evalSymlinksLenient resolves symlinks in path, tolerating a leaf that does not exist yet
+// by resolving the deepest existing ancestor and appending the rest. An existing path is
+// still resolved in full, so a symlink escaping the logging root is caught.
+func evalSymlinksLenient(path string) (string, error) {
+	var missing []string
+
+	for range maxLogPathDepth {
+		resolved, err := filepath.EvalSymlinks(path)
+		if err == nil {
+			return filepath.Join(append([]string{resolved}, missing...)...), nil
+		}
+		if !os.IsNotExist(err) {
+			return "", err
+		}
+
+		// EvalSymlinks reports a dangling symlink as absent, but Lstat still sees the link,
+		// so an entry that exists here is unresolvable and must not be stripped as missing.
+		if _, lerr := os.Lstat(path); lerr == nil {
+			return "", fmt.Errorf("unresolved symlink at %s", path)
+		}
+
+		parent := filepath.Dir(path)
+		if parent == path {
+			return "", err
+		}
+		missing = append([]string{filepath.Base(path)}, missing...)
+		path = parent
+	}
+
+	return "", fmt.Errorf("exceeded maximum directory depth of %d", maxLogPathDepth)
+}
+
 // ValidateLogFilePath validates that a log file path is within the logging root directory.
 // This prevents arbitrary file read/write vulnerabilities in logging configuration.
 // The logging root is determined by MM_LOG_PATH environment variable or the configured log directory.
@@ -228,20 +264,22 @@ func ValidateLogFilePath(filePath string, loggingRoot string) error {
 	}
 
 	// Resolve symlinks to prevent bypass via symlink attacks
-	realPath, err := filepath.EvalSymlinks(absPath)
+	absPath, err = evalSymlinksLenient(absPath)
 	if err != nil {
-		// If file doesn't exist, still validate the intended path
-		if !os.IsNotExist(err) {
-			return fmt.Errorf("cannot resolve symlinks for %s: %w", absPath, err)
-		}
-	} else {
-		absPath = realPath
+		return fmt.Errorf("cannot resolve symlinks for %s: %w", filePath, err)
 	}
 
 	// Resolve logging root to absolute
 	absRoot, err := filepath.Abs(loggingRoot)
 	if err != nil {
 		return fmt.Errorf("cannot resolve logging root %s: %w", loggingRoot, err)
+	}
+
+	// Must resolve the same way as absPath, or the prefix check below rejects legitimate
+	// paths when an ancestor is a symlink (macOS /var -> /private/var).
+	absRoot, err = evalSymlinksLenient(absRoot)
+	if err != nil {
+		return fmt.Errorf("cannot resolve symlinks for logging root %s: %w", loggingRoot, err)
 	}
 
 	// Ensure root has trailing separator for proper prefix matching
