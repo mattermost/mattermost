@@ -1018,7 +1018,7 @@
   "admin.customProfileAttribDesc.ldap": "(Valinnainen) AD/LDAP-palvelimen attribuutti, jolla täytetään käyttäjien Mattermost-kenttä {name}. Kun tämä on asetettu, käyttäjät eivät voi muokata kenttää {name}, koska se synkronoidaan LDAP-palvelimen kanssa. Kun kenttä jätetään tyhjäksi, käyttäjät voivat asettaa kentän {name} kohdassa <strong>Tilivalikko > Tiliasetukset > Profiili</strong>.",
   "admin.customProfileAttribDesc.saml": "(Valinnainen) SAML-väittämän attribuutti, jolla täytetään käyttäjien Mattermost-kenttä {name}.",
   "admin.customProfileAttribWarning": "(Varoitus) Tämä attribuutti muunnetaan TEKSTI-tyyppiseksi attribuutiksi, jos kenttä asetetaan synkronoitavaksi.",
-  "admin.customProfileAttributes.linkedNonText": "Tämä kenttä on hallinta-attribuutti, jonka tyyppi on {type}, eikä sitä voi synkronoida LDAP:n tai SAML:n kautta. Vain tekstityyppiset kentät tukevat synkronointia.",
+  "admin.customProfileAttributes.linkedNonText": "Tämä kenttä on linkitetty Attribuuttien hallinta -sivulla määritettyyn attribuuttiin, jonka tyyppi on {type}, joten sitä ei voi synkronoida AD/LDAP:n tai SAML:n kautta. Vain teksti-, valinta- ja monivalintatyyppiset attribuutit tukevat synkronointia.",
   "admin.customProfileAttributes.managedByPlugin": "Tätä kenttää hallinnoi lisäosa {pluginId}, eikä sitä voi muokata.",
   "admin.customProfileAttributes.subtitle": "Voit lisätä tai poistaa käyttäjäattribuutteja <link>käyttäjäattribuuttien sivulla</link>.",
   "admin.customProfileAttributes.title": "Käyttäjäattribuuttien synkronointi",
