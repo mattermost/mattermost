@@ -38,7 +38,7 @@ describe('components/admin_console/feature_discovery/features/AutoTranslationFea
     it('renders the Auto-translation discovery card with a Contact sales CTA and a Learn more link to the auto-translation docs', () => {
         renderWithContext(<AutoTranslationFeatureDiscovery/>);
 
-        expect(screen.getByText('Remove language barriers with auto-translation')).toBeInTheDocument();
+        expect(screen.getByText('Remove language barriers with auto\u2011translation')).toBeInTheDocument();
         expect(screen.getByText(/Effortlessly collaborate across languages/)).toBeInTheDocument();
 
         expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
