@@ -18,8 +18,8 @@
 
     .ChannelList__autoAddHeader {
         display: inline-flex;
-        align-items: center;
         max-width: 100%;
+        align-items: center;
         gap: 4px;
 
         // Compass Checkbox defaults to width: 100% and regular weight; keep compact and match header weight.
@@ -42,8 +42,8 @@
     .ChannelList__autoAddColumn {
         // flex (not inline-flex) avoids baseline gap that shifts row height between On/Off.
         display: flex;
-        align-items: center;
         max-width: 100%;
+        align-items: center;
 
         // Compass Checkbox defaults to width: 100%; keep row toggles compact with On/Off label.
         .channel-checkbox {
