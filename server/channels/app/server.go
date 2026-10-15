@@ -312,6 +312,7 @@ func NewServer(options ...Option) (*Server, error) {
 	app := New(ServerConnector(channels))
 
 	s.platform.SetPostDeliveryRecorder(app.RecordBroadcastDelivery)
+	s.platform.SetPrePublishHook(app.attachChannelReadAccessHook)
 
 	// Register property-service hooks AFTER s.ch is populated. The
 	// access-control and attribute-validation hooks capture s and use

@@ -11,11 +11,11 @@ type assert struct{}
 
 func (r *require) Equal(t *testing.T, expected, actual interface{}, msgAndArgs ...interface{}) {}
 func (r *require) Len(t *testing.T, object interface{}, length int, msgAndArgs ...interface{}) {}
-func (r *require) Empty(t *testing.T, object interface{}, msgAndArgs ...interface{})           {}
+func (r *require) Empty(t *testing.T, object interface{}, msgAndArgs ...interface{}) {}
 
 func (a *assert) Equal(t *testing.T, expected, actual interface{}, msgAndArgs ...interface{}) {}
 func (a *assert) Len(t *testing.T, object interface{}, length int, msgAndArgs ...interface{}) {}
-func (a *assert) Empty(t *testing.T, object interface{}, msgAndArgs ...interface{})           {}
+func (a *assert) Empty(t *testing.T, object interface{}, msgAndArgs ...interface{}) {}
 
 var Require = &require{}
 var Assert = &assert{}

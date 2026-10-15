@@ -1057,11 +1057,14 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
             await authorAccessChannelRule(stateWith());
 
             await waitFor(() => expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1));
+            expect(mockActions.simulatePolicyForUsers).toHaveBeenCalledTimes(1);
             expect(screen.queryByText('Cannot save permission rules')).not.toBeInTheDocument();
         });
 
-        // Unlike the Membership tab there is no public-channel exemption: an
-        // channel_read_access deny hides a public channel just as effectively.
+        // Deliberate regression guard: the Membership tab skips its self-check for public
+        // channels (channel_settings_access_rules_tab.tsx), since membership rules never
+        // remove anyone from one. Copying that exemption here would let an author hide a
+        // public channel from themselves.
         test('guards a public channel too', async () => {
             mockActions.simulatePolicyForUsers.mockResolvedValue(selfDecision(false));
 
@@ -1073,15 +1076,6 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
 
             expect(await screen.findByText('Cannot save permission rules')).toBeInTheDocument();
             expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
-        });
-
-        test('simulates exactly once per save attempt', async () => {
-            mockActions.simulatePolicyForUsers.mockResolvedValue(selfDecision(true));
-
-            await authorAccessChannelRule(stateWith());
-
-            await waitFor(() => expect(mockActions.saveChannelPolicy).toHaveBeenCalled());
-            expect(mockActions.simulatePolicyForUsers).toHaveBeenCalledTimes(1);
         });
 
         test('does not simulate for a policy without channel_read_access', async () => {

@@ -555,25 +555,33 @@ func (h *Hub) recordPostDelivery(marker *model.PostDeliveryMarker, userID string
 
 // broadcastToConn delivers msg to a single web connection, if it is still registered and
 // should receive the event. A post delivery is recorded only when the event is actually
-// enqueued onto the connection's send buffer — never before the ShouldSendEvent check, and
-// never on the default branch where the buffer is full and the connection is dropped.
+// enqueued onto the connection's send buffer — never before the ShouldSendEvent check, never
+// for an event a broadcast hook rejected for this connection, and never on the default branch
+// where the buffer is full and the connection is dropped.
 func (h *Hub) broadcastToConn(connIndex *hubConnectionIndex, webConn *WebConn, msg *model.WebSocketEvent, marker *model.PostDeliveryMarker, broadcastHooks []string, broadcastHookArgs []map[string]any) {
 	if !connIndex.Has(webConn) {
 		return
 	}
-	if webConn.ShouldSendEvent(msg) {
-		select {
-		case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
-			h.recordPostDelivery(marker, webConn.UserId)
-		default:
-			// Don't log the warning if it's an inactive connection.
-			if webConn.Active.Load() {
-				mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
-					mlog.String("user_id", webConn.UserId),
-					mlog.String("conn_id", webConn.GetConnectionID()))
-			}
-			closeAndRemoveConn(connIndex, webConn)
+	if !webConn.ShouldSendEvent(msg) {
+		return
+	}
+
+	hooked := h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs)
+	if hooked.IsRejected() {
+		return
+	}
+
+	select {
+	case webConn.send <- hooked:
+		h.recordPostDelivery(marker, webConn.UserId)
+	default:
+		// Don't log the warning if it's an inactive connection.
+		if webConn.Active.Load() {
+			mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
+				mlog.String("user_id", webConn.UserId),
+				mlog.String("conn_id", webConn.GetConnectionID()))
 		}
+		closeAndRemoveConn(connIndex, webConn)
 	}
 }
 

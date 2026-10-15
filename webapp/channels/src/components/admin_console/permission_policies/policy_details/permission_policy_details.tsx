@@ -409,7 +409,7 @@ function PermissionPolicyDetails({
                     />
                     <FormattedMessage
                         id='admin.permission_policies.edit.title'
-                        defaultMessage='Attribute Based Permission Policy'
+                        defaultMessage='Attribute-Based Permission Policy'
                     />
                 </div>
             </AdminHeader>

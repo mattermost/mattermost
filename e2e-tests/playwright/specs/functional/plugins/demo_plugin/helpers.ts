@@ -117,10 +117,14 @@ async function installAndEnableDemoPlugin(
 export async function setupDemoPlugin(
     adminClient: Client4,
     pw: {
+        ensureInternalSiteUrl: () => Promise<void>;
         installAndEnablePlugin: (client: Client4, pluginUrl: string, pluginId: string) => Promise<void>;
         isPluginActive: (client: Client4, pluginId: string) => Promise<boolean>;
     },
 ) {
+    // Plugin callbacks go through SiteURL; restore the internal one.
+    await pw.ensureInternalSiteUrl();
+
     // No PluginStates here — patchConfig replaces that map wholesale. Enablement goes through
     // installAndEnablePlugin's enablePlugin call, which the server applies to this id alone.
     // EnableUploads is likewise absent: SERVER_ENV_BASELINE owns it and the API 403s on change.

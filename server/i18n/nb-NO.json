@@ -13000,7 +13000,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Ugyldig webservermodus {{.Value}}. Må være 'gzip', 'nogzip' eller 'disabled'."
+    "translation": "Ugyldig webservermodus {{.Value}}. Må være 'gzip', 'uncompressed' eller 'disabled'."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",

@@ -3269,6 +3269,8 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	}
 	auditRec.Success()
 
+	// Carries the thread's root post, so it must not reach a user the channel's policy denies.
+	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
 	a.Publish(message)
 	return nil
 }

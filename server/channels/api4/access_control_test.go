@@ -30,6 +30,9 @@ func ungovernedChannelAccess(mockACS *mocks.AccessControlServiceInterface) {
 	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).
 		Return(false, nil).
 		Maybe()
+	mockACS.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, mock.Anything).
+		Return(false, nil).
+		Maybe()
 }
 
 // maskingOffTestConfig disables attribute-value masking for policy-endpoint

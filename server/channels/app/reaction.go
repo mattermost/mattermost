@@ -186,6 +186,5 @@ func (a *App) sendReactionEvent(rctx request.CTX, event model.WebsocketEventType
 		useBurnOnReadReactionHook(message, post.UserId, post.Id)
 	}
 
-	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
 	a.Publish(message)
 }

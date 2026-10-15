@@ -10,9 +10,9 @@ func (s store) getBuilder() sq.StatementBuilderType {
 
 func example() {
 	// These should trigger warnings
-	_ = "SELECT * FROM users"       // want `do not use SELECT \*: explicitly select the needed columns instead`
-	_ = "select * from table"       // want `do not use SELECT \*: explicitly select the needed columns instead`
-	_ = "SELECT a.* FROM users a"   // want `do not use SELECT \*: explicitly select the needed columns instead`
+	_ = "SELECT * FROM users" // want `do not use SELECT \*: explicitly select the needed columns instead`
+	_ = "select * from table" // want `do not use SELECT \*: explicitly select the needed columns instead`
+	_ = "SELECT a.* FROM users a" // want `do not use SELECT \*: explicitly select the needed columns instead`
 	_ = "SELECT users.* FROM users" // want `do not use SELECT \*: explicitly select the needed columns instead`
 
 	// These should not trigger warnings

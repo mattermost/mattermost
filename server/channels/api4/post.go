@@ -1310,6 +1310,12 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddEventResultState(patchedPost)
 
+	// A patch that changes nothing still returns the whole post, with its reactions
+	// and files.
+	if !sessionCanReadChannel(c, patchedPost.ChannelId) {
+		patchedPost = postWithoutContent(patchedPost)
+	}
+
 	if err := patchedPost.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

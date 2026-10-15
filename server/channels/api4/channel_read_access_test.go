@@ -19,6 +19,7 @@ import (
 type channelReadAccessSurface struct {
 	name              string
 	call              func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error)
+	wantSuccessStatus int
 	wantDeniedStatus  int
 	wantDeniedErrorID string
 }
@@ -27,7 +28,8 @@ const abacDeniedErrorID = "api.channel.channel_read_access.abac_denied.app_error
 
 // post is authored by the acting session: th.BasicPost belongs to TeamAdminUser,
 // which would make the post surfaces fail RBAC on the *_others_posts permissions
-// before channel_read_access is ever consulted.
+// before channel_read_access is ever consulted. It has been edited once, since an
+// unedited post has no edit history to return.
 type channelReadAccessFixture struct {
 	th   *TestHelper
 	post *model.Post
@@ -35,7 +37,7 @@ type channelReadAccessFixture struct {
 
 func channelReadAccessSurfaces() []channelReadAccessSurface {
 	get := func(name string, fn func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error)) channelReadAccessSurface {
-		return channelReadAccessSurface{name: name, call: fn, wantDeniedStatus: http.StatusForbidden, wantDeniedErrorID: abacDeniedErrorID}
+		return channelReadAccessSurface{name: name, call: fn, wantSuccessStatus: http.StatusOK, wantDeniedStatus: http.StatusForbidden, wantDeniedErrorID: abacDeniedErrorID}
 	}
 
 	return []channelReadAccessSurface{
@@ -107,6 +109,7 @@ func channelReadAccessSurfaces() []channelReadAccessSurface {
 				_, resp, err := f.th.Client.GetPostInfo(context.Background(), f.post.Id)
 				return resp, err
 			},
+			wantSuccessStatus: http.StatusOK,
 			wantDeniedStatus:  http.StatusNotFound,
 			wantDeniedErrorID: "app.post.get.app_error",
 		},
@@ -167,9 +170,12 @@ func setupChannelReadAccessAPI(t *testing.T, allow bool) (*channelReadAccessFixt
 		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
 	})
 
-	// Authored before the mock is installed, so creating it is not itself a surface
-	// under test.
+	// Authored and edited before the mock is installed, so neither is itself a surface
+	// under test. The edit is what gives the post an edit history to read.
 	post := th.CreatePost(t)
+	edited := "edited " + post.Message
+	post, _, err := th.Client.PatchPost(context.Background(), post.Id, &model.PostPatch{Message: &edited})
+	require.NoError(t, err)
 
 	mockACS := installMockACS(t, th)
 	// Only channel_read_access is governed here. channel_write_access and
@@ -213,27 +219,27 @@ func installMockACS(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInt
 // a join), and the "add channel member" denied surface (management still gates adding
 // others).
 func channelReadAccessWriteSurfaces() []channelReadAccessSurface {
-	write := func(name string, fn func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error)) channelReadAccessSurface {
-		return channelReadAccessSurface{name: name, call: fn}
+	write := func(name string, status int, fn func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error)) channelReadAccessSurface {
+		return channelReadAccessSurface{name: name, call: fn, wantSuccessStatus: status}
 	}
 
 	return []channelReadAccessSurface{
-		write("post create", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
+		write("post create", http.StatusCreated, func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
 			_, resp, err := f.th.Client.CreatePost(context.Background(), &model.Post{ChannelId: f.th.BasicChannel.Id, Message: "allowed"})
 			return resp, err
 		}),
-		write("post patch", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
+		write("post patch", http.StatusOK, func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
 			message := "patched"
 			_, resp, err := f.th.Client.PatchPost(context.Background(), f.post.Id, &model.PostPatch{Message: &message})
 			return resp, err
 		}),
-		write("post update", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
+		write("post update", http.StatusOK, func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
 			post := f.post.Clone()
 			post.Message = "updated"
 			_, resp, err := f.th.Client.UpdatePost(context.Background(), post.Id, post)
 			return resp, err
 		}),
-		write("save reaction", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
+		write("save reaction", http.StatusOK, func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
 			_, resp, err := f.th.Client.SaveReaction(context.Background(), &model.Reaction{
 				UserId:    f.th.BasicUser.Id,
 				PostId:    f.post.Id,
@@ -241,14 +247,14 @@ func channelReadAccessWriteSurfaces() []channelReadAccessSurface {
 			})
 			return resp, err
 		}),
-		write("delete reaction", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
+		write("delete reaction", http.StatusOK, func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
 			return f.th.Client.DeleteReaction(context.Background(), &model.Reaction{
 				UserId:    f.th.BasicUser.Id,
 				PostId:    f.post.Id,
 				EmojiName: "+1",
 			})
 		}),
-		write("upsert draft", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
+		write("upsert draft", http.StatusCreated, func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
 			_, resp, err := f.th.Client.UpsertDraft(context.Background(), &model.Draft{
 				UserId:    f.th.BasicUser.Id,
 				ChannelId: f.th.BasicChannel.Id,
@@ -256,7 +262,7 @@ func channelReadAccessWriteSurfaces() []channelReadAccessSurface {
 			})
 			return resp, err
 		}),
-		write("create bookmark", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
+		write("create bookmark", http.StatusCreated, func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
 			_, resp, err := f.th.Client.CreateChannelBookmark(context.Background(), &model.ChannelBookmark{
 				ChannelId:   f.th.BasicChannel.Id,
 				DisplayName: "bookmark",
@@ -265,12 +271,13 @@ func channelReadAccessWriteSurfaces() []channelReadAccessSurface {
 			})
 			return resp, err
 		}),
-		write("patch channel", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
+		write("patch channel", http.StatusOK, func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
 			purpose := "patched purpose"
 			_, resp, err := f.th.Client.PatchChannel(context.Background(), f.th.BasicChannel.Id, &model.ChannelPatch{Purpose: &purpose})
 			return resp, err
 		}),
-		write("post delete", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
+		// Last, since the post surfaces above need the post this deletes.
+		write("post delete", http.StatusOK, func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
 			resp, err := f.th.Client.DeletePost(context.Background(), f.post.Id)
 			return resp, err
 		}),
@@ -286,11 +293,76 @@ func TestChannelReadAccessDoesNotGateWrites(t *testing.T) {
 
 	for _, surface := range channelReadAccessWriteSurfaces() {
 		t.Run(surface.name, func(t *testing.T) {
-			_, err := surface.call(t, f)
-			if err != nil {
-				require.False(t, isChannelReadAccessDenial(err, abacDeniedErrorID),
-					"channel_read_access must not gate a write surface: %v", err)
-			}
+			resp, err := surface.call(t, f)
+			require.NoError(t, err, "channel_read_access must not gate a write surface")
+			require.Equal(t, surface.wantSuccessStatus, resp.StatusCode)
+		})
+	}
+}
+
+// A write a denied session may still make must not hand it the channel's content: these
+// endpoints answer with far more than the write itself, such as every bookmark in the
+// channel, or the whole channel or post after a patch that changes nothing.
+func TestChannelReadAccessRedactsWriteResponses(t *testing.T) {
+	for _, allow := range []bool{true, false} {
+		t.Run(fmt.Sprintf("allow=%t", allow), func(t *testing.T) {
+			f, _ := setupChannelReadAccessAPI(t, allow)
+
+			t.Run("bookmark sort order", func(t *testing.T) {
+				for range 2 {
+					_, _, err := f.th.Client.CreateChannelBookmark(context.Background(), &model.ChannelBookmark{
+						ChannelId:   f.th.BasicChannel.Id,
+						DisplayName: "bookmark",
+						LinkUrl:     "https://mattermost.com",
+						Type:        model.ChannelBookmarkLink,
+					})
+					require.NoError(t, err)
+				}
+				// Listing is itself a read a denied session can't make, so take the ids
+				// from the store.
+				bookmarks, err := f.th.App.Srv().Store().ChannelBookmark().GetBookmarksForChannelSince(f.th.BasicChannel.Id, 0)
+				require.NoError(t, err)
+				require.NotEmpty(t, bookmarks)
+
+				sorted, resp, err := f.th.Client.UpdateChannelBookmarkSortOrder(context.Background(), f.th.BasicChannel.Id, bookmarks[0].Id, 1)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				if allow {
+					require.Len(t, sorted, len(bookmarks))
+				} else {
+					require.Empty(t, sorted)
+				}
+			})
+
+			t.Run("channel patch", func(t *testing.T) {
+				purpose := "patched purpose " + model.NewId()
+				patched, resp, err := f.th.Client.PatchChannel(context.Background(), f.th.BasicChannel.Id, &model.ChannelPatch{Purpose: &purpose})
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, f.th.BasicChannel.Id, patched.Id)
+				if allow {
+					require.Equal(t, purpose, patched.Purpose)
+					require.Equal(t, f.th.BasicChannel.DisplayName, patched.DisplayName)
+				} else {
+					require.Empty(t, patched.Purpose)
+					require.Empty(t, patched.DisplayName)
+					require.Empty(t, patched.Header)
+				}
+			})
+
+			t.Run("post patch", func(t *testing.T) {
+				// An empty patch changes nothing and would hand back the post as stored.
+				patched, resp, err := f.th.Client.PatchPost(context.Background(), f.post.Id, &model.PostPatch{})
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, f.post.Id, patched.Id)
+				if allow {
+					require.Equal(t, f.post.Message, patched.Message)
+				} else {
+					require.Empty(t, patched.Message)
+					require.Empty(t, patched.UserId)
+				}
+			})
 		})
 	}
 }
@@ -312,19 +384,16 @@ func TestChannelReadAccessDeniedSurfaces(t *testing.T) {
 	}
 }
 
-// Asserts the absence of a policy denial rather than of any error: several of these
-// endpoints have their own preconditions — an unedited post has no edit history, and
-// deleting a post makes the later post surfaces return not-found.
+// With the policy allowing, every surface must succeed outright. Ruling out only the
+// policy's denial would let a surface that fails for any other reason pass unnoticed.
 func TestChannelReadAccessAllowedSurfaces(t *testing.T) {
 	f, _ := setupChannelReadAccessAPI(t, true)
 
 	for _, surface := range channelReadAccessSurfaces() {
 		t.Run(surface.name, func(t *testing.T) {
-			_, err := surface.call(t, f)
-			if err != nil {
-				require.False(t, isChannelReadAccessDenial(err, surface.wantDeniedErrorID),
-					"an allow decision must not deny the surface: %v", err)
-			}
+			resp, err := surface.call(t, f)
+			require.NoError(t, err, "an allow decision must not deny the surface")
+			require.Equal(t, surface.wantSuccessStatus, resp.StatusCode)
 		})
 	}
 }
@@ -449,19 +518,16 @@ func TestChannelReadAccessContentReviewerIsNotExempt(t *testing.T) {
 	}
 }
 
-// Asserts the absence of a policy denial rather than of any error: these surfaces
-// share one flagged post, and keeping it resolves the flag the remove call then
-// cannot act on.
+// The reviewer surfaces only read the flagged post they share, so with the policy
+// allowing, each must succeed outright.
 func TestChannelReadAccessContentReviewerAllowed(t *testing.T) {
 	f, _ := setupContentReviewerChannelReadAccess(t, true)
 
 	for _, surface := range contentReviewerSurfaces() {
 		t.Run(surface.name, func(t *testing.T) {
-			_, err := surface.call(t, f)
-			if err != nil {
-				require.False(t, isChannelReadAccessDenial(err, abacDeniedErrorID),
-					"an allow decision must not deny the reviewer surface: %v", err)
-			}
+			resp, err := surface.call(t, f)
+			require.NoError(t, err, "an allow decision must not deny the reviewer surface")
+			CheckOKStatus(t, resp)
 		})
 	}
 }
@@ -469,15 +535,27 @@ func TestChannelReadAccessContentReviewerAllowed(t *testing.T) {
 // The policy-administration surfaces use the RBACOnly gate siblings on purpose:
 // gating the endpoint a client uses to *learn* it has been denied, on the very policy
 // doing the denying, would 403 the denial state itself. RBACOnly never reaches the
-// policy, so no enforcement witness is recorded and the generic error stands.
+// policy, so a member the policy denies still gets the decision, and a non-member gets
+// the generic error rather than the policy's.
 func TestChannelReadAccessPolicyAdminEndpointsStayGeneric(t *testing.T) {
 	f, _ := setupChannelReadAccessAPI(t, false)
 	th := f.th
 
+	// BasicUser is a member, so RBAC passes and only the policy denies. Behind the
+	// channel_read_access gate this request would get a 403 with the abac_denied id.
+	out, resp, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+		Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id},
+		Actions:  []string{model.AccessControlPolicyActionChannelReadAccess},
+	})
+	require.NoError(t, err, "the endpoint that reports a denial must not itself be denied")
+	CheckOKStatus(t, resp)
+	require.Contains(t, out.Decisions, model.AccessControlPolicyActionChannelReadAccess)
+	require.False(t, out.Decisions[model.AccessControlPolicyActionChannelReadAccess].Allowed)
+
 	// A channel the user is not a member of, so the RBAC-only gate is what fails.
 	other := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
 
-	_, resp, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+	_, resp, err = th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
 		Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: other.Id},
 		Actions:  []string{model.AccessControlPolicyActionChannelReadAccess},
 	})
@@ -488,7 +566,7 @@ func TestChannelReadAccessPolicyAdminEndpointsStayGeneric(t *testing.T) {
 	appErr, ok := err.(*model.AppError)
 	require.True(t, ok, "expected an AppError, got %T", err)
 	require.Equal(t, "api.context.permissions.app_error", appErr.Id,
-		"the endpoint that reports a denial must not itself be reported as denied")
+		"an RBAC refusal must not be reported as the policy's denial")
 }
 
 // The requester is the one receiving the response, so the filter follows the session

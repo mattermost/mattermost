@@ -46,6 +46,16 @@ func Pager[T any](fetch func(page int) ([]T, error), perPage int) ([]T, error) {
 	return list, nil
 }
 
+// FetchUntil fills a page of want items that pass keep, reading raw pages from fetch
+// and moving the cursor with advance, for at most FetchUntilMaxRounds reads. truncated
+// reports that it gave up before filling the page.
+//
+// It stops as soon as the page is full, which can be partway through a raw page, and it
+// does not report how far it read. A caller that pages by offset or page number therefore
+// starts its next request at rows this one already read: pages can repeat a row, but they
+// never skip one. That trade is deliberate. A short page makes clients stop paging, so
+// filling it is what keeps a filter from truncating the list. A caller that can resume
+// after the last returned item, as a cursor does, avoids the repeats.
 func FetchUntil[T any, C any](
 	cursor C,
 	want int,

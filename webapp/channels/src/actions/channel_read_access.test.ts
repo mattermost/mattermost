@@ -8,7 +8,7 @@ import {openModal} from 'actions/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import {reconcileChannelReadAccess} from './channel_read_access';
+import {reconcileChannelReadAccess, reconcileChannelReadAccessWithJitter} from './channel_read_access';
 
 jest.mock('mattermost-redux/actions/channels', () => ({
     fetchAllMyTeamsChannels: jest.fn(),
@@ -86,7 +86,7 @@ describe('reconcileChannelReadAccess', () => {
     });
 
     it('drops nothing when every channel is still returned', async () => {
-        (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({data: [openChannel, deniedChannel, dm]}));
+        (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({data: [openChannel, deniedChannel, dm, archived]}));
 
         await reconcileChannelReadAccess()(dispatch, makeState(), undefined);
 
@@ -132,10 +132,76 @@ describe('reconcileChannelReadAccess', () => {
     // The channel list omits archived channels regardless of policy, so their absence
     // is not a denial.
     it('never drops an archived channel', async () => {
+        // Every fixture channel except `archived`; no other test leaves out only that one.
         (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({data: [openChannel, deniedChannel, dm]}));
 
         await reconcileChannelReadAccess()(dispatch, makeState(), undefined);
 
         expect(droppedIds(dispatch)).toEqual([]);
+    });
+
+    // The response to a run already in flight can predate the change behind a later
+    // request, so that request gets a run of its own, shared by any others made meanwhile.
+    it('runs one reconcile at a time and reruns once for the requests made meanwhile', async () => {
+        let respond: (result: {data: unknown[]}) => void = () => {};
+        (fetchAllMyTeamsChannels as jest.Mock).
+            mockReturnValueOnce(() => new Promise((resolve) => {
+                respond = resolve;
+            })).
+            mockReturnValue(async () => ({data: [openChannel, dm]}));
+
+        const requests = [
+            reconcileChannelReadAccess()(dispatch, makeState(), undefined),
+            reconcileChannelReadAccess()(dispatch, makeState(), undefined),
+            reconcileChannelReadAccess()(dispatch, makeState(), undefined),
+        ];
+        expect(fetchAllMyTeamsChannels).toHaveBeenCalledTimes(1);
+
+        // The first response still lists the channel; only the rerun's leaves it out.
+        respond({data: [openChannel, deniedChannel, dm, archived]});
+        await Promise.all(requests);
+
+        expect(fetchAllMyTeamsChannels).toHaveBeenCalledTimes(2);
+        expect(droppedIds(dispatch)).toEqual([deniedChannel.id]);
+    });
+});
+
+describe('reconcileChannelReadAccessWithJitter', () => {
+    let dispatch: jest.Mock;
+    let random: jest.SpyInstance;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        jest.useFakeTimers();
+        random = jest.spyOn(Math, 'random').mockReturnValue(0.5);
+        (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({data: [openChannel, dm]}));
+        dispatch = jest.fn((action) => (typeof action === 'function' ? action(dispatch, makeState()) : action));
+    });
+
+    afterEach(() => {
+        random.mockRestore();
+        jest.useRealTimers();
+    });
+
+    it('waits a random share of 30 seconds before reconciling', async () => {
+        reconcileChannelReadAccessWithJitter()(dispatch, makeState(), undefined);
+
+        await jest.advanceTimersByTimeAsync(14999);
+        expect(fetchAllMyTeamsChannels).not.toHaveBeenCalled();
+
+        await jest.advanceTimersByTimeAsync(1);
+        expect(fetchAllMyTeamsChannels).toHaveBeenCalledTimes(1);
+        expect(droppedIds(dispatch)).toEqual([deniedChannel.id]);
+    });
+
+    // The waiting reconcile has yet to fetch, so it covers every event before it does.
+    it('folds the events that arrive while one waits into it', async () => {
+        reconcileChannelReadAccessWithJitter()(dispatch, makeState(), undefined);
+        await jest.advanceTimersByTimeAsync(10000);
+        reconcileChannelReadAccessWithJitter()(dispatch, makeState(), undefined);
+
+        await jest.runAllTimersAsync();
+
+        expect(fetchAllMyTeamsChannels).toHaveBeenCalledTimes(1);
     });
 });

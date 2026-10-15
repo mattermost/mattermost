@@ -190,21 +190,6 @@ func (p *AccessControlPolicy) HasPermissionRuleAction() bool {
 	return false
 }
 
-// HasAction reports whether any rule on this policy carries the given action.
-// The write and management gates use it to decide whether a channel's own policy
-// governs their action. Safe to call on a nil policy.
-func (p *AccessControlPolicy) HasAction(action string) bool {
-	if p == nil {
-		return false
-	}
-	for i := range p.Rules {
-		if slices.Contains(p.Rules[i].Actions, action) {
-			return true
-		}
-	}
-	return false
-}
-
 // AccessControlAttribute represents a user attribute with its name and possible values
 type AccessControlAttribute struct {
 	Attribute PropertyField `json:"attribute"`

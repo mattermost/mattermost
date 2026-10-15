@@ -10431,6 +10431,11 @@
     "description": ""
   },
   {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Failed to determine if the resource's access policy governs the action.",
+    "description": "Internal error when the server cannot tell whether a channel's attribute-based access policy, or a policy it imports, declares a given action; the server then evaluates the policy anyway. Logged for admins, not shown to end users."
+  },
+  {
     "id": "app.plugin.addon_not_licensed.app_error",
     "translation": "This plugin requires the {{.AddOn}} add-on, which your license does not include.",
     "description": "Error shown to an admin trying to enable a plugin that requires a separately purchased license add-on. {{.AddOn}} is the add-on's internal name from the license; it is not translated."
@@ -16428,8 +16433,8 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Invalid webserver mode {{.Value}}. Must be 'gzip', 'nogzip', or 'disabled'.",
-    "description": "Configuration validation error for the web server compression mode (ServiceSettings.WebserverMode). {{.Value}} is the value entered; 'gzip', 'nogzip' and 'disabled' are literal config values; keep them in English."
+    "translation": "Invalid webserver mode {{.Value}}. Must be 'gzip', 'uncompressed', or 'disabled'.",
+    "description": "Configuration validation error for the web server compression mode (ServiceSettings.WebserverMode). {{.Value}} is the value entered; 'gzip', 'uncompressed' and 'disabled' are literal config values; keep them in English."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
