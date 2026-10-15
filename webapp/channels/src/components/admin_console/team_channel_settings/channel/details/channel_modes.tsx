@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-import {FormattedMessage, defineMessage} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
+import AdminSettingsSegmentedRow from '../../admin_settings_segmented_row';
 import AdminSettingsSwitch from '../../admin_settings_switch';
 
 interface Props {
@@ -62,23 +63,28 @@ const SyncGroupsToggle = (props: Props): JSX.Element => {
 
 const AllowAllToggle = (props: Props): JSX.Element | null => {
     const {isPublic, isSynced, isDefault, onToggle, isDisabled, policyEnforced} = props;
+    const {formatMessage} = useIntl();
     if (isSynced) {
         return null;
     }
-    // Checked = public. Primary label names the current mode so the Switch state
-    // is scannable without a segmented control; help text stays on secondaryLabel.
+    // Mutual exclusive modes — temporary segmented control until Compass has one.
+    const disabled = isDisabled || isDefault || policyEnforced;
+    const setPublic = (nextPublic: boolean) => {
+        if (isDefault || nextPublic === isPublic) {
+            return;
+        }
+        onToggle(isSynced, nextPublic, policyEnforced);
+    };
+
     return (
-        <AdminSettingsSwitch
+        <AdminSettingsSegmentedRow
             id='allow-all-toggle'
-            disabled={isDisabled || isDefault || policyEnforced}
-            checked={isPublic}
+            disabled={disabled}
             last={false}
-            onChange={() => {
-                if (isDefault) {
-                    return;
-                }
-                onToggle(isSynced, !isPublic, policyEnforced);
-            }}
+            groupAriaLabel={formatMessage({
+                id: 'admin.channel_settings.channel_details.isPublic',
+                defaultMessage: 'Public channel or private channel',
+            })}
             secondaryLabel={isDefault ? (
                 <FormattedMessage
                     id='admin.channel_settings.channel_details.isDefaultDescr'
@@ -87,23 +93,42 @@ const AllowAllToggle = (props: Props): JSX.Element | null => {
             ) : (
                 <FormattedMessage
                     id='admin.channel_settings.channel_details.isPublicDescr'
-                    defaultMessage='Select Public for a channel any user can find and join. {br}Select Private to require channel invitations to join. {br}Use this switch to change this channel from public to private or from private to public.'
+                    defaultMessage='Select Public for a channel any user can find and join. {br}Select Private to require channel invitations to join. {br}Use this control to change this channel from public to private or from private to public.'
                     values={{br: (<br/>)}}
                 />
             )}
+            segments={[
+                {
+                    id: 'public',
+                    testId: 'allow-all-toggle-public',
+                    selected: isPublic,
+                    onSelect: () => setPublic(true),
+                    label: (
+                        <FormattedMessage
+                            id='channel_toggle_button.public'
+                            defaultMessage='Public'
+                        />
+                    ),
+                },
+                {
+                    id: 'private',
+                    testId: 'allow-all-toggle-private',
+                    selected: !isPublic,
+                    onSelect: () => setPublic(false),
+                    label: (
+                        <FormattedMessage
+                            id='channel_toggle_button.private'
+                            defaultMessage='Private'
+                        />
+                    ),
+                },
+            ]}
         >
-            {isPublic ? (
-                <FormattedMessage
-                    id='admin.channel_settings.channel_details.isPublicMode'
-                    defaultMessage='Public channel'
-                />
-            ) : (
-                <FormattedMessage
-                    id='admin.channel_settings.channel_details.isPrivateMode'
-                    defaultMessage='Private channel'
-                />
-            )}
-        </AdminSettingsSwitch>
+            <FormattedMessage
+                id='admin.channel_settings.channel_details.isPublic'
+                defaultMessage='Public channel or private channel'
+            />
+        </AdminSettingsSegmentedRow>
     );
 };
 
