@@ -590,7 +590,7 @@ func TestRemoteProviderDoStatus(t *testing.T) {
 	})
 }
 
-func TestRemoteProviderDoCreate(t *testing.T) {
+func TestRemoteProviderDoCreateValidationFailure(t *testing.T) {
 	th := setupConfig(t, func(cfg *model.Config) {
 		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
 		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
@@ -688,24 +688,7 @@ func TestRemoteProviderDoCreateInviteFailure(t *testing.T) {
 	require.Equal(t, "invite failed: user-locale invite error", resp.Text)
 }
 
-type failingDeleteRemoteClusterStore struct {
-	store.RemoteClusterStore
-}
-
-func (s *failingDeleteRemoteClusterStore) Delete(string) (bool, error) {
-	return false, assert.AnError
-}
-
-// failingDeleteStoreWrapper fails only RemoteCluster().Delete; all other calls use the real store.
-type failingDeleteStoreWrapper struct {
-	store.Store
-}
-
-func (w *failingDeleteStoreWrapper) RemoteCluster() store.RemoteClusterStore {
-	return &failingDeleteRemoteClusterStore{RemoteClusterStore: w.Store.RemoteCluster()}
-}
-
-func TestRemoteProviderDoRemove(t *testing.T) {
+func TestRemoteProviderDoRemoveStoreFailure(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
 	}
@@ -714,11 +697,12 @@ func TestRemoteProviderDoRemove(t *testing.T) {
 	dbStore.MarkSystemRanUnitTests()
 
 	// The wrapper is installed before the server starts so the live store is never swapped.
-	th := setupTestHelper(&failingDeleteStoreWrapper{Store: dbStore}, false, true, t, nil).initBasic(t)
+	wrapper := &failingDeleteStoreWrapper{Store: dbStore, failDeleteID: model.NewId()}
+	th := setupTestHelper(wrapper, false, true, t, nil).initBasic(t)
 	th.addPermissionToRole(t, model.PermissionManageSecureConnections.Id, th.BasicUser.Roles)
 
 	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
-		RemoteId:    model.NewId(),
+		RemoteId:    wrapper.failDeleteID,
 		Name:        "remote-" + model.NewId(),
 		DisplayName: "Remote",
 		SiteURL:     "https://" + model.NewId() + ".example.com",
