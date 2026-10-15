@@ -49,6 +49,7 @@ const EnableSectionContent: React.FC<Props> = ({filterToggle, setFilterToggle}) 
                         checked={filterToggle}
                         data-testid='filterToggle-button'
                         tabIndex={0}
+                        aria-label={formatMessage({id: 'admin.ip_filtering.enable_ip_filtering', defaultMessage: 'Enable IP Filtering'})}
                     />
                 </div>
             </div>

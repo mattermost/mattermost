@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Switch} from '@mattermost/compass-ui/components/switch';
 import React, {type JSX, type ReactNode} from 'react';
+
+import {Switch} from '@mattermost/compass-ui/components/switch';
 
 type Props = {
     id: string;

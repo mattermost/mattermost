@@ -319,7 +319,7 @@ context('ldap', () => {
 
                 // * Ensure the toggle to private/public is disabled
                 cy.findByTestId('allow-all-toggle-public').should('be.disabled');
-                    cy.findByTestId('allow-all-toggle-private').should('be.disabled');
+                cy.findByTestId('allow-all-toggle-private').should('be.disabled');
             });
         });
 

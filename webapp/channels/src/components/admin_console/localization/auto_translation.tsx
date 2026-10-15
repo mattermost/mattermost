@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo, useState} from 'react';
-import {defineMessage, defineMessages, FormattedMessage} from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {Switch} from '@mattermost/compass-ui/components/switch';
@@ -47,6 +47,7 @@ const messages = defineMessages({
 export const searchableStrings: SearchableStrings = Object.values(messages);
 
 export default function AutoTranslation(props: SystemConsoleCustomSettingsComponentProps) {
+    const {formatMessage} = useIntl();
     const {available: isAgentsBridgeEnabled, reason: agentsBridgeUnavailableReason} = useGetAgentsBridgeEnabled();
     const [autoTranslationSettings, setAutoTranslationSettings] = useState<AutoTranslationSettings>(() => {
         const settings = props.value as AutoTranslationSettings;
@@ -181,6 +182,7 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                             onChange={handleToggle}
                             data-testid='Enable-button'
                             tabIndex={-1}
+                            aria-label={formatMessage(messages.enableAutoTranslationTitle)}
                         />
                     </div>
                 </div>
