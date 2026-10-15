@@ -29,19 +29,102 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
         <div
           class="CommercialSupportModal__option"
         >
-          <input
-            checked=""
-            class="CommercialSupportModal__options__checkbox"
-            disabled=""
-            id="basic.server.logs"
-            name="basic.server.logs"
-            type="checkbox"
-          />
           <label
-            class="CommercialSupportModal__options_checkbox_label"
+            class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+            for="basic.contents"
+          >
+            <input
+              checked=""
+              class="_checkbox__input_1pc8o_21"
+              disabled=""
+              id="basic.contents"
+              name="basic.contents"
+              type="checkbox"
+            />
+            <span
+              class="_checkbox__box_1pc8o_41"
+            >
+              <span
+                class="_checkbox__icon_1pc8o_66"
+              >
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-12_1i355_30"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="14"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </span>
+            </span>
+            <span
+              class="_checkbox__label_1pc8o_117"
+            >
+              Basic contents
+            </span>
+          </label>
+        </div>
+        <div
+          class="CommercialSupportModal__option"
+        >
+          <label
+            class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
             for="basic.server.logs"
           >
-            Server Logs
+            <input
+              checked=""
+              class="_checkbox__input_1pc8o_21"
+              id="basic.server.logs"
+              name="basic.server.logs"
+              type="checkbox"
+            />
+            <span
+              class="_checkbox__box_1pc8o_41"
+            >
+              <span
+                class="_checkbox__icon_1pc8o_66"
+              >
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-12_1i355_30"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="14"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </span>
+            </span>
+            <span
+              class="_checkbox__label_1pc8o_117"
+            >
+              Server Logs
+            </span>
           </label>
         </div>
         <div
