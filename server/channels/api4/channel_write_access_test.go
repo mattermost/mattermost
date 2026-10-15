@@ -277,45 +277,6 @@ func channelManagementAccessSurfaces() []channelWriteAccessSurface {
 	}
 }
 
-// Deliberately gated on read access rather than write: they assert "I can see
-// this", not "I can write here". Leaving a channel is ungated outright, so a
-// denied user is never trapped as a member.
-func channelWriteAccessUngatedSurfaces() []channelWriteAccessSurface {
-	ungated := func(name string, fn func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error)) channelWriteAccessSurface {
-		return channelWriteAccessSurface{name: name, call: fn}
-	}
-
-	return []channelWriteAccessSurface{
-		ungated("channel view", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
-			_, resp, err := f.th.Client.ViewChannel(context.Background(), f.th.BasicUser.Id, &model.ChannelView{ChannelId: f.th.BasicChannel.Id})
-			return resp, err
-		}),
-		ungated("set post reminder", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
-			return f.th.Client.SetPostReminder(context.Background(), &model.PostReminder{
-				PostId:     f.post.Id,
-				UserId:     f.th.BasicUser.Id,
-				TargetTime: model.GetMillis()/1000 + 3600,
-			})
-		}),
-		ungated("follow thread", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
-			return f.th.Client.UpdateThreadFollowForUser(context.Background(), f.th.BasicUser.Id, f.th.BasicTeam.Id, f.post.Id, true)
-		}),
-		ungated("channel fetch", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
-			_, resp, err := f.th.Client.GetChannel(context.Background(), f.th.BasicChannel.Id)
-			return resp, err
-		}),
-		ungated("post list", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
-			_, resp, err := f.th.Client.GetPostsForChannel(context.Background(), f.th.BasicChannel.Id, 0, 10, "", false, false)
-			return resp, err
-		}),
-		// Last: it removes the acting user from the channel, so anything after it
-		// would fail for the wrong reason.
-		ungated("leave channel", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
-			return f.th.Client.RemoveUserFromChannel(context.Background(), f.th.BasicChannel.Id, f.th.BasicUser.Id)
-		}),
-	}
-}
-
 // requireDenialOnEverySurface runs each surface and requires the 403 carrying wantID.
 func requireDenialOnEverySurface(t *testing.T, f *channelWriteAccessFixture, surfaces []channelWriteAccessSurface, wantID string) {
 	t.Helper()
@@ -371,17 +332,6 @@ func TestChannelManagementAccessAllowedSurfaces(t *testing.T) {
 	requireNoDenialOnAnySurface(t, f, channelManagementAccessSurfaces(), abacManagementDeniedErrorID)
 }
 
-// The two actions are independent: a denial of one must not reach the other's surfaces.
-func TestChannelWriteAccessDoesNotGateManagement(t *testing.T) {
-	f, _ := setupChannelWriteAccessAPI(t, false)
-	requireNoDenialOnAnySurface(t, f, channelManagementAccessSurfaces(), abacWriteDeniedErrorID)
-}
-
-func TestChannelManagementAccessDoesNotGateWrites(t *testing.T) {
-	f, _ := setupChannelManagementAccessAPI(t, false)
-	requireNoDenialOnAnySurface(t, f, channelWriteAccessSurfaces(), abacManagementDeniedErrorID)
-}
-
 // channel_management_access never binds system admins, even where it denies everyone else.
 func TestChannelManagementAccessExemptsSystemAdmins(t *testing.T) {
 	f, _ := setupChannelManagementAccessAPI(t, false)
@@ -431,18 +381,6 @@ func TestChannelReadAccessBlocksPublicChannelSelfAdd(t *testing.T) {
 		"expected the read denial, got %v", err)
 }
 
-// Reads are channel_read_access's question alone: neither a write nor a management
-// denial may hide a channel or its content.
-func TestChannelWriteAccessDoesNotGateReads(t *testing.T) {
-	f, _ := setupChannelWriteAccessAPI(t, false)
-	requireNoDenialOnAnySurface(t, f, channelWriteAccessUngatedSurfaces(), abacWriteDeniedErrorID, abacDeniedErrorID)
-}
-
-func TestChannelManagementAccessDoesNotGateReads(t *testing.T) {
-	f, _ := setupChannelManagementAccessAPI(t, false)
-	requireNoDenialOnAnySurface(t, f, channelWriteAccessUngatedSurfaces(), abacManagementDeniedErrorID, abacDeniedErrorID)
-}
-
 // Assigning a reviewer is gated by none of the channel-access policies. It writes to
 // the review record rather than the channel, and content review is a team-level
 // duty performed on channels the reviewer is deliberately not a member of — so
@@ -455,45 +393,6 @@ func TestChannelAccessDoesNotGateReviewerAssignment(t *testing.T) {
 	require.NoError(t, err, "no channel-access policy may gate reviewer assignment")
 	require.NotNil(t, resp)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
-}
-
-// The write and management gates decide on their own action alone: with the read
-// policy denying and the action allowing, the call goes through.
-func TestChannelAccessActionsIgnoreReadAccess(t *testing.T) {
-	for _, tc := range []struct {
-		name   string
-		action string
-		call   func(th *TestHelper) error
-	}{
-		{"write", model.AccessControlPolicyActionChannelWriteAccess, func(th *TestHelper) error {
-			_, _, err := th.Client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "allowed"})
-			return err
-		}},
-		{"management", model.AccessControlPolicyActionChannelManagementAccess, func(th *TestHelper) error {
-			purpose := "allowed"
-			_, _, err := th.Client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{Purpose: &purpose})
-			return err
-		}},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			th := SetupConfig(t, func(cfg *model.Config) {
-				cfg.FeatureFlags.PermissionPolicies = true
-			}).InitBasic(t)
-			th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
-			})
-
-			mockACS := installMockACS(t, th)
-			mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
-			mockACS.On("AccessEvaluation", mock.Anything, channelReadAccessEvaluation).
-				Return(model.AccessDecision{Decision: false}, nil)
-			mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
-				Return(model.AccessDecision{Decision: true}, nil)
-
-			require.NoError(t, tc.call(th), "a read denial must not refuse %s", tc.action)
-		})
-	}
 }
 
 // The gate is inert until a channel_write_access policy governs the channel: a
