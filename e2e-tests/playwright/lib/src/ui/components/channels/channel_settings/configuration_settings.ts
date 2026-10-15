@@ -61,33 +61,29 @@ export default class ConfigurationSettings {
 
     async enableChannelBanner() {
         const toggleButton = this.container.getByTestId('channelBannerToggle-button');
-        const classes = await toggleButton.getAttribute('class');
-        if (!classes?.includes('active')) {
-            await toggleButton.click();
+        if (!(await toggleButton.isChecked())) {
+            await toggleButton.check();
         }
     }
 
     async disableChannelBanner() {
         const toggleButton = this.container.getByTestId('channelBannerToggle-button');
-        const classes = await toggleButton.getAttribute('class');
-        if (classes?.includes('active')) {
-            await toggleButton.click();
+        if (await toggleButton.isChecked()) {
+            await toggleButton.uncheck();
         }
     }
 
     async enableChannelAutotranslation() {
         const toggleButton = this.container.getByTestId('channelTranslationToggle-button');
-        const classes = await toggleButton.getAttribute('class');
-        if (!classes?.includes('active')) {
-            await toggleButton.click();
+        if (!(await toggleButton.isChecked())) {
+            await toggleButton.check();
         }
     }
 
     async disableChannelAutotranslation() {
         const toggleButton = this.container.getByTestId('channelTranslationToggle-button');
-        const classes = await toggleButton.getAttribute('class');
-        if (classes?.includes('active')) {
-            await toggleButton.click();
+        if (await toggleButton.isChecked()) {
+            await toggleButton.uncheck();
         }
     }
 
@@ -110,17 +106,15 @@ export default class ConfigurationSettings {
 
     async enableJoinLeaveMessages() {
         const toggleButton = this.container.getByTestId('channelJoinLeaveMessagesToggle-button');
-        const classes = await toggleButton.getAttribute('class');
-        if (!classes?.includes('active')) {
-            await toggleButton.click();
+        if (!(await toggleButton.isChecked())) {
+            await toggleButton.check();
         }
     }
 
     async disableJoinLeaveMessages() {
         const toggleButton = this.container.getByTestId('channelJoinLeaveMessagesToggle-button');
-        const classes = await toggleButton.getAttribute('class');
-        if (classes?.includes('active')) {
-            await toggleButton.click();
+        if (await toggleButton.isChecked()) {
+            await toggleButton.uncheck();
         }
     }
 
@@ -200,19 +194,15 @@ export default class ConfigurationSettings {
 
     async enableShareWithWorkspaces() {
         const toggle = this.shareWithWorkspacesToggle;
-        const ariaPressed = await toggle.getAttribute('aria-pressed');
-        const classes = await toggle.getAttribute('class');
-        if (ariaPressed !== 'true' && !classes?.includes('active')) {
-            await toggle.click();
+        if (!(await toggle.isChecked())) {
+            await toggle.check();
         }
     }
 
     async disableShareWithWorkspaces() {
         const toggle = this.shareWithWorkspacesToggle;
-        const ariaPressed = await toggle.getAttribute('aria-pressed');
-        const classes = await toggle.getAttribute('class');
-        if (ariaPressed === 'true' || classes?.includes('active')) {
-            await toggle.click();
+        if (await toggle.isChecked()) {
+            await toggle.uncheck();
         }
     }
 

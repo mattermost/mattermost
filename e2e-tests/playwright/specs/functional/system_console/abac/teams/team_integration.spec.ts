@@ -102,9 +102,10 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
     async function setToggle(page: Page, on: boolean): Promise<void> {
         const toggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
         await toggle.waitFor({state: 'visible', timeout: 10000});
-        const pressed = (await toggle.getAttribute('aria-pressed')) === 'true';
-        if (pressed !== on) {
-            await toggle.click();
+        if (on) {
+            await toggle.check();
+        } else {
+            await toggle.uncheck();
         }
     }
 
@@ -285,10 +286,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(disconnectModal).not.toBeVisible({timeout: 5000});
 
         // * Custom rule still governs, so enforcement stays on
-        await expect(page.locator('[data-testid="policy-enforce-toggle-button"]')).toHaveAttribute(
-            'aria-pressed',
-            'true',
-        );
+        await expect(page.locator('[data-testid="policy-enforce-toggle-button"]')).toBeChecked();
 
         // * Save goes straight through: removal is not new criteria, so no apply modal
         await page.getByRole('button', {name: 'Save'}).click();

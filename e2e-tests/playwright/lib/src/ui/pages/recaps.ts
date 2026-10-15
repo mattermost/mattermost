@@ -55,8 +55,8 @@ class CreateRecapModal {
     async enableRunOnce() {
         const runOnce = this.container.locator('#run-once-toggle');
         await expect(runOnce).toBeVisible();
-        if ((await runOnce.getAttribute('aria-pressed')) !== 'true') {
-            await runOnce.click();
+        if (!(await runOnce.isChecked())) {
+            await runOnce.check();
         }
     }
 
@@ -236,7 +236,7 @@ class ScheduledRecapItem {
     ) {
         this.menuButton = container.getByRole('button', {name: /Options for /});
         this.schedulePattern = container.locator('.schedule-pattern');
-        this.toggleButton = container.locator('.scheduled-recap-toggle button');
+        this.toggleButton = container.locator('.scheduled-recap-toggle').getByRole('switch');
     }
 
     async toBeVisible() {
@@ -253,24 +253,24 @@ class ScheduledRecapItem {
     }
 
     async expectActive() {
-        await expect(this.toggleButton).toHaveAttribute('aria-pressed', 'true');
+        await expect(this.toggleButton).toBeChecked();
         await expect(this.toggleButton).toHaveAccessibleName('Active - click to pause');
     }
 
     async expectPaused() {
-        await expect(this.toggleButton).toHaveAttribute('aria-pressed', 'false');
+        await expect(this.toggleButton).not.toBeChecked();
         await expect(this.toggleButton).toHaveAccessibleName('Paused - click to resume');
     }
 
     async pause() {
         await this.expectActive();
-        await this.toggleButton.click();
+        await this.toggleButton.uncheck();
         await this.expectPaused();
     }
 
     async resume() {
         await this.expectPaused();
-        await this.toggleButton.click();
+        await this.toggleButton.check();
         await this.expectActive();
     }
 
