@@ -1,0 +1,123 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {defaultMentionFilters} from 'utils/mention_search';
+
+import MentionFiltersButton from './index';
+
+// Only the search requests are stubbed out. The action, the reducer and the selectors are the real
+// ones, so what the popover applies has to survive the whole round trip to show up on the button.
+jest.mock('mattermost-redux/actions/search', () => ({
+    ...jest.requireActual('mattermost-redux/actions/search'),
+    searchPostsWithParams: jest.fn(() => () => Promise.resolve({data: {order: [], posts: {}}})),
+    searchFilesWithParams: jest.fn(() => () => Promise.resolve({data: {}})),
+}));
+
+const state = {
+    entities: {
+        general: {config: {}, license: {}},
+        users: {
+            currentUserId: 'user1',
+            profiles: {user1: {id: 'user1', username: 'alice', notify_props: {}, roles: ''}},
+            statuses: {},
+            profilesInChannel: {},
+        },
+        teams: {
+            currentTeamId: 'team1',
+            teams: {
+                team1: {id: 'team1', display_name: 'Product', delete_at: 0},
+                team2: {id: 'team2', display_name: 'Platform', delete_at: 0},
+            },
+            myMembers: {team1: {team_id: 'team1'}, team2: {team_id: 'team2'}},
+        },
+        channels: {
+            channels: {
+                channel1: {id: 'channel1', team_id: 'team1', display_name: 'Release Coordination', name: 'release-coordination', type: 'O' as const, delete_at: 0},
+            },
+            channelsInTeam: {team1: new Set(['channel1'])},
+            myMembers: {channel1: {channel_id: 'channel1', user_id: 'user1'}},
+        },
+        preferences: {myPreferences: {}},
+    },
+    views: {
+        rhs: {
+            mentionFilters: defaultMentionFilters,
+            searchTeam: null,
+        },
+    },
+};
+
+// The team selector only appears when the server allows searching across teams.
+const crossTeamState = {
+    ...state,
+    entities: {
+        ...state.entities,
+        general: {...state.entities.general, config: {EnableCrossTeamSearch: 'true' as const}},
+    },
+};
+
+async function openPopover() {
+    await userEvent.click(screen.getByTestId('mentionFiltersButton'));
+    await screen.findByText('Mention type');
+}
+
+describe('MentionFiltersButton', () => {
+    test('counts nothing before a filter is applied', () => {
+        renderWithContext(<MentionFiltersButton/>, state);
+
+        expect(screen.getByTestId('mentionFiltersButton')).toHaveTextContent('Filters');
+        expect(screen.getByTestId('mentionFiltersButton')).not.toHaveTextContent('Filters (');
+    });
+
+    test('Done applies the draft to the store', async () => {
+        renderWithContext(<MentionFiltersButton/>, state);
+
+        await openPopover();
+        await userEvent.click(screen.getByLabelText('Directly mentioning you'));
+
+        // * Verify nothing is applied while the popover is still open
+        expect(screen.getByTestId('mentionFiltersButton')).not.toHaveTextContent('Filters (');
+
+        await userEvent.click(screen.getByRole('button', {name: 'Done'}));
+
+        // * Verify the popover closed and the count came back through the store
+        await waitFor(() => expect(screen.queryByText('Mention type')).not.toBeInTheDocument());
+        expect(screen.getByTestId('mentionFiltersButton')).toHaveTextContent('Filters (1)');
+    });
+
+    test('Escape discards the draft', async () => {
+        renderWithContext(<MentionFiltersButton/>, state);
+
+        await openPopover();
+        await userEvent.click(screen.getByLabelText('Directly mentioning you'));
+        await userEvent.keyboard('{Escape}');
+
+        // * Verify the popover closed without applying anything
+        await waitFor(() => expect(screen.queryByText('Mention type')).not.toBeInTheDocument());
+        expect(screen.getByTestId('mentionFiltersButton')).not.toHaveTextContent('Filters (');
+
+        // * Verify the discarded selection is not still sitting in the popover on reopen
+        await openPopover();
+        expect(screen.getByLabelText('Directly mentioning you')).not.toBeChecked();
+    });
+
+    test('keeps channels picked after a team change when Done is selected', async () => {
+        // The apply used to compare the incoming team against the applied one, which made it clear
+        // the channels on the Done click, after the popover had already cleared the old team's.
+        renderWithContext(<MentionFiltersButton/>, crossTeamState);
+
+        await openPopover();
+        await userEvent.click(screen.getByText('All teams'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'Product'}));
+        await userEvent.click(screen.getByText('Channel or Direct Messages'));
+        await userEvent.click(screen.getByLabelText('Release Coordination'));
+        await userEvent.click(screen.getByRole('button', {name: 'Done'}));
+
+        // * Verify both the team and the channel are counted, not the team alone
+        await waitFor(() => expect(screen.queryByText('Mention type')).not.toBeInTheDocument());
+        expect(screen.getByTestId('mentionFiltersButton')).toHaveTextContent('Filters (2)');
+    });
+});

@@ -18,7 +18,7 @@ import {localizeMessage} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import type {RhsState, FakePost, SearchType} from 'types/store/rhs';
+import type {RhsState, FakePost, MentionFilters, SearchType} from 'types/store/rhs';
 
 export function getSelectedPostId(state: GlobalState): Post['id'] {
     return state.views.rhs.selectedPostId;
@@ -113,9 +113,10 @@ export const getCurrentSearchForSearchTeam: (state: GlobalState) => Record<strin
     'getCurrentSearchForSearchTeam',
     (state: GlobalState) => state.entities.search.current,
     getSearchTeam,
+    getExplicitSearchTeam,
     (state: GlobalState) => getRhsState(state) === RHSStates.MENTION,
-    (current, teamId, isMentionSearch) => {
-        const team = isMentionSearch ? 'ALL_TEAMS' : teamId || 'ALL_TEAMS';
+    (current, teamId, explicitTeamId, isMentionSearch) => {
+        const team = (isMentionSearch && !explicitTeamId) ? 'ALL_TEAMS' : teamId || 'ALL_TEAMS';
         return current[team];
     },
 );
@@ -138,6 +139,16 @@ export function getSearchTerms(state: GlobalState): string {
 // getSearchTeam returns the team ID that the search is currently scoped to, or current team if no team was specified.
 export function getSearchTeam(state: GlobalState): string {
     return state.views.rhs.searchTeam ?? getCurrentTeamId(state);
+}
+
+// getExplicitSearchTeam returns the team ID the search was explicitly scoped to, or null when it wasn't
+// scoped to one. Recent mentions search every team unless scoped, so callers need to tell the two apart.
+export function getExplicitSearchTeam(state: GlobalState): string | null {
+    return state.views.rhs.searchTeam;
+}
+
+export function getMentionFilters(state: GlobalState): MentionFilters {
+    return state.views.rhs.mentionFilters;
 }
 
 export function getSearchType(state: GlobalState): SearchType {

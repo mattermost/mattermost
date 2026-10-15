@@ -3065,6 +3065,87 @@ func TestSearchPostsForUser(t *testing.T) {
 		assert.True(t, allPostHaveMembership)
 	})
 
+	// The recent mentions filter sends channel ids in the in: modifier rather than channel names: a
+	// name only identifies a channel within one team, so it can't express a filter that spans teams.
+	// convertChannelNamesToChannelIds passes a value that is already an id straight through.
+	t.Run("in: a channel id", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, posts := setup(t, false)
+
+		otherTeam := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, otherTeam)
+		otherTeamChannel := th.CreateChannel(t, otherTeam)
+		otherTeamPost := th.CreateMessagePost(t, otherTeamChannel, searchTerm)
+
+		notAMemberChannel := th.CreateChannel(t, th.BasicTeam)
+		th.CreateMessagePost(t, notAMemberChannel, searchTerm)
+		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.SystemAdminUser.Id, notAMemberChannel)
+		require.Nil(t, appErr)
+
+		// The only other channel on the basic team the user can see, so an exclusion of the basic
+		// channel has something left to return rather than nothing.
+		siblingChannel := th.CreateChannel(t, th.BasicTeam)
+		siblingPost := th.CreateMessagePost(t, siblingChannel, searchTerm)
+
+		archivedChannel := th.CreateChannel(t, th.BasicTeam)
+		archivedPost := th.CreateMessagePost(t, archivedChannel, searchTerm)
+		appErr = th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		searchWith := func(terms, teamID string, includeDeletedChannels bool) []string {
+			results, _, err := th.App.SearchPostsForUser(th.Context, terms, th.BasicUser.Id, teamID, false, includeDeletedChannels, 0, 0, 20)
+			require.Nil(t, err)
+			return results.Order
+		}
+
+		search := func(terms, teamID string) []string {
+			return searchWith(terms, teamID, false)
+		}
+
+		t.Run("returns the posts of a channel the user belongs to", func(t *testing.T) {
+			assert.Equal(t, []string{
+				posts[6].Id,
+				posts[5].Id,
+				posts[4].Id,
+				posts[3].Id,
+				posts[2].Id,
+				posts[1].Id,
+				posts[0].Id,
+			}, search(searchTerm+" in:"+th.BasicChannel.Id, th.BasicTeam.Id))
+		})
+
+		t.Run("returns nothing for a channel the user does not belong to", func(t *testing.T) {
+			assert.Empty(t, search(searchTerm+" in:"+notAMemberChannel.Id, th.BasicTeam.Id))
+		})
+
+		t.Run("reaches a channel on another team when the search is not scoped to one", func(t *testing.T) {
+			// This is the case names can't express, and the reason the filter sends ids at all.
+			assert.Equal(t, []string{otherTeamPost.Id}, search(searchTerm+" in:"+otherTeamChannel.Id, ""))
+		})
+
+		t.Run("still resolves a channel name, which wins over being read as an id", func(t *testing.T) {
+			assert.Len(t, search(searchTerm+" in:"+th.BasicChannel.Name, th.BasicTeam.Id), len(posts))
+		})
+
+		t.Run("returns nothing for a channel on another team when the search is scoped to one", func(t *testing.T) {
+			// The team filter still applies: an id reaches across teams only because an unscoped
+			// search has no team filter to begin with.
+			assert.Empty(t, search(searchTerm+" in:"+otherTeamChannel.Id, th.BasicTeam.Id))
+		})
+
+		t.Run("excludes a channel given by id", func(t *testing.T) {
+			// -in: takes the same passthrough as in:, on its own line of the conversion.
+			assert.Equal(t, []string{siblingPost.Id}, search(searchTerm+" -in:"+th.BasicChannel.Id, th.BasicTeam.Id))
+		})
+
+		t.Run("an archived channel id still answers to include_deleted_channels", func(t *testing.T) {
+			// An id skips the name lookup the flag gates, so the flag reaches it only through the
+			// store's own filter on archived channels. Both halves have to hold for that to be true.
+			assert.Empty(t, searchWith(searchTerm+" in:"+archivedChannel.Id, th.BasicTeam.Id, false))
+			assert.Equal(t, []string{archivedPost.Id}, searchWith(searchTerm+" in:"+archivedChannel.Id, th.BasicTeam.Id, true))
+		})
+	})
+
 	t.Run("should not return later pages of posts from database", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, _ := setup(t, false)

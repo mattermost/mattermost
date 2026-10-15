@@ -7,9 +7,9 @@ import {MemoryRouter, Route} from 'react-router-dom';
 import {
     showChannelFiles,
     showFlaggedPosts,
-    showMentions,
     showPinnedPosts,
     showSearchResults,
+    updateMentionFilters,
     updateRhsState,
     updateSearchTeam,
     updateSearchTerms,
@@ -17,6 +17,7 @@ import {
 } from 'actions/views/rhs';
 
 import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {defaultMentionFilters} from 'utils/mention_search';
 import {TestHelper} from 'utils/test_helper';
 
 import RhsSearchPopout from './rhs_search_popout';
@@ -35,9 +36,9 @@ const MOCK_ACTION = {type: 'MOCK'};
 jest.mock('actions/views/rhs', () => ({
     showChannelFiles: jest.fn(() => MOCK_ACTION),
     showFlaggedPosts: jest.fn(() => MOCK_ACTION),
-    showMentions: jest.fn(() => MOCK_ACTION),
     showPinnedPosts: jest.fn(() => MOCK_ACTION),
     showSearchResults: jest.fn(() => MOCK_ACTION),
+    updateMentionFilters: jest.fn(() => MOCK_ACTION),
     updateRhsState: jest.fn(() => MOCK_ACTION),
     updateSearchTeam: jest.fn(() => MOCK_ACTION),
     updateSearchTerms: jest.fn(() => MOCK_ACTION),
@@ -116,19 +117,27 @@ describe('RhsSearchPopout', () => {
         });
     });
 
-    test('should dispatch showMentions for mention mode without search terms', async () => {
-        renderPopout('?q=&type=messages&mode=mention', 'mention');
+    test('should open an unfiltered mention search across every team', async () => {
+        renderPopout('?q=%40user&type=messages&mode=mention&searchTeamId=', 'mention');
 
+        // An empty searchTeamId is a search that spans teams, not a search on the team this window
+        // was opened from.
         await waitFor(() => {
-            expect(jest.mocked(showMentions)).toHaveBeenCalled();
+            expect(jest.mocked(updateMentionFilters)).toHaveBeenCalledWith(defaultMentionFilters, null);
         });
     });
 
-    test('should dispatch showSearchResults(true) for mention mode with search terms', async () => {
-        renderPopout('?q=from:user&type=messages&mode=mention', 'mention');
+    test('should open a mention search with the filters it was popped out with', async () => {
+        renderPopout(
+            `?q=%40user&type=messages&mode=mention&searchTeamId=${team.id}&mentionChannels=channel1%2Cchannel2&mentionTypes=direct&mentionDate=today`,
+            'mention',
+        );
 
         await waitFor(() => {
-            expect(jest.mocked(showSearchResults)).toHaveBeenCalledWith(true);
+            expect(jest.mocked(updateMentionFilters)).toHaveBeenCalledWith(
+                {channelIds: ['channel1', 'channel2'], mentionTypes: ['direct'], date: 'today'},
+                team.id,
+            );
         });
     });
 
