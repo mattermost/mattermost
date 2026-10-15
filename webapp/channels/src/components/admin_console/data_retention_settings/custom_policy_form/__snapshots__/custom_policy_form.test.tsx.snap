@@ -464,51 +464,88 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                             Channels
                           </div>
                           <div
-                            class="FilterList_item"
+                            class="FilterList_items"
                           >
                             <div
-                              class="FilterList_checkbox"
+                              class="FilterList_item"
                             >
-                              <label>
-                                <input
-                                  id="public"
-                                  name="public"
-                                  type="checkbox"
-                                />
-                                Public
-                              </label>
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label
+                                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                                  for="public"
+                                >
+                                  <input
+                                    class="_checkbox__input_1rll8_22"
+                                    id="public"
+                                    name="public"
+                                    type="checkbox"
+                                  />
+                                  <span
+                                    class="_checkbox__box_1rll8_41"
+                                  />
+                                  <span
+                                    class="_checkbox__label_1rll8_117"
+                                  >
+                                    Public
+                                  </span>
+                                </label>
+                              </div>
                             </div>
-                          </div>
-                          <div
-                            class="FilterList_item"
-                          >
                             <div
-                              class="FilterList_checkbox"
+                              class="FilterList_item"
                             >
-                              <label>
-                                <input
-                                  id="private"
-                                  name="private"
-                                  type="checkbox"
-                                />
-                                Private
-                              </label>
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label
+                                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                                  for="private"
+                                >
+                                  <input
+                                    class="_checkbox__input_1rll8_22"
+                                    id="private"
+                                    name="private"
+                                    type="checkbox"
+                                  />
+                                  <span
+                                    class="_checkbox__box_1rll8_41"
+                                  />
+                                  <span
+                                    class="_checkbox__label_1rll8_117"
+                                  >
+                                    Private
+                                  </span>
+                                </label>
+                              </div>
                             </div>
-                          </div>
-                          <div
-                            class="FilterList_item"
-                          >
                             <div
-                              class="FilterList_checkbox"
+                              class="FilterList_item"
                             >
-                              <label>
-                                <input
-                                  id="deleted"
-                                  name="deleted"
-                                  type="checkbox"
-                                />
-                                Archived
-                              </label>
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label
+                                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                                  for="deleted"
+                                >
+                                  <input
+                                    class="_checkbox__input_1rll8_22"
+                                    id="deleted"
+                                    name="deleted"
+                                    type="checkbox"
+                                  />
+                                  <span
+                                    class="_checkbox__box_1rll8_41"
+                                  />
+                                  <span
+                                    class="_checkbox__label_1rll8_117"
+                                  >
+                                    Archived
+                                  </span>
+                                </label>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1051,51 +1088,88 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                             Channels
                           </div>
                           <div
-                            class="FilterList_item"
+                            class="FilterList_items"
                           >
                             <div
-                              class="FilterList_checkbox"
+                              class="FilterList_item"
                             >
-                              <label>
-                                <input
-                                  id="public"
-                                  name="public"
-                                  type="checkbox"
-                                />
-                                Public
-                              </label>
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label
+                                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                                  for="public"
+                                >
+                                  <input
+                                    class="_checkbox__input_1rll8_22"
+                                    id="public"
+                                    name="public"
+                                    type="checkbox"
+                                  />
+                                  <span
+                                    class="_checkbox__box_1rll8_41"
+                                  />
+                                  <span
+                                    class="_checkbox__label_1rll8_117"
+                                  >
+                                    Public
+                                  </span>
+                                </label>
+                              </div>
                             </div>
-                          </div>
-                          <div
-                            class="FilterList_item"
-                          >
                             <div
-                              class="FilterList_checkbox"
+                              class="FilterList_item"
                             >
-                              <label>
-                                <input
-                                  id="private"
-                                  name="private"
-                                  type="checkbox"
-                                />
-                                Private
-                              </label>
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label
+                                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                                  for="private"
+                                >
+                                  <input
+                                    class="_checkbox__input_1rll8_22"
+                                    id="private"
+                                    name="private"
+                                    type="checkbox"
+                                  />
+                                  <span
+                                    class="_checkbox__box_1rll8_41"
+                                  />
+                                  <span
+                                    class="_checkbox__label_1rll8_117"
+                                  >
+                                    Private
+                                  </span>
+                                </label>
+                              </div>
                             </div>
-                          </div>
-                          <div
-                            class="FilterList_item"
-                          >
                             <div
-                              class="FilterList_checkbox"
+                              class="FilterList_item"
                             >
-                              <label>
-                                <input
-                                  id="deleted"
-                                  name="deleted"
-                                  type="checkbox"
-                                />
-                                Archived
-                              </label>
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label
+                                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                                  for="deleted"
+                                >
+                                  <input
+                                    class="_checkbox__input_1rll8_22"
+                                    id="deleted"
+                                    name="deleted"
+                                    type="checkbox"
+                                  />
+                                  <span
+                                    class="_checkbox__box_1rll8_41"
+                                  />
+                                  <span
+                                    class="_checkbox__label_1rll8_117"
+                                  >
+                                    Archived
+                                  </span>
+                                </label>
+                              </div>
                             </div>
                           </div>
                         </div>
