@@ -43,8 +43,10 @@ export default class ProfileModal {
         this.profileSettingsTab = new ProfileSettingsTab(container.getByRole('tabpanel', {name: 'Profile Settings'}));
         this.securityTab = new SecurityTab(container.getByRole('tabpanel', {name: 'Security'}));
 
-        this.closeButton = container.getByRole('button', {name: 'Close'});
-        this.saveButton = container.getByRole('button', {name: 'Save'});
+        // Matched exactly for the same reason Cancel below uses its test id: an attribute named
+        // "Save ..." or "Close ..." would otherwise match too.
+        this.closeButton = container.getByRole('button', {name: 'Close', exact: true});
+        this.saveButton = container.getByRole('button', {name: 'Save', exact: true});
         // getByTestId, not getByRole('button', {name: 'Cancel'}): a custom profile attribute whose
         // display name contains "Cancel" gives its own Edit button an accessible name like "Cancel
         // X Edit" (title + button text via aria-labelledby), which getByRole's substring name match
