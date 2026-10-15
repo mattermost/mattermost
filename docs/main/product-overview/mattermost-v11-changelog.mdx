@@ -869,6 +869,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-8-0-is-now-avail
   - Added the **Enable File Search** setting to **System Console > Site Configuration > File Sharing and Downloads**. When file search is disabled, the web app now hides the file search and channel files entry points instead of showing empty results.
   - Updated how database connection strings are reported in generated Support Packets and in server log output.
   - Fixed an issue where the Threads Unreads tab could show an empty list while reporting unread threads. If the issue persists after upgrading and a reverse proxy or CDN caches API responses, purge its cache once.
+  - Fixed an issue where editing or deleting a post immediately after posting it could intermittently fail on servers configured with database read replicas.
   - Mattermost v11.7.13 contains no database or functional changes.
 - **11.7.12, released 2026-10-08**
   - Mattermost v11.7.12 contains Low to Medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
