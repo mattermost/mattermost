@@ -310,6 +310,13 @@ func (a *App) ProcessRecapChannelWithOptions(rctx request.CTX, recapID, channelI
 		return result, model.NewAppError("ProcessRecapChannel", "app.recap.get_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// HasPermissionToChannel is RBAC only, so the channel's read rules are checked
+	// here too. The job has no session, so the user is evaluated on their attributes
+	// alone, and a rule that needs session attributes denies.
+	if !a.HasChannelReadAccess(rctx, userID, channel) {
+		return result, model.NewAppError("ProcessRecapChannel", "app.recap.permission_denied", nil, "", http.StatusForbidden)
+	}
+
 	// Get user's last viewed timestamp
 	lastViewedAt, lastViewedErr := a.Srv().Store().Channel().GetMemberLastViewedAt(rctx, channelID, userID)
 	if lastViewedErr != nil {
