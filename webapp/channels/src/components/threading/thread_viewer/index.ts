@@ -20,9 +20,8 @@ import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {selectPostCard} from 'actions/views/rhs';
-import {updateThreadLastOpened, updateThreadLastUpdateAt} from 'actions/views/threads';
+import {getThreadLastUpdateAt, threadLastUpdateAtChanged, threadLastViewedAtChanged} from 'reducers/views/threads';
 import {getHighlightedPostId, getSelectedPostFocussedAt} from 'selectors/rhs';
-import {getThreadLastUpdateAt} from 'selectors/views/threads';
 import {getSocketStatus} from 'selectors/views/websocket';
 
 import type {GlobalState} from 'types/store';
@@ -82,9 +81,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getPostThread,
             getThread: fetchThread,
             selectPostCard,
-            updateThreadLastOpened,
+            threadLastViewedAtChanged,
             updateThreadRead,
-            updateThreadLastUpdateAt,
+            threadLastUpdateAtChanged,
         }, dispatch),
     };
 }

@@ -159,10 +159,10 @@ import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {resetWsErrorCount} from 'actions/views/system';
-import {updateThreadLastOpened} from 'actions/views/threads';
+import {isThreadManuallyUnread, threadLastViewedAtChanged} from 'reducers/views/threads';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
-import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
+import {isThreadOpen} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
 import {
@@ -2297,7 +2297,7 @@ function handleThreadReadChanged(msg: WebSocketMessages.ThreadReadChanged): Thun
 
             // skip marking the thread as read (when the user is viewing the thread)
             if (thread && !isThreadOpen(state, thread.id)) {
-                doDispatch(updateThreadLastOpened(thread.id, msg.data.timestamp));
+                doDispatch(threadLastViewedAtChanged({threadId: thread.id, lastViewedAt: msg.data.timestamp}));
             }
 
             doDispatch(

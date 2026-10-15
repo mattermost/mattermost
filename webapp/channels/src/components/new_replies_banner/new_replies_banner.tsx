@@ -17,7 +17,7 @@ type Props = {
     onClick: () => void;
     onDismiss: () => void;
     actions: {
-        updateThreadToastStatus: (status: boolean) => void;
+        threadToastStatusChanged: (status: boolean) => void;
     };
 };
 
@@ -32,7 +32,7 @@ function NewRepliesBanner({
     const onClickMessage = intl.formatMessage({id: 'postlist.toast.scrollToLatest', defaultMessage: 'Jump to new messages'});
 
     useEffect(() => {
-        actions.updateThreadToastStatus(hasNewReplies);
+        actions.threadToastStatusChanged(hasNewReplies);
     }, [hasNewReplies]);
 
     const handleShortcut = useCallback((e: KeyboardEvent) => {

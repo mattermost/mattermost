@@ -4,9 +4,8 @@
 import type {Channel} from '@mattermost/types/channels';
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 import type {CursorPaginationDirection, ReportDuration} from '@mattermost/types/reports';
-import type {Team} from '@mattermost/types/teams';
-import type {UserThread} from '@mattermost/types/threads';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
+
+import type {ThreadsViewState} from 'reducers/views/threads';
 
 import type {I18nState} from './i18n';
 import type {LhsViewState} from './lhs';
@@ -210,13 +209,7 @@ export type ViewsState = {
         isShowOnboardingVisitConsoleTour: boolean;
     };
 
-    threads: {
-        selectedThreadIdInTeam: RelationOneToOne<Team, UserThread['id'] | null>;
-        lastViewedAt: {[id: string]: number};
-        lastUpdateAt: {[id: string]: number};
-        manuallyUnread: {[id: string]: boolean};
-        toastStatus: boolean;
-    };
+    threads: ThreadsViewState;
 
     textbox: {
         shouldShowPreviewOnCreateComment: boolean;

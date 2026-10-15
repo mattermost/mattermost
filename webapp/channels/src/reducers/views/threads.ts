@@ -1,106 +1,97 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createSlice} from '@reduxjs/toolkit';
+import type {PayloadAction} from '@reduxjs/toolkit';
 import findKey from 'lodash/findKey';
-import {combineReducers} from 'redux';
+
+import type {Post} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
+import type {UserThread} from '@mattermost/types/threads';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {PostTypes, UserTypes} from 'mattermost-redux/action_types';
 
-import {Threads, ActionTypes} from 'utils/constants';
+import {ActionTypes} from 'utils/constants';
 
-import type {MMAction} from 'types/store';
-import type {ViewsState} from 'types/store/views';
+import type {GlobalState} from 'types/store';
 
-export const selectedThreadIdInTeam = (state: ViewsState['threads']['selectedThreadIdInTeam'] = {}, action: MMAction) => {
-    switch (action.type) {
-    case PostTypes.POST_REMOVED: {
-        const key = findKey(state, (id) => id === action.data.id);
-        if (key) {
-            return {
-                ...state,
-                [key]: '',
-            };
-        }
-        return state;
-    }
-    case Threads.CHANGED_SELECTED_THREAD:
-        return {
-            ...state,
-            [action.data.team_id]: action.data.thread_id,
-        };
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
-    }
+export type ThreadsViewState = {
+    selectedThreadIdInTeam: RelationOneToOne<Team, UserThread['id'] | null>;
+    lastViewedAt: {[id: string]: number};
+    lastUpdateAt: {[id: string]: number};
+    manuallyUnread: {[id: string]: boolean};
+    toastStatus: boolean;
 };
 
-export const lastViewedAt = (state: ViewsState['threads']['lastViewedAt'] = {}, action: MMAction) => {
-    switch (action.type) {
-    case Threads.CHANGED_LAST_VIEWED_AT:
-        return {
-            ...state,
-            [action.data.threadId]: action.data.lastViewedAt,
-        };
+type PostRemovedAction = {type: typeof PostTypes.POST_REMOVED; data: Post};
 
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
-    }
+const initialState: ThreadsViewState = {
+    selectedThreadIdInTeam: {},
+    lastViewedAt: {},
+    lastUpdateAt: {},
+    manuallyUnread: {},
+    toastStatus: false,
 };
 
-export const lastUpdateAt = (state: ViewsState['threads']['lastUpdateAt'] = {}, action: MMAction) => {
-    switch (action.type) {
-    case Threads.CHANGED_LAST_UPDATE_AT:
-        return {
-            ...state,
-            [action.data.threadId]: action.data.lastUpdateAt,
-        };
-    default:
-        return state;
-    }
-};
-
-export function manuallyUnread(state: ViewsState['threads']['manuallyUnread'] = {}, action: MMAction) {
-    switch (action.type) {
-    case Threads.CHANGED_LAST_VIEWED_AT:
-        return {
-            ...state,
-            [action.data.threadId]: false,
-        };
-    case Threads.MANUALLY_UNREAD_THREAD:
-        return {
-            ...state,
-            [action.data.threadId]: true,
-        };
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
-    }
-}
-
-export function toastStatus(state: ViewsState['threads']['toastStatus'] = false, action: MMAction) {
-    switch (action.type) {
-    case ActionTypes.SELECT_POST:
-        return false;
-    case ActionTypes.UPDATE_THREAD_TOAST_STATUS:
-        return action.data;
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return false;
-    default:
-        return state;
-    }
-}
-
-export default combineReducers({
-    selectedThreadIdInTeam,
-    lastViewedAt,
-    manuallyUnread,
-    toastStatus,
-    lastUpdateAt,
+const threadsSlice = createSlice({
+    name: 'views/threads',
+    initialState,
+    reducers: {
+        threadsViewThreadChanged(state, action: PayloadAction<{teamId: Team['id']; threadId: UserThread['id'] | null}>) {
+            state.selectedThreadIdInTeam[action.payload.teamId] = action.payload.threadId;
+        },
+        threadLastViewedAtChanged(state, action: PayloadAction<{threadId: UserThread['id']; lastViewedAt: number}>) {
+            state.lastViewedAt[action.payload.threadId] = action.payload.lastViewedAt;
+            state.manuallyUnread[action.payload.threadId] = false;
+        },
+        threadMarkedUnread(state, action: PayloadAction<{threadId: UserThread['id']; lastViewedAt: number}>) {
+            state.lastViewedAt[action.payload.threadId] = action.payload.lastViewedAt;
+            state.manuallyUnread[action.payload.threadId] = true;
+        },
+        threadLastUpdateAtChanged(state, action: PayloadAction<{threadId: UserThread['id']; lastUpdateAt: number}>) {
+            state.lastUpdateAt[action.payload.threadId] = action.payload.lastUpdateAt;
+        },
+        threadToastStatusChanged(state, action: PayloadAction<boolean>) {
+            state.toastStatus = action.payload;
+        },
+    },
+    extraReducers: (builder) => {
+        builder.
+            addCase<PostRemovedAction['type'], PostRemovedAction>(PostTypes.POST_REMOVED, (state, action) => {
+                const teamId = findKey(state.selectedThreadIdInTeam, (id) => id === action.data.id);
+                if (teamId) {
+                    state.selectedThreadIdInTeam[teamId] = null;
+                }
+            }).
+            addCase(ActionTypes.SELECT_POST, (state) => {
+                state.toastStatus = false;
+            }).
+            addCase(UserTypes.LOGOUT_SUCCESS, () => initialState);
+    },
+    selectors: {
+        getSelectedThreadIdInTeam: (state) => state.selectedThreadIdInTeam,
+        getThreadLastViewedAt: (state, threadId: UserThread['id']): number | undefined => state.lastViewedAt[threadId],
+        getThreadLastUpdateAt: (state, threadId: UserThread['id']) => state.lastUpdateAt[threadId] || 0,
+        isThreadManuallyUnread: (state, threadId: UserThread['id']) => state.manuallyUnread[threadId] || false,
+        getThreadToastStatus: (state) => state.toastStatus,
+    },
 });
+
+export const {
+    threadsViewThreadChanged,
+    threadLastViewedAtChanged,
+    threadMarkedUnread,
+    threadLastUpdateAtChanged,
+    threadToastStatusChanged,
+} = threadsSlice.actions;
+
+export const {
+    getSelectedThreadIdInTeam,
+    getThreadLastViewedAt,
+    getThreadLastUpdateAt,
+    isThreadManuallyUnread,
+    getThreadToastStatus,
+} = threadsSlice.getSelectors((state: GlobalState) => state.views.threads);
+
+export default threadsSlice.reducer;

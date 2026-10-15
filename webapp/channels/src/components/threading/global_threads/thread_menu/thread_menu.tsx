@@ -16,7 +16,7 @@ import {
     flagPost as savePost,
     unflagPost as unsavePost,
 } from 'actions/post_actions';
-import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
+import {threadMarkedUnread} from 'reducers/views/threads';
 
 import * as Menu from 'components/menu';
 import {focusPost} from 'components/permalink_view/actions';
@@ -74,7 +74,7 @@ function ThreadMenu({
         }));
         const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
 
-        dispatch(manuallyMarkThreadAsUnread(threadId, lastViewedAt));
+        dispatch(threadMarkedUnread({threadId, lastViewedAt}));
         if (hasUnreads) {
             dispatch(updateThreadRead(currentUserId, currentTeamId, threadId, Date.now()));
         } else {

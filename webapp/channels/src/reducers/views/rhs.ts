@@ -10,9 +10,11 @@ import {
     UserTypes,
 } from 'mattermost-redux/action_types';
 
+import {threadsViewThreadChanged} from 'reducers/views/threads';
+
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
-import {ActionTypes, RHSStates, Threads} from 'utils/constants';
+import {ActionTypes, RHSStates} from 'utils/constants';
 
 import type {MMAction} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
@@ -412,8 +414,8 @@ function shouldFocusRHS(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_POST:
         return Boolean(action.postId);
-    case Threads.CHANGED_SELECTED_THREAD:
-        return Boolean(action.data.thread_id);
+    case threadsViewThreadChanged.type:
+        return action.payload.threadId !== null;
     case ActionTypes.HIGHLIGHT_REPLY:
         return false;
     case ActionTypes.RHS_FOCUSED:

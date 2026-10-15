@@ -70,8 +70,8 @@ describe('components/threading/ThreadViewer', () => {
         getPostThread: jest.fn(),
         getThread: jest.fn(),
         updateThreadRead: jest.fn(),
-        updateThreadLastOpened: jest.fn(),
-        updateThreadLastUpdateAt: jest.fn(),
+        threadLastViewedAtChanged: jest.fn(),
+        threadLastUpdateAtChanged: jest.fn(),
         fetchRHSAppsBindings: jest.fn(),
     };
 
@@ -184,11 +184,11 @@ describe('components/threading/ThreadViewer', () => {
         await waitFor(() => {
             expect(actions.getThread).toHaveBeenCalledWith('user_id', 'team_id', 'id', true);
         });
-        expect(actions.updateThreadLastOpened).not.toHaveBeenCalled();
+        expect(actions.threadLastViewedAtChanged).not.toHaveBeenCalled();
         expect(actions.updateThreadRead).not.toHaveBeenCalled();
     });
 
-    test('should call updateThreadLastOpened on mount', () => {
+    test('should call threadLastViewedAtChanged on mount', () => {
         jest.useFakeTimers().setSystemTime(400);
         const {actions} = baseProps;
         const userThread = {
@@ -205,12 +205,12 @@ describe('components/threading/ThreadViewer', () => {
             />,
         );
 
-        expect(actions.updateThreadLastOpened).toHaveBeenCalledWith('id', 42);
+        expect(actions.threadLastViewedAtChanged).toHaveBeenCalledWith({threadId: 'id', lastViewedAt: 42});
         expect(actions.updateThreadRead).not.toHaveBeenCalled();
         expect(actions.getThread).not.toHaveBeenCalled();
     });
 
-    test('should call updateThreadLastOpened and updateThreadRead on mount when unread replies', () => {
+    test('should call threadLastViewedAtChanged and updateThreadRead on mount when unread replies', () => {
         jest.useFakeTimers().setSystemTime(400);
         const {actions} = baseProps;
         const userThread = {
@@ -227,12 +227,12 @@ describe('components/threading/ThreadViewer', () => {
             />,
         );
 
-        expect(actions.updateThreadLastOpened).toHaveBeenCalledWith('id', 42);
+        expect(actions.threadLastViewedAtChanged).toHaveBeenCalledWith({threadId: 'id', lastViewedAt: 42});
         expect(actions.updateThreadRead).toHaveBeenCalledWith('user_id', 'team_id', 'id', 400);
         expect(actions.getThread).not.toHaveBeenCalled();
     });
 
-    test('should call updateThreadLastOpened and updateThreadRead upon thread id change', async () => {
+    test('should call threadLastViewedAtChanged and updateThreadRead upon thread id change', async () => {
         jest.useRealTimers();
         const dateNowOrig = Date.now;
         Date.now = () => new Date(400).getMilliseconds();
@@ -254,7 +254,7 @@ describe('components/threading/ThreadViewer', () => {
         await waitFor(() => {
             expect(actions.getThread).toHaveBeenCalled();
         });
-        expect(actions.updateThreadLastOpened).not.toHaveBeenCalled();
+        expect(actions.threadLastViewedAtChanged).not.toHaveBeenCalled();
         expect(actions.updateThreadRead).not.toHaveBeenCalled();
 
         jest.resetAllMocks();
@@ -276,7 +276,7 @@ describe('components/threading/ThreadViewer', () => {
             />,
         );
 
-        expect(actions.updateThreadLastOpened).toHaveBeenCalledWith('id', 42);
+        expect(actions.threadLastViewedAtChanged).toHaveBeenCalledWith({threadId: 'id', lastViewedAt: 42});
         expect(actions.updateThreadRead).toHaveBeenCalledWith('user_id', 'team_id', 'id', 400);
         expect(actions.getThread).not.toHaveBeenCalled();
         Date.now = dateNowOrig;
@@ -322,8 +322,8 @@ describe('components/threading/ThreadViewer', () => {
             expect(actions.getPostThread).toHaveBeenCalledWith(post.id, true, 0);
         });
 
-        // Verify updateThreadLastUpdateAt was called with the highest update_at value
-        expect(actions.updateThreadLastUpdateAt).toHaveBeenCalledWith(post.id, 2000);
+        // Verify threadLastUpdateAtChanged was called with the highest update_at value
+        expect(actions.threadLastUpdateAtChanged).toHaveBeenCalledWith({threadId: post.id, lastUpdateAt: 2000});
     });
 
     test('should handle case where root post has the highest update_at value', async () => {
@@ -346,8 +346,8 @@ describe('components/threading/ThreadViewer', () => {
         );
 
         await waitFor(() => {
-            // Verify updateThreadLastUpdateAt was called with the highest update_at value
-            expect(actions.updateThreadLastUpdateAt).toHaveBeenCalledWith(post.id, 9000);
+            // Verify threadLastUpdateAtChanged was called with the highest update_at value
+            expect(actions.threadLastUpdateAtChanged).toHaveBeenCalledWith({threadId: post.id, lastUpdateAt: 9000});
         });
     });
 });

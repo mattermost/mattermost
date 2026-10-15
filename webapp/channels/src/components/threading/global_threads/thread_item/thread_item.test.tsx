@@ -10,7 +10,7 @@ import type {UserThread} from '@mattermost/types/threads';
 
 import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/actions/threads';
 
-import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
+import {threadMarkedUnread} from 'reducers/views/threads';
 
 import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
@@ -20,8 +20,6 @@ import * as Utils from 'utils/utils';
 import ThreadItem from './thread_item';
 
 jest.mock('mattermost-redux/actions/threads');
-
-jest.mock('actions/views/threads');
 
 jest.mock('utils/constants', () => ({
     ...jest.requireActual('utils/constants'),
@@ -258,7 +256,7 @@ describe('components/threading/global_threads/thread_item', () => {
         fireEvent.click(container.querySelector('div.ThreadItem')!, {altKey: true});
         expect(updateThreadRead).not.toHaveBeenCalled();
         expect(markLastPostInThreadAsUnread).toHaveBeenCalledWith('user_id', 'tid', '1y8hpek81byspd4enyk9mp1ncw');
-        expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw', 1611786714912);
+        expect(mockDispatch).toHaveBeenCalledWith(threadMarkedUnread({threadId: '1y8hpek81byspd4enyk9mp1ncw', lastViewedAt: 1611786714912}));
         expect(mockDispatch).toHaveBeenCalledTimes(2);
     });
 

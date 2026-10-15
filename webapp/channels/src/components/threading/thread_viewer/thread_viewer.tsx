@@ -44,9 +44,9 @@ export type Props = Attrs & {
         getPostThread: (rootId: string, fetchThreads: boolean, lastUpdateAt: number) => Promise<ActionResult>;
         getThread: (userId: string, teamId: string, threadId: string, extended: boolean) => Promise<ActionResult>;
         selectPostCard: (post: Post) => void;
-        updateThreadLastOpened: (threadId: string, lastViewedAt: number) => unknown;
+        threadLastViewedAtChanged: (payload: {threadId: string; lastViewedAt: number}) => unknown;
         updateThreadRead: (userId: string, teamId: string, threadId: string, timestamp: number) => unknown;
-        updateThreadLastUpdateAt: (threadId: string, lastUpdateAt: number) => unknown;
+        threadLastUpdateAtChanged: (payload: {threadId: string; lastUpdateAt: number}) => unknown;
     };
     useRelativeTimestamp?: boolean;
     postIds: string[];
@@ -147,10 +147,10 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     markThreadRead() {
         if (this.props.userThread) {
             // update last viewed at for thread before marking as read.
-            this.props.actions.updateThreadLastOpened(
-                this.props.userThread.id,
-                this.props.userThread.last_viewed_at,
-            );
+            this.props.actions.threadLastViewedAtChanged({
+                threadId: this.props.userThread.id,
+                lastViewedAt: this.props.userThread.last_viewed_at,
+            });
 
             if (
                 this.props.userThread.last_viewed_at < this.props.userThread.last_reply_at ||
@@ -189,7 +189,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                     }
                 }
 
-                this.props.actions.updateThreadLastUpdateAt(this.props.selected.id, highestUpdateAt);
+                this.props.actions.threadLastUpdateAtChanged({threadId: this.props.selected.id, lastUpdateAt: highestUpdateAt});
             }
         }
 

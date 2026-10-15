@@ -6,6 +6,7 @@ import type {AnyAction} from 'redux';
 import {SearchTypes} from 'mattermost-redux/action_types';
 
 import rhsReducer from 'reducers/views/rhs';
+import {threadsViewThreadChanged} from 'reducers/views/threads';
 
 import {ActionTypes, RHSStates} from 'utils/constants';
 
@@ -298,6 +299,14 @@ describe('Reducers.RHS', () => {
             ...initialState,
             searchTeam: 'team_id',
         });
+    });
+
+    test('should focus the RHS when the Threads view shows a thread', () => {
+        expect(rhsReducer(initialState, threadsViewThreadChanged({teamId: 'team1', threadId: 'thread1'})).shouldFocusRHS).toBe(true);
+    });
+
+    test('should stop focusing the RHS when the Threads view stops showing a thread', () => {
+        expect(rhsReducer({...initialState, shouldFocusRHS: true}, threadsViewThreadChanged({teamId: 'team1', threadId: null})).shouldFocusRHS).toBe(false);
     });
 
     test('should match select_post state', () => {

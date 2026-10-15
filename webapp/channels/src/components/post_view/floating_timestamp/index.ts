@@ -6,8 +6,8 @@ import {connect} from 'react-redux';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
+import {getThreadToastStatus} from 'reducers/views/threads';
 import {getToastStatus} from 'selectors/views/channel';
-import {getThreadToastStatus} from 'selectors/views/threads';
 
 import type {GlobalState} from 'types/store';
 

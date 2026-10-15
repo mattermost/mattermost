@@ -10,7 +10,7 @@ import {
     flagPost as savePost,
     unflagPost as unsavePost,
 } from 'actions/post_actions';
-import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
+import {threadMarkedUnread} from 'reducers/views/threads';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {fakeDate} from 'tests/helpers/date';
@@ -21,7 +21,6 @@ import {copyToClipboard} from 'utils/utils';
 import ThreadMenu from '../thread_menu';
 
 jest.mock('mattermost-redux/actions/threads');
-jest.mock('actions/views/threads');
 jest.mock('actions/post_actions');
 jest.mock('utils/utils');
 jest.mock('hooks/useReadout', () => ({
@@ -219,7 +218,7 @@ describe('components/threading/common/thread_menu', () => {
         await waitFor(() => {
             expect(markLastPostInThreadAsUnread).not.toHaveBeenCalled();
             expect(updateThreadRead).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId, 1612582579566);
-            expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith(threadId, 1612582579566);
+            expect(mockDispatch).toHaveBeenCalledWith(threadMarkedUnread({threadId, lastViewedAt: 1612582579566}));
             expect(mockDispatch).toHaveBeenCalledTimes(2);
         });
         resetFakeDate();
@@ -243,7 +242,7 @@ describe('components/threading/common/thread_menu', () => {
         await waitFor(() => {
             expect(updateThreadRead).not.toHaveBeenCalled();
             expect(markLastPostInThreadAsUnread).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId);
-            expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith(threadId, 1610486901110);
+            expect(mockDispatch).toHaveBeenCalledWith(threadMarkedUnread({threadId, lastViewedAt: 1610486901110}));
             expect(mockDispatch).toHaveBeenCalledTimes(2);
         });
     });
