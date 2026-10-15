@@ -56,7 +56,7 @@ export default class Localization {
     async turnOnAutoTranslation() {
         const on = await this.isToggleOn();
         if (!on) {
-            await this.autoTranslationToggle.check();
+            await this.autoTranslationToggle.check({force: true});
         }
     }
 

@@ -66,29 +66,29 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
           data-testid="allowReferenceSwitch"
         >
           <label
-            class="_switch_1hx2q_2 _switch--size-medium_1hx2q_107 _switch--semi-bold_1hx2q_145 _switch--with-secondary_1hx2q_148"
+            class="switch switch--size-medium switch--semi-bold switch--with-secondary"
             for="allowReferenceSwitch"
           >
             <span
-              class="_switch__labels_1hx2q_33"
+              class="switch__labels"
             >
               <span
-                class="_switch__label_1hx2q_33"
+                class="switch__label"
               >
                 Enable Group Mentions
               </span>
               <span
-                class="_switch__secondary-label_1hx2q_16"
+                class="switch__secondary-label"
               >
                 When enabled, this group can be mentioned in other channels and teams. This may result in the group member list being visible to all users.
               </span>
             </span>
             <span
-              class="_switch__track_1hx2q_47"
+              class="switch__track"
             >
               <input
                 aria-checked="false"
-                class="_switch__input_1hx2q_12"
+                class="switch__input"
                 data-testid="allowReferenceSwitch-button"
                 id="allowReferenceSwitch"
                 role="switch"
@@ -97,7 +97,7 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
               />
               <span
                 aria-hidden="true"
-                class="_switch__knob_1hx2q_77"
+                class="switch__knob"
               />
             </span>
           </label>
@@ -174,30 +174,30 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
           data-testid="allowReferenceSwitch"
         >
           <label
-            class="_switch_1hx2q_2 _switch--size-medium_1hx2q_107 _switch--semi-bold_1hx2q_145 _switch--with-secondary_1hx2q_148"
+            class="switch switch--size-medium switch--semi-bold switch--with-secondary"
             for="allowReferenceSwitch"
           >
             <span
-              class="_switch__labels_1hx2q_33"
+              class="switch__labels"
             >
               <span
-                class="_switch__label_1hx2q_33"
+                class="switch__label"
               >
                 Enable Group Mentions
               </span>
               <span
-                class="_switch__secondary-label_1hx2q_16"
+                class="switch__secondary-label"
               >
                 When enabled, this group can be mentioned in other channels and teams. This may result in the group member list being visible to all users.
               </span>
             </span>
             <span
-              class="_switch__track_1hx2q_47"
+              class="switch__track"
             >
               <input
                 aria-checked="true"
                 checked=""
-                class="_switch__input_1hx2q_12"
+                class="switch__input"
                 data-testid="allowReferenceSwitch-button"
                 id="allowReferenceSwitch"
                 role="switch"
@@ -206,7 +206,7 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
               />
               <span
                 aria-hidden="true"
-                class="_switch__knob_1hx2q_77"
+                class="switch__knob"
               />
             </span>
           </label>

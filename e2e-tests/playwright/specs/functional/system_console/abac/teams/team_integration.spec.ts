@@ -103,9 +103,9 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         const toggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
         await toggle.waitFor({state: 'visible', timeout: 10000});
         if (on) {
-            await toggle.check();
+            await toggle.check({force: true});
         } else {
-            await toggle.uncheck();
+            await toggle.uncheck({force: true});
         }
     }
 

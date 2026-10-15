@@ -65,29 +65,29 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
                 data-testid="allowAllToggleSwitch"
               >
                 <label
-                  class="_switch_1hx2q_2 _switch--size-medium_1hx2q_107 _switch--semi-bold_1hx2q_145 _switch--with-secondary_1hx2q_148"
+                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
                   for="allowAllToggleSwitch"
                 >
                   <span
-                    class="_switch__labels_1hx2q_33"
+                    class="switch__labels"
                   >
                     <span
-                      class="_switch__label_1hx2q_33"
+                      class="switch__label"
                     >
                       Anyone can join this team
                     </span>
                     <span
-                      class="_switch__secondary-label_1hx2q_16"
+                      class="switch__secondary-label"
                     >
                       This team can be discovered allowing anyone with an account to join this team.
                     </span>
                   </span>
                   <span
-                    class="_switch__track_1hx2q_47"
+                    class="switch__track"
                   >
                     <input
                       aria-checked="false"
-                      class="_switch__input_1hx2q_12"
+                      class="switch__input"
                       data-testid="allowAllToggleSwitch-button"
                       id="allowAllToggleSwitch"
                       role="switch"
@@ -96,7 +96,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
                     />
                     <span
                       aria-hidden="true"
-                      class="_switch__knob_1hx2q_77"
+                      class="switch__knob"
                     />
                   </span>
                 </label>
@@ -112,29 +112,29 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
                 data-testid="allowedDomainsToggleSwitch"
               >
                 <label
-                  class="_switch_1hx2q_2 _switch--size-medium_1hx2q_107 _switch--semi-bold_1hx2q_145 _switch--with-secondary_1hx2q_148"
+                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
                   for="allowedDomainsToggleSwitch"
                 >
                   <span
-                    class="_switch__labels_1hx2q_33"
+                    class="switch__labels"
                   >
                     <span
-                      class="_switch__label_1hx2q_33"
+                      class="switch__label"
                     >
                       Only specific email domains can join this team
                     </span>
                     <span
-                      class="_switch__secondary-label_1hx2q_16"
+                      class="switch__secondary-label"
                     >
                       Users can only join the team if their email matches one of the specified domains
                     </span>
                   </span>
                   <span
-                    class="_switch__track_1hx2q_47"
+                    class="switch__track"
                   >
                     <input
                       aria-checked="false"
-                      class="_switch__input_1hx2q_12"
+                      class="switch__input"
                       data-testid="allowedDomainsToggleSwitch-button"
                       id="allowedDomainsToggleSwitch"
                       role="switch"
@@ -143,7 +143,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
                     />
                     <span
                       aria-hidden="true"
-                      class="_switch__knob_1hx2q_77"
+                      class="switch__knob"
                     />
                   </span>
                 </label>

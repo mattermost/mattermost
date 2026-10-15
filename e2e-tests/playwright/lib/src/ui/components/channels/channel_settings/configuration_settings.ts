@@ -62,28 +62,28 @@ export default class ConfigurationSettings {
     async enableChannelBanner() {
         const toggleButton = this.container.getByTestId('channelBannerToggle-button');
         if (!(await toggleButton.isChecked())) {
-            await toggleButton.check();
+            await toggleButton.check({force: true});
         }
     }
 
     async disableChannelBanner() {
         const toggleButton = this.container.getByTestId('channelBannerToggle-button');
         if (await toggleButton.isChecked()) {
-            await toggleButton.uncheck();
+            await toggleButton.uncheck({force: true});
         }
     }
 
     async enableChannelAutotranslation() {
         const toggleButton = this.container.getByTestId('channelTranslationToggle-button');
         if (!(await toggleButton.isChecked())) {
-            await toggleButton.check();
+            await toggleButton.check({force: true});
         }
     }
 
     async disableChannelAutotranslation() {
         const toggleButton = this.container.getByTestId('channelTranslationToggle-button');
         if (await toggleButton.isChecked()) {
-            await toggleButton.uncheck();
+            await toggleButton.uncheck({force: true});
         }
     }
 
@@ -107,14 +107,14 @@ export default class ConfigurationSettings {
     async enableJoinLeaveMessages() {
         const toggleButton = this.container.getByTestId('channelJoinLeaveMessagesToggle-button');
         if (!(await toggleButton.isChecked())) {
-            await toggleButton.check();
+            await toggleButton.check({force: true});
         }
     }
 
     async disableJoinLeaveMessages() {
         const toggleButton = this.container.getByTestId('channelJoinLeaveMessagesToggle-button');
         if (await toggleButton.isChecked()) {
-            await toggleButton.uncheck();
+            await toggleButton.uncheck({force: true});
         }
     }
 
@@ -195,14 +195,14 @@ export default class ConfigurationSettings {
     async enableShareWithWorkspaces() {
         const toggle = this.shareWithWorkspacesToggle;
         if (!(await toggle.isChecked())) {
-            await toggle.check();
+            await toggle.check({force: true});
         }
     }
 
     async disableShareWithWorkspaces() {
         const toggle = this.shareWithWorkspacesToggle;
         if (await toggle.isChecked()) {
-            await toggle.uncheck();
+            await toggle.uncheck({force: true});
         }
     }
 

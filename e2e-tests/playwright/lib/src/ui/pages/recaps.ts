@@ -56,7 +56,7 @@ class CreateRecapModal {
         const runOnce = this.container.locator('#run-once-toggle');
         await expect(runOnce).toBeVisible();
         if (!(await runOnce.isChecked())) {
-            await runOnce.check();
+            await runOnce.check({force: true});
         }
     }
 
@@ -264,13 +264,13 @@ class ScheduledRecapItem {
 
     async pause() {
         await this.expectActive();
-        await this.toggleButton.uncheck();
+        await this.toggleButton.uncheck({force: true});
         await this.expectPaused();
     }
 
     async resume() {
         await this.expectPaused();
-        await this.toggleButton.check();
+        await this.toggleButton.check({force: true});
         await this.expectActive();
     }
 

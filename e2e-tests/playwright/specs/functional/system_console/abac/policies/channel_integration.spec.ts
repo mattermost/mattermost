@@ -111,7 +111,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await abacToggle.waitFor({state: 'visible', timeout: 5000});
 
         if (!(await abacToggle.isChecked())) {
-            await abacToggle.check();
+            await abacToggle.check({force: true});
         }
         await systemConsolePage.page.waitForTimeout(500);
 
