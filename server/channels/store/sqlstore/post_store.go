@@ -1113,7 +1113,8 @@ func (s *SqlPostStore) permanentDeleteAssociatedData(transaction *sqlxTxWrapper,
 	}
 
 	// Replies are matched with a subquery rather than an ID list, since a single root post
-	// can have more replies than fit in one statement.
+	// can have more replies than fit in one statement. The two predicates are kept in separate
+	// statements because Postgres cannot use an index for a subquery under OR.
 	replyIds := sq.Select("Id").From("Posts").Where(sq.Eq{"RootId": postIds})
 	for _, table := range []string{
 		"Reactions",
@@ -1124,14 +1125,13 @@ func (s *SqlPostStore) permanentDeleteAssociatedData(transaction *sqlxTxWrapper,
 		"PersistentNotifications",
 		"PostReminders",
 	} {
-		query := s.getQueryBuilder().
-			Delete(table).
-			Where(sq.Or{
-				sq.Eq{"PostId": postIds},
-				sq.Expr("PostId IN (?)", replyIds),
-			})
-		if _, err = transaction.ExecBuilder(query); err != nil {
-			return errors.Wrapf(err, "failed to delete %s", table)
+		for _, predicate := range []sq.Sqlizer{
+			sq.Eq{"PostId": postIds},
+			sq.Expr("PostId IN (?)", replyIds),
+		} {
+			if _, err = transaction.ExecBuilder(s.getQueryBuilder().Delete(table).Where(predicate)); err != nil {
+				return errors.Wrapf(err, "failed to delete %s", table)
+			}
 		}
 	}
 

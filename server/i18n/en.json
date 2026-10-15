@@ -7630,6 +7630,11 @@
     "description": "API validation error when a channel guard removal request is missing the channel ID."
   },
   {
+    "id": "app.channel_join_request.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete the user's channel join requests.",
+    "description": "Internal error when deleting the channel join requests a user made fails during permanent account deletion."
+  },
+  {
     "id": "app.channel_member_history.log_join_event.internal_error",
     "translation": "Failed to record channel member history.",
     "description": "Internal error when recording a channel join/leave event in the membership history (used for compliance exports) fails; technical."
@@ -11391,6 +11396,11 @@
     "description": "API error returned when a property-value request contains invalid parameters; generic validation failure."
   },
   {
+    "id": "app.property_value.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete the user's custom profile attribute values.",
+    "description": "Internal error when deleting a user's property values, such as custom profile attributes, fails during permanent account deletion."
+  },
+  {
     "id": "app.property_value.required.app_error",
     "translation": "This attribute is required and cannot be left empty.",
     "description": "API error when a user tries to clear or leave blank the value of an attribute an admin has marked required."
@@ -11569,6 +11579,11 @@
     "id": "app.recap.max_recaps_reached.app_error",
     "translation": "Your organization's policy limits you to {{.Limit}} recaps per day. Please try again tomorrow.",
     "description": "API error shown when the user has hit the admin-configured daily limit of AI recaps; {{.Limit}} is the maximum recaps per day."
+  },
+  {
+    "id": "app.recap.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete the user's recaps.",
+    "description": "Internal error when deleting a user's AI recaps and their channel summaries fails during permanent account deletion."
   },
   {
     "id": "app.recap.permission_denied",
@@ -11945,6 +11960,11 @@
     "id": "app.scheduled_recap.pause.app_error",
     "translation": "Unable to pause scheduled recap.",
     "description": "API error returned when pausing a scheduled (recurring) AI recap fails; 'pause' is a verb."
+  },
+  {
+    "id": "app.scheduled_recap.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete the user's scheduled recaps.",
+    "description": "Internal error when deleting a user's scheduled AI recaps fails during permanent account deletion."
   },
   {
     "id": "app.scheduled_recap.resume.app_error",

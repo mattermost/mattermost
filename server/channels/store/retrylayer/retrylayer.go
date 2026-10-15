@@ -4373,6 +4373,27 @@ func (s *RetryLayerChannelJoinRequestStore) GetPendingForChannelAndUser(channelI
 
 }
 
+func (s *RetryLayerChannelJoinRequestStore) PermanentDeleteByUser(userId string) error {
+
+	tries := 0
+	for {
+		err := s.ChannelJoinRequestStore.PermanentDeleteByUser(userId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelJoinRequestStore) Save(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error) {
 
 	tries := 0
@@ -12560,6 +12581,27 @@ func (s *RetryLayerRecapStore) MarkRecapsAsViewed(userId string, statuses []stri
 
 }
 
+func (s *RetryLayerRecapStore) PermanentDeleteByUser(userId string) error {
+
+	tries := 0
+	for {
+		err := s.RecapStore.PermanentDeleteByUser(userId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {
 
 	tries := 0
@@ -13873,6 +13915,27 @@ func (s *RetryLayerScheduledRecapStore) MarkExecuted(id string, lastRunAt int64,
 	tries := 0
 	for {
 		err := s.ScheduledRecapStore.MarkExecuted(id, lastRunAt, nextRunAt)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledRecapStore) PermanentDeleteByUser(userId string) error {
+
+	tries := 0
+	for {
+		err := s.ScheduledRecapStore.PermanentDeleteByUser(userId)
 		if err == nil {
 			return nil
 		}

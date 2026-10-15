@@ -1516,6 +1516,7 @@ type ChannelJoinRequestStore interface {
 	GetForUser(userId string, opts model.GetChannelJoinRequestsOpts) ([]*model.ChannelJoinRequest, int64, error)
 	Update(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error)
 	CountPending(channelId string) (int64, error)
+	PermanentDeleteByUser(userId string) error
 }
 
 type RecapStore interface {
@@ -1533,6 +1534,8 @@ type RecapStore interface {
 	MarkRecapsAsViewed(userId string, statuses []string) ([]string, error)
 	DeleteRecap(id string) error
 	DeleteRecapChannels(recapId string) error
+	// PermanentDeleteByUser hard-deletes the user's recaps, including soft-deleted ones, and their channels.
+	PermanentDeleteByUser(userId string) error
 	SaveRecapChannel(recapChannel *model.RecapChannel) error
 	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
 
@@ -1561,6 +1564,8 @@ type ScheduledRecapStore interface {
 	Get(id string) (*model.ScheduledRecap, error)
 	Update(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error)
 	Delete(id string) error // Soft delete (sets DeleteAt)
+	// PermanentDeleteByUser hard-deletes all of the user's scheduled recaps, including soft-deleted ones.
+	PermanentDeleteByUser(userId string) error
 
 	// Query operations
 	GetForUser(userId string, page, perPage int) ([]*model.ScheduledRecap, error)

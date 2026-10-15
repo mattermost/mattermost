@@ -3687,6 +3687,22 @@ func (s *TimerLayerChannelJoinRequestStore) GetPendingForChannelAndUser(channelI
 	return result, err
 }
 
+func (s *TimerLayerChannelJoinRequestStore) PermanentDeleteByUser(userId string) error {
+	start := time.Now()
+
+	err := s.ChannelJoinRequestStore.PermanentDeleteByUser(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelJoinRequestStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerChannelJoinRequestStore) Save(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error) {
 	start := time.Now()
 
@@ -10031,6 +10047,22 @@ func (s *TimerLayerRecapStore) MarkRecapsAsViewed(userId string, statuses []stri
 	return result, err
 }
 
+func (s *TimerLayerRecapStore) PermanentDeleteByUser(userId string) error {
+	start := time.Now()
+
+	err := s.RecapStore.PermanentDeleteByUser(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {
 	start := time.Now()
 
@@ -11051,6 +11083,22 @@ func (s *TimerLayerScheduledRecapStore) MarkExecuted(id string, lastRunAt int64,
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledRecapStore.MarkExecuted", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerScheduledRecapStore) PermanentDeleteByUser(userId string) error {
+	start := time.Now()
+
+	err := s.ScheduledRecapStore.PermanentDeleteByUser(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledRecapStore.PermanentDeleteByUser", success, elapsed)
 	}
 	return err
 }

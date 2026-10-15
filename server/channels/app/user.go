@@ -2351,6 +2351,31 @@ func (a *App) permanentDeleteUserSteps(rctx request.CTX, user *model.User) []fun
 			return nil
 		},
 		func() *model.AppError {
+			if err := ss.PropertyValue().DeleteForTarget("", model.PropertyValueTargetTypeUser, user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.property_value.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		// Scheduled recaps go before recaps, as the scheduler keeps creating recaps until they are gone.
+		func() *model.AppError {
+			if err := ss.ScheduledRecap().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.scheduled_recap.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Recap().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.recap.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.ChannelJoinRequest().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.channel_join_request.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
 			if err := ss.Audit().PermanentDeleteByUser(user.Id); err != nil {
 				return model.NewAppError("PermanentDeleteUser", "app.audit.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}

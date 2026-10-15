@@ -1657,6 +1657,26 @@ var userMetadataTables = []string{
 	"DesktopTokens",
 	"SharedChannelUsers",
 	"OAuthAuthData",
+	"PropertyValues",
+	"ScheduledRecaps",
+	"Recaps",
+	"RecapChannels",
+	"ChannelJoinRequests",
+}
+
+// userMetadataQueries counts a user's rows in the userMetadataTables that are not keyed by UserId.
+var userMetadataQueries = map[string]string{
+	"PropertyValues": "SELECT COUNT(*) FROM PropertyValues WHERE TargetType = 'user' AND TargetID = ?",
+	"RecapChannels":  "SELECT COUNT(*) FROM RecapChannels WHERE ChannelName = ?",
+}
+
+func countUserMetadataRows(t *testing.T, th *TestHelper, table, userID string) int {
+	t.Helper()
+
+	if query, ok := userMetadataQueries[table]; ok {
+		return countRows(t, th, query, userID)
+	}
+	return countRowsForUser(t, th, table, "UserId", userID)
 }
 
 // seedUserMetadata writes one row into every table in userMetadataTables for the given user.
@@ -1763,10 +1783,67 @@ func seedUserMetadata(t *testing.T, th *TestHelper, userID, postID, termsOfServi
 	})
 	require.NoError(t, nErr)
 
+	for range 2 {
+		_, nErr = ss.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   userID,
+			TargetType: model.PropertyValueTargetTypeUser,
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"attribute value"`),
+		})
+		require.NoError(t, nErr)
+	}
+
+	scheduledRecap, nErr := ss.ScheduledRecap().Save(&model.ScheduledRecap{
+		Id:          model.NewId(),
+		UserId:      userID,
+		Title:       "Scheduled recap",
+		DaysOfWeek:  model.Weekdays,
+		TimeOfDay:   "09:00",
+		Timezone:    "UTC",
+		TimePeriod:  model.TimePeriodLast24h,
+		NextRunAt:   model.GetMillis() + time.Hour.Milliseconds(),
+		ChannelMode: model.ChannelModeSpecific,
+		ChannelIds:  []string{th.BasicChannel.Id},
+		IsRecurring: true,
+		Enabled:     true,
+		CreateAt:    model.GetMillis(),
+		UpdateAt:    model.GetMillis(),
+	})
+	require.NoError(t, nErr)
+
+	recap, nErr := ss.Recap().SaveRecap(&model.Recap{
+		Id:               model.NewId(),
+		UserId:           userID,
+		Title:            "Recap",
+		CreateAt:         model.GetMillis(),
+		UpdateAt:         model.GetMillis(),
+		Status:           model.RecapStatusCompleted,
+		ScheduledRecapId: scheduledRecap.Id,
+	})
+	require.NoError(t, nErr)
+	// Named after the user so the row can still be found once its recap is gone.
+	require.NoError(t, ss.Recap().SaveRecapChannel(&model.RecapChannel{
+		Id:          model.NewId(),
+		RecapId:     recap.Id,
+		ChannelId:   th.BasicChannel.Id,
+		ChannelName: userID,
+		Highlights:  []string{"highlight"},
+		CreateAt:    model.GetMillis(),
+	}))
+
+	_, nErr = ss.ChannelJoinRequest().Save(&model.ChannelJoinRequest{
+		ChannelId: th.BasicChannel.Id,
+		UserId:    userID,
+		Message:   "please let me in",
+	})
+	require.NoError(t, nErr)
+
 	for _, table := range userMetadataTables {
-		require.NotZero(t, countRowsForUser(t, th, table, "UserId", userID),
+		require.NotZero(t, countUserMetadataRows(t, th, table, userID),
 			"test setup should have left rows in %s", table)
 	}
+	require.Equal(t, 2, countUserMetadataRows(t, th, "PropertyValues", userID), "test setup should have left property values in two groups")
 }
 
 func TestPermanentDeleteUserRemovesUserMetadata(t *testing.T) {
@@ -1808,9 +1885,9 @@ func TestPermanentDeleteUserRemovesUserMetadata(t *testing.T) {
 	assert.Zero(t, countRowsForUser(t, th, "Users", "Id", deletedUser.Id))
 
 	for _, table := range userMetadataTables {
-		assert.Zero(t, countRowsForUser(t, th, table, "UserId", deletedUser.Id),
+		assert.Zero(t, countUserMetadataRows(t, th, table, deletedUser.Id),
 			"%s still holds rows for the deleted user", table)
-		assert.NotZero(t, countRowsForUser(t, th, table, "UserId", survivingUser.Id),
+		assert.NotZero(t, countUserMetadataRows(t, th, table, survivingUser.Id),
 			"%s lost rows belonging to a user that was not deleted", table)
 	}
 }
@@ -1887,8 +1964,11 @@ func (f permanentDeleteFixture) requireFullyDeleted(t *testing.T, th *TestHelper
 	t.Helper()
 
 	userID := f.user.Id
-	for _, table := range append([]string{"Posts", "Preferences", "ChannelMembers", "TeamMembers", "Sessions", "Reactions", "Audits"}, userMetadataTables...) {
+	for _, table := range []string{"Posts", "Preferences", "ChannelMembers", "TeamMembers", "Sessions", "Reactions", "Audits"} {
 		require.Zero(t, countRowsForUser(t, th, table, "UserId", userID), "%s still holds rows for the deleted user", table)
+	}
+	for _, table := range userMetadataTables {
+		require.Zero(t, countUserMetadataRows(t, th, table, userID), "%s still holds rows for the deleted user", table)
 	}
 	require.Zero(t, countRowsForUser(t, th, "Users", "Id", userID))
 	require.Zero(t, countRowsForUser(t, th, "FileInfo", "CreatorId", userID))
