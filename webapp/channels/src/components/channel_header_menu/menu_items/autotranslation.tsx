@@ -87,7 +87,7 @@ const Autotranslation = ({channel, ...rest}: Props): JSX.Element => {
     return (
         <Menu.Item
             leadingElement={icon}
-            id='channelNotificationPreferences'
+            id='channelAutotranslation'
             onClick={handleAutotranslationToggle}
             labels={labels}
             disabled={!isLanguageSupported}
