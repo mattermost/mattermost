@@ -148,6 +148,109 @@ func TestNeedsPrivilegeProbe(t *testing.T) {
 	require.False(t, needsPrivilegeProbe(true))
 }
 
+func TestOSPrettyName(t *testing.T) {
+	t.Parallel()
+	ubuntu := "NAME=\"Ubuntu\"\nVERSION=\"26.04.1 LTS (Resolute Raccoon)\"\nID=ubuntu\nPRETTY_NAME=\"Ubuntu 26.04.1 LTS\"\n"
+	require.Equal(t, "Ubuntu 26.04.1 LTS", osPrettyName(ubuntu, ""))
+	rhel := "NAME=\"Red Hat Enterprise Linux\"\nVERSION_ID=\"9.4\"\n"
+	require.Equal(t, "Red Hat Enterprise Linux 9.4", osPrettyName(rhel, ""))
+	require.Equal(t, "Rocky Linux release 9.4 (Blue Onyx)", osPrettyName("", "Rocky Linux release 9.4 (Blue Onyx)\n"))
+	require.Equal(t, "Linux", osPrettyName("", ""))
+}
+
+func TestSystemdVersion(t *testing.T) {
+	t.Parallel()
+	require.Equal(t, "259", systemdVersion("systemd 259 (259.5-0ubuntu3.4)\n+PAM +AUDIT\n"))
+	require.Empty(t, systemdVersion(""))
+}
+
+func TestAppArmorStatus(t *testing.T) {
+	t.Parallel()
+	status, warning := apparmorStatus("N\n", "", false)
+	require.Equal(t, "not enabled", status)
+	require.Empty(t, warning)
+
+	status, warning = apparmorStatus("Y\n", "/usr/bin/man (enforce)\n", true)
+	require.Equal(t, "enabled, no Mattermost profile", status)
+	require.Empty(t, warning)
+
+	status, warning = apparmorStatus("Y\n", "mattermost (enforce)\n", true)
+	require.Equal(t, "enforcing mattermost", status)
+	require.NotEmpty(t, warning)
+
+	status, warning = apparmorStatus("Y\n", "/opt/mattermost/bin/mattermost (complain)\n", true)
+	require.Equal(t, "complain /opt/mattermost/bin/mattermost", status)
+	require.Empty(t, warning)
+}
+
+func TestSELinuxStatus(t *testing.T) {
+	t.Parallel()
+	status, warning := selinuxStatus("", true, "")
+	require.Equal(t, "disabled", status)
+	require.Empty(t, warning)
+
+	status, warning = selinuxStatus("1\n", false, "system_u:object_r:bin_t:s0")
+	require.Equal(t, "enforcing, binary bin_t", status)
+	require.Empty(t, warning)
+
+	status, warning = selinuxStatus("1\n", false, "system_u:object_r:mattermost_t:s0")
+	require.Equal(t, "enforcing, binary mattermost_t", status)
+	require.Contains(t, warning, "mattermost_t")
+
+	status, warning = selinuxStatus("0\n", false, "system_u:object_r:mattermost_t:s0")
+	require.Equal(t, "permissive, binary mattermost_t", status)
+	require.Empty(t, warning)
+}
+
+func TestFapolicydStatus(t *testing.T) {
+	t.Parallel()
+	status, warning := fapolicydStatus(false, false)
+	require.Equal(t, "not installed", status)
+	require.Empty(t, warning)
+
+	status, warning = fapolicydStatus(true, false)
+	require.Equal(t, "installed, not running", status)
+	require.Empty(t, warning)
+
+	status, warning = fapolicydStatus(true, true)
+	require.Equal(t, "running", status)
+	require.Contains(t, warning, "/var/lib/mattermost")
+}
+
+func TestClassifyPostgres(t *testing.T) {
+	t.Parallel()
+	stock := "PostgreSQL 16.4 on x86_64-pc-linux-gnu, compiled by gcc"
+	require.Equal(t, "PostgreSQL", classifyPostgres(stock, postgresVendor{}))
+	require.Equal(t, "Amazon Aurora", classifyPostgres(stock, postgresVendor{aurora: true, rds: true}))
+	require.Equal(t, "Amazon RDS", classifyPostgres(stock, postgresVendor{rds: true}))
+	require.Equal(t, "Google AlloyDB", classifyPostgres(stock, postgresVendor{alloydb: true, cloudsql: true}))
+	require.Equal(t, "Google Cloud SQL", classifyPostgres(stock, postgresVendor{cloudsql: true}))
+	require.Equal(t, "Azure Database for PostgreSQL", classifyPostgres(stock, postgresVendor{azure: true}))
+	require.Equal(t, "Citus", classifyPostgres(stock, postgresVendor{citus: true}))
+	require.Equal(t, "EDB Postgres Advanced Server", classifyPostgres("EnterpriseDB 16.4", postgresVendor{rds: true}))
+	require.Equal(t, "16.4", formatPostgresVersion(160004))
+	require.Equal(t, "16.10", formatPostgresVersion(160010))
+	require.Equal(t, "9.6.24", formatPostgresVersion(90624))
+}
+
+func TestFormatInfoBox(t *testing.T) {
+	t.Parallel()
+	box := formatInfoBox("System information", [][2]string{
+		{"Mattermost", "12.1.0"},
+		{"OS", "Ubuntu 26.04.1 LTS"},
+		{"AppArmor", "enabled, no Mattermost profile"},
+	})
+	lines := strings.Split(strings.TrimRight(box, "\n"), "\n")
+	require.GreaterOrEqual(t, len(lines), 3)
+	width := len(lines[0])
+	for _, line := range lines {
+		require.Equal(t, width, len(line), line)
+	}
+	require.Contains(t, box, "System information")
+	require.Contains(t, box, "Ubuntu 26.04.1 LTS")
+	require.LessOrEqual(t, width, 78)
+}
+
 func TestSetupBanner(t *testing.T) {
 	t.Parallel()
 	for _, line := range strings.Split(strings.TrimRight(setupBanner, "\n"), "\n") {
@@ -157,7 +260,10 @@ func TestSetupBanner(t *testing.T) {
 	(setupEnv{out: &buf}).printBanner()
 	text := buf.String()
 	require.Contains(t, text, setupBanner)
-	require.Contains(t, text, "Mattermost "+model.CurrentVersion)
+	require.Contains(t, text, "System information")
+	require.Contains(t, text, model.CurrentVersion)
+	require.Contains(t, text, "AppArmor")
+	require.Contains(t, text, "SELinux")
 }
 
 func TestShippedUnitMatchesFile(t *testing.T) {
@@ -400,7 +506,9 @@ func TestSetupNewInstallDoesNotImportShippedConfig(t *testing.T) {
 	text := out.String()
 	require.Contains(t, text, "[+] "+newInstallationLine)
 	require.Contains(t, text, "[+] Can create a table in the current schema.")
-	require.Contains(t, text, "Mattermost "+model.CurrentVersion)
+	require.Contains(t, text, "System information")
+	require.Contains(t, text, model.CurrentVersion)
+	require.Contains(t, text, "Variant")
 	require.Contains(t, text, "Site URL: https://mattermost.example.com")
 	require.Contains(t, text, "systemctl enable --now mattermost")
 	require.Contains(t, text, "will not be read")

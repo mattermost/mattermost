@@ -43,6 +43,8 @@ type dbInspection struct {
 	schemaVersion    int
 	probedCreate     bool
 	probeDropWarning string
+	serverVersion    string
+	variant          string
 }
 
 func openPostgres(dsn string) (*sql.DB, error) {
@@ -109,8 +111,11 @@ func inspectDatabase(dsn string) (dbInspection, error) {
 	if err != nil {
 		return dbInspection{}, redactError(err, dsn)
 	}
+	serverVersion, variant := readPostgresIdentity(ctx, handle, version)
 	info := dbInspection{
 		version:       version,
+		serverVersion: serverVersion,
+		variant:       variant,
 		encoding:      strings.TrimSpace(encoding),
 		hasMigrations: hasMigrations,
 	}
@@ -132,6 +137,34 @@ func inspectDatabase(dsn string) (dbInspection, error) {
 	info.probedCreate = true
 	info.probeDropWarning = warning
 	return info, nil
+}
+
+func readPostgresIdentity(ctx context.Context, handle *sql.DB, versionNum int) (string, string) {
+	display := formatPostgresVersion(versionNum)
+	var versionString string
+	if err := handle.QueryRowContext(ctx, "SELECT version()").Scan(&versionString); err != nil {
+		return display, "PostgreSQL"
+	}
+	vendor, err := readPostgresVendor(ctx, handle)
+	if err != nil {
+		vendor = postgresVendor{}
+	}
+	return display, classifyPostgres(versionString, vendor)
+}
+
+func readPostgresVendor(ctx context.Context, handle *sql.DB) (postgresVendor, error) {
+	var vendor postgresVendor
+	err := handle.QueryRowContext(ctx, `
+		SELECT
+			EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'aurora_version'),
+			EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'alloydb_version'),
+			EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rds_superuser'),
+			EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'cloudsqlsuperuser'),
+			EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'alloydbsuperuser'),
+			EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'azure_pg_admin'),
+			EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'citus')
+	`).Scan(&vendor.aurora, &vendor.alloydbFn, &vendor.rds, &vendor.cloudsql, &vendor.alloydb, &vendor.azure, &vendor.citus)
+	return vendor, err
 }
 
 func probeCreateTable(ctx context.Context, handle *sql.DB) (string, error) {

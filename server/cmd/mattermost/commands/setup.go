@@ -226,6 +226,7 @@ func runSetup(opts setupOptions, env setupEnv) error {
 		env.note("%s", newInstallationLine)
 	}
 	env.note("Database connectivity succeeded.")
+	env.printDatabaseInfo(info)
 	if needsPrivilegeProbe(info.hasMigrations) {
 		env.note("Can create a table in the current schema.")
 		if info.probeDropWarning != "" {
@@ -402,7 +403,35 @@ func runSetup(opts setupOptions, env setupEnv) error {
 
 func (e setupEnv) printBanner() {
 	fmt.Fprint(e.out, setupBanner)
-	fmt.Fprintf(e.out, "\nMattermost %s\n\n", model.CurrentVersion)
+	fmt.Fprintln(e.out)
+	facts := collectSystemInfo()
+	fmt.Fprint(e.out, formatInfoBox("System information", facts.rows))
+	for _, warning := range facts.warnings {
+		e.warnf("%s", warning)
+	}
+	fmt.Fprintln(e.out)
+}
+
+func (e setupEnv) printDatabaseInfo(info dbInspection) {
+	if info.version == 0 && info.variant == "" {
+		return
+	}
+	version := info.serverVersion
+	if version == "" {
+		version = formatPostgresVersion(info.version)
+	}
+	variant := info.variant
+	if variant == "" {
+		variant = "PostgreSQL"
+	}
+	rows := [][2]string{
+		{"Version", version},
+		{"Variant", variant},
+	}
+	if info.encoding != "" {
+		rows = append(rows, [2]string{"Encoding", info.encoding})
+	}
+	fmt.Fprint(e.out, formatInfoBox("Database", rows))
 }
 
 func (e setupEnv) note(format string, args ...any) {
