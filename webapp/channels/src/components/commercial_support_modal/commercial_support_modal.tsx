@@ -188,22 +188,24 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                 />
                             </strong>
                         </div>
-                        {this.state.packetContents.map((item, index) => (
-                            <div
-                                className='CommercialSupportModal__option'
-                                key={item.id}
-                            >
-                                <Checkbox
-                                    id={item.id}
-                                    name={item.id}
-                                    checked={item.selected}
-                                    disabled={item.mandatory}
-                                    onChange={() => this.updateCheckStatus(index)}
+                        <div className='CommercialSupportModal__options'>
+                            {this.state.packetContents.map((item, index) => (
+                                <div
+                                    className='CommercialSupportModal__option'
+                                    key={item.id}
                                 >
-                                    {item.label}
-                                </Checkbox>
-                            </div>
-                        ))}
+                                    <Checkbox
+                                        id={item.id}
+                                        name={item.id}
+                                        checked={item.selected}
+                                        disabled={item.mandatory}
+                                        onChange={() => this.updateCheckStatus(index)}
+                                    >
+                                        {item.label}
+                                    </Checkbox>
+                                </div>
+                            ))}
+                        </div>
                         <div className='CommercialSupportModal__download'>
                             {this.state.error && (
                                 <div className='CommercialSupportModal__error'>
