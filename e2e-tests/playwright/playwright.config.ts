@@ -7,6 +7,7 @@ import {
     assertUpgradeFromFreshStart,
     assertUpgradeToRequiresPriorFromRun,
     duration,
+    exportUpgradeProjectSelection,
     isUpgradeFromProjectSelected,
     isUpgradeToPhaseProjectSelected,
     logUpgradeFromServerImage,
@@ -23,6 +24,8 @@ if (isUpgradeToPhaseProjectSelected()) {
     assertUpgradeToRequiresPriorFromRun();
     logUpgradeToServerImage();
 }
+
+exportUpgradeProjectSelection();
 
 export default defineConfig({
     globalSetup: './global_setup.ts',
