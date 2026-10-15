@@ -1,7 +1,7 @@
 import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {complete, usageLine} from '../lib/anthropic.mjs';
-import {additionsDiff} from '../lib/diff.mjs';
+import {unifiedDiff} from '../lib/diff.mjs';
 import {
   alwaysOnPersonaIds,
   authorSystemBlocks,
@@ -11,6 +11,30 @@ import {
   REPO_ROOT as DEFAULT_ROOT,
 } from '../lib/personas.mjs';
 import {DATA_NOTICE, block} from '../lib/untrusted.mjs';
+
+const AUTHOR_REMINDER = [
+  'Copy unchanged lines through unchanged.',
+  'Give each brief action its own heading or procedure. A sentence inside another section does not close it.',
+  'Do not add error strings, bind or firewall detail, or packaging variables.',
+].join(' ');
+
+/** Writer-loop only. docs-review.yml does not send this. */
+export const PREOPEN_REVIEW_NOTE = [
+  'This is a pre-open review of an AI documentation draft.',
+  'REQUEST_CHANGES only when new text is factually wrong, or a required capability is missing as its own heading or procedure.',
+  'A capability mentioned only inside another section is missing.',
+  'Do not request exact error strings, bind addresses, firewall rules, port conflicts, or packaging variables. That is COMMENT at most, and only when the pull request evidence already states the behaviour.',
+  'Do not request fixes to unchanged context lines.',
+].join('\n');
+
+const SUMMARY_RE = /`{3,}summary[ \t]*\n([\s\S]*?)\n`{3,}/;
+
+/** Summary fence from an author response. Empty when the model omits it. */
+export function parseSummaryBlock(text) {
+  const match = String(text || '').match(SUMMARY_RE);
+  if (!match) return '';
+  return match[1].replace(/<!--\s*docs-ai-[\s\S]*?-->/g, '').trim();
+}
 import {reviewPersona} from '../review/persona-review.mjs';
 import {assertSafeMdx, assertVersionAnchors, mergeFiles, parseFileBlocks} from './files.mjs';
 import {isAllowedPath} from './paths.mjs';
@@ -120,8 +144,8 @@ function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback, exis
     }
     parts.push(
       revisionFeedback?.length
-        ? 'For paths with a current-draft block, revise that draft in place. Output the full updated file.'
-        : 'For paths with an existing-page block, edit that page in place (smallest change that closes the gap). Output the full updated file.',
+        ? 'For paths with a current-draft block, revise that draft in place. Output the full updated file. Keep every line the review did not require.'
+        : 'For paths with an existing-page block, edit that page in place. Copy every line you do not need to change through unchanged. Output the full updated file.',
       '',
     );
   }
@@ -130,11 +154,15 @@ function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback, exis
     parts.push(
       block('reviewer-feedback', JSON.stringify(revisionFeedback, null, 2), {maxChars: 12_000}),
       '',
-      'Revise the pages to address REQUEST_CHANGES feedback. Output the full file blocks again.',
+      'Revise the text this draft added. Ignore feedback about pre-existing lines. Do not add behaviour that is not in the pull request evidence.',
+      'Output the summary fence, then the full file blocks.',
+      AUTHOR_REMINDER,
     );
   } else {
     parts.push(
-      'Draft the MDX file(s) that close the documentation gap for the target paths. Output only the file blocks.',
+      'Draft the MDX file(s) that close the documentation gap for the target paths.',
+      'Output the summary fence, then the file blocks. No other prose.',
+      AUTHOR_REMINDER,
     );
   }
 
@@ -179,7 +207,7 @@ async function authorPass({personaId, groupPaths, brief, input, revisionFeedback
   if (files.length === 0) {
     throw new Error(`author ${personaId ?? 'neutral'} emitted no allowed file blocks`);
   }
-  return files;
+  return {files, summary: parseSummaryBlock(text)};
 }
 
 async function selectReviewers({diff, completeFn}) {
@@ -208,9 +236,21 @@ async function selectReviewers({diff, completeFn}) {
   }
 }
 
-async function reviewFiles({files, input, completeFn}) {
-  const diff = additionsDiff(files);
+function requiredCapabilities(brief) {
+  const actions = (brief?.actions ?? []).map((a) => String(a).trim()).filter(Boolean);
+  if (actions.length === 0) return '';
+  return block('required-capabilities', actions.join('\n'), {maxChars: 4000});
+}
+
+async function reviewFiles({files, input, brief, completeFn}) {
+  const originals = loadExistingPages(input.repoRoot, files.map((f) => f.path));
+  const diff = unifiedDiff(files, originals);
+  if (!diff.trim()) {
+    const paths = files.map((f) => f.path).join(', ');
+    throw new Error(`authored pages are identical to the existing files: ${paths}`);
+  }
   const reviewers = await selectReviewers({diff, completeFn});
+  const extra = requiredCapabilities(brief);
   const results = await Promise.all(
     reviewers.map((personaId) =>
       reviewPersona({
@@ -218,6 +258,8 @@ async function reviewFiles({files, input, completeFn}) {
         diff,
         prTitle: input.prTitle,
         prBody: input.prBody,
+        reviewNote: PREOPEN_REVIEW_NOTE,
+        extra,
         model: REVIEW_MODEL,
         completeFn,
       }),
@@ -227,7 +269,8 @@ async function reviewFiles({files, input, completeFn}) {
 }
 
 /**
- * Author → review → revise loop. Returns files + trail for the draft PR body.
+ * Author → review → revise loop.
+ * `summary` is the draft PR body. `trail` is kept for the workflow artifact only.
  */
 export async function authorLoop({brief, input, completeFn = complete} = {}) {
   const targets =
@@ -246,15 +289,18 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
 
   let files = [];
   const trail = {iterations: [], openConcerns: []};
+  const summaries = [];
 
   for (const group of groups) {
-    let groupFiles = await authorPass({
+    let authored = await authorPass({
       personaId: group.personaId,
       groupPaths: group.paths,
       brief,
       input,
       completeFn,
     });
+    let groupFiles = authored.files;
+    let groupSummary = authored.summary;
     const initialMissing = missingGroupTargets(groupFiles, group.paths);
     if (initialMissing.length) {
       throw new Error(
@@ -267,7 +313,7 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
     let revision = 0;
     let lastResults = [];
     for (;;) {
-      const {results} = await reviewFiles({files: groupFiles, input, completeFn});
+      const {results} = await reviewFiles({files: groupFiles, input, brief, completeFn});
       lastResults = results;
       trail.iterations.push({
         author: group.personaId ?? 'neutral',
@@ -312,7 +358,7 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
         basePages: groupFiles,
         completeFn,
       });
-      const revisedMissing = missingGroupTargets(revised, group.paths);
+      const revisedMissing = missingGroupTargets(revised.files, group.paths);
       if (revisedMissing.length) {
         // Incomplete revision must not replace a complete prior pass.
         console.error(
@@ -326,8 +372,8 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
         break;
       }
       try {
-        assertVersionAnchors(revised, {milestoneVersion: input.milestoneVersion});
-        assertSafeMdx(revised);
+        assertVersionAnchors(revised.files, {milestoneVersion: input.milestoneVersion});
+        assertSafeMdx(revised.files);
       } catch (e) {
         // Dropped anchor / unsafe MDX must not replace a complete prior pass.
         console.error(
@@ -340,9 +386,11 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
         });
         break;
       }
-      groupFiles = revised;
+      groupFiles = revised.files;
+      if (revised.summary) groupSummary = revised.summary;
     }
 
+    if (groupSummary) summaries.push(groupSummary);
     files = mergeFiles(files, groupFiles);
     console.error(
       `[author-loop] ${group.personaId ?? 'neutral'}: ${groupFiles.map((f) => f.path).join(', ')} ` +
@@ -350,18 +398,15 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
     );
   }
 
-  return {files, trail};
+  return {files, trail, summary: summaries.join('\n\n').trim()};
 }
 
-export function renderPrBody({sourcePr, trail, brief, milestoneVersion}) {
+export function renderPrBody({sourcePr, summary, milestoneVersion}) {
   const lines = [
     '<!-- docs-ai-draft:v1 -->',
     `<!-- docs-ai-source-pr:${sourcePr} -->`,
     '',
     `AI-drafted documentation for #${sourcePr}.`,
-    '',
-    'Authored by audience personas from the gap analysis sticky comment, then reviewed',
-    'in-loop before this PR opened. Treat as a draft pending human editorial review.',
     '',
   ];
 
@@ -373,41 +418,11 @@ export function renderPrBody({sourcePr, trail, brief, milestoneVersion}) {
     );
   }
 
-  lines.push(
-    '## Gap brief',
-    '',
-    brief.summary || '_No summary recovered from the sticky comment._',
-    '',
-  );
-
-  if (brief.actions?.length) {
-    lines.push('### Recommended actions', '', ...brief.actions.map((a) => `- [ ] ${a}`), '');
-  }
-
-  lines.push('## Pre-open review trail', '');
-  for (const iter of trail.iterations) {
-    lines.push(
-      `### Author \`${iter.author}\` — revision ${iter.revision}`,
-      '',
-      `Paths: ${iter.paths.map((p) => `\`${p}\``).join(', ')}`,
-      '',
-    );
-    for (const r of iter.reviews) {
-      lines.push(`- **${r.persona}** — \`${r.verdict}\`: ${r.summary}`);
-      for (const f of r.feedback ?? []) lines.push(`  - ${f}`);
-    }
-    lines.push('');
-  }
-
-  if (trail.openConcerns?.length) {
-    lines.push('## Open concerns after revision cap', '');
-    for (const c of trail.openConcerns) {
-      lines.push(`- **${c.persona}**: ${c.summary}`);
-      for (const f of c.feedback ?? []) lines.push(`  - ${f}`);
-    }
-    lines.push('');
-  }
-
-  lines.push(`Closes the docs gap filed against #${sourcePr}.`);
+  let change = String(summary || '')
+    .replace(/<!--\s*docs-ai-[\s\S]*?-->/g, '')
+    .trim();
+  if (change.length > 2000) change = `${change.slice(0, 2000).trimEnd()}...`;
+  lines.push('## Summary', '', change || '_The draft did not include a change summary._', '');
+  lines.push('Pending human editorial review.');
   return `${lines.join('\n')}\n`;
 }

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {additionsDiff} from './diff.mjs';
+import {additionsDiff, unifiedDiff} from './diff.mjs';
 
 function hunkHeader(diff) {
   const m = diff.match(/@@ -0,0 \+(\d+)(?:,(\d+))? @@/);
@@ -49,4 +49,62 @@ test('additionsDiff joins multiple files as separate chunks', () => {
 
 test('additionsDiff returns empty string for no files', () => {
   assert.equal(additionsDiff([]), '');
+});
+
+test('unifiedDiff shows an insertion and leaves distant lines out of the hunk', () => {
+  const path = 'docs/main/administration-guide/manage/command-line-tools.mdx';
+  const before = ['## Compliance export', '', 'Existing export text.', '', '## Server operations', ''].join('\n');
+  const after = [
+    '## Compliance export',
+    '',
+    'Existing export text.',
+    '',
+    '## Read the bundled documentation',
+    '',
+    'Open /_documentation/ on a running server.',
+    '',
+    '## Server operations',
+    '',
+  ].join('\n');
+  const diff = unifiedDiff([{path, content: after}], [{path, content: before}]);
+  assert.match(diff, /^\+\+\+ b\/docs\/main/m);
+  assert.doesNotMatch(diff, /\/dev\/null/);
+  assert.match(diff, /\+## Read the bundled documentation/);
+  assert.match(diff, /\+Open \/_documentation\/ on a running server\./);
+  assert.doesNotMatch(diff, /\+## Compliance export/);
+  assert.doesNotMatch(diff, /-## Compliance export/);
+});
+
+test('unifiedDiff still reports a real edit away from the insertion', () => {
+  const path = 'docs/main/a.mdx';
+  const before = ['## Compliance Export', '', 'Body.', '', '## Tail', ''].join('\n');
+  const after = ['## Compliance export', '', 'Body.', '', '## Tail', '', 'Added.', ''].join('\n');
+  const diff = unifiedDiff([{path, content: after}], [{path, content: before}]);
+  assert.match(diff, /-## Compliance Export/);
+  assert.match(diff, /\+## Compliance export/);
+  assert.match(diff, /\+Added\./);
+});
+
+test('unifiedDiff treats a missing original as a new file', () => {
+  const file = {path: 'docs/main/new.mdx', content: 'Hello\n'};
+  const diff = unifiedDiff([file], []);
+  assert.equal(diff, additionsDiff([file]));
+});
+
+test('unifiedDiff omits a file that did not change', () => {
+  const path = 'docs/main/a.mdx';
+  const content = 'Same\n';
+  assert.equal(unifiedDiff([{path, content}], [{path, content}]), '');
+});
+
+test('unifiedDiff on a long page reports the insertion and not the unchanged head', () => {
+  const path = 'docs/main/a.mdx';
+  const head = Array.from({length: 5000}, (_, i) => `line ${i}`);
+  const before = [...head, 'tail'].join('\n');
+  const after = [...head.slice(0, 2500), '## New', ...head.slice(2500), 'tail'].join('\n');
+  const diff = unifiedDiff([{path, content: `${after}\n`}], [{path, content: before}]);
+  assert.match(diff, /\+## New/);
+  assert.doesNotMatch(diff, /\+line 0\b/);
+  assert.doesNotMatch(diff, /\+line 4999\b/);
+  assert.doesNotMatch(diff, /-line 0\b/);
 });

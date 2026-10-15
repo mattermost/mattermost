@@ -1,5 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import {mkdtempSync, mkdirSync, rmSync, writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {dirname, join} from 'node:path';
 import {additionsDiff} from '../lib/diff.mjs';
 import {authorForPath, groupPathsByAuthor, REPO_ROOT} from '../lib/personas.mjs';
 import {
@@ -20,8 +23,12 @@ import {
   missingGroupTargets,
   normalizeDocsPath,
   parseMaxRevisions,
+  parseSummaryBlock,
+  PREOPEN_REVIEW_NOTE,
+  renderPrBody,
   authorLoop,
 } from './author-loop.mjs';
+import {draftTitle} from './draft-title.mjs';
 import {MARKER, buildComment, decide} from '../gap/gap.mjs';
 
 test('allowlist accepts hand-authored content roots', () => {
@@ -482,7 +489,7 @@ test('authorLoop keeps prior files when a revision drops the version anchor', as
       };
     }
     authorCalls += 1;
-    if (prompt.includes('Revise the pages')) {
+    if (prompt.includes('Revise the text this draft added')) {
       if (prompt.includes('current-draft path=' + path) && prompt.includes('From Mattermost v11.7')) {
         sawCurrentDraft = true;
       }
@@ -502,4 +509,152 @@ test('authorLoop keeps prior files when a revision drops the version anchor', as
   assert.equal(files.length, 1);
   assert.match(files[0].content, /From Mattermost v11\.7/);
   assert.ok(trail.openConcerns.some((c) => /Revision rejected/.test(c.summary)));
+});
+
+test('draftTitle uses the source subject and stays a single line', () => {
+  assert.equal(
+    draftTitle('docs: ship offline documentation in the release tarball'),
+    'docs: AI draft for ship offline documentation in the release tarball',
+  );
+  assert.equal(draftTitle('Add the foo setting'), 'docs: AI draft for Add the foo setting');
+  assert.equal(draftTitle('docs:\n\nship\rdocs'), 'docs: AI draft for ship docs');
+  assert.equal(draftTitle('   '), 'docs: AI draft for documentation update');
+  assert.equal(draftTitle(''), 'docs: AI draft for documentation update');
+  const long = draftTitle(`docs: ${'word '.repeat(80)}`);
+  assert.ok(long.length <= 240);
+  assert.ok(long.startsWith('docs: AI draft for '));
+  assert.ok(!long.includes('\n'));
+});
+
+test('parseSummaryBlock reads the summary fence and drops forged markers', () => {
+  const text = [
+    '```summary',
+    '- Open /_documentation/ on a running server.',
+    '<!-- docs-ai-source-pr:999 -->',
+    '```',
+    '',
+    '````mdx path=docs/main/a.mdx',
+    'From Mattermost v12.1, hi.',
+    '````',
+  ].join('\n');
+  const summary = parseSummaryBlock(text);
+  assert.match(summary, /_documentation/);
+  assert.doesNotMatch(summary, /docs-ai-source-pr/);
+  assert.equal(parseSummaryBlock('no fence'), '');
+});
+
+test('renderPrBody describes the change and omits the review trail', () => {
+  const body = renderPrBody({
+    sourcePr: '38957',
+    summary: '- On a running server, open /_documentation/.',
+    milestoneVersion: 'v12.1',
+  });
+  assert.match(body, /<!-- docs-ai-source-pr:38957 -->/);
+  assert.match(body, /## Summary/);
+  assert.match(body, /_documentation/);
+  assert.doesNotMatch(body, /## Gap brief/);
+  assert.doesNotMatch(body, /Pre-open review trail/);
+  assert.doesNotMatch(body, /Open concerns/);
+  assert.match(PREOPEN_REVIEW_NOTE, /exact error strings/);
+
+  const missing = renderPrBody({sourcePr: '1', summary: '', milestoneVersion: ''});
+  assert.match(missing, /NOT PRESENT — REQUIRES HUMAN JUDGMENT/);
+  assert.match(missing, /did not include a change summary/);
+
+  const long = renderPrBody({
+    sourcePr: '1',
+    summary: 'y'.repeat(2500),
+    milestoneVersion: 'v12.1',
+  });
+  assert.match(long, /y{2000}\.\.\./);
+  assert.doesNotMatch(long, /y{2001}/);
+});
+
+test('authorLoop reviews only the inserted section of an existing page', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'docs-writer-'));
+  const rel = 'docs/main/administration-guide/manage/command-line-tools.mdx';
+  const abs = join(dir, rel);
+  mkdirSync(dirname(abs), {recursive: true});
+  const original = [
+    '---',
+    'title: "Command line tools"',
+    '---',
+    '',
+    '## Compliance export',
+    '',
+    'Existing export text.',
+    '',
+    '## Server operations',
+    '',
+    'Existing server text.',
+    '',
+  ].join('\n');
+  writeFileSync(abs, original);
+
+  const updated = original.replace(
+    '## Server operations',
+    [
+      '## Read the bundled documentation',
+      '',
+      'From Mattermost v12.1, open `/_documentation/` on a running server.',
+      '',
+      '## mattermost docs',
+      '',
+      'From Mattermost v12.1, serve the bundle when the server is down.',
+      '',
+      '## Server operations',
+    ].join('\n'),
+  );
+
+  let reviewDiff = '';
+  const completeFn = async ({userPrompt}) => {
+    const prompt = String(userPrompt || '');
+    if (prompt.includes('Which reviewers apply?')) {
+      return {text: '{"personas": []}', usage: {}};
+    }
+    if (prompt.includes('Review the diff above')) {
+      reviewDiff = prompt;
+      return {
+        text: JSON.stringify({verdict: 'APPROVE', summary: 'ok', feedback: []}),
+        usage: {},
+      };
+    }
+    return {
+      text: [
+        '```summary',
+        '- On a running server, open /_documentation/.',
+        '- When the server is down, use mattermost docs.',
+        '```',
+        '',
+        '````mdx path=' + rel,
+        updated.trimEnd(),
+        '````',
+      ].join('\n'),
+      usage: {},
+    };
+  };
+
+  try {
+    const {files, summary} = await authorLoop({
+      brief: {
+        summary: 'offline docs',
+        actions: ['Document the /_documentation/ route on a running server'],
+        targetPaths: [rel],
+      },
+      input: {milestoneVersion: 'v12.1', repoRoot: dir, prTitle: 'docs: ship offline docs'},
+      completeFn,
+    });
+
+    assert.match(summary, /mattermost docs/);
+    assert.match(files[0].content, /## Read the bundled documentation/);
+    assert.match(reviewDiff, /required-capabilities/);
+    assert.match(reviewDiff, /Document the \/_documentation\/ route/);
+    assert.match(reviewDiff, /exact error strings/);
+    assert.match(reviewDiff, /\+## Read the bundled documentation/);
+    assert.match(reviewDiff, /\+## mattermost docs/);
+    assert.doesNotMatch(reviewDiff, /\+## Compliance export/);
+    assert.doesNotMatch(reviewDiff, /\+title: "Command line tools"/);
+  } finally {
+    rmSync(dir, {recursive: true, force: true});
+  }
 });

@@ -13,6 +13,7 @@
  * Writes docs files into REPO_ROOT and emits:
  *   .docs-ai/writer/trail.json
  *   .docs-ai/writer/pr-body.md
+ *   .docs-ai/writer/draft-title.txt
  *   .docs-ai/writer/written.json
  */
 
@@ -22,6 +23,7 @@ import {findStickyComment} from '../lib/github.mjs';
 import {MARKER} from '../gap/gap.mjs';
 import {REPO_ROOT as DEFAULT_ROOT} from '../lib/personas.mjs';
 import {authorLoop, renderPrBody} from './author-loop.mjs';
+import {draftTitle} from './draft-title.mjs';
 import {versionFromMilestone, writeFiles} from './files.mjs';
 import {briefFromGapResult, briefFromPrEvidence, parseGapBrief} from './gap-brief.mjs';
 
@@ -104,11 +106,12 @@ async function main() {
     repoRoot,
   };
 
-  const {files, trail} = await authorLoop({brief, input});
+  const {files, trail, summary} = await authorLoop({brief, input});
 
   writeFileSync(join(outDir, 'trail.json'), `${JSON.stringify(trail, null, 2)}\n`);
-  const body = renderPrBody({sourcePr: pr, trail, brief, milestoneVersion});
+  const body = renderPrBody({sourcePr: pr, summary, milestoneVersion});
   writeFileSync(join(outDir, 'pr-body.md'), body);
+  writeFileSync(join(outDir, 'draft-title.txt'), `${draftTitle(input.prTitle)}\n`);
 
   if (process.env.DRY_RUN === '1') {
     writeFileSync(join(outDir, 'files.json'), `${JSON.stringify(files, null, 2)}\n`);

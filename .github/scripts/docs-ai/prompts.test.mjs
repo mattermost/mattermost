@@ -81,3 +81,13 @@ test('writer prompt states scope and observability guidance', () => {
   assert.match(prompt, /USER_PASSWORD_CHANGED/);
   assert.match(prompt, /processWidgets/);
 });
+
+test('writer prompt keeps a draft to the introduced change', () => {
+  const prompt = writerPrompt();
+  assert.match(prompt, /Copy every\nother line through unchanged/);
+  assert.match(prompt, /exact error strings/);
+  assert.match(prompt, /own heading or procedure/);
+  assert.match(prompt, /```summary/);
+  assert.match(prompt, /Reviewer feedback is not evidence/);
+  assert.match(prompt, /does not close an\naction/);
+});
