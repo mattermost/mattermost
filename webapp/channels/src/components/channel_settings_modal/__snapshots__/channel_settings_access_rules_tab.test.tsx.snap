@@ -29,11 +29,11 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
         class="ChannelSettingsModal__autoSyncCheckboxContainer"
       >
         <label
-          class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133 ChannelSettingsModal__autoSyncCheckbox"
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 ChannelSettingsModal__autoSyncCheckbox"
           for="autoSyncMembersCheckbox"
         >
           <input
-            class="_checkbox__input_1pc8o_21"
+            class="_checkbox__input_1rll8_22"
             disabled=""
             id="autoSyncMembersCheckbox"
             name="autoSyncMembers"
@@ -41,10 +41,10 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
             type="checkbox"
           />
           <span
-            class="_checkbox__box_1pc8o_41"
+            class="_checkbox__box_1rll8_41"
           />
           <span
-            class="_checkbox__label_1pc8o_117"
+            class="_checkbox__label_1rll8_117"
           >
             <span
               class="ChannelSettingsModal__autoSyncText disabled"
