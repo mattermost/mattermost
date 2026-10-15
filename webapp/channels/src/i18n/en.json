@@ -5933,7 +5933,7 @@
   },
   "admin.global_attributes.applies_to.channels.display.help": {
     "defaultMessage": "Multiple display locations can be selected. You can always view and set the attribute value in the Channel Info sidebar. Unset values do not appear in the channel.",
-    "description": "Help text under the 'Display location' checkboxes in an attribute's Channels settings in the System Console. 'header', 'banner' and 'Channel Info' refer to the Header, Banner and Channel Info checkbox options; 'it' is the attribute value. Use the same translations as those option labels."
+    "description": "Help text under the 'Display location' checkboxes in an attribute's Channels settings in the System Console. 'display locations' are the Header, Channel Info and Banner checkbox options, and 'Channel Info sidebar' is the Channel Info side panel in the channel view; use the same translation as the Channel Info option. 'Unset values' are channels that have no value for this attribute."
   },
   "admin.global_attributes.applies_to.channels.display.label": {
     "defaultMessage": "Display location",
