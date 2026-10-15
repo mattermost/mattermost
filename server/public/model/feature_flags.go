@@ -75,6 +75,13 @@ type FeatureFlags struct {
 	// This feature is deprecated and will be removed in a future release.
 	// Mobile clients should use the direct SSO callback flow with srv parameter verification.
 	MobileSSOCodeExchange bool
+
+	// FEATURE_FLAG_REMOVAL: EnforceLogPathRoot - remove this once every supported
+	// release carries the flag and enforcement becomes unconditional (MM-70595).
+	// When on, a log or audit file path resolving outside the logging root
+	// (MM_LOG_PATH, or the default logs dir) aborts server startup and is rejected
+	// on config save. When off, the same paths only produce an error log line.
+	EnforceLogPathRoot bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -105,6 +112,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeBasedAccessControl = true
 	f.ContentFlagging = false
 	f.MobileSSOCodeExchange = false
+	f.EnforceLogPathRoot = false
 }
 
 // ToMap returns the feature flags as a map[string]string

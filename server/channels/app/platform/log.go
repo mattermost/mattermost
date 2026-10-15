@@ -44,6 +44,15 @@ func (ps *PlatformService) initLogging() error {
 		}
 	}
 
+	// Validate log and audit file paths before configuring any target. ConfigureTargets opens
+	// the target files, so a check placed after it would already have written outside the root.
+	logPathErr := config.ValidateLogPaths(ps.Config(), config.GetLogRootPath())
+	if logPathErr != nil && config.IsLogPathEnforcementEnabled(ps.Config()) {
+		// At startup this aborts the boot via platform.New. On a config reload it leaves the
+		// previously configured (valid) targets in place, so the offending file is never opened.
+		return logPathErr
+	}
+
 	// configure app logger. This will replace any existing targets with new ones as defined in the config.
 	if err := ps.ConfigureLogger("logging", ps.logger, &ps.Config().LogSettings, config.GetLogFileLocation); err != nil {
 		// if the config is locked then a unit test has already configured and locked the logger; not an error.
@@ -76,6 +85,11 @@ func (ps *PlatformService) initLogging() error {
 			mlog.Error("Error configuring notification logger", mlog.Err(err))
 			return err
 		}
+	}
+
+	// logged after the targets are configured so the line reaches them rather than the default logger
+	if logPathErr != nil {
+		ps.logger.Error(config.LogPathOutsideRootWarning, mlog.Err(logPathErr))
 	}
 
 	return nil
@@ -283,7 +297,8 @@ func (ps *PlatformService) GetNotificationLogFile(rctx request.CTX) (*model.File
 // This prevents arbitrary file read/write vulnerabilities in logging configuration.
 // The logging root is determined by MM_LOG_PATH environment variable or the default logs directory.
 // Used to validate paths when reading logs via GetLogsSkipSend, GetLogFile, and GetAdvancedLogs.
-// In future versions, this will also be used to validate paths when saving logging config.
+// The write side is covered separately by config.ValidateLogPaths, which validates every
+// log and audit path in the config on save and before the logger is configured.
 func (ps *PlatformService) validateLogFilePath(filePath string) error {
 	// Get the logging root path (from env var or default logs directory)
 	loggingRoot := config.GetLogRootPath()
