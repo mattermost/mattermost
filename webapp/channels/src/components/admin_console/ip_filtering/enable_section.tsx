@@ -45,7 +45,7 @@ const EnableSectionContent: React.FC<Props> = ({filterToggle, setFilterToggle}) 
                         id='filterToggle'
                         size='medium'
                         disabled={false}
-                        onChange={() => setFilterToggle(!filterToggle)}
+                        onChange={(e) => setFilterToggle(e.target.checked)}
                         checked={filterToggle}
                         data-testid='filterToggle-button'
                         tabIndex={0}

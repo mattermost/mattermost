@@ -47,6 +47,19 @@ describe('EnableSectionContent', () => {
         expect(setFilterToggle).toHaveBeenCalledWith(false);
     });
 
+    test('clicking the toggle when off calls setFilterToggle with true', async () => {
+        renderWithContext(
+            <EnableSectionContent
+                {...baseProps}
+                filterToggle={false}
+            />,
+        );
+
+        await userEvent.click(screen.getByTestId('filterToggle-button'));
+
+        expect(setFilterToggle).toHaveBeenCalledWith(true);
+    });
+
     test('renders the component, with toggle not pressed if filterToggle is false', () => {
         renderWithContext(
             <EnableSectionContent
