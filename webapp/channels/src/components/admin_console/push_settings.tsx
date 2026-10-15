@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages, injectIntl} from 'react-intl';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {AdminConfig, ClientLicense, EmailSettings} from '@mattermost/types/config';
 
 import ExternalLink from 'components/external_link';
