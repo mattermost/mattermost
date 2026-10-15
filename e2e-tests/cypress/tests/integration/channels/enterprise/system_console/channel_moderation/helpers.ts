@@ -21,15 +21,47 @@ export const visitChannelConfigPage = (channel: Channel) => {
     cy.wait(TIMEOUTS.ONE_SEC);
 };
 
+const isNativeCheckbox = ($el: JQuery<HTMLElement>) => $el.is('input[type="checkbox"]');
+
+const isPermissionChecked = ($el: JQuery<HTMLElement>) => {
+    if (isNativeCheckbox($el)) {
+        return Boolean($el.prop('checked') || $el.prop('indeterminate'));
+    }
+
+    // System / team scheme permission widgets still use Bootstrap checkbox classes.
+    const classAttribute = $el.attr('class') ?? '';
+    return classAttribute.includes('checked') || classAttribute.includes('intermediate');
+};
+
+const assertPermissionUnchecked = (permission: string) => {
+    cy.findByTestId(permission).then(($el) => {
+        if (isNativeCheckbox($el)) {
+            cy.wrap($el).should('not.be.checked');
+            return;
+        }
+        cy.wrap($el).should('not.have.class', 'checked');
+    });
+};
+
+const assertPermissionChecked = (permission: string) => {
+    cy.findByTestId(permission).then(($el) => {
+        if (isNativeCheckbox($el)) {
+            cy.wrap($el).should('be.checked');
+            return;
+        }
+        cy.wrap($el).should('have.class', 'checked');
+    });
+};
+
 // # Disable a permission
-// Compass Checkbox hides the native input (opacity: 0); use force + checked prop.
+// Supports Compass Checkbox (opacity: 0 native input) and Bootstrap scheme widgets.
 export const disablePermission = (permission: string) => {
     cy.findByTestId(permission).scrollIntoView().should('exist').then(($el) => {
-        if ($el.prop('checked') || $el.prop('indeterminate')) {
+        if (isPermissionChecked($el)) {
             cy.wrap($el).click({force: true});
         }
     });
-    cy.findByTestId(permission).should('not.be.checked');
+    assertPermissionUnchecked(permission);
 };
 
 // # Saves channel config and navigates back to the channel config page if specified
@@ -104,14 +136,14 @@ export const postChannelMentionsAndVerifySystemMessageExist = (channelName: stri
 };
 
 // # Enable a permission
-// Compass Checkbox hides the native input (opacity: 0); use force + checked prop.
+// Supports Compass Checkbox (opacity: 0 native input) and Bootstrap scheme widgets.
 export const enablePermission = (permission: string) => {
     cy.findByTestId(permission).scrollIntoView().should('exist').then(($el) => {
-        if (!$el.prop('checked')) {
+        if (!isPermissionChecked($el)) {
             cy.wrap($el).click({force: true});
         }
     });
-    cy.findByTestId(permission).should('be.checked');
+    assertPermissionChecked(permission);
 };
 
 // # Checks to see if we did not get a system message warning after using @all/@here/@channel
