@@ -7,7 +7,7 @@ import type {MessageDescriptor} from 'react-intl';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {isEmail} from 'mattermost-redux/utils/helpers';
-import {isPropertyFieldRequired, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+import {isPropertyFieldRequired, isPropertyFieldSourceManaged, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 import {validHttpUrl} from 'utils/url';
 
@@ -34,11 +34,31 @@ export function isAdminManagedLocked(field: UserPropertyField, {canEditAdminMana
     return field.attrs?.managed === 'admin' && !canEditAdminManaged;
 }
 
-// Synced means any ldap/saml attr regardless of the target's auth_service.
 export function canEditUserAttribute(field: UserPropertyField, opts: UserAttributeLockOptions): boolean {
-    const attrs = field.attrs;
-    const optionsOmitted = Boolean(attrs?.options_omitted) && field.type !== 'graph';
-    return !(attrs?.protected || attrs?.ldap || attrs?.saml || attrs?.owners?.length || optionsOmitted || isAdminManagedLocked(field, opts));
+    if (isPropertyFieldSourceManaged(field) || isAdminManagedLocked(field, opts)) {
+        return false;
+    }
+    if (field.attrs?.options_omitted && field.type !== 'graph') {
+        return false;
+    }
+
+    // The server rejects the whole save if any field fails this tier. User fields
+    // target the system, so admin resolves to manage_system and empty defaults to member.
+    const level = field.permission_values ?? '';
+    switch (level) {
+    case 'none':
+        return false;
+    case 'sysadmin':
+    case 'admin':
+        return opts.canEditAdminManaged;
+    case 'member':
+    case '':
+        return true;
+    default: {
+        const unhandled: never = level;
+        return unhandled;
+    }
+    }
 }
 
 export function hasUserAttributeValue(value: UserAttributeValue | undefined): boolean {

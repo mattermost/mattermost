@@ -64,6 +64,22 @@ describe('canEditUserAttribute', () => {
         expect(canEditUserAttribute(field, {canEditAdminManaged: false})).toBe(false);
         expect(canEditUserAttribute(field, {canEditAdminManaged: true})).toBe(true);
     });
+
+    test('locks permission_values none for everyone', () => {
+        const field = buildField({permission_values: 'none'});
+        expect(canEditUserAttribute(field, {canEditAdminManaged: true})).toBe(false);
+        expect(canEditUserAttribute(field, {canEditAdminManaged: false})).toBe(false);
+    });
+
+    test.each(['sysadmin', 'admin'] as const)('requires manage_system for permission_values %s', (level) => {
+        const field = buildField({permission_values: level});
+        expect(canEditUserAttribute(field, {canEditAdminManaged: true})).toBe(true);
+        expect(canEditUserAttribute(field, {canEditAdminManaged: false})).toBe(false);
+    });
+
+    test.each(['member', '', undefined] as const)('allows permission_values %p without manage_system', (level) => {
+        expect(canEditUserAttribute(buildField({permission_values: level}), {canEditAdminManaged: false})).toBe(true);
+    });
 });
 
 describe('isAdminManagedLocked', () => {
