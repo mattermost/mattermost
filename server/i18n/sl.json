@@ -2712,6 +2712,10 @@
     "translation": "Že izbrisan id={{. PostId}}"
   },
   {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "Obstoječe objave ali komentarja za posodobitev ni mogoče najti."
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "ti je poslal sporočilo."
   },

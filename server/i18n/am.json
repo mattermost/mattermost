@@ -204,6 +204,10 @@
     "translation": "ቻናሉን ማስተካከል አልተቻለም."
   },
   {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
     "id": "api.license.add_license.open.app_error",
     "translation": "የምስል ፋይሉን መክፈት አልተቻለም."
   },

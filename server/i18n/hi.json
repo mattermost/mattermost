@@ -1032,6 +1032,10 @@
     "translation": "पहले ही हटाई गई id={{.PostId}}."
   },
   {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "अद्यतन करने के लिए मौजूदा पोस्ट या कमेंट खोजने में असमर्थ।"
+  },
+  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "हटाए गए चैनल में किसी पोस्ट को अपडेट नहीं किया जा सकता."
   },

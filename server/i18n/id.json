@@ -1504,6 +1504,10 @@
     "translation": "Telah dihapus id={{.PostId}}"
   },
   {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "Kami tidak dapat menemukan kiriman yang telah ada atau komentar untuk diperbarui"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
     "translation": " memanggil Anda di "
   },

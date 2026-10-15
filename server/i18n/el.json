@@ -360,6 +360,10 @@
     "translation": "Αδυναμία λήψης ανάρτησης."
   },
   {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "Αδυναμία εύρεσης της υπάρχουσας ανάρτησης ή σχολίου για ενημέρωση."
+  },
+  {
     "id": "api.outgoing_webhook.disabled.app_error",
     "translation": "Οι Εντολές έχουν απενεργοποιηθεί από τον διαχειριστή του συστήματος."
   },

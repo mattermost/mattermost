@@ -3140,6 +3140,10 @@
     "translation": "{{.PostId}} byl již smazán."
   },
   {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "Nelze najít existující příspěvek, nebo komentář k aktualizaci."
+  },
+  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Není možné upravovat zprávu ve smazaném kanálu."
   },
