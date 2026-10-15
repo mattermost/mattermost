@@ -6,7 +6,7 @@ import React, {type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
-import type {ButtonProps} from '@mattermost/compass-ui/components/button';
+import type {ButtonAsChildProps, ButtonProps} from '@mattermost/compass-ui/components/button';
 import {FeatureDiscoveryPanel} from '@mattermost/compass-ui/components/feature-discovery-panel';
 import type {AnalyticsState} from '@mattermost/types/admin';
 import type {CloudCustomer} from '@mattermost/types/cloud';
@@ -88,7 +88,11 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         goToMattermostContactSalesForm(firstName, lastName, companyName, customerEmail, 'mattermost', utmMedium);
     };
 
-    renderLearnMoreSecondaryAction = (emphasis: ButtonProps['emphasis'] = 'secondary', size: ButtonProps['size'] = 'medium'): ButtonProps => ({
+    renderLearnMoreSecondaryAction = (
+        emphasis: ButtonProps['emphasis'] = 'secondary',
+        size: ButtonProps['size'] = 'medium',
+    ): ButtonAsChildProps => ({
+        asChild: true,
         emphasis,
         size,
         children: (
@@ -290,7 +294,8 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                         />
                     }
                     primaryAction={panelActions.primaryAction}
-                    secondaryAction={panelActions.secondaryAction}
+                    // FeatureDiscoveryPanel types secondaryAction as ButtonProps; asChild is supported at runtime in compass-ui ≥0.1.0-alpha.15
+                    secondaryAction={panelActions.secondaryAction as ButtonProps | undefined}
                     illustration={{
                         className: 'FeatureDiscovery_imageWrapper',
                         'aria-label': '',

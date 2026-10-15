@@ -242,8 +242,10 @@ describe('components/feature_discovery', () => {
             expect(featureLink).toBeInTheDocument();
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
-            expect(featureLink.closest('button')?.className).toMatch(/size-medium/);
-            expect(featureLink.closest('button')?.className).not.toMatch(/size-large/);
+            expect(featureLink.tagName).toBe('A');
+            expect(featureLink.className).toMatch(/size-medium/);
+            expect(featureLink.className).not.toMatch(/size-large/);
+            expect(featureLink.closest('button')).toBeNull();
 
             expect(getPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
@@ -300,8 +302,10 @@ describe('components/feature_discovery', () => {
             expect(featureLink).toBeInTheDocument();
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
-            expect(featureLink.closest('button')?.className).toMatch(/size-medium/);
-            expect(featureLink.closest('button')?.className).not.toMatch(/size-large/);
+            expect(featureLink.tagName).toBe('A');
+            expect(featureLink.className).toMatch(/size-medium/);
+            expect(featureLink.className).not.toMatch(/size-large/);
+            expect(featureLink.closest('button')).toBeNull();
 
             expect(getPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
