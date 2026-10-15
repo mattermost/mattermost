@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 type Props = {
@@ -27,10 +27,7 @@ const GroupRow = (props: Props) => {
     const [loading, setLoading] = useState(false);
     const {formatMessage} = useIntl();
 
-    const onRowClick = () => {
-        if (props.readOnly) {
-            return;
-        }
+    const handleCheckChange = () => {
         props.onCheckToggle(props.primary_key);
     };
 
@@ -160,18 +157,17 @@ const GroupRow = (props: Props) => {
         <div
             id={`${props.name}_group`}
             className={'group ' + (props.checked ? 'checked' : '')}
-            onClick={onRowClick}
         >
             <div className='group-row'>
                 <div className='group-name'>
-                    <div
-                        className={'group-check ' + (props.checked ? 'checked' : '')}
+                    <Checkbox
+                        className='group-check'
+                        checked={props.checked}
+                        disabled={props.readOnly}
+                        onChange={handleCheckChange}
                     >
-                        {props.checked && <CheckboxCheckedIcon/>}
-                    </div>
-                    <span>
                         {props.name}
-                    </span>
+                    </Checkbox>
                 </div>
                 <div className='group-content'>
                     <span className='group-description'>
