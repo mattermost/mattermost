@@ -22,6 +22,7 @@ type ReleaseLifecycle struct {
 // line is added to versions, and cherry-pick EOL extensions to every supported release branch.
 // Source: https://docs.mattermost.com/product-overview/mattermost-server-releases.html
 var releaseLifecycles = []ReleaseLifecycle{
+	{MajorMinor: "12.1"},
 	{MajorMinor: "12.0"},
 	{MajorMinor: "11.11"},
 	{MajorMinor: "11.10"},
