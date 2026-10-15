@@ -6029,7 +6029,7 @@
   },
   "admin.global_attributes.attribute_details.applies_to.add_resource_header": {
     "defaultMessage": "Add resource",
-    "description": "Label of the button in the header of the 'Applies to' card on the System Console > System Attributes > Manage Attributes attribute detail page, which opens a menu of resource types. 'Add' is a verb; also used as the button's accessible label."
+    "description": "Label of the button in the header of the 'Applies to' card on the System Console > System Attributes > Attribute Management attribute detail page, which opens a menu of resource types. 'Add' is a verb; also used as the button's accessible label."
   },
   "admin.global_attributes.attribute_details.applies_to.add_resource_inline": {
     "defaultMessage": "Add another resource",
@@ -6045,7 +6045,7 @@
   },
   "admin.global_attributes.attribute_details.applies_to.empty_state.helper_text_plugin_owned": {
     "defaultMessage": "Resources for plugin-managed attributes can't be added here.",
-    "description": "Empty-state helper text in the Applies-to section of the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin owns, where resources cannot be added."
+    "description": "Empty-state helper text in the Applies-to section of the attribute details page in System Console > System Attributes > Attribute Management for an attribute a plugin owns, where resources cannot be added."
   },
   "admin.global_attributes.attribute_details.applies_to.item.body_placeholder": {
     "defaultMessage": "No additional settings for this resource yet.",
@@ -6109,11 +6109,11 @@
   },
   "admin.global_attributes.attribute_details.applies_to.locked_plugin_orphaned_tooltip": {
     "defaultMessage": "This resource cannot be changed — this attribute was managed by a plugin that's no longer installed.",
-    "description": "Tooltip on a locked Applies-to resource in the attribute details page in System Console > System Attributes > Manage Attributes whose managing plugin is no longer installed."
+    "description": "Tooltip on a locked Applies-to resource in the attribute details page in System Console > System Attributes > Attribute Management whose managing plugin is no longer installed."
   },
   "admin.global_attributes.attribute_details.applies_to.locked_plugin_tooltip": {
     "defaultMessage": "This resource cannot be changed — this attribute is managed by a plugin.",
-    "description": "Tooltip on a locked Applies-to resource in the attribute details page in System Console > System Attributes > Manage Attributes, explaining a plugin manages the attribute."
+    "description": "Tooltip on a locked Applies-to resource in the attribute details page in System Console > System Attributes > Attribute Management, explaining a plugin manages the attribute."
   },
   "admin.global_attributes.attribute_details.applies_to.locked_single_resource_tooltip": {
     "defaultMessage": "This resource cannot be changed — this attribute applies to only one resource.",
@@ -6177,7 +6177,7 @@
   },
   "admin.global_attributes.attribute_details.external_source.disabled_applies_to_tooltip": {
     "defaultMessage": "Cannot link an external source while this attribute applies to a resource.",
-    "description": "Tooltip on the disabled external-source control in the attribute details page in System Console > System Attributes > Manage Attributes, explaining it cannot be linked while the attribute applies to a resource."
+    "description": "Tooltip on the disabled external-source control in the attribute details page in System Console > System Attributes > Attribute Management, explaining it cannot be linked while the attribute applies to a resource."
   },
   "admin.global_attributes.attribute_details.external_source.edit_link": {
     "defaultMessage": "Edit {source} link",
@@ -6537,19 +6537,19 @@
   },
   "admin.global_attributes.attribute_details.plugin_source.helper_text": {
     "defaultMessage": "Name, type, and values are owned by the plugin and are read-only here.",
-    "description": "Helper text in the attribute details page in System Console > System Attributes > Manage Attributes for a plugin-owned attribute, explaining which fields are read-only."
+    "description": "Helper text in the attribute details page in System Console > System Attributes > Attribute Management for a plugin-owned attribute, explaining which fields are read-only."
   },
   "admin.global_attributes.attribute_details.plugin_source.managed_by": {
     "defaultMessage": "Managed by {pluginName}",
-    "description": "Label in the attribute details page in System Console > System Attributes > Manage Attributes naming the plugin that owns the attribute."
+    "description": "Label in the attribute details page in System Console > System Attributes > Attribute Management naming the plugin that owns the attribute."
   },
   "admin.global_attributes.attribute_details.plugin_source.managed_by_orphaned": {
     "defaultMessage": "Managed by {pluginName} (no longer installed)",
-    "description": "Label in the attribute details page in System Console > System Attributes > Manage Attributes naming the plugin that owned the attribute, where that plugin is no longer installed."
+    "description": "Label in the attribute details page in System Console > System Attributes > Attribute Management naming the plugin that owned the attribute, where that plugin is no longer installed."
   },
   "admin.global_attributes.attribute_details.plugin_source.settings_link": {
     "defaultMessage": "Plugin settings",
-    "description": "Link in the attribute details page in System Console > System Attributes > Manage Attributes to the settings page of the plugin that owns the attribute."
+    "description": "Link in the attribute details page in System Console > System Attributes > Attribute Management to the settings page of the plugin that owns the attribute."
   },
   "admin.global_attributes.attribute_details.save": {
     "defaultMessage": "Save",
@@ -6577,23 +6577,23 @@
   },
   "admin.global_attributes.attribute_details.save_error.applies_to_partial_save": {
     "defaultMessage": "The attribute was saved, but couldn't be applied to {resources}. Please try again.",
-    "description": "Error in the attribute details page in System Console > System Attributes > Manage Attributes when the attribute saved but could not be applied to some resources. {resources} is a list of resource names."
+    "description": "Error in the attribute details page in System Console > System Attributes > Attribute Management when the attribute saved but could not be applied to some resources. {resources} is a list of resource names."
   },
   "admin.global_attributes.attribute_details.save_error.applies_to_remove_failed": {
     "defaultMessage": "Couldn't remove this attribute from {resources}. Nothing else was saved — please try again.",
-    "description": "Error in the attribute details page in System Console > System Attributes > Manage Attributes when removing the attribute from resources failed and nothing was saved. {resources} is a list of resource names."
+    "description": "Error in the attribute details page in System Console > System Attributes > Attribute Management when removing the attribute from resources failed and nothing was saved. {resources} is a list of resource names."
   },
   "admin.global_attributes.attribute_details.save_error.applies_to_remove_partial_save": {
     "defaultMessage": "The attribute was saved, but couldn't be removed from {resources}. Please try again.",
-    "description": "Error in the attribute details page in System Console > System Attributes > Manage Attributes when the attribute saved but could not be removed from some resources. {resources} is a list of resource names."
+    "description": "Error in the attribute details page in System Console > System Attributes > Attribute Management when the attribute saved but could not be removed from some resources. {resources} is a list of resource names."
   },
   "admin.global_attributes.attribute_details.save_error.applies_to_rollback_failed": {
     "defaultMessage": "\"{name}\" may have been partially created for {resources}. A retry under the same name will likely fail until those are cleaned up.",
-    "description": "Red error banner on the System Console > System Attributes > Manage Attributes > New attribute page, shown when saving partly succeeded and the automatic cleanup also failed. {name} is the attribute's display name as typed by the admin; {resources} is a comma-separated list of already-localized resource-type labels (e.g. \"Users, Channels\")."
+    "description": "Red error banner on the System Console > System Attributes > Attribute Management > New attribute page, shown when saving partly succeeded and the automatic cleanup also failed. {name} is the attribute's display name as typed by the admin; {resources} is a comma-separated list of already-localized resource-type labels (e.g. \"Users, Channels\")."
   },
   "admin.global_attributes.attribute_details.save_error.applies_to_template_rollback_failed": {
     "defaultMessage": "\"{name}\" was created but could not be cleaned up after a failed apply. A retry under the same name will likely fail until it is deleted.",
-    "description": "Red error banner on the System Console > System Attributes > Manage Attributes > New attribute page. Variant of the rollback-failed message used when no resource types are left to name; {name} is the attribute's display name as typed by the admin."
+    "description": "Red error banner on the System Console > System Attributes > Attribute Management > New attribute page. Variant of the rollback-failed message used when no resource types are left to name; {name} is the attribute's display name as typed by the admin."
   },
   "admin.global_attributes.attribute_details.save_error.channel_resource": {
     "defaultMessage": "The attribute was created, but it could not be applied to channels. Its definition can no longer be changed here; select Save to try applying it again, or remove the Channels resource to finish without it.",
@@ -6601,39 +6601,39 @@
   },
   "admin.global_attributes.attribute_details.save_error.generic": {
     "defaultMessage": "Something went wrong while saving this attribute. Please try again.",
-    "description": "Fallback red error banner on the System Console > System Attributes > Manage Attributes > New attribute page when saving fails for an unrecognized reason."
+    "description": "Fallback red error banner on the System Console > System Attributes > Attribute Management > New attribute page when saving fails for an unrecognized reason."
   },
   "admin.global_attributes.attribute_details.save_error.invalid_charset": {
     "defaultMessage": "Name must start with a letter or underscore, and contain only letters, numbers, and underscores.",
-    "description": "Red error banner on the New attribute page (System Console > System Attributes > Manage Attributes) when the server rejects the attribute's unique name for using disallowed characters. \"Name\" here means the internal unique name, not the display name."
+    "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when the server rejects the attribute's unique name for using disallowed characters. \"Name\" here means the internal unique name, not the display name."
   },
   "admin.global_attributes.attribute_details.save_error.invalid_options": {
     "defaultMessage": "There's a problem with one or more options — check for a duplicate or overly long name, or a missing/duplicate rank, then try again.",
-    "description": "Red error banner on the New attribute page (System Console > System Attributes > Manage Attributes) when the server rejects the list of select/multiselect/ranked option values. \"rank\" is the numeric ordering position assigned to each option."
+    "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when the server rejects the list of select/multiselect/ranked option values. \"rank\" is the numeric ordering position assigned to each option."
   },
   "admin.global_attributes.attribute_details.save_error.limit_reached": {
     "defaultMessage": "You have reached the maximum number of attributes for this server. Delete an existing attribute before creating a new one.",
-    "description": "Red error banner on the New attribute page (System Console > System Attributes > Manage Attributes) when the server's per-server cap on attribute definitions has been hit. Addressed to a system admin."
+    "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when the server's per-server cap on attribute definitions has been hit. Addressed to a system admin."
   },
   "admin.global_attributes.attribute_details.save_error.name_conflict": {
     "defaultMessage": "An attribute with this name already exists. Please choose a different name.",
-    "description": "Red error banner on the New attribute page (System Console > System Attributes > Manage Attributes) when another attribute already uses the same unique name."
+    "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when another attribute already uses the same unique name."
   },
   "admin.global_attributes.attribute_details.save_error.reserved_word": {
     "defaultMessage": "This name is a reserved word and cannot be used. Please choose a different name.",
-    "description": "Red error banner on the New attribute page (System Console > System Attributes > Manage Attributes) when the chosen unique name matches a word reserved by the system."
+    "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when the chosen unique name matches a word reserved by the system."
   },
   "admin.global_attributes.attribute_details.save_error.type_change_with_dependents": {
     "defaultMessage": "This attribute's type can't be changed while it applies to a resource. Remove those resources first, then try again.",
-    "description": "Error in the attribute details page in System Console > System Attributes > Manage Attributes when the attribute's type cannot change because it still applies to resources."
+    "description": "Error in the attribute details page in System Console > System Attributes > Attribute Management when the attribute's type cannot change because it still applies to resources."
   },
   "admin.global_attributes.attribute_details.subtitle": {
     "defaultMessage": "Add a display name, choose a type, and pick where it applies.",
-    "description": "Subtitle line under the page heading of System Console > System Attributes > Manage Attributes > New attribute. Summarizes the three steps of the form below (display name, type, and which resources it applies to)."
+    "description": "Subtitle line under the page heading of System Console > System Attributes > Attribute Management > New attribute. Summarizes the three steps of the form below (display name, type, and which resources it applies to)."
   },
   "admin.global_attributes.attribute_details.title": {
     "defaultMessage": "New attribute",
-    "description": "Page heading (h1) of the attribute creation page in System Console > System Attributes > Manage Attributes. \"New\" is an adjective describing the attribute being created, not a verb."
+    "description": "Page heading (h1) of the attribute creation page in System Console > System Attributes > Attribute Management. \"New\" is an adjective describing the attribute being created, not a verb."
   },
   "admin.global_attributes.attribute_details.type.field_aria_label": {
     "defaultMessage": "Type: {value}",
@@ -6641,11 +6641,11 @@
   },
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": {
     "defaultMessage": "Type: {value}. Locked while this attribute applies to a resource.",
-    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute applies to a resource. {value} is the current type."
+    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute applies to a resource. {value} is the current type."
   },
   "admin.global_attributes.attribute_details.type.field_locked_external_source_aria_label": {
     "defaultMessage": "Type: {value}. Locked while linked to an external source.",
-    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute is linked to AD/LDAP or SAML. {value} is the current type."
+    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute is linked to AD/LDAP or SAML. {value} is the current type."
   },
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": {
     "defaultMessage": "Type: {value}. Locked because a hierarchical attribute cannot be converted to another type.",
@@ -6657,23 +6657,23 @@
   },
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": {
     "defaultMessage": "Type: {value}. Locked because this attribute is managed by a plugin.",
-    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin manages. {value} is the current type."
+    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management for an attribute a plugin manages. {value} is the current type."
   },
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": {
     "defaultMessage": "Type: {value}. Locked because this attribute was managed by a plugin that's no longer installed.",
-    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes whose managing plugin is no longer installed. {value} is the current type."
+    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management whose managing plugin is no longer installed. {value} is the current type."
   },
   "admin.global_attributes.attribute_details.type.label": {
     "defaultMessage": "Type",
-    "description": "Form field label for the attribute type selector on the New attribute page (System Console > System Attributes > Manage Attributes). Noun."
+    "description": "Form field label for the attribute type selector on the New attribute page (System Console > System Attributes > Attribute Management). Noun."
   },
   "admin.global_attributes.attribute_details.type.locked_applies_to_tooltip": {
     "defaultMessage": "Type cannot be changed while this attribute applies to a resource.",
-    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute applies to a resource."
+    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute applies to a resource."
   },
   "admin.global_attributes.attribute_details.type.locked_external_source_tooltip": {
     "defaultMessage": "Type cannot be changed while this attribute is linked to an external source.",
-    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute is linked to an external source."
+    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute is linked to an external source."
   },
   "admin.global_attributes.attribute_details.type.locked_graph_tooltip": {
     "defaultMessage": "Type cannot be changed — a hierarchical attribute cannot be converted to another type. Create a new attribute of the type you need instead.",
@@ -6685,11 +6685,11 @@
   },
   "admin.global_attributes.attribute_details.type.locked_plugin_orphaned_tooltip": {
     "defaultMessage": "Type cannot be changed — this attribute was managed by a plugin that's no longer installed.",
-    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes whose managing plugin is no longer installed."
+    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management whose managing plugin is no longer installed."
   },
   "admin.global_attributes.attribute_details.type.locked_plugin_tooltip": {
     "defaultMessage": "Type cannot be changed — this attribute is managed by a plugin.",
-    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin manages."
+    "description": "Tooltip on the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management for an attribute a plugin manages."
   },
   "admin.global_attributes.attribute_details.type.menu_label": {
     "defaultMessage": "Select type",
@@ -6721,11 +6721,11 @@
   },
   "admin.global_attributes.attribute_details.unique_name.locked_applies_to_aria_label": {
     "defaultMessage": "Edit unique name. Locked while this attribute applies to a resource.",
-    "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute applies to a resource."
+    "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute applies to a resource."
   },
   "admin.global_attributes.attribute_details.unique_name.locked_applies_to_tooltip": {
     "defaultMessage": "Name cannot be changed while this attribute applies to a resource. Remove and save first.",
-    "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute applies to a resource."
+    "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute applies to a resource."
   },
   "admin.global_attributes.attribute_details.unique_name.locked_owned_aria_label": {
     "defaultMessage": "Edit unique name. Locked because this attribute is managed by {owners}.",
@@ -6737,19 +6737,19 @@
   },
   "admin.global_attributes.attribute_details.unique_name.locked_plugin_aria_label": {
     "defaultMessage": "Edit unique name. Locked because this attribute is managed by a plugin.",
-    "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin manages."
+    "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Attribute Management for an attribute a plugin manages."
   },
   "admin.global_attributes.attribute_details.unique_name.locked_plugin_orphaned_aria_label": {
     "defaultMessage": "Edit unique name. Locked because this attribute was managed by a plugin that's no longer installed.",
-    "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes whose managing plugin is no longer installed."
+    "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Attribute Management whose managing plugin is no longer installed."
   },
   "admin.global_attributes.attribute_details.unique_name.locked_plugin_orphaned_tooltip": {
     "defaultMessage": "Name cannot be changed — this attribute was managed by a plugin that's no longer installed.",
-    "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes whose managing plugin is no longer installed."
+    "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Attribute Management whose managing plugin is no longer installed."
   },
   "admin.global_attributes.attribute_details.unique_name.locked_plugin_tooltip": {
     "defaultMessage": "Name cannot be changed — this attribute is managed by a plugin.",
-    "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin manages."
+    "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Attribute Management for an attribute a plugin manages."
   },
   "admin.global_attributes.attribute_details.unique_name.prefix": {
     "defaultMessage": "Unique name:",
@@ -6817,7 +6817,7 @@
   },
   "admin.global_attributes.confirm.delete.body": {
     "defaultMessage": "Deleting this attribute will permanently remove its definition. This action cannot be undone.",
-    "description": "Body text of the confirmation dialog shown before deleting an attribute definition from System Console > System Attributes > Manage Attributes."
+    "description": "Body text of the confirmation dialog shown before deleting an attribute definition from System Console > System Attributes > Attribute Management."
   },
   "admin.global_attributes.confirm.delete.error.generic": {
     "defaultMessage": "An error occurred while deleting this attribute. Please try again.",
@@ -6837,7 +6837,7 @@
   },
   "admin.global_attributes.confirm.delete.title": {
     "defaultMessage": "Delete {name} attribute",
-    "description": "Title of the delete confirmation dialog in System Console > System Attributes > Manage Attributes. {name} is the attribute's display name. \"Delete\" is a verb (imperative)."
+    "description": "Title of the delete confirmation dialog in System Console > System Attributes > Attribute Management. {name} is the attribute's display name. \"Delete\" is a verb (imperative)."
   },
   "admin.global_attributes.confirm.remove_applies_to.body": {
     "defaultMessage": "This will permanently delete every value stored for this attribute on {resources}. This action cannot be undone.",
@@ -6849,27 +6849,27 @@
   },
   "admin.global_attributes.confirm.remove_applies_to.title": {
     "defaultMessage": "Remove {resources}?",
-    "description": "Title of the confirmation dialog shown from the attribute details page in System Console > System Attributes > Manage Attributes before removing an attribute from resources. {resources} is a list of resource names."
+    "description": "Title of the confirmation dialog shown from the attribute details page in System Console > System Attributes > Attribute Management before removing an attribute from resources. {resources} is a list of resource names."
   },
   "admin.global_attributes.name_conflict.details_notice": {
     "defaultMessage": "Another attribute already uses this name.",
-    "description": "Name-conflict notice shown on the attribute details page in System Console > System Attributes > Manage Attributes when another attribute already uses this name. Shown as a danger notice when the match is exact (Users would be blocked) and a warning notice otherwise."
+    "description": "Name-conflict notice shown on the attribute details page in System Console > System Attributes > Attribute Management when another attribute already uses this name. Shown as a danger notice when the match is exact (Users would be blocked) and a warning notice otherwise."
   },
   "admin.global_attributes.name_conflict.linked_to_template": {
     "defaultMessage": "A user attribute named \"{name}\" already exists and is linked to {owner}. Policies that use user.attributes.{name} read {owner}'s options, not this attribute's.",
-    "description": "Warning in System Console > System Attributes > Manage Attributes when another attribute already owns a user attribute of this name. {name} is that attribute's unique name and {owner} is the display name of the attribute it belongs to. 'user.attributes.' is literal policy syntax and must stay English."
+    "description": "Warning in System Console > System Attributes > Attribute Management when another attribute already owns a user attribute of this name. {name} is that attribute's unique name and {owner} is the display name of the attribute it belongs to. 'user.attributes.' is literal policy syntax and must stay English."
   },
   "admin.global_attributes.name_conflict.standalone": {
     "defaultMessage": "A standalone user attribute named \"{name}\" already exists. Policies that use user.attributes.{name} read that attribute, not this one.",
-    "description": "Warning in System Console > System Attributes > Manage Attributes when a user attribute of this name exists on its own rather than belonging to another attribute. {name} is its unique name. 'user.attributes.' is literal policy syntax and must stay English."
+    "description": "Warning in System Console > System Attributes > Attribute Management when a user attribute of this name exists on its own rather than belonging to another attribute. {name} is its unique name. 'user.attributes.' is literal policy syntax and must stay English."
   },
   "admin.global_attributes.name_conflict.users_blocked_menu_label": {
     "defaultMessage": "Name already in use",
-    "description": "Secondary label under the disabled Users option in the 'Add resource' menu on the attribute details page in System Console > System Attributes > Manage Attributes, saying why it cannot be chosen."
+    "description": "Secondary label under the disabled Users option in the 'Add resource' menu on the attribute details page in System Console > System Attributes > Attribute Management, saying why it cannot be chosen."
   },
   "admin.global_attributes.new_attribute": {
     "defaultMessage": "New attribute",
-    "description": "Label of the primary button at the top of System Console > System Attributes > Manage Attributes that opens the attribute creation page. \"New\" is an adjective; keep it identical to the creation page heading."
+    "description": "Label of the primary button at the top of System Console > System Attributes > Attribute Management that opens the attribute creation page. \"New\" is an adjective; keep it identical to the creation page heading."
   },
   "admin.global_attributes.owners.scoped": {
     "defaultMessage": "{owner}: {scopes}",
@@ -6881,7 +6881,7 @@
   },
   "admin.global_attributes.subtitle": {
     "defaultMessage": "Define an attribute once, then choose which resources can use it.",
-    "description": "Subtitle line under the \"Manage Attributes\" heading in System Console > System Attributes. \"resources\" means the object types (Users, Channels, Posts) an attribute can be attached to."
+    "description": "Subtitle line under the \"Attribute Management\" heading in System Console > System Attributes. \"resources\" means the object types (Users, Channels, Posts) an attribute can be attached to."
   },
   "admin.global_attributes.table.actions.classification_link": {
     "defaultMessage": "Open Classification Markings",
@@ -6913,7 +6913,7 @@
   },
   "admin.global_attributes.table.actions.view": {
     "defaultMessage": "View attribute",
-    "description": "Row action in the attributes table in System Console > System Attributes > Manage Attributes; opens an attribute that cannot be edited."
+    "description": "Row action in the attributes table in System Console > System Attributes > Attribute Management; opens an attribute that cannot be edited."
   },
   "admin.global_attributes.table.applies_to": {
     "defaultMessage": "Applies to",
