@@ -10000,10 +10000,6 @@
     "translation": "Kullanıcı özniteliği alanı yaması geçersiz"
   },
   {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "CPA alanları alınamadı"
-  },
-  {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML onaylama özniteliği ifadesi geçersiz"
   },
@@ -10038,14 +10034,6 @@
   {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "AD/LDAP kimliği geçersiz"
-  },
-  {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "CPA alanları alınamadı"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "LDAP özniteliği değeri alınamadı"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",

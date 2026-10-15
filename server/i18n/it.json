@@ -11147,20 +11147,12 @@
     "translation": "Test di connessione LDAP non riuscito. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Errore: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Impossibile recuperare i campi CPA"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "Id AD/LDAP non valido"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Impossibile recuperare l'utente."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Valore dell'attributo LDAP vuoto"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -11301,10 +11293,6 @@
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "SAML non è riuscito a caricare il certificato pubblico dell'Identity Provider, contatta il tuo amministratore di sistema."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Impossibile recuperare i campi CPA"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",

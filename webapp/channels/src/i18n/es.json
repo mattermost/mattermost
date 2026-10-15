@@ -1642,7 +1642,6 @@
   "admin.global_attributes.attribute_details.title": "Nuevo atributo",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Tipo: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "Tipo: {value}. Bloqueado mientras este atributo se aplique a un recurso.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Tipo: Texto. Bloqueado mientras esté vinculado a un origen externo.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "Tipo: {value}. Bloqueado porque un atributo jerárquico no se puede convertir a otro tipo.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "Tipo: {value}. Bloqueado porque este atributo está gestionado por un plugin.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "Tipo: {value}. Bloqueado porque este atributo era gestionado por un plugin que ya no está instalado.",

@@ -9622,10 +9622,6 @@
     "translation": "LDAP 연결 테스트에 실패했습니다. Server: {{.Server}}:{{.Port}}, 연결 보안: {{.ConnectionType}}, 개인 키 파일 이름: {{.PrivateKeyFilename}}, 공개 인증서 파일 이름: {{.PublicCertFilename}}, 바인드 사용자명: {{.BindUsername}}. 오류: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "CPA 필드를 검색하지 못했습니다."
-  },
-  {
     "id": "ent.ldap.do_login.certificate.app_error",
     "translation": "LDAP TLS 인증서 파일을 로드하는 중 오류가 발생했습니다."
   },
@@ -9648,10 +9644,6 @@
   {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "LDAP 사용자를 찾을 수 없습니다. 사용자 필터와 인증서를 확인하세요."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "빈 LDAP 속성 값"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -9744,10 +9736,6 @@
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "SAML이 ID 공급자 공개 인증서를 로드하지 못했습니다. 시스템 관리자에게 문의하세요."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "CPA 필드를 검색하지 못했습니다."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",

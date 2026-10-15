@@ -12519,20 +12519,12 @@
     "translation": "Тестът на LDAP връзката е неуспешен. Сървър: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Грешка: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Неуспешно извличане на CPA полетата"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "Невалиден AD/LDAP Id"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Неуспешно получаване на потребителя."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Празна стойност на LDAP атрибут"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12673,10 +12665,6 @@
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "SAML не можа да зареди успешно публичния сертификат на доставчика на идентичност, моля, свържете се със системния си администратор."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Неуспешно извличане на CPA поле(та)"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",

@@ -1644,7 +1644,6 @@
   "admin.global_attributes.attribute_details.title": "New attribute",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Type: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "Type: {value}. Locked while this attribute applies to a resource.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Type: Text. Locked while linked to an external source.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "Type: {value}. Locked because a hierarchical attribute cannot be converted to another type.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "Type: {value}. Locked because this attribute is managed by a plugin.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "Type: {value}. Locked because this attribute was managed by a plugin that's no longer installed.",

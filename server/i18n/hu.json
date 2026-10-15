@@ -12595,20 +12595,12 @@
     "translation": "Az LDAP kapcsolat tesztje sikertelen. Szerver: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Hiba: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Nem sikerült lekérni a CPA mezőket"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "Érvénytelen AD/LDAP azonosító"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Nem sikerült lekérni a felhasználót."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Üres LDAP attribútumérték"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12749,10 +12741,6 @@
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "A SAML nem tudta sikeresen betölteni a Személyazonosság szolgáltató (IdP) nyilvános tanúsítványát. Kérjük, lépjen kapcsolatba a rendszergazdával."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Nem sikerült lekérni a CPA mező(ke)t"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",

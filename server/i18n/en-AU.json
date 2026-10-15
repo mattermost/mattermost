@@ -9992,14 +9992,6 @@
     "translation": "Unable to convert the property field to a custom profile attribute field"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Failed to retrieve CPA fields"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Failed to retrieve CPA field(s)"
-  },
-  {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML assertion attribute statement is invalid"
   },
@@ -10038,10 +10030,6 @@
   {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "Invalid AD/LDAP ID"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Empty LDAP attribute value"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",

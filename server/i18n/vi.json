@@ -12674,20 +12674,12 @@
     "translation": "Kiểm tra kết nối LDAP không thành công. Máy chủ: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Lỗi: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Không thể truy xuất các trường CPA"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "Id AD/LDAP không hợp lệ"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Không thể lấy thông tin người dùng."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Giá trị thuộc tính LDAP trống"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12824,10 +12816,6 @@
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
     "translation": "Giao diện proxy đẩy là nil."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Không thể truy xuất (các) trường CPA"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
