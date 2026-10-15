@@ -33,21 +33,15 @@ test(
         const {adminUser, adminClient} = await pw.initSetup();
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-        try {
-            // # Save a non-numeric Maximum Login Attempts value
-            await systemConsolePage.gotoPasswordSettings();
-            await systemConsolePage.passwordSettings.maximumLoginAttempts.fill('ten');
-            await systemConsolePage.passwordSettings.save();
-            await expect(systemConsolePage.passwordSettings.saveButton).toBeDisabled();
+        // # Save a non-numeric Maximum Login Attempts value
+        await systemConsolePage.gotoPasswordSettings();
+        await systemConsolePage.passwordSettings.maximumLoginAttempts.fill('ten');
+        await systemConsolePage.passwordSettings.save();
+        await expect(systemConsolePage.passwordSettings.saveButton).toBeDisabled();
 
-            // * Verify the field and config reset to the default
-            await expect
-                .poll(async () => (await adminClient.getConfig()).ServiceSettings.MaximumLoginAttempts)
-                .toBe(10);
-            await expect(systemConsolePage.passwordSettings.maximumLoginAttempts).toHaveValue('10');
-        } finally {
-            await adminClient.patchConfig({ServiceSettings: {MaximumLoginAttempts: 10}});
-        }
+        // * Verify the field and config reset to the default
+        await expect.poll(async () => (await adminClient.getConfig()).ServiceSettings.MaximumLoginAttempts).toBe(10);
+        await expect(systemConsolePage.passwordSettings.maximumLoginAttempts).toHaveValue('10');
     },
 );
 
@@ -58,17 +52,13 @@ test('MM-T1776 saves a valid Maximum Login Attempts change', {tag: '@authenticat
     const {adminUser, adminClient} = await pw.initSetup();
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-    try {
-        // # Save a valid Maximum Login Attempts value
-        await systemConsolePage.gotoPasswordSettings();
-        await systemConsolePage.passwordSettings.maximumLoginAttempts.fill('2');
-        await systemConsolePage.passwordSettings.save();
-        await expect(systemConsolePage.passwordSettings.saveButton).toBeDisabled();
+    // # Save a valid Maximum Login Attempts value
+    await systemConsolePage.gotoPasswordSettings();
+    await systemConsolePage.passwordSettings.maximumLoginAttempts.fill('2');
+    await systemConsolePage.passwordSettings.save();
+    await expect(systemConsolePage.passwordSettings.saveButton).toBeDisabled();
 
-        // * Verify the field and config persist the new value
-        await expect.poll(async () => (await adminClient.getConfig()).ServiceSettings.MaximumLoginAttempts).toBe(2);
-        await expect(systemConsolePage.passwordSettings.maximumLoginAttempts).toHaveValue('2');
-    } finally {
-        await adminClient.patchConfig({ServiceSettings: {MaximumLoginAttempts: 10}});
-    }
+    // * Verify the field and config persist the new value
+    await expect.poll(async () => (await adminClient.getConfig()).ServiceSettings.MaximumLoginAttempts).toBe(2);
+    await expect(systemConsolePage.passwordSettings.maximumLoginAttempts).toHaveValue('2');
 });
