@@ -152,7 +152,9 @@ sudo semanage fcontext -a -t httpd_sys_content_t "/opt/mattermost(/.*)?"
 sudo restorecon -R /opt/mattermost
 ```
 
-A new installation also writes files, plugins, and logs outside `/opt/mattermost`. Give those directories a type Mattermost can write:
+A stock enforcing system does not ship a Mattermost policy. With `/opt/mattermost/bin` labeled `bin_t`, systemd starts the service unconfined, and that domain can write the default types on `/var/lib` (`var_lib_t`) and `/var/log` (`var_log_t`). `/etc/mattermost/mattermost.env` is mode `0600` and is read by systemd as root, so it needs no extra label.
+
+If a local policy confines Mattermost and the audit log shows denials for the new directories, label them writable:
 
 ```sh
 sudo semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/mattermost(/.*)?"
@@ -274,8 +276,12 @@ Note the rule number — your allow rule must be numbered lower so it's evaluate
 ```text
 allow perm=execute exe=/usr/bin/sudo trust=1 : dir=/opt/mattermost/ all trust=0
 allow perm=execute exe=/opt/mattermost/bin/mattermost : dir=/opt/mattermost all trust=0
+allow perm=execute exe=/opt/mattermost/bin/mattermost : dir=/var/lib/mattermost all trust=0
 allow perm=execute exe=/usr/lib/systemd/systemd trust=1 : dir=/opt/mattermost/ all trust=0
+allow perm=execute exe=/usr/lib/systemd/systemd trust=1 : dir=/var/lib/mattermost/ all trust=0
 ```
+
+A new installation runs server plugins from `/var/lib/mattermost/plugins`. The `/opt/mattermost` rules do not cover that directory.
 
 **Validate and load**:
 
@@ -321,13 +327,14 @@ Stop the server, back up any data you need, then remove the install directory:
 ```sh
 sudo systemctl stop mattermost
 sudo rm -rf /opt/mattermost
-sudo rm /lib/systemd/system/mattermost.service
+sudo rm -f /etc/systemd/system/mattermost.service
+sudo rm -rf /etc/systemd/system/mattermost.service.d
 sudo userdel mattermost
 ```
 
 <Important title="Back up before removing">
 
-`/opt/mattermost` contains `config/`, `logs/`, `plugins/`, `client/plugins/`, and `data/`. Back these up before running `rm -rf` if you may need to restore.
+An install that used `mattermost setup` keeps files in `/var/lib/mattermost`, logs in `/var/log/mattermost`, and configuration in `/etc/mattermost`. Back those up before deleting them. Older installs may still keep `config/`, `logs/`, `plugins/`, `client/plugins/`, and `data/` under `/opt/mattermost`.
 
 </Important>
 

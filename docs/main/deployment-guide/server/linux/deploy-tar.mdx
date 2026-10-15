@@ -155,13 +155,14 @@ Stop the server, back up data you need to keep, then remove the install:
 ```sh
 sudo systemctl stop mattermost
 sudo rm -rf /opt/mattermost
-sudo rm /lib/systemd/system/mattermost.service
+sudo rm -f /etc/systemd/system/mattermost.service
+sudo rm -rf /etc/systemd/system/mattermost.service.d
 sudo userdel mattermost
 ```
 
 <Important title="Back up before removing">
 
-`/opt/mattermost` contains `config/`, `logs/`, `plugins/`, `client/plugins/`, and `data/`. Back these up before running `rm -rf` if you may need to restore.
+An install that used `mattermost setup` keeps files in `/var/lib/mattermost`, logs in `/var/log/mattermost`, and configuration in `/etc/mattermost`. Back those up before deleting them. Older installs may still keep `config/`, `logs/`, `plugins/`, `client/plugins/`, and `data/` under `/opt/mattermost`.
 
 </Important>
 

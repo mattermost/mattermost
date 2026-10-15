@@ -121,6 +121,8 @@ sudo apt update && sudo apt upgrade
 sudo systemctl start mattermost
 ```
 
+`apt upgrade` replaces the package files under `/opt/mattermost`. It leaves `/var/lib/mattermost`, `/var/log/mattermost`, and `/etc/mattermost` in place. Do not run `mattermost setup` as part of the upgrade. Ubuntu does not ship an AppArmor profile for the Mattermost binary, so those directories need no profile change.
+
 :::important[Stop the server before upgrading]
 `apt upgrade` will replace the Mattermost binary while it's running. Stop the systemd service first to avoid corrupt state.
 :::
@@ -132,7 +134,7 @@ sudo systemctl stop mattermost
 sudo apt remove --purge mattermost
 ```
 
-This removes the package but leaves `/opt/mattermost/data`, `/opt/mattermost/logs`, `/opt/mattermost/plugins`, and `/opt/mattermost/config` in place. Back these up before deleting if you may need to restore.
+This removes the package. An install that used `mattermost setup` keeps files in `/var/lib/mattermost`, logs in `/var/log/mattermost`, and configuration in `/etc/mattermost`. Back those up before deleting them. Older installs may still have `data/`, `logs/`, `plugins/`, and `config/` under `/opt/mattermost`.
 
 ## Next steps
 
