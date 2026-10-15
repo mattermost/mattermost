@@ -148,6 +148,18 @@ func TestNeedsPrivilegeProbe(t *testing.T) {
 	require.False(t, needsPrivilegeProbe(true))
 }
 
+func TestSetupBanner(t *testing.T) {
+	t.Parallel()
+	for _, line := range strings.Split(strings.TrimRight(setupBanner, "\n"), "\n") {
+		require.LessOrEqual(t, len(line), 78, line)
+	}
+	var buf bytes.Buffer
+	(setupEnv{out: &buf}).printBanner()
+	text := buf.String()
+	require.Contains(t, text, setupBanner)
+	require.Contains(t, text, "Mattermost "+model.CurrentVersion)
+}
+
 func TestShippedUnitMatchesFile(t *testing.T) {
 	t.Parallel()
 	_, source, _, ok := runtime.Caller(0)
@@ -386,7 +398,9 @@ func TestSetupNewInstallDoesNotImportShippedConfig(t *testing.T) {
 	require.Contains(t, string(unit), "EnvironmentFile="+opts.EnvFile)
 
 	text := out.String()
-	require.Contains(t, text, newInstallationLine)
+	require.Contains(t, text, "[+] "+newInstallationLine)
+	require.Contains(t, text, "[+] Can create a table in the current schema.")
+	require.Contains(t, text, "Mattermost "+model.CurrentVersion)
 	require.Contains(t, text, "Site URL: https://mattermost.example.com")
 	require.Contains(t, text, "systemctl enable --now mattermost")
 	require.Contains(t, text, "will not be read")
@@ -431,7 +445,8 @@ func TestSetupExistingJoinSkipsSeedAndSiteURL(t *testing.T) {
 	require.False(t, calls.updated)
 	require.Empty(t, calls.binds)
 	text := out.String()
-	require.Contains(t, text, existingInstallLine)
+	require.Contains(t, text, "[+] "+existingInstallLine)
+	require.NotContains(t, text, "Can create a table")
 	require.Contains(t, text, "Ignoring --site-url")
 	require.Contains(t, text, "Clustering is disabled")
 	dropIn, err := os.ReadFile(filepath.Join(env.paths.dropInDir, setupDropInName))

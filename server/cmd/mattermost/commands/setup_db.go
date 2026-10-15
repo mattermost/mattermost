@@ -6,10 +6,10 @@ package commands
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -29,18 +29,20 @@ import (
 const (
 	setupDBTimeout = 30 * time.Second
 	// activeConfigQuery reads the active row. It does not insert or update.
-	activeConfigQuery = "SELECT value FROM configurations WHERE active"
-	peersQuery        = "SELECT hostname, gossipport, port FROM clusterdiscovery WHERE type = $1 AND clustername = $2 AND lastpingat >= $3"
+	activeConfigQuery    = "SELECT value FROM configurations WHERE active"
+	peersQuery           = "SELECT hostname, gossipport, port FROM clusterdiscovery WHERE type = $1 AND clustername = $2 AND lastpingat >= $3"
+	privilegeProbeTable  = "db_check"
+	privilegeProbeCreate = "CREATE TABLE db_check (id integer)"
+	privilegeProbeDrop   = "DROP TABLE db_check"
 )
 
-var probeTableNameRE = regexp.MustCompile(`^mm_setup_probe_[a-z0-9]+$`)
-
 type dbInspection struct {
-	version       int
-	encoding      string
-	hasMigrations bool
-	schemaVersion int
-	probedCreate  bool
+	version          int
+	encoding         string
+	hasMigrations    bool
+	schemaVersion    int
+	probedCreate     bool
+	probeDropWarning string
 }
 
 func openPostgres(dsn string) (*sql.DB, error) {
@@ -123,23 +125,26 @@ func inspectDatabase(dsn string) (dbInspection, error) {
 		return info, nil
 	}
 
-	if err := probeCreateTable(ctx, handle); err != nil {
+	warning, err := probeCreateTable(ctx, handle)
+	if err != nil {
 		return dbInspection{}, errors.Errorf("cannot create a table in the current schema: %s", redactDSN(err, dsn))
 	}
 	info.probedCreate = true
+	info.probeDropWarning = warning
 	return info, nil
 }
 
-func probeCreateTable(ctx context.Context, handle *sql.DB) error {
-	name := "mm_setup_probe_" + strings.ToLower(model.NewId())
-	if !probeTableNameRE.MatchString(name) {
-		return errors.New("internal error naming the privilege probe table")
+func probeCreateTable(ctx context.Context, handle *sql.DB) (string, error) {
+	if _, err := handle.ExecContext(ctx, privilegeProbeCreate); err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "already exists") {
+			return "", errors.Errorf("table %s already exists. Drop it and run setup again", privilegeProbeTable)
+		}
+		return "", err
 	}
-	if _, err := handle.ExecContext(ctx, "CREATE TABLE "+name+" (id integer)"); err != nil {
-		return err
+	if _, err := handle.ExecContext(context.Background(), privilegeProbeDrop); err != nil {
+		return fmt.Sprintf("Could not delete table %s. Drop it before starting Mattermost.", privilegeProbeTable), nil
 	}
-	_, err := handle.ExecContext(context.Background(), "DROP TABLE IF EXISTS "+name)
-	return err
+	return "", nil
 }
 
 func setupTableExists(ctx context.Context, handle *sql.DB, table string) (bool, error) {

@@ -25,6 +25,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
+const setupBanner = "" +
+	" __  __       _   _                                _\n" +
+	"|  \\/  | __ _| |_| |_ ___ _ __ _ __ ___   ___  ___| |_\n" +
+	"| |\\/| |/ _` | __| __/ _ \\ '__| '_ ` _ \\ / _ \\/ __| __|\n" +
+	"| |  | | (_| | |_| ||  __/ |  | | | | | | (_) \\__ \\ |_\n" +
+	"|_|  |_|\\__,_|\\__|\\__\\___|_|  |_| |_| |_|\\___/|___/\\__|\n"
+
 var SetupCmd = &cobra.Command{
 	Use:   "setup",
 	Short: "Bootstrap a systemd install",
@@ -196,6 +203,8 @@ func runSetup(opts setupOptions, env setupEnv) error {
 		return err
 	}
 
+	env.printBanner()
+
 	dsn, err := env.obtainDatabaseURL(opts)
 	if err != nil {
 		return err
@@ -209,16 +218,19 @@ func runSetup(opts setupOptions, env setupEnv) error {
 		return err
 	}
 	for _, warning := range postgresWarnings(info.version, info.encoding) {
-		env.printf("Warning: %s\n", warning)
+		env.warnf("%s", warning)
 	}
 	if info.hasMigrations {
-		env.println(existingInstallLine)
+		env.note("%s", existingInstallLine)
 	} else {
-		env.println(newInstallationLine)
+		env.note("%s", newInstallationLine)
 	}
-	env.println("Database connectivity succeeded.")
+	env.note("Database connectivity succeeded.")
 	if needsPrivilegeProbe(info.hasMigrations) {
-		env.println("Creating and dropping an ordinary table succeeded.")
+		env.note("Can create a table in the current schema.")
+		if info.probeDropWarning != "" {
+			env.warnf("%s", info.probeDropWarning)
+		}
 	}
 
 	active, hasActive, err := env.readActiveConfig(dsn)
@@ -254,7 +266,7 @@ func runSetup(opts setupOptions, env setupEnv) error {
 		return err
 	}
 	if opts.DryRun {
-		env.println("Dry run stopped before writing files. Mattermost was not started.")
+		env.note("Dry run stopped before writing files. Mattermost was not started.")
 		return nil
 	}
 
@@ -269,7 +281,7 @@ func runSetup(opts setupOptions, env setupEnv) error {
 	if err := ensureRuntimeDirs(runtimeDirs(env.installRoot, dirSpec), uid, gid); err != nil {
 		return err
 	}
-	env.println("The mattermost user can write the runtime directories.")
+	env.note("The mattermost user can write the runtime directories.")
 	if !info.hasMigrations {
 		env.printStatePaths(dirSpec)
 	}
@@ -283,9 +295,9 @@ func runSetup(opts setupOptions, env setupEnv) error {
 		return err
 	}
 	if schemaWarning != "" {
-		env.printf("Warning: %s\n", schemaWarning)
+		env.warnf("%s", schemaWarning)
 	} else if info.hasMigrations {
-		env.println("Database schema is not newer than this binary.")
+		env.note("Database schema is not newer than this binary.")
 	}
 
 	if err := env.checkListenPorts(info, checkCfg); err != nil {
@@ -299,10 +311,10 @@ func runSetup(opts setupOptions, env setupEnv) error {
 			return err
 		}
 		for _, warning := range siteURLWarnings(siteURL) {
-			env.printf("Warning: %s\n", warning)
+			env.warnf("%s", warning)
 		}
 	} else if opts.SiteURLSet && strings.TrimSpace(opts.SiteURL) != "" {
-		env.println("This installation already has a Site URL. Ignoring --site-url.")
+		env.note("This installation already has a Site URL. Ignoring --site-url.")
 	}
 
 	if !info.hasMigrations {
@@ -310,22 +322,22 @@ func runSetup(opts setupOptions, env setupEnv) error {
 			if err := env.seedDatabase(dsn, opts.MigrateFrom, siteURL, true); err != nil {
 				return err
 			}
-			env.println("Configuration was stored in the database.")
+			env.note("Configuration was stored in the database.")
 		} else {
 			if err := env.writeFileConfig(defaultFileConfig, dsn, siteURL, uid, gid); err != nil {
 				return err
 			}
-			env.printf("Configuration was written to %s.\n", defaultFileConfig)
+			env.note("Configuration was written to %s.", defaultFileConfig)
 		}
 		if err := env.initSchema(dsn); err != nil {
 			return err
 		}
-		env.println("Database schema was initialized.")
+		env.note("Database schema was initialized.")
 	} else if !hasActive && opts.MigrateFrom != "" {
 		if err := env.seedDatabase(dsn, opts.MigrateFrom, "", false); err != nil {
 			return err
 		}
-		env.printf("Configuration was imported from %s. The stored DataSource is the setup URL.\n", opts.MigrateFrom)
+		env.note("Configuration was imported from %s. The stored DataSource is the setup URL.", opts.MigrateFrom)
 	}
 
 	mmConfig := dsn
@@ -352,7 +364,7 @@ func runSetup(opts setupOptions, env setupEnv) error {
 			if err := env.updateStoredDataSource(dsn); err != nil {
 				return err
 			}
-			env.println("Stored DataSource was updated to the setup URL.")
+			env.note("Stored DataSource was updated to the setup URL.")
 		}
 	} else if _, err := decideDataSourceUpdate("", false, previous, mmConfig, opts.Force); err != nil {
 		return err
@@ -360,40 +372,49 @@ func runSetup(opts setupOptions, env setupEnv) error {
 
 	shipped := filepath.Join(env.installRoot, "config", "config.json")
 	if _, statErr := os.Stat(shipped); statErr == nil && filepath.Clean(shipped) != filepath.Clean(mmConfig) {
-		env.printf("Warning: %s is present and will not be read. The service uses MM_CONFIG from %s.\n", shipped, opts.EnvFile)
+		env.warnf("%s is present and will not be read. The service uses MM_CONFIG from %s.", shipped, opts.EnvFile)
 	}
 
 	contents := renderEnvFile(mmConfig, dataSource)
 	if err := writeEnvFile(opts.EnvFile, contents); err != nil {
 		return err
 	}
-	env.printf("Wrote %s (mode 0600).\n", opts.EnvFile)
+	env.note("Wrote %s (mode 0600).", opts.EnvFile)
 
 	if err := installSystemd(env.paths, opts.EnvFile, env.daemonReload); err != nil {
 		return err
 	}
-	env.println("systemd was reloaded. The service was not enabled or started.")
-	env.println("Mattermost was not started.")
+	env.note("systemd was reloaded. The service was not enabled or started.")
+	env.note("Mattermost was not started.")
 	if useDatabase {
-		env.printf("Run `systemctl enable --now mattermost`. It reads %s and does not use config.json.\n", opts.EnvFile)
+		env.note("Run `systemctl enable --now mattermost`. It reads %s and does not use config.json.", opts.EnvFile)
 	} else {
-		env.printf("Run `systemctl enable --now mattermost`. It reads %s and uses %s.\n", opts.EnvFile, mmConfig)
+		env.note("Run `systemctl enable --now mattermost`. It reads %s and uses %s.", opts.EnvFile, mmConfig)
 	}
 	if !info.hasMigrations && siteURL != "" {
-		env.printf("Site URL: %s\n", siteURL)
+		env.note("Site URL: %s", siteURL)
 	}
 	if useDatabase {
-		env.println("System Console shows DataSource as environment-controlled. To return to a file, migrate the database configuration back to a file and point MM_CONFIG at that file. Commenting MM_CONFIG out falls through to the shipped config.json.")
+		env.note("System Console shows DataSource as environment-controlled. To return to a file, migrate the database configuration back to a file and point MM_CONFIG at that file. Commenting MM_CONFIG out falls through to the shipped config.json.")
 	}
 	return nil
 }
 
-func (e setupEnv) println(args ...any) {
-	fmt.Fprintln(e.out, args...)
+func (e setupEnv) printBanner() {
+	fmt.Fprint(e.out, setupBanner)
+	fmt.Fprintf(e.out, "\nMattermost %s\n\n", model.CurrentVersion)
 }
 
-func (e setupEnv) printf(format string, args ...any) {
-	fmt.Fprintf(e.out, format, args...)
+func (e setupEnv) note(format string, args ...any) {
+	fmt.Fprintf(e.out, "[+] "+format+"\n", args...)
+}
+
+func (e setupEnv) warnf(format string, args ...any) {
+	fmt.Fprintf(e.out, "[!] "+format+"\n", args...)
+}
+
+func (e setupEnv) ask(prompt string) {
+	fmt.Fprint(e.out, "[?] "+prompt)
 }
 
 func (e setupEnv) obtainDatabaseURL(opts setupOptions) (string, error) {
@@ -404,7 +425,7 @@ func (e setupEnv) obtainDatabaseURL(opts setupOptions) (string, error) {
 	if !e.tty || opts.NonInteractive {
 		return "", errors.New("database URL is required when stdin is not a terminal; pass --database-url")
 	}
-	fmt.Fprint(e.out, "PostgreSQL URL (for example postgres://mmuser@db.example.com:5432/mattermost?sslmode=disable): ")
+	e.ask("PostgreSQL URL (for example postgres://mmuser@db.example.com:5432/mattermost?sslmode=disable): ")
 	if e.tty && e.stdin == os.Stdin {
 		secret, err := term.ReadPassword(int(os.Stdin.Fd()))
 		fmt.Fprintln(e.out)
@@ -426,7 +447,7 @@ func (e setupEnv) chooseConfigStore(opts setupOptions, info dbInspection, hasAct
 		if !opts.ConfigStoreSet {
 			store = configStoreDatabase
 			if e.tty && !opts.NonInteractive {
-				fmt.Fprint(e.out, "Store configuration in the database or in a file? [database/file] (database): ")
+				e.ask("Store configuration in the database or in a file? [database/file] (database): ")
 				line, readErr := e.in.ReadString('\n')
 				if readErr != nil && !errors.Is(readErr, io.EOF) {
 					return false, "", readErr
@@ -445,7 +466,7 @@ func (e setupEnv) chooseConfigStore(opts setupOptions, info dbInspection, hasAct
 
 	if hasActive {
 		if opts.ConfigStoreSet && opts.ConfigStore == configStoreFile {
-			e.println("This installation already stores configuration in the database. Ignoring --config-store file.")
+			e.note("This installation already stores configuration in the database. Ignoring --config-store file.")
 		}
 		return true, "", nil
 	}
@@ -485,11 +506,11 @@ func configForChecks(info dbInspection, hasActive bool, active, imported *model.
 
 func (e setupEnv) checkCluster(dsn string, info dbInspection, cfg *model.Config) error {
 	if !info.hasMigrations {
-		e.println("Skipping gossip port checks; there is no cluster yet.")
+		e.note("Skipping gossip port checks; there is no cluster yet.")
 		return nil
 	}
 	if !clusterEnabled(cfg) {
-		e.println("Clustering is disabled. Skipping gossip port checks.")
+		e.note("Clustering is disabled. Skipping gossip port checks.")
 		return nil
 	}
 	port := gossipPort(cfg)
@@ -499,14 +520,14 @@ func (e setupEnv) checkCluster(dsn string, info dbInspection, cfg *model.Config)
 		return err
 	}
 	if len(peers) == 0 {
-		e.printf("Clustering is enabled on gossip port %d, but no peer is registered.\n", port)
+		e.note("Clustering is enabled on gossip port %d, but no peer is registered.", port)
 		return nil
 	}
 	if err := dialPeers(peers, port, e.dial); err != nil {
 		return err
 	}
-	e.println("Every registered peer accepted a TCP connection on its gossip port.")
-	e.println("Warning: outbound checks do not prove peers can open this host. Allow inbound TCP and UDP on the gossip port from every peer.")
+	e.note("Every registered peer accepted a TCP connection on its gossip port.")
+	e.warnf("Outbound checks do not prove peers can open this host. Allow inbound TCP and UDP on the gossip port from every peer.")
 
 	host, err := e.hostname()
 	if err != nil {
@@ -517,7 +538,7 @@ func (e setupEnv) checkCluster(dsn string, info dbInspection, cfg *model.Config)
 	}
 	for _, peer := range peers {
 		if strings.EqualFold(peer.Hostname, host) {
-			e.printf("Warning: %s is already a live cluster peer. A replaced node can stay registered for 30 minutes.\n", host)
+			e.warnf("%s is already a live cluster peer. A replaced node can stay registered for 30 minutes.", host)
 			break
 		}
 	}
@@ -526,14 +547,14 @@ func (e setupEnv) checkCluster(dsn string, info dbInspection, cfg *model.Config)
 
 func (e setupEnv) checkListenPorts(info dbInspection, cfg *model.Config) error {
 	if e.serviceActive() {
-		e.println("mattermost.service is active. Skipping local port checks.")
+		e.note("mattermost.service is active. Skipping local port checks.")
 		return nil
 	}
 	listen := listenAddress(cfg)
 	if err := e.bind("tcp", listen); err != nil {
 		return errors.Errorf("listen address %s is already in use: %s", listen, err.Error())
 	}
-	e.printf("Listen address %s is free.\n", listen)
+	e.note("Listen address %s is free.", listen)
 	if info.hasMigrations && clusterEnabled(cfg) {
 		gossip := fmt.Sprintf(":%d", gossipPort(cfg))
 		if err := e.bind("tcp", gossip); err != nil {
@@ -542,7 +563,7 @@ func (e setupEnv) checkListenPorts(info dbInspection, cfg *model.Config) error {
 		if err := e.bind("udp", gossip); err != nil {
 			return errors.Errorf("gossip port %s/udp is already in use: %s", gossip, err.Error())
 		}
-		e.printf("Gossip port %s is free on TCP and UDP.\n", gossip)
+		e.note("Gossip port %s is free on TCP and UDP.", gossip)
 	}
 	return nil
 }
@@ -556,14 +577,14 @@ func (e setupEnv) obtainSiteURL(opts setupOptions) (string, error) {
 		return siteURL, nil
 	}
 	for {
-		fmt.Fprint(e.out, "Site URL (for example https://mattermost.example.com), or leave empty to skip: ")
+		e.ask("Site URL (for example https://mattermost.example.com), or leave empty to skip: ")
 		line, err := e.in.ReadString('\n')
 		if err != nil && !errors.Is(err, io.EOF) {
 			return "", err
 		}
 		siteURL := strings.TrimSpace(line)
 		if err := validateSiteURL(siteURL); err != nil {
-			e.printf("%s\n", err.Error())
+			e.warnf("%s", err.Error())
 			continue
 		}
 		return siteURL, nil
@@ -637,17 +658,17 @@ func (e setupEnv) printStatePaths(spec *modelConfigDirs) {
 	if spec == nil {
 		return
 	}
-	e.printf("File storage: %s\n", resolveUnderRoot(e.installRoot, spec.data))
-	e.printf("Logs: %s\n", resolveUnderRoot(e.installRoot, spec.logs))
-	e.printf("Plugins: %s\n", resolveUnderRoot(e.installRoot, spec.plugins))
-	e.printf("Client plugins: %s\n", resolveUnderRoot(e.installRoot, spec.clientPlugins))
+	e.note("File storage: %s", resolveUnderRoot(e.installRoot, spec.data))
+	e.note("Logs: %s", resolveUnderRoot(e.installRoot, spec.logs))
+	e.note("Plugins: %s", resolveUnderRoot(e.installRoot, spec.plugins))
+	e.note("Client plugins: %s", resolveUnderRoot(e.installRoot, spec.clientPlugins))
 }
 
 func (e setupEnv) ensureServiceUser(opts setupOptions) (int, int, error) {
 	uid, gid, err := e.lookupUser(mattermostUser)
 	if err == nil {
 		if opts.UIDSet && uid != opts.UID {
-			e.printf("Warning: user %s already exists with uid %d. Leaving it unchanged.\n", mattermostUser, uid)
+			e.warnf("User %s already exists with uid %d. Leaving it unchanged.", mattermostUser, uid)
 		}
 		return uid, gid, nil
 	}
@@ -658,7 +679,7 @@ func (e setupEnv) ensureServiceUser(opts setupOptions) (int, int, error) {
 		return 0, 0, errors.Errorf("user %s does not exist. Re-run without --no-create-user to create it", mattermostUser)
 	}
 	if e.tty && !opts.NonInteractive {
-		fmt.Fprint(e.out, "Create the system user and group 'mattermost'? [Y/n]: ")
+		e.ask("Create the system user and group 'mattermost'? [Y/n]: ")
 		line, readErr := e.in.ReadString('\n')
 		if readErr != nil && !errors.Is(readErr, io.EOF) {
 			return 0, 0, readErr
@@ -673,7 +694,7 @@ func (e setupEnv) ensureServiceUser(opts setupOptions) (int, int, error) {
 	if err := e.createUser(mattermostUser, opts.UID); err != nil {
 		return 0, 0, err
 	}
-	e.printf("Created system user and group %s.\n", mattermostUser)
+	e.note("Created system user and group %s.", mattermostUser)
 	return e.lookupUser(mattermostUser)
 }
 
