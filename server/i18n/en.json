@@ -14408,8 +14408,8 @@
   },
   {
     "id": "health.rule.site_url_http.message",
-    "translation": "SiteURL is {{.url}}. Session cookies and auth tokens traverse cleartext.",
-    "description": "Health dashboard finding detail when the Site URL uses http://; {{.url}} is the configured Site URL, and 'traverse cleartext' means they travel over the network unencrypted."
+    "translation": "SiteURL is {{.url}}. Session cookies and auth tokens travel over the network unencrypted.",
+    "description": "Health dashboard finding detail when the Site URL uses http://; {{.url}} is the configured Site URL."
   },
   {
     "id": "health.rule.site_url_http.remediation",
