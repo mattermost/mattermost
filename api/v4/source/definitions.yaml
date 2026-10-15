@@ -5461,6 +5461,14 @@ components:
         message:
           type: string
           description: The finding-specific detail in the request locale. For an `unknown` finding, why the rule could not be evaluated.
+        docs_url:
+          type: string
+          description: A link to documentation about the rule. Omitted when the rule has none.
+          example: https://mattermost.com/pl/configure-site-url
+        console_path:
+          type: string
+          description: The System Console path of the setting that resolves the finding. Omitted when the rule has none.
+          example: /admin_console/environment/web_server
         first_seen_at:
           type: integer
           format: int64
@@ -5486,7 +5494,7 @@ components:
         evaluated_at:
           type: integer
           format: int64
-          description: The time in milliseconds the server last evaluated its health rules, or 0 if it has not evaluated yet.
+          description: The time in milliseconds the server last evaluated its health rules, or 0 if it has not evaluated yet or no health rule has fired yet.
         findings:
           type: array
           items:

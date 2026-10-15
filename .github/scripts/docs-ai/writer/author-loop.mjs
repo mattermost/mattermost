@@ -90,20 +90,18 @@ function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback, exis
 
   if (input.prTitle) parts.push(block('pull-request-title', input.prTitle, {maxChars: 500}), '');
   if (input.prBody) parts.push(block('pull-request-description', input.prBody, {maxChars: 6000}), '');
-  if (input.milestoneTitle) {
-    parts.push(
-      block(
-        'pr-metadata',
-        [
-          `PR URL: ${input.prUrl || '(unknown)'}`,
-          `milestone.title: ${input.milestoneTitle}`,
-          `milestone.version: ${input.milestoneVersion || '(none)'}`,
-        ].join('\n'),
-        {maxChars: 2000},
-      ),
-      '',
-    );
-  }
+  parts.push(
+    block(
+      'pr-metadata',
+      [
+        `PR URL: ${input.prUrl || '(unknown)'}`,
+        `milestone.title: ${input.milestoneTitle || '(none)'}`,
+        `milestone.version: ${input.milestoneVersion || '(none)'}`,
+      ].join('\n'),
+      {maxChars: 2000},
+    ),
+    '',
+  );
   if (input.codeDiff) parts.push(block('code_diff', input.codeDiff, {maxChars: 40_000}), '');
 
   parts.push(
@@ -355,7 +353,7 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
   return {files, trail};
 }
 
-export function renderPrBody({sourcePr, trail, brief}) {
+export function renderPrBody({sourcePr, trail, brief, milestoneVersion}) {
   const lines = [
     '<!-- docs-ai-draft:v1 -->',
     `<!-- docs-ai-source-pr:${sourcePr} -->`,
@@ -365,11 +363,22 @@ export function renderPrBody({sourcePr, trail, brief}) {
     'Authored by audience personas from the gap analysis sticky comment, then reviewed',
     'in-loop before this PR opened. Treat as a draft pending human editorial review.',
     '',
+  ];
+
+  if (!milestoneVersion) {
+    lines.push(
+      'The source PR had no milestone version. Version anchors are',
+      '`From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT]` until a human replaces them.',
+      '',
+    );
+  }
+
+  lines.push(
     '## Gap brief',
     '',
     brief.summary || '_No summary recovered from the sticky comment._',
     '',
-  ];
+  );
 
   if (brief.actions?.length) {
     lines.push('### Recommended actions', '', ...brief.actions.map((a) => `- [ ] ${a}`), '');
