@@ -8,6 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {extractFilenameFromContentDisposition} from '@mattermost/client';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {Button} from '@mattermost/shared/components/button';
 import type {SupportPacketContent} from '@mattermost/types/admin';
 import type {UserProfile} from '@mattermost/types/users';
@@ -192,21 +193,15 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                 className='CommercialSupportModal__option'
                                 key={item.id}
                             >
-                                <input
-                                    className='CommercialSupportModal__options__checkbox'
+                                <Checkbox
                                     id={item.id}
                                     name={item.id}
-                                    type='checkbox'
                                     checked={item.selected}
                                     disabled={item.mandatory}
                                     onChange={() => this.updateCheckStatus(index)}
-                                />
-                                <label
-                                    className='CommercialSupportModal__options_checkbox_label'
-                                    htmlFor={item.id}
                                 >
                                     {item.label}
-                                </label>
+                                </Checkbox>
                             </div>
                         ))}
                         <div className='CommercialSupportModal__download'>
