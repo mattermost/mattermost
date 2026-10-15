@@ -9,7 +9,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import type {CustomProfileAttribute} from './helpers';
+import type {AttributeVisibility, CustomProfileAttribute} from './helpers';
 import {
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValues,
@@ -103,6 +103,30 @@ test.beforeEach(async ({pw}) => {
 
     // Visit the test channel
     await page.goto(`/${team.name}/channels/${testChannel.name}`);
+});
+
+// The visibility each attribute had before a test changed it. Department and the other fields are
+// shared with every spec on the server, so a test that leaves Department hidden fails the next one
+// that expects to see it.
+const changedVisibility = new Map<string, AttributeVisibility>();
+
+async function setVisibility(attributeName: string, visibility: AttributeVisibility) {
+    const previous = await updateCustomProfileAttributeVisibility(
+        adminClient,
+        attributeFieldsMap,
+        attributeName,
+        visibility,
+    );
+    if (!changedVisibility.has(attributeName)) {
+        changedVisibility.set(attributeName, previous);
+    }
+}
+
+test.afterEach(async () => {
+    for (const [attributeName, visibility] of changedVisibility) {
+        await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, attributeName, visibility);
+    }
+    changedVisibility.clear();
 });
 
 test.afterAll(async () => {
@@ -242,7 +266,7 @@ test('MM-T5776 Hide custom profile attributes when visibility is set to hidden @
     pw,
 }) => {
     // 1. Update the visibility of the Department attribute to hidden
-    await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, 'Department', 'hidden');
+    await setVisibility('Department', 'hidden');
 
     // 2. Login as the test user
     const {channelsPage} = await pw.testBrowser.login(user);
@@ -276,7 +300,7 @@ test('MM-T5777 Always display custom profile attributes with visibility set to a
     pw,
 }) => {
     // 1. Update the visibility of the Title attribute to always
-    await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, 'Title', 'always');
+    await setVisibility('Title', 'always');
 
     // 2. Login as the other user
     const {channelsPage} = await pw.testBrowser.login(otherUser);

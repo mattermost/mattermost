@@ -308,13 +308,20 @@ export async function verifyAttributeNotInPopover(channelsPage: ChannelsPage, at
  * @param {string} attributeName - The name of the attribute to update
  * @param {string} visibility - The visibility value to set ('when_set', 'hidden', or 'always')
  */
+export type AttributeVisibility = 'when_set' | 'hidden' | 'always';
+
+/**
+ * Sets an attribute's visibility and returns the visibility it had, so a test can put it back:
+ * the fields are shared with every spec on the server.
+ */
 export async function updateCustomProfileAttributeVisibility(
     adminClient: Client4,
     fieldsMap: Record<string, UserPropertyField>,
     attributeName: string,
-    visibility: 'when_set' | 'hidden' | 'always',
-): Promise<void> {
+    visibility: AttributeVisibility,
+): Promise<AttributeVisibility> {
     const fieldID = getFieldIdByName(fieldsMap, attributeName);
+    const previous = (fieldsMap[fieldID].attrs?.visibility as AttributeVisibility | undefined) ?? 'when_set';
 
     // Patched through the property field API, which merges attrs, rather than the user attributes
     // API: that one refuses a field linked to a Global Attribute, which every user attribute of a
@@ -323,6 +330,7 @@ export async function updateCustomProfileAttributeVisibility(
         attrs: {visibility},
     });
     fieldsMap[updatedField.id] = updatedField as UserPropertyField;
+    return previous;
 }
 
 /**
