@@ -5,9 +5,11 @@ package slashcommands
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func runRemoteCommand(th *TestHelper, userID, command string) string {
@@ -358,6 +361,113 @@ func TestIsOnline(t *testing.T) {
 	assert.True(t, isOnline(now-1000), "recent ping")
 	assert.False(t, isOnline(now-model.RemoteOfflineAfterMillis-1000), "ping older than RemoteOfflineAfterMillis")
 	assert.False(t, isOnline(0), "never pinged")
+}
+
+type failingDeleteRemoteClusterStore struct {
+	store.RemoteClusterStore
+	wrapper *failingDeleteStoreWrapper
+}
+
+func (s *failingDeleteRemoteClusterStore) Delete(remoteClusterId string) (bool, error) {
+	s.wrapper.deleteCalls.Add(1)
+	if remoteClusterId == s.wrapper.failDeleteID {
+		return false, errors.New("database is unavailable")
+	}
+	return s.RemoteClusterStore.Delete(remoteClusterId)
+}
+
+// failingDeleteStoreWrapper fails RemoteCluster().Delete for failDeleteID and counts
+// every Delete call; all other calls use the real store.
+type failingDeleteStoreWrapper struct {
+	store.Store
+	failDeleteID string
+	deleteCalls  atomic.Int32
+}
+
+func (w *failingDeleteStoreWrapper) RemoteCluster() store.RemoteClusterStore {
+	return &failingDeleteRemoteClusterStore{RemoteClusterStore: w.Store.RemoteCluster(), wrapper: w}
+}
+
+func TestRemoteProviderDoRemove(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+
+	// The wrapper is installed before the server starts so the live store is never swapped.
+	wrapper := &failingDeleteStoreWrapper{Store: dbStore, failDeleteID: model.NewId()}
+	th := setupTestHelper(wrapper, false, true, t, nil).initBasic(t)
+	th.addPermissionToRole(t, model.PermissionManageSecureConnections.Id, th.BasicUser.Roles)
+
+	runRemove := func(t *testing.T, command string) string {
+		t.Helper()
+		args := &model.CommandArgs{
+			T:         i18n.GetUserTranslations("en"),
+			UserId:    th.BasicUser.Id,
+			TeamId:    th.BasicTeam.Id,
+			ChannelId: th.BasicChannel.Id,
+			Command:   command,
+		}
+		resp := (&RemoteProvider{}).DoCommand(th.App, th.Context, args, "")
+		require.NotNil(t, resp)
+		return resp.Text
+	}
+
+	t.Run("removes an existing connection", func(t *testing.T) {
+		rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+			RemoteId:  model.NewId(),
+			Name:      "remote-" + model.NewId(),
+			SiteURL:   "https://" + model.NewId() + ".example.com",
+			Token:     model.NewId(),
+			CreatorId: th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+
+		output := runRemove(t, "/secure-connection remove --connectionID "+rc.RemoteId)
+
+		require.Equal(t, "##### Secure connection "+rc.RemoteId+" removed.", output)
+		_, appErr = th.App.GetRemoteCluster(rc.RemoteId, false)
+		require.NotNil(t, appErr, "removed connection must no longer be returned as active")
+		deletedRC, appErr := th.App.GetRemoteCluster(rc.RemoteId, true)
+		require.Nil(t, appErr)
+		require.NotZero(t, deletedRC.DeleteAt)
+	})
+
+	t.Run("reports an unknown connection as not found", func(t *testing.T) {
+		id := model.NewId()
+
+		output := runRemove(t, "/secure-connection remove --connectionID "+id)
+
+		require.Equal(t, "##### Secure connection "+id+" **NOT FOUND**.", output)
+	})
+
+	t.Run("reports a store error instead of not found", func(t *testing.T) {
+		output := runRemove(t, "/secure-connection remove --connectionID "+wrapper.failDeleteID)
+
+		require.Equal(t, "Could not remove secure connection: We encountered an error deleting the secure connection.", output)
+	})
+
+	t.Run("rejects a missing, empty or malformed connectionID without deleting", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			command string
+			reply   string
+		}{
+			"missing":   {"/secure-connection remove", "Missing or empty `connectionID`"},
+			"empty":     {"/secure-connection remove --connectionID", "Missing or empty `connectionID`"},
+			"malformed": {"/secure-connection remove --connectionID foo", "`foo` is not a valid `connectionID`"},
+		} {
+			t.Run(name, func(t *testing.T) {
+				callsBefore := wrapper.deleteCalls.Load()
+
+				output := runRemove(t, tc.command)
+
+				require.Equal(t, tc.reply, output)
+				require.Equal(t, callsBefore, wrapper.deleteCalls.Load(), "DeleteRemoteCluster must not be called without a valid connectionID")
+			})
+		}
+	})
 }
 
 func TestRemoteProviderDoStatus(t *testing.T) {
