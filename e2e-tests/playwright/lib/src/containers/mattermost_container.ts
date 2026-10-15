@@ -4,7 +4,7 @@
 import {GenericContainer, Wait} from 'testcontainers';
 import type {StartedTestContainer} from 'testcontainers';
 
-import {isUpgradeFromProjectSelected, isUpgradeToPhaseProjectSelected} from '../upgrade_env';
+import {isUpgradeFromProjectActive, isUpgradeToPhaseProjectActive} from '../upgrade_env';
 
 import {
     INBUCKET_ALIAS,
@@ -70,10 +70,12 @@ function structuralEnv(): Record<string, string> {
 // MM_LOGSETTINGS_CONSOLELEVEL=DEBUG, since the scheduler logs that line at Debug.
 //
 // Upgrade projects skip the log wait: they're API-only, and restarts/reuse can miss the log line
-// after the old container is removed.
+// after the old container is removed. *Active (not *Selected): a restart can run from a worker
+// process (see restartMattermostContainer()), where only the env-var-aware check resolves
+// correctly (see upgrade_env.ts).
 function mattermostWaitStrategy() {
     const ping = Wait.forHttp('/api/v4/system/ping', MATTERMOST_PORT).forStatusCode(200);
-    if (isUpgradeFromProjectSelected() || isUpgradeToPhaseProjectSelected()) {
+    if (isUpgradeFromProjectActive() || isUpgradeToPhaseProjectActive()) {
         return ping;
     }
     return Wait.forAll([ping, Wait.forLogMessage(/All migrations are complete\./, 1)]);
@@ -110,7 +112,7 @@ export async function startMattermostContainer(
         // Upgrade-swap-to skips reuse: the old container was rm -f'd and reuse could reattach to an
         // unrelated leftover on the same image tag. upgrade-from still needs withReuse() so Ryuk
         // doesn't reap the server before upgrade-to can adopt the stack.
-        if (testConfig.testcontainersReuse && !isUpgradeToPhaseProjectSelected()) {
+        if (testConfig.testcontainersReuse && !isUpgradeToPhaseProjectActive()) {
             builder = builder.withReuse();
         }
 
