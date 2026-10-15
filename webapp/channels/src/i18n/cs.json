@@ -1018,7 +1018,7 @@
   "admin.customProfileAttribDesc.ldap": "(Volitelné) Atribut na serveru AD/LDAP použitý k naplnění pole {name} uživatelů v Mattermost. Pokud je nastaven, uživatelé nemohou své pole {name} upravovat, protože je synchronizováno se serverem LDAP. Pokud je ponechán prázdný, mohou si uživatelé pole {name} nastavit v <strong>Nabídka účtu > Nastavení účtu > Profil</strong>.",
   "admin.customProfileAttribDesc.saml": "(Volitelné) Atribut v SAML Assertion, který bude použit k naplnění pole {name} uživatelů v Mattermost.",
   "admin.customProfileAttribWarning": "(Varování) Tento atribut bude převeden na atribut typu TEXT, pokud je pole nastaveno na synchronizaci.",
-  "admin.customProfileAttributes.linkedNonText": "Toto pole je atribut správy typu {type} a nelze jej synchronizovat přes LDAP ani SAML. Synchronizaci podporují pouze textová pole.",
+  "admin.customProfileAttributes.linkedNonText": "Toto pole je propojeno s atributem typu {type} na stránce Správa atributů, a proto jej nelze synchronizovat přes AD/LDAP ani SAML. Synchronizaci podporují pouze atributy typu text, výběr a vícenásobný výběr.",
   "admin.customProfileAttributes.managedByPlugin": "Toto pole je spravováno pluginem {pluginId} a nelze jej upravovat.",
   "admin.customProfileAttributes.subtitle": "Vlastní atributy profilu můžete přidat nebo odebrat na stránce <link>uživatelské atributy</link>.",
   "admin.customProfileAttributes.title": "Synchronizace vlastních atributů profilu",
