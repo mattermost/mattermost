@@ -3,7 +3,7 @@
 
 import isNil from 'lodash/isNil';
 import React, {type JSX} from 'react';
-import {FormattedMessage, defineMessages} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
 import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
@@ -249,6 +249,14 @@ const channelModerationHeaderMessages = defineMessages({
         id: 'admin.channel_settings.channel_moderation.subtitleMembers',
         defaultMessage: 'Manage the actions available to channel members.',
     },
+    guests: {
+        id: 'admin.channel_settings.channel_moderation.guests',
+        defaultMessage: 'Guests',
+    },
+    members: {
+        id: 'admin.channel_settings.channel_moderation.members',
+        defaultMessage: 'Members',
+    },
 });
 
 interface ChannelModerationTableRow {
@@ -264,6 +272,7 @@ interface ChannelModerationTableRow {
 }
 
 export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
+    const {formatMessage} = useIntl();
     const channelModerationPermissionMessages = getChannelModerationRowsMessages(props.name);
     let descriptionId = channelModerationPermissionMessages?.description.id;
     let descriptionDefaultMessage = channelModerationPermissionMessages?.description.defaultMessage;
@@ -271,6 +280,9 @@ export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
         descriptionId = channelModerationPermissionMessages.descriptionMembers?.id ?? '';
         descriptionDefaultMessage = channelModerationPermissionMessages?.descriptionMembers?.defaultMessage ?? '';
     }
+    const permissionTitle = channelModerationPermissionMessages?.title
+        ? formatMessage(channelModerationPermissionMessages.title)
+        : props.name;
     return (
         <tr>
             <td>
@@ -298,7 +310,7 @@ export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
                     {!isNil(props.guests) &&
                         <Checkbox
                             data-testid={`${props.name}-${Roles.GUESTS}`}
-                            aria-label={`${props.name} ${Roles.GUESTS}`}
+                            aria-label={`${permissionTitle} ${formatMessage(channelModerationHeaderMessages.guests)}`}
                             checked={Boolean(props.guests && !props.guestsDisabled)}
                             disabled={Boolean(props.guestsDisabled || props.readOnly)}
                             onChange={() => props.onClick(props.name, Roles.GUESTS as ChannelModerationRoles)}
@@ -310,7 +322,7 @@ export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
                 {!isNil(props.members) &&
                     <Checkbox
                         data-testid={`${props.name}-${Roles.MEMBERS}`}
-                        aria-label={`${props.name} ${Roles.MEMBERS}`}
+                        aria-label={`${permissionTitle} ${formatMessage(channelModerationHeaderMessages.members)}`}
                         checked={Boolean(props.members && !props.membersDisabled)}
                         disabled={Boolean(props.membersDisabled || props.readOnly)}
                         onChange={() => props.onClick(props.name, Roles.MEMBERS as ChannelModerationRoles)}
@@ -485,17 +497,11 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                                     </th>
                                     {guestAccountsEnabled &&
                                         <th>
-                                            <FormattedMessage
-                                                id='admin.channel_settings.channel_moderation.guests'
-                                                defaultMessage='Guests'
-                                            />
+                                            <FormattedMessage {...channelModerationHeaderMessages.guests}/>
                                         </th>
                                     }
                                     <th>
-                                        <FormattedMessage
-                                            id='admin.channel_settings.channel_moderation.members'
-                                            defaultMessage='Members'
-                                        />
+                                        <FormattedMessage {...channelModerationHeaderMessages.members}/>
                                     </th>
                                 </tr>
                             </thead>

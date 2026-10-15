@@ -60,22 +60,22 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_c_"
                 >
                   <input
-                    aria-label="create_post guests"
+                    aria-label="Create Posts Guests"
                     checked=""
-                    class="_checkbox__input_1pc8o_21"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="create_post-guests"
                     id="_r_c_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   >
                     <span
-                      class="_checkbox__icon_1pc8o_66"
+                      class="_checkbox__icon_1rll8_66"
                     >
                       <div
                         aria-hidden="true"
@@ -104,22 +104,22 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_d_"
                 >
                   <input
-                    aria-label="create_post members"
+                    aria-label="Create Posts Members"
                     checked=""
-                    class="_checkbox__input_1pc8o_21"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="create_post-members"
                     id="_r_d_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   >
                     <span
-                      class="_checkbox__icon_1pc8o_66"
+                      class="_checkbox__icon_1rll8_66"
                     >
                       <div
                         aria-hidden="true"
@@ -178,37 +178,37 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_e_"
                 >
                   <input
-                    aria-label="use_channel_mentions guests"
-                    class="_checkbox__input_1pc8o_21"
+                    aria-label="Channel Mentions Guests"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="use_channel_mentions-guests"
                     disabled=""
                     id="_r_e_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   />
                 </label>
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_f_"
                 >
                   <input
-                    aria-label="use_channel_mentions members"
-                    class="_checkbox__input_1pc8o_21"
+                    aria-label="Channel Mentions Members"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="use_channel_mentions-members"
                     disabled=""
                     id="_r_f_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   />
                 </label>
               </td>
@@ -281,22 +281,22 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_0_"
                 >
                   <input
-                    aria-label="create_post guests"
+                    aria-label="Create Posts Guests"
                     checked=""
-                    class="_checkbox__input_1pc8o_21"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="create_post-guests"
                     id="_r_0_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   >
                     <span
-                      class="_checkbox__icon_1pc8o_66"
+                      class="_checkbox__icon_1rll8_66"
                     >
                       <div
                         aria-hidden="true"
@@ -325,22 +325,22 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_1_"
                 >
                   <input
-                    aria-label="create_post members"
+                    aria-label="Create Posts Members"
                     checked=""
-                    class="_checkbox__input_1pc8o_21"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="create_post-members"
                     id="_r_1_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   >
                     <span
-                      class="_checkbox__icon_1pc8o_66"
+                      class="_checkbox__icon_1rll8_66"
                     >
                       <div
                         aria-hidden="true"
@@ -436,35 +436,35 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_8_"
                 >
                   <input
-                    aria-label="create_post guests"
-                    class="_checkbox__input_1pc8o_21"
+                    aria-label="Create Posts Guests"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="create_post-guests"
                     id="_r_8_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   />
                 </label>
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_9_"
                 >
                   <input
-                    aria-label="create_post members"
-                    class="_checkbox__input_1pc8o_21"
+                    aria-label="Create Posts Members"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="create_post-members"
                     id="_r_9_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   />
                 </label>
               </td>
@@ -490,37 +490,37 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_a_"
                 >
                   <input
-                    aria-label="use_channel_mentions guests"
-                    class="_checkbox__input_1pc8o_21"
+                    aria-label="Channel Mentions Guests"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="use_channel_mentions-guests"
                     disabled=""
                     id="_r_a_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   />
                 </label>
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_b_"
                 >
                   <input
-                    aria-label="use_channel_mentions members"
-                    class="_checkbox__input_1pc8o_21"
+                    aria-label="Channel Mentions Members"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="use_channel_mentions-members"
                     disabled=""
                     id="_r_b_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   />
                 </label>
               </td>
@@ -553,22 +553,22 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
         </td>
         <td>
           <label
-            class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+            class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
             for="_r_2_"
           >
             <input
-              aria-label="create_post guests"
+              aria-label="Create Posts Guests"
               checked=""
-              class="_checkbox__input_1pc8o_21"
+              class="_checkbox__input_1rll8_22"
               data-testid="create_post-guests"
               id="_r_2_"
               type="checkbox"
             />
             <span
-              class="_checkbox__box_1pc8o_41"
+              class="_checkbox__box_1rll8_41"
             >
               <span
-                class="_checkbox__icon_1pc8o_66"
+                class="_checkbox__icon_1rll8_66"
               >
                 <div
                   aria-hidden="true"
@@ -597,22 +597,22 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
         </td>
         <td>
           <label
-            class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+            class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
             for="_r_3_"
           >
             <input
-              aria-label="create_post members"
+              aria-label="Create Posts Members"
               checked=""
-              class="_checkbox__input_1pc8o_21"
+              class="_checkbox__input_1rll8_22"
               data-testid="create_post-members"
               id="_r_3_"
               type="checkbox"
             />
             <span
-              class="_checkbox__box_1pc8o_41"
+              class="_checkbox__box_1rll8_41"
             >
               <span
-                class="_checkbox__icon_1pc8o_66"
+                class="_checkbox__icon_1rll8_66"
               >
                 <div
                   aria-hidden="true"
@@ -665,22 +665,22 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
         </td>
         <td>
           <label
-            class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+            class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
             for="_r_l_"
           >
             <input
-              aria-label="create_post members"
+              aria-label="Create Posts Members"
               checked=""
-              class="_checkbox__input_1pc8o_21"
+              class="_checkbox__input_1rll8_22"
               data-testid="create_post-members"
               id="_r_l_"
               type="checkbox"
             />
             <span
-              class="_checkbox__box_1pc8o_41"
+              class="_checkbox__box_1rll8_41"
             >
               <span
-                class="_checkbox__icon_1pc8o_66"
+                class="_checkbox__icon_1rll8_66"
               >
                 <div
                   aria-hidden="true"
@@ -773,39 +773,39 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_g_"
                 >
                   <input
-                    aria-label="create_post guests"
-                    class="_checkbox__input_1pc8o_21"
+                    aria-label="Create Posts Guests"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="create_post-guests"
                     id="_r_g_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   />
                 </label>
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_h_"
                 >
                   <input
-                    aria-label="create_post members"
+                    aria-label="Create Posts Members"
                     checked=""
-                    class="_checkbox__input_1pc8o_21"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="create_post-members"
                     id="_r_h_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   >
                     <span
-                      class="_checkbox__icon_1pc8o_66"
+                      class="_checkbox__icon_1rll8_66"
                     >
                       <div
                         aria-hidden="true"
@@ -869,37 +869,37 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_i_"
                 >
                   <input
-                    aria-label="use_channel_mentions guests"
-                    class="_checkbox__input_1pc8o_21"
+                    aria-label="Channel Mentions Guests"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="use_channel_mentions-guests"
                     disabled=""
                     id="_r_i_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   />
                 </label>
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_j_"
                 >
                   <input
-                    aria-label="use_channel_mentions members"
-                    class="_checkbox__input_1pc8o_21"
+                    aria-label="Channel Mentions Members"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="use_channel_mentions-members"
                     disabled=""
                     id="_r_j_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   />
                 </label>
               </td>
@@ -969,22 +969,22 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_k_"
                 >
                   <input
-                    aria-label="create_post members"
+                    aria-label="Create Posts Members"
                     checked=""
-                    class="_checkbox__input_1pc8o_21"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="create_post-members"
                     id="_r_k_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   >
                     <span
-                      class="_checkbox__icon_1pc8o_66"
+                      class="_checkbox__icon_1rll8_66"
                     >
                       <div
                         aria-hidden="true"
@@ -1080,22 +1080,22 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_4_"
                 >
                   <input
-                    aria-label="create_post guests"
+                    aria-label="Create Posts Guests"
                     checked=""
-                    class="_checkbox__input_1pc8o_21"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="create_post-guests"
                     id="_r_4_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   >
                     <span
-                      class="_checkbox__icon_1pc8o_66"
+                      class="_checkbox__icon_1rll8_66"
                     >
                       <div
                         aria-hidden="true"
@@ -1124,18 +1124,18 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_5_"
                 >
                   <input
-                    aria-label="create_post members"
-                    class="_checkbox__input_1pc8o_21"
+                    aria-label="Create Posts Members"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="create_post-members"
                     id="_r_5_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   />
                 </label>
               </td>
@@ -1176,37 +1176,37 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_6_"
                 >
                   <input
-                    aria-label="use_channel_mentions guests"
-                    class="_checkbox__input_1pc8o_21"
+                    aria-label="Channel Mentions Guests"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="use_channel_mentions-guests"
                     disabled=""
                     id="_r_6_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   />
                 </label>
               </td>
               <td>
                 <label
-                  class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                  class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                   for="_r_7_"
                 >
                   <input
-                    aria-label="use_channel_mentions members"
-                    class="_checkbox__input_1pc8o_21"
+                    aria-label="Channel Mentions Members"
+                    class="_checkbox__input_1rll8_22"
                     data-testid="use_channel_mentions-members"
                     disabled=""
                     id="_r_7_"
                     type="checkbox"
                   />
                   <span
-                    class="_checkbox__box_1pc8o_41"
+                    class="_checkbox__box_1rll8_41"
                   />
                 </label>
               </td>
