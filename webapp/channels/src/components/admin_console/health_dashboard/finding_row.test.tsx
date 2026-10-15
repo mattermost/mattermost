@@ -85,7 +85,7 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         renderRow(makeFinding({state: 'unknown', message: 'Config section unavailable.', state_since: now - (125 * 60000)}));
 
         expect(screen.getByText('Config section unavailable.')).toBeInTheDocument();
-        expect(screen.getByText('Unknown (Critical when firing)')).toBeInTheDocument();
+        expect(screen.getByText('Unknown (Critical if firing)')).toBeInTheDocument();
         expect(header().getByText('Unevaluated for 2h 5m')).toBeInTheDocument();
     });
 

@@ -1018,7 +1018,7 @@
   "admin.customProfileAttribDesc.ldap": "(Opcionalno) Atribut na AD/LDAP serveru koji se koristi za popunjavanje polja {name} korisnika u Mattermostu. Kada je postavljen, korisnici ne mogu uređivati polje {name} jer se sinkronizira s LDAP serverom. Kada je prazno, korisnici mogu postaviti polje {name} u <strong>Izbornik računa > Postavke računa > Profil</strong>.",
   "admin.customProfileAttribDesc.saml": "(Opcionalno) Atribut u SAML tvrdnji koji će se koristiti za popunjavanje polja {name} korisnika u Mattermostu.",
   "admin.customProfileAttribWarning": "(Upozorenje) Ovaj će se atribut pretvoriti u atribut vrste TEXT ako se polje postavi na sinkronizaciju.",
-  "admin.customProfileAttributes.linkedNonText": "Ovo je polje upravljački atribut vrste {type} i ne može se sinkronizirati putem LDAP-a ili SAML-a. Sinkronizaciju podržavaju samo tekstualna polja.",
+  "admin.customProfileAttributes.linkedNonText": "Ovo je polje povezano s atributom vrste {type} na stranici Upravljanje atributima pa se ne može sinkronizirati putem AD/LDAP-a ili SAML-a. Sinkronizaciju podržavaju samo atributi vrste tekst, odabir i višestruki odabir.",
   "admin.customProfileAttributes.managedByPlugin": "Ovim poljem upravlja dodatak {pluginId} i ne može se uređivati.",
   "admin.customProfileAttributes.subtitle": "Korisničke atribute možeš dodati ili ukloniti na <link>stranici korisničkih atributa</link>.",
   "admin.customProfileAttributes.title": "Sinkronizacija korisničkih atributa",
