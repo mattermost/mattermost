@@ -264,7 +264,8 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             isCloud ? this.renderCloudStartTrialActions() : {}
         );
 
-        const skuLabel = showSkuTag === false ? null : licenseSkuToFeatureDiscoveryLabel(minimumSKURequiredForFeature);
+        // Pass null when hidden so the panel does not fall back to its PROFESSIONAL default.
+        const skuLabel = showSkuTag ? licenseSkuToFeatureDiscoveryLabel(minimumSKURequiredForFeature) : null;
 
         return (
             <div

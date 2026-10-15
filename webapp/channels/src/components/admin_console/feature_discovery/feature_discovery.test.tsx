@@ -360,5 +360,76 @@ describe('components/feature_discovery', () => {
             expect(getCloudSubscription).not.toHaveBeenCalled();
             expect(openModal).not.toHaveBeenCalled();
         });
+
+        test('should not render SKU label when showSkuTag is omitted', () => {
+            renderWithContext(
+                <FeatureDiscovery
+                    featureName='test'
+                    minimumSKURequiredForFeature={LicenseSkus.Professional}
+                    title={{
+                        id: 'translation.test.title',
+                        defaultMessage: 'Foo',
+                    }}
+                    copy={{
+                        id: 'translation.test.copy',
+                        defaultMessage: 'Bar',
+                    }}
+                    learnMoreURL='https://test.mattermost.com/secondary/'
+                    featureDiscoveryImage={<GroupsSVG/>}
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    stats={{TOTAL_USERS: 20}}
+                    prevTrialLicense={{IsLicensed: 'false'}}
+                    isCloud={false}
+                    isCloudTrial={false}
+                    hadPrevCloudTrial={false}
+                    isSubscriptionLoaded={true}
+                    isPaidSubscription={false}
+                    isEnterpriseReady={true}
+                    actions={{
+                        getPrevTrialLicense: jest.fn(),
+                        getCloudSubscription: jest.fn(),
+                        openModal: jest.fn(),
+                    }}
+                />,
+            );
+
+            expect(screen.queryByText('PROFESSIONAL')).not.toBeInTheDocument();
+        });
+
+        test('should render SKU label when showSkuTag is true', () => {
+            renderWithContext(
+                <FeatureDiscovery
+                    featureName='test'
+                    minimumSKURequiredForFeature={LicenseSkus.Professional}
+                    showSkuTag={true}
+                    title={{
+                        id: 'translation.test.title',
+                        defaultMessage: 'Foo',
+                    }}
+                    copy={{
+                        id: 'translation.test.copy',
+                        defaultMessage: 'Bar',
+                    }}
+                    learnMoreURL='https://test.mattermost.com/secondary/'
+                    featureDiscoveryImage={<GroupsSVG/>}
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    stats={{TOTAL_USERS: 20}}
+                    prevTrialLicense={{IsLicensed: 'false'}}
+                    isCloud={false}
+                    isCloudTrial={false}
+                    hadPrevCloudTrial={false}
+                    isSubscriptionLoaded={true}
+                    isPaidSubscription={false}
+                    isEnterpriseReady={true}
+                    actions={{
+                        getPrevTrialLicense: jest.fn(),
+                        getCloudSubscription: jest.fn(),
+                        openModal: jest.fn(),
+                    }}
+                />,
+            );
+
+            expect(screen.getByText('PROFESSIONAL')).toBeInTheDocument();
+        });
     });
 });
