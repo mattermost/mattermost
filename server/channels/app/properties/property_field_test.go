@@ -933,6 +933,44 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, "saml", model.GetPropertyFieldSyncSource(samlLinked))
 	})
 
+	t.Run("create linked field takes exactly the source's sync attrs, and only as a user field", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "SyncSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrLDAP: "department",
+			},
+		})
+
+		userField, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "SyncLinkedUser-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Attrs:         model.StringInterface{model.PropertyFieldAttrSAML: "employeeID"},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "department", userField.Attrs[model.PropertyFieldAttrLDAP])
+		assert.NotContains(t, userField.Attrs, model.PropertyFieldAttrSAML, "a sync source the template does not name is dropped")
+
+		channelField, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "SyncLinkedChannel-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Attrs:         model.StringInterface{model.PropertyFieldAttrLDAP: "department"},
+		})
+		require.NoError(t, err)
+		assert.False(t, model.IsPropertyFieldSynced(channelField), "no sync writes channel values, so a channel field is never sync-locked")
+	})
+
 	t.Run("create linked field does not copy ldap/saml attrs to non-user object types", func(t *testing.T) {
 		// A template with both ldap and saml attrs set.
 		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{

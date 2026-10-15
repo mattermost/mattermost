@@ -135,30 +135,23 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 			)
 		}
 
-		// Copy type and options from source. Sync attrs (ldap/saml) are only
-		// propagated to user-type linked fields: SAML/LDAP sync services
-		// exclusively write user-targeted values and have no mechanism to
-		// write channel, team, or post values.
+		// Copy type, options, and sync source from source. The sync source
+		// (ldap/saml) is the template's, since it defines where the value
+		// comes from -- a linked field can't claim one of its own. Only a user
+		// field takes it: an identity source reports attributes of users, and
+		// on any other object type the sync lock it implies would refuse
+		// every write to values no sync ever makes.
 		field.Type = source.Type
 		if field.Attrs == nil {
 			field.Attrs = make(model.StringInterface)
 		}
-		if source.Attrs != nil {
-			if opts, ok := source.Attrs[model.PropertyFieldAttributeOptions]; ok {
-				field.Attrs[model.PropertyFieldAttributeOptions] = opts
-			}
-			if field.ObjectType == model.PropertyFieldObjectTypeUser {
-				if ldap, ok := source.Attrs[model.PropertyFieldAttrLDAP]; ok {
-					field.Attrs[model.PropertyFieldAttrLDAP] = ldap
-				}
-				if saml, ok := source.Attrs[model.PropertyFieldAttrSAML]; ok {
-					field.Attrs[model.PropertyFieldAttrSAML] = saml
-				}
-			} else {
-				// Strip any caller-supplied sync attrs: checkSyncLock treats their
-				// presence as a lock regardless of where they came from.
-				delete(field.Attrs, model.PropertyFieldAttrLDAP)
-				delete(field.Attrs, model.PropertyFieldAttrSAML)
+		if opts, ok := source.Attrs[model.PropertyFieldAttributeOptions]; ok {
+			field.Attrs[model.PropertyFieldAttributeOptions] = opts
+		}
+		for _, syncAttr := range []string{model.PropertyFieldAttrLDAP, model.PropertyFieldAttrSAML} {
+			delete(field.Attrs, syncAttr)
+			if value, ok := source.Attrs[syncAttr]; ok && field.ObjectType == model.PropertyFieldObjectTypeUser {
+				field.Attrs[syncAttr] = value
 			}
 		}
 

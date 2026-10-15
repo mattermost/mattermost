@@ -103,6 +103,24 @@ test('assertVersionAnchors rejects a stale anchor that is not the milestone', ()
   );
 });
 
+test('assertVersionAnchors requires the human-judgment phrase when no milestone was supplied', () => {
+  const marker = 'From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT]';
+  assert.doesNotThrow(() =>
+    assertVersionAnchors(
+      [{path: 'docs/main/x.mdx', content: `---\ntitle: X\n---\n\n${marker}, users can…\n`}],
+      {},
+    ),
+  );
+  assert.throws(
+    () =>
+      assertVersionAnchors(
+        [{path: 'docs/main/x.mdx', content: '---\ntitle: X\n---\n\nFrom Mattermost v11.7, guessed.\n'}],
+        {},
+      ),
+    /no milestone version was supplied/,
+  );
+});
+
 test('parseFileBlocks reads path= fences', () => {
   const text = [
     '```mdx path=docs/main/end-user-guide/a.mdx',
