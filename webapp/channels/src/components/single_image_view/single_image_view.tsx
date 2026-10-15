@@ -4,7 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent} from 'react';
-import {IntlContext} from 'react-intl';
+import {injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -44,15 +45,13 @@ type State = {
     thumbnailRejected: boolean;
 };
 
-export default class SingleImageView extends React.PureComponent<Props, State> {
-    static contextType = IntlContext;
-
+class SingleImageView extends React.PureComponent<Props & WrappedComponentProps, State> {
     private mounted = false;
     static defaultProps = {
         compactDisplay: false,
     };
 
-    constructor(props: Props) {
+    constructor(props: Props & WrappedComponentProps) {
         super(props);
         this.state = {
             loaded: false,
@@ -221,7 +220,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 key='toggle'
                 className='style--none single-image-view__toggle'
                 data-expanded={this.props.isEmbedVisible}
-                aria-label={(this.context as React.ContextType<typeof IntlContext>).formatMessage({id: 'accessibility.toggle_embed_visibility', defaultMessage: 'Toggle Embed Visibility'})}
+                aria-label={this.props.intl.formatMessage({id: 'accessibility.toggle_embed_visibility', defaultMessage: 'Toggle Embed Visibility'})}
                 onClick={this.toggleEmbedVisibility}
             >
                 <span
@@ -333,3 +332,5 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(SingleImageView);

@@ -18,8 +18,6 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import PostBodyAdditionalContent from './post_body_additional_content';
 import type {Props} from './post_body_additional_content';
 
-jest.unmock('react-intl');
-
 jest.mock('mattermost-redux/utils/post_utils', () => {
     const actual = jest.requireActual('mattermost-redux/utils/post_utils');
     return {

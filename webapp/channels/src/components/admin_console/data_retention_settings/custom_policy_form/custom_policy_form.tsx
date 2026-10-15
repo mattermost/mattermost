@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-import {defineMessages, FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
@@ -49,7 +50,7 @@ type Props = {
         removeDataRetentionCustomPolicyChannels: (id: string, policy: string[]) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
-};
+} & WrappedComponentProps;
 
 type State = {
     policyName: string | undefined;
@@ -70,7 +71,7 @@ type State = {
     formErrorText: React.ReactNode;
 };
 
-export default class CustomPolicyForm extends React.PureComponent<Props, State> {
+class CustomPolicyForm extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -382,22 +383,18 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                                 <div
                                     className='CustomPolicy__fields'
                                 >
-                                    <FormattedMessage {...messages.policyName}>
-                                        {(label) => (
-                                            <Input
-                                                name='policyName'
-                                                aria-label={label.join('')}
-                                                type='text'
-                                                value={this.state.policyName}
-                                                onChange={(e) => {
-                                                    this.setState({policyName: e.target.value, saveNeeded: true});
-                                                    this.props.actions.setNavigationBlocked(true);
-                                                }}
-                                                placeholder={messages.policyName}
-                                                customMessage={{type: ItemStatus.ERROR, value: this.state.inputErrorText}}
-                                            />
-                                        )}
-                                    </FormattedMessage>
+                                    <Input
+                                        name='policyName'
+                                        aria-label={this.props.intl.formatMessage(messages.policyName)}
+                                        type='text'
+                                        value={this.state.policyName}
+                                        onChange={(e) => {
+                                            this.setState({policyName: e.target.value, saveNeeded: true});
+                                            this.props.actions.setNavigationBlocked(true);
+                                        }}
+                                        placeholder={messages.policyName}
+                                        customMessage={{type: ItemStatus.ERROR, value: this.state.inputErrorText}}
+                                    />
                                     <DropdownInputHybrid
                                         onDropdownChange={(value) => {
                                             if (this.state.messageRetentionDropdownValue.value !== value.value) {
@@ -580,3 +577,5 @@ const messages = defineMessages({
         defaultMessage: 'Policy name',
     },
 });
+
+export default injectIntl(CustomPolicyForm);

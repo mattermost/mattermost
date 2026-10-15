@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-import {IntlContext} from 'react-intl';
+import {injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import {isAppBinding, type AppBinding} from '@mattermost/types/apps';
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
@@ -42,9 +43,7 @@ export type Props = {
     };
 };
 
-export default class PostBodyAdditionalContent extends React.PureComponent<Props> {
-    static contextType = IntlContext;
-
+class PostBodyAdditionalContent extends React.PureComponent<Props & WrappedComponentProps> {
     toggleEmbedVisibility = () => {
         this.props.actions.toggleEmbedVisibility(this.props.post.id);
     };
@@ -152,7 +151,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
                 key='toggle'
                 className={`style--none post__embed-visibility color--link ${prependToggle ? 'pull-left' : ''}`}
                 data-expanded={this.props.isEmbedVisible}
-                aria-label={(this.context as React.ContextType<typeof IntlContext>).formatMessage({id: 'accessibility.toggle_embed_visibility', defaultMessage: 'Toggle Embed Visibility'})}
+                aria-label={this.props.intl.formatMessage({id: 'accessibility.toggle_embed_visibility', defaultMessage: 'Toggle Embed Visibility'})}
                 onClick={this.toggleEmbedVisibility}
             />
         );
@@ -210,3 +209,5 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
         return this.props.children;
     }
 }
+
+export default injectIntl(PostBodyAdditionalContent);
