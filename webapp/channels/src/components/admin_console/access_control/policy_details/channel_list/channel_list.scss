@@ -17,18 +17,19 @@
     }
 
     .ChannelList__autoAddHeader {
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        justify-content: flex-start;
+        max-width: 100%;
         padding-left: 16px;
-        gap: 8px;
+        gap: 4px;
 
-        .header-text {
-            letter-spacing: 0.02em;
+        // Compass Checkbox defaults to width: 100%; keep the control compact in the header cell.
+        .header-checkbox {
+            width: auto;
+            max-width: 100%;
         }
 
         .ChannelList__autoAddInfoIcon {
-            margin-left: -6px;
             color: rgba(var(--sys-center-channel-color-rgb), 0.56);
             font-size: 16px;
 
@@ -39,15 +40,15 @@
     }
 
     .ChannelList__autoAddColumn {
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        justify-content: flex-start;
+        max-width: 100%;
         padding-left: 16px;
-        gap: 8px;
 
-        .checkbox-label {
-            line-height: 16px;
-            user-select: none;
+        // Compass Checkbox defaults to width: 100%; keep row toggles compact with On/Off label.
+        .channel-checkbox {
+            width: auto;
+            max-width: 100%;
         }
     }
 

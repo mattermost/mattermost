@@ -192,7 +192,6 @@ exports[`components/admin_console/access_control/channel_list should match snaps
               for="auto-add-header-checkbox"
             >
               <input
-                aria-label="Auto-add members"
                 class="_checkbox__input_1pc8o_21"
                 data-testid="auto-add-header-checkbox"
                 id="auto-add-header-checkbox"
@@ -201,12 +200,12 @@ exports[`components/admin_console/access_control/channel_list should match snaps
               <span
                 class="_checkbox__box_1pc8o_41"
               />
+              <span
+                class="_checkbox__label_1pc8o_117"
+              >
+                Auto-add members
+              </span>
             </label>
-            <span
-              class="header-text"
-            >
-              Auto-add members
-            </span>
             <i
               class="icon icon-information-outline ChannelList__autoAddInfoIcon"
             />
@@ -470,7 +469,6 @@ exports[`components/admin_console/access_control/channel_list should match snaps
               for="auto-add-header-checkbox"
             >
               <input
-                aria-label="Auto-add members"
                 class="_checkbox__input_1pc8o_21"
                 data-testid="auto-add-header-checkbox"
                 id="auto-add-header-checkbox"
@@ -479,12 +477,12 @@ exports[`components/admin_console/access_control/channel_list should match snaps
               <span
                 class="_checkbox__box_1pc8o_41"
               />
+              <span
+                class="_checkbox__label_1pc8o_117"
+              >
+                Auto-add members
+              </span>
             </label>
-            <span
-              class="header-text"
-            >
-              Auto-add members
-            </span>
             <i
               class="icon icon-information-outline ChannelList__autoAddInfoIcon"
             />
@@ -748,7 +746,6 @@ exports[`components/admin_console/access_control/channel_list should match snaps
               for="auto-add-header-checkbox"
             >
               <input
-                aria-label="Auto-add members"
                 class="_checkbox__input_1pc8o_21"
                 data-testid="auto-add-header-checkbox"
                 id="auto-add-header-checkbox"
@@ -757,12 +754,12 @@ exports[`components/admin_console/access_control/channel_list should match snaps
               <span
                 class="_checkbox__box_1pc8o_41"
               />
+              <span
+                class="_checkbox__label_1pc8o_117"
+              >
+                Auto-add members
+              </span>
             </label>
-            <span
-              class="header-text"
-            >
-              Auto-add members
-            </span>
             <i
               class="icon icon-information-outline ChannelList__autoAddInfoIcon"
             />
@@ -1026,7 +1023,6 @@ exports[`components/admin_console/access_control/channel_list should match snaps
               for="auto-add-header-checkbox"
             >
               <input
-                aria-label="Auto-add members"
                 class="_checkbox__input_1pc8o_21"
                 data-testid="auto-add-header-checkbox"
                 id="auto-add-header-checkbox"
@@ -1035,12 +1031,12 @@ exports[`components/admin_console/access_control/channel_list should match snaps
               <span
                 class="_checkbox__box_1pc8o_41"
               />
+              <span
+                class="_checkbox__label_1pc8o_117"
+              >
+                Auto-add members
+              </span>
             </label>
-            <span
-              class="header-text"
-            >
-              Auto-add members
-            </span>
             <i
               class="icon icon-information-outline ChannelList__autoAddInfoIcon"
             />

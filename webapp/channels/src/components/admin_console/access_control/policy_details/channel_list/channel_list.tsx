@@ -366,21 +366,16 @@ class ChannelList extends React.PureComponent<Props, State> {
                             id='auto-add-header-checkbox'
                             className='header-checkbox'
                             data-testid='auto-add-header-checkbox'
-                            aria-label={this.props.intl.formatMessage({
-                                id: 'admin.access_control.policy.channel_list.autoAddHeader',
-                                defaultMessage: 'Auto-add members',
-                            })}
                             checked={autoAddHeaderStatus.allActive}
                             indeterminate={autoAddHeaderStatus.mixed}
                             disabled={this.props.saving}
                             onChange={this.handleBulkAutoAddToggle}
-                        />
-                        <span className='header-text'>
+                        >
                             <FormattedMessage
                                 id='admin.access_control.policy.channel_list.autoAddHeader'
                                 defaultMessage='Auto-add members'
                             />
-                        </span>
+                        </Checkbox>
                         <WithTooltip
                             title={this.props.intl.formatMessage({
                                 id: 'admin.access_control.policy.channel_list.autoAddTooltip.line1',
@@ -467,8 +462,7 @@ class ChannelList extends React.PureComponent<Props, State> {
                                 checked={autoAddStatus}
                                 disabled={this.props.saving}
                                 onChange={() => this.handleAutoAddToggle(channel.id, autoAddStatus)}
-                            />
-                            <span className='checkbox-label'>
+                            >
                                 {autoAddStatus ? (
                                     <FormattedMessage
                                         id='admin.access_control.policy.channel_list.on'
@@ -480,7 +474,7 @@ class ChannelList extends React.PureComponent<Props, State> {
                                         defaultMessage='Off'
                                     />
                                 )}
-                            </span>
+                            </Checkbox>
                         </div>
                     ),
                     remove: (
