@@ -506,6 +506,15 @@ Cancelled runs retain diagnostic summaries/artifacts and cannot publish.
 Missing current reports remain red, and a later pending/raw result refreshes
 the aggregate instead of leaving an old all-green snapshot.
 
+The orchestration summary can pass before workers finish uploading reports.
+Before publishing success, the owned writer checks the exact run/attempt's
+complete, nonempty report group on the same TSIO environment as dispatch.
+Preparation, dispatch and all workers must also succeed. Failed execution or
+missing/unreadable reports stay red even if triage returns SUCCESS; triage runs
+in report-only mode for these cases. The final job assertion uses these same
+gates, a successful triage step with a confirmed status write, and triage's
+effective mode after applying the PR's report-only label.
+
 Regression checks:
 
 ```sh
