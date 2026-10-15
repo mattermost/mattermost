@@ -755,6 +755,7 @@
         "EnableMFIPluginSignaturePublicKey": false,
         "RecurringScheduledPosts": false,
         "PostDeliveryTracking": false,
+        "EnforceLogPathRoot": false,
         "HealthDashboard": false
     }
 }
