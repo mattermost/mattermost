@@ -15,12 +15,17 @@ import {
     testConfig,
 } from '@mattermost/playwright-lib';
 
-if (isUpgradeFromProjectSelected()) {
+// Config is reloaded in every worker process, not just the runner — run the one-time fail-fast
+// checks only in the runner, or a worker would see the stack global setup already created and
+// wrongly re-trip assertUpgradeFromFreshStart()/assertUpgradeToRequiresPriorFromRun().
+const isRunnerProcess = process.env.TEST_WORKER_INDEX === undefined;
+
+if (isRunnerProcess && isUpgradeFromProjectSelected()) {
     assertUpgradeFromFreshStart();
     logUpgradeFromServerImage();
 }
 
-if (isUpgradeToPhaseProjectSelected()) {
+if (isRunnerProcess && isUpgradeToPhaseProjectSelected()) {
     assertUpgradeToRequiresPriorFromRun();
     logUpgradeToServerImage();
 }

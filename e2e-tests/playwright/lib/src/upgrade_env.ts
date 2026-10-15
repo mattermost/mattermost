@@ -14,9 +14,12 @@ const BASELINE_PATH = path.resolve(process.cwd(), '.upgrade_baseline.json');
 
 export const UPGRADE_FROM_SERVER_IMAGE_ENV = 'PW_UPGRADE_FROM_SERVER_IMAGE';
 
-// Playwright forks workers without the CLI args, so `--project` is only visible to the runner.
+// Playwright forks workers without the CLI args, so `--project` is only visible to the runner
+// (and, for upgrade-to, its upgrade-swap-to dependency still only sees --project=upgrade-to).
 // The runner records the selection here, and workers inherit it through their environment.
 const UPGRADE_PATH_PROJECT_ENV = 'PW_UPGRADE_PATH_PROJECT';
+const UPGRADE_FROM_PROJECT_ENV = 'PW_UPGRADE_FROM_PROJECT';
+const UPGRADE_TO_PHASE_PROJECT_ENV = 'PW_UPGRADE_TO_PHASE_PROJECT';
 
 const UPGRADE_FROM_PROJECTS = new Set(['upgrade-from']);
 const UPGRADE_TO_PHASE_PROJECTS = new Set(['upgrade-swap-to', 'upgrade-to']);
@@ -38,14 +41,14 @@ function isProjectSelected(projectNames: Set<string>, argv: string[] = process.a
     return false;
 }
 
-/** Returns true when `--project` selects an upgrade-from project. */
+/** Returns true when `--project` selects an upgrade-from project, in the runner or a worker. */
 export function isUpgradeFromProjectSelected(argv: string[] = process.argv): boolean {
-    return isProjectSelected(UPGRADE_FROM_PROJECTS, argv);
+    return process.env[UPGRADE_FROM_PROJECT_ENV] === 'true' || isProjectSelected(UPGRADE_FROM_PROJECTS, argv);
 }
 
-/** Returns true when `--project` selects upgrade-swap-to or upgrade-to. */
+/** Returns true when `--project` selects upgrade-swap-to or upgrade-to, in the runner or a worker. */
 export function isUpgradeToPhaseProjectSelected(argv: string[] = process.argv): boolean {
-    return isProjectSelected(UPGRADE_TO_PHASE_PROJECTS, argv);
+    return process.env[UPGRADE_TO_PHASE_PROJECT_ENV] === 'true' || isProjectSelected(UPGRADE_TO_PHASE_PROJECTS, argv);
 }
 
 /** True for any upgrade-path Playwright project (from, swap-to, or to), in the runner or a worker. */
@@ -59,6 +62,12 @@ export function isUpgradePathProjectSelected(argv: string[] = process.argv): boo
 
 /** Passes the runner's upgrade-path selection down to workers. Call from the Playwright config. */
 export function exportUpgradePathProjectSelection(): void {
+    if (isUpgradeFromProjectSelected()) {
+        process.env[UPGRADE_FROM_PROJECT_ENV] = 'true';
+    }
+    if (isUpgradeToPhaseProjectSelected()) {
+        process.env[UPGRADE_TO_PHASE_PROJECT_ENV] = 'true';
+    }
     if (isUpgradePathProjectSelected()) {
         process.env[UPGRADE_PATH_PROJECT_ENV] = 'true';
     }
