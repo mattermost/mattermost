@@ -346,7 +346,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
 
             const input = await screen.findByDisplayValue('title');
             expect(input).toBeDisabled();
-            expect(await screen.findByText(/management attribute of type rank/i)).toBeInTheDocument();
+            expect(await screen.findByText(/linked to an attribute of type rank/i)).toBeInTheDocument();
             expect(screen.getByText(/Only text, select and multiselect attributes support sync/)).toBeInTheDocument();
         });
 
@@ -363,7 +363,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
 
             const input = await screen.findByDisplayValue('title');
             expect(input).not.toBeDisabled();
-            expect(screen.queryByText(/management attribute of type/i)).not.toBeInTheDocument();
+            expect(screen.queryByText(/linked to an attribute of type/i)).not.toBeInTheDocument();
         });
 
         test('should send null when the attribute value is cleared', async () => {

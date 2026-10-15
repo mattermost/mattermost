@@ -196,7 +196,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                             helpText = (
                                 <FormattedMessage
                                     id='admin.customProfileAttributes.linkedNonText'
-                                    defaultMessage='This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text, select and multiselect attributes support sync.'
+                                    defaultMessage='This field is linked to an attribute of type {type} in Attribute Management, so it cannot be synced via AD/LDAP or SAML. Only text, select and multiselect attributes support sync.'
                                     values={{type: attr.type}}
                                 />
                             );
