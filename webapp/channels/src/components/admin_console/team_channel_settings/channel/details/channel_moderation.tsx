@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import isNil from 'lodash/isNil';
 import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
@@ -13,7 +13,6 @@ import {Permissions, Roles} from 'mattermost-redux/constants';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 
 import type {ChannelModerationRoles} from './types';
 
@@ -297,41 +296,25 @@ export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
             {props.guestAccountsEnabled &&
                 <td>
                     {!isNil(props.guests) &&
-                        <button
-                            type='button'
+                        <Checkbox
                             data-testid={`${props.name}-${Roles.GUESTS}`}
-                            className={classNames(
-                                'checkbox',
-                                {
-                                    checked: props.guests && !props.guestsDisabled,
-                                    disabled: props.guestsDisabled,
-                                },
-                            )}
-                            onClick={() => props.onClick(props.name, Roles.GUESTS as ChannelModerationRoles)}
-                            disabled={props.guestsDisabled || props.readOnly}
-                        >
-                            {props.guests && !props.guestsDisabled && <CheckboxCheckedIcon/>}
-                        </button>
+                            aria-label={`${props.name} ${Roles.GUESTS}`}
+                            checked={Boolean(props.guests && !props.guestsDisabled)}
+                            disabled={Boolean(props.guestsDisabled || props.readOnly)}
+                            onChange={() => props.onClick(props.name, Roles.GUESTS as ChannelModerationRoles)}
+                        />
                     }
                 </td>
             }
             <td>
                 {!isNil(props.members) &&
-                    <button
-                        type='button'
+                    <Checkbox
                         data-testid={`${props.name}-${Roles.MEMBERS}`}
-                        className={classNames(
-                            'checkbox',
-                            {
-                                checked: props.members && !props.membersDisabled,
-                                disabled: props.membersDisabled,
-                            },
-                        )}
-                        onClick={() => props.onClick(props.name, Roles.MEMBERS as ChannelModerationRoles)}
-                        disabled={props.membersDisabled || props.readOnly}
-                    >
-                        {props.members && !props.membersDisabled && <CheckboxCheckedIcon/>}
-                    </button>
+                        aria-label={`${props.name} ${Roles.MEMBERS}`}
+                        checked={Boolean(props.members && !props.membersDisabled)}
+                        disabled={Boolean(props.membersDisabled || props.readOnly)}
+                        onChange={() => props.onClick(props.name, Roles.MEMBERS as ChannelModerationRoles)}
+                    />
                 }
             </td>
         </tr>

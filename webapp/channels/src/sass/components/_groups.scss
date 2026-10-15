@@ -461,31 +461,12 @@
                 &:not(:first-child) {
                     text-align: center;
                     vertical-align: middle;
-                }
-            }
 
-            .checkbox {
-                display: inline-block;
-                width: 18px;
-                height: 18px;
-                padding: 0;
-                border: 2px solid variables.$dark-gray;
-                border-radius: 3px;
-                background: none;
-
-                > * {
-                    pointer-events: none;
-                }
-
-                &.disabled {
-                    border-color: variables.$light-gray;
-                }
-
-                &.checked {
-                    border: 0;
-
-                    svg {
-                        fill: #145dbf;
+                    // Compass Checkbox root is a full-width label; shrink it so the control stays centered.
+                    > label {
+                        display: inline-flex;
+                        width: auto;
+                        justify-content: center;
                     }
                 }
             }
