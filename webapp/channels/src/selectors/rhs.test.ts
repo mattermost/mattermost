@@ -83,4 +83,37 @@ describe('Selectors.Rhs', () => {
             expect(Selectors.getSearchTeam(state)).toEqual(expected);
         });
     });
+
+    describe('should read the results of the search that was actually run', () => {
+        function stateFor(rhsState: string, searchTeam: string | null) {
+            return {
+                entities: {
+                    teams: {currentTeamId: 'currentTeamId'},
+                    search: {
+                        current: {
+                            ALL_TEAMS: {isEnd: true},
+                            searchTeamId: {isEnd: false},
+                            currentTeamId: {isEnd: 'current team'},
+                        },
+                    },
+                },
+                views: {rhs: {rhsState, searchTeam}} as any,
+            } as unknown as GlobalState;
+        }
+
+        test('an unscoped mention search reads the all teams results', () => {
+            expect(Selectors.getCurrentSearchForSearchTeam(stateFor('mention', null))).toEqual({isEnd: true});
+        });
+
+        test('a mention search scoped to a team reads that team\'s results', () => {
+            // Paging a filtered panel has to ask the same search for its next page, so the two can't
+            // both be read out of the all teams bucket.
+            expect(Selectors.getCurrentSearchForSearchTeam(stateFor('mention', 'searchTeamId'))).toEqual({isEnd: false});
+        });
+
+        test('an ordinary search reads its own team, falling back to the team being looked at', () => {
+            expect(Selectors.getCurrentSearchForSearchTeam(stateFor('search', 'searchTeamId'))).toEqual({isEnd: false});
+            expect(Selectors.getCurrentSearchForSearchTeam(stateFor('search', null))).toEqual({isEnd: 'current team'});
+        });
+    });
 });

@@ -21,8 +21,6 @@ export const mentionTypeLabels: Record<MentionType, MessageDescriptor> = {
     }),
 };
 
-export const mentionTypeOrder: MentionType[] = ['direct', 'group', 'keyword'];
-
 export const dateRangeLabels: Record<MentionDateRange, MessageDescriptor> = {
     any: defineMessage({
         id: 'search_results.mention_filters.date.any',
@@ -37,5 +35,3 @@ export const dateRangeLabels: Record<MentionDateRange, MessageDescriptor> = {
         defaultMessage: 'Last 7 days',
     }),
 };
-
-export const dateRangeOrder: MentionDateRange[] = ['any', 'today', 'last_7_days'];

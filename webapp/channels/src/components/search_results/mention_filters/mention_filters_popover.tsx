@@ -17,13 +17,13 @@ import {getCurrentLocale} from 'selectors/i18n';
 import ChannelTypeIcon from 'components/channel_type_icon';
 
 import {Preferences} from 'utils/constants';
-import {defaultMentionFilters} from 'utils/mention_search';
+import {dateRangeOrder, defaultMentionFilters, mentionTypeOrder} from 'utils/mention_search';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import type {GlobalState} from 'types/store';
 import type {MentionDateRange, MentionFilters, MentionType} from 'types/store/rhs';
 
-import {dateRangeLabels, dateRangeOrder, mentionTypeLabels, mentionTypeOrder} from './labels';
+import {dateRangeLabels, mentionTypeLabels} from './labels';
 import useFilterableChannels, {useTeamNames} from './use_filterable_channels';
 
 type Props = {

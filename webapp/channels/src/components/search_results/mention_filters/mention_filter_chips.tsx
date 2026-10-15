@@ -12,10 +12,12 @@ import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {updateMentionFilters} from 'actions/views/rhs';
 import {getExplicitSearchTeam, getMentionFilters} from 'selectors/rhs';
 
+import {mentionTypeOrder} from 'utils/mention_search';
+
 import type {GlobalState} from 'types/store';
 import type {MentionType} from 'types/store/rhs';
 
-import {dateRangeLabels, mentionTypeLabels, mentionTypeOrder} from './labels';
+import {dateRangeLabels, mentionTypeLabels} from './labels';
 import useFilterableChannels, {useTeamNames} from './use_filterable_channels';
 
 type ChipProps = {
@@ -55,8 +57,10 @@ export default function MentionFilterChips() {
     const channels = useFilterableChannels(teamId);
     const teamNames = useTeamNames();
 
+    // Dropping the team drops its channels with it, the same way picking a different team in the
+    // popover does. The channels were chosen from the team being left.
     const removeTeam = useCallback(() => {
-        dispatch(updateMentionFilters(filters, null));
+        dispatch(updateMentionFilters({...filters, channelIds: []}, null));
     }, [dispatch, filters]);
 
     const removeChannel = useCallback((channelId: string) => {

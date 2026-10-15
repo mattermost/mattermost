@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {within} from '@testing-library/react';
+import merge from 'lodash/merge';
 import React from 'react';
 
 import {DATE_LINE} from 'mattermost-redux/utils/post_list';
@@ -13,6 +14,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
+
+import type {MentionFilters} from 'types/store/rhs';
 
 jest.mock('utils/popouts/popout_windows', () => ({
     popoutRhsSearch: jest.fn(),
@@ -124,11 +127,11 @@ describe('components/SearchResults', () => {
         jest.mocked(getHistory).mockReturnValue({push: jest.fn()} as any);
     });
 
-    function renderSearchResults(propOverrides?: Partial<Props>) {
+    function renderSearchResults(propOverrides?: Partial<Props>, state: typeof baseState = baseState) {
         const props = {...baseProps, ...propOverrides};
         return renderWithContext(
             <SearchResults {...props}/>,
-            baseState,
+            state,
         );
     }
 
@@ -141,31 +144,57 @@ describe('components/SearchResults', () => {
         test('should resolve mode from boolean props and pass channel only when needed', () => {
             clickPopout({isMentionSearch: true});
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
-                expect.any(String), team.name, 'hello', 'mention', 'messages', undefined, team.id,
+                expect.any(String), team.name, 'hello', 'mention', 'messages', undefined, team.id, {},
             );
 
             jest.clearAllMocks();
             clickPopout({isFlaggedPosts: true});
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
-                expect.any(String), team.name, 'hello', 'flag', 'messages', undefined, team.id,
+                expect.any(String), team.name, 'hello', 'flag', 'messages', undefined, team.id, undefined,
             );
 
             jest.clearAllMocks();
             clickPopout({isPinnedPosts: true});
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
-                expect.any(String), team.name, 'hello', 'pin', 'messages', channel.name, team.id,
+                expect.any(String), team.name, 'hello', 'pin', 'messages', channel.name, team.id, undefined,
             );
 
             jest.clearAllMocks();
             clickPopout({isChannelFiles: true});
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
-                expect.any(String), team.name, 'hello', 'channel-files', 'messages', channel.name, team.id,
+                expect.any(String), team.name, 'hello', 'channel-files', 'messages', channel.name, team.id, undefined,
             );
 
             jest.clearAllMocks();
             clickPopout();
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
-                expect.any(String), team.name, 'hello', 'search', 'messages', undefined, team.id,
+                expect.any(String), team.name, 'hello', 'search', 'messages', undefined, team.id, undefined,
+            );
+        });
+
+        test('should hand a filtered mention search its filters, so that the popout opens on the same view', () => {
+            const mentionFilters: MentionFilters = {channelIds: [channel.id], mentionTypes: ['direct'], date: 'today'};
+            const filtered = merge({}, baseState, {views: {rhs: {mentionFilters}}});
+
+            const {container} = renderSearchResults({isMentionSearch: true}, filtered);
+            within(container).getByTestId('popout-button').click();
+
+            expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
+                expect.any(String), team.name, 'hello', 'mention', 'messages', undefined, team.id,
+                {mentionChannels: channel.id, mentionTypes: 'direct', mentionDate: 'today'},
+            );
+        });
+
+        test('should tell the popout an unscoped mention search spans every team', () => {
+            // searchTeam is null for recent mentions opened from the global header. Sending the
+            // team the user happens to be on would quietly narrow the popped out view to it.
+            const allTeams = merge({}, baseState, {views: {rhs: {searchTeam: null}}});
+
+            const {container} = renderSearchResults({isMentionSearch: true}, allTeams);
+            within(container).getByTestId('popout-button').click();
+
+            expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
+                expect.any(String), team.name, 'hello', 'mention', 'messages', undefined, '', {},
             );
         });
     });

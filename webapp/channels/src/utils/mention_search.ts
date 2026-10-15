@@ -5,13 +5,19 @@ import type {UserMentionKey} from 'mattermost-redux/selectors/entities/users';
 
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
-import type {MentionFilters, MentionType} from 'types/store/rhs';
+import type {MentionDateRange, MentionFilters, MentionType} from 'types/store/rhs';
 
 export const defaultMentionFilters: MentionFilters = {
     channelIds: [],
     mentionTypes: [],
     date: 'any',
 };
+
+// The orders the filters are offered in, and the only values a filter can hold. They live here
+// rather than beside the labels so that rendering and parsing can't drift apart.
+export const mentionTypeOrder: MentionType[] = ['direct', 'group', 'keyword'];
+
+export const dateRangeOrder: MentionDateRange[] = ['any', 'today', 'last_7_days'];
 
 export function hasMentionFilters(filters: MentionFilters, teamId: string | null): boolean {
     return Boolean(teamId) || filters.channelIds.length > 0 || filters.mentionTypes.length > 0 || filters.date !== 'any';
@@ -89,7 +95,11 @@ export function dateModifierForRange(range: MentionFilters['date'], timezone?: s
 // filter that spans teams (see the TODO in App.SearchPostsForUser). The server resolves an in: value
 // it can't find by name as an id, which is what makes this work.
 export function buildMentionSearchQuery(mentionKeys: string[], filters: MentionFilters, timezone?: string): string {
-    const parts = [...mentionKeys];
+    // The keys are quoted here rather than on the way out of performSearch. Quoting keeps a key that
+    // is split by dashes or other symbols together as one unit, and doing it before the modifiers
+    // are added is the only point at which the two can still be told apart: a user whose
+    // notification keywords include `on:call` would otherwise have it read as a date filter.
+    const parts = mentionKeys.map((key) => `"${key}"`);
 
     parts.push(...filters.channelIds.map((channelId) => `in:${channelId}`));
 
@@ -99,4 +109,43 @@ export function buildMentionSearchQuery(mentionKeys: string[], filters: MentionF
     }
 
     return parts.join(' ');
+}
+
+// The query string parameters the filters travel in when a filtered mentions panel is popped out
+// into its own window. The popout starts from an empty store, so the URL is all it has to go on.
+const CHANNELS_PARAM = 'mentionChannels';
+const TYPES_PARAM = 'mentionTypes';
+const DATE_PARAM = 'mentionDate';
+
+export function mentionFiltersToSearchParams(filters: MentionFilters): Record<string, string> {
+    const params: Record<string, string> = {};
+
+    if (filters.channelIds.length > 0) {
+        params[CHANNELS_PARAM] = filters.channelIds.join(',');
+    }
+    if (filters.mentionTypes.length > 0) {
+        params[TYPES_PARAM] = filters.mentionTypes.join(',');
+    }
+    if (filters.date !== 'any') {
+        params[DATE_PARAM] = filters.date;
+    }
+
+    return params;
+}
+
+function splitParam(value: string | null): string[] {
+    return (value ?? '').split(',').map((part) => part.trim()).filter(Boolean);
+}
+
+// mentionFiltersFromSearchParams reads back what mentionFiltersToSearchParams wrote. Anything it
+// doesn't recognise is dropped rather than carried into a search: a popout URL can be edited by
+// hand, and an unknown mention type or date range has no meaning to the query builder.
+export function mentionFiltersFromSearchParams(params: URLSearchParams): MentionFilters {
+    const date = params.get(DATE_PARAM) as MentionDateRange;
+
+    return {
+        channelIds: splitParam(params.get(CHANNELS_PARAM)),
+        mentionTypes: splitParam(params.get(TYPES_PARAM)).filter((type): type is MentionType => (mentionTypeOrder as string[]).includes(type)),
+        date: dateRangeOrder.includes(date) ? date : 'any',
+    };
 }

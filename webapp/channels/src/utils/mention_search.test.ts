@@ -7,8 +7,12 @@ import {
     dateModifierForRange,
     defaultMentionFilters,
     hasMentionFilters,
+    mentionFiltersFromSearchParams,
+    mentionFiltersToSearchParams,
     mentionKeysForTypes,
 } from 'utils/mention_search';
+
+import type {MentionFilters} from 'types/store/rhs';
 
 describe('mentionKeysForTypes', () => {
     const userKeys = [{key: '@jack'}, {key: 'deploys'}, {key: 'Jack', caseSensitive: true}, {key: '@channel'}, {key: '@all'}, {key: '@here'}];
@@ -93,21 +97,64 @@ describe('dateModifierForRange', () => {
 
 describe('buildMentionSearchQuery', () => {
     test('is just the keys when nothing is filtered', () => {
-        expect(buildMentionSearchQuery(['@jack', 'deploys'], defaultMentionFilters)).toEqual('@jack deploys');
+        expect(buildMentionSearchQuery(['@jack', 'deploys'], defaultMentionFilters)).toEqual('"@jack" "deploys"');
     });
 
     test('filters by channel id rather than by name, so that the filter works across teams', () => {
         const query = buildMentionSearchQuery(['@jack'], {...defaultMentionFilters, channelIds: ['abc', 'def']});
 
-        expect(query).toEqual('@jack in:abc in:def');
+        expect(query).toEqual('"@jack" in:abc in:def');
     });
 
     test('adds the date modifier', () => {
         jest.useFakeTimers().setSystemTime(new Date('2026-03-12T09:00:00Z'));
 
-        expect(buildMentionSearchQuery(['@jack'], {...defaultMentionFilters, date: 'today'}, 'UTC')).toEqual('@jack on:2026-03-12');
+        expect(buildMentionSearchQuery(['@jack'], {...defaultMentionFilters, date: 'today'}, 'UTC')).toEqual('"@jack" on:2026-03-12');
 
         jest.useRealTimers();
+    });
+
+    test('quotes the keys so that a keyword that looks like a modifier is still matched as a word', () => {
+        const filters: MentionFilters = {...defaultMentionFilters, channelIds: ['abc'], date: 'today'};
+
+        jest.useFakeTimers().setSystemTime(new Date('2026-03-12T09:00:00Z'));
+
+        // `on:call` is one of the user's notification keywords. Left unquoted the server would read
+        // it as a date filter, and the generated modifiers beside it have to stay unquoted to keep
+        // filtering, so the two can only be told apart here.
+        expect(buildMentionSearchQuery(['@jack', 'on:call', 'in:'], filters, 'UTC')).
+            toEqual('"@jack" "on:call" "in:" in:abc on:2026-03-12');
+
+        jest.useRealTimers();
+    });
+});
+
+describe('mention filters in the popout URL', () => {
+    test('round trips the filters', () => {
+        const filters: MentionFilters = {channelIds: ['abc', 'def'], mentionTypes: ['direct', 'keyword'], date: 'last_7_days'};
+
+        const params = new URLSearchParams(mentionFiltersToSearchParams(filters));
+
+        expect(params.toString()).toEqual('mentionChannels=abc%2Cdef&mentionTypes=direct%2Ckeyword&mentionDate=last_7_days');
+        expect(mentionFiltersFromSearchParams(params)).toEqual(filters);
+    });
+
+    test('writes nothing for filters that are not applied', () => {
+        expect(mentionFiltersToSearchParams(defaultMentionFilters)).toEqual({});
+    });
+
+    test('reads an URL with no filters on it as no filters', () => {
+        expect(mentionFiltersFromSearchParams(new URLSearchParams('q=%40jack&mode=mention'))).toEqual(defaultMentionFilters);
+    });
+
+    test('drops values it does not recognise rather than searching on them', () => {
+        const params = new URLSearchParams('mentionChannels=abc,,&mentionTypes=direct,nonsense&mentionDate=yesterday');
+
+        expect(mentionFiltersFromSearchParams(params)).toEqual({
+            channelIds: ['abc'],
+            mentionTypes: ['direct'],
+            date: 'any',
+        });
     });
 });
 

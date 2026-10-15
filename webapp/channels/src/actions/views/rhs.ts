@@ -43,7 +43,6 @@ import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import {canSearchFiles} from 'utils/file_utils';
 import {buildMentionSearchQuery, defaultMentionFilters, mentionKeysForTypes} from 'utils/mention_search';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
-import {quoteSearchTerms} from 'utils/search';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
 import type {ActionFunc, ActionFuncAsync, GlobalState, ThunkActionFunc} from 'types/store';
@@ -215,23 +214,18 @@ function updateSearchResultsType(searchType: string) {
 
 export function performSearch(terms: string, teamId: string, isMentionSearch?: boolean): ThunkActionFunc<unknown> {
     return (dispatch, getState) => {
-        let searchTerms = terms;
         const extensionsFilters = getFilesSearchExtFilter(getState());
 
         const extensions = extensionsFilters?.map((ext) => `ext:${ext}`).join(' ');
-        let termsWithExtensionsFilters = searchTerms;
+        let termsWithExtensionsFilters = terms;
         if (extensions?.trim().length > 0) {
             termsWithExtensionsFilters += ` ${extensions}`;
-        }
-
-        if (isMentionSearch) {
-            searchTerms = quoteSearchTerms(searchTerms);
         }
 
         // timezone offset in seconds
         const userCurrentTimezone = getCurrentTimezone(getState());
         const timezoneOffset = ((userCurrentTimezone && (userCurrentTimezone.length > 0)) ? getUtcOffsetForTimeZone(userCurrentTimezone) : getBrowserUtcOffset()) * 60;
-        const messagesPromise = dispatch(searchPostsWithParams(teamId, {terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: true, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
+        const messagesPromise = dispatch(searchPostsWithParams(teamId, {terms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: true, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
         const filesPromise = canSearchFiles(getConfig(getState())) ? dispatch(searchFilesWithParams(teamId, {terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: true, time_zone_offset: timezoneOffset, page: 0, per_page: 20})) : Promise.resolve({data: undefined});
         return Promise.all([filesPromise, messagesPromise]);
     };
@@ -519,15 +513,12 @@ export function showMentions(): ActionFunc<boolean> {
     return (dispatch) => dispatch(runMentionSearch(defaultMentionFilters, null));
 }
 
-// updateMentionFilters re-runs the recent mentions search with a new set of filters. Changing the
-// team drops the channel filter, since those channels belong to the team being left.
+// updateMentionFilters re-runs the recent mentions search with a new set of filters. The channel
+// selection is cleared by the popover when the team changes, since those channels belong to the team
+// being left, so the filters arrive here ready to search on. It is also how a popped out window
+// applies the filters it was opened with.
 export function updateMentionFilters(filters: MentionFilters, teamId: string | null): ActionFunc<boolean> {
-    return (dispatch, getState) => {
-        const previousTeamId = getExplicitSearchTeam(getState());
-        const next = teamId === previousTeamId ? filters : {...filters, channelIds: []};
-
-        return dispatch(runMentionSearch(next, teamId));
-    };
+    return (dispatch) => dispatch(runMentionSearch(filters, teamId));
 }
 
 export function showChannelInfo(channelId: string) {

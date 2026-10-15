@@ -111,4 +111,20 @@ describe('MentionFilterChips', () => {
             teamId: null,
         });
     });
+
+    test('removing the team chip drops the channels picked on that team with it', async () => {
+        renderWithContext(
+            <MentionFilterChips/>,
+            baseState({channelIds: ['channel1'], mentionTypes: ['direct'], date: 'any'}, 'team1'),
+        );
+
+        await userEvent.click(screen.getByLabelText('Remove Product filter'));
+
+        // The other filters are left alone: only the channels belong to the team being left.
+        expect(mockDispatch).toHaveBeenCalledWith({
+            type: 'MOCK_UPDATE_MENTION_FILTERS',
+            filters: {channelIds: [], mentionTypes: ['direct'], date: 'any'},
+            teamId: null,
+        });
+    });
 });

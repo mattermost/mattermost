@@ -3063,6 +3063,55 @@ func TestSearchPostsForUser(t *testing.T) {
 		assert.True(t, allPostHaveMembership)
 	})
 
+	// The recent mentions filter sends channel ids in the in: modifier rather than channel names: a
+	// name only identifies a channel within one team, so it can't express a filter that spans teams.
+	// convertChannelNamesToChannelIds passes a value that is already an id straight through.
+	t.Run("in: a channel id", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, posts := setup(t, false)
+
+		otherTeam := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, otherTeam)
+		otherTeamChannel := th.CreateChannel(t, otherTeam)
+		otherTeamPost := th.CreateMessagePost(t, otherTeamChannel, searchTerm)
+
+		notAMemberChannel := th.CreateChannel(t, th.BasicTeam)
+		th.CreateMessagePost(t, notAMemberChannel, searchTerm)
+		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.SystemAdminUser.Id, notAMemberChannel)
+		require.Nil(t, appErr)
+
+		search := func(terms, teamID string) []string {
+			results, _, err := th.App.SearchPostsForUser(th.Context, terms, th.BasicUser.Id, teamID, false, false, 0, 0, 20)
+			require.Nil(t, err)
+			return results.Order
+		}
+
+		t.Run("returns the posts of a channel the user belongs to", func(t *testing.T) {
+			assert.Equal(t, []string{
+				posts[6].Id,
+				posts[5].Id,
+				posts[4].Id,
+				posts[3].Id,
+				posts[2].Id,
+				posts[1].Id,
+				posts[0].Id,
+			}, search(searchTerm+" in:"+th.BasicChannel.Id, th.BasicTeam.Id))
+		})
+
+		t.Run("returns nothing for a channel the user does not belong to", func(t *testing.T) {
+			assert.Empty(t, search(searchTerm+" in:"+notAMemberChannel.Id, th.BasicTeam.Id))
+		})
+
+		t.Run("reaches a channel on another team when the search is not scoped to one", func(t *testing.T) {
+			// This is the case names can't express, and the reason the filter sends ids at all.
+			assert.Equal(t, []string{otherTeamPost.Id}, search(searchTerm+" in:"+otherTeamChannel.Id, ""))
+		})
+
+		t.Run("still resolves a channel name, which wins over being read as an id", func(t *testing.T) {
+			assert.Len(t, search(searchTerm+" in:"+th.BasicChannel.Name, th.BasicTeam.Id), len(posts))
+		})
+	})
+
 	t.Run("should not return later pages of posts from database", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, _ := setup(t, false)
