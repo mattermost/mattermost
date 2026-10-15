@@ -214,7 +214,9 @@ func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs ma
 
 	deleted, err := a.DeleteRemoteCluster(id)
 	if err != nil {
-		response(args.T("api.command_remote.remove_remote.error", map[string]any{"Error": err.Error()}))
+		a.Log().Warn("Failed to remove secure connection", mlog.String("remote_id", id), mlog.Err(err))
+		err.Translate(args.T)
+		return response(args.T("api.command_remote.remove_remote.error", map[string]any{"Error": err.Message}))
 	}
 
 	result := args.T("api.command_remote.cluster_removed.result_removed")
