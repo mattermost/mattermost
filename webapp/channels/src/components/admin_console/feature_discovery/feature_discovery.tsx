@@ -17,14 +17,13 @@ import AlertBanner from 'components/alert_banner';
 import ExternalLink from 'components/external_link';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import {licenseSkuToLabel} from 'components/widgets/tag/sku_tag';
 
 import type {LicenseSkus} from 'utils/constants';
 import {AboutLinks, LicenseLinks} from 'utils/constants';
 import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 
 import type {ModalData} from 'types/actions';
-
-import {licenseSkuToFeatureDiscoveryLabel} from './feature_discovery_sku_label';
 
 import './feature_discovery.scss';
 
@@ -269,7 +268,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         );
 
         // Pass null when hidden so the panel does not fall back to its PROFESSIONAL default.
-        const skuLabel = showSkuTag ? licenseSkuToFeatureDiscoveryLabel(minimumSKURequiredForFeature) : null;
+        const skuLabel = showSkuTag ? licenseSkuToLabel(minimumSKURequiredForFeature) : null;
 
         return (
             <div
