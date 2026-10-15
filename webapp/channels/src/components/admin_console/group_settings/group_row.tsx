@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
+
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 

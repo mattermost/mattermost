@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {Button} from '@mattermost/shared/components/button';
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
