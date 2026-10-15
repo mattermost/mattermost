@@ -30,14 +30,14 @@
         flex-shrink: 0;
         padding: 2px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 4px;
+        border-radius: 8px;
         background: rgba(var(--center-channel-color-rgb), 0.04);
     }
 
     &__segment {
         padding: 4px 12px;
         border: 0;
-        border-radius: 3px;
+        border-radius: 4px;
         background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.72);
         cursor: pointer;
