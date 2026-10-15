@@ -18893,27 +18893,27 @@
   },
   "call_button.start_call": {
     "defaultMessage": "Start call",
-    "description": "Label of the channel header call button (with a phone icon and dropdown arrow) that opens a menu of ways to call the other person; verb phrase."
+    "description": "Label on the channel header button that opens a menu of ways to call the other user in a DM: a Mattermost call or a phone call."
   },
   "call_options.aria_label": {
     "defaultMessage": "Call options",
-    "description": "Screen-reader label for the call button and its dropdown menu, which lists a Mattermost audio call and phone calls to the other person's numbers."
+    "description": "Accessible label for the call button, and the menu it opens, offering ways to call a user from a DM channel header or their profile popover."
   },
   "call_options.audio": {
     "defaultMessage": "Start an Audio Call",
-    "description": "First line of the call options menu item that starts a voice call through the Mattermost Calls plugin; verb phrase."
+    "description": "Call options menu item that starts a voice call through the Mattermost Calls plugin."
   },
   "call_options.audio_sub": {
     "defaultMessage": "Mattermost Call",
-    "description": "Second, smaller line under 'Start an Audio Call' in the call options menu, naming the call type. 'Mattermost' is the product name and stays untranslated."
+    "description": "Secondary line under the call options menu item that starts an audio call, naming it as a call made within Mattermost rather than a phone call."
   },
   "call_options.phone": {
     "defaultMessage": "Call {label}",
-    "description": "First line of a call options menu item that dials one of the other person's phone numbers; {label} is the name of the profile attribute holding that number (e.g. 'Mobile', 'Work phone'), as set by the admin."
+    "description": "Call options menu item that phones the user on one of their numbers; {label} is the name of the profile attribute holding the number, such as \"Mobile\" or \"Work phone\"."
   },
   "call_options.phone_sub": {
     "defaultMessage": "{number} • Phone call",
-    "description": "Second, smaller line of a phone call menu item; {number} is the phone number that will be dialed, followed by a bullet and the call type."
+    "description": "Secondary line under a call options menu item that phones the user; {number} is the phone number that will be dialed."
   },
   "carousel.nextButton": {
     "defaultMessage": "Next",
