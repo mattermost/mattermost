@@ -56,6 +56,13 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The hook posts into this channel without a session to evaluate later, so a user
+	// the channel's write rules deny must not be able to set one up.
+	if !requireChannelWriteAccess(c, channel) {
+		c.LogAudit("fail - channel write access denied")
+		return
+	}
+
 	userId := c.AppContext.Session().UserId
 	if hook.UserId != "" && hook.UserId != userId {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageOthersIncomingWebhooks) {
@@ -176,6 +183,10 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Moving the hook must not attribute its owner's posts to a channel they cannot access.
 	if updatedHook.ChannelId != oldHook.ChannelId {
+		if !requireChannelWriteAccess(c, channel) {
+			c.LogAudit("fail - channel write access denied")
+			return
+		}
 		if appErr := c.App.ValidateIncomingWebhookUserChannelAccess(c.AppContext, oldHook.UserId, channel); appErr != nil {
 			c.LogAudit("fail - invalid webhook user")
 			c.Err = appErr

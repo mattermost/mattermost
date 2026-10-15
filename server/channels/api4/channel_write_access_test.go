@@ -395,6 +395,56 @@ func TestChannelAccessDoesNotGateReviewerAssignment(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
+// An incoming webhook posts into its channel with no session to evaluate later, so
+// setting one up there -- creating it, or moving an existing hook in -- is the write.
+func TestChannelWriteAccessGatesIncomingWebhooks(t *testing.T) {
+	setup := func(t *testing.T, allow bool) *channelWriteAccessFixture {
+		t.Helper()
+		f, _ := setupChannelWriteAccessAPI(t, allow)
+		f.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableIncomingWebhooks = true
+		})
+		defaultRolePermissions := f.th.SaveDefaultRolePermissions(t)
+		t.Cleanup(func() { f.th.RestoreDefaultRolePermissions(t, defaultRolePermissions) })
+		addIncomingWebhookPermissions(t, f.th, model.TeamUserRoleId)
+		return f
+	}
+
+	create := func(f *channelWriteAccessFixture) error {
+		_, _, err := f.th.Client.CreateIncomingWebhook(context.Background(), &model.IncomingWebhook{ChannelId: f.th.BasicChannel.Id})
+		return err
+	}
+
+	// The hook starts in BasicChannel2, set up through the app so the gate under test
+	// is only the move into BasicChannel.
+	move := func(t *testing.T, f *channelWriteAccessFixture) error {
+		hook, appErr := f.th.App.CreateIncomingWebhookForChannel(f.th.BasicUser.Id, f.th.BasicChannel2, &model.IncomingWebhook{
+			ChannelId: f.th.BasicChannel2.Id,
+		})
+		require.Nil(t, appErr)
+		hook.ChannelId = f.th.BasicChannel.Id
+		_, _, err := f.th.Client.UpdateIncomingWebhook(context.Background(), hook)
+		return err
+	}
+
+	t.Run("denied", func(t *testing.T) {
+		f := setup(t, false)
+
+		err := create(f)
+		require.True(t, isChannelReadAccessDenial(err, abacWriteDeniedErrorID), "creating a hook: expected the write denial, got %v", err)
+
+		err = move(t, f)
+		require.True(t, isChannelReadAccessDenial(err, abacWriteDeniedErrorID), "moving a hook in: expected the write denial, got %v", err)
+	})
+
+	t.Run("allowed", func(t *testing.T) {
+		f := setup(t, true)
+
+		require.NoError(t, create(f))
+		require.NoError(t, move(t, f))
+	})
+}
+
 // The gate is inert until a channel_write_access policy governs the channel: a
 // deployment that only restricts reading must not start refusing posts. This is
 // the reason TestChannelReadAccessDoesNotGateWrites is still true.
