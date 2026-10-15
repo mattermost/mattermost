@@ -259,7 +259,8 @@ export class TestConfig {
         // stale file pointing at a container that's no longer running is detected and reset
         // elsewhere, before a fresh container starts.
         this.bootEnvOverrides =
-            parsePersistedBootEnv(process.env.PW_TESTCONTAINERS_BOOT_ENV) ?? computeDefaultBootEnv(this.serverEnv);
+            parsePersistedBootEnv(process.env.PW_TESTCONTAINERS_BOOT_ENV) ??
+            computeDefaultBootEnv(this.serverEnv, this.subpathMode, this.nginxUrl);
 
         // Testcontainers — service-specific (opt-in additional services)
         this.ldapHost = process.env.PW_LDAP_HOST || 'localhost';
@@ -302,12 +303,18 @@ function parseKeyValueList(actualValue: string | undefined): Record<string, stri
     return result;
 }
 
-// Mirrors startMattermostContainer()'s actual default boot env: baseline plus MM_ENV overrides
+// Mirrors startMattermostContainer()'s actual default boot env: baseline plus the subpath SiteURL
+// override (same as resolveMattermostBootEnv() in mattermost_container.ts) plus MM_ENV overrides
 // (same precedence), plus the two settings it never sets itself, so the server falls back to
 // its own defaults for those.
-function computeDefaultBootEnv(serverEnv: Record<string, string>): Record<string, string> {
+function computeDefaultBootEnv(
+    serverEnv: Record<string, string>,
+    subpathMode: boolean,
+    nginxUrl: string,
+): Record<string, string> {
     return {
         ...SERVER_ENV_BASELINE,
+        ...(subpathMode ? {MM_SERVICESETTINGS_SITEURL: `${nginxUrl}${SUBPATH_DEFAULT}`} : {}),
         MM_FILESETTINGS_DRIVERNAME: 'local',
         MM_ELASTICSEARCHSETTINGS_BACKEND: 'elasticsearch',
         ...serverEnv,
@@ -319,7 +326,7 @@ function computeDefaultBootEnv(serverEnv: Record<string, string>): Record<string
  * persisted boot env turns out to reference a container that's no longer running.
  */
 export function defaultBootEnv(): Record<string, string> {
-    return computeDefaultBootEnv(testConfig.serverEnv);
+    return computeDefaultBootEnv(testConfig.serverEnv, testConfig.subpathMode, testConfig.nginxUrl);
 }
 
 function parsePersistedBootEnv(actualValue: string | undefined): Record<string, string> | undefined {
