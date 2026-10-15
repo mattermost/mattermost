@@ -112,7 +112,7 @@ func TestRemoteProviderDoRemove(t *testing.T) {
 			"empty quotes": {`/secure-connection remove --connectionID ""`, "Missing or empty `connectionID`"},
 			"malformed":    {"/secure-connection remove --connectionID foo", "`foo` is not a valid `connectionID`"},
 			"stray word":   {"/secure-connection remove --connectionID foo bar", "Unexpected `bar`. Wrap a value that contains spaces in quotes, and use double quotes if the value also contains an apostrophe."},
-			"open quote":   {`/secure-connection remove --connectionID "foo`, "The quote at `\"foo` is never closed. A quoted value must end with a matching quote and cannot contain ` --`."},
+			"open quote":   {`/secure-connection remove --connectionID "foo`, "The quote at `\"foo` is never closed. A value in single quotes cannot contain ` --`, so use double quotes for that."},
 		} {
 			t.Run(name, func(t *testing.T) {
 				callsBefore := wrapper.deleteCalls.Load()

@@ -85,9 +85,8 @@ func (t commandToken) value() string {
 var closingQuotes = map[rune]rune{'"': '"', '\'': '\'', '“': '”', '‘': '’'}
 
 // tokenizeCommand splits cmd on whitespace, except inside a quoted value. A quote only opens
-// a value at the start of a word and only closes it when followed by whitespace or the end
-// of input, so apostrophes such as O'Brien are kept. A quoted value may not contain " --",
-// so a missing closing quote is an error instead of swallowing the flags after it.
+// a value at the start of a word, so apostrophes such as O'Brien are kept. A double quoted
+// value ends at the next matching quote. See quotedToken for single quotes.
 func tokenizeCommand(T i18n.TranslateFunc, cmd string) ([]commandToken, error) {
 	var tokens []commandToken
 	rest := strings.TrimLeftFunc(cmd, unicode.IsSpace)
@@ -98,6 +97,10 @@ func tokenizeCommand(T i18n.TranslateFunc, cmd string) ([]commandToken, error) {
 			if !ok {
 				word, _ := nextWord(rest)
 				return nil, errors.New(T("api.command.named_args.unterminated_quote", map[string]any{"Value": word}))
+			}
+			if next, _ := utf8.DecodeRuneInString(after); after != "" && !unicode.IsSpace(next) {
+				word, _ := nextWord(after)
+				return nil, errors.New(T("api.command.named_args.unexpected_value", map[string]any{"Value": word}))
 			}
 			tok, rest = quoted, after
 		} else {
@@ -117,7 +120,17 @@ func nextWord(s string) (string, string) {
 	return s[:end], s[end:]
 }
 
+// A single quote doubles as an apostrophe, so a single quoted value only ends at a matching
+// quote followed by whitespace or the end of input. It may not contain " --", so a missing
+// closing quote is an error instead of swallowing the flags after it.
 func quotedToken(s string, closeQuote rune) (commandToken, string, bool) {
+	if closeQuote == '"' || closeQuote == '”' {
+		end := strings.IndexRune(s, closeQuote)
+		if end < 0 {
+			return commandToken{}, "", false
+		}
+		return commandToken{text: s[:end], quoted: true}, s[end+utf8.RuneLen(closeQuote):], true
+	}
 	for i, r := range s {
 		after := s[i+utf8.RuneLen(r):]
 		if r == closeQuote {

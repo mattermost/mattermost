@@ -1161,8 +1161,8 @@
   },
   {
     "id": "api.command.named_args.unterminated_quote",
-    "translation": "The quote at `{{.Value}}` is never closed. A quoted value must end with a matching quote and cannot contain ` --`.",
-    "description": "Slash command error when a quoted argument value has no closing quote before the next flag or the end of the command."
+    "translation": "The quote at `{{.Value}}` is never closed. A value in single quotes cannot contain ` --`, so use double quotes for that.",
+    "description": "Slash command error when a quoted argument value has no closing quote, or a single quoted value contains a flag."
   },
   {
     "id": "api.command.team_mismatch.app_error",

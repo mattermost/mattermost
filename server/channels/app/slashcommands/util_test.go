@@ -41,7 +41,9 @@ func TestParseNamedArgs(t *testing.T) {
 		{"quoted spaces with embedded quote", "remote add --arg1 \"Bob O'Brien's remote\"", map[string]string{ActionKey: "add", "arg1": "Bob O'Brien's remote"}},
 		{"single quoted with embedded apostrophe", "remote add --arg1 'O'Brien'", map[string]string{ActionKey: "add", "arg1": "O'Brien"}},
 		{"quoted value that looks like a flag", "remote add --arg1 \"--arg2\"", map[string]string{ActionKey: "add", "arg1": "--arg2"}},
-		{"quote closes only before whitespace", "remote add --arg1 \"a\"b c\"", map[string]string{ActionKey: "add", "arg1": "a\"b c"}},
+		{"single quote closes only before whitespace", "remote add --arg1 'a'b c'", map[string]string{ActionKey: "add", "arg1": "a'b c"}},
+		{"double quoted value containing a flag", "remote add --arg1 \"use --arg2 here\" --arg3 val3", map[string]string{ActionKey: "add", "arg1": "use --arg2 here", "arg3": "val3"}},
+		{"curly double quoted value containing a flag", "remote add --arg1 \u201cuse --arg2 here\u201d", map[string]string{ActionKey: "add", "arg1": "use --arg2 here"}},
 		{"curly double quotes", "remote add --arg1 \u201cmy remote\u201d --arg2 val2", map[string]string{ActionKey: "add", "arg1": "my remote", "arg2": "val2"}},
 		{"curly single quotes with curly apostrophe", "remote add --arg1 \u2018Bob\u2019s remote\u2019", map[string]string{ActionKey: "add", "arg1": "Bob\u2019s remote"}},
 	}
@@ -68,7 +70,9 @@ func TestParseNamedArgsErrors(t *testing.T) {
 		{"apostrophe then space ends single quoted value", "remote add --arg1 'Engineers' Hub'", unexpectedValue},
 		{"unterminated quote at end", "remote add --arg1 \"my remote", unterminatedQuote},
 		{"unterminated quote before flag", "remote add --arg1 \"my remote --arg2 val2", unterminatedQuote},
-		{"unterminated quote before quoted value", "remote add --arg1 \"foo --arg2 \"Bar Baz\" --arg3 val3", unterminatedQuote},
+		{"unterminated quote before quoted value", "remote add --arg1 \"foo --arg2 \"Bar Baz\" --arg3 val3", unexpectedValue},
+		{"text after closing double quote", "remote add --arg1 \"a\"b c\"", unexpectedValue},
+		{"single quoted value containing a flag", "remote add --arg1 'use --arg2 here'", unterminatedQuote},
 		{"mismatched curly quotes", "remote add --arg1 \u201cmy remote\" --arg2 val2", unterminatedQuote},
 	}
 
