@@ -136,24 +136,10 @@
     }
 
     .permission-check {
-        display: flex;
-        min-width: 18px;
-        min-height: 18px;
+        display: inline-flex;
+        flex-shrink: 0;
         align-items: center;
-        justify-content: space-around;
-        border: 2px solid variables.$dark-gray;
-        border-radius: 3px;
         margin-right: 5px;
-
-        &.checked,
-        &.intermediate {
-            border: 0;
-
-            svg {
-                background: variables.$white;
-                fill: variables.$primary-color;
-            }
-        }
     }
 
     .permission-name {
@@ -262,20 +248,6 @@
             animation-name: rowhighlight;
         }
 
-        &.read-only {
-            .permission-check {
-                border: none;
-                background-color: variables.$gray;
-
-                &.checked,
-                &.intermediate {
-                    svg {
-                        background: variables.$white;
-                        fill: variables.$gray;
-                    }
-                }
-            }
-        }
     }
 }
 

@@ -309,6 +309,8 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
                         <PermissionCheckbox
                             value={this.getStatus(this.props.permissions)}
                             id={`${uniqId}-checkbox`}
+                            disabled={readOnly || this.allPermissionsFromParent(this.props.permissions)}
+                            onChange={this.toggleSelectGroup}
                         />
                         <span className='permission-name'>
                             {name}

@@ -62,6 +62,8 @@ const PermissionRow = ({
             <PermissionCheckbox
                 value={value}
                 id={`${uniqId}-checkbox`}
+                disabled={readOnly}
+                onChange={toggleSelect}
             />
             <span className='permission-name'>
                 {name}

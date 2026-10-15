@@ -89,6 +89,19 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
         expect(onChange).toHaveBeenCalledWith('id');
     });
 
+    test('should call onChange once when clicking the checkbox', async () => {
+        const onChange = jest.fn();
+        renderWithContext(
+            <PermissionRow
+                {...defaultProps}
+                onChange={onChange}
+            />,
+        );
+        await userEvent.click(screen.getByTestId('uniqId-checkbox'));
+        expect(onChange).toHaveBeenCalledTimes(1);
+        expect(onChange).toHaveBeenCalledWith('id');
+    });
+
     test('shouldn\'t call onChange function on click when is read-only', async () => {
         const onChange = jest.fn();
         renderWithContext(
