@@ -3132,10 +3132,6 @@
     "translation": "Id={{.PostId}} on jo poistettu."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Ei löydetty viestiä tai kommentia päivitettäväksi."
-  },
-  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Viestiä ei voida päivittää poistetulla kanavalla."
   },

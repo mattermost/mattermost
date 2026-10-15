@@ -4324,10 +4324,6 @@
     "translation": "Ja s'ha eliminat id={{.PostId}}"
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "No es pot trobar la publicació o comentari existent per actualitzar-ho."
-  },
-  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "No es pot actualitzar una publicació en un canal suprimit."
   },
