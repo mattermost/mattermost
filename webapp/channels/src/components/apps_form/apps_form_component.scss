@@ -109,18 +109,37 @@
 // A refresh can return a form with a different size, which swaps the width
 // class on the open modal. Ease the change so it reads as a resize rather than
 // a jump, and leave it alone for anyone who has asked for less motion.
+
+// Bootstrap slides the dialog in with `transition: transform 0.3s ease-out` on
+// `.modal.fade .modal-dialog`, which has the same specificity as this rule, so
+// naming only width here would replace that slide for every apps form rather
+// than adding to it. Both transitions are listed for that reason.
 @media (prefers-reduced-motion: no-preference) {
     .modal .modal-dialog.apps-form-modal {
-        transition: width 150ms ease-in-out;
+        transition: transform 0.3s ease-out, width 150ms ease-in-out;
     }
 }
 
-// The widest dialog tier, for Dialog.Size 'large'. Bootstrap's own .modal-lg is
-// 900px but Mattermost narrows it to 700px, so a grid that needs more than that
-// gets its own tier rather than widening .modal-lg for every consumer.
-// .modal-dialog's max-width: 95% still applies, so this shrinks on a narrow
-// viewport instead of overflowing.
-@media (min-width: 992px) {
+// Width tiers for Dialog.Size. 'small' needs no rule: it is Bootstrap's own
+// 600px .modal-dialog, so a dialog that sets no size keeps exactly the width it
+// has always had.
+
+// Both wider tiers are declared here rather than borrowing .modal-lg, which
+// sass/responsive/_desktop.scss narrows to 700px for every consumer in the app.
+// Reusing it would leave a dialog's width hostage to a rule that has nothing to
+// do with dialogs, and would pin medium and large to that file's 992px
+// breakpoint, below which both would silently collapse back to 600px.
+
+// 768px is where Bootstrap stops making .modal-dialog fluid and gives it its
+// 600px width, so it is the first width a tier can meaningfully differ at.
+// `.modal .modal-dialog`'s max-width: 95% still applies on top of these, so a
+// tier wider than the viewport shrinks to fit instead of forcing the page
+// sideways.
+@media (min-width: 768px) {
+    .modal .apps-form-modal--medium {
+        width: 700px;
+    }
+
     .modal .apps-form-modal--large {
         width: 900px;
     }
@@ -136,6 +155,12 @@
 // honoured instead of being collapsed.
 .apps-form-grid__scroll {
     overflow-x: auto;
+
+    // Tabbing sideways scrolls the next cell into view, and without this the
+    // sticky row header lands on top of the cell that just took focus. Reserve
+    // the row header's own width at the start edge so a scroll triggered by
+    // focus stops short of it.
+    scroll-padding-inline-start: 120px;
 }
 
 .apps-form-grid__table {

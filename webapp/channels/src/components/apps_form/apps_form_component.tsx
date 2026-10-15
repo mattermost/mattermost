@@ -11,7 +11,7 @@ import {Button} from '@mattermost/shared/components/button';
 import type {AppCallResponse, AppField, AppForm, AppFormValues, AppSelectOption, FormResponseData, AppLookupResponse, AppFormValue} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
-import {AppCallResponseTypes, AppFieldTypes} from 'mattermost-redux/constants/apps';
+import {AppCallResponseTypes, AppFieldLayouts, AppFieldTypes} from 'mattermost-redux/constants/apps';
 import {
     checkDialogElementForError, checkIfErrorsMatchElements,
 } from 'mattermost-redux/utils/integration_utils';
@@ -629,9 +629,14 @@ export class AppsForm extends React.PureComponent<Props, State> {
         // dialog that predates the field renders exactly as before. The form is
         // replaced wholesale on a refresh, so an integration that changes size
         // in a refresh response resizes the modal that is already open.
+        //
+        // Both wide tiers get a class of their own rather than borrowing
+        // .modal-lg, whose width is set globally for every consumer in the app
+        // and at a breakpoint that would leave medium silently equal to small
+        // below 992px.
         let sizeClass = '';
         if (size === 'medium') {
-            sizeClass = ' modal-lg';
+            sizeClass = ' apps-form-modal--medium';
         } else if (size === 'large') {
             sizeClass = ' apps-form-modal--large';
         }
@@ -747,31 +752,37 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const {isEmbedded} = this.props;
 
         if (originalField.type === AppFieldTypes.COLLAPSIBLE) {
-            // A grid container lays its child sections out as table rows
-            // instead of stacking them, so it renders its own subtree.
-            if (originalField.collapsible_config?.layout === 'grid') {
-                return (
-                    <AppsFormGrid
-                        key={originalField.name}
-                        field={originalField}
-                        excludeName={this.props.form.submit_buttons}
-                        renderCell={(cell, cellAutoFocus) => this.renderField(cell, autoFocus && cellAutoFocus, depth + 1)}
-                    />
-                );
-            }
+            const config = originalField.collapsible_config;
+            const label = originalField.label || originalField.name;
 
-            const childFields = (originalField.collapsible_config?.fields || []).filter(
-                (f) => f.name !== this.props.form.submit_buttons,
+            // A grid container is still an ordinary collapsible: it keeps its
+            // heading, its caret and its border, and only the arrangement of
+            // its children changes. Laying the grid out inside the same section
+            // the stacked renderer uses is what keeps `collapsed`, `borderless`
+            // and `display_name` meaning the same thing whichever layout an
+            // integration picks.
+            const children = config?.layout === AppFieldLayouts.GRID ? (
+                <AppsFormGrid
+                    field={originalField}
+                    label={label}
+                    excludeName={this.props.form.submit_buttons}
+                    renderCell={(cell, cellAutoFocus) => this.renderField(cell, autoFocus && cellAutoFocus, depth + 1)}
+                />
+            ) : (
+                (config?.fields || []).
+                    filter((f) => f.name !== this.props.form.submit_buttons).
+                    map((child, i) => this.renderField(child, autoFocus && i === 0, depth + 1))
             );
+
             return (
                 <CollapsibleSection
                     key={originalField.name}
-                    label={originalField.label || originalField.name}
-                    expanded={originalField.collapsible_config?.expanded ?? true}
-                    bordered={originalField.collapsible_config?.bordered ?? true}
+                    label={label}
+                    expanded={config?.expanded ?? true}
+                    bordered={config?.bordered ?? true}
                     depth={depth}
                 >
-                    {childFields.map((child, i) => this.renderField(child, autoFocus && i === 0, depth + 1))}
+                    {children}
                 </CollapsibleSection>
             );
         }

@@ -1039,8 +1039,13 @@ func (e *DialogElement) validateCollapsible(depth int, seen map[string]bool) err
 	// Checked here rather than in isValid's type switch so that a nested
 	// collapsible is covered too: nesting recurses straight into this method to
 	// preserve depth tracking and never passes back through that switch.
-	// Rejecting an unknown subtype matches how Dialog.Size is handled, and
-	// stops a typo reaching the client and silently rendering as stacked.
+	//
+	// Reporting an unknown subtype matches how Dialog.Size is handled. What
+	// that is worth is bounded by the caller: App.OpenInteractiveDialog logs
+	// whatever IsValid returns and opens the dialog anyway, so a typo like
+	// "Grid" shows up in the server log rather than being refused. The client
+	// does not rely on this and falls back to stacked for a subtype it does not
+	// recognise.
 	if e.SubType != "" && e.SubType != DialogCollapsibleSubTypeGrid {
 		multiErr = multierror.Append(multiErr, errors.Errorf("invalid collapsible subtype %q", e.SubType))
 	}

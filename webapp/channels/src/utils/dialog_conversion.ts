@@ -4,7 +4,7 @@
 import {isAppSelectOption, type AppForm, type AppField, type AppFormValue, type AppSelectOption, type AppFormValues, type DateTimeConfig} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
-import {AppFieldTypes} from 'mattermost-redux/constants/apps';
+import {AppFieldLayouts, AppFieldTypes} from 'mattermost-redux/constants/apps';
 
 import {stringToMoment} from 'utils/date_utils';
 
@@ -22,6 +22,12 @@ export const DialogElementTypes = {
     CHECKBOX_MATRIX: 'checkbox_matrix',
     FILE: 'file',
     ACTION_BUTTON: 'action_button',
+} as const;
+
+// Collapsible subtypes (from legacy Interactive Dialog spec). An empty subtype
+// stacks, which is why there is no constant for it here.
+export const DialogCollapsibleSubTypes = {
+    GRID: 'grid',
 } as const;
 
 // Dialog element length limits (server-side validation constraints)
@@ -470,7 +476,7 @@ export function convertElement(element: DialogElement, options: ConversionOption
                 fields: childFields,
                 expanded: !element.collapsible_config?.collapsed,
                 bordered: !element.collapsible_config?.borderless,
-                layout: element.subtype === 'grid' ? 'grid' : 'stacked',
+                layout: element.subtype === DialogCollapsibleSubTypes.GRID ? AppFieldLayouts.GRID : AppFieldLayouts.STACKED,
             },
         };
         return {field: collapsibleField, errors};

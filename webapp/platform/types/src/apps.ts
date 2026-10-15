@@ -447,10 +447,16 @@ export type CollapsibleConfig = {
     expanded?: boolean; // Whether the section starts expanded (default: true)
     bordered?: boolean; // Whether the section renders with a border (default: true)
 
-    // How the child fields are laid out. 'stacked' (the default) renders them
-    // vertically behind an expandable title. 'grid' renders child collapsibles
-    // as rows of a table, with one column per leaf field and the child's label
-    // as the row header, so a set of records can be filled in as a grid.
+    // How the child fields are laid out inside the section. 'stacked' (the
+    // default) renders them vertically, one under the next.
+    //
+    // 'grid' renders each child collapsible as a row of a table and each of
+    // that child's own fields as a cell of that row — including a nested
+    // collapsible, which renders as an ordinary section inside its cell.
+    // Columns are matched by position, and a row's first cell is its header: a
+    // real, editable field in a sticky column rather than the row's label. The
+    // row's label is kept as the row's accessible name, and the section's own
+    // label, caret and border are the same in either layout.
     layout?: 'stacked' | 'grid';
 };
 

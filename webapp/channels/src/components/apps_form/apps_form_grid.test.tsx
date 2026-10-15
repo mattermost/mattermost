@@ -50,6 +50,7 @@ describe('AppsFormGrid', () => {
         renderWithContext(
             <AppsFormGrid
                 field={field}
+                label={field.label || field.name}
                 renderCell={renderCell}
                 excludeName={excludeName}
             />,
@@ -83,10 +84,17 @@ describe('AppsFormGrid', () => {
             expect(headers[1]).not.toHaveClass('apps-form-grid__corner');
         });
 
-        it('does not render the container label, which is the stacked-mode section title', () => {
+        it('names the table after the container, so it is not announced as an unnamed table', () => {
             renderGrid(twoByThree());
 
-            expect(screen.queryByText('Orders')).not.toBeInTheDocument();
+            // The heading is drawn by the CollapsibleSection around the grid,
+            // so the caption only has to carry the name for assistive
+            // technology.
+            expect(screen.getByRole('table', {name: 'Orders'})).toBeInTheDocument();
+
+            const caption = screen.getByText('Orders');
+            expect(caption.tagName).toBe('CAPTION');
+            expect(caption).toHaveClass('sr-only');
         });
     });
 
@@ -112,6 +120,19 @@ describe('AppsFormGrid', () => {
 
             // Two rows of two non-header cells each.
             expect(screen.getAllByRole('cell')).toHaveLength(4);
+        });
+
+        it("keeps the row's label as the row's accessible name, without drawing it", () => {
+            renderGrid(container([
+                row('r1', [cell('r1_order', 'Order #'), cell('r1_weight', 'Weight')]),
+            ]));
+
+            // The header cell below it usually repeats the identifier, so the
+            // label is clipped rather than drawn, but a screen reader reading
+            // along the row still has something to call the row.
+            const rowHeader = screen.getByRole('rowheader');
+            expect(rowHeader).toHaveTextContent('r1');
+            expect(rowHeader.querySelector('.sr-only')).toHaveTextContent('r1');
         });
 
         it('renders a nested collapsible as an ordinary cell rather than dropping it', () => {
@@ -177,6 +198,24 @@ describe('AppsFormGrid', () => {
             expect(firstRow.querySelectorAll('td')[0]).toBeEmptyDOMElement();
         });
 
+        it('keeps every cell when two columns in a row share a name', () => {
+            // A misconfigured grid can repeat a name. Keying a column on the
+            // name alone would collide, and React would drop one of the two
+            // cells, so the keys carry the column index as well.
+            const warn = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+            renderGrid(container([
+                row('r1', [cell('dup', 'A'), cell('dup', 'B')]),
+            ]));
+
+            expect(screen.getAllByRole('columnheader')).toHaveLength(2);
+            expect(screen.getByRole('rowheader').querySelector('input')).toBeInTheDocument();
+            expect(screen.getAllByRole('cell')[0].querySelector('input')).toBeInTheDocument();
+            expect(warn).not.toHaveBeenCalled();
+
+            warn.mockRestore();
+        });
+
         it('keeps two columns apart when they share a label', () => {
             renderGrid(container([
                 row('r1', [cell('r1_a', 'Qty'), cell('r1_b', 'Qty')]),
@@ -240,6 +279,17 @@ describe('AppsFormGrid', () => {
 
             expect(screen.getByTestId('a')).toHaveAttribute('data-autofocus', 'true');
             expect(screen.getByTestId('b')).toHaveAttribute('data-autofocus', 'false');
+        });
+
+        it('falls back rather than drawing an empty table when every row is empty', () => {
+            renderGrid(container([
+                row('r1', []),
+                row('r2', []),
+            ]));
+
+            // There is no column to lay anything out in, so a table here would
+            // be an empty one with two blank rows.
+            expect(screen.queryByRole('table')).not.toBeInTheDocument();
         });
 
         it('renders nothing but survives a container with no children at all', () => {

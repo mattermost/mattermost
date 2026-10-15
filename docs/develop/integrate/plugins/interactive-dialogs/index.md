@@ -37,7 +37,7 @@ Interactive dialogs support the following parameters:
 | `notify_on_cancel`  | Boolean | (Optional) When `true`, sends an event back to the integration whenever there's a user-induced dialog cancellation. No other data is sent back with the event. Default is `false`. |
 | `state`             | String  | (Optional) String provided by the integration that will be echoed back with dialog submission. Default is the empty string.                                                        |
 | `source_url`        | String  | (Optional) URL for field refresh requests. When a select element with `refresh: true` changes value, Mattermost sends a refresh request to this URL. Also used as the endpoint for multi-step form responses. |
-| `size`              | String  | (Optional) Width tier of the dialog: `small`, `medium`, or `large`. Default is `small`. (Minimum server version 12.0.) See [Dialog width](#dialog-width). |
+| `size`              | String  | (Optional) Width tier of the dialog: `small`, `medium`, or `large`. Default is `small`. (Minimum server version 12.1.) See [Dialog width](#dialog-width). |
 
 Sample JSON is given below. Form submissions are sent back to the URL defined by the integration. You must also include the trigger ID you received from the slash command or interactive message.
 
@@ -763,7 +763,7 @@ The full list of supported fields is included below:
 | `display_name`       | String | Heading shown for the section. Maximum 24 characters.                                                                             |
 | `name`               | String | Name of the container element. Maximum 300 characters. You should use unique `name` fields in the same dialog.                    |
 | `type`               | String | Set this value to `collapsible` for a container element.                                                                          |
-| `subtype`            | String | (Optional) Set to `grid` to lay the container's children out as a table. See [Grid layout](#grid-layout). Omit it to stack them. Any other value is rejected when the dialog is opened. |
+| `subtype`            | String | (Optional) Set to `grid` to lay the container's children out as a table. See [Grid layout](#grid-layout). Omit it to stack them. Any other value is reported in the server log and the container falls back to stacking, so check the log if a grid renders as a stacked section. |
 | `collapsible_config` | Object | Container configuration. Required for this element type. See the fields below.                                                    |
 
 The `collapsible_config` object supports:
@@ -777,7 +777,7 @@ The `collapsible_config` object supports:
 A container holds no value of its own, so set `"optional": true` on it. Its children are ordinary elements: their values arrive in the submission payload as **top-level fields keyed by their own names**, not nested under the container. The same is true of errors — a validation error you return for a child element is keyed by that child's name.
 
 ### Grid layout
-#### Minimum Server Version: 12.0
+#### Minimum Server Version: 12.1
 
 Setting `"subtype": "grid"` on a collapsible lays its children out as a table instead of stacking them. Each child container becomes a **row**, and that row's own children become the **cells** of that row.
 
@@ -821,17 +821,17 @@ Give every cell a **unique name** across the whole grid — synthesizing it from
 
 Note the following when laying out a grid:
 
-- **Column headers come from the first row.** Every row should hold the same elements in the same order. A mismatched row is still laid out in full rather than losing elements: a row with fewer elements is padded on the right rather than shifted, so the mismatch shows as a gap instead of data under the wrong heading, and a row with more elements than the first widens the table, taking the extra heading from the first row that has an element in that position.
-- **The first element of each row is the row header.** It renders in a sticky column that stays visible while the rest of the row scrolls sideways, and it remains editable — a record's identifier is usually something the user is filling in too.
+- **Column headers come from the first row, and cells are matched to columns by position.** A cell's name is unique to its row, so order is the only thing there is to line rows up on. Give every row the same elements in the same order: a row that *omits* an element shifts every element after it one column to the left, under the wrong heading. A row that is simply shorter than the first is padded on the right, and a row with more elements than the first widens the table rather than losing them, taking the extra heading from the first row that has an element in that position.
+- **The first element of each row is the row header.** It renders in a sticky column that stays visible while the rest of the row scrolls sideways, and it remains editable — a record's identifier is usually something the user is filling in too. Each row's own `display_name` is not drawn (the header cell below it usually carries the same identifier) but is kept as the row's accessible name, so set it to something that identifies the record.
 - **Cell labels are hidden visually, not removed.** The column heading carries the visible text, and each cell keeps its own label for screen readers. Headings are capped at 24 characters like any other `display_name`.
-- **The container's own `display_name` is not shown** in grid mode. It is used as the section heading if the same elements are rendered stacked.
+- **The container is still an ordinary collapsible.** Its `display_name` is the section heading above the table, and `collapsed` and `borderless` work exactly as they do for a stacked section, so a grid can start collapsed or render without a border. Only the arrangement of the children changes.
 - **Grids are usually too wide for the default dialog.** Set `size` to `medium` or `large` on the dialog; see [Dialog width](#dialog-width). A grid that still does not fit scrolls sideways under its sticky first column.
 - **Non-container children render under the table.** Anything in the grid container that is not itself a container cannot be a row, so it is rendered below the table rather than dropped.
 
 To let users add rows, pair the grid with a [field refresh](#dynamic-field-refresh): when the refresh request arrives, append a row to the grid you return and echo the submitted cell values back as each element's `default`, so half-finished input stays on screen. Carry the grid itself in the dialog's `state`.
 
 ## Dialog width
-### Minimum Server Version: 12.0
+### Minimum Server Version: 12.1
 
 By default a dialog is 600px wide. Set `size` on the dialog to widen it:
 
@@ -841,13 +841,15 @@ By default a dialog is 600px wide. Set `size` on the dialog to widen it:
 | `medium` | 700px |                                            |
 | `large`  | 900px |                                            |
 
+These are the widths on a window wide enough to hold them. Every dialog is capped at 95% of the window, and below 768px all three tiers are the fluid width Mattermost has always used for a dialog on a narrow window, so a wide tier degrades instead of forcing the page sideways.
+
 Width is a property of the dialog rather than a server setting, because your integration is the party that knows how much content the form holds — one global width cannot suit both a two-field confirmation and a nine-column grid.
 
-Widths are tiers rather than pixel values, so they stay consistent across themes and shrink on narrow viewports instead of overflowing. On a small screen every tier is capped to the width available, so a wide dialog degrades rather than forcing the page sideways.
+Widths are named tiers rather than pixel values, so a dialog asks for a size rather than pinning itself to a number the client is then stuck with.
 
 Because a form returned from a [field refresh](#dynamic-field-refresh) or a [multi-step dialog](#multi-step-dialogs) replaces the contents of the dialog that is already open, returning a different `size` resizes that dialog in place. Values the user has already entered are preserved as usual.
 
-An unrecognised `size` is rejected when the dialog is opened, so use only the three tiers above.
+An unrecognised `size` is reported in the server log and the dialog opens at the default width, so use only the three tiers above.
 
 ## Dialog submission
 

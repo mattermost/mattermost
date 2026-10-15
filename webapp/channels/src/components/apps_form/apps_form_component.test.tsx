@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {AppField} from '@mattermost/types/apps';
+
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
 import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
@@ -1902,18 +1904,35 @@ describe('AppsFormComponent', () => {
             expect(dialogClassList()).not.toContain('apps-form-modal--large');
         });
 
-        test('reuses the existing modal-lg tier for medium', () => {
+        test('uses a tier of its own for medium rather than the app-wide modal-lg', () => {
             renderWithSize('medium');
 
-            expect(dialogClassList()).toContain('modal-lg');
+            // modal-lg's width is set globally for every consumer in the app,
+            // and only above 992px, so borrowing it would tie a dialog's width
+            // to an unrelated rule and leave medium equal to small below that.
+            expect(dialogClassList()).toContain('apps-form-modal--medium');
+            expect(dialogClassList()).not.toContain('modal-lg');
             expect(dialogClassList()).not.toContain('apps-form-modal--large');
         });
 
-        test('uses the new wide tier for large', () => {
+        test('uses the widest tier for large', () => {
             renderWithSize('large');
 
             expect(dialogClassList()).toContain('apps-form-modal--large');
+            expect(dialogClassList()).not.toContain('apps-form-modal--medium');
             expect(dialogClassList()).not.toContain('modal-lg');
+        });
+
+        test('adds no width class for a size the client does not recognise', () => {
+            // The server logs an invalid size and opens the dialog anyway, so
+            // one can reach the client. It falls back to the default width
+            // rather than passing the string through to the class list.
+            renderWithSize('enormous' as 'large');
+
+            expect(dialogClassList()).toContain('apps-form-modal');
+            expect(dialogClassList()).not.toContain('apps-form-modal--medium');
+            expect(dialogClassList()).not.toContain('apps-form-modal--large');
+            expect(dialogClassList()).not.toContain('enormous');
         });
 
         test('keeps the a11y and about-modal classes at every tier', () => {
@@ -2039,6 +2058,173 @@ describe('AppsFormComponent', () => {
             expect(values).toHaveProperty('r2_weight');
             expect(values).not.toHaveProperty('grid');
             expect(values).not.toHaveProperty('row1');
+        });
+
+        // A grid container is still an ordinary collapsible, so the three
+        // things a collapsible can say about itself have to keep working. They
+        // were dropped when the grid rendered its own subtree instead of
+        // sitting inside the section the stacked layout uses.
+        describe("the container's own settings", () => {
+            const renderGrid = (config: Partial<NonNullable<AppField['collapsible_config']>>) => {
+                const form = gridForm('grid');
+                form.fields![0].collapsible_config = {
+                    ...form.fields![0].collapsible_config,
+                    ...config,
+                };
+
+                return renderWithContext(
+                    <AppsForm
+                        {...baseProps}
+                        form={form}
+                    />,
+                );
+            };
+
+            test('keeps the heading and its caret above the table', () => {
+                renderGrid({});
+
+                const toggle = screen.getByRole('button', {name: /orders/i});
+                expect(toggle).toHaveAttribute('aria-expanded', 'true');
+                expect(screen.getByRole('table')).toBeInTheDocument();
+            });
+
+            test('starts collapsed when the container asks to, hiding the table', () => {
+                renderGrid({expanded: false});
+
+                expect(screen.getByRole('button', {name: /orders/i})).toHaveAttribute('aria-expanded', 'false');
+                expect(screen.queryByRole('table')).not.toBeInTheDocument();
+            });
+
+            test('expands a collapsed grid on click', async () => {
+                renderGrid({expanded: false});
+
+                await userEvent.click(screen.getByRole('button', {name: /orders/i}));
+
+                expect(screen.getByRole('table')).toBeInTheDocument();
+            });
+
+            // The modal renders through a portal, so the section is in the
+            // document rather than under the render container.
+            const section = () => document.querySelector('.apps-form-collapsible-section');
+
+            test('renders without a border when the container is borderless', () => {
+                renderGrid({bordered: false});
+
+                expect(section()).not.toHaveClass('apps-form-collapsible-section--bordered');
+            });
+
+            test('renders with a border by default', () => {
+                renderGrid({});
+
+                expect(section()).toHaveClass('apps-form-collapsible-section--bordered');
+            });
+        });
+
+        describe('errors inside the grid', () => {
+            test('renders a server error in the one cell it is keyed to', async () => {
+                const submit = jest.fn().mockResolvedValue({
+                    error: {
+                        text: 'Validation errors',
+                        data: {errors: {r2_weight: 'Enter a weight of 0 or more'}},
+                    },
+                });
+
+                renderWithContext(
+                    <AppsForm
+                        {...baseProps}
+                        actions={{...baseProps.actions, submit}}
+                        form={gridForm('grid')}
+                    />,
+                );
+
+                await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+
+                // The Errors map is keyed by element name and names are unique
+                // across the table, so the error has exactly one cell to land
+                // in.
+                const error = await screen.findByText('Enter a weight of 0 or more');
+                const cell = error.closest('td');
+                expect(cell).not.toBeNull();
+                expect(cell).toContainElement(screen.getByTestId('r2_weightinput'));
+
+                // The matching cell of the other row is left alone.
+                expect(screen.getByTestId('r1_weightinput').closest('td')).not.toHaveTextContent('Enter a weight of 0 or more');
+            });
+
+            test('shows a required cell as required and keeps the dialog open', async () => {
+                const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+
+                // A required column is required in every row, which is also
+                // what makes the heading the right place for the marker.
+                const form = gridForm('grid');
+                form.fields![0].collapsible_config!.fields!.forEach((row) => {
+                    row.collapsible_config!.fields![1].is_required = true;
+                });
+
+                renderWithContext(
+                    <AppsForm
+                        {...baseProps}
+                        actions={{...baseProps.actions, submit}}
+                        form={form}
+                    />,
+                );
+
+                // The cell's own label carries the marker but is clipped, so
+                // the column heading has to carry it as well or a required cell
+                // looks optional until submission fails.
+                const heading = screen.getAllByRole('columnheader')[1];
+                expect(heading).toHaveTextContent('Weight *');
+
+                await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+
+                // Client-side validation stops the submission rather than
+                // sending an empty required cell.
+                expect(submit).not.toHaveBeenCalled();
+                expect(screen.getByRole('table')).toBeInTheDocument();
+            });
+        });
+
+        test('lays a grid nested inside a grid out as a table in its cell', () => {
+            const inner: AppField = {
+                name: 'inner',
+                type: 'collapsible',
+                label: 'Lines',
+                collapsible_config: {
+                    expanded: true,
+                    layout: 'grid',
+                    fields: [
+                        {
+                            name: 'inner_row1',
+                            type: 'collapsible',
+                            label: 'L1',
+                            collapsible_config: {
+                                expanded: true,
+                                fields: [
+                                    {name: 'i1_sku', type: 'text', label: 'SKU'},
+                                    {name: 'i1_qty', type: 'text', label: 'Qty'},
+                                ],
+                            },
+                        },
+                    ],
+                },
+            };
+
+            const form = gridForm('grid');
+            form.fields![0].collapsible_config!.fields![0].collapsible_config!.fields!.push(inner);
+
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={form}
+                />,
+            );
+
+            // A nested collapsible is a cell like any other, so a grid inside a
+            // grid is a table inside a cell rather than something dropped.
+            const tables = screen.getAllByRole('table');
+            expect(tables).toHaveLength(2);
+            expect(tables[1].closest('td')).toBe(tables[0].querySelector('td:last-of-type'));
+            expect(screen.getByTestId('i1_qtyinput')).toBeInTheDocument();
         });
     });
 });
