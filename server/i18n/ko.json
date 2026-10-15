@@ -1242,15 +1242,15 @@
     "translation": "삭제하기 전에 DB에서 엑세스 토큰을 받을 수 없습니다."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "사용자 가입이 비활성화 되어있습니다."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "가입 링크가 만료되었습니다."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "유효하지 않은 가입 링크입니다."
   },
   {
@@ -1372,10 +1372,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "기존 글 또는 댓글을 찾을 수 없습니다."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3118,11 +3114,11 @@
     "translation": "Failed to set job status to error"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "URL을 파싱할 수 없습니다."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "채널을 불러올 수 없습니다."
   },
   {
@@ -9102,7 +9098,7 @@
     "translation": "영구 알림 게시물을 삭제하지 못했습니다."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "게시물에 대한 포스트 우선 순위를 받을 수 없습니다."
   },
   {
@@ -9110,7 +9106,7 @@
     "translation": "안녕하세요, @{{.Username}}한테 받은 메시지에 대한 알림입니다: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "사전 패키징된 플러그인 버전을 구문 분석할 수 없습니다."
   },
   {
@@ -9622,10 +9618,6 @@
     "translation": "LDAP 연결 테스트에 실패했습니다. Server: {{.Server}}:{{.Port}}, 연결 보안: {{.ConnectionType}}, 개인 키 파일 이름: {{.PrivateKeyFilename}}, 공개 인증서 파일 이름: {{.PublicCertFilename}}, 바인드 사용자명: {{.BindUsername}}. 오류: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "CPA 필드를 검색하지 못했습니다."
-  },
-  {
     "id": "ent.ldap.do_login.certificate.app_error",
     "translation": "LDAP TLS 인증서 파일을 로드하는 중 오류가 발생했습니다."
   },
@@ -9648,10 +9640,6 @@
   {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "LDAP 사용자를 찾을 수 없습니다. 사용자 필터와 인증서를 확인하세요."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "빈 LDAP 속성 값"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -9744,10 +9732,6 @@
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "SAML이 ID 공급자 공개 인증서를 로드하지 못했습니다. 시스템 관리자에게 문의하세요."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "CPA 필드를 검색하지 못했습니다."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
@@ -12406,7 +12390,7 @@
     "translation": "데이터베이스에서 게시물의 우선순위 데이터를 영구 삭제하지 못했습니다."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "컨텍스트를 사용하여 게시물의 우선순위를 가져올 수 없습니다"
   },
   {
@@ -14551,7 +14535,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "잘못된 웹 서버 모드입니다: {{.Value}}. 'gzip', 'nogzip', 'disabled' 중 하나여야 합니다."
+    "translation": "잘못된 웹 서버 모드입니다: {{.Value}}. 'gzip', 'uncompressed', 'disabled' 중 하나여야 합니다."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

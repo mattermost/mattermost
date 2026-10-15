@@ -456,11 +456,11 @@
     "translation": "Mattermost biztonsági értesítő"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Nem lehet lekérni a csatornákat."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Nem lehet értelmezni az URL-t."
   },
   {
@@ -5360,10 +5360,6 @@
     "translation": "Már törölt azonosító={{.PostId}}."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Nem található a létező bejegyzés vagy frissítendő hozzászólás."
-  },
-  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Nem lehet frissíteni egy törölt csatornában lévő bejegyzést."
   },
@@ -6749,15 +6745,15 @@
     "translation": "A kimenő webhookokat a rendszergazda letiltotta."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "A regisztrációs link nem tűnik érvényesnek."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "A regisztrációs link lejárt."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Felhasználói regisztráció kikapcsolva."
   },
   {
@@ -7911,7 +7907,7 @@
     "translation": "Hiba az e-mail küldése során"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Az előre becsomagolt plugin verzióját nem lehetett értelmezni."
   },
   {
@@ -11393,11 +11389,11 @@
     "translation": "Nem sikerült törölni a tartós értesítésű bejegyzést"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Nem sikerült lekérni a bejegyzés prioritását"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Nem sikerült lekérni a bejegyzés prioritását a kontextussal"
   },
   {
@@ -12595,20 +12591,12 @@
     "translation": "Az LDAP kapcsolat tesztje sikertelen. Szerver: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Hiba: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Nem sikerült lekérni a CPA mezőket"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "Érvénytelen AD/LDAP azonosító"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Nem sikerült lekérni a felhasználót."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Üres LDAP attribútumérték"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12749,10 +12737,6 @@
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "A SAML nem tudta sikeresen betölteni a Személyazonosság szolgáltató (IdP) nyilvános tanúsítványát. Kérjük, lépjen kapcsolatba a rendszergazdával."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Nem sikerült lekérni a CPA mező(ke)t"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
@@ -14560,7 +14544,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Érvénytelen webszerver-mód: {{.Value}}. Értéke 'gzip', 'nogzip' vagy 'disabled' lehet."
+    "translation": "Érvénytelen webszerver-mód: {{.Value}}. Értéke 'gzip', 'uncompressed' vagy 'disabled' lehet."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

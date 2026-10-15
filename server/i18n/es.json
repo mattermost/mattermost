@@ -1224,15 +1224,15 @@
     "translation": "Error obteniendo el token de acceso desde la BD antes de ser eliminado."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "El registro de usuario está inhabilitado."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "El enlace de registro ha expirado."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "El enlace de registro parece ser inválido."
   },
   {
@@ -1342,10 +1342,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "No se puede actualizar un mensaje en un canal que ha sido eliminado."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "No pudimos encontrar el mensaje o comentario para actualizarlo."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3092,11 +3088,11 @@
     "translation": "No se puede establecer el estado al trabajo de error"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "No se pudo analizar el URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "No se pudo obtener los canales."
   },
   {
@@ -7956,7 +7952,7 @@
     "translation": "No se pudo obtener todos los jobs por tipo y estado."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "La versión del complemento preempaquetado no pudo ser analizado."
   },
   {
@@ -11417,11 +11413,11 @@
     "translation": "Error al eliminar el mensaje de notificación persistente"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "No se pudo obtener la prioridad del mensaje"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "No se pudo obtener la prioridad del mensaje con contexto"
   },
   {
@@ -12535,20 +12531,12 @@
     "translation": "La prueba de conexión LDAP falló. Servidor: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Error al recuperar los campos CPA"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "Id de AD/LDAP no válido"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Error al obtener el usuario."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Valor de atributo LDAP vacío"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12685,10 +12673,6 @@
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
     "translation": "La interfaz del proxy de notificaciones push es nula."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Error al recuperar los campos CPA"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
@@ -14552,7 +14536,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Modo de servidor web {{.Value}} no válido. Debe ser 'gzip', 'nogzip' o 'disabled'."
+    "translation": "Modo de servidor web {{.Value}} no válido. Debe ser 'gzip', 'uncompressed' o 'disabled'."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

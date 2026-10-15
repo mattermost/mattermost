@@ -1245,15 +1245,15 @@
     "translation": "Fout bij het ophalen van het access token uit de database, voor het verwijderen."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Gebruikers registratie is uitgeschakeld."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "De aanmeldlink is verlopen."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "De aanmeldlink lijkt niet geldig te zijn."
   },
   {
@@ -1377,10 +1377,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Kan geen bericht bijwerken in een verwijderd kanaal."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "We kunnen geen bestaand bericht of commentaar vinden om bij te werken."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3127,11 +3123,11 @@
     "translation": "Kan taakstatus niet instellen op fout"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Kan URL niet verwerken."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Kan de kanalen niet ophalen."
   },
   {
@@ -8054,7 +8050,7 @@
     "translation": "Fout bij het verzenden van de e-mail"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Voorverpakte plugin versie kon niet geparsed worden."
   },
   {
@@ -8314,7 +8310,7 @@
     "translation": "Ongeldig bericht-id."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Kon geen berichtprioriteit ophalen voor bericht"
   },
   {
@@ -10060,18 +10056,6 @@
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} moet een prefix zijn van IndexPrefix {{.IndexPrefix}}."
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Fout bij het ophalen van CPA-velden"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Lege LDAP attribuutwaarde"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Fout bij het ophalen van CPA-veld(en)"
-  },
-  {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML assertie attribuut verklaring is ongeldig"
   },
@@ -11432,7 +11416,7 @@
     "translation": "Publiek bestanden downloaden geweigerd door plugin"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Kan geen postprioriteit krijgen voor bericht met context"
   },
   {
@@ -14575,7 +14559,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Ongeldige webservermodus {{.Value}}. Moet 'gzip', 'nogzip' of 'disabled' zijn."
+    "translation": "Ongeldige webservermodus {{.Value}}. Moet 'gzip', 'uncompressed' of 'disabled' zijn."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

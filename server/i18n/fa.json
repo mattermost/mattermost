@@ -1496,11 +1496,11 @@
     "translation": "بولتن امنیتی Mattermost"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "دریافت کانال امکان پذیر نیست."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "تجزیه URL امکان پذیر نیست."
   },
   {
@@ -5440,10 +5440,6 @@
     "translation": "شناسه قبلاً حذف شده است = {{.PostId}}."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "یافتن پست یا نظر موجود برای به روزرسانی امکان پذیر نیست."
-  },
-  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "نمی توان پستی را در کانال حذف شده به روز کرد."
   },
@@ -5610,15 +5606,15 @@
     "translation": "وب بوک های خروجی توسط مدیر سیستم غیرفعال شده اند."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "به نظر نمی رسد پیوند ثبت نام معتبر باشد."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "پیوند ثبت نام منقضی شده است."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "ثبت نام کاربر غیرفعال است."
   },
   {
@@ -11301,11 +11297,11 @@
     "translation": "حذف پست اعلان مداوم ناموفق بود"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "دریافت اولویت پست برای پست امکان‌پذیر نیست"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "دریافت اولویت پست برای پست همراه با زمینه امکان‌پذیر نیست"
   },
   {
@@ -11313,7 +11309,7 @@
     "translation": "سلام، این یادآور شما درباره این پیام از @{{.Username}} است: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "نسخه افزونه ازپیش‌بسته‌بندی‌شده قابل تجزیه نیست."
   },
   {
@@ -12551,20 +12547,12 @@
     "translation": "آزمایش اتصال LDAP ناموفق بود. سرور: {{.Server}}:{{.Port}}، ConnectionSecurity: {{.ConnectionType}}، PrivateKeyFilename: {{.PrivateKeyFilename}}، PublicCertificateFilename: {{.PublicCertFilename}}، BindUsername: {{.BindUsername}}. خطا: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "بازیابی فیلدهای CPA ناموفق بود"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "شناسه AD/LDAP نامعتبر است"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "دریافت کاربر ناموفق بود."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "مقدار ویژگی LDAP خالی است"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12705,10 +12693,6 @@
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "SAML نتوانست گواهی عمومی ارائه‌دهنده هویت را بارگیری کند؛ لطفاً با مدیر سیستم خود تماس بگیرید."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "بازیابی فیلد(های) CPA ناموفق بود"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
@@ -14560,7 +14544,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "حالت وب‌سرور {{.Value}} نامعتبر است. باید 'gzip'، 'nogzip' یا 'disabled' باشد."
+    "translation": "حالت وب‌سرور {{.Value}} نامعتبر است. باید 'gzip'، 'uncompressed' یا 'disabled' باشد."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

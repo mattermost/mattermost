@@ -128,10 +128,6 @@
     "translation": "server_error:Gặp phải lỗi máy chủ nội bộ trong khi kéo người dùng từ cơ sở dữ liệu"
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Chúng tôi không thể tìm thấy kênh."
-  },
-  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "Độ dài mật khẩu tối thiểu phải là một số nguyên lớn hơn hoặc bằng {{.MinLength}} và nhỏ hơn hoặc bằng {{.MaxLength}}."
   },
@@ -318,7 +314,7 @@
     "translation": "public link salt không hợp lệ cho các thiết lập tập tin. Phải từ 32 ký tự trở lên."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Link đăng ký không hợp lệ"
   },
   {
@@ -1380,7 +1376,7 @@
     "translation": "Không thể đổi tên nhóm, tên này đã được sử dụng"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Không thể cập nhật kênh"
   },
   {
@@ -1664,7 +1660,7 @@
     "translation": "Tên vai trò không hợp lệ."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Đăng ký người dùng bị vô hiệu hóa."
   },
   {
@@ -2122,7 +2118,7 @@
     "translation": "Không thể tạo dữ liệu mã thông báo để xác minh email"
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Liên kết đăng ký đã hết hạn"
   },
   {
@@ -4002,7 +3998,7 @@
     "translation": "Trường Create_at phải là thời gian hợp lệ."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Không thể phân tích URL"
   },
   {
@@ -7086,7 +7082,7 @@
     "translation": "Bạn không thể cập nhật Bài đăng hiện có."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Không thể phân tích cú pháp phiên bản plugin đóng gói sẵn."
   },
   {
@@ -7190,7 +7186,7 @@
     "translation": "Không thể xóa thông báo liên tục của nhóm."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Không thể nhận được ưu tiên sau cho bài đăng"
   },
   {
@@ -11490,7 +11486,7 @@
     "translation": "Không thể xóa vĩnh viễn dữ liệu mức độ ưu tiên của bài đăng khỏi cơ sở dữ liệu."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Không thể lấy mức độ ưu tiên cho bài đăng với ngữ cảnh"
   },
   {
@@ -12674,20 +12670,12 @@
     "translation": "Kiểm tra kết nối LDAP không thành công. Máy chủ: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Lỗi: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Không thể truy xuất các trường CPA"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "Id AD/LDAP không hợp lệ"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Không thể lấy thông tin người dùng."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Giá trị thuộc tính LDAP trống"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12824,10 +12812,6 @@
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
     "translation": "Giao diện proxy đẩy là nil."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Không thể truy xuất (các) trường CPA"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
@@ -14551,7 +14535,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Chế độ máy chủ web {{.Value}} không hợp lệ. Phải là 'gzip', 'nogzip' hoặc 'disabled'."
+    "translation": "Chế độ máy chủ web {{.Value}} không hợp lệ. Phải là 'gzip', 'uncompressed' hoặc 'disabled'."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

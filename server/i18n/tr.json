@@ -1245,15 +1245,15 @@
     "translation": "Silinmeden önce erişim kodu veri tabanından alınırken sorun çıktı."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Kullanıcı hesap açma özelliği kapalı."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Hesap açma bağlantısının süresi geçmiş."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Hesap açma bağlantısı geçersiz gibi görünüyor."
   },
   {
@@ -1377,10 +1377,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Silinmiş bir kanaldaki ileti güncellenemez."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Güncellenecek ileti ya da yorum bulunamadı."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3127,11 +3123,11 @@
     "translation": "İş durumu hata olarak ayarlanamadı"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Adres işlenemedi."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Kanallar alınamadı."
   },
   {
@@ -8054,7 +8050,7 @@
     "translation": "E-posta gönderilirken sorun çıktı"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Önceden hazırlanmış uygulama eki sürümü işlenemedi."
   },
   {
@@ -8318,7 +8314,7 @@
     "translation": "İleti kimliği geçersiz."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "İletinin önceliği alınamadı"
   },
   {
@@ -10000,10 +9996,6 @@
     "translation": "Kullanıcı özniteliği alanı yaması geçersiz"
   },
   {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "CPA alanları alınamadı"
-  },
-  {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML onaylama özniteliği ifadesi geçersiz"
   },
@@ -10038,14 +10030,6 @@
   {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "AD/LDAP kimliği geçersiz"
-  },
-  {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "CPA alanları alınamadı"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "LDAP özniteliği değeri alınamadı"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12490,7 +12474,7 @@
     "translation": "Yapay zekadan gelen yeniden yazma yanıtı ayrıştırılamadı."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Bağlam ile iletinin önceliği alınamadı"
   },
   {
@@ -14563,7 +14547,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Site sunucusu kipi geçersiz: {{.Value}}. 'gzip', 'nogzip' ya da 'disabled' olmalıdır."
+    "translation": "Site sunucusu kipi geçersiz: {{.Value}}. 'gzip', 'uncompressed' ya da 'disabled' olmalıdır."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",
