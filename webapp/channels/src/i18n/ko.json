@@ -1643,7 +1643,6 @@
   "admin.global_attributes.attribute_details.title": "새 속성",
   "admin.global_attributes.attribute_details.type.field_aria_label": "유형: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "유형: {value}. 이 속성이 리소스에 적용되는 동안에는 잠겨 있습니다.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "유형: 텍스트. 외부 소스에 연결되어 있는 동안에는 잠겨 있습니다.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "유형: {value}. 계층형 속성은 다른 유형으로 변환할 수 없으므로 잠겨 있습니다.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "유형: {value}. 이 속성은 플러그인에서 관리하므로 잠겨 있습니다.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "유형: {value}. 이 속성을 관리하던 플러그인이 더 이상 설치되어 있지 않으므로 잠겨 있습니다.",

@@ -1644,7 +1644,6 @@
   "admin.global_attributes.attribute_details.title": "Nowy atrybut",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Typ: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "Typ: {value}. Zablokowany, dopóki ten atrybut dotyczy jakiegoś zasobu.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Typ: Tekst. Zablokowany na czas powiązania z zewnętrznym źródłem.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "Typ: {value}. Zablokowany, ponieważ atrybutu hierarchicznego nie można przekonwertować na inny typ.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "Typ: {value}. Zablokowany, ponieważ ten atrybut jest zarządzany przez wtyczkę.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "Typ: {value}. Zablokowany, ponieważ ten atrybut był zarządzany przez wtyczkę, która nie jest już zainstalowana.",

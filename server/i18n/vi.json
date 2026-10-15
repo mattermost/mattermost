@@ -128,10 +128,6 @@
     "translation": "server_error:Gặp phải lỗi máy chủ nội bộ trong khi kéo người dùng từ cơ sở dữ liệu"
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Chúng tôi không thể tìm thấy kênh."
-  },
-  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "Độ dài mật khẩu tối thiểu phải là một số nguyên lớn hơn hoặc bằng {{.MinLength}} và nhỏ hơn hoặc bằng {{.MaxLength}}."
   },
@@ -12674,20 +12670,12 @@
     "translation": "Kiểm tra kết nối LDAP không thành công. Máy chủ: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Lỗi: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Không thể truy xuất các trường CPA"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "Id AD/LDAP không hợp lệ"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Không thể lấy thông tin người dùng."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Giá trị thuộc tính LDAP trống"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12824,10 +12812,6 @@
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
     "translation": "Giao diện proxy đẩy là nil."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Không thể truy xuất (các) trường CPA"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",

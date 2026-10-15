@@ -6333,10 +6333,6 @@
     "translation": "Redan raderat id={{.PostId}}."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Vi kunde inte hitta det ursprungliga inlägget eller kommentaren att uppdatera."
-  },
-  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Går ej att uppdatera ett meddelande i en raderad kanal."
   },
@@ -10026,18 +10022,6 @@
   {
     "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} ska vara ett prefix från IndexPrefix {{.IndexPrefix}}."
-  },
-  {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Misslyckades att hämta CPA-fält"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Tomt LDAP-attributvärde"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Misslyckades med att hämta CPA-fält"
   },
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",

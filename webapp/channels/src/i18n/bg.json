@@ -1642,7 +1642,6 @@
   "admin.global_attributes.attribute_details.title": "Нов атрибут",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Тип: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "Тип: {value}. Заключен, докато този атрибут се прилага за ресурс.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Тип: Текст. Заключен, докато е свързан с външен източник.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "Тип: {value}. Заключен, защото йерархичен атрибут не може да бъде преобразуван в друг тип.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "Тип: {value}. Заключен, защото този атрибут се управлява от приставка.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "Тип: {value}. Заключен, защото този атрибут се управляваше от приставка, която вече не е инсталирана.",

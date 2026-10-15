@@ -1642,7 +1642,6 @@
   "admin.global_attributes.attribute_details.title": "Nuovo attributo",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Tipo: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "Tipo: {value}. Bloccato finché questo attributo si applica a una risorsa.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Tipo: Testo. Bloccato finché è collegato a una fonte esterna.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "Tipo: {value}. Bloccato perché un attributo gerarchico non può essere convertito in un altro tipo.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "Tipo: {value}. Bloccato perché questo attributo è gestito da un plugin.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "Tipo: {value}. Bloccato perché questo attributo era gestito da un plugin che non è più installato.",
