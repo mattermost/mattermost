@@ -34,7 +34,7 @@ type channelWriteAccessSurface struct {
 type channelWriteAccessFixture struct {
 	th   *TestHelper
 	post *model.Post
-	// A channel-scoped property field definition, for the patch/delete surfaces.
+	// A channel-scoped property field definition, for the field and option surfaces.
 	// Scope is immutable via patch, so the gate has to read it off the stored field.
 	propertyGroup string
 	propertyField *model.PropertyField
@@ -195,17 +195,6 @@ func channelWriteAccessSurfaces() []channelWriteAccessSurface {
 				ChannelId: f.th.BasicChannel.Id,
 			})
 		}),
-		write("patch property field", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
-			name := model.NewId()
-			_, resp, err := f.th.Client.PatchPropertyField(context.Background(), f.propertyGroup, model.PropertyFieldObjectTypeChannel, f.propertyField.ID, &model.PropertyFieldPatch{
-				Name: &name,
-			})
-			return resp, err
-		}),
-		// After the patch: it removes the field the patch surface acts on.
-		write("delete property field", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
-			return f.th.Client.DeletePropertyField(context.Background(), f.propertyGroup, model.PropertyFieldObjectTypeChannel, f.propertyField.ID)
-		}),
 		// Last: it destroys the post the surfaces above act on, so anything after it
 		// would fail for the wrong reason on the allowed run.
 		write("post delete", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
@@ -261,6 +250,29 @@ func channelManagementAccessSurfaces() []channelWriteAccessSurface {
 		}),
 		manage("delete property field options", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
 			return f.th.Client.DeletePropertyFieldOptions(context.Background(), f.propertyGroup, model.PropertyFieldObjectTypeChannel, f.propertyField.ID, []string{model.NewId()})
+		}),
+		// A field definition is the channel's schema, like its options.
+		manage("create property field", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
+			memberLevel := model.PermissionLevelMember
+			_, resp, err := f.th.Client.CreatePropertyField(context.Background(), f.propertyGroup, model.PropertyFieldObjectTypeChannel, &model.PropertyField{
+				Name:            model.NewId(),
+				Type:            model.PropertyFieldTypeText,
+				TargetType:      string(model.PropertyFieldTargetLevelChannel),
+				TargetID:        f.th.BasicChannel.Id,
+				PermissionField: &memberLevel,
+			})
+			return resp, err
+		}),
+		manage("patch property field", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
+			name := model.NewId()
+			_, resp, err := f.th.Client.PatchPropertyField(context.Background(), f.propertyGroup, model.PropertyFieldObjectTypeChannel, f.propertyField.ID, &model.PropertyFieldPatch{
+				Name: &name,
+			})
+			return resp, err
+		}),
+		// Last: it removes the field the surfaces above act on.
+		manage("delete property field", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
+			return f.th.Client.DeletePropertyField(context.Background(), f.propertyGroup, model.PropertyFieldObjectTypeChannel, f.propertyField.ID)
 		}),
 	}
 }
