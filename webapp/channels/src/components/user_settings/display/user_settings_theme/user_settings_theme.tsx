@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -242,18 +243,16 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
             if (this.state.showAllTeamsCheckbox) {
                 allTeamsCheckbox = (
                     <div className='checkbox user-settings__submit-checkbox'>
-                        <label>
-                            <input
-                                id='applyThemeToAllTeams'
-                                type='checkbox'
-                                checked={this.state.applyToAllTeams}
-                                onChange={(e) => this.setState({applyToAllTeams: e.target.checked})}
-                            />
+                        <Checkbox
+                            id='applyThemeToAllTeams'
+                            checked={this.state.applyToAllTeams}
+                            onChange={(e) => this.setState({applyToAllTeams: e.target.checked})}
+                        >
                             <FormattedMessage
                                 id='user.settings.display.theme.applyToAllTeams'
                                 defaultMessage='Apply new theme to all my teams'
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                 );
             }

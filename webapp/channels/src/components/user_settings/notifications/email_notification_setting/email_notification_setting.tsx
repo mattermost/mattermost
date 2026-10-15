@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React, {type RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -425,19 +426,17 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                     <hr/>
                     <fieldset>
                         <div className='checkbox single-checkbox'>
-                            <label>
-                                <input
-                                    id='desktopThreadsNotificationAllActivity'
-                                    type='checkbox'
-                                    name='desktopThreadsNotificationLevel'
-                                    checked={this.props.threads === NotificationLevels.ALL}
-                                    onChange={this.handleThreadsOnChange}
-                                />
+                            <Checkbox
+                                id='desktopThreadsNotificationAllActivity'
+                                name='desktopThreadsNotificationLevel'
+                                checked={this.props.threads === NotificationLevels.ALL}
+                                onChange={this.handleThreadsOnChange}
+                            >
                                 <FormattedMessage
                                     id='user.settings.notifications.email.notifyForthreads'
                                     defaultMessage={'Notify me about replies to threads I’m following'}
                                 />
-                            </label>
+                            </Checkbox>
                         </div>
                     </fieldset>
                 </React.Fragment>

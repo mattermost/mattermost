@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React from 'react';
 import type {ChangeEvent} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
@@ -48,18 +49,16 @@ export default class ManageAutoResponder extends React.PureComponent<Props> {
                 key='autoResponderCheckbox'
                 className='checkbox'
             >
-                <label>
-                    <input
-                        id='autoResponderActive'
-                        type='checkbox'
-                        checked={autoResponderActive}
-                        onChange={this.handleAutoResponderChecked}
-                    />
+                <Checkbox
+                    id='autoResponderActive'
+                    checked={autoResponderActive}
+                    onChange={this.handleAutoResponderChecked}
+                >
                     <FormattedMessage
                         id='user.settings.notifications.autoResponderEnabled'
                         defaultMessage='Enabled'
                     />
-                </label>
+                </Checkbox>
             </div>
         );
 

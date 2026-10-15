@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React, {useCallback, useState, useRef, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -154,34 +155,30 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
             inputs={[
                 <fieldset key='settings'>
                     <div className='checkbox'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={disableClientPlugins}
-                                onChange={(e) => {
-                                    setDisableClientPlugins(e.target.checked);
-                                }}
-                            />
+                        <Checkbox
+                            checked={disableClientPlugins}
+                            onChange={(e) => {
+                                setDisableClientPlugins(e.target.checked);
+                            }}
+                        >
                             <FormattedMessage
                                 id='user.settings.advance.performance.disableClientPlugins'
                                 defaultMessage='Disable Client-side Plugins'
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                     <div className='checkbox'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={disableTypingMessages}
-                                onChange={(e) => {
-                                    setDisableTypingMessages(e.target.checked);
-                                }}
-                            />
+                        <Checkbox
+                            checked={disableTypingMessages}
+                            onChange={(e) => {
+                                setDisableTypingMessages(e.target.checked);
+                            }}
+                        >
                             <FormattedMessage
                                 id='user.settings.advance.performance.disableTypingMessages'
                                 defaultMessage='Disable "User is typing..." messages'
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                     <div className='mt-5'>
                         <FormattedMessage

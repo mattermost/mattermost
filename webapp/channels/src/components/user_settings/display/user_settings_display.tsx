@@ -3,6 +3,7 @@
 
 /* eslint-disable max-lines */
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import deepEqual from 'fast-deep-equal';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
@@ -508,16 +509,14 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 childOptionSection = (
                     <div className='checkbox'>
                         <hr/>
-                        <label>
-                            <input
-                                id={name + 'childOption'}
-                                type='checkbox'
-                                name={childOptionToShow.label.id}
-                                checked={childOptionToShow.value === 'true'}
-                                onChange={(e) => {
-                                    this.handleOnChange(e, {[childDisplay]: e.target.checked ? 'true' : 'false'});
-                                }}
-                            />
+                        <Checkbox
+                            id={name + 'childOption'}
+                            name={childOptionToShow.label.id}
+                            checked={childOptionToShow.value === 'true'}
+                            onChange={(e) => {
+                                this.handleOnChange(e, {[childDisplay]: e.target.checked ? 'true' : 'false'});
+                            }}
+                        >
                             <FormattedMessage
                                 id={childOptionToShow.label.id}
                                 defaultMessage={childOptionToShow.label.defaultMessage}
@@ -529,7 +528,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                                     defaultMessage={childOptionToShow.more.defaultMessage}
                                 />
                             </span>
-                        </label>
+                        </Checkbox>
                         <br/>
                     </div>
                 );

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React, {Fragment, useCallback, useEffect, useMemo, useRef, memo} from 'react';
 import type {ChangeEvent, ReactNode} from 'react';
 import {FormattedMessage, useIntl, defineMessage} from 'react-intl';
@@ -140,17 +141,15 @@ function DesktopAndMobileNotificationSettings({
                 <Fragment key='desktopThreadNotificationSection'>
                     <br/>
                     <div className='checkbox single-checkbox'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={desktopThreads === NotificationLevels.ALL}
-                                onChange={handleChangeForDesktopThreadsCheckbox}
-                            />
+                        <Checkbox
+                            checked={desktopThreads === NotificationLevels.ALL}
+                            onChange={handleChangeForDesktopThreadsCheckbox}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.desktopAndMobile.notifyForDesktopthreads'
                                 defaultMessage={'Notify me about replies to threads I\'m following'}
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                 </Fragment>
             );
@@ -162,17 +161,15 @@ function DesktopAndMobileNotificationSettings({
                 <Fragment key='differentMobileNotificationsSection'>
                     <hr/>
                     <div className='checkbox single-checkbox'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={desktopAndMobileSettingsDifferent}
-                                onChange={handleChangeForDifferentMobileNotificationsCheckbox}
-                            />
+                        <Checkbox
+                            checked={desktopAndMobileSettingsDifferent}
+                            onChange={handleChangeForDifferentMobileNotificationsCheckbox}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.desktopAndMobile.differentMobileNotificationsTitle'
                                 defaultMessage='Use different settings for my mobile devices'
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                 </Fragment>
             );
@@ -217,17 +214,15 @@ function DesktopAndMobileNotificationSettings({
                 <Fragment key='threadNotificationSection'>
                     <br/>
                     <div className='checkbox single-checkbox'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={pushThreads === NotificationLevels.ALL}
-                                onChange={handleChangeForMobileThreadsCheckbox}
-                            />
+                        <Checkbox
+                            checked={pushThreads === NotificationLevels.ALL}
+                            onChange={handleChangeForMobileThreadsCheckbox}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.desktopAndMobile.notifyForMobilethreads'
                                 defaultMessage={'Notify me on mobile about replies to threads I\'m following'}
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                 </Fragment>
             );

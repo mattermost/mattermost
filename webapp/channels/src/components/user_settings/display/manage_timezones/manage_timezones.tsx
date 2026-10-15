@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
@@ -211,20 +212,17 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
                 className='checkbox'
                 key={inputId.automaticTimezoneInput}
             >
-                <label>
-                    <input
-                        id='automaticTimezoneInput'
-                        type='checkbox'
-                        checked={useAutomaticTimezone}
-                        onChange={this.handleAutomaticTimezone}
-                        disabled={noTimezonesFromServer}
-                    />
+                <Checkbox
+                    id='automaticTimezoneInput'
+                    checked={useAutomaticTimezone}
+                    onChange={this.handleAutomaticTimezone}
+                    disabled={noTimezonesFromServer}
+                >
                     <FormattedMessage
                         id='user.settings.timezones.automatic'
                         defaultMessage='Automatic'
                     />
-
-                </label>
+                </Checkbox>
             </div>
         );
 

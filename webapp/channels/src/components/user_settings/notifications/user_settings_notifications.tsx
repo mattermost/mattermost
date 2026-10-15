@@ -3,6 +3,7 @@
 
 /* eslint-disable max-lines */
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React from 'react';
 import type {ChangeEvent, JSX} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
@@ -594,13 +595,11 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 inputs.push(
                     <div key='userNotificationFirstNameOption'>
                         <div className='checkbox'>
-                            <label>
-                                <input
-                                    id='notificationTriggerFirst'
-                                    type='checkbox'
-                                    checked={this.state.firstNameKey}
-                                    onChange={this.handleChangeForFirstNameKeyCheckbox}
-                                />
+                            <Checkbox
+                                id='notificationTriggerFirst'
+                                checked={this.state.firstNameKey}
+                                onChange={this.handleChangeForFirstNameKeyCheckbox}
+                            >
                                 <FormattedMessage
                                     id='user.settings.notifications.sensitiveName'
                                     defaultMessage='Your case-sensitive first name "{first_name}"'
@@ -608,7 +607,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                         first_name: user.first_name,
                                     }}
                                 />
-                            </label>
+                            </Checkbox>
                         </div>
                     </div>,
                 );
@@ -617,13 +616,11 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             inputs.push(
                 <div key='userNotificationUsernameOption'>
                     <div className='checkbox'>
-                        <label>
-                            <input
-                                id='notificationTriggerUsername'
-                                type='checkbox'
-                                checked={this.state.usernameKey}
-                                onChange={this.handleChangeForUsernameKeyCheckbox}
-                            />
+                        <Checkbox
+                            id='notificationTriggerUsername'
+                            checked={this.state.usernameKey}
+                            onChange={this.handleChangeForUsernameKeyCheckbox}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.sensitiveUsername'
                                 defaultMessage='Your non case-sensitive username "{username}"'
@@ -631,7 +628,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                     username: user.username,
                                 }}
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                 </div>,
             );
@@ -639,18 +636,16 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             inputs.push(
                 <div key='userNotificationChannelOption'>
                     <div className='checkbox'>
-                        <label>
-                            <input
-                                id='notificationTriggerShouts'
-                                type='checkbox'
-                                checked={this.state.channelKey}
-                                onChange={this.handleChangeForChannelKeyCheckbox}
-                            />
+                        <Checkbox
+                            id='notificationTriggerShouts'
+                            checked={this.state.channelKey}
+                            onChange={this.handleChangeForChannelKeyCheckbox}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.channelWide'
                                 defaultMessage='Channel-wide mentions "@channel", "@all", "@here"'
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                 </div>,
             );
@@ -661,18 +656,16 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     className='customKeywordsWithNotificationSubsection'
                 >
                     <div className='checkbox'>
-                        <label>
-                            <input
-                                id='notificationTriggerCustom'
-                                type='checkbox'
-                                checked={this.state.isCustomKeysWithNotificationInputChecked}
-                                onChange={this.handleChangeForCustomKeysWithNotificationCheckbox}
-                            />
+                        <Checkbox
+                            id='notificationTriggerCustom'
+                            checked={this.state.isCustomKeysWithNotificationInputChecked}
+                            onChange={this.handleChangeForCustomKeysWithNotificationCheckbox}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.sensitiveCustomWords'
                                 defaultMessage='Other non case-sensitive words, press Tab or use commas to separate keywords:'
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                     <CreatableReactSelect
                         inputId='notificationTriggerCustomText'

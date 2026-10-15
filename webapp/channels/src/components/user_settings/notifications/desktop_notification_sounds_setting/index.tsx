@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {ChangeEvent} from 'react';
 import React, {memo, useEffect, useRef, Fragment, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -117,19 +118,17 @@ function DesktopNotificationSoundsSettings({
         const messageSoundSection = (
             <Fragment key='messageSoundSection'>
                 <div className='checkbox inlineCheckboxSelect'>
-                    <label>
-                        <input
-                            type='checkbox'
-                            checked={desktopSound === 'true'}
-                            onChange={handleChangeForMessageNotificationSoundCheckbox}
-                        />
+                    <Checkbox
+                        checked={desktopSound === 'true'}
+                        onChange={handleChangeForMessageNotificationSoundCheckbox}
+                    >
                         <span id='messageNotificationSoundLabel'>
                             <FormattedMessage
                                 id='user.settings.notifications.desktopNotificationSound.messageNotificationSound'
                                 defaultMessage='Message notification sound'
                             />
                         </span>
-                    </label>
+                    </Checkbox>
                     <ReactSelect
                         id='messageNotificationSoundSelect'
                         inputId='messageNotificationSoundSelectInput'
@@ -161,17 +160,15 @@ function DesktopNotificationSoundsSettings({
                 <Fragment key='callSoundSection'>
                     <br/>
                     <div className='checkbox inlineCheckboxSelect'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={isIncomingCallSoundChecked}
-                                onChange={handleChangeForIncomginCallSoundCheckbox}
-                            />
+                        <Checkbox
+                            checked={isIncomingCallSoundChecked}
+                            onChange={handleChangeForIncomginCallSoundCheckbox}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.desktopNotificationSound.incomingCallSound'
                                 defaultMessage='Incoming call sound'
                             />
-                        </label>
+                        </Checkbox>
                         <ReactSelect
                             id='incomingCallSoundNotificationSelect'
                             inputId='incomingCallSoundNotificationSelectInput'
