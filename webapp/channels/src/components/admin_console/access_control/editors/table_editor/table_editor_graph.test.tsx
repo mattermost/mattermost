@@ -204,7 +204,7 @@ describe('TableEditor - graph attributes', () => {
         expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(resource.attributes.channelPrograms)');
     });
 
-    test('switching to a membership operator drops the channel target and lowers to an in-chain', async () => {
+    test('switching to a membership operator keeps the channel target', async () => {
         actions.getVisualAST.mockResolvedValue({
             data: {
                 conditions: [
@@ -234,16 +234,7 @@ describe('TableEditor - graph attributes', () => {
         await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: 'has all of'}));
 
-        // The target is gone and the row has no literal values yet, so it can
-        // form no condition at all — the editor emits an empty expression rather
-        // than a membership test against a channel attribute, which is a shape
-        // the server refuses on a graph field.
-        expect(onChange).toHaveBeenLastCalledWith('');
-
-        await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
-        await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'}));
-
-        expect(onChange).toHaveBeenLastCalledWith('"F-18 Program" in user.attributes.programs');
+        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.hasAllOf(resource.attributes.channelPrograms)');
     });
 
     test('changing the attribute resets an operator the new type cannot use', async () => {
@@ -272,9 +263,7 @@ describe('TableEditor - graph attributes', () => {
     test('a membership row the server reported as multiselect is still treated as graph', async () => {
         // The server cannot label an `in` chain on a graph field as graph, so the
         // row arrives saying multiselect. Everything that keys on the type has to
-        // resolve the field instead, or picking a channel target under a
-        // hierarchy predicate and then switching back to membership would leave
-        // the target in place and emit hasAllOf against a graph attribute.
+        // resolve the field instead.
         actions.getVisualAST.mockResolvedValue({
             data: {
                 conditions: [
@@ -308,35 +297,39 @@ describe('TableEditor - graph attributes', () => {
         await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /channelPrograms/}));
         expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAny(resource.attributes.channelPrograms)');
-
-        await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
-        await userEvent.click(await screen.findByRole('menuitemradio', {name: 'has all of'}));
-        expect(onChange).toHaveBeenLastCalledWith('');
     });
 
-    test('a membership operator on a graph attribute offers no channel target', async () => {
+    test('a membership operator on a graph attribute offers a channel target with the same option owner', async () => {
+        const otherPrograms = makeField({
+            ...channelPrograms,
+            id: 'channel-other-programs',
+            name: 'otherPrograms',
+            linked_field_id: 'other-template-id',
+        });
         actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
 
-        renderWithContext(<TableEditor {...baseProps}/>, {});
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                userAttributes={[userPrograms, channelPrograms, otherPrograms, userDepartment]}
+            />,
+            {},
+        );
 
         await userEvent.click(await screen.findByRole('button', {name: /add attribute/i}));
         await waitFor(() => {
             expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
         });
 
-        // Offered under the hierarchy predicate the row starts on...
-        await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
-        expect(await screen.findByRole('menuitemradio', {name: /channelPrograms/})).toBeInTheDocument();
-        await userEvent.keyboard('{Escape}');
-
         await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: 'has any of'}));
 
-        // ...and withdrawn under exact membership, which compares against option
-        // names only.
         await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
         expect(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'})).toBeInTheDocument();
-        expect(screen.queryByRole('menuitemradio', {name: /channelPrograms/})).not.toBeInTheDocument();
+        expect(screen.queryByRole('menuitemradio', {name: /otherPrograms/})).not.toBeInTheDocument();
+        await userEvent.click(screen.getByRole('menuitemradio', {name: /channelPrograms/}));
+
+        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.hasAnyOf(resource.attributes.channelPrograms)');
     });
 });
 
@@ -757,7 +750,37 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         expect(mockPageAll).not.toHaveBeenCalled();
     });
 
-    test('withdraws the channel target under a membership operator but keeps the tree', async () => {
+    test('returns to the flat control once a membership row targets a channel attribute', async () => {
+        actions.getVisualAST.mockResolvedValue({
+            data: {
+                conditions: [
+                    {
+                        attribute: 'user.attributes.programs',
+                        operator: 'hasAnyOf',
+                        value: 'resource.attributes.channelPrograms',
+                        value_type: 1,
+                        attribute_type: 'multiselect',
+                    },
+                ],
+            },
+        });
+
+        renderWithContext(
+            <TableEditor
+                {...propsFor(programsHydrated)}
+                value='user.attributes.programs.hasAnyOf(resource.attributes.channelPrograms)'
+            />,
+            graphEnabledState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+        });
+        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has any of');
+        expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent(/Channel:\s*channelPrograms/);
+    });
+
+    test('offers the channel target under a membership operator alongside the tree', async () => {
         actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
         mockPageAll.mockResolvedValue(hierarchyOptions);
 
@@ -769,7 +792,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
 
         await openValues();
         expect(await treeRow('Air Program')).toBeInTheDocument();
-        expect(screen.queryByRole('menuitemradio', {name: /channelPrograms/})).not.toBeInTheDocument();
+        expect(screen.getByRole('menuitemradio', {name: /channelPrograms/})).toBeInTheDocument();
     });
 
     test('emits an in-chain under a membership operator', async () => {

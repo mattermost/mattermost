@@ -468,7 +468,7 @@ type ServiceSettings struct {
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableCrossTeamSearch                             *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool   `access:"write_restrictable,cloud_restrictable"`
-	EnableFileSearch                                  *bool   `access:"write_restrictable"`
+	EnableFileSearch                                  *bool   `access:"site_file_sharing_and_downloads,write_restrictable"`
 	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
 	EnableUserTypingMessages                          *bool   `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableChannelViewedMessages                       *bool   `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -3302,6 +3302,7 @@ type ElasticsearchSettings struct {
 	Trace                                       *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	IgnoredPurgeIndexes                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSearchPublicChannelsWithoutMembership *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableFileIndexing                          *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -3419,6 +3420,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.EnableSearchPublicChannelsWithoutMembership == nil {
 		s.EnableSearchPublicChannelsWithoutMembership = new(true)
+	}
+
+	if s.EnableFileIndexing == nil {
+		s.EnableFileIndexing = new(true)
 	}
 }
 

@@ -62,6 +62,30 @@ func findingFingerprints(findings []*model.HealthFinding) []string {
 	return fingerprints
 }
 
+func checkHealthDashboardNotImplemented(t *testing.T, th *TestHelper) {
+	t.Helper()
+
+	finding := newHealthFinding("SITE_URL_HTTP", healthcheck.SurfaceProduct)
+	storeHealthFindings(t, th, finding)
+
+	_, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
+
+	resp, err = th.SystemAdminClient.MuteHealthFinding(context.Background(), finding.Fingerprint)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
+
+	resp, err = th.SystemAdminClient.UnmuteHealthFinding(context.Background(), finding.Fingerprint)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
+
+	stored, err := th.App.Srv().Store().HealthFinding().GetByFingerprints([]string{finding.Fingerprint})
+	require.NoError(t, err)
+	require.Len(t, stored, 1)
+	assert.False(t, stored[0].IsMuted())
+}
+
 func TestHealthDashboardAccess(t *testing.T) {
 	t.Run("unauthenticated", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
@@ -99,28 +123,19 @@ func TestHealthDashboardAccess(t *testing.T) {
 
 	t.Run("flag off", func(t *testing.T) {
 		th := setupHealthDashboard(t, false)
-
-		_, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
-		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		checkHealthDashboardNotImplemented(t, th)
 	})
 
 	t.Run("no license", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
 		th.App.Srv().SetLicense(nil)
-
-		_, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
-		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		checkHealthDashboardNotImplemented(t, th)
 	})
 
 	t.Run("license below Enterprise", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-
-		_, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
-		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		checkHealthDashboardNotImplemented(t, th)
 	})
 
 	t.Run("admin with the flag and license", func(t *testing.T) {
@@ -207,6 +222,8 @@ func TestGetHealthFindingsRendering(t *testing.T) {
 			assert.Empty(t, f.Title)
 			assert.Empty(t, f.Remediation)
 			assert.Empty(t, f.Message)
+			assert.Empty(t, f.DocsURL)
+			assert.Empty(t, f.ConsolePath)
 		}
 	})
 
@@ -218,10 +235,12 @@ func TestGetHealthFindingsRendering(t *testing.T) {
 
 		rendered := list.Findings[0]
 		assert.Equal(t, finding.Fingerprint, rendered.Fingerprint)
-		assert.Equal(t, "SiteURL uses http:// (not https)", rendered.Title)
-		assert.Equal(t, "Serve via HTTPS and update SiteURL accordingly.", rendered.Remediation)
-		assert.Equal(t, "SiteURL is http://example.com. Session cookies and auth tokens traverse cleartext.", rendered.Message)
+		assert.Equal(t, "SiteURL uses http:// (not https://)", rendered.Title)
+		assert.Equal(t, "Serve Mattermost over HTTPS and update SiteURL to the https:// address.", rendered.Remediation)
+		assert.Equal(t, "SiteURL is http://example.com. Session cookies and auth tokens travel over the network unencrypted.", rendered.Message)
 		assert.Equal(t, finding.MessageID, rendered.MessageID)
+		assert.Equal(t, "https://mattermost.com/pl/configure-site-url", rendered.DocsURL)
+		assert.Equal(t, "/admin_console/environment/web_server", rendered.ConsolePath)
 	})
 
 	t.Run("untranslated locale falls back to English", func(t *testing.T) {

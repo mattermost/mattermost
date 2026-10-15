@@ -1242,15 +1242,15 @@
     "translation": "删除前从数据库获取访问令牌遇到错误。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "用户注册已停用。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "注册链接已过期。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "注册链接无效。"
   },
   {
@@ -1372,10 +1372,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "无法在已删除的频道更新消息。"
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "我们找不到现有的消息或评论去更新。"
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3122,11 +3118,11 @@
     "translation": "设置任务状态为错误失败"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "无法解析 URL。"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "无法获得频道。"
   },
   {
@@ -7986,7 +7982,7 @@
     "translation": "无法完整的解码该导引请求。"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "无法解析该插件包。"
   },
   {
@@ -8294,7 +8290,7 @@
     "translation": "无法获取用户的奖章数目。"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "无法取得消息的优先级"
   },
   {
@@ -9994,14 +9990,6 @@
     "translation": "添加证书失败。"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "获取 CPA 字段失败"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "空的 LDAP 属性值"
-  },
-  {
     "id": "model.access_policy.is_valid.rules.app_error",
     "translation": "规则无效。"
   },
@@ -10052,10 +10040,6 @@
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
     "translation": "AD/LDAP ID 无效"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "无法检索 CPA 字段"
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
@@ -11962,7 +11946,7 @@
     "translation": "无法获取该视图的消息。"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "无法获取带上下文消息的优先级。"
   },
   {
