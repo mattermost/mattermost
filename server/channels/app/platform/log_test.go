@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/stretchr/testify/assert"
@@ -306,7 +307,10 @@ func TestGetAdvancedLogs(t *testing.T) {
 	})
 
 	t.Run("path validation prevents reading files outside log directory", func(t *testing.T) {
-		// Create a temporary directory to use as the log root
+		// GetAdvancedLogs only reads config + files. Drive it through an isolated
+		// PlatformService so UpdateConfig does not reconfigure the live TestHelper
+		// logger: that logger appends the FileLocation-outside-root warning into
+		// valid.log (CI) and holds the temp dir open through cleanup (MM-62438).
 		logDir, err := os.MkdirTemp("", "logs")
 		require.NoError(t, err)
 		t.Cleanup(func() {
@@ -314,16 +318,18 @@ func TestGetAdvancedLogs(t *testing.T) {
 			require.NoError(t, err)
 		})
 
-		// Override log root path to restrict log file access to logDir
-		th.Service.SetLogRootPathOverride(logDir)
-
-		// Create a file outside the log directory that should not be accessible
 		outsideDir, err := os.MkdirTemp("", "outside")
 		require.NoError(t, err)
 		t.Cleanup(func() {
 			err = os.RemoveAll(outsideDir)
 			require.NoError(t, err)
 		})
+
+		ps := newLogPathTestService(t, logDir, func(cfg *model.Config) {
+			*cfg.LogSettings.EnableFile = false
+			*cfg.LogSettings.EnableConsole = false
+		})
+		rctx := request.TestContext(t)
 
 		secretFile := path.Join(outsideDir, "secret.txt")
 		err = os.WriteFile(secretFile, []byte("secret data"), 0644)
@@ -352,11 +358,11 @@ func TestGetAdvancedLogs(t *testing.T) {
 		logCfgDataOutside, err := json.Marshal(logCfgOutside)
 		require.NoError(t, err)
 
-		th.Service.UpdateConfig(func(c *model.Config) {
+		ps.UpdateConfig(func(c *model.Config) {
 			c.LogSettings.AdvancedLoggingJSON = logCfgDataOutside
 		})
 
-		fileDatas, err := th.Service.GetAdvancedLogs(th.Context)
+		fileDatas, err := ps.GetAdvancedLogs(rctx)
 		// Should return error indicating path is outside allowed directory
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "outside allowed logging directory")
@@ -381,11 +387,11 @@ func TestGetAdvancedLogs(t *testing.T) {
 		logCfgDataTraversal, err := json.Marshal(logCfgTraversal)
 		require.NoError(t, err)
 
-		th.Service.UpdateConfig(func(c *model.Config) {
+		ps.UpdateConfig(func(c *model.Config) {
 			c.LogSettings.AdvancedLoggingJSON = logCfgDataTraversal
 		})
 
-		fileDatas, err = th.Service.GetAdvancedLogs(th.Context)
+		fileDatas, err = ps.GetAdvancedLogs(rctx)
 		// Should return error for path traversal attempt
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "outside")
@@ -409,11 +415,11 @@ func TestGetAdvancedLogs(t *testing.T) {
 		logCfgDataValid, err := json.Marshal(logCfgValid)
 		require.NoError(t, err)
 
-		th.Service.UpdateConfig(func(c *model.Config) {
+		ps.UpdateConfig(func(c *model.Config) {
 			c.LogSettings.AdvancedLoggingJSON = logCfgDataValid
 		})
 
-		fileDatas, err = th.Service.GetAdvancedLogs(th.Context)
+		fileDatas, err = ps.GetAdvancedLogs(rctx)
 		require.NoError(t, err)
 		require.Len(t, fileDatas, 1)
 		require.Equal(t, "valid.log", fileDatas[0].Filename)
