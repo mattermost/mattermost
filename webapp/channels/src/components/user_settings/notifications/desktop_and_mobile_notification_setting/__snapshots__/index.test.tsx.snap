@@ -115,19 +115,19 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             class="checkbox single-checkbox no-padding"
           >
             <label
-              class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
-              for="_r_0_"
+              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+              for="_r_3_"
             >
               <input
-                class="_checkbox__input_1pc8o_21 a11y--active a11y--focused"
-                id="_r_0_"
+                class="_checkbox__input_1rll8_22 a11y--active a11y--focused"
+                id="_r_3_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1pc8o_41"
+                class="_checkbox__box_1rll8_41"
               />
               <span
-                class="_checkbox__label_1pc8o_117"
+                class="_checkbox__label_1rll8_117"
               >
                 Notify me about replies to threads I'm following
               </span>
@@ -138,19 +138,19 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             class="checkbox single-checkbox no-padding"
           >
             <label
-              class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
-              for="_r_1_"
+              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+              for="_r_4_"
             >
               <input
-                class="_checkbox__input_1pc8o_21"
-                id="_r_1_"
+                class="_checkbox__input_1rll8_22"
+                id="_r_4_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1pc8o_41"
+                class="_checkbox__box_1rll8_41"
               />
               <span
-                class="_checkbox__label_1pc8o_117"
+                class="_checkbox__label_1rll8_117"
               >
                 Use different settings for my mobile devices
               </span>
@@ -334,11 +334,11 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
             >
               <label
                 class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
-                for="_r_3_"
+                for="_r_5_"
               >
                 <input
                   class="_radio__input_1hdqa_14"
-                  id="_r_3_"
+                  id="_r_5_"
                   name="desktopActivity"
                   type="radio"
                   value="all"
@@ -359,11 +359,11 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
               </label>
               <label
                 class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
-                for="_r_4_"
+                for="_r_6_"
               >
                 <input
                   class="_radio__input_1hdqa_14"
-                  id="_r_4_"
+                  id="_r_6_"
                   name="desktopActivity"
                   type="radio"
                   value="mention"
@@ -384,11 +384,11 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
               </label>
               <label
                 class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
-                for="_r_5_"
+                for="_r_7_"
               >
                 <input
                   class="_radio__input_1hdqa_14"
-                  id="_r_5_"
+                  id="_r_7_"
                   name="desktopActivity"
                   type="radio"
                   value="none"
@@ -414,19 +414,19 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
             class="checkbox single-checkbox no-padding"
           >
             <label
-              class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
-              for="_r_2_"
+              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+              for="_r_8_"
             >
               <input
-                class="_checkbox__input_1pc8o_21 a11y--active a11y--focused"
-                id="_r_2_"
+                class="_checkbox__input_1rll8_22 a11y--active a11y--focused"
+                id="_r_8_"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_1pc8o_41"
+                class="_checkbox__box_1rll8_41"
               />
               <span
-                class="_checkbox__label_1pc8o_117"
+                class="_checkbox__label_1rll8_117"
               >
                 Use different settings for my mobile devices
               </span>

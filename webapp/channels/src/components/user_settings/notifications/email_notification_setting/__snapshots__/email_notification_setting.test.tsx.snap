@@ -695,21 +695,21 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               class="checkbox single-checkbox no-padding"
             >
               <label
-                class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+                class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
                 for="desktopThreadsNotificationAllActivity"
               >
                 <input
                   checked=""
-                  class="_checkbox__input_1pc8o_21"
+                  class="_checkbox__input_1rll8_22"
                   id="desktopThreadsNotificationAllActivity"
                   name="desktopThreadsNotificationLevel"
                   type="checkbox"
                 />
                 <span
-                  class="_checkbox__box_1pc8o_41"
+                  class="_checkbox__box_1rll8_41"
                 >
                   <span
-                    class="_checkbox__icon_1pc8o_66"
+                    class="_checkbox__icon_1rll8_66"
                   >
                     <div
                       aria-hidden="true"
@@ -735,7 +735,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                   </span>
                 </span>
                 <span
-                  class="_checkbox__label_1pc8o_117"
+                  class="_checkbox__label_1rll8_117"
                 >
                   Notify me about replies to threads I’m following
                 </span>
