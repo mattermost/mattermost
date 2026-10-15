@@ -7,6 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
 import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
@@ -788,16 +789,15 @@ export default function ClassificationMarkings({disabled}: Props) {
                             }
                             setByEnv={false}
                         >
-                            <label className='checkbox-inline'>
-                                <input
-                                    data-testid='clearanceAttributeCheckbox'
-                                    type='checkbox'
-                                    checked={clearanceEnabled}
-                                    onChange={handleClearanceChange}
-                                    disabled={readOnly || clearanceConflict !== null}
-                                />
+                            <Checkbox
+                                className='checkbox-inline'
+                                data-testid='clearanceAttributeCheckbox'
+                                checked={clearanceEnabled}
+                                onChange={handleClearanceChange}
+                                disabled={readOnly || clearanceConflict !== null}
+                            >
                                 <FormattedMessage {...msg.clearanceCheckbox}/>
-                            </label>
+                            </Checkbox>
                             {clearanceConflict && (
                                 <InformationNoticeWrapper>
                                     <SectionNotice
