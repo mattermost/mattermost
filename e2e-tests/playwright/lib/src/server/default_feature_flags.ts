@@ -25,7 +25,6 @@ export const defaultFeatureFlags: Record<string, string> = {
     EnableSharedChannelsDMs: 'false',
     EnableShiftEscapeToMarkAllRead: 'false',
     EnableSyncAllUsersForRemoteCluster: 'false',
-    HealthDashboard: 'false',
     IntegratedBoards: 'false',
     ManagedChannelCategories: 'false',
     MmBlocksEnabled: 'true',
