@@ -77,29 +77,11 @@ BindsTo=postgresql.service
 
 ## Step 5: Configure the server
 
-Copy the default configuration to the active config file with the right ownership and permissions:
+The package already installs the systemd unit. Run setup as root. It writes `/etc/mattermost/mattermost.env` (mode `0600`) and adds a drop-in so the unit loads that file. By default the active configuration is stored in PostgreSQL. Setup does not enable or start the service, and package install scripts do not run it.
 
 ```sh
-sudo install -C -m 600 -o mattermost -g mattermost \
-  /opt/mattermost/config/config.defaults.json \
-  /opt/mattermost/config/config.json
-```
-
-Edit `/opt/mattermost/config/config.json` and set:
-
-- `SqlSettings.DriverName`: `"postgres"`
-- `SqlSettings.DataSource`: `"postgres://mmuser:<mmuser-password>@<host>:5432/mattermost?sslmode=disable&connect_timeout=10"` — replace each placeholder.
-- `ServiceSettings.SiteURL`: the public URL of your deployment (e.g., `https://mattermost.example.com`).
-- (Recommended) [`SupportSettings.SupportEmail`](/administration-guide/configure/site-configuration-settings#support-email-address): the email address users contact for help.
-
-:::note[TLS mode for `DataSource`]
-The `sslmode` value depends on your database environment. The two relevant options are `disable` and `require`. Managed services such as AWS Lightsail require `sslmode=require`. Check your provider's documentation.
-:::
-
-Start the server:
-
-```sh
-sudo systemctl start mattermost
+sudo mattermost setup
+sudo systemctl enable --now mattermost
 ```
 
 Verify it's running:
@@ -108,11 +90,26 @@ Verify it's running:
 curl http://localhost:8065
 ```
 
-You should see the Mattermost HTML response. Enable the service on boot:
+You should see the Mattermost HTML response.
+
+On a new installation, setup asks for the PostgreSQL URL and the Site URL. A non-interactive install:
 
 ```sh
-sudo systemctl enable mattermost.service
+sudo mattermost setup \
+  --database-url 'postgres://mmuser:<mmuser-password>@<host>:5432/mattermost?sslmode=disable' \
+  --site-url 'https://mattermost.example.com' \
+  --non-interactive
 ```
+
+:::note[TLS mode for `DataSource`]
+The `sslmode` value depends on your database environment. The two relevant options are `disable` and `require`. Managed services such as AWS Lightsail require `sslmode=require`. Check your provider's documentation.
+:::
+
+Pass `--config-store file` to keep configuration in a file. Setup then writes `/etc/mattermost/config.json` and sets `MM_CONFIG` to that path.
+
+Once the environment file is in place, Mattermost does not read `/opt/mattermost/config/config.json`. Change settings afterward in the System Console, with `mmctl`, or by editing `/etc/mattermost/config.json` when you chose file storage. Set [`SupportSettings.SupportEmail`](/administration-guide/configure/site-configuration-settings#support-email-address) to the address users contact for help.
+
+An existing server that already has configuration in PostgreSQL can be joined with the same command. Setup reports that this host is joining the cluster and does not replace the cluster's Site URL. Do not run setup as part of an `apt upgrade`.
 
 ## Step 6: Update Mattermost
 

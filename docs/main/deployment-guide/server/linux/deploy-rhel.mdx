@@ -81,68 +81,45 @@ If you use a path other than `/opt/mattermost` or a user/group name other than `
 
 </Note>
 
-Create the systemd unit file at `/etc/systemd/system/mattermost.service`:
-
-<Note>
-
-Earlier versions of this guide had you create the unit file under `/lib/systemd/system/`, which is reserved for unit files installed and owned by a package manager.
-
-</Note>
-
-```ini
-[Unit]
-Description=Mattermost
-After=network.target
-
-[Service]
-Type=notify
-ExecStart=/opt/mattermost/bin/mattermost
-TimeoutStartSec=3600
-KillMode=mixed
-Restart=always
-RestartSec=10
-WorkingDirectory=/opt/mattermost
-User=mattermost
-Group=mattermost
-LimitNOFILE=49152
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Reload systemd:
+Copy the unit shipped with the tarball:
 
 ```sh
+sudo cp /opt/mattermost/config/mattermost.service /etc/systemd/system/mattermost.service
 sudo systemctl daemon-reload
 ```
 
+<Note>
+
+Earlier versions of this guide had you write the unit file by hand, or place it under `/lib/systemd/system/`. `/lib/systemd/system/` is reserved for unit files installed by a package manager. The shipped unit loads `/etc/mattermost/mattermost.env`.
+
+</Note>
+
 ## Step 5: Configure and start the server
 
-Back up the default config before editing:
+Run setup as root. It writes `/etc/mattermost/mattermost.env` (mode `0600`) and points the unit at that file. By default the active configuration is stored in PostgreSQL. Setup does not enable or start the service.
 
 ```sh
-sudo cp /opt/mattermost/config/config.json /opt/mattermost/config/config.defaults.json
-```
-
-Edit `/opt/mattermost/config/config.json` and set:
-
-- `SqlSettings.DriverName`: `"postgres"`
-- `SqlSettings.DataSource`: `"postgres://mmuser:<mmuser-password>@<host>:5432/mattermost?sslmode=disable&connect_timeout=10"` — replace each placeholder.
-- `ServiceSettings.SiteURL`: the public URL of your deployment (e.g., `https://mattermost.example.com`).
-- (Recommended) [`SupportSettings.SupportEmail`](/administration-guide/configure/site-configuration-settings#support-email-address): the email address users contact for help.
-
-Start the server:
-
-```sh
-sudo systemctl start mattermost
+sudo /opt/mattermost/bin/mattermost setup
+sudo systemctl enable --now mattermost
 curl http://localhost:8065
 ```
 
-You should see the Mattermost HTML response. Enable on boot:
+You should see the Mattermost HTML response.
+
+On a new installation, setup asks for the PostgreSQL URL and the Site URL. A non-interactive install:
 
 ```sh
-sudo systemctl enable mattermost.service
+sudo /opt/mattermost/bin/mattermost setup \
+  --database-url 'postgres://mmuser:<mmuser-password>@<host>:5432/mattermost?sslmode=disable' \
+  --site-url 'https://mattermost.example.com' \
+  --non-interactive
 ```
+
+Pass `--config-store file` to keep configuration in a file. Setup then writes `/etc/mattermost/config.json` and sets `MM_CONFIG` to that path.
+
+Once the environment file is in place, Mattermost does not read `/opt/mattermost/config/config.json`. Change settings afterward in the System Console, with `mmctl`, or by editing `/etc/mattermost/config.json` when you chose file storage. Set [`SupportSettings.SupportEmail`](/administration-guide/configure/site-configuration-settings#support-email-address) to the address users contact for help.
+
+An existing server that already has configuration in PostgreSQL can be joined with the same command. Setup reports that this host is joining the cluster, checks connectivity, and writes only the environment file and a systemd drop-in. It does not replace the cluster's Site URL. Do not run setup as part of a version upgrade.
 
 If start fails on a hardened RHEL system, continue to the [Hardened RHEL configuration](#hardened-rhel-configuration) section below before troubleshooting elsewhere — it's almost always SELinux, firewalld, or fapolicyd.
 
