@@ -122,8 +122,8 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
 
     renderPostTrialActions = () => {
         return {
-            primaryAction: this.renderContactSalesPrimaryAction('large'),
-            secondaryAction: this.renderLearnMoreSecondaryAction('tertiary', 'large'),
+            primaryAction: this.renderContactSalesPrimaryAction(),
+            secondaryAction: this.renderLearnMoreSecondaryAction('tertiary'),
         };
     };
 

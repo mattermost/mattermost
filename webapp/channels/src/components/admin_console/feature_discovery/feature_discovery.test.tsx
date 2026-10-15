@@ -232,13 +232,18 @@ describe('components/feature_discovery', () => {
             expect(screen.queryByText('Foo')).toBeInTheDocument();
 
             // Should show Contact Sales button instead of Start Trial when Team Edition
-            expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
+            const contactSalesButton = screen.getByRole('button', {name: 'Contact sales'});
+            expect(contactSalesButton).toBeInTheDocument();
+            expect(contactSalesButton.className).toMatch(/size-medium/);
+            expect(contactSalesButton.className).not.toMatch(/size-large/);
             expect(screen.queryByRole('button', {name: 'Start trial'})).not.toBeInTheDocument();
 
             const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
             expect(featureLink).toBeInTheDocument();
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
+            expect(featureLink.closest('button')?.className).toMatch(/size-medium/);
+            expect(featureLink.closest('button')?.className).not.toMatch(/size-large/);
 
             expect(getPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
@@ -285,13 +290,18 @@ describe('components/feature_discovery', () => {
             expect(screen.queryByText('Foo')).toBeInTheDocument();
 
             // Should show Contact Sales button when previous trial license exists
-            expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
+            const contactSalesButton = screen.getByRole('button', {name: 'Contact sales'});
+            expect(contactSalesButton).toBeInTheDocument();
+            expect(contactSalesButton.className).toMatch(/size-medium/);
+            expect(contactSalesButton.className).not.toMatch(/size-large/);
             expect(screen.queryByRole('button', {name: 'Start trial'})).not.toBeInTheDocument();
 
             const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
             expect(featureLink).toBeInTheDocument();
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
+            expect(featureLink.closest('button')?.className).toMatch(/size-medium/);
+            expect(featureLink.closest('button')?.className).not.toMatch(/size-large/);
 
             expect(getPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
