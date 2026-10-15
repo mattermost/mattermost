@@ -231,8 +231,9 @@ function verifyUnchangedTimezoneOnInvalidInput(userId) {
         navigateToTimezoneDisplaySettings();
 
         // # Uncheck the automatic timezone checkbox and verify unchecked
+        // Compass Checkbox hides the native input (opacity: 0); force interactions.
         cy.get('.setting-list-item').as('settingItems');
-        cy.get('@settingItems').find('#automaticTimezoneInput').should('be.visible').uncheck().should('be.not.checked');
+        cy.get('@settingItems').find('#automaticTimezoneInput').should('exist').uncheck({force: true}).should('not.be.checked');
 
         // * Enter invalid input as timezone
         cy.get('@settingItems').find('#displayTimezone').find('input').
