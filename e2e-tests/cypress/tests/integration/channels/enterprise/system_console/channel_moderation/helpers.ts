@@ -22,16 +22,14 @@ export const visitChannelConfigPage = (channel: Channel) => {
 };
 
 // # Disable a permission
+// Compass Checkbox hides the native input (opacity: 0); use force + checked prop.
 export const disablePermission = (permission: string) => {
-    cy.waitUntil(() => cy.findByTestId(permission).scrollIntoView().should('be.visible').then((el) => {
-        const classAttribute = el[0].getAttribute('class') ?? '';
-        if (classAttribute.includes('checked') || classAttribute.includes('intermediate')) {
-            el[0].click();
-            return false;
+    cy.findByTestId(permission).scrollIntoView().should('exist').then(($el) => {
+        if ($el.prop('checked') || $el.prop('indeterminate')) {
+            cy.wrap($el).click({force: true});
         }
-        return true;
-    }));
-    cy.findByTestId(permission).should('not.have.class', 'checked');
+    });
+    cy.findByTestId(permission).should('not.be.checked');
 };
 
 // # Saves channel config and navigates back to the channel config page if specified
@@ -106,16 +104,14 @@ export const postChannelMentionsAndVerifySystemMessageExist = (channelName: stri
 };
 
 // # Enable a permission
+// Compass Checkbox hides the native input (opacity: 0); use force + checked prop.
 export const enablePermission = (permission: string) => {
-    cy.waitUntil(() => cy.findByTestId(permission).scrollIntoView().should('be.visible').then((el) => {
-        const classAttribute = el[0].getAttribute('class') ?? '';
-        if (!classAttribute.includes('checked')) {
-            el[0].click();
-            return false;
+    cy.findByTestId(permission).scrollIntoView().should('exist').then(($el) => {
+        if (!$el.prop('checked')) {
+            cy.wrap($el).click({force: true});
         }
-        return true;
-    }));
-    cy.findByTestId(permission).should('have.class', 'checked');
+    });
+    cy.findByTestId(permission).should('be.checked');
 };
 
 // # Checks to see if we did not get a system message warning after using @all/@here/@channel
@@ -294,9 +290,9 @@ export const promoteToChannelOrTeamAdmin = (userId: string, id: string, channels
 // # Disable (uncheck) all the permissions in the channel moderation widget
 export const disableAllChannelModeratedPermissions = () => {
     checkBoxes.forEach((buttonId) => {
-        cy.findByTestId(buttonId).then((btn) => {
-            if (btn.hasClass('checked')) {
-                btn.click();
+        cy.findByTestId(buttonId).then(($btn) => {
+            if ($btn.prop('checked')) {
+                cy.wrap($btn).click({force: true});
             }
         });
     });
@@ -305,9 +301,9 @@ export const disableAllChannelModeratedPermissions = () => {
 // # Enable (check) all the permissions in the channel moderation widget
 export const enableAllChannelModeratedPermissions = () => {
     checkBoxes.forEach((buttonId) => {
-        cy.findByTestId(buttonId).then((btn) => {
-            if (!btn.hasClass('checked')) {
-                btn.click();
+        cy.findByTestId(buttonId).then(($btn) => {
+            if (!$btn.prop('checked')) {
+                cy.wrap($btn).click({force: true});
             }
         });
     });
