@@ -10573,11 +10573,11 @@
   },
   "admin.permission_policies.permission.create_bor.description": {
     "defaultMessage": "Allow users to send burn-on-read messages",
-    "description": "Description of the Send Burn-On-Read permission toggle in the permission policy editor."
+    "description": "Description under the 'Create Burn-on-Read Message' permission toggle in the permission policy editor."
   },
   "admin.permission_policies.permission.create_bor.label": {
     "defaultMessage": "Create Burn-on-Read Message",
-    "description": "Name of the Send Burn-On-Read permission toggle in the permission policy editor; also used as a column value in the policies table."
+    "description": "Name of the permission toggle in the permission policy editor that allows sending burn-on-read messages; also used as a column value in the policies table. Title case, as a permission name."
   },
   "admin.permission_policies.permission.download_file.description": {
     "defaultMessage": "Allow users to download files to their device",
