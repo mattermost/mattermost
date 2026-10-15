@@ -5,9 +5,9 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 
 import {GenericContainer, Wait} from 'testcontainers';
-import type {StartedTestContainer} from 'testcontainers';
+import type {BoundPorts, StartedTestContainer, WaitStrategy} from 'testcontainers';
 
-import {isUpgradeFromProjectSelected, isUpgradeToPhaseProjectSelected} from '../upgrade_env';
+import {isUpgradeToPhaseProjectSelected} from '../upgrade_env';
 
 import {
     INBUCKET_ALIAS,
@@ -25,11 +25,13 @@ import {
     TESTCONTAINERS_LABELS,
 } from './constants';
 import {SERVER_ENV_BASELINE} from './env_baseline';
-import {startWithRetry} from './retry';
+import {logTestcontainers} from './log';
+import {listServerContainerIdsSync, removeContainersSync, removeOrphanedServerContainers} from './orphans';
+import {waitForHostPortFree} from './port';
+import {NonRetryableError, startWithRetry} from './retry';
 
 import {testConfig} from '@/test_config';
-
-const execFileAsync = promisify(execFile);
+import {wait} from '@/util';
 
 // Env this container computes itself from the stack Testcontainers just built. Must win over any
 // stray testConfig.serverEnv (MM_ENV) or bootEnvOverrides entry to avoid breaking the server's own
@@ -72,48 +74,85 @@ function structuralEnv(): Record<string, string> {
     };
 }
 
-// Readiness requires both the /api/v4/system/ping health check and the permissions-migration
-// job's "All migrations are complete." log line. Ping alone can race
-// MigrationKeyAdvancedPermissionsPhase2, whose scheduler delays its first tick 60s after startup,
-// tripping IsPhase2MigrationCompleted() gates on a spec's first API call. Requires
-// MM_LOGSETTINGS_CONSOLELEVEL=DEBUG, since the scheduler logs that line at Debug.
-//
-// Upgrade projects skip the log wait: they're API-only, and restarts/reuse can miss the log line
-// after the old container is removed. Subpath specs skip it too: they never hit the two callers
-// gated by IsPhase2MigrationCompleted().
-function mattermostWaitStrategy() {
+const execFileAsync = promisify(execFile);
+
+const EXIT_POLL_MS = 500;
+const EXIT_LOG_LINES = 40;
+
+// Ready on the health ping only. Migrations that gate some APIs finish later; specs that need
+// them call pw.ensurePhase2MigrationCompleted().
+// Fails at once, with the container's last log lines, if the server exits instead of waiting out the startup timeout.
+class ServerWaitStrategy implements WaitStrategy {
     // Subpath mode 302-redirects the bare path instead of returning 200.
-    const pingPath = testConfig.subpathMode ? `${SUBPATH_DEFAULT}/api/v4/system/ping` : '/api/v4/system/ping';
-    const ping = Wait.forHttp(pingPath, MATTERMOST_PORT).forStatusCode(200);
-    if (isUpgradeFromProjectSelected() || isUpgradeToPhaseProjectSelected() || testConfig.subpathMode) {
-        return ping;
+    private readonly ping = Wait.forHttp(
+        testConfig.subpathMode ? `${SUBPATH_DEFAULT}/api/v4/system/ping` : '/api/v4/system/ping',
+        MATTERMOST_PORT,
+    ).forStatusCode(200);
+
+    withStartupTimeout(startupTimeoutMs: number): this {
+        this.ping.withStartupTimeout(startupTimeoutMs);
+        return this;
     }
-    return Wait.forAll([ping, Wait.forLogMessage(/All migrations are complete\./, 1)]);
+
+    isStartupTimeoutSet(): boolean {
+        return this.ping.isStartupTimeoutSet();
+    }
+
+    getStartupTimeout(): number {
+        return this.ping.getStartupTimeout();
+    }
+
+    async waitUntilReady(
+        container: Parameters<WaitStrategy['waitUntilReady']>[0],
+        boundPorts: BoundPorts,
+    ): Promise<void> {
+        const watch = {active: true};
+        const exited = (async () => {
+            while (watch.active) {
+                const {State} = await container.inspect();
+                if (!State.Running) {
+                    throw new NonRetryableError(await describeExit(container.id, State.ExitCode));
+                }
+                await wait(EXIT_POLL_MS);
+            }
+        })();
+
+        try {
+            await Promise.race([this.ping.waitUntilReady(container, boundPorts), exited]);
+        } finally {
+            watch.active = false;
+            exited.catch(() => undefined);
+        }
+    }
 }
 
-// Frees MATTERMOST_FIXED_HOST_PORT — withReuse() never auto-removes a container whose wait
-// strategy timed out, which would otherwise block retries. Scoped to this stack's own label so an
-// unrelated container that happens to publish the same host port is never touched.
-async function removeContainersHoldingFixedPort(): Promise<void> {
-    try {
-        const [labelKey, labelValue] = Object.entries(TESTCONTAINERS_LABELS)[0];
-        const {stdout} = await execFileAsync('docker', [
-            'ps',
-            '-q',
-            '--filter',
-            `publish=${MATTERMOST_FIXED_HOST_PORT}`,
-            '--filter',
-            `label=${labelKey}=${labelValue}`,
-        ]);
-        const ids = stdout
-            .split('\n')
-            .map((id) => id.trim())
-            .filter(Boolean);
-        if (ids.length > 0) {
-            await execFileAsync('docker', ['rm', '-f', ...ids]);
-        }
-    } catch {
-        // Best-effort.
+// A Go crash dumps every goroutine after the panic line, so the excerpt starts at the panic when there is one.
+async function describeExit(containerId: string, exitCode: number): Promise<string> {
+    const {stdout, stderr} = await execFileAsync('docker', ['logs', '--tail', '500', containerId]);
+    const lines = `${stdout}${stderr}`.split('\n').filter((line) => line && !line.includes('"level":"debug"'));
+    const crash = lines.findIndex((line) => /^(panic:|fatal error:)/.test(line));
+    const excerpt = crash === -1 ? lines.slice(-EXIT_LOG_LINES) : lines.slice(crash, crash + EXIT_LOG_LINES);
+    return `Server container exited with code ${exitCode} before it became ready. ${crash === -1 ? 'Last' : 'Crash'} log lines:\n${excerpt.join('\n')}`;
+}
+
+// A failed start attempt can leave a created-but-never-started container that still reserves the server's port.
+async function removeLeftoverServerContainers(): Promise<void> {
+    const {stdout} = await execFileAsync('docker', [
+        'ps',
+        '-aq',
+        '--filter',
+        `ancestor=${testConfig.serverImage}`,
+        '--filter',
+        'status=created',
+        '--filter',
+        'status=exited',
+        '--filter',
+        'status=dead',
+    ]);
+    const ids = stdout.split('\n').filter(Boolean);
+    if (ids.length > 0) {
+        await execFileAsync('docker', ['rm', '-f', ...ids]);
+        logTestcontainers(`removed ${ids.length} leftover server container(s) before starting.`);
     }
 }
 
@@ -125,8 +164,38 @@ export async function startMattermostContainer(
 ): Promise<StartedTestContainer> {
     const env = resolveMattermostBootEnv(extraEnv);
 
+    // Containers this start creates are removed if the process is interrupted or the start fails, so they can't be
+    // left holding the server's port (SIGKILL can't be handled; the next start removes what it leaves).
+    const existing = new Set(listServerContainerIdsSync(testConfig.serverImage));
+    const removeCreated = () =>
+        removeContainersSync(listServerContainerIdsSync(testConfig.serverImage).filter((id) => !existing.has(id)));
+    const onSignal = (signal: NodeJS.Signals) => {
+        removeCreated();
+        process.off(signal, onSignal);
+        // Our listener replaced the default exit; restore it unless another listener handles the signal.
+        if (process.listenerCount(signal) === 0) {
+            process.kill(process.pid, signal);
+        }
+    };
+    process.on('SIGINT', onSignal);
+    process.on('SIGTERM', onSignal);
+
+    try {
+        return await startServerWithRetry(networkName, env);
+    } catch (error) {
+        removeCreated();
+        throw error;
+    } finally {
+        process.off('SIGINT', onSignal);
+        process.off('SIGTERM', onSignal);
+    }
+}
+
+function startServerWithRetry(networkName: string, env: Record<string, string>): Promise<StartedTestContainer> {
     return startWithRetry('server', async () => {
-        await removeContainersHoldingFixedPort();
+        await removeLeftoverServerContainers();
+        await removeOrphanedServerContainers();
+        await waitForHostPortFree(MATTERMOST_FIXED_HOST_PORT);
 
         let builder = new GenericContainer(testConfig.serverImage)
             .withPlatform('linux/amd64') // The published server images are amd64-only.
@@ -145,7 +214,7 @@ export async function startMattermostContainer(
             // different FileSettings backend (Minio/Azurite) is active.
             .withBindMounts([{source: MATTERMOST_DATA_DIR, target: '/mattermost/data', mode: 'rw'}])
             .withStartupTimeout(5 * 60_000)
-            .withWaitStrategy(mattermostWaitStrategy());
+            .withWaitStrategy(new ServerWaitStrategy());
 
         // Upgrade-swap-to skips reuse: the old container was rm -f'd and reuse could reattach to an
         // unrelated leftover on the same image tag. upgrade-from still needs withReuse() so Ryuk

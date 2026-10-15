@@ -10,6 +10,11 @@
 - After editing locale files, run `npm run extract-intl --workspace=channels` (or the appropriate script) if available to sync translations.
 - Keep message IDs stable; renaming requires migration guidance for localization teams.
 
+## en.json
+- Unlike the locale catalogs, which are flat `key -> string`, `en.json` pairs each key with a `{defaultMessage, description}`.
+- The `description` explains where the string appears and how it is used. It is context for translators, human or AI, and the one field a person writes by hand. `npm run i18n-extract` preserves it; a `description` written in source wins over the recorded one, and a new key arrives with an empty one to fill in.
+- Nothing imports `en.json`—an ESLint rule enforces that. English renders from the `defaultMessage` compiled into each call site, so the descriptions never reach the bundle, and neither does a second copy of every English string.
+
 ## Guidelines
 - Follow `webapp/STYLE_GUIDE.md → Internationalization`.
 - Prefer `FormattedMessage` components that wrap child markup for rich text instead of concatenating strings.

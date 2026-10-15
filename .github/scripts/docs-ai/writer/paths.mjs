@@ -10,7 +10,6 @@ export const ALLOW_EXACT = ['docs/api/examples.mdx', 'docs/api/index.mdx'];
 export const DENY_PREFIXES = [
   'docs/site/',
   'docs/styles/',
-  'docs/pdf/',
   'docs/vendor/',
   'docs/api/reference/',
   'docs/main/agents/docs/',

@@ -16,7 +16,7 @@ import (
 
 func TestPlainEmptyFile(t *testing.T) {
 	extractor := plainExtractor{}
-	extractedText, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader([]byte{}), 0)
+	extractedText, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader([]byte{}), 0, testBudget())
 	require.NoError(t, err)
 	require.Equal(t, "", extractedText)
 }
@@ -24,7 +24,7 @@ func TestPlainEmptyFile(t *testing.T) {
 func TestPlainTextSmallFile(t *testing.T) {
 	extractor := plainExtractor{}
 	content := strings.Repeat("test \n", 5)
-	extractedText, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader([]byte(content)), 0)
+	extractedText, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader([]byte(content)), 0, testBudget())
 	require.NoError(t, err)
 	require.Equal(t, content, extractedText)
 }
@@ -32,7 +32,7 @@ func TestPlainTextSmallFile(t *testing.T) {
 func TestPlainBigFile(t *testing.T) {
 	extractor := plainExtractor{}
 	content := strings.Repeat("test \n", 1000)
-	extractedText, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader([]byte(content)), 0)
+	extractedText, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader([]byte(content)), 0, testBudget())
 	require.NoError(t, err)
 	require.Equal(t, content, extractedText)
 }
@@ -41,7 +41,7 @@ func TestSmallBinaryFile(t *testing.T) {
 	extractor := plainExtractor{}
 	notUTF8Char := byte(0x7)
 	content := bytes.Repeat([]byte{notUTF8Char}, 1000)
-	extractedText, err := extractor.Extract(context.Background(), "test.bin", bytes.NewReader(content), 0)
+	extractedText, err := extractor.Extract(context.Background(), "test.bin", bytes.NewReader(content), 0, testBudget())
 	require.NoError(t, err)
 	require.Equal(t, "", extractedText)
 }
@@ -50,7 +50,7 @@ func TestBigBinaryFile(t *testing.T) {
 	extractor := plainExtractor{}
 	notUTF8Char := byte(0x7)
 	content := bytes.Repeat([]byte{notUTF8Char}, 10000)
-	extractedText, err := extractor.Extract(context.Background(), "test.bin", bytes.NewReader(content), 0)
+	extractedText, err := extractor.Extract(context.Background(), "test.bin", bytes.NewReader(content), 0, testBudget())
 	require.NoError(t, err)
 	require.Equal(t, "", extractedText)
 }
@@ -60,7 +60,7 @@ func TestBigBinaryFile(t *testing.T) {
 func TestPlainFileIsBoundedRegardlessOfInputSize(t *testing.T) {
 	extractor := plainExtractor{}
 	content := bytes.Repeat([]byte("a"), maxPlainTextExtractionBytes+1024)
-	out, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader(content), 0)
+	out, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader(content), 0, testBudget())
 	require.NoError(t, err)
 	require.Equal(t, maxPlainTextExtractionBytes, len(out))
 	require.Equal(t, string(content[:maxPlainTextExtractionBytes]), out)
@@ -72,7 +72,7 @@ func TestPlainFileRespectsSmallerMaxFileSize(t *testing.T) {
 	extractor := plainExtractor{}
 	content := bytes.Repeat([]byte("x"), 4096)
 	const maxSize = int64(100)
-	out, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader(content), maxSize)
+	out, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader(content), maxSize, testBudget())
 	require.NoError(t, err)
 	require.Equal(t, int(maxSize), len(out))
 	require.Equal(t, string(content[:maxSize]), out)
@@ -84,7 +84,7 @@ func TestPlainFileIgnoresLargerMaxFileSize(t *testing.T) {
 	extractor := plainExtractor{}
 	content := bytes.Repeat([]byte("b"), maxPlainTextExtractionBytes+10)
 	out, err := extractor.Extract(context.Background(), "test.txt",
-		bytes.NewReader(content), int64(maxPlainTextExtractionBytes)*2)
+		bytes.NewReader(content), int64(maxPlainTextExtractionBytes)*2, testBudget())
 	require.NoError(t, err)
 	require.Equal(t, maxPlainTextExtractionBytes, len(out))
 }
@@ -97,7 +97,7 @@ func TestPlainFileTruncationDoesNotSplitRune(t *testing.T) {
 	// leaves only its first byte inside the limit.
 	content := []byte(strings.Repeat("a", 9) + "€" + "trailing data past the limit")
 	const maxSize = int64(10)
-	out, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader(content), maxSize)
+	out, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader(content), maxSize, testBudget())
 	require.NoError(t, err)
 	require.True(t, utf8.ValidString(out))
 	require.Equal(t, strings.Repeat("a", 9), out)
@@ -126,7 +126,7 @@ func TestPlainFileDoesNotOverreadPastDefaultCap(t *testing.T) {
 	extractor := plainExtractor{}
 	content := bytes.Repeat([]byte("a"), maxPlainTextExtractionBytes*2)
 	counter := &countingReadSeeker{r: bytes.NewReader(content)}
-	_, err := extractor.Extract(context.Background(), "test.txt", counter, 0)
+	_, err := extractor.Extract(context.Background(), "test.txt", counter, 0, testBudget())
 	require.NoError(t, err)
 	require.LessOrEqual(t, counter.bytesRead, maxPlainTextExtractionBytes)
 }
@@ -138,7 +138,7 @@ func TestPlainFileDoesNotOverreadPastMaxFileSize(t *testing.T) {
 	content := bytes.Repeat([]byte("a"), 4096)
 	const maxSize = int64(10)
 	counter := &countingReadSeeker{r: bytes.NewReader(content)}
-	_, err := extractor.Extract(context.Background(), "test.txt", counter, maxSize)
+	_, err := extractor.Extract(context.Background(), "test.txt", counter, maxSize, testBudget())
 	require.NoError(t, err)
 	require.LessOrEqual(t, int64(counter.bytesRead), maxSize)
 }

@@ -275,6 +275,20 @@ $profilePopoverBorderWidth: 1px;
                 gap: 4px;
                 justify-items: flex-end;
                 row-gap: 4px;
+
+                .user-popover__call-options-button.btn-icon.btn-sm {
+                    width: auto;
+                    padding: 0 4px 0 7px;
+                    gap: 0;
+
+                    .icon::before {
+                        margin: 0;
+                    }
+
+                    .icon-chevron-down {
+                        font-size: 14px;
+                    }
+                }
             }
         }
     }
