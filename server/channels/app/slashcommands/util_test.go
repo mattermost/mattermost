@@ -34,6 +34,15 @@ func TestParseNamedArgs(t *testing.T) {
 		{"quote embedded", "remote add --arg1 O'Brien", map[string]string{ActionKey: "add", "arg1": "O'Brien"}},
 		{"quote prefix, suffix, and embedded", "remote add --arg1 \"O'Brien\"", map[string]string{ActionKey: "add", "arg1": "O'Brien"}},
 		{"empty quotes", "remote add --arg1 \"\"", map[string]string{ActionKey: "add", "arg1": ""}},
+		{"empty single quotes", "remote add --arg1 '' --arg2 val2", map[string]string{ActionKey: "add", "arg1": "", "arg2": "val2"}},
+		{"double quoted spaces", "remote add --arg1 \"my remote\" --arg2 val2", map[string]string{ActionKey: "add", "arg1": "my remote", "arg2": "val2"}},
+		{"single quoted spaces", "remote add --arg1 'my remote'", map[string]string{ActionKey: "add", "arg1": "my remote"}},
+		{"quoted spaces with embedded quote", "remote add --arg1 \"Bob O'Brien's remote\"", map[string]string{ActionKey: "add", "arg1": "Bob O'Brien's remote"}},
+		{"single quoted with embedded apostrophe", "remote add --arg1 'O'Brien'", map[string]string{ActionKey: "add", "arg1": "O'Brien"}},
+		{"quoted value with spaces is not split", "remote add --arg1 \"a  --arg2 b\"", map[string]string{ActionKey: "add", "arg1": "a  --arg2 b"}},
+		{"quoted value that looks like a flag", "remote add --arg1 \"--arg2\"", map[string]string{ActionKey: "add", "arg1": "--arg2"}},
+		{"unterminated quote", "remote add --arg1 \"my remote --arg2 val2", map[string]string{ActionKey: "add", "arg1": "my", "arg2": "val2"}},
+		{"quote closes only before whitespace", "remote add --arg1 \"a\"b c\"", map[string]string{ActionKey: "add", "arg1": "a\"b c"}},
 	}
 
 	for _, tt := range data {
