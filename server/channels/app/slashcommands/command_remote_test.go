@@ -213,9 +213,8 @@ func newConfirmInviteServer(t *testing.T, status, errMsg string) (*httptest.Serv
 	return ts, confirms
 }
 
-// A successful accept pings the remote in a background goroutine, which stores LastPingAt
-// only after it has read the ping response. Waiting for it keeps that goroutine from
-// outliving the subtest and the fake remote server.
+// Waits for the background ping started by a successful accept so it does not race the
+// fake remote server shutdown.
 func waitForFirstPing(t *testing.T, th *TestHelper, remoteID string) {
 	t.Helper()
 	require.Eventually(t, func() bool {

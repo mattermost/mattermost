@@ -494,6 +494,13 @@ func shareHomeChannel(t *testing.T, th *TestHelper, channel *model.Channel) {
 	require.NoError(t, err)
 }
 
+// UpdateConfig cannot change feature flags in this test helper and environment overrides
+// always win, so the flag is pinned through the environment before the config is loaded.
+func setupForSharedChannelsWithoutDMs(t *testing.T) *TestHelper {
+	t.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS", "false")
+	return setupForSharedChannels(t)
+}
+
 func TestShareProviderDoCommandGuards(t *testing.T) {
 	T := i18n.GetUserTranslations("en")
 
@@ -545,7 +552,7 @@ func TestShareProviderDoCommandGuards(t *testing.T) {
 
 func TestShareProviderShareUnshareStatusErrors(t *testing.T) {
 	T := i18n.GetUserTranslations("en")
-	th := setupForSharedChannels(t).initBasic(t)
+	th := setupForSharedChannelsWithoutDMs(t).initBasic(t)
 	adminID := th.SystemAdminUser.Id
 
 	isShared := func(t *testing.T, channelID string) bool {
@@ -615,7 +622,7 @@ func TestShareProviderShareUnshareStatusErrors(t *testing.T) {
 
 func TestShareProviderDoInviteRemote(t *testing.T) {
 	T := i18n.GetUserTranslations("en")
-	th := setupForSharedChannels(t).initBasic(t)
+	th := setupForSharedChannelsWithoutDMs(t).initBasic(t)
 	adminID := th.SystemAdminUser.Id
 
 	hasRemote := func(t *testing.T, channelID, remoteID string) bool {
