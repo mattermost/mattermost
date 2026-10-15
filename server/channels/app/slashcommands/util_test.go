@@ -57,6 +57,7 @@ func TestParseNamedArgs(t *testing.T) {
 
 func TestParseNamedArgsErrors(t *testing.T) {
 	const (
+		singleQuotedFlag  = "api.command.named_args.single_quoted_flag"
 		unexpectedValue   = "api.command.named_args.unexpected_value"
 		unterminatedQuote = "api.command.named_args.unterminated_quote"
 	)
@@ -72,7 +73,9 @@ func TestParseNamedArgsErrors(t *testing.T) {
 		{"unterminated quote before flag", "remote add --arg1 \"my remote --arg2 val2", unterminatedQuote},
 		{"unterminated quote before quoted value", "remote add --arg1 \"foo --arg2 \"Bar Baz\" --arg3 val3", unexpectedValue},
 		{"text after closing double quote", "remote add --arg1 \"a\"b c\"", unexpectedValue},
-		{"single quoted value containing a flag", "remote add --arg1 'use --arg2 here'", unterminatedQuote},
+		{"single quoted value containing a flag", "remote add --arg1 'use --arg2 here'", singleQuotedFlag},
+		{"unterminated single quote at end", "remote add --arg1 'my remote", unterminatedQuote},
+		{"unterminated curly quote before curly quoted value", "remote add --arg1 \u201cfoo --arg2 \u201cBar Baz\u201d --arg3 val3", unterminatedQuote},
 		{"mismatched curly quotes", "remote add --arg1 \u201cmy remote\" --arg2 val2", unterminatedQuote},
 	}
 

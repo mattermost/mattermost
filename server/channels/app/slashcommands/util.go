@@ -84,6 +84,11 @@ func (t commandToken) value() string {
 // Mobile and macOS autocorrect replace straight quotes with curly ones.
 var closingQuotes = map[rune]rune{'"': '"', '\'': '\'', '“': '”', '‘': '’'}
 
+var (
+	errUnterminatedQuote  = errors.New("unterminated quote")
+	errFlagInSingleQuotes = errors.New("flag in single quoted value")
+)
+
 // tokenizeCommand splits cmd on whitespace, except inside a quoted value. A quote only opens
 // a value at the start of a word, so apostrophes such as O'Brien are kept. A double quoted
 // value ends at the next matching quote. See quotedToken for single quotes.
@@ -93,9 +98,12 @@ func tokenizeCommand(T i18n.TranslateFunc, cmd string) ([]commandToken, error) {
 	for rest != "" {
 		var tok commandToken
 		if open, size := utf8.DecodeRuneInString(rest); closingQuotes[open] != 0 {
-			quoted, after, ok := quotedToken(rest[size:], closingQuotes[open])
-			if !ok {
+			quoted, after, err := quotedToken(rest[size:], closingQuotes[open])
+			if err != nil {
 				word, _ := nextWord(rest)
+				if errors.Is(err, errFlagInSingleQuotes) {
+					return nil, errors.New(T("api.command.named_args.single_quoted_flag", map[string]any{"Value": word}))
+				}
 				return nil, errors.New(T("api.command.named_args.unterminated_quote", map[string]any{"Value": word}))
 			}
 			if next, _ := utf8.DecodeRuneInString(after); after != "" && !unicode.IsSpace(next) {
@@ -121,27 +129,26 @@ func nextWord(s string) (string, string) {
 }
 
 // A single quote doubles as an apostrophe, so a single quoted value only ends at a matching
-// quote followed by whitespace or the end of input. It may not contain " --", so a missing
-// closing quote is an error instead of swallowing the flags after it.
-func quotedToken(s string, closeQuote rune) (commandToken, string, bool) {
+// quote followed by whitespace or the end of input. It may not contain " --".
+func quotedToken(s string, closeQuote rune) (commandToken, string, error) {
 	if closeQuote == '"' || closeQuote == '”' {
 		end := strings.IndexRune(s, closeQuote)
-		if end < 0 {
-			return commandToken{}, "", false
+		if end < 0 || closeQuote == '”' && strings.ContainsRune(s[:end], '“') {
+			return commandToken{}, "", errUnterminatedQuote
 		}
-		return commandToken{text: s[:end], quoted: true}, s[end+utf8.RuneLen(closeQuote):], true
+		return commandToken{text: s[:end], quoted: true}, s[end+utf8.RuneLen(closeQuote):], nil
 	}
 	for i, r := range s {
 		after := s[i+utf8.RuneLen(r):]
 		if r == closeQuote {
 			if next, _ := utf8.DecodeRuneInString(after); after == "" || unicode.IsSpace(next) {
-				return commandToken{text: s[:i], quoted: true}, after, true
+				return commandToken{text: s[:i], quoted: true}, after, nil
 			}
 		} else if unicode.IsSpace(r) && strings.HasPrefix(strings.TrimLeftFunc(after, unicode.IsSpace), "--") {
-			return commandToken{}, "", false
+			return commandToken{}, "", errFlagInSingleQuotes
 		}
 	}
-	return commandToken{}, "", false
+	return commandToken{}, "", errUnterminatedQuote
 }
 
 func trimSpaceAndQuotes(s string) string {

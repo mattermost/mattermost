@@ -1155,14 +1155,19 @@
     "description": "API error when a user lacks permission to move a custom slash command to another team."
   },
   {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "The single quote at `{{.Value}}` is not closed before ` --`. Close it, or use double quotes if the value contains ` --`.",
+    "description": "Slash command error when a single quoted argument value reaches a flag before its closing quote."
+  },
+  {
     "id": "api.command.named_args.unexpected_value",
     "translation": "Unexpected `{{.Value}}`. Wrap a value that contains spaces in quotes, and use double quotes if the value also contains an apostrophe.",
     "description": "Slash command error when a word is not the action, a flag or a flag's value, usually because a value with spaces was not quoted."
   },
   {
     "id": "api.command.named_args.unterminated_quote",
-    "translation": "The quote at `{{.Value}}` is never closed. A value in single quotes cannot contain ` --`, so use double quotes for that.",
-    "description": "Slash command error when a quoted argument value has no closing quote, or a single quoted value contains a flag."
+    "translation": "The quote at `{{.Value}}` is never closed.",
+    "description": "Slash command error when a quoted argument value has no closing quote."
   },
   {
     "id": "api.command.team_mismatch.app_error",
