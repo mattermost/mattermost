@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
 func TestParseNamedArgs(t *testing.T) {
@@ -39,16 +40,42 @@ func TestParseNamedArgs(t *testing.T) {
 		{"single quoted spaces", "remote add --arg1 'my remote'", map[string]string{ActionKey: "add", "arg1": "my remote"}},
 		{"quoted spaces with embedded quote", "remote add --arg1 \"Bob O'Brien's remote\"", map[string]string{ActionKey: "add", "arg1": "Bob O'Brien's remote"}},
 		{"single quoted with embedded apostrophe", "remote add --arg1 'O'Brien'", map[string]string{ActionKey: "add", "arg1": "O'Brien"}},
-		{"quoted value with spaces is not split", "remote add --arg1 \"a  --arg2 b\"", map[string]string{ActionKey: "add", "arg1": "a  --arg2 b"}},
 		{"quoted value that looks like a flag", "remote add --arg1 \"--arg2\"", map[string]string{ActionKey: "add", "arg1": "--arg2"}},
-		{"unterminated quote", "remote add --arg1 \"my remote --arg2 val2", map[string]string{ActionKey: "add", "arg1": "my", "arg2": "val2"}},
 		{"quote closes only before whitespace", "remote add --arg1 \"a\"b c\"", map[string]string{ActionKey: "add", "arg1": "a\"b c"}},
+		{"curly double quotes", "remote add --arg1 \u201cmy remote\u201d --arg2 val2", map[string]string{ActionKey: "add", "arg1": "my remote", "arg2": "val2"}},
+		{"curly single quotes with curly apostrophe", "remote add --arg1 \u2018Bob\u2019s remote\u2019", map[string]string{ActionKey: "add", "arg1": "Bob\u2019s remote"}},
 	}
 
 	for _, tt := range data {
-		m := parseNamedArgs(tt.s)
-		assert.NotNil(t, m)
+		m, err := parseNamedArgs(i18n.IdentityTfunc(), tt.s)
+		assert.NoError(t, err, tt.name)
 		assert.Equal(t, tt.m, m, tt.name)
+	}
+}
+
+func TestParseNamedArgsErrors(t *testing.T) {
+	const (
+		unexpectedValue   = "api.command.named_args.unexpected_value"
+		unterminatedQuote = "api.command.named_args.unterminated_quote"
+	)
+	data := []struct {
+		name string
+		s    string
+		err  string
+	}{
+		{"unquoted value with spaces", "remote add --arg1 my remote", unexpectedValue},
+		{"word after action", "remote add extra --arg1 val1", unexpectedValue},
+		{"apostrophe then space ends single quoted value", "remote add --arg1 'Engineers' Hub'", unexpectedValue},
+		{"unterminated quote at end", "remote add --arg1 \"my remote", unterminatedQuote},
+		{"unterminated quote before flag", "remote add --arg1 \"my remote --arg2 val2", unterminatedQuote},
+		{"unterminated quote before quoted value", "remote add --arg1 \"foo --arg2 \"Bar Baz\" --arg3 val3", unterminatedQuote},
+		{"mismatched curly quotes", "remote add --arg1 \u201cmy remote\" --arg2 val2", unterminatedQuote},
+	}
+
+	for _, tt := range data {
+		m, err := parseNamedArgs(i18n.IdentityTfunc(), tt.s)
+		assert.Nil(t, m, tt.name)
+		assert.EqualError(t, err, tt.err, tt.name)
 	}
 }
 

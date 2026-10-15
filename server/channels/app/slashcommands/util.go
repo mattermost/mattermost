@@ -4,6 +4,7 @@
 package slashcommands
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -29,12 +30,16 @@ func response(message string) *model.CommandResponse {
 
 // parseNamedArgs parses a command string into a map of arguments. It is assumed the
 // command string is of the form `<action> --arg1 value1 ...` Supports empty values,
-// and values wrapped in single or double quotes may contain whitespace.
+// and values wrapped in quotes may contain whitespace. A word that is not the action,
+// a flag or a flag's value is an error, so a value missing its quotes is not truncated.
 // Arg names are limited to [0-9a-zA-Z_].
-func parseNamedArgs(cmd string) map[string]string {
-	m := make(map[string]string)
+func parseNamedArgs(T i18n.TranslateFunc, cmd string) (map[string]string, error) {
+	tokens, err := tokenizeCommand(T, cmd)
+	if err != nil {
+		return nil, err
+	}
 
-	tokens := tokenizeCommand(cmd)
+	m := make(map[string]string)
 
 	// check for optional action
 	if len(tokens) >= 2 && !tokens[1].isFlag() {
@@ -43,6 +48,9 @@ func parseNamedArgs(cmd string) map[string]string {
 
 	for i := range tokens {
 		if !tokens[i].isFlag() {
+			if i >= 2 && !tokens[i-1].isFlag() {
+				return nil, errors.New(T("api.command.named_args.unexpected_value", map[string]any{"Value": tokens[i].text}))
+			}
 			continue
 		}
 		var val string
@@ -54,7 +62,7 @@ func parseNamedArgs(cmd string) map[string]string {
 			m[arg] = val
 		}
 	}
-	return m
+	return m, nil
 }
 
 type commandToken struct {
@@ -73,43 +81,54 @@ func (t commandToken) value() string {
 	return trimSpaceAndQuotes(t.text)
 }
 
-// tokenizeCommand splits cmd on whitespace, except inside a quoted token. A quote only opens
-// a token at its start and only closes it when followed by whitespace or the end of input,
-// so apostrophes such as O'Brien are kept. An unterminated quote is split on whitespace.
-func tokenizeCommand(cmd string) []commandToken {
+// Mobile and macOS autocorrect replace straight quotes with curly ones.
+var closingQuotes = map[rune]rune{'"': '"', '\'': '\'', '“': '”', '‘': '’'}
+
+// tokenizeCommand splits cmd on whitespace, except inside a quoted value. A quote only opens
+// a value at the start of a word and only closes it when followed by whitespace or the end
+// of input, so apostrophes such as O'Brien are kept. A quoted value may not contain " --",
+// so a missing closing quote is an error instead of swallowing the flags after it.
+func tokenizeCommand(T i18n.TranslateFunc, cmd string) ([]commandToken, error) {
 	var tokens []commandToken
 	rest := strings.TrimLeftFunc(cmd, unicode.IsSpace)
 	for rest != "" {
 		var tok commandToken
-		tok, rest = nextQuotedToken(rest)
-		if !tok.quoted {
-			end := strings.IndexFunc(rest, unicode.IsSpace)
-			if end < 0 {
-				end = len(rest)
+		if open, size := utf8.DecodeRuneInString(rest); closingQuotes[open] != 0 {
+			quoted, after, ok := quotedToken(rest[size:], closingQuotes[open])
+			if !ok {
+				word, _ := nextWord(rest)
+				return nil, errors.New(T("api.command.named_args.unterminated_quote", map[string]any{"Value": word}))
 			}
-			tok.text, rest = rest[:end], rest[end:]
+			tok, rest = quoted, after
+		} else {
+			tok.text, rest = nextWord(rest)
 		}
 		tokens = append(tokens, tok)
 		rest = strings.TrimLeftFunc(rest, unicode.IsSpace)
 	}
-	return tokens
+	return tokens, nil
 }
 
-func nextQuotedToken(s string) (commandToken, string) {
-	quote := s[0]
-	if quote != '"' && quote != '\'' {
-		return commandToken{}, s
+func nextWord(s string) (string, string) {
+	end := strings.IndexFunc(s, unicode.IsSpace)
+	if end < 0 {
+		end = len(s)
 	}
-	for i := 1; i < len(s); i++ {
-		if s[i] != quote {
-			continue
-		}
-		after := s[i+1:]
-		if r, _ := utf8.DecodeRuneInString(after); after == "" || unicode.IsSpace(r) {
-			return commandToken{text: s[1:i], quoted: true}, after
+	return s[:end], s[end:]
+}
+
+func quotedToken(s string, closeQuote rune) (commandToken, string, bool) {
+	for i, r := range s {
+		after := s[i+utf8.RuneLen(r):]
+		if r == closeQuote {
+			if next, _ := utf8.DecodeRuneInString(after); after == "" || unicode.IsSpace(next) {
+				return commandToken{text: s[:i], quoted: true}, after, true
+			}
+		} else if unicode.IsSpace(r) && strings.HasPrefix(strings.TrimLeftFunc(after, unicode.IsSpace), "--") {
+			return commandToken{}, "", false
 		}
 	}
-	return commandToken{}, s
+	return commandToken{}, "", false
 }
 
 func trimSpaceAndQuotes(s string) string {

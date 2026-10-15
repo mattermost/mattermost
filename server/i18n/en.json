@@ -1155,6 +1155,16 @@
     "description": "API error when a user lacks permission to move a custom slash command to another team."
   },
   {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Unexpected `{{.Value}}`. Wrap a value that contains spaces in quotes, and use double quotes if the value also contains an apostrophe.",
+    "description": "Slash command error when a word is not the action, a flag or a flag's value, usually because a value with spaces was not quoted."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "The quote at `{{.Value}}` is never closed. A quoted value must end with a matching quote and cannot contain ` --`.",
+    "description": "Slash command error when a quoted argument value has no closing quote before the next flag or the end of the command."
+  },
+  {
     "id": "api.command.team_mismatch.app_error",
     "translation": "Unable to update commands across teams.",
     "description": "API error when an update would move a slash command from one team to another, which is not allowed; 'commands' are slash commands."
