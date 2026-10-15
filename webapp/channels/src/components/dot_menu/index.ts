@@ -137,7 +137,7 @@ function makeMapStateToProps() {
                 ownProps.location === Locations.RHS_ROOT ||
                 ownProps.location === Locations.RHS_COMMENT
             ),
-            canPin: !systemMessage && !isBoRPost && !isArchivedChannel(channel),
+            canPin: !systemMessage && !isBoRPost && !isArchivedChannel(channel) && !isChannelWriteDenied(state, post.channel_id),
             canCopyText: !systemMessage && !isBoRPost,
             canCopyLink: !systemMessage && (!isBoRPost || isPostSender),
             canFlagContent,

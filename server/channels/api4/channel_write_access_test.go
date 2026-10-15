@@ -160,6 +160,20 @@ func channelWriteAccessSurfaces() []channelWriteAccessSurface {
 				EmojiName: "+1",
 			})
 		}),
+		// Pins and acknowledgements are shown to every member of the channel, like reactions.
+		write("pin post", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
+			return f.th.Client.PinPost(context.Background(), f.post.Id)
+		}),
+		write("unpin post", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
+			return f.th.Client.UnpinPost(context.Background(), f.post.Id)
+		}),
+		write("acknowledge post", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
+			_, resp, err := f.th.Client.AcknowledgePost(context.Background(), f.post.Id, f.th.BasicUser.Id)
+			return resp, err
+		}),
+		write("unacknowledge post", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
+			return f.th.Client.UnacknowledgePost(context.Background(), f.post.Id, f.th.BasicUser.Id)
+		}),
 		write("upsert draft", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
 			_, resp, err := f.th.Client.UpsertDraft(context.Background(), &model.Draft{
 				UserId:    f.th.BasicUser.Id,
@@ -263,9 +277,6 @@ func channelWriteAccessUngatedSurfaces() []channelWriteAccessSurface {
 		ungated("channel view", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
 			_, resp, err := f.th.Client.ViewChannel(context.Background(), f.th.BasicUser.Id, &model.ChannelView{ChannelId: f.th.BasicChannel.Id})
 			return resp, err
-		}),
-		ungated("pin post", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
-			return f.th.Client.PinPost(context.Background(), f.post.Id)
 		}),
 		ungated("set post reminder", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
 			return f.th.Client.SetPostReminder(context.Background(), &model.PostReminder{
