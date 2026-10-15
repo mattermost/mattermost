@@ -154,7 +154,7 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
             }
             inputs={[
                 <fieldset key='settings'>
-                    <div className='checkbox'>
+                    <div className='checkbox no-padding'>
                         <Checkbox
                             checked={disableClientPlugins}
                             onChange={(e) => {
@@ -167,7 +167,7 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
                             />
                         </Checkbox>
                     </div>
-                    <div className='checkbox'>
+                    <div className='checkbox no-padding'>
                         <Checkbox
                             checked={disableTypingMessages}
                             onChange={(e) => {

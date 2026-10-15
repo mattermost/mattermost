@@ -425,7 +425,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                 <React.Fragment key='userNotificationEmailThreadsOptions'>
                     <hr/>
                     <fieldset>
-                        <div className='checkbox single-checkbox'>
+                        <div className='checkbox single-checkbox no-padding'>
                             <Checkbox
                                 id='desktopThreadsNotificationAllActivity'
                                 name='desktopThreadsNotificationLevel'

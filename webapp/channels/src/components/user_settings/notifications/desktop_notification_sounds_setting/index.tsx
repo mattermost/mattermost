@@ -117,7 +117,7 @@ function DesktopNotificationSoundsSettings({
         const isMessageNotificationSoundChecked = desktopSound === 'true';
         const messageSoundSection = (
             <Fragment key='messageSoundSection'>
-                <div className='checkbox inlineCheckboxSelect'>
+                <div className='checkbox inlineCheckboxSelect no-padding'>
                     <Checkbox
                         checked={desktopSound === 'true'}
                         onChange={handleChangeForMessageNotificationSoundCheckbox}
@@ -159,7 +159,7 @@ function DesktopNotificationSoundsSettings({
             const callSoundSection = (
                 <Fragment key='callSoundSection'>
                     <br/>
-                    <div className='checkbox inlineCheckboxSelect'>
+                    <div className='checkbox inlineCheckboxSelect no-padding'>
                         <Checkbox
                             checked={isIncomingCallSoundChecked}
                             onChange={handleChangeForIncomginCallSoundCheckbox}

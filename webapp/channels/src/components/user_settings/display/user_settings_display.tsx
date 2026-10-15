@@ -507,7 +507,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             if (childOptionToShow) {
                 const childDisplay = childOptionToShow.display;
                 childOptionSection = (
-                    <div className='checkbox'>
+                    <div className='checkbox no-padding'>
                         <hr/>
                         <Checkbox
                             id={name + 'childOption'}

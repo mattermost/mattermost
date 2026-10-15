@@ -280,6 +280,14 @@
                         .checkbox.single-checkbox {
                             min-height: unset;
                             padding: 0;
+
+                            // Compass Checkbox is itself a label; Bootstrap's
+                            // .checkbox label { padding-left: 20px } no longer cancels
+                            // (native inputs used margin-left: -20px). Prefer
+                            // .no-padding on wrappers; keep label reset here too.
+                            label {
+                                padding: 0;
+                            }
                         }
 
                         .inlineCheckboxSelect {

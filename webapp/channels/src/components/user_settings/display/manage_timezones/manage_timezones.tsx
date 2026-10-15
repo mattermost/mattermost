@@ -209,7 +209,7 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
         const noTimezonesFromServer = timezones.length === 0;
         const automaticTimezoneInput = (
             <div
-                className='checkbox'
+                className='checkbox no-padding'
                 key={inputId.automaticTimezoneInput}
             >
                 <Checkbox

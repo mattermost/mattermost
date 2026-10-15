@@ -140,7 +140,7 @@ function DesktopAndMobileNotificationSettings({
             const desktopThreadNotificationSection = (
                 <Fragment key='desktopThreadNotificationSection'>
                     <br/>
-                    <div className='checkbox single-checkbox'>
+                    <div className='checkbox single-checkbox no-padding'>
                         <Checkbox
                             checked={desktopThreads === NotificationLevels.ALL}
                             onChange={handleChangeForDesktopThreadsCheckbox}
@@ -160,7 +160,7 @@ function DesktopAndMobileNotificationSettings({
             const differentMobileNotificationsSection = (
                 <Fragment key='differentMobileNotificationsSection'>
                     <hr/>
-                    <div className='checkbox single-checkbox'>
+                    <div className='checkbox single-checkbox no-padding'>
                         <Checkbox
                             checked={desktopAndMobileSettingsDifferent}
                             onChange={handleChangeForDifferentMobileNotificationsCheckbox}
@@ -213,7 +213,7 @@ function DesktopAndMobileNotificationSettings({
             const threadNotificationSection = (
                 <Fragment key='threadNotificationSection'>
                     <br/>
-                    <div className='checkbox single-checkbox'>
+                    <div className='checkbox single-checkbox no-padding'>
                         <Checkbox
                             checked={pushThreads === NotificationLevels.ALL}
                             onChange={handleChangeForMobileThreadsCheckbox}

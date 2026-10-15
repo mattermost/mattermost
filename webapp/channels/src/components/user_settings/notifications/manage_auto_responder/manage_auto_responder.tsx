@@ -47,7 +47,7 @@ export default class ManageAutoResponder extends React.PureComponent<Props> {
             <div
                 id='autoResponderCheckbox'
                 key='autoResponderCheckbox'
-                className='checkbox'
+                className='checkbox no-padding'
             >
                 <Checkbox
                     id='autoResponderActive'

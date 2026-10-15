@@ -692,7 +692,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           <hr />
           <fieldset>
             <div
-              class="checkbox single-checkbox"
+              class="checkbox single-checkbox no-padding"
             >
               <label
                 class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"

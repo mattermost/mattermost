@@ -594,7 +594,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             if (user.first_name) {
                 inputs.push(
                     <div key='userNotificationFirstNameOption'>
-                        <div className='checkbox'>
+                        <div className='checkbox no-padding'>
                             <Checkbox
                                 id='notificationTriggerFirst'
                                 checked={this.state.firstNameKey}
@@ -615,7 +615,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
             inputs.push(
                 <div key='userNotificationUsernameOption'>
-                    <div className='checkbox'>
+                    <div className='checkbox no-padding'>
                         <Checkbox
                             id='notificationTriggerUsername'
                             checked={this.state.usernameKey}
@@ -635,7 +635,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
             inputs.push(
                 <div key='userNotificationChannelOption'>
-                    <div className='checkbox'>
+                    <div className='checkbox no-padding'>
                         <Checkbox
                             id='notificationTriggerShouts'
                             checked={this.state.channelKey}
@@ -655,7 +655,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     key='userNotificationCustomOption'
                     className='customKeywordsWithNotificationSubsection'
                 >
-                    <div className='checkbox'>
+                    <div className='checkbox no-padding'>
                         <Checkbox
                             id='notificationTriggerCustom'
                             checked={this.state.isCustomKeysWithNotificationInputChecked}

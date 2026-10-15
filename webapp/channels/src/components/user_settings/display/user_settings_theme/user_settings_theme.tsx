@@ -242,7 +242,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
             let allTeamsCheckbox = null;
             if (this.state.showAllTeamsCheckbox) {
                 allTeamsCheckbox = (
-                    <div className='checkbox user-settings__submit-checkbox'>
+                    <div className='checkbox no-padding user-settings__submit-checkbox'>
                         <Checkbox
                             id='applyThemeToAllTeams'
                             checked={this.state.applyToAllTeams}

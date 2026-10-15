@@ -112,7 +112,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           </fieldset>
           <br />
           <div
-            class="checkbox single-checkbox"
+            class="checkbox single-checkbox no-padding"
           >
             <label
               class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
@@ -135,7 +135,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           </div>
           <hr />
           <div
-            class="checkbox single-checkbox"
+            class="checkbox single-checkbox no-padding"
           >
             <label
               class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
@@ -411,7 +411,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           </fieldset>
           <hr />
           <div
-            class="checkbox single-checkbox"
+            class="checkbox single-checkbox no-padding"
           >
             <label
               class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"

@@ -22,7 +22,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
           class="setting-list-item"
         >
           <div
-            class="checkbox"
+            class="checkbox no-padding"
             id="autoResponderCheckbox"
           >
             <label
@@ -103,7 +103,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
           class="setting-list-item"
         >
           <div
-            class="checkbox"
+            class="checkbox no-padding"
             id="autoResponderCheckbox"
           >
             <label
