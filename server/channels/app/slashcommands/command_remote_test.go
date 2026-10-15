@@ -683,3 +683,101 @@ func TestRemoteProviderDoStatus(t *testing.T) {
 		}
 	})
 }
+
+func TestRemoteProviderDoCreateValidationFailure(t *testing.T) {
+	th := setupConfig(t, func(cfg *model.Config) {
+		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
+		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	}).initBasic(t)
+	th.addPermissionToRole(t, model.PermissionManageSecureConnections.Id, th.BasicUser.Roles)
+
+	t.Run("add failure replies with the validation error translated for the user, without internal detail", func(t *testing.T) {
+		userT := func(id string, args ...any) string {
+			switch id {
+			case "model.cluster.is_valid.name.app_error":
+				return "user-locale invalid name"
+			case "api.command_remote.add_remote.error":
+				return "add failed: " + args[0].(map[string]any)["Error"].(string)
+			}
+			return id
+		}
+
+		args := &model.CommandArgs{
+			T:         userT,
+			UserId:    th.BasicUser.Id,
+			TeamId:    th.BasicTeam.Id,
+			ChannelId: th.BasicChannel.Id,
+			Command:   "/secure-connection create --name bad!name --password secret",
+		}
+
+		resp := (&RemoteProvider{}).DoCommand(th.App, th.Context, args, "")
+		require.NotNil(t, resp)
+		require.Equal(t, "add failed: user-locale invalid name", resp.Text)
+
+		list, appErr := th.App.GetAllRemoteClusters(0, 10, model.RemoteClusterQueryFilter{IncludeDeleted: true})
+		require.Nil(t, appErr)
+		require.Empty(t, list, "no secure connection should be saved for an invalid name")
+	})
+}
+
+type tokenClearingRemoteClusterStore struct {
+	store.RemoteClusterStore
+}
+
+func (s *tokenClearingRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
+	saved, err := s.RemoteClusterStore.Save(rc)
+	if err != nil {
+		return nil, err
+	}
+	saved.Token = ""
+	return saved, nil
+}
+
+// tokenClearingStoreWrapper returns saved remote clusters without a token, so the
+// invitation built from them fails validation; all other calls use the real store.
+type tokenClearingStoreWrapper struct {
+	store.Store
+}
+
+func (w *tokenClearingStoreWrapper) RemoteCluster() store.RemoteClusterStore {
+	return &tokenClearingRemoteClusterStore{RemoteClusterStore: w.Store.RemoteCluster()}
+}
+
+func TestRemoteProviderDoCreateInviteFailure(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+
+	th := setupTestHelper(&tokenClearingStoreWrapper{Store: dbStore}, false, true, t, func(cfg *model.Config) {
+		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
+		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	}).initBasic(t)
+	th.addPermissionToRole(t, model.PermissionManageSecureConnections.Id, th.BasicUser.Roles)
+
+	userT := func(id string, args ...any) string {
+		switch id {
+		case "api.remote_cluster.create_invite_error":
+			return "user-locale invite error"
+		case "api.command_remote.encrypt_invitation.error":
+			return "invite failed: " + args[0].(map[string]any)["Error"].(string)
+		}
+		return id
+	}
+
+	args := &model.CommandArgs{
+		T:         userT,
+		UserId:    th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		ChannelId: th.BasicChannel.Id,
+		Command:   "/secure-connection create --name remotename --password secret",
+	}
+
+	resp := (&RemoteProvider{}).DoCommand(th.App, th.Context, args, "")
+	require.NotNil(t, resp)
+	require.Equal(t, "invite failed: user-locale invite error", resp.Text)
+}
