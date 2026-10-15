@@ -266,9 +266,18 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
 
         const showPostTrialCta = this.props.prevTrialLicense?.IsLicensed === 'true' || this.props.isEnterpriseReady === false;
         const showHostStartTrialActions = !showPostTrialCta && !isCloud;
-        const panelActions = showPostTrialCta ? this.renderPostTrialActions() : (
-            isCloud ? this.renderCloudStartTrialActions() : this.renderHostStartTrialActions()
-        );
+
+        let panelActions: {
+            primaryAction?: ButtonProps;
+            secondaryAction?: ButtonAsChildProps;
+        };
+        if (showPostTrialCta) {
+            panelActions = this.renderPostTrialActions();
+        } else if (isCloud) {
+            panelActions = this.renderCloudStartTrialActions();
+        } else {
+            panelActions = this.renderHostStartTrialActions();
+        }
 
         // Pass null when hidden so the panel does not fall back to its PROFESSIONAL default.
         const skuLabel = showSkuTag ? licenseSkuToLabel(minimumSKURequiredForFeature) : null;
@@ -294,6 +303,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                         />
                     }
                     primaryAction={panelActions.primaryAction}
+
                     // FeatureDiscoveryPanel types secondaryAction as ButtonProps; asChild is supported at runtime in compass-ui ≥0.1.0-alpha.15
                     secondaryAction={panelActions.secondaryAction as ButtonProps | undefined}
                     illustration={{
