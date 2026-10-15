@@ -813,11 +813,12 @@
     padding-top: 5px;
 }
 
+// Space before Save/Cancel for Theme apply-to-all-teams.
+// Beat Bootstrap `.form-horizontal .checkbox { margin-bottom: 0 }` (0,2,0) and
+// survive `.checkbox.no-padding { padding: 0 }` which cleared the old padding-bottom.
+.form-horizontal .checkbox.user-settings__submit-checkbox,
 .user-settings__submit-checkbox {
     padding-top: 0;
-
-    // Space before Save/Cancel. Use margin — .checkbox.no-padding { padding: 0 }
-    // (added for Compass left-gutter fix) overrides padding-bottom on this node.
     margin-bottom: var(--spacing-xxl, 20px);
 }
 
