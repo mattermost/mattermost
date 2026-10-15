@@ -14413,7 +14413,7 @@
   },
   {
     "id": "health.rule.site_url_http.remediation",
-    "translation": "Serve via HTTPS and update SiteURL accordingly.",
+    "translation": "Serve Mattermost over HTTPS and update SiteURL to the https:// address.",
     "description": "Health dashboard fix-it step for a Site URL that uses http://; 'SiteURL' is a config setting name and should not be translated."
   },
   {
