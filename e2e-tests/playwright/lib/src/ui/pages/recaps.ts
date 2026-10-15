@@ -264,13 +264,16 @@ class ScheduledRecapItem {
 
     async pause() {
         await this.expectActive();
-        await this.toggleButton.uncheck({force: true});
+        // Click instead of uncheck: the Switch is controlled by async Redux/API
+        // updates, so Playwright's checked-state verification fails before the
+        // store refreshes. expectPaused() polls until aria-checked flips.
+        await this.toggleButton.click({force: true});
         await this.expectPaused();
     }
 
     async resume() {
         await this.expectPaused();
-        await this.toggleButton.check({force: true});
+        await this.toggleButton.click({force: true});
         await this.expectActive();
     }
 
