@@ -207,6 +207,9 @@ func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs ma
 	if id == "" {
 		return response(args.T("api.command_remote.missing_empty", map[string]any{"Arg": "connectionID"}))
 	}
+	if !model.IsValidId(id) {
+		return response(args.T("api.command_remote.invalid_id", map[string]any{"Arg": "connectionID", "Value": id}))
+	}
 
 	deleted, err := a.DeleteRemoteCluster(id)
 	if err != nil {
