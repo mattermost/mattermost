@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React, {useCallback, useState, useRef, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 
 import {Preferences} from 'mattermost-redux/constants';
 

@@ -3,13 +3,13 @@
 
 /* eslint-disable max-lines */
 
-import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import deepEqual from 'fast-deep-equal';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import type {Timezone} from 'timezones.json';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile, UserTimezone} from '@mattermost/types/users';

@@ -3,7 +3,6 @@
 
 /* eslint-disable max-lines */
 
-import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React from 'react';
 import type {ChangeEvent, JSX} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
@@ -13,6 +12,7 @@ import {components} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 

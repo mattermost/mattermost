@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {ReactNode} from 'react';
 import React from 'react';
 import {useIntl} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue} from 'react-select';
+
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';

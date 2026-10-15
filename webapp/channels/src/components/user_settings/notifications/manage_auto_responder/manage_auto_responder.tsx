@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React from 'react';
 import type {ChangeEvent} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
+
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 
 import LocalizedPlaceholderTextarea from 'components/localized_placeholder_textarea';
 import SettingItemMax from 'components/setting_item_max';
