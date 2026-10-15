@@ -403,7 +403,12 @@ async function restartMattermostContainerLocked(env: Record<string, string>, uns
         testConfig.bootEnvOverrides,
     );
 
-    testConfig.baseURL = resolveUrl(mattermost, MATTERMOST_PORT, MATTERMOST_ALIAS);
+    // In subpath mode the restarted container still boots with the subpath SiteURL
+    // (resolveMattermostBootEnv()) and nginx is untouched by this restart, so baseURL must keep
+    // pointing through the proxy rather than directly at the Mattermost container.
+    testConfig.baseURL = testConfig.subpathMode
+        ? `${testConfig.nginxUrl}${SUBPATH_DEFAULT}`
+        : resolveUrl(mattermost, MATTERMOST_PORT, MATTERMOST_ALIAS);
     testConfig.mattermostContainerId = mattermost.getId();
     clearClientCache();
 
