@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import {ToggleItem} from './post_priority_picker_item';
 

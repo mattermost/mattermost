@@ -67,6 +67,7 @@ const AllowAllToggle = (props: Props): JSX.Element | null => {
     if (isSynced) {
         return null;
     }
+
     // Mutual exclusive modes — temporary segmented control until Compass has one.
     const disabled = isDisabled || isDefault || policyEnforced;
     const setPublic = (nextPublic: boolean) => {
