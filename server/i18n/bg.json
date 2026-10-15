@@ -2036,11 +2036,11 @@
     "translation": "Mattermost бюлетин за сигурност"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Каналите не могат да се получат."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "URL адресът не може да се анализира."
   },
   {
@@ -3866,7 +3866,7 @@
     "translation": "Изходящите webhooks са забранени от системния администратор."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Връзката за регистрация изглежда е невалидна."
   },
   {
@@ -4566,11 +4566,11 @@
     "translation": "Изображението на профила по подразбиране не можа да се кодира."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Връзката за регистрация е изтекла."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Регистрацията на потребители е забранена."
   },
   {
@@ -11249,11 +11249,11 @@
     "translation": "Неуспешно изтриване на публикация с постоянно известие"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Приоритетът на публикацията не може да бъде получен"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Приоритетът на публикацията не може да бъде получен с контекст"
   },
   {
@@ -11261,7 +11261,7 @@
     "translation": "Здравейте, ето Вашето напомняне за това съобщение от @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Версията на предварително пакетираната приставка не може да бъде анализирана."
   },
   {

@@ -1245,15 +1245,15 @@
     "translation": "Erro ao obter o token de acesso do DB antes da exclusão."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Inscrição de usuário desativada."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "O link de inscrição expirou."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "O link de inscrição não parece ser válido."
   },
   {
@@ -3123,11 +3123,11 @@
     "translation": "Falha ao configurar o job status para erro"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Não é possível processar a URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Não é possível obter canais."
   },
   {
@@ -9051,7 +9051,7 @@
     "translation": "Este tópico foi movido de outro canal"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Não foi possível obter prioridade de publicação para a publicação"
   },
   {
@@ -9157,7 +9157,7 @@
     "translation": "Data de criação deve ser uma data válida."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "A versão do plug-in pré-empacotado não pôde ser analisada."
   },
   {
@@ -11883,7 +11883,7 @@
     "translation": "Falha ao excluir permanentemente os dados de prioridade da publicação do banco de dados."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Não foi possível obter a prioridade de publicação para a publicação com contexto"
   },
   {

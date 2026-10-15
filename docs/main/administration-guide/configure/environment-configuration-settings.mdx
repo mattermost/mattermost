@@ -1446,6 +1446,23 @@ This setting has no effect when [Compliance Mode](/administration-guide/configur
 
 </Note>
 
+### Enable file indexing
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Configure whether Mattermost indexes file attachments in Elasticsearch or AWS OpenSearch.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> New and updated file attachments are indexed, and bulk indexing jobs include files.</li><li><strong>false</strong>: New or updated file attachments aren't indexed, and bulk indexing jobs skip files. File search continues to return previously indexed files, and files deleted from Mattermost are still removed from the index.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Elasticsearch</strong></li><li><code>config.json</code> setting: <code>ElasticsearchSettings</code> &gt; <code>EnableFileIndexing</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_ELASTICSEARCHSETTINGS_ENABLEFILEINDEXING</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+Files uploaded while this setting is **false** don't appear in file search results. After setting it back to **true**, run a bulk index from **System Console > Environment > Elasticsearch** to make those files searchable.
+
 ### Post index replicas
 
 <table>

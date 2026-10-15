@@ -456,11 +456,11 @@
     "translation": "Mattermost biztonsági értesítő"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Nem lehet lekérni a csatornákat."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Nem lehet értelmezni az URL-t."
   },
   {
@@ -6749,15 +6749,15 @@
     "translation": "A kimenő webhookokat a rendszergazda letiltotta."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "A regisztrációs link nem tűnik érvényesnek."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "A regisztrációs link lejárt."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Felhasználói regisztráció kikapcsolva."
   },
   {
@@ -7911,7 +7911,7 @@
     "translation": "Hiba az e-mail küldése során"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Az előre becsomagolt plugin verzióját nem lehetett értelmezni."
   },
   {
@@ -11393,11 +11393,11 @@
     "translation": "Nem sikerült törölni a tartós értesítésű bejegyzést"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Nem sikerült lekérni a bejegyzés prioritását"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Nem sikerült lekérni a bejegyzés prioritását a kontextussal"
   },
   {

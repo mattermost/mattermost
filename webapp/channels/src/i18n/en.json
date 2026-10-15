@@ -4911,6 +4911,14 @@
     "defaultMessage": "Enable Elasticsearch for autocomplete queries:",
     "description": "Toggle setting name on the Elasticsearch admin page for using Elasticsearch in autocomplete; ends with a colon."
   },
+  "admin.elasticsearch.enableFileIndexingDescription": {
+    "defaultMessage": "When false, new or updated file attachments are not indexed. File search continues to return previously indexed files, but files uploaded while this setting is false are not searchable until a bulk index is run after re-enabling it.",
+    "description": "Help text under the file indexing toggle on the Elasticsearch admin page, explaining that turning it off stops indexing new or updated file attachments while file search keeps returning previously indexed files."
+  },
+  "admin.elasticsearch.enableFileIndexingTitle": {
+    "defaultMessage": "Enable file indexing:",
+    "description": "Toggle setting name on the Elasticsearch admin page for indexing file attachments; ends with a colon."
+  },
   "admin.elasticsearch.enableIndexingDescription": {
     "defaultMessage": "When true, indexing of new posts occurs automatically. Search queries will use database search until \"Enable Elasticsearch for search queries\" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>",
     "description": "Admin console help text for the Enable Elasticsearch Indexing toggle; <link></link> wraps the sentence linking to documentation, the quoted setting name refers to a sibling setting."
@@ -7159,7 +7167,7 @@
     "defaultMessage": "Remove Membership from the {name} {displayType}?",
     "description": "Title of the confirmation modal when unlinking a group from a team or channel; {name} is the team/channel name and {displayType} is the word 'Team' or 'Channel'."
   },
-  "admin.group_settings.group_details.group_teams_and_channels.no-teams-or-channels-speicified": {
+  "admin.group_settings.group_details.group_teams_and_channels.no-teams-or-channels-specified": {
     "defaultMessage": "No teams or channels specified yet",
     "description": "Empty-state text in the group's team/channel membership table when nothing has been added yet."
   },
@@ -7386,6 +7394,298 @@
   "admin.guest_access.whitelistedDomainsTitle": {
     "defaultMessage": "Whitelisted Guest Domains:",
     "description": "Setting label for a text field on the Guest Access admin page; a list of email domains allowed for guest accounts. Ends with a colon."
+  },
+  "admin.health_dashboard.all_clear.body": {
+    "defaultMessage": "Nothing is firing and every check could be evaluated.",
+    "description": "Body of the empty Open tab on the System Console Site health page, shown when no health check is firing or unknown."
+  },
+  "admin.health_dashboard.all_clear.title": {
+    "defaultMessage": "All clear",
+    "description": "Title of the empty Open tab on the System Console Site health page, shown when no health check is firing or unknown."
+  },
+  "admin.health_dashboard.area.auth": {
+    "defaultMessage": "Authentication",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"authentication\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.cluster": {
+    "defaultMessage": "High availability",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"cluster / high availability\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.compliance": {
+    "defaultMessage": "Compliance",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"compliance\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.count": {
+    "defaultMessage": "{count, plural, one {# finding} other {# findings}}",
+    "description": "Secondary line in an area header on the System Console Site health page when findings are grouped by category; {count} is the number of findings in the area."
+  },
+  "admin.health_dashboard.area.database": {
+    "defaultMessage": "Database",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"database\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.jobs": {
+    "defaultMessage": "Jobs",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"background jobs\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.license": {
+    "defaultMessage": "Licensing",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"license\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.notifications": {
+    "defaultMessage": "Notifications",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"notifications\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.platform": {
+    "defaultMessage": "Platform",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"server platform\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.search": {
+    "defaultMessage": "Search",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"search\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.version": {
+    "defaultMessage": "Updates",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"server version and updates\" area; noun, compact space."
+  },
+  "admin.health_dashboard.detail.details": {
+    "defaultMessage": "Details",
+    "description": "Heading of the key/value details list in an expanded finding on the System Console Site health page."
+  },
+  "admin.health_dashboard.detail.first_seen": {
+    "defaultMessage": "First detected",
+    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time such as \"3 days ago\"."
+  },
+  "admin.health_dashboard.detail.go_to_setting": {
+    "defaultMessage": "Go to setting",
+    "description": "Primary button in an expanded finding on the System Console Site health page that opens the System Console setting that resolves the finding."
+  },
+  "admin.health_dashboard.detail.last_seen": {
+    "defaultMessage": "Last checked",
+    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time of the most recent evaluation."
+  },
+  "admin.health_dashboard.detail.node": {
+    "defaultMessage": "Node",
+    "description": "Label in an expanded finding on the System Console Site health page; followed by the hostname of the cluster node the finding applies to."
+  },
+  "admin.health_dashboard.detail.open_setting": {
+    "defaultMessage": "Open this setting in the System Console",
+    "description": "Link card in an expanded finding on the System Console Site health page that opens the related setting in the System Console."
+  },
+  "admin.health_dashboard.detail.read_docs": {
+    "defaultMessage": "Read the documentation",
+    "description": "Link card in an expanded finding on the System Console Site health page that opens the related documentation in a new tab."
+  },
+  "admin.health_dashboard.detail.remediation": {
+    "defaultMessage": "How to fix it",
+    "description": "Heading above the remediation steps in an expanded finding on the System Console Site health page."
+  },
+  "admin.health_dashboard.detail.resolve": {
+    "defaultMessage": "Resolve here",
+    "description": "Heading above the setting and documentation links in an expanded finding on the System Console Site health page."
+  },
+  "admin.health_dashboard.detail.state": {
+    "defaultMessage": "State",
+    "description": "Label in the details list of an expanded finding on the System Console Site health page; the value says how long the finding has been firing, unevaluated or when it resolved."
+  },
+  "admin.health_dashboard.duration.days": {
+    "defaultMessage": "{days}d",
+    "description": "Compact duration in days on the System Console Site health page, such as \"3d\"; d abbreviates days."
+  },
+  "admin.health_dashboard.duration.days_hours": {
+    "defaultMessage": "{days}d {hours}h",
+    "description": "Compact duration in days and hours on the System Console Site health page, such as \"3d 4h\"; d abbreviates days and h hours."
+  },
+  "admin.health_dashboard.duration.hours": {
+    "defaultMessage": "{hours}h",
+    "description": "Compact duration in hours on the System Console Site health page, such as \"5h\"; h abbreviates hours."
+  },
+  "admin.health_dashboard.duration.hours_minutes": {
+    "defaultMessage": "{hours}h {minutes}m",
+    "description": "Compact duration in hours and minutes on the System Console Site health page, such as \"2h 5m\"; h abbreviates hours and m minutes."
+  },
+  "admin.health_dashboard.duration.minutes": {
+    "defaultMessage": "{minutes}m",
+    "description": "Compact duration in minutes on the System Console Site health page, such as \"9m\"; m abbreviates minutes."
+  },
+  "admin.health_dashboard.empty_tab.critical": {
+    "defaultMessage": "No critical findings",
+    "description": "Title of the empty Critical tab on the System Console Site health page, shown when no critical finding is firing."
+  },
+  "admin.health_dashboard.empty_tab.info": {
+    "defaultMessage": "No info findings",
+    "description": "Title of the empty Info tab on the System Console Site health page, shown when no info finding is firing."
+  },
+  "admin.health_dashboard.empty_tab.muted_body": {
+    "defaultMessage": "Muted findings are still checked but hidden from this list. Open Muted to review or unmute them.",
+    "description": "Body of an empty tab on the System Console Site health page when the tab is empty only because its findings are muted; Muted is the toolbar button that lists them."
+  },
+  "admin.health_dashboard.empty_tab.muted_title": {
+    "defaultMessage": "{count, plural, one {# finding here is muted} other {# findings here are muted}}",
+    "description": "Title of an empty tab on the System Console Site health page, shown instead of the all-clear message when every finding in the tab is muted; {count} is how many are muted."
+  },
+  "admin.health_dashboard.empty_tab.resolved": {
+    "defaultMessage": "Nothing resolved in the last 7 days",
+    "description": "Title of the empty Recently resolved tab on the System Console Site health page, shown when no finding resolved in the last 7 days."
+  },
+  "admin.health_dashboard.empty_tab.resolved_body": {
+    "defaultMessage": "Findings that clear on their own are listed here for 7 days.",
+    "description": "Body of the empty Recently resolved tab on the System Console Site health page."
+  },
+  "admin.health_dashboard.empty_tab.severity_body": {
+    "defaultMessage": "Nothing at this severity is firing.",
+    "description": "Body of an empty Critical, Warning or Info tab on the System Console Site health page."
+  },
+  "admin.health_dashboard.empty_tab.unknown": {
+    "defaultMessage": "Every check could be evaluated",
+    "description": "Title of the empty Unknown tab on the System Console Site health page, shown when every health check could be evaluated."
+  },
+  "admin.health_dashboard.empty_tab.unknown_body": {
+    "defaultMessage": "Checks that cannot run are listed here as unknown, never as healthy.",
+    "description": "Body of the empty Unknown tab on the System Console Site health page; stresses that an unknown check is never treated as healthy."
+  },
+  "admin.health_dashboard.empty_tab.warning": {
+    "defaultMessage": "No warning findings",
+    "description": "Title of the empty Warning tab on the System Console Site health page, shown when no warning finding is firing."
+  },
+  "admin.health_dashboard.empty.body": {
+    "defaultMessage": "The first health check runs within an hour of enabling the feature.",
+    "description": "Body of the System Console Site health page empty state shown before the first health check has run."
+  },
+  "admin.health_dashboard.empty.title": {
+    "defaultMessage": "Not evaluated yet",
+    "description": "Title of the System Console Site health page empty state shown before the first health check has run."
+  },
+  "admin.health_dashboard.error.body": {
+    "defaultMessage": "Reload the page to try again.",
+    "description": "Body shown on the System Console Site health page when the health findings request fails."
+  },
+  "admin.health_dashboard.error.title": {
+    "defaultMessage": "Health findings could not be loaded",
+    "description": "Title shown on the System Console Site health page when the health findings request fails."
+  },
+  "admin.health_dashboard.finding.resolved_badge": {
+    "defaultMessage": "Resolved ({severity} when firing)",
+    "description": "Badge on a recently resolved finding row on the System Console Site health page; {severity} is the severity label (Critical, Warning or Info) the finding had while firing."
+  },
+  "admin.health_dashboard.finding.title_on_node": {
+    "defaultMessage": "{title} on {node}",
+    "description": "Finding title on the System Console Site health page for a finding that applies to one cluster node; {title} is the already translated finding title and {node} is a hostname."
+  },
+  "admin.health_dashboard.finding.unknown_badge": {
+    "defaultMessage": "Unknown ({severity} when firing)",
+    "description": "Badge on a finding row of the System Console Site health page for a check that could not be evaluated; {severity} is a severity label (Critical, Warning or Info) the finding would have if it fired."
+  },
+  "admin.health_dashboard.finding.unknown_fallback": {
+    "defaultMessage": "This check could not run, so its result is unknown.",
+    "description": "Cause shown on a finding row of the System Console Site health page when a check could not be evaluated and the server gave no reason."
+  },
+  "admin.health_dashboard.group_by.category": {
+    "defaultMessage": "Category",
+    "description": "Option of the Group by control on the System Console Site health page that groups findings by area, such as Database or Notifications."
+  },
+  "admin.health_dashboard.group_by.label": {
+    "defaultMessage": "Group by",
+    "description": "Label of the control on the System Console Site health page that switches how findings are grouped."
+  },
+  "admin.health_dashboard.group_by.severity": {
+    "defaultMessage": "Severity",
+    "description": "Option of the Group by control on the System Console Site health page that groups findings by severity."
+  },
+  "admin.health_dashboard.just_now": {
+    "defaultMessage": "just now",
+    "description": "Relative time on the System Console Site health page for a moment less than a minute ago, used inside sentences such as \"Last evaluated {time}\" and \"Muted by {name} {time}\"."
+  },
+  "admin.health_dashboard.last_evaluated": {
+    "defaultMessage": "Last evaluated {time}",
+    "description": "Line at the top of the System Console Site health page; {time} is a relative time such as \"38 minutes ago\" of the latest health check run."
+  },
+  "admin.health_dashboard.mute.error": {
+    "defaultMessage": "The finding could not be muted, so it is still in the open list. Try again.",
+    "description": "Error banner on the System Console Site health page when muting a finding failed and the finding was put back in the open list."
+  },
+  "admin.health_dashboard.mute.mute": {
+    "defaultMessage": "Mute",
+    "description": "Button on a finding row of the System Console Site health page that hides the finding from the open list for every admin, immediately."
+  },
+  "admin.health_dashboard.mute.unmute": {
+    "defaultMessage": "Unmute",
+    "description": "Button on a muted finding row of the System Console Site health page that returns the finding to the open list."
+  },
+  "admin.health_dashboard.muted.by": {
+    "defaultMessage": "Muted by {name} {time}",
+    "description": "Shown on a muted finding on the System Console Site health page; {name} is the admin who muted it and {time} a relative time such as \"2 hours ago\"."
+  },
+  "admin.health_dashboard.muted.empty.body": {
+    "defaultMessage": "Findings muted by any admin are listed here, with who muted them and when.",
+    "description": "Body of the empty state of the muted findings list on the System Console Site health page."
+  },
+  "admin.health_dashboard.muted.empty.title": {
+    "defaultMessage": "No muted findings",
+    "description": "Title of the empty state of the muted findings list on the System Console Site health page."
+  },
+  "admin.health_dashboard.muted.note": {
+    "defaultMessage": "Muted findings are hidden from the open list for every admin, and they keep being checked. A different problem with the same check is still reported. Unmute a finding to return it to the open list.",
+    "description": "Explanation above the list of muted findings on the System Console Site health page."
+  },
+  "admin.health_dashboard.muted.toggle": {
+    "defaultMessage": "Muted",
+    "description": "Toolbar button next to the tabs on the System Console Site health page that shows the muted findings; followed by their count."
+  },
+  "admin.health_dashboard.severity.critical": {
+    "defaultMessage": "Critical",
+    "description": "Severity label of a health finding on the System Console Site health page; compact space."
+  },
+  "admin.health_dashboard.severity.info": {
+    "defaultMessage": "Info",
+    "description": "Severity label of a health finding on the System Console Site health page, short for informational; compact space."
+  },
+  "admin.health_dashboard.severity.warning": {
+    "defaultMessage": "Warning",
+    "description": "Severity label of a health finding on the System Console Site health page; compact space."
+  },
+  "admin.health_dashboard.state.resolved": {
+    "defaultMessage": "Recently resolved",
+    "description": "Tab and section label on the System Console Site health page for findings that stopped firing in the last 7 days."
+  },
+  "admin.health_dashboard.state.unknown": {
+    "defaultMessage": "Unknown",
+    "description": "Tab label on the System Console Site health page for health checks that could not be evaluated."
+  },
+  "admin.health_dashboard.tab.open": {
+    "defaultMessage": "Open",
+    "description": "Default tab on the System Console Site health page listing every firing finding and every check that could not be evaluated."
+  },
+  "admin.health_dashboard.tabs.label": {
+    "defaultMessage": "Filter findings",
+    "description": "Screen reader label for the tabs that filter findings on the System Console Site health page."
+  },
+  "admin.health_dashboard.title": {
+    "defaultMessage": "Site health",
+    "description": "Page header of the System Console Site health page, which lists health findings for the workspace."
+  },
+  "admin.health_dashboard.trend.firing": {
+    "defaultMessage": "Firing for {duration}",
+    "description": "Meta line on a finding row of the System Console Site health page; {duration} is a compact duration such as \"3d 4h\"."
+  },
+  "admin.health_dashboard.trend.resolved": {
+    "defaultMessage": "Resolved {time}",
+    "description": "Meta line on a resolved finding row of the System Console Site health page; {time} is a relative time such as \"2 hours ago\"."
+  },
+  "admin.health_dashboard.trend.unknown": {
+    "defaultMessage": "Unevaluated for {duration}",
+    "description": "Meta line on a finding row of the System Console Site health page for a check that could not be evaluated; {duration} is a compact duration such as \"5h\"."
+  },
+  "admin.health_dashboard.unknown.explanation": {
+    "defaultMessage": "These checks could not run, so their result is unknown. Unknown does not mean healthy: each one shows why it could not be checked.",
+    "description": "Explanation under the \"Could not be evaluated\" section of the System Console Site health page; unknown results must not be read as healthy."
+  },
+  "admin.health_dashboard.unknown.title": {
+    "defaultMessage": "Could not be evaluated",
+    "description": "Heading of the section on the System Console Site health page listing health checks that could not be evaluated."
+  },
+  "admin.health_dashboard.unmute.error": {
+    "defaultMessage": "The finding could not be unmuted, so it is still muted. Try again.",
+    "description": "Error banner on the System Console Site health page when unmuting a finding failed and the finding stayed muted."
   },
   "admin.image.amazonS3BucketDescription": {
     "defaultMessage": "Name you selected for your S3 bucket in AWS.",
@@ -8687,11 +8987,11 @@
     "defaultMessage": "Uploading Private Key...",
     "description": "Transient progress text shown on the private key upload button while the file is uploading."
   },
-  "admin.ldap.userFilterDisc": {
+  "admin.ldap.userFilterDesc": {
     "defaultMessage": "(Optional) Enter an AD/LDAP filter to use when searching for user objects. When blank, defaults to the ID Attribute.\nFor Active Directory, the query to filter out disabled users is\n(&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).",
     "description": "Admin console help text for the User Filter field; the LDAP filter expression on the last line is a literal example and should not be translated."
   },
-  "admin.ldap.userFilterDiscHover": {
+  "admin.ldap.userFilterDescHover": {
     "defaultMessage": "Only the users selected by the query will be able to access Mattermost.",
     "description": "Hover tooltip for the User Filter field in the AD/LDAP wizard."
   },
@@ -14727,6 +15027,10 @@
     "defaultMessage": "Site Configuration",
     "description": "Category heading in the System Console left navigation sidebar, grouping site-wide configuration pages; compact space."
   },
+  "admin.sidebar.siteHealth": {
+    "defaultMessage": "Site health",
+    "description": "Navigation item in the System Console sidebar under Reporting; opens the Site health page listing health findings; compact space."
+  },
   "admin.sidebar.smtp": {
     "defaultMessage": "SMTP",
     "description": "Navigation item in the System Console sidebar under Environment; 'SMTP' is the email protocol acronym, should not be translated; compact space."
@@ -18047,35 +18351,35 @@
     "defaultMessage": "The session with id {sessionId} was revoked",
     "description": "Row description in the access history / audit table; {sessionId} is the identifier of the login session that was revoked."
   },
-  "audit_table.successfullLicenseAdd": {
+  "audit_table.successfulLicenseAdd": {
     "defaultMessage": "Successfully added new license",
     "description": "Audit log entry: a new license was uploaded successfully."
   },
-  "audit_table.successfullLogin": {
+  "audit_table.successfulLogin": {
     "defaultMessage": "Successfully logged in",
     "description": "Audit log entry: the user logged in successfully."
   },
-  "audit_table.successfullOAuthAccess": {
+  "audit_table.successfulOAuthAccess": {
     "defaultMessage": "Successfully gave a new OAuth service access",
     "description": "Audit log entry: a new OAuth service was authorized successfully."
   },
-  "audit_table.successfullOAuthToken": {
+  "audit_table.successfulOAuthToken": {
     "defaultMessage": "Successfully added a new OAuth service",
     "description": "Audit log entry: a new OAuth service was added successfully."
   },
-  "audit_table.successfullPassword": {
+  "audit_table.successfulPassword": {
     "defaultMessage": "Successfully changed password",
     "description": "Row description in the user's Access History audit table (Profile > Security), describing a past account action."
   },
-  "audit_table.successfullReset": {
+  "audit_table.successfulReset": {
     "defaultMessage": "Successfully reset password",
     "description": "Row description in the user's Access History audit table, describing a past password reset action."
   },
-  "audit_table.successfullWebhookCreate": {
+  "audit_table.successfulWebhookCreate": {
     "defaultMessage": "Successfully created a webhook",
     "description": "Row description in the user's Access History audit table, describing a webhook creation event."
   },
-  "audit_table.successfullWebhookDelete": {
+  "audit_table.successfulWebhookDelete": {
     "defaultMessage": "Successfully deleted a webhook",
     "description": "Row description in the user's Access History audit table, describing a webhook deletion event."
   },
@@ -20399,7 +20703,7 @@
     "defaultMessage": "You are viewing an archived channel with a <b>deactivated user</b>. New messages cannot be posted.",
     "description": "Notice shown at the bottom of an archived direct-message channel whose other participant was deactivated; <b> renders 'deactivated user' bold."
   },
-  "channelView.login.successfull": {
+  "channelView.login.successful": {
     "defaultMessage": "Login Successful",
     "description": "Screen-reader-only announcement made once after the user logs in and the main channel view loads."
   },
@@ -22371,19 +22675,19 @@
     "defaultMessage": "Export could not be initiated",
     "description": "Title of the error modal shown when a user data export could not be started."
   },
-  "export_user_data_modal.dange_range.all_time": {
+  "export_user_data_modal.date_range.all_time": {
     "defaultMessage": "You're about to export user data for all time. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.",
     "description": "Body of the export confirmation modal on the System Console users page when the 'All time' date range is selected; explains the CSV report is delivered via direct message."
   },
-  "export_user_data_modal.dange_range.last_30_days": {
+  "export_user_data_modal.date_range.last_30_days": {
     "defaultMessage": "You're about to export user data for the last 30 days. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.",
     "description": "Body of the export confirmation modal on the System Console users page when the 'Last 30 days' date range is selected; explains the CSV report is delivered via direct message."
   },
-  "export_user_data_modal.dange_range.last_6_months": {
+  "export_user_data_modal.date_range.last_6_months": {
     "defaultMessage": "You're about to export user data for the last 6 months. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.",
     "description": "Body of the export confirmation modal on the System Console users page when the 'Last 6 months' date range is selected; explains the CSV report is delivered via direct message."
   },
-  "export_user_data_modal.dange_range.previous_month": {
+  "export_user_data_modal.date_range.previous_month": {
     "defaultMessage": "You're about to export user data for the previous month. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.",
     "description": "Body of the export confirmation modal on the System Console users page when the 'Previous month' date range is selected; explains the CSV report is delivered via direct message."
   },
@@ -22943,7 +23247,7 @@
     "defaultMessage": "Edit Icon",
     "description": "Accessibility title for a pencil/edit icon."
   },
-  "generic_icons.elipsisHorizontalIcon": {
+  "generic_icons.ellipsisHorizontalIcon": {
     "defaultMessage": "Ellipsis Horizontal Icon",
     "description": "Accessibility title for the horizontal ellipsis (…) 'more options' icon."
   },
@@ -24223,7 +24527,7 @@
     "defaultMessage": "Are you sure you want to delete {connectionName}?",
     "description": "Confirmation message in the modal shown before deleting an outgoing OAuth connection; {connectionName} is the connection's name."
   },
-  "installed_outgoing_oauth_connections.delete.wanring": {
+  "installed_outgoing_oauth_connections.delete.warning": {
     "defaultMessage": "Deleting this connection will break any integrations using it",
     "description": "Warning line in the delete confirmation modal for an outgoing OAuth connection."
   },
@@ -24543,7 +24847,7 @@
     "defaultMessage": "This is the start of your group message history with these teammates. ",
     "description": "Opening sentence of the channel intro at the top of a group message conversation; a notification-setting sentence is concatenated directly after it, so keep the trailing space."
   },
-  "intro_messages.inviteGropusToChannel.button": {
+  "intro_messages.inviteGroupsToChannel.button": {
     "defaultMessage": "Add groups",
     "description": "Button in the channel introduction area (for group-synced channels) that opens the dialog to add user groups to the channel."
   },
@@ -28483,7 +28787,7 @@
     "defaultMessage": "Request to join channel",
     "description": "Title of the modal for requesting to join a private/restricted channel."
   },
-  "restricted_indicator.tooltip.mesage": {
+  "restricted_indicator.tooltip.message": {
     "defaultMessage": "During your trial you are able to use this feature.",
     "description": "Tooltip body on the indicator marking a paid feature, shown while the workspace is on a trial."
   },
