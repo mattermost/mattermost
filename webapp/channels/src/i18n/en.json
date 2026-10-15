@@ -117,7 +117,7 @@
   },
   "accessibility.add_groups_to_channel": {
     "defaultMessage": "Add groups to channel",
-    "description": "Accessible aria-label in add_groups_to_channel_modal/add_groups_to_channel_modal.tsx. Keep the label concise; it describes the control or content."
+    "description": "Screen-reader label for the round + button on each group row in the Add Groups to Channel modal; adds that group to the selection."
   },
   "accessibility.add_groups_to_team": {
     "defaultMessage": "Add groups to team",
@@ -125,11 +125,11 @@
   },
   "accessibility.add_user_to_invite": {
     "defaultMessage": "Add user to invite",
-    "description": "Accessible label for adding a user to the invitation."
+    "description": "Screen-reader label for the round + button on each user row in the Add People to Channel modal; adds that user to the list of people to invite."
   },
   "accessibility.add_users_to_team": {
     "defaultMessage": "Add users to team",
-    "description": "Accessible aria-label in add_users_to_team_modal/add_users_to_team_modal.tsx. Keep the label concise; it describes the control or content."
+    "description": "Screen-reader label for the round + button on each user row in the Add Members to Team modal; adds that user to the selection."
   },
   "accessibility.button.attachment": {
     "defaultMessage": "attachment",
@@ -197,7 +197,7 @@
   },
   "accessibility.mobile_menu": {
     "defaultMessage": "Mobile menu",
-    "description": "Accessible aria-label in mobile_sidebar_right/mobile_sidebar_right.tsx. Keep the label concise; it describes the control or content."
+    "description": "Screen-reader label for the slide-out main menu panel shown on mobile and narrow screens."
   },
   "accessibility.sections.centerContent": {
     "defaultMessage": "message list main region",
@@ -229,7 +229,7 @@
   },
   "accessibility.select_channel": {
     "defaultMessage": "Select channel",
-    "description": "Accessible aria-label in channel_selector_modal/channel_selector_modal.tsx. Keep the label concise; it describes the control or content."
+    "description": "Screen-reader label for the round + button on each channel row in the channel picker modal (used by data retention, access policies and group settings); adds that channel to the selection."
   },
   "accessibility.sidebar.types.mention": {
     "defaultMessage": "mention",
@@ -257,7 +257,7 @@
   },
   "accessibility.toggle_embed_visibility": {
     "defaultMessage": "Toggle Embed Visibility",
-    "description": "Accessible aria-label in post_view/post_body_additional_content/post_body_additional_content.tsx. Keep the label concise; it describes the control or content."
+    "description": "Screen-reader label for the arrow button that expands or collapses a link preview, image or other embedded content below a message."
   },
   "activity_log_modal.android": {
     "defaultMessage": "Android",
@@ -22753,7 +22753,7 @@
   },
   "forward_post_modal.channel_select.placeholder": {
     "defaultMessage": "Select channel or people",
-    "description": "Accessible placeholder in forward_post_modal/forward_post_channel_select.tsx. Keep the label concise; it describes the control or content."
+    "description": "Placeholder of the destination search box in the Forward Message modal; the user types to find a channel or a person to send the message to."
   },
   "forward_post_modal.comment.placeholder": {
     "defaultMessage": "Add a comment (optional)",
@@ -29069,7 +29069,7 @@
   },
   "search_results.messages_or_files": {
     "defaultMessage": "Messages or Files",
-    "description": "Accessible aria-label in search_results/messages_or_files_selector.tsx. Keep the label concise; it describes the control or content."
+    "description": "Screen-reader label for the tab list in the search results panel that switches between message results and file results."
   },
   "search_teams_selector.all_teams": {
     "defaultMessage": "All Teams",
