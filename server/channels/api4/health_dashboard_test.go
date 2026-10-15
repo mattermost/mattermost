@@ -243,22 +243,22 @@ func TestGetHealthFindingsRendering(t *testing.T) {
 		assert.Equal(t, "/admin_console/environment/web_server", rendered.ConsolePath)
 	})
 
-	t.Run("untranslated locale falls back to English", func(t *testing.T) {
+	t.Run("unsupported locale falls back to English", func(t *testing.T) {
 		english, _, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
 		require.NoError(t, err)
 
 		client := th.CreateClient()
 		client.SetToken(th.SystemAdminClient.AuthToken)
-		client.HTTPHeader = map[string]string{"Accept-Language": "fr"}
-		french, resp, err := client.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+		client.HTTPHeader = map[string]string{"Accept-Language": "sw"}
+		swahili, resp, err := client.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		require.Len(t, french.Findings, 1)
+		require.Len(t, swahili.Findings, 1)
 		require.Len(t, english.Findings, 1)
-		assert.Equal(t, english.Findings[0].Title, french.Findings[0].Title)
-		assert.Equal(t, english.Findings[0].Message, french.Findings[0].Message)
-		assert.Equal(t, english.Findings[0].Remediation, french.Findings[0].Remediation)
+		assert.Equal(t, english.Findings[0].Title, swahili.Findings[0].Title)
+		assert.Equal(t, english.Findings[0].Message, swahili.Findings[0].Message)
+		assert.Equal(t, english.Findings[0].Remediation, swahili.Findings[0].Remediation)
 	})
 }
 
