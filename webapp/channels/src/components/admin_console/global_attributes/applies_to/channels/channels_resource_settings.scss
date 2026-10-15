@@ -38,7 +38,12 @@
     min-height: 32px;
     flex-wrap: wrap;
     align-items: center;
-    gap: 12px 16px;
+    gap: var(--spacing-xxl);
+
+    // Compass Checkbox defaults to width: 100%, which stacks options vertically.
+    > * {
+        width: auto;
+    }
 }
 
 .ChannelsResourceSettings__help {

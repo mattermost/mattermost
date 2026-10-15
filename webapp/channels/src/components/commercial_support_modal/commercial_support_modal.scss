@@ -13,6 +13,12 @@
         margin-top: 20px;
         margin-bottom: 12px;
     }
+
+    &__options {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
 }
 
 .modal-header .modal-title {
