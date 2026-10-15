@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React, {memo} from 'react';
+
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 
 import SetByEnv from './set_by_env';
 

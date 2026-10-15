@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React, {memo, useCallback} from 'react';
 import type {ChangeEventHandler} from 'react';
+
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 
 import Setting from './setting';
 
