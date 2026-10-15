@@ -83,14 +83,10 @@ func benchHubChannelBroadcast(b *testing.B, logger *mlog.Logger, channelIteratio
 	}
 	channelID := model.NewId()
 
-	baseBytes, baseObjects := broadcastBenchHeap()
-
+	// The store's memberships are filled before the base heap is read, so
+	// they do not count toward the live heap reported below.
 	channelStore := &broadcastBenchChannelStore{memberships: make(map[string][]string, broadcastBenchConns)}
-	ps := newBroadcastBenchPlatform(b, logger, &broadcastBenchStore{channel: channelStore}, channelIteration)
-
 	userIDs := make([]string, broadcastBenchConns)
-	recipients := make([]*WebConn, 0, members)
-	all := make([]*WebConn, 0, broadcastBenchConns)
 	for i := range broadcastBenchConns {
 		userID := model.NewId()
 		userIDs[i] = userID
@@ -99,7 +95,15 @@ func benchHubChannelBroadcast(b *testing.B, logger *mlog.Logger, channelIteratio
 			channels[0] = channelID
 		}
 		channelStore.memberships[userID] = channels
+	}
 
+	baseBytes, baseObjects := broadcastBenchHeap()
+
+	ps := newBroadcastBenchPlatform(b, logger, &broadcastBenchStore{channel: channelStore}, channelIteration)
+
+	recipients := make([]*WebConn, 0, members)
+	all := make([]*WebConn, 0, broadcastBenchConns)
+	for i, userID := range userIDs {
 		wc := newBroadcastBenchConn(ps, userID)
 		require.NoError(b, ps.HubRegister(wc))
 		if i < members {
