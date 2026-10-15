@@ -114,23 +114,46 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           <div
             class="checkbox single-checkbox"
           >
-            <label>
+            <label
+              class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+              for="_r_0_"
+            >
               <input
-                class="a11y--active a11y--focused"
+                class="_checkbox__input_1pc8o_21 a11y--active a11y--focused"
+                id="_r_0_"
                 type="checkbox"
               />
-              Notify me about replies to threads I'm following
+              <span
+                class="_checkbox__box_1pc8o_41"
+              />
+              <span
+                class="_checkbox__label_1pc8o_117"
+              >
+                Notify me about replies to threads I'm following
+              </span>
             </label>
           </div>
           <hr />
           <div
             class="checkbox single-checkbox"
           >
-            <label>
+            <label
+              class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+              for="_r_1_"
+            >
               <input
+                class="_checkbox__input_1pc8o_21"
+                id="_r_1_"
                 type="checkbox"
               />
-              Use different settings for my mobile devices
+              <span
+                class="_checkbox__box_1pc8o_41"
+              />
+              <span
+                class="_checkbox__label_1pc8o_117"
+              >
+                Use different settings for my mobile devices
+              </span>
             </label>
           </div>
           <br />
@@ -390,12 +413,23 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           <div
             class="checkbox single-checkbox"
           >
-            <label>
+            <label
+              class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133"
+              for="_r_2_"
+            >
               <input
-                class="a11y--active a11y--focused"
+                class="_checkbox__input_1pc8o_21 a11y--active a11y--focused"
+                id="_r_2_"
                 type="checkbox"
               />
-              Use different settings for my mobile devices
+              <span
+                class="_checkbox__box_1pc8o_41"
+              />
+              <span
+                class="_checkbox__label_1pc8o_117"
+              >
+                Use different settings for my mobile devices
+              </span>
             </label>
           </div>
           <br />
