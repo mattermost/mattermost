@@ -13,20 +13,20 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
         class="group-name"
       >
         <label
-          class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133 group-check"
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
           for="_r_3_"
         >
           <input
             checked=""
-            class="_checkbox__input_1pc8o_21"
+            class="_checkbox__input_1rll8_22"
             id="_r_3_"
             type="checkbox"
           />
           <span
-            class="_checkbox__box_1pc8o_41"
+            class="_checkbox__box_1rll8_41"
           >
             <span
-              class="_checkbox__icon_1pc8o_66"
+              class="_checkbox__icon_1rll8_66"
             >
               <div
                 aria-hidden="true"
@@ -52,7 +52,7 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
             </span>
           </span>
           <span
-            class="_checkbox__label_1pc8o_117"
+            class="_checkbox__label_1rll8_117"
           >
             name
           </span>
@@ -96,19 +96,19 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
         class="group-name"
       >
         <label
-          class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133 group-check"
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
           for="_r_4_"
         >
           <input
-            class="_checkbox__input_1pc8o_21"
+            class="_checkbox__input_1rll8_22"
             id="_r_4_"
             type="checkbox"
           />
           <span
-            class="_checkbox__box_1pc8o_41"
+            class="_checkbox__box_1rll8_41"
           />
           <span
-            class="_checkbox__label_1pc8o_117"
+            class="_checkbox__label_1rll8_117"
           >
             name
           </span>
@@ -159,19 +159,19 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
         class="group-name"
       >
         <label
-          class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133 group-check"
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
           for="_r_5_"
         >
           <input
-            class="_checkbox__input_1pc8o_21"
+            class="_checkbox__input_1rll8_22"
             id="_r_5_"
             type="checkbox"
           />
           <span
-            class="_checkbox__box_1pc8o_41"
+            class="_checkbox__box_1rll8_41"
           />
           <span
-            class="_checkbox__label_1pc8o_117"
+            class="_checkbox__label_1rll8_117"
           >
             name
           </span>
@@ -215,19 +215,19 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
         class="group-name"
       >
         <label
-          class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133 group-check"
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
           for="_r_0_"
         >
           <input
-            class="_checkbox__input_1pc8o_21"
+            class="_checkbox__input_1rll8_22"
             id="_r_0_"
             type="checkbox"
           />
           <span
-            class="_checkbox__box_1pc8o_41"
+            class="_checkbox__box_1rll8_41"
           />
           <span
-            class="_checkbox__label_1pc8o_117"
+            class="_checkbox__label_1rll8_117"
           >
             name
           </span>
@@ -278,19 +278,19 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
         class="group-name"
       >
         <label
-          class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133 group-check"
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
           for="_r_1_"
         >
           <input
-            class="_checkbox__input_1pc8o_21"
+            class="_checkbox__input_1rll8_22"
             id="_r_1_"
             type="checkbox"
           />
           <span
-            class="_checkbox__box_1pc8o_41"
+            class="_checkbox__box_1rll8_41"
           />
           <span
-            class="_checkbox__label_1pc8o_117"
+            class="_checkbox__label_1rll8_117"
           >
             name
           </span>
@@ -341,19 +341,19 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
         class="group-name"
       >
         <label
-          class="_checkbox_1pc8o_10 _checkbox--size-medium_1pc8o_133 group-check"
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
           for="_r_2_"
         >
           <input
-            class="_checkbox__input_1pc8o_21"
+            class="_checkbox__input_1rll8_22"
             id="_r_2_"
             type="checkbox"
           />
           <span
-            class="_checkbox__box_1pc8o_41"
+            class="_checkbox__box_1rll8_41"
           />
           <span
-            class="_checkbox__label_1pc8o_117"
+            class="_checkbox__label_1rll8_117"
           >
             name
           </span>
