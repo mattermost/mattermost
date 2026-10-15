@@ -5072,6 +5072,13 @@ func TestPatchPropertyValuesBotTargetAccess(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
+
+	t.Run("edit_other_users cannot write a system admin in another group", func(t *testing.T) {
+		withPerms(t, model.PermissionEditOtherUsers)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), otherGroup.Name, model.PropertyFieldObjectTypeUser, th.SystemAdminUser.Id, otherItems)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
 }
 
 func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {

@@ -1719,7 +1719,25 @@ func TestPatchCPAValuesForBotTarget(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		require.Nil(t, appErr)
 		withPerms(t, model.PermissionManageBots)
-		requireWritten(t, bot.UserId, "admin-bot")
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("others' system admin bot with manage_others_bots", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser2.Id)
+		_, appErr := th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		withPerms(t, model.PermissionManageOthersBots)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("edit_other_users writes a regular user", func(t *testing.T) {
+		withPerms(t, model.PermissionEditOtherUsers)
+		requireWritten(t, th.BasicUser2.Id, "edit-other")
+	})
+
+	t.Run("edit_other_users cannot write a system admin", func(t *testing.T) {
+		withPerms(t, model.PermissionEditOtherUsers)
+		requireDenied(t, th.SystemAdminUser.Id)
 	})
 
 	t.Run("plugin-owned bot with manage_bots", func(t *testing.T) {

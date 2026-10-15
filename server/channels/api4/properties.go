@@ -1082,15 +1082,31 @@ func userTargetAccess(c *Context, groupName, targetID string, write bool) (targe
 		return targetAccessPermission, true
 	}
 
-	if c.App.SessionHasPermissionTo(*session, model.PermissionEditOtherUsers) {
-		return targetAccessEditOtherUsers, true
-	}
+	var path targetAccessPath
+	switch {
+	case c.App.SessionHasPermissionTo(*session, model.PermissionEditOtherUsers):
+		path = targetAccessEditOtherUsers
 	// Bot managers may write their bots' access_control values.
-	if groupName == model.AccessControlPropertyGroupName && canManageBotTarget(c, targetID) {
-		return targetAccessBotManager, true
+	case groupName == model.AccessControlPropertyGroupName && canManageBotTarget(c, targetID):
+		path = targetAccessBotManager
+	default:
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return "", false
 	}
-	c.SetPermissionError(model.PermissionEditOtherUsers)
-	return "", false
+
+	// As in patchUser, only a system admin may modify a system admin, bots included.
+	if !c.App.SessionHasPermissionTo(*session, model.PermissionManageSystem) {
+		target, appErr := c.App.GetUser(c.AppContext, targetID)
+		if appErr != nil {
+			c.Err = appErr
+			return "", false
+		}
+		if target.IsSystemAdmin() {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return "", false
+		}
+	}
+	return path, true
 }
 
 // canManageBotTarget reports whether the session can manage the bot with the
