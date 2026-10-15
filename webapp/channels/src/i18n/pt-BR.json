@@ -6750,7 +6750,7 @@
   "persist_notification.too_many.confirm": "Entendi",
   "persist_notification.too_many.description": "Você pode enviar notificações persistentes para no máximo <b>{max}</b> destinatários. Há <b>{count}</b> destinatários mencionados em sua mensagem. Você precisará alterar quem você mencionou antes de poder enviar.",
   "persist_notification.too_many.title": "Muitos destinatários",
-  "plan.cloud": "Cloud",
+  "plan.cloud": "No Cloud,",
   "plan.self_serve": "No autoatendimento,",
   "pluggable.errorOccurred": "Ocorreu um erro no plug-in {pluginId}.",
   "pluggable.errorRefresh": "Atualizar?",
