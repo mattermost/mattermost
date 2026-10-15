@@ -26,7 +26,7 @@ import {
 } from 'mattermost-redux/utils/post_utils';
 
 import {sendDesktopNotification} from 'actions/notification_actions';
-import {updateThreadLastOpened} from 'actions/views/threads';
+import {threadLastViewedAtChanged} from 'reducers/views/threads';
 import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -152,7 +152,7 @@ export function setThreadRead(post: Post): ActionFunc<boolean> {
         if (thread && isThreadOpen(state, thread.id) && window.isActive) {
             // update the new messages line (when there are no previous unreads)
             if (thread.last_reply_at < getThreadLastViewedAt(state, thread.id)) {
-                dispatch(updateThreadLastOpened(thread.id, post.create_at));
+                dispatch(threadLastViewedAtChanged({threadId: thread.id, lastViewedAt: post.create_at}));
             }
         }
 

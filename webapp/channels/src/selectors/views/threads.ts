@@ -16,13 +16,14 @@ import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 import {DATE_LINE, makeCombineUserActivityPosts, START_OF_NEW_MESSAGES} from 'mattermost-redux/utils/post_list';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
+import {getSelectedThreadIdInTeam, getThreadLastViewedAt} from 'reducers/views/threads';
+import type {ThreadsViewState} from 'reducers/views/threads';
 import {getIsRhsOpen, getSelectedPostId} from 'selectors/rhs';
 
 import {isThreadPopoutWindow} from 'utils/popouts/popout_windows';
 import {isFromWebhook, isNotificationSuppressed} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
-import type {ViewsState} from 'types/store/views';
 
 interface PostFilterOptions {
     postIds: Array<Post['id']>;
@@ -30,11 +31,7 @@ interface PostFilterOptions {
     lastViewedAt?: number;
 }
 
-export function getSelectedThreadIdInTeam(state: GlobalState): ViewsState['threads']['selectedThreadIdInTeam'] {
-    return state.views.threads.selectedThreadIdInTeam;
-}
-
-export const getSelectedThreadIdInCurrentTeam: (state: GlobalState) => ViewsState['threads']['selectedThreadIdInTeam'][Team['id']] = createSelector(
+export const getSelectedThreadIdInCurrentTeam: (state: GlobalState) => ThreadsViewState['selectedThreadIdInTeam'][Team['id']] = createSelector(
     'getSelectedThreadIdInCurrentTeam',
     getCurrentTeamId,
     getSelectedThreadIdInTeam,
@@ -64,7 +61,7 @@ export const getSelectedThreadInCurrentTeam: (state: GlobalState) => UserThread 
 export function makeGetThreadLastViewedAt(): (state: GlobalState, threadId: Post['id']) => number {
     return createSelector(
         'makeGetThreadLastViewedAt',
-        (state: GlobalState, threadId: Post['id']) => state.views.threads.lastViewedAt[threadId],
+        getThreadLastViewedAt,
         getThreads,
         (_state, threadId) => threadId,
         (lastViewedAt, threads, threadId) => {
@@ -83,14 +80,6 @@ export const isThreadOpen = (state: GlobalState, threadId: UserThread['id']): bo
         (getIsRhsOpen(state) && threadId === getSelectedPostId(state)) ||
         isThreadPopoutWindow(getCurrentTeam(state)?.name || '', threadId)
     );
-};
-
-export const isThreadManuallyUnread = (state: GlobalState, threadId: UserThread['id']): boolean => {
-    return state.views.threads.manuallyUnread[threadId] || false;
-};
-
-export const getThreadLastUpdateAt = (state: GlobalState, threadId: UserThread['id']): number => {
-    return state.views.threads.lastUpdateAt[threadId] || 0;
 };
 
 // Returns a selector that, given the state and an object containing an array of postIds and an optional
@@ -169,8 +158,4 @@ export function makePrepareReplyIdsForThreadViewer() {
         const postIds = filterRepliesAndAddSeparators(state, options);
         return combineUserActivityPosts(state, postIds);
     };
-}
-
-export function getThreadToastStatus(state: GlobalState) {
-    return state.views.threads.toastStatus;
 }

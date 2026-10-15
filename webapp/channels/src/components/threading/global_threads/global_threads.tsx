@@ -21,7 +21,7 @@ import {clearLastUnreadChannel} from 'actions/global_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
 import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
-import {setSelectedThreadId} from 'actions/views/threads';
+import {threadsViewThreadChanged} from 'reducers/views/threads';
 import {getRhsState} from 'selectors/rhs';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 import {useGlobalState} from 'stores/hooks';
@@ -96,7 +96,7 @@ const GlobalThreads = () => {
 
     useEffect(() => {
         if (!selectedThreadId || selectedThreadId !== threadIdentifier) {
-            dispatch(setSelectedThreadId(currentTeamId, selectedThread?.id));
+            dispatch(threadsViewThreadChanged({teamId: currentTeamId, threadId: selectedThread?.id ?? null}));
         }
     }, [currentTeamId, selectedThreadId, threadIdentifier]);
 
@@ -151,7 +151,7 @@ const GlobalThreads = () => {
     // cleanup on unmount
     useEffect(() => {
         return () => {
-            dispatch(setSelectedThreadId(currentTeamId, ''));
+            dispatch(threadsViewThreadChanged({teamId: currentTeamId, threadId: null}));
         };
     }, []);
 

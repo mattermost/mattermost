@@ -19,7 +19,7 @@ import {Posts} from 'mattermost-redux/constants';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
-import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
+import {threadMarkedUnread} from 'reducers/views/threads';
 
 import Markdown from 'components/markdown';
 import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
@@ -138,7 +138,7 @@ function ThreadItem({
             const hasUnreads = thread ? Boolean(thread.unread_replies) : false;
             const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
 
-            dispatch(manuallyMarkThreadAsUnread(threadId, lastViewedAt ?? 0));
+            dispatch(threadMarkedUnread({threadId, lastViewedAt: lastViewedAt ?? 0}));
             if (hasUnreads) {
                 dispatch(updateThreadRead(currentUserId, currentTeamId, threadId, Date.now()));
             } else {

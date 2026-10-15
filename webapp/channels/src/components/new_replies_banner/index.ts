@@ -11,7 +11,7 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import {updateThreadToastStatus} from 'actions/views/threads';
+import {threadToastStatusChanged} from 'reducers/views/threads';
 
 import type {GlobalState} from 'types/store';
 
@@ -53,7 +53,7 @@ function makeMapStateToProps() {
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
-            updateThreadToastStatus,
+            threadToastStatusChanged,
         }, dispatch),
     };
 }

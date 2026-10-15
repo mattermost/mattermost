@@ -317,7 +317,6 @@ export const ActionTypes = keyMirror({
 
     SET_UNREAD_FILTER_ENABLED: null,
     UPDATE_TOAST_STATUS: null,
-    UPDATE_THREAD_TOAST_STATUS: null,
 
     SIDEBAR_DRAGGING_SET_STATE: null,
     SIDEBAR_DRAGGING_STOP: null,
@@ -710,13 +709,6 @@ export const RecommendedNextStepsLegacy = {
     CREATE_FIRST_CHANNEL: 'create_first_channel',
     HIDE: 'hide',
     SKIP: 'skip',
-};
-
-export const Threads = {
-    CHANGED_SELECTED_THREAD: 'changed_selected_thread',
-    CHANGED_LAST_VIEWED_AT: 'changed_last_viewed_at',
-    MANUALLY_UNREAD_THREAD: 'manually_unread_thread',
-    CHANGED_LAST_UPDATE_AT: 'changed_last_update_at',
 };
 
 export const CloudBanners = {

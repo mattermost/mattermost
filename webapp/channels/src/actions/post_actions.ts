@@ -30,7 +30,7 @@ import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions';
 import {removeDraft} from 'actions/views/drafts';
 import {closeModal, openModal} from 'actions/views/modals';
 import * as RhsActions from 'actions/views/rhs';
-import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
+import {threadMarkedUnread} from 'reducers/views/threads';
 import {getConnectionId} from 'selectors/general';
 import {isEmbedVisible, isInlineImageVisible} from 'selectors/posts';
 import {getSelectedPostId, getSelectedPostCardId, getRhsState} from 'selectors/rhs';
@@ -411,7 +411,7 @@ export function markPostAsUnread(post: Post, location?: string): ActionFuncAsync
         if (isCollapsedThreadsEnabled(state) && (location === 'RHS_ROOT' || location === 'RHS_COMMENT')) {
             const threadId = post.root_id || post.id;
             ThreadActions.handleFollowChanged(dispatch, threadId, currentTeamId, true);
-            dispatch(manuallyMarkThreadAsUnread(threadId, post.create_at - 1));
+            dispatch(threadMarkedUnread({threadId, lastViewedAt: post.create_at - 1}));
             await dispatch(ThreadActions.markThreadAsUnread(userId, currentTeamId, threadId, post.id));
         } else {
             // use normal channel unread system
