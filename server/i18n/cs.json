@@ -7902,7 +7902,7 @@
   },
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
-    "translation": "Nepodařilo se pozvat vzdáleného uživatele do kanálu"
+    "translation": "Nepodařilo se pozvat vzdálený server do kanálu."
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",

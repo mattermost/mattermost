@@ -9529,7 +9529,7 @@
   },
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
-    "translation": "Не удалось пригласить удалённо на канал"
+    "translation": "Не удалось пригласить удалённый сервер в канал."
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",

@@ -9383,7 +9383,7 @@
   },
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
-    "translation": "無法遠端加入頻道"
+    "translation": "無法邀請遠端加入頻道。"
   },
   {
     "id": "api.shared_channel.get_shared_channel_remotes_error",
