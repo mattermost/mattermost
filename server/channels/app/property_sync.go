@@ -6,6 +6,7 @@ package app
 import (
 	"cmp"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -33,6 +34,11 @@ const (
 // field no longer exists.
 const propertyValueFieldNotFoundErrorID = "app.property_value.upsert.field_not_found.app_error"
 
+// propertyFieldSyncSourceUnlinkedErrorID is what an option change answers with
+// when an admin unlinked the field from this sync's source after the syncer
+// loaded it.
+const propertyFieldSyncSourceUnlinkedErrorID = "app.property_field.sync_source_unlinked.app_error"
+
 // PropertySyncer applies the attribute values an identity source (AD/LDAP,
 // SAML or OpenID Connect) reports for a user to the custom profile attributes
 // synced from that source. It is the single implementation of sync semantics;
@@ -58,7 +64,10 @@ const propertyValueFieldNotFoundErrorID = "app.property_value.upsert.field_not_f
 // present with no usable values, clears the user's value. The identity source
 // is authoritative for a synced field, so what it does not report the user
 // does not have; keeping a stale value would let a departed group membership
-// keep satisfying an attribute-based access policy.
+// keep satisfying an attribute-based access policy. For the same reason a value
+// the source reports but that cannot be stored (too long, past the option cap,
+// or its option could not be created) clears the user's value too: the stored
+// one is no longer what the source says, and the outcome reports why.
 //
 // Only the sync may add, rename or remove the options of a synced definition
 // (see the attribute validation hook). PruneOrphanedOptions removes them again
@@ -217,18 +226,37 @@ func (s *PropertySyncer) SyncUser(rctx request.CTX, userID string, attrs map[str
 
 		desired, err := s.desiredValue(rctx, sf, normalizeSourceValues(attrs[sf.attribute]), &outcome)
 		result.OptionsCreated += outcome.OptionsCreated
-		switch {
-		case err != nil:
+		if err != nil {
 			outcome.Status = model.PropertySyncFieldError
 			outcome.Reason = err.Error()
-		case outcome.Status == model.PropertySyncFieldSkipped:
-			// The stored value is left as it is.
+			// Unlinked since this syncer loaded it: the field is the admin's
+			// again, so its value is left alone and it is not synced again.
+			var appErr *model.AppError
+			if errors.As(err, &appErr) && appErr.Id == propertyFieldSyncSourceUnlinkedErrorID {
+				s.forget(rctx, sf, "it is no longer synced from this source")
+				result.Fields = append(result.Fields, outcome)
+				continue
+			}
+		}
+		// A value that cannot be stored clears the stored one rather than
+		// leaving a value the source no longer reports; the status still says
+		// why the new one was not stored.
+		failed := outcome.Status == model.PropertySyncFieldError || outcome.Status == model.PropertySyncFieldSkipped
+		if failed {
+			desired = emptySyncedValue(sf.field.Type)
+		}
+
+		switch {
 		case !propertyValueChanged(sf.field.Type, current[sf.field.ID], desired):
-			outcome.Status = model.PropertySyncFieldUnchanged
+			if !failed {
+				outcome.Status = model.PropertySyncFieldUnchanged
+			}
 		default:
-			outcome.Status = model.PropertySyncFieldUpdated
-			if model.IsEmptyPropertyValue(desired) {
-				outcome.Status = model.PropertySyncFieldCleared
+			if !failed {
+				outcome.Status = model.PropertySyncFieldUpdated
+				if model.IsEmptyPropertyValue(desired) {
+					outcome.Status = model.PropertySyncFieldCleared
+				}
 			}
 			if sf.field.Type.SupportsOptions() && lostOptionReferences(current[sf.field.ID], desired) && !slices.Contains(shrunk, sf.definition) {
 				shrunk = append(shrunk, sf.definition)
@@ -264,7 +292,7 @@ func (s *PropertySyncer) SyncUser(rctx request.CTX, userID string, attrs map[str
 					result.Fields[w.outcomeIdx].Status = model.PropertySyncFieldError
 					result.Fields[w.outcomeIdx].Reason = singleErr.Error()
 					if singleErr.Id == propertyValueFieldNotFoundErrorID {
-						s.forget(rctx, w.field)
+						s.forget(rctx, w.field, "it no longer exists")
 					}
 					continue
 				}
@@ -344,6 +372,11 @@ func (s *PropertySyncer) pruneDefinition(rctx request.CTX, def *syncDefinition) 
 		if err != nil {
 			return nil, model.NewAppError("PropertySyncer.pruneDefinition", "app.property_sync.referenced_options.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		// An admin may have unlinked the attribute since this syncer loaded it;
+		// its options are then the admin's, including any added since.
+		if model.GetPropertyFieldSyncSource(current) != s.source {
+			return nil, nil
+		}
 		def.field = current
 		if appErr := s.loadOptions(rctx, def); appErr != nil {
 			return nil, appErr
@@ -406,7 +439,7 @@ func (s *PropertySyncer) desiredValue(rctx request.CTX, sf *syncedField, values 
 	switch sf.field.Type {
 	case model.PropertyFieldTypeText:
 		if len(values) == 0 {
-			return json.RawMessage(`""`), nil
+			return emptySyncedValue(sf.field.Type), nil
 		}
 		value := values[0]
 		if len(value) > model.PropertyFieldValueTypeTextMaxLength {
@@ -424,7 +457,7 @@ func (s *PropertySyncer) desiredValue(rctx request.CTX, sf *syncedField, values 
 
 	case model.PropertyFieldTypeSelect:
 		if len(values) == 0 {
-			return json.RawMessage(`""`), nil
+			return emptySyncedValue(sf.field.Type), nil
 		}
 		value := values[0]
 		if len(value) > model.CPAOptionNameMaxLength {
@@ -475,6 +508,15 @@ func (s *PropertySyncer) desiredValue(rctx request.CTX, sf *syncedField, values 
 	}
 
 	return nil, fmt.Errorf("field type %s cannot be synced", sf.field.Type)
+}
+
+// emptySyncedValue is the value a synced field holds when the source reports
+// nothing that can be stored for it.
+func emptySyncedValue(fieldType model.PropertyFieldType) json.RawMessage {
+	if fieldType == model.PropertyFieldTypeMultiselect {
+		return json.RawMessage(`[]`)
+	}
+	return json.RawMessage(`""`)
 }
 
 func skipValue(outcome *model.PropertySyncFieldOutcome, value, reason string) (json.RawMessage, error) {
@@ -663,10 +705,10 @@ func (s *PropertySyncer) refreshDefinition(rctx request.CTX, def *syncDefinition
 
 // forget stops syncing a field that was deleted while this syncer was running,
 // so the rest of a sync run does not fail the same write for every user.
-func (s *PropertySyncer) forget(rctx request.CTX, sf *syncedField) {
+func (s *PropertySyncer) forget(rctx request.CTX, sf *syncedField, reason string) {
 	s.fields = slices.DeleteFunc(s.fields, func(other *syncedField) bool { return other == sf })
-	rctx.Logger().LogM(s.logLevels.warn, "Stopped syncing a custom profile attribute that no longer exists",
-		mlog.String("source", s.source), mlog.String("field_id", sf.field.ID))
+	rctx.Logger().LogM(s.logLevels.warn, "Stopped syncing a custom profile attribute",
+		mlog.String("source", s.source), mlog.String("field_id", sf.field.ID), mlog.String("reason", reason))
 }
 
 func (s *PropertySyncer) loadUserValues(rctx request.CTX, userID string) (map[string]*model.PropertyValue, *model.AppError) {

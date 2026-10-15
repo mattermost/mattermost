@@ -379,26 +379,28 @@ func TestPropertySyncer_SyncUser_Text(t *testing.T) {
 		assert.False(t, result.Changed())
 	})
 
-	t.Run("skips a value over the text limit and keeps the stored one", func(t *testing.T) {
+	t.Run("skips a value over the text limit and clears the stored one", func(t *testing.T) {
 		long := strings.Repeat("x", model.PropertyFieldValueTypeTextMaxLength+1)
 		result := h.sync(s, user, map[string][]string{"department": {long}, "mail": {"a@b.com"}}, false)
 		outcome := outcomeFor(t, result, field.ID)
 		assert.Equal(t, model.PropertySyncFieldSkipped, outcome.Status)
 		assert.Equal(t, []string{long}, outcome.DroppedValues)
 		assert.NotEmpty(t, outcome.Reason)
-		assert.Equal(t, "Engineering", h.valueString(user, field.ID))
+		assert.Equal(t, "", h.valueString(user, field.ID), "the stored value is no longer what the source reports")
 	})
 
-	t.Run("skips a value that violates the field's value_type without quoting it", func(t *testing.T) {
+	t.Run("skips a value that violates the field's value_type without quoting it, and clears the stored one", func(t *testing.T) {
 		result := h.sync(s, user, map[string][]string{"department": {"Engineering"}, "mail": {"not-an-email"}}, false)
 		outcome := outcomeFor(t, result, email.ID)
 		assert.Equal(t, model.PropertySyncFieldSkipped, outcome.Status)
 		assert.Contains(t, outcome.Reason, "email")
 		assert.NotContains(t, outcome.Reason, "not-an-email")
-		assert.Equal(t, "a@b.com", h.valueString(user, email.ID))
+		assert.Equal(t, "", h.valueString(user, email.ID))
 	})
 
 	t.Run("clears the value when the attribute is absent or empty", func(t *testing.T) {
+		h.sync(s, user, map[string][]string{"department": {"Engineering"}, "mail": {"a@b.com"}}, false)
+
 		result := h.sync(s, user, map[string][]string{"mail": {"", "  "}}, false)
 		assert.Equal(t, model.PropertySyncFieldCleared, outcomeFor(t, result, field.ID).Status)
 		assert.Equal(t, model.PropertySyncFieldCleared, outcomeFor(t, result, email.ID).Status)
@@ -620,7 +622,7 @@ func TestPropertySyncer_OptionCap(t *testing.T) {
 		return source
 	}
 	multiTemplate, multi := h.createAttribute(model.PropertyFieldTypeMultiselect, nearlyFull(ldapAttrs("memberOf")))
-	singleTemplate, single := h.createAttribute(model.PropertyFieldTypeSelect, nearlyFull(ldapAttrs("department")))
+	_, single := h.createAttribute(model.PropertyFieldTypeSelect, nearlyFull(ldapAttrs("department")))
 
 	s := h.syncer(model.PropertySyncSourceLDAP)
 	user := h.BasicUser.Id
@@ -639,7 +641,7 @@ func TestPropertySyncer_OptionCap(t *testing.T) {
 		assert.Equal(t, h.optionIDs(multiTemplate.ID, "group-000", "new-a"), h.valueStrings(user, multi.ID))
 	})
 
-	t.Run("select at the cap skips an unknown value", func(t *testing.T) {
+	t.Run("select at the cap skips an unknown value and clears the stored one", func(t *testing.T) {
 		result := h.sync(s, user, map[string][]string{"department": {"brand-new"}, "memberOf": {"group-000"}}, false)
 		outcome := outcomeFor(t, result, single.ID)
 		assert.Equal(t, model.PropertySyncFieldUpdated, outcome.Status, "one below the cap: brand-new is created")
@@ -649,7 +651,7 @@ func TestPropertySyncer_OptionCap(t *testing.T) {
 		outcome = outcomeFor(t, result, single.ID)
 		assert.Equal(t, model.PropertySyncFieldSkipped, outcome.Status)
 		assert.Equal(t, []string{"another-new"}, outcome.DroppedValues)
-		assert.Equal(t, h.optionID(singleTemplate.ID, "brand-new"), h.valueString(user, single.ID), "stored value is left alone")
+		assert.Equal(t, "", h.valueString(user, single.ID), "a stored value the source no longer reports must not keep satisfying a policy")
 	})
 }
 
@@ -873,5 +875,83 @@ func TestPropertySyncHelpers(t *testing.T) {
 
 		_, err = optionIDsFromValue(json.RawMessage(`{"a":1}`))
 		require.Error(t, err)
+	})
+}
+
+func TestPropertySyncer_UnlinkedWhileSyncing(t *testing.T) {
+	mainHelper.Parallel(t)
+	h := setupPropertySyncTest(t)
+
+	template, field := h.createAttribute(model.PropertyFieldTypeSelect, ldapAttrs("department"))
+	s := h.syncer(model.PropertySyncSourceLDAP)
+	user := h.BasicUser.Id
+	h.sync(s, user, map[string][]string{"department": {"Engineering"}}, false)
+	engineering := h.optionID(template.ID, "Engineering")
+
+	// # An admin unlinks the attribute while the job is running, and adds an option of their own
+	h.updateAttrs(template, model.StringInterface{model.PropertyFieldAttrLDAP: ""})
+	_, appErr := h.App.CreatePropertyFieldOptions(h.adminRctx, h.groupID, template.ID, []*model.PropertyFieldOption{{Name: "Finance"}}, "")
+	require.Nil(t, appErr)
+
+	// * A value that would need a new option is refused, and the stored value is left alone
+	result := h.sync(s, user, map[string][]string{"department": {"Sales"}}, false)
+	outcome := outcomeFor(t, result, field.ID)
+	assert.Equal(t, model.PropertySyncFieldError, outcome.Status)
+	assert.Equal(t, engineering, h.valueString(user, field.ID))
+	assert.Equal(t, []string{"Engineering", "Finance"}, h.optionNames(template.ID))
+
+	// * The syncer stops syncing the attribute, and pruning leaves its options alone
+	again := h.sync(s, user, map[string][]string{"department": {"Sales"}}, false)
+	assert.NotContains(t, syncedFieldIDs(again), field.ID)
+	assert.Empty(t, h.prune(s).Fields)
+	assert.Equal(t, []string{"Engineering", "Finance"}, h.optionNames(template.ID))
+}
+
+func TestPropertySyncer_ClearsARequiredField(t *testing.T) {
+	mainHelper.Parallel(t)
+	h := setupPropertySyncTest(t)
+	user := h.BasicUser.Id
+
+	clearAsAdmin := func(t *testing.T, field *model.PropertyField) *model.AppError {
+		t.Helper()
+		_, appErr := h.App.UpsertPropertyValues(h.adminRctx, []*model.PropertyValue{{
+			GroupID:    h.groupID,
+			TargetType: model.PropertyValueTargetTypeUser,
+			TargetID:   user,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`""`),
+		}}, model.PropertyFieldObjectTypeUser, user, "")
+		return appErr
+	}
+
+	t.Run("a field synced on its own", func(t *testing.T) {
+		field := h.createField(model.PropertyFieldTypeText, model.StringInterface{
+			model.PropertyFieldAttrLDAP:     "title",
+			model.PropertyFieldAttrRequired: true,
+		})
+		s := h.syncer(model.PropertySyncSourceLDAP)
+		h.sync(s, user, map[string][]string{"title": {"Engineer"}}, false)
+		require.Equal(t, "Engineer", h.valueString(user, field.ID))
+
+		// * Only the field's own sync may clear it
+		require.NotNil(t, clearAsAdmin(t, field))
+		result := h.sync(s, user, nil, false)
+		assert.Equal(t, model.PropertySyncFieldCleared, outcomeFor(t, result, field.ID).Status)
+		assert.Equal(t, "", h.valueString(user, field.ID))
+	})
+
+	t.Run("a field linked to a template it has no copy of the link of", func(t *testing.T) {
+		template := h.createTemplate(model.PropertyFieldTypeText, nil)
+		field := h.linkField(template, model.PropertyFieldObjectTypeUser, model.StringInterface{model.PropertyFieldAttrRequired: true})
+		h.updateAttrs(template, ldapAttrs("title"))
+		require.NotContains(t, h.field(field.ID).Attrs, model.PropertyFieldAttrLDAP)
+
+		s := h.syncer(model.PropertySyncSourceLDAP)
+		h.sync(s, user, map[string][]string{"title": {"Engineer"}}, false)
+		require.Equal(t, "Engineer", h.valueString(user, field.ID))
+
+		result := h.sync(s, user, nil, false)
+		assert.Equal(t, model.PropertySyncFieldCleared, outcomeFor(t, result, field.ID).Status)
+		assert.Equal(t, "", h.valueString(user, field.ID))
 	})
 }

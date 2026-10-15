@@ -2548,6 +2548,32 @@ func TestAccessControlAttributeValidationHookSyncedOptionsOwnership(t *testing.T
 		require.NoError(t, deleteErr)
 	})
 
+	t.Run("a sync cannot change the options of a field it does not sync", func(t *testing.T) {
+		// Synced, then unlinked by an admin while a sync job was running.
+		field := newSyncedField(t, model.PropertyFieldAttrLDAP)
+		field.Attrs[model.PropertyFieldAttrLDAP] = ""
+		field, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, field)
+		require.NoError(t, updateErr)
+		require.False(t, model.IsPropertyFieldSynced(field))
+		engineering := optionsOf(t, field)[0]
+
+		for _, syncRctx := range []request.CTX{ldapSyncRctx, samlSyncRctx} {
+			_, createErr := th.service.CreateFieldOptions(syncRctx, group.ID, field.ID, []*model.PropertyFieldOption{{Name: "Support"}})
+			var appErr *model.AppError
+			require.ErrorAs(t, createErr, &appErr)
+			assert.Equal(t, "app.property_field.sync_source_unlinked.app_error", appErr.Id)
+			_, deleteErr := th.service.DeleteFieldOptions(syncRctx, group.ID, field.ID, []string{engineering.ID})
+			require.ErrorAs(t, deleteErr, &appErr)
+			assert.Equal(t, "app.property_field.sync_source_unlinked.app_error", appErr.Id)
+		}
+
+		// * The options are the admin's again
+		created, createErr := th.service.CreateFieldOptions(adminRctx, group.ID, field.ID, []*model.PropertyFieldOption{{Name: "Support"}})
+		require.NoError(t, createErr)
+		_, deleteErr := th.service.DeleteFieldOptions(adminRctx, group.ID, field.ID, []string{created[0].ID})
+		require.NoError(t, deleteErr)
+	})
+
 	t.Run("a synced template's options are locked where they are edited", func(t *testing.T) {
 		template, createErr := th.service.CreatePropertyField(adminRctx, &model.PropertyField{
 			GroupID:    group.ID,
