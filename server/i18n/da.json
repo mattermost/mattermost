@@ -13732,19 +13732,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Kunne ikke slå lyden fra for helbredsfundet."
+    "translation": "Kunne ikke dæmpe tilstandsfundet."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Helbredsfundet blev ikke fundet."
+    "translation": "Tilstandsfundet findes ikke."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Kunne ikke slå lyden til for helbredsfundet."
+    "translation": "Kunne ikke ophæve dæmpningen af tilstandsfundet."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Helbredsfundet blev ikke fundet."
+    "translation": "Tilstandsfundet findes ikke."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",

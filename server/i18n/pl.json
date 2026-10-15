@@ -14258,19 +14258,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Nie można wyciszyć wyniku kontroli stanu."
+    "translation": "Nie można wyciszyć problemu z kondycją."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Nie znaleziono wyniku kontroli stanu."
+    "translation": "Nie znaleziono problemu z kondycją."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Nie można wyłączyć wyciszenia wyniku kontroli stanu."
+    "translation": "Nie można wyłączyć wyciszenia problemu z kondycją."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Nie znaleziono wyniku kontroli stanu."
+    "translation": "Nie znaleziono problemu z kondycją."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",

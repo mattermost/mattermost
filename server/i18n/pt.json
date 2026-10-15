@@ -7137,19 +7137,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Não é possível silenciar o resultado da verificação de estado."
+    "translation": "Não é possível silenciar a ocorrência da Saúde do site."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Resultado da verificação de estado não encontrado."
+    "translation": "Ocorrência da Saúde do site não encontrada."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Não é possível deixar de silenciar o resultado da verificação de estado."
+    "translation": "Não é possível deixar de silenciar a ocorrência da Saúde do site."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Resultado da verificação de estado não encontrado."
+    "translation": "Ocorrência da Saúde do site não encontrada."
   },
   {
     "id": "app.import.attachment.bad_file.error",

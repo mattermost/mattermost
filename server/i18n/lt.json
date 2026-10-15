@@ -7044,19 +7044,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Nepavyksta nutildyti būklės patikros radinio."
+    "translation": "Nepavyko nutildyti būklės pastebėjimo."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Būklės patikros radinys nerastas."
+    "translation": "Būklės pastebėjimas nerastas."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Nepavyksta atšaukti būklės patikros radinio nutildymo."
+    "translation": "Nepavyko atšaukti būklės pastebėjimo nutildymo."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Būklės patikros radinys nerastas."
+    "translation": "Būklės pastebėjimas nerastas."
   },
   {
     "id": "app.import.attachment.bad_file.error",

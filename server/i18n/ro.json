@@ -14249,7 +14249,7 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Constatarea de sănătate nu a putut fi pusă pe silențios."
+    "translation": "Nu se poate ignora constatarea de sănătate."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
@@ -14257,7 +14257,7 @@
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Nu s-a putut anula punerea pe silențios a constatării de sănătate."
+    "translation": "Nu se poate anula ignorarea constatării de sănătate."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",

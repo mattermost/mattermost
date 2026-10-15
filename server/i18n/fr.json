@@ -13975,19 +13975,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Impossible de mettre en sourdine le résultat du bilan de santé."
+    "translation": "Impossible de masquer le constat de santé."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Résultat du bilan de santé introuvable."
+    "translation": "Constat de santé introuvable."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Impossible de réactiver le résultat du bilan de santé."
+    "translation": "Impossible de réafficher le constat de santé."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Résultat du bilan de santé introuvable."
+    "translation": "Constat de santé introuvable."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",

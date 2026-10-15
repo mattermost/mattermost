@@ -14227,19 +14227,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "ヘルスチェックの検出結果をミュートできませんでした。"
+    "translation": "ヘルスチェックの検出事項をミュートできませんでした。"
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "ヘルスチェックの検出結果が見つかりません。"
+    "translation": "ヘルスチェックの検出事項が見つかりません。"
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "ヘルスチェックの検出結果のミュートを解除できませんでした。"
+    "translation": "ヘルスチェックの検出事項のミュートを解除できませんでした。"
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "ヘルスチェックの検出結果が見つかりません。"
+    "translation": "ヘルスチェックの検出事項が見つかりません。"
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",

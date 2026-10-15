@@ -13708,19 +13708,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Impossibile silenziare il risultato del controllo di integrità."
+    "translation": "Impossibile silenziare il rilevamento di integrità."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Risultato del controllo di integrità non trovato."
+    "translation": "Rilevamento di integrità non trovato."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Impossibile riattivare il risultato del controllo di integrità."
+    "translation": "Impossibile riattivare il rilevamento di integrità."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Risultato del controllo di integrità non trovato."
+    "translation": "Rilevamento di integrità non trovato."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",

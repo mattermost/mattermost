@@ -14258,19 +14258,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Не удалось заглушить результат проверки работоспособности."
+    "translation": "Не удалось скрыть замечание о состоянии сайта."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Результат проверки работоспособности не найден."
+    "translation": "Замечание о состоянии сайта не найдено."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Не удалось снять заглушение с результата проверки работоспособности."
+    "translation": "Не удалось вернуть замечание о состоянии сайта."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Результат проверки работоспособности не найден."
+    "translation": "Замечание о состоянии сайта не найдено."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",

@@ -12318,19 +12318,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Nález kontroly stavu serveru nelze ztlumit."
+    "translation": "Zjištění stavu webu nelze ztlumit."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Nález kontroly stavu serveru nebyl nalezen."
+    "translation": "Zjištění stavu webu nebylo nalezeno."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Nelze zrušit ztlumení nálezu kontroly stavu serveru."
+    "translation": "Nelze zrušit ztlumení zjištění stavu webu."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Nález kontroly stavu serveru nebyl nalezen."
+    "translation": "Zjištění stavu webu nebylo nalezeno."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",

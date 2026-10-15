@@ -14231,19 +14231,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "상태 점검 결과를 음소거할 수 없습니다."
+    "translation": "발견 사항을 숨길 수 없습니다."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "상태 점검 결과를 찾을 수 없습니다."
+    "translation": "발견 사항을 찾을 수 없습니다."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "상태 점검 결과의 음소거를 해제할 수 없습니다."
+    "translation": "발견 사항의 숨김을 해제할 수 없습니다."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "상태 점검 결과를 찾을 수 없습니다."
+    "translation": "발견 사항을 찾을 수 없습니다."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",

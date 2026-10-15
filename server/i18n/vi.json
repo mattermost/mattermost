@@ -14231,7 +14231,7 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Không thể tắt thông báo cho phát hiện kiểm tra tình trạng."
+    "translation": "Không thể ẩn phát hiện kiểm tra tình trạng."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
@@ -14239,7 +14239,7 @@
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Không thể bật lại thông báo cho phát hiện kiểm tra tình trạng."
+    "translation": "Không thể bỏ ẩn phát hiện kiểm tra tình trạng."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
