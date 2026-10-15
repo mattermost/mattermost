@@ -65,7 +65,7 @@ import {startWebhookContainer} from './webhook_container';
 import {clearClientCache} from '@/server/client';
 import {defaultBootEnv, reloadTestConfig, testConfig} from '@/test_config';
 import type {TestContainersServiceName} from '@/test_config';
-import {isUpgradeToPhaseProjectSelected, upgradeToStackNotRunningError} from '@/upgrade_env';
+import {isUpgradeToPhaseProjectActive, upgradeToStackNotRunningError} from '@/upgrade_env';
 import {disableTlsVerificationForSelfSignedProxy, duration} from '@/util';
 
 const execFileAsync = promisify(execFile);
@@ -113,7 +113,7 @@ async function startStackLocked(): Promise<void> {
         return;
     }
 
-    if (isUpgradeToPhaseProjectSelected()) {
+    if (isUpgradeToPhaseProjectActive()) {
         throw upgradeToStackNotRunningError();
     }
 

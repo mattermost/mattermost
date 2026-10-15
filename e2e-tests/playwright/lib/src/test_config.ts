@@ -18,8 +18,8 @@ import {SERVER_ENV_BASELINE} from './containers/env_baseline';
 import {
     getUpgradeFromServerImage,
     getUpgradeToServerImage,
-    isUpgradeFromProjectSelected,
-    isUpgradeToPhaseProjectSelected,
+    isUpgradeFromProjectActive,
+    isUpgradeToPhaseProjectActive,
 } from './upgrade_env';
 
 dotenv.config({quiet: true});
@@ -244,9 +244,11 @@ export class TestConfig {
             : this.webhookBaseUrl;
         // upgrade-from → PW_UPGRADE_FROM_SERVER_IMAGE; upgrade-to/swap-to → SERVER_IMAGE (never the
         // from-image persisted as PW_TESTCONTAINERS_SERVER_IMAGE); otherwise prefer persisted image.
-        if (isUpgradeFromProjectSelected()) {
+        // *Active (not *Selected): this constructor also runs inside a worker process reloading
+        // the config, where only the env-var-aware check resolves correctly (see upgrade_env.ts).
+        if (isUpgradeFromProjectActive()) {
             this.serverImage = getUpgradeFromServerImage();
-        } else if (isUpgradeToPhaseProjectSelected()) {
+        } else if (isUpgradeToPhaseProjectActive()) {
             this.serverImage = getUpgradeToServerImage();
         } else {
             this.serverImage =
