@@ -8,9 +8,9 @@ import {sendDemoSlashCommand} from '../../helpers';
 test('should send ephemeral post with Update and Delete actions via /ephemeral command', async ({pw}) => {
     // A concurrent plugin_crash.spec.ts worker can leave the demo plugin's post-action hooks
     // broken for up to ~50s while it crashes and fully recovers the shared plugin (see that
-    // spec for the recovery budget the retries below are sized against). test.slow() triples
-    // the test timeout so those retries have room to outlast that window.
-    test.slow();
+    // spec for the recovery budget the retries below are sized against), so give this test
+    // a generous explicit timeout to leave room for that cycle.
+    test.setTimeout(duration.four_min);
 
     // # Setup
     const {user, team} = await pw.initSetup();

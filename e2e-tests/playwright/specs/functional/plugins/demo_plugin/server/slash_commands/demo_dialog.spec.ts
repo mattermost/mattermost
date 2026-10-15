@@ -147,19 +147,22 @@ test('should post cancellation notification when /dialog is cancelled', async ({
     const cancellationPost = channelsPage.centerView.container
         .locator('p')
         .filter({hasText: 'canceled an Interative Dialog'});
+    const reopenDialog = () =>
+        sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/dialog');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
+
     for (let attempt = 0; attempt < 12; attempt++) {
-        if (attempt === 6) {
-            await recoverDemoPlugin(adminClient);
-            await sendDemoSlashCommand(channelsPage.page, async () => {
-                await channelsPage.centerView.postCreate.input.fill('/dialog');
-                await channelsPage.centerView.postCreate.sendMessage();
-            });
-            await expect(dialog).toBeVisible({timeout: duration.ten_sec});
-        }
-        if (await dialog.isVisible()) {
-            await dialog.getByRole('button', {name: 'Cancel'}).click();
-        }
         try {
+            if (attempt === 6) {
+                await recoverDemoPlugin(adminClient);
+                await reopenDialog();
+                await expect(dialog).toBeVisible({timeout: duration.ten_sec});
+            }
+            if (await dialog.isVisible()) {
+                await dialog.getByRole('button', {name: 'Cancel'}).click();
+            }
             await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
             // * Verify the cancellation post appears in the channel
             // Note: "Interative" is a typo in the demo plugin — not a test error
@@ -169,12 +172,14 @@ test('should post cancellation notification when /dialog is cancelled', async ({
             if (attempt === 11) {
                 throw err;
             }
-            // Reopen the dialog for the next attempt
-            await sendDemoSlashCommand(channelsPage.page, async () => {
-                await channelsPage.centerView.postCreate.input.fill('/dialog');
-                await channelsPage.centerView.postCreate.sendMessage();
-            });
-            await expect(dialog).toBeVisible({timeout: duration.ten_sec});
+            // Treat a failed reopen as a failed attempt so the loop can retry once the
+            // plugin recovers, instead of letting it abort the test.
+            try {
+                await reopenDialog();
+                await expect(dialog).toBeVisible({timeout: duration.ten_sec});
+            } catch {
+                // Reopen failed too — fall through and retry on the next attempt.
+            }
         }
     }
 });
