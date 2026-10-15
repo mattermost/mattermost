@@ -172,6 +172,50 @@ class UniqueCommitFilterTest(unittest.TestCase):
         self.assertTrue(any("/api/v4/bar" in item for item in result.additions))
         self.assertFalse(any("/api/v4/foo" in item for item in result.additions))
 
+    def test_master_merged_after_the_pr_change_is_not_attributed_to_the_pr(self):
+        """PR #38939: master gained and dropped fields after the PR's first config change.
+
+        The state before the PR's oldest commit lacks what the branch later
+        merged from master, so master's own field changes must be filtered out.
+        """
+        _write(self.tmpdir, "server/public/model/config.go", _config("EnableFoo", "EnableOld"))
+        _write(self.tmpdir, "server/channels/api4/post.go", "package api4\n")
+        self._commit("root")
+
+        _git(self.tmpdir, "checkout", "-b", "feature")
+        _write(self.tmpdir, "server/public/model/config.go", _config("EnableBar", "EnableFoo", "EnableOld"))
+        self._commit("PR adds EnableBar")
+
+        _git(self.tmpdir, "checkout", "master")
+        _write(self.tmpdir, "server/public/model/config.go", _config("EnableBaz", "EnableFoo"))
+        _write(self.tmpdir, "server/channels/api4/post.go", _HANDLE)
+        master_tip = self._commit("master adds EnableBaz and GET /foo, drops EnableOld")
+
+        _git(self.tmpdir, "checkout", "feature")
+        subprocess.run(["git", "-C", self.tmpdir, "merge", "--no-edit", "master"], capture_output=True)
+        _write(self.tmpdir, "server/public/model/config.go", _config("EnableBar", "EnableBaz", "EnableFoo"))
+        self._commit("Merge master into feature")
+
+        _write(self.tmpdir, "server/channels/api4/post.go", _HANDLE + _HANDLE_BAR)
+        _write(self.tmpdir, "server/public/model/config.go", _config("EnableBar", "EnableBaz"))
+        head = self._commit("PR adds POST /bar and drops EnableFoo")
+
+        self._point_checker(master_tip, head)
+        patches = checker.split_patch_by_file(checker.get_full_patch())
+
+        config = checker.check_config(patches)
+        self.assertEqual(config.additions, ["``Config.EnableBar``"])
+        self.assertEqual(config.removals, ["``Config.EnableFoo``"])
+
+        api = checker.check_api(patches)
+        self.assertTrue(any("/api/v4/bar" in item for item in api.additions))
+        self.assertFalse(any("/api/v4/foo" in item for item in api.additions))
+
+
+def _config(*fields: str) -> str:
+    body = "".join(f"\t{name} bool\n" for name in fields)
+    return f"package model\n\ntype Config struct {{\n{body}}}\n"
+
 
 if __name__ == "__main__":
     unittest.main()

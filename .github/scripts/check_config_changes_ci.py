@@ -29,7 +29,7 @@ import sys
 import subprocess
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Optional
+from typing import Callable, Optional
 
 try:
     import requests
@@ -224,10 +224,49 @@ def _compute_merge_base() -> str:
     return _git(["merge-base", BASE_SHA, HEAD_SHA]).stdout.strip()
 
 
+@lru_cache(maxsize=1)
+def inherited_refs() -> tuple[str, ...]:
+    """Latest commits of the GitHub base and the default branch that HEAD contains.
+
+    A branch that merges trunk after its first change to a watched file also
+    takes whatever trunk changed in that file meanwhile, which the file's state
+    before the PR's oldest commit lacks. What these commits already had came
+    from trunk, not from this PR.
+    """
+    refs: list[str] = []
+    for tip in (BASE_SHA, default_branch_sha()):
+        if not tip:
+            continue
+        result = _git(["merge-base", tip, HEAD_SHA], check=False)
+        ref = result.stdout.strip()
+        if result.returncode == 0 and ref and ref not in refs:
+            refs.append(ref)
+    return tuple(refs)
+
+
+def own_changes(path: str, parse: Callable[[str], set]) -> tuple[set, set]:
+    """Items this PR added to and removed from `path`, as parsed by `parse`.
+
+    Compares the file before this PR's unique commits with HEAD, then drops
+    what the PR merged in from trunk: an addition trunk already had, and a
+    removal of an item trunk had already dropped.
+    """
+    before = parse(file_before(path))
+    head = parse(file_at(HEAD_SHA, path))
+    added, removed = head - before, before - head
+    refs = inherited_refs()
+    if refs:
+        inherited = set().union(*(parse(file_at(ref, path)) for ref in refs))
+        added -= inherited
+        removed &= inherited
+    return added, removed
+
+
 def reset_git_caches() -> None:
     """Clear cached git walks. Tests call this after pointing at a new repo."""
     unique_commits.cache_clear()
     _commit_files.cache_clear()
+    inherited_refs.cache_clear()
  
  
 # ── Checker 1 — config.go ──────────────────────────────────────────────────────
@@ -280,19 +319,14 @@ def check_config(patches: dict[str, str]) -> CheckResult:
     """
     Detect exported Go struct field additions/removals in config.go.
  
-    Compares full-file snapshots before this PR's unique commits and at
-    HEAD_SHA so that fields are always attributed to the correct struct
-    regardless of which diff hunks are present.
+    Compares full-file snapshots (see own_changes) so that fields are always
+    attributed to the correct struct regardless of which diff hunks are present.
     """
     result = CheckResult(label="`config.json` Field Changes")
     if _CONFIG_PATH not in patches:
         return result
  
-    base_fields = _scan_struct_fields(file_before(_CONFIG_PATH))
-    head_fields = _scan_struct_fields(file_at(HEAD_SHA, _CONFIG_PATH))
- 
-    added   = head_fields - base_fields
-    removed = base_fields - head_fields
+    added, removed = own_changes(_CONFIG_PATH, _scan_struct_fields)
  
     result.additions = sorted(f"``{s}.{f}``" for s, f in added)
     result.removals  = sorted(f"``{s}.{f}``" for s, f in removed)
@@ -358,9 +392,8 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     """
     Detect API endpoint additions/removals in the api4/ directory.
  
-    Compares full-file snapshots before this PR's unique commits and at
-    HEAD_SHA via set arithmetic, so multi-line and multi-method
-    registrations are handled correctly.
+    Compares full-file snapshots via set arithmetic (see own_changes), so
+    multi-line and multi-method registrations are handled correctly.
     """
     result = CheckResult(label="API Changes (`api4`)")
 
@@ -376,10 +409,9 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     removed_eps: set[tuple[str, str, str]] = set()
 
     for fname, patch in api4_patches.items():
-        base_eps = _parse_endpoints(file_before(fname))
-        head_eps = _parse_endpoints(file_at(HEAD_SHA, fname))
-        added_eps   |= head_eps - base_eps
-        removed_eps |= base_eps - head_eps
+        added, removed = own_changes(fname, _parse_endpoints)
+        added_eps   |= added
+        removed_eps |= removed
  
         # Anchor the check to avoid false positives from unrelated source text
         if re.search(r"^new file mode \d+", patch, re.MULTILINE):
@@ -406,19 +438,17 @@ def check_audit_events(patches: dict[str, str]) -> CheckResult:
     """
     Detect AuditEvent* constant additions/removals.
  
-    Uses full-file snapshots before this PR's unique commits and at HEAD_SHA
-    so reorderings and cross-constant name collisions don't produce false
-    results.
+    Uses full-file snapshots (see own_changes) so reorderings and
+    cross-constant name collisions don't produce false results.
     """
     result = CheckResult(label="Audit Log Event Changes")
     if _AUDIT_EVENT_PATH not in patches:
         return result
 
-    base_events = _parse_audit_events(file_before(_AUDIT_EVENT_PATH))
-    head_events = _parse_audit_events(file_at(HEAD_SHA, _AUDIT_EVENT_PATH))
+    added, removed = own_changes(_AUDIT_EVENT_PATH, _parse_audit_events)
  
-    result.additions = sorted(f"``{e}``" for e in head_events - base_events)
-    result.removals  = sorted(f"``{e}``" for e in base_events - head_events)
+    result.additions = sorted(f"``{e}``" for e in added)
+    result.removals  = sorted(f"``{e}``" for e in removed)
     return result
  
  
@@ -451,6 +481,9 @@ def check_go_version(patches: dict[str, str]) -> CheckResult:
  
     old_ver = _parse_go_version(file_before(_DOCKERFILE_PATH))
     new_ver = _parse_go_version(file_at(HEAD_SHA, _DOCKERFILE_PATH))
+    # A version trunk already had was merged in, not set by this PR.
+    if new_ver in {_parse_go_version(file_at(ref, _DOCKERFILE_PATH)) for ref in inherited_refs()}:
+        return result
  
     if old_ver and new_ver and old_ver != new_ver:
         result.changes.append(f"Go updated: ``{old_ver}`` → ``{new_ver}``")
