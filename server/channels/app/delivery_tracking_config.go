@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -33,8 +34,12 @@ func (a *App) GetDeliveryTrackingConfig(rctx request.CTX) (*model.DeliveryTracki
 
 func (a *App) SaveDeliveryTrackingConfig(rctx request.CTX, cfg *model.DeliveryTrackingConfig) *model.AppError {
 	if cfg.ChannelIds != nil {
-		if appErr := a.validateTrackedChannelIDs(cfg.ChannelIds); appErr != nil {
-			return appErr
+		if err := a.validateTrackedChannelIDs(cfg.ChannelIds); err != nil {
+			var appErr *model.AppError
+			if errors.As(err, &appErr) {
+				return appErr
+			}
+			return model.NewAppError("SaveDeliveryTrackingConfig", "app.delivery_tracking.save_config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		// Persist the channel list before the toggles so a store failure leaves config
@@ -52,7 +57,7 @@ func (a *App) SaveDeliveryTrackingConfig(rctx request.CTX, cfg *model.DeliveryTr
 	return nil
 }
 
-func (a *App) validateTrackedChannelIDs(channelIDs []string) *model.AppError {
+func (a *App) validateTrackedChannelIDs(channelIDs []string) error {
 	uniqueIDs := utils.Dedup(channelIDs)
 	if len(uniqueIDs) == 0 {
 		return nil
