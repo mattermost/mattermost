@@ -747,11 +747,40 @@ func isFieldSync(field *model.PropertyField, callerID string) bool {
 	return callerID != "" && callerID == model.PropertySyncCallerID(model.GetPropertyFieldSyncSource(field))
 }
 
+// isDefinitionSync reports whether callerID is the sync of field's definition:
+// the field's own link, or, for a field linked to a template whose link it has
+// no copy of, the template's. Attribute Management edits the template alone, so
+// a user field created before the template was linked carries no copy, and the
+// sync follows the template for it.
+func (h *AccessControlAttributeValidationHook) isDefinitionSync(rctx request.CTX, field *model.PropertyField, callerID string) bool {
+	if model.PropertySyncSourceForCallerID(callerID) == "" {
+		return false
+	}
+	if model.IsPropertyFieldSynced(field) {
+		return isFieldSync(field, callerID)
+	}
+	if field.LinkSourceID() == "" {
+		return false
+	}
+	template, err := h.propertyService.getPropertyFieldFromMaster(rctx, field.GroupID, field.LinkSourceID())
+	if err != nil {
+		return false
+	}
+	return isFieldSync(template, callerID)
+}
+
 // syncedOptionsLockedError is an AppError so that its i18n key survives the
 // HTTP layer's mapPropertyServiceError fallback.
 func syncedOptionsLockedError(where string, field *model.PropertyField) *model.AppError {
 	details := fmt.Sprintf("field %s: options of a synced field are managed by %s sync", field.ID, model.GetPropertyFieldSyncSource(field))
 	return model.NewAppError(where, "app.property_field.synced_options_locked.app_error", nil, details, http.StatusForbidden)
+}
+
+// syncSourceUnlinkedError refuses a sync changing a field that is not synced
+// from its source, such as one an admin unlinked while a sync job was running.
+func syncSourceUnlinkedError(where string, field *model.PropertyField, source string) *model.AppError {
+	details := fmt.Sprintf("field %s is not synced from %s", field.ID, source)
+	return model.NewAppError(where, "app.property_field.sync_source_unlinked.app_error", nil, details, http.StatusConflict)
 }
 
 // validateSyncedOptionsOwnership applies the synced-options rule to a field
@@ -783,12 +812,25 @@ func (h *AccessControlAttributeValidationHook) validateSyncedOptionsOwnership(rc
 // endpoints. The change itself is not visible here, only the field, so every
 // change is refused to anyone but the sync -- a recolor included; the field's
 // option list, judged option by option above, is where that is done.
+//
+// A sync, in turn, changes only the options of a field synced from its own
+// source: a field an admin unlinked while a sync job was running is the
+// admin's again, options added since included.
 func (h *AccessControlAttributeValidationHook) PreChangePropertyFieldOptions(rctx request.CTX, field *model.PropertyField) error {
-	if field == nil || !h.isGroupManaged(field.GroupID) || !field.Type.SupportsOptions() || !model.IsPropertyFieldSynced(field) ||
-		isFieldSync(field, h.propertyService.extractCallerID(rctx)) {
+	if field == nil || !h.isGroupManaged(field.GroupID) || !field.Type.SupportsOptions() {
 		return nil
 	}
-	return syncedOptionsLockedError("PropertyFieldOptions", field)
+	callerID := h.propertyService.extractCallerID(rctx)
+	if isFieldSync(field, callerID) {
+		return nil
+	}
+	if model.IsPropertyFieldSynced(field) {
+		return syncedOptionsLockedError("PropertyFieldOptions", field)
+	}
+	if source := model.PropertySyncSourceForCallerID(callerID); source != "" {
+		return syncSourceUnlinkedError("PropertyFieldOptions", field, source)
+	}
+	return nil
 }
 
 // optionNamesByID maps option ID to option name for a field, ignoring color
@@ -995,6 +1037,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 	if !h.isGroupManaged(groupID) {
 		return nil
 	}
+	callerID := h.propertyService.extractCallerID(rctx)
 
 	// Authorization precedes validation, and refusing here avoids the field
 	// round trip below.
@@ -1045,8 +1088,12 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		}
 		// The kill switch is scoped to channel attributes: a required field on any
 		// other object type (post, user) stays enforced regardless of the flag.
+		// The field's own sync may still clear it: the source decides the value,
+		// including that there is none, and a value it no longer reports must not
+		// stay behind to satisfy an access policy.
 		if (field.ObjectType != model.PropertyFieldObjectTypeChannel || h.requiredEnforced()) &&
-			model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) {
+			model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) &&
+			!h.isDefinitionSync(rctx, field, callerID) {
 			return newRequiredValueError(field)
 		}
 		if len(optionIDs) == 0 {

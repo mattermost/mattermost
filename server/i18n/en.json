@@ -11216,6 +11216,11 @@
     "description": "API error returned when a search query over property fields (custom attribute definitions) fails."
   },
   {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "The attribute is no longer synced from this source, so its sync cannot change it.",
+    "description": "Error returned when the AD/LDAP or SAML sync tries to change an attribute an administrator unlinked from that source while the sync was running."
+  },
+  {
     "id": "app.property_field.synced_options_locked.app_error",
     "translation": "The options of an attribute synced from AD/LDAP or SAML are managed by the sync and cannot be added, renamed or removed.",
     "description": "API error (403) when an admin tries to add, rename or remove an option of a custom attribute synced from AD/LDAP or SAML; the sync owns that option list. 'AD/LDAP' and 'SAML' should stay as-is."

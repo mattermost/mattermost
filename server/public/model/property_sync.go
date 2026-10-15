@@ -37,6 +37,17 @@ func PropertySyncCallerID(source string) string {
 	return ""
 }
 
+// PropertySyncSourceForCallerID returns the sync source that writes under
+// callerID, or "" when callerID is not a sync service.
+func PropertySyncSourceForCallerID(callerID string) string {
+	for _, source := range []string{PropertySyncSourceLDAP, PropertySyncSourceSAML} {
+		if PropertySyncCallerID(source) == callerID {
+			return source
+		}
+	}
+	return ""
+}
+
 // PropertySyncSourceAttr returns the field attr that holds the external
 // attribute name for the given source, or "" for an unknown source.
 func PropertySyncSourceAttr(source string) string {
