@@ -88,7 +88,7 @@ From Mattermost v12.1, **Select** and **Multiselect** attributes keep their type
 - Linking an external source keeps a **Text**, **Phone**, **URL**, **Select**, or **Multiselect** attribute's type. Any other type changes to **Text**. Before v12.1, linking changes every type to **Text**.
 - While the attribute applies to a resource, its type can't change, so you can link an external source only to an attribute whose type is kept.
 - Values synced from an external source apply to **Users** only, and users can't edit them in Mattermost. In the **Users** resource settings, **Managed by** shows the source.
-- When the identity provider stops sending a value for a user, the next synchronization removes it from that user in Mattermost.
+- When the identity provider stops sending a value for a user, the next synchronization removes it from that user in Mattermost. A value Mattermost can't store, such as one over the length limit or one that would need an option past the 500-option limit, removes the user's previous value the same way, so an outdated value can't keep satisfying an access control policy.
 
 </Note>
 

@@ -81,10 +81,13 @@ const (
 	// PropertySyncFieldCleared: the source no longer carries the attribute
 	// and a previously set value was emptied.
 	PropertySyncFieldCleared PropertySyncFieldStatus = "cleared"
-	// PropertySyncFieldSkipped: the source value could not be synced (for
-	// example it exceeds a length limit); the stored value was left as is.
+	// PropertySyncFieldSkipped: the source value could not be stored (for
+	// example it exceeds a length limit or the option cap); the stored value
+	// was cleared, since it is no longer what the source reports.
 	PropertySyncFieldSkipped PropertySyncFieldStatus = "skipped"
-	// PropertySyncFieldError: a write was attempted and failed.
+	// PropertySyncFieldError: the value could not be worked out or written.
+	// When it could not be worked out, the stored value was cleared as for a
+	// skipped one.
 	PropertySyncFieldError PropertySyncFieldStatus = "error"
 )
 
@@ -102,7 +105,8 @@ type PropertySyncFieldOutcome struct {
 	OptionsCreated int `json:"options_created,omitempty"`
 	// DroppedValues lists source values that were not synced because they
 	// exceed a limit or the option cap. For multiselect the remaining values
-	// are still synced; for text and select a dropped value skips the field.
+	// are still synced; for text and select a dropped value skips the field,
+	// which clears its stored value.
 	// They are attribute values, so they are counted rather than logged.
 	DroppedValues []string `json:"dropped_values,omitempty"`
 }
