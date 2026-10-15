@@ -25,6 +25,11 @@ import type {ModalData} from 'types/actions';
 
 import './feature_discovery.scss';
 
+// Compass ButtonProps omits data-* keys that Cypress selectors still rely on.
+type PanelButtonProps = ButtonProps & {
+    'data-testid'?: string;
+};
+
 type Props = {
     featureName: string;
     minimumSKURequiredForFeature: LicenseSkus;
@@ -107,7 +112,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         ),
     });
 
-    renderContactSalesPrimaryAction = (size: ButtonProps['size'] = 'medium'): ButtonProps => ({
+    renderContactSalesPrimaryAction = (size: ButtonProps['size'] = 'medium'): PanelButtonProps => ({
         emphasis: 'primary',
         size,
         'data-testid': 'featureDiscovery_primaryCallToAction',
@@ -122,7 +127,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         ),
     });
 
-    renderStartTrialPrimaryAction = (size: ButtonProps['size'] = 'medium'): ButtonProps => ({
+    renderStartTrialPrimaryAction = (size: ButtonProps['size'] = 'medium'): PanelButtonProps => ({
         emphasis: 'primary',
         size,
         id: 'start_trial_btn',
@@ -268,7 +273,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         const showHostStartTrialActions = !showPostTrialCta && !isCloud;
 
         let panelActions: {
-            primaryAction?: ButtonProps;
+            primaryAction?: PanelButtonProps;
             secondaryAction?: ButtonAsChildProps;
         };
         if (showPostTrialCta) {
