@@ -18569,27 +18569,27 @@
   },
   "call_button.start_call": {
     "defaultMessage": "Start call",
-    "description": ""
+    "description": "Label of the channel header call button (with a phone icon and dropdown arrow) that opens a menu of ways to call the other person; verb phrase."
   },
   "call_options.aria_label": {
     "defaultMessage": "Call options",
-    "description": ""
+    "description": "Screen-reader label for the call button and its dropdown menu, which lists a Mattermost audio call and phone calls to the other person's numbers."
   },
   "call_options.audio": {
     "defaultMessage": "Start an Audio Call",
-    "description": ""
+    "description": "First line of the call options menu item that starts a voice call through the Mattermost Calls plugin; verb phrase."
   },
   "call_options.audio_sub": {
     "defaultMessage": "Mattermost Call",
-    "description": ""
+    "description": "Second, smaller line under 'Start an Audio Call' in the call options menu, naming the call type. 'Mattermost' is the product name and stays untranslated."
   },
   "call_options.phone": {
     "defaultMessage": "Call {label}",
-    "description": ""
+    "description": "First line of a call options menu item that dials one of the other person's phone numbers; {label} is the name of the profile attribute holding that number (e.g. 'Mobile', 'Work phone'), as set by the admin."
   },
   "call_options.phone_sub": {
     "defaultMessage": "{number} • Phone call",
-    "description": ""
+    "description": "Second, smaller line of a phone call menu item; {number} is the phone number that will be dialed, followed by a bullet and the call type."
   },
   "carousel.nextButton": {
     "defaultMessage": "Next",
