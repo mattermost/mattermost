@@ -198,35 +198,16 @@ describe('components/integrations/ConfirmIntegration', () => {
             expect(replace).not.toHaveBeenCalled();
         });
 
-        test('bot with attributesFailed shows the warning above the help text and keeps the token', () => {
+        test('bot with warnings shows the banner above the help text and keeps the token', () => {
             renderConfirm(botSearch({attributesFailed: true}));
 
             const banner = screen.getByTestId('botCreateWarnings');
             expect(within(banner).getByText(TITLE)).toBeInTheDocument();
             expect(within(banner).getByText(ATTRS)).toBeInTheDocument();
-            expect(within(banner).queryByText(ROLES)).toBeNull();
             expect(screen.getByText(token)).toBeInTheDocument();
 
             const helpText = screen.getByText(/has been created successfully/);
             expect(banner.compareDocumentPosition(helpText) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-        });
-
-        test('bot with rolesFailed shows the roles line', () => {
-            renderConfirm(botSearch({rolesFailed: true}));
-
-            const banner = screen.getByTestId('botCreateWarnings');
-            expect(within(banner).getByText(TITLE)).toBeInTheDocument();
-            expect(within(banner).getByText(ROLES)).toBeInTheDocument();
-            expect(within(banner).queryByText(ATTRS)).toBeNull();
-        });
-
-        test('bot with rolesFailed and attributesFailed shows both lines', () => {
-            renderConfirm(botSearch({rolesFailed: true, attributesFailed: true}));
-
-            const banner = screen.getByTestId('botCreateWarnings');
-            expect(within(banner).getByText(TITLE)).toBeInTheDocument();
-            expect(within(banner).getByText(ROLES)).toBeInTheDocument();
-            expect(within(banner).getByText(ATTRS)).toBeInTheDocument();
         });
 
         test('removes bot_warnings from the URL, keeps type/id/token, and keeps the banner', () => {

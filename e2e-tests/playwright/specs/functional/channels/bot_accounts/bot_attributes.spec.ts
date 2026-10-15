@@ -18,6 +18,7 @@ import {
 const suffix = getRandomId();
 const TEXT_NAME = `bot_team_${suffix}`;
 const SELECT_NAME = `bot_tier_${suffix}`;
+const ADMIN_MANAGED_NAME = `bot_clearance_${suffix}`;
 const TEXT_LABEL = `Bot Team ${suffix}`;
 const SELECT_LABEL = `Bot Tier ${suffix}`;
 const GOLD = `Gold ${suffix}`;
@@ -26,6 +27,7 @@ const SILVER = `Silver ${suffix}`;
 let fields: CpaFieldsMap | undefined;
 let textField: UserPropertyField;
 let selectField: UserPropertyField;
+let adminManagedField: UserPropertyField;
 
 function optionId(field: UserPropertyField, name: string): string {
     const option = field.attrs?.options?.find((o) => o.name === name);
@@ -117,15 +119,22 @@ test.describe('Bot account attributes @bot_accounts', () => {
                 ],
                 attrs: {display_name: SELECT_LABEL},
             },
+            {
+                name: ADMIN_MANAGED_NAME,
+                type: 'text',
+                attrs: {display_name: `Bot Clearance ${suffix}`, managed: 'admin'},
+            },
         ]);
 
         // The helper swallows create errors (e.g. the per-group field cap), so assert creation explicitly.
-        expect(fields.ownedIds.size).toBe(2);
+        expect(fields.ownedIds.size).toBe(3);
         textField = fields[getFieldIdByName(fields, TEXT_NAME)];
         selectField = fields[getFieldIdByName(fields, SELECT_NAME)];
+        adminManagedField = fields[getFieldIdByName(fields, ADMIN_MANAGED_NAME)];
         expect(textField.type).toBe('text');
         expect(selectField.type).toBe('select');
         expect(selectField.attrs?.options?.length).toBe(2);
+        expect(adminManagedField.attrs?.managed).toBe('admin');
     });
 
     test.afterAll(async () => {
@@ -233,6 +242,69 @@ test.describe('Bot account attributes @bot_accounts', () => {
             .poll(() => adminClient.getUserCustomProfileAttributesValues(bot.user_id))
             .toMatchObject({[textField.id]: updatedValue, [selectField.id]: optionId(selectField, SILVER)});
     });
+
+    /**
+     * @objective Verify a non-admin bot owner with manage_bots can edit their bot's attributes, but not admin-managed ones.
+     */
+    test(
+        'lets a non-admin bot owner edit attributes except admin-managed ones',
+        {tag: '@bot_accounts'},
+        async ({pw}) => {
+            test.setTimeout(120000);
+            const {user, userClient, adminClient, team} = await pw.initSetup();
+            const initialValue = `Owner initial ${suffix}`;
+            const updatedValue = `Owner updated ${suffix}`;
+
+            // # Grant manage_bots to regular users and give the user a bot seeded with a text value
+            const systemUserRole = await adminClient.getRoleByName('system_user');
+            await adminClient.patchRole(systemUserRole.id, {
+                permissions: [...new Set([...systemUserRole.permissions, 'manage_bots'])],
+            });
+            const bot = await seedBot(adminClient, {[textField.id]: initialValue});
+            await adminClient.assignBot(bot.user_id, user.id);
+
+            // # Log in as the owner and open the bot's edit page
+            const {page} = await pw.testBrowser.login(user);
+            await openBotEdit(page, team.name, bot.username);
+
+            // # Change the existing text value
+            const textInput = page.getByTestId(`bot-attribute-label-${textField.id}`).locator('input');
+            await expect(textInput).toHaveValue(initialValue);
+            await textInput.fill(updatedValue);
+
+            // * The add menu offers the select field but not the admin-managed field or the admin-only manage link
+            await page.getByTestId('botAttributesAddButton').click();
+            await expect(page.getByRole('menu', {name: 'Add attribute'})).toBeVisible();
+            await expect(page.getByTestId(`botAttributesAdd-${selectField.id}`)).toBeVisible();
+            await expect(page.getByTestId(`botAttributesAdd-${adminManagedField.id}`)).toHaveCount(0);
+            await expect(page.getByTestId('botAttributesManage')).toHaveCount(0);
+
+            // # Add the select attribute, pick an option, and save
+            await page.getByTestId(`botAttributesAdd-${selectField.id}`).click();
+            await page
+                .getByTestId(`bot-attribute-label-${selectField.id}`)
+                .locator('select')
+                .selectOption({label: GOLD});
+            await saveBotEdit(page, team.name);
+
+            // * The owner's changes were saved and the admin-managed field was left unset
+            await expect
+                .poll(async () => {
+                    const values = await adminClient.getUserCustomProfileAttributesValues(bot.user_id);
+                    return {
+                        text: values[textField.id],
+                        select: values[selectField.id],
+                        adminManaged: values[adminManagedField.id] ?? '',
+                    };
+                })
+                .toEqual({text: updatedValue, select: optionId(selectField, GOLD), adminManaged: ''});
+
+            // * The server rejects the owner writing the admin-managed field directly
+            await expect(
+                userClient.updateUserCustomProfileAttributesValues(bot.user_id, {[adminManagedField.id]: 'Top secret'}),
+            ).rejects.toMatchObject({status_code: 403});
+        },
+    );
 
     /**
      * @objective Verify removing an attribute row from a bot clears that value and leaves the others intact.

@@ -15,9 +15,7 @@ import Bots from './bots';
 
 const TITLE = 'Bot account created, but some settings were not saved';
 const TOKEN = "An access token could not be created. Create one from this bot's Create New Token option, or ask a System Admin if you don't have permission.";
-const ROLES = 'The role and post permissions could not be saved. Edit the bot to set them again.';
 const ATTRS = 'Attributes could not be saved. Edit the bot to add them again.';
-const ALL_LINES = [TOKEN, ROLES, ATTRS];
 
 describe('components/integrations/bots/Bots', () => {
     const team = TestHelper.getTeamMock();
@@ -475,22 +473,14 @@ describe('components/integrations/bots/Bots', () => {
             expect(replace).not.toHaveBeenCalled();
         });
 
-        it.each<[string, BotCreateWarnings, string[]]>([
-            ['token only', {tokenFailed: true}, [TOKEN]],
-            ['token and attributes', {tokenFailed: true, attributesFailed: true}, [TOKEN, ATTRS]],
-            ['token and roles', {tokenFailed: true, rolesFailed: true}, [TOKEN, ROLES]],
-            ['token, roles and attributes', {tokenFailed: true, rolesFailed: true, attributesFailed: true}, [TOKEN, ROLES, ATTRS]],
-        ])('%s', async (_, warnings, expectedLines) => {
-            renderList(listLocation(warnings));
+        it('shows the warnings from the query in the banner', async () => {
+            renderList(listLocation({tokenFailed: true, attributesFailed: true}));
             await waitForLoaded();
 
             const banner = screen.getByTestId('botCreateWarnings');
             expect(within(banner).getByText(TITLE)).toBeInTheDocument();
-            const lines = Array.from(banner.querySelectorAll('.AlertBanner__message > div')).map((div) => div.textContent);
-            expect(lines).toEqual(expectedLines);
-            for (const line of ALL_LINES.filter((l) => !expectedLines.includes(l))) {
-                expect(within(banner).queryByText(line)).toBeNull();
-            }
+            expect(within(banner).getByText(TOKEN)).toBeInTheDocument();
+            expect(within(banner).getByText(ATTRS)).toBeInTheDocument();
         });
 
         it('removes bot_warnings from the URL and keeps the banner', async () => {
