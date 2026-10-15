@@ -296,7 +296,6 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                     // FeatureDiscoveryPanel types secondaryAction as ButtonProps; asChild is supported at runtime in compass-ui ≥0.1.0-alpha.15
                     secondaryAction={panelActions.secondaryAction as ButtonProps | undefined}
                     illustration={{
-                        className: 'FeatureDiscovery_imageWrapper',
                         'aria-label': '',
                         children: featureDiscoveryImage,
                     }}
