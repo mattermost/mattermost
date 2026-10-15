@@ -230,7 +230,7 @@ export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
                 <div className='more-modal__actions'>
                     <button
                         className='more-modal__actions--round'
-                        aria-label={this.props.intl.formatMessage({id: 'navbar_dropdown.addGroupsToTeam', defaultMessage: 'Add Groups to Team'})}
+                        aria-label={this.props.intl.formatMessage({id: 'accessibility.add_groups_to_team', defaultMessage: 'Add groups to team'})}
                     >
                         <i className='icon icon-plus'/>
                     </button>

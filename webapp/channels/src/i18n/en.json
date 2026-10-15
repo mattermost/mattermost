@@ -119,6 +119,10 @@
     "defaultMessage": "Add groups to channel",
     "description": "Accessible aria-label in add_groups_to_channel_modal/add_groups_to_channel_modal.tsx. Keep the label concise; it describes the control or content."
   },
+  "accessibility.add_groups_to_team": {
+    "defaultMessage": "Add groups to team",
+    "description": "Screen-reader label for the round + button on each group row in the Add Groups to Team modal; adds that group to the selection."
+  },
   "accessibility.add_user_to_invite": {
     "defaultMessage": "Add user to invite",
     "description": "Accessible label for adding a user to the invitation."
@@ -186,6 +190,10 @@
   "accessibility.button.strike": {
     "defaultMessage": "strike through",
     "description": "Accessibility label for the strikethrough formatting button in the message toolbar; lowercase by design."
+  },
+  "accessibility.emoji_icon": {
+    "defaultMessage": "Emoji icon",
+    "description": "Screen-reader label for the smiley-face emoji icon shown on emoji picker, add-reaction and custom status buttons."
   },
   "accessibility.mobile_menu": {
     "defaultMessage": "Mobile menu",
