@@ -100,6 +100,12 @@
             font-weight: 600;
         }
 
+        .FilterList_items {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
         .filterListSelect {
             &__control {
                 min-height: 32px;
