@@ -2001,6 +2001,11 @@
     "description": "Autocomplete argument hint for the /secure-connection slash command; [action] is a placeholder for a subcommand name; keep the brackets."
   },
   {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` is not a valid `{{.Arg}}`",
+    "description": "Ephemeral error for the /secure-connection slash command when an ID argument is malformed; {{.Value}} is the text the user entered and {{.Arg}} is the argument name, both shown in backticks."
+  },
+  {
     "id": "api.command_remote.invitation.help",
     "translation": "Invitation from secure connection",
     "description": "Autocomplete help for the invitation argument of the /secure-connection accept subcommand; the invitation is an encrypted string received from another Mattermost instance."
