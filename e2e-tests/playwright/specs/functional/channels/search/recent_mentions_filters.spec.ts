@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import {expect, test, type PlaywrightExtended} from '@mattermost/playwright-lib';
 
 /**
@@ -232,4 +234,318 @@ test('popping out a filtered mentions panel keeps the filters', {tag: '@search'}
     await expect(popoutPage.locator('#searchContainer').getByText(townSquareMention)).toHaveCount(0);
 
     await popoutPage.close();
+});
+
+/**
+ * Creates a user on two teams with a mention in a channel on each, plus one in the first team's
+ * town-square, so a filter that spans teams has something to pick from either side.
+ */
+async function setupMentionsOnTwoTeams(pw: PlaywrightExtended) {
+    const {adminClient, team, user} = await pw.initSetup();
+    const [mentioningUser] = await adminClient.createUsers(team.id, 1, 'mentioner');
+
+    const secondTeam = await adminClient.createTeam(await pw.random.team('team', 'Team', 'O', true));
+    await adminClient.addUsersToTeam(secondTeam.id, [user.id, mentioningUser.id]);
+
+    const firstTeamChannel = await adminClient.createPublicChannel(team.id, 'First Team Mentions');
+    const secondTeamChannel = await adminClient.createPublicChannel(secondTeam.id, 'Second Team Mentions');
+    for (const channel of [firstTeamChannel, secondTeamChannel]) {
+        await adminClient.addToChannel(user.id, channel.id);
+        await adminClient.addToChannel(mentioningUser.id, channel.id);
+    }
+
+    const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const townSquareMention = `@${user.username} townsquare${pw.random.id()}`;
+    const firstTeamMention = `@${user.username} firstteam${pw.random.id()}`;
+    const secondTeamMention = `@${user.username} secondteam${pw.random.id()}`;
+
+    for (const [channelId, message] of [
+        [townSquare.id, townSquareMention],
+        [firstTeamChannel.id, firstTeamMention],
+        [secondTeamChannel.id, secondTeamMention],
+    ] as const) {
+        await adminClient.createPost({channel_id: channelId, user_id: mentioningUser.id, message});
+    }
+
+    return {
+        team,
+        secondTeam,
+        user,
+        firstTeamChannel,
+        secondTeamChannel,
+        townSquareMention,
+        firstTeamMention,
+        secondTeamMention,
+    };
+}
+
+/** Opens Recent Mentions on a freshly logged in page. */
+async function openRecentMentions(pw: PlaywrightExtended, user: UserProfile, teamName: string) {
+    const {channelsPage, page} = await pw.testBrowser.login(user);
+    await channelsPage.goto(teamName);
+    await channelsPage.toBeVisible();
+    await page.getByRole('button', {name: 'Recent mentions'}).click();
+    await channelsPage.searchResultsPanel.toBeVisible();
+
+    return {channelsPage, page};
+}
+
+/**
+ * @objective Verify the date filter narrows recent mentions by when they arrived, separating Today
+ * from the wider Last 7 days.
+ */
+test('the date filter narrows mentions by when they arrived', {tag: '@search'}, async ({pw}) => {
+    const {adminClient, team, user} = await pw.initSetup();
+    const [mentioningUser] = await adminClient.createUsers(team.id, 1, 'mentioner');
+    const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const day = 24 * 60 * 60 * 1000;
+    const todayMention = `@${user.username} today${pw.random.id()}`;
+    const threeDaysMention = `@${user.username} threedays${pw.random.id()}`;
+    const tenDaysMention = `@${user.username} tendays${pw.random.id()}`;
+
+    // # Backdate two of the mentions. Only an admin session may set create_at on a post.
+    for (const [message, createAt] of [
+        [todayMention, 0],
+        [threeDaysMention, Date.now() - 3 * day],
+        [tenDaysMention, Date.now() - 10 * day],
+    ] as const) {
+        await adminClient.createPost({
+            channel_id: townSquare.id,
+            user_id: mentioningUser.id,
+            message,
+            ...(createAt ? {create_at: createAt} : {}),
+        });
+    }
+
+    const {channelsPage, page} = await openRecentMentions(pw, user, team.name);
+
+    // * Verify all three are listed before any filter is applied
+    await expect(channelsPage.searchResultsPanel.getResultByText(todayMention)).toHaveCount(1);
+    await expect(channelsPage.searchResultsPanel.getResultByText(threeDaysMention)).toHaveCount(1);
+    await expect(channelsPage.searchResultsPanel.getResultByText(tenDaysMention)).toHaveCount(1);
+
+    // # Narrow to today
+    await page.locator('#mentionFiltersButton').click();
+    await page.locator('label.MentionFilters__choice', {hasText: 'Today'}).click();
+    await page.getByRole('button', {name: 'Done'}).click();
+
+    // * Verify only today's mention survives, with a chip naming the range
+    await expect(page.getByTestId('mentionFilterChips')).toContainText('Today');
+    await expect(channelsPage.searchResultsPanel.getResultByText(todayMention)).toHaveCount(1);
+    await expect(channelsPage.searchResultsPanel.getResultByText(threeDaysMention)).toHaveCount(0);
+    await expect(channelsPage.searchResultsPanel.getResultByText(tenDaysMention)).toHaveCount(0);
+
+    // # Widen to the last 7 days
+    await page.locator('#mentionFiltersButton').click();
+    await page.locator('label.MentionFilters__choice', {hasText: 'Last 7 days'}).click();
+    await page.getByRole('button', {name: 'Done'}).click();
+
+    // * Verify the range now reaches the three day old mention but still not the ten day old one
+    await expect(page.getByTestId('mentionFilterChips')).toContainText('Last 7 days');
+    await expect(channelsPage.searchResultsPanel.getResultByText(todayMention)).toHaveCount(1);
+    await expect(channelsPage.searchResultsPanel.getResultByText(threeDaysMention)).toHaveCount(1);
+    await expect(channelsPage.searchResultsPanel.getResultByText(tenDaysMention)).toHaveCount(0);
+});
+
+/**
+ * @objective Verify removing the team chip takes the channel chips with it, since those channels
+ * were picked from the team being dropped.
+ */
+test('removing the team chip clears the channel chips', {tag: '@search'}, async ({pw}) => {
+    const {team, secondTeam, user, secondTeamChannel, townSquareMention, secondTeamMention} =
+        await setupMentionsOnTwoTeams(pw);
+
+    const {channelsPage, page} = await openRecentMentions(pw, user, team.name);
+
+    // # Filter down to a channel on the second team
+    await page.locator('#mentionFiltersButton').click();
+    await page.locator('#mentionFiltersTeamSelector').click();
+    await page.getByRole('menuitemradio', {name: secondTeam.display_name}).click();
+    await page.locator('#mentionFiltersChannelSelector').click();
+    await page
+        .locator('.MentionFilters__channelPicker label', {hasText: secondTeamChannel.display_name})
+        .first()
+        .click();
+    await page.getByRole('button', {name: 'Done'}).click();
+
+    // * Verify both a team chip and a channel chip are showing
+    await expect(page.getByTestId('mentionFilterChips').locator('.MentionFilterChip')).toHaveCount(2);
+
+    // # Remove the team chip alone
+    await page.getByRole('button', {name: `Remove ${secondTeam.display_name} filter`}).click();
+
+    // * Verify the channel chip went with it and the results widened back out
+    await expect(page.getByTestId('mentionFilterChips')).toHaveCount(0);
+    await expect(channelsPage.searchResultsPanel.getResultByText(townSquareMention)).toHaveCount(1);
+    await expect(channelsPage.searchResultsPanel.getResultByText(secondTeamMention)).toHaveCount(1);
+});
+
+/**
+ * @objective Verify channels from two different teams can be filtered on together while the search
+ * spans every team, which is the case channel names alone cannot express.
+ */
+test('filters by channels from two teams at once', {tag: '@search'}, async ({pw}) => {
+    const {team, user, firstTeamChannel, secondTeamChannel, townSquareMention, firstTeamMention, secondTeamMention} =
+        await setupMentionsOnTwoTeams(pw);
+
+    const {channelsPage, page} = await openRecentMentions(pw, user, team.name);
+
+    // # With the team left on all teams, pick one channel from each team
+    await page.locator('#mentionFiltersButton').click();
+    await page.locator('#mentionFiltersChannelSelector').click();
+    for (const channel of [firstTeamChannel, secondTeamChannel]) {
+        await page.locator('.MentionFilters__channelPicker label', {hasText: channel.display_name}).first().click();
+    }
+    await page.getByRole('button', {name: 'Done'}).click();
+
+    // * Verify a chip per channel, each naming its team since the names span teams
+    await expect(page.getByTestId('mentionFilterChips').locator('.MentionFilterChip')).toHaveCount(2);
+
+    // * Verify both channels' mentions are kept and the unselected channel's is dropped
+    await expect(channelsPage.searchResultsPanel.getResultByText(firstTeamMention)).toHaveCount(1);
+    await expect(channelsPage.searchResultsPanel.getResultByText(secondTeamMention)).toHaveCount(1);
+    await expect(channelsPage.searchResultsPanel.getResultByText(townSquareMention)).toHaveCount(0);
+});
+
+/**
+ * @objective Verify the count on the Filters button matches the chips being shown, and that Reset
+ * clears every one of them.
+ */
+test('the filter count matches the chips, and Reset clears them', {tag: '@search'}, async ({pw}) => {
+    const {team, secondTeam, user, secondTeamChannel, townSquareMention} = await setupMentionsOnTwoTeams(pw);
+
+    const {channelsPage, page} = await openRecentMentions(pw, user, team.name);
+
+    // # Apply one filter of every kind: team, channel, mention type and date
+    await page.locator('#mentionFiltersButton').click();
+    await page.locator('#mentionFiltersTeamSelector').click();
+    await page.getByRole('menuitemradio', {name: secondTeam.display_name}).click();
+    await page.locator('#mentionFiltersChannelSelector').click();
+    await page
+        .locator('.MentionFilters__channelPicker label', {hasText: secondTeamChannel.display_name})
+        .first()
+        .click();
+    await page.locator('label.MentionFilters__choice', {hasText: 'Directly mentioning you'}).click();
+    await page.locator('label.MentionFilters__choice', {hasText: 'Last 7 days'}).click();
+    await page.getByRole('button', {name: 'Done'}).click();
+
+    // * Verify the button counts exactly what the chip row shows
+    await expect(page.locator('#mentionFiltersButton')).toHaveText('Filters (4)');
+    await expect(page.getByTestId('mentionFilterChips').locator('.MentionFilterChip')).toHaveCount(4);
+
+    // # Reset the popover and apply it
+    await page.locator('#mentionFiltersButton').click();
+    await page.getByRole('button', {name: 'Reset'}).click();
+    await page.getByRole('button', {name: 'Done'}).click();
+
+    // * Verify nothing is counted, no chips are left and every mention is back
+    await expect(page.locator('#mentionFiltersButton')).toHaveText('Filters');
+    await expect(page.getByTestId('mentionFilterChips')).toHaveCount(0);
+    await expect(channelsPage.searchResultsPanel.getResultByText(townSquareMention)).toHaveCount(1);
+});
+
+/**
+ * @objective Verify the two controls that open Recent Mentions widen a filtered panel back out to
+ * all mentions rather than closing it, so neither is a dead end once a filter is applied.
+ */
+test('the mentions button and its shortcut return to all mentions', {tag: '@search'}, async ({pw}) => {
+    const {team, user, otherChannel, townSquareMention, otherChannelMention} = await setupMentionsInTwoChannels(pw);
+
+    const {channelsPage, page} = await openRecentMentions(pw, user, team.name);
+
+    const applyChannelFilter = async () => {
+        await page.locator('#mentionFiltersButton').click();
+        await page.locator('#mentionFiltersChannelSelector').click();
+        await page
+            .locator('.MentionFilters__channelPicker label', {hasText: otherChannel.display_name})
+            .first()
+            .click();
+        await page.getByRole('button', {name: 'Done'}).click();
+        await expect(channelsPage.searchResultsPanel.getResultByText(townSquareMention)).toHaveCount(0);
+    };
+
+    // # Filter to one channel, then press the Recent mentions button again
+    await applyChannelFilter();
+    await page.getByRole('button', {name: 'Recent mentions'}).click();
+
+    // * Verify the panel stayed open and widened back out instead of closing
+    await channelsPage.searchResultsPanel.toBeVisible();
+    await expect(page.getByTestId('mentionFilterChips')).toHaveCount(0);
+    await expect(channelsPage.searchResultsPanel.getResultByText(townSquareMention)).toHaveCount(1);
+    await expect(channelsPage.searchResultsPanel.getResultByText(otherChannelMention)).toHaveCount(1);
+
+    // # Filter again, then use the keyboard shortcut for the same button
+    await applyChannelFilter();
+    await page.keyboard.press('ControlOrMeta+Shift+M');
+
+    // * Verify the shortcut widened the panel out rather than closing it
+    await channelsPage.searchResultsPanel.toBeVisible();
+    await expect(page.getByTestId('mentionFilterChips')).toHaveCount(0);
+    await expect(channelsPage.searchResultsPanel.getResultByText(townSquareMention)).toHaveCount(1);
+
+    // * Verify the shortcut still closes the panel once nothing is filtered
+    await page.keyboard.press('ControlOrMeta+Shift+M');
+    await expect(channelsPage.searchResultsPanel.container).not.toBeVisible();
+});
+
+/**
+ * @objective Verify popping out an unfiltered mentions panel keeps it unfiltered and spanning every
+ * team. The popout only knows its URL, and being handed the current team would quietly narrow it.
+ */
+test('popping out an unfiltered mentions panel keeps every team', {tag: '@search'}, async ({pw}) => {
+    const {team, user, townSquareMention, secondTeamMention} = await setupMentionsOnTwoTeams(pw);
+
+    const {channelsPage, page} = await openRecentMentions(pw, user, team.name);
+
+    // * Verify the panel spans both teams before it is popped out
+    await expect(channelsPage.searchResultsPanel.getResultByText(townSquareMention)).toHaveCount(1);
+    await expect(channelsPage.searchResultsPanel.getResultByText(secondTeamMention)).toHaveCount(1);
+
+    // # Pop the panel out into its own window
+    const popoutButton = page.locator('#searchContainer .PopoutButton');
+    const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);
+    await popoutPage.waitForLoadState('domcontentloaded');
+
+    // * Verify no filter travelled, since none was applied
+    expect(popoutPage.url()).toContain('mode=mention');
+    expect(popoutPage.url()).not.toContain('mentionChannels=');
+
+    // * Verify the popped out window still spans both teams rather than the one it was opened from
+    await expect(popoutPage.locator('#searchContainer').getByText(townSquareMention)).toBeVisible({timeout: 10000});
+    await expect(popoutPage.locator('#searchContainer').getByText(secondTeamMention)).toBeVisible({timeout: 10000});
+    await expect(popoutPage.getByTestId('mentionFilterChips')).toHaveCount(0);
+
+    await popoutPage.close();
+});
+
+/**
+ * @objective Verify a notification keyword shaped like a search modifier still finds its mentions.
+ * Unquoted, `on:call` is read as a date filter rather than a word to match, which filters every
+ * result away.
+ */
+test('a keyword shaped like a search modifier still finds mentions', {tag: '@search'}, async ({pw}) => {
+    const {adminClient, team, user} = await pw.initSetup();
+    const [mentioningUser] = await adminClient.createUsers(team.id, 1, 'mentioner');
+    const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
+
+    // # Give the user a keyword that reads as a modifier
+    await adminClient.patchUser({id: user.id, notify_props: {...user.notify_props, mention_keys: 'on:call'}});
+
+    const keywordMention = `on:call rotation starts ${pw.random.id()}`;
+    await adminClient.createPost({channel_id: townSquare.id, user_id: mentioningUser.id, message: keywordMention});
+
+    const {channelsPage, page} = await openRecentMentions(pw, user, team.name);
+
+    // * Verify the keyword mention is found rather than filtered away as a date
+    await expect(channelsPage.searchResultsPanel.getResultByText(keywordMention)).toHaveCount(1);
+
+    // # Keep only keyword mentions, so the query is the keyword alone with nothing else to carry it
+    await page.locator('#mentionFiltersButton').click();
+    await page.locator('label.MentionFilters__choice', {hasText: 'Keywords triggering mentions'}).click();
+    await page.getByRole('button', {name: 'Done'}).click();
+
+    // * Verify it survives on its own
+    await expect(channelsPage.searchResultsPanel.getResultByText(keywordMention)).toHaveCount(1);
 });

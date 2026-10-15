@@ -3080,10 +3080,24 @@ func TestSearchPostsForUser(t *testing.T) {
 		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.SystemAdminUser.Id, notAMemberChannel)
 		require.Nil(t, appErr)
 
-		search := func(terms, teamID string) []string {
-			results, _, err := th.App.SearchPostsForUser(th.Context, terms, th.BasicUser.Id, teamID, false, false, 0, 0, 20)
+		// The only other channel on the basic team the user can see, so an exclusion of the basic
+		// channel has something left to return rather than nothing.
+		siblingChannel := th.CreateChannel(t, th.BasicTeam)
+		siblingPost := th.CreateMessagePost(t, siblingChannel, searchTerm)
+
+		archivedChannel := th.CreateChannel(t, th.BasicTeam)
+		archivedPost := th.CreateMessagePost(t, archivedChannel, searchTerm)
+		appErr = th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		searchWith := func(terms, teamID string, includeDeletedChannels bool) []string {
+			results, _, err := th.App.SearchPostsForUser(th.Context, terms, th.BasicUser.Id, teamID, false, includeDeletedChannels, 0, 0, 20)
 			require.Nil(t, err)
 			return results.Order
+		}
+
+		search := func(terms, teamID string) []string {
+			return searchWith(terms, teamID, false)
 		}
 
 		t.Run("returns the posts of a channel the user belongs to", func(t *testing.T) {
@@ -3109,6 +3123,24 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		t.Run("still resolves a channel name, which wins over being read as an id", func(t *testing.T) {
 			assert.Len(t, search(searchTerm+" in:"+th.BasicChannel.Name, th.BasicTeam.Id), len(posts))
+		})
+
+		t.Run("returns nothing for a channel on another team when the search is scoped to one", func(t *testing.T) {
+			// The team filter still applies: an id reaches across teams only because an unscoped
+			// search has no team filter to begin with.
+			assert.Empty(t, search(searchTerm+" in:"+otherTeamChannel.Id, th.BasicTeam.Id))
+		})
+
+		t.Run("excludes a channel given by id", func(t *testing.T) {
+			// -in: takes the same passthrough as in:, on its own line of the conversion.
+			assert.Equal(t, []string{siblingPost.Id}, search(searchTerm+" -in:"+th.BasicChannel.Id, th.BasicTeam.Id))
+		})
+
+		t.Run("an archived channel id still answers to include_deleted_channels", func(t *testing.T) {
+			// An id skips the name lookup the flag gates, so the flag reaches it only through the
+			// store's own filter on archived channels. Both halves have to hold for that to be true.
+			assert.Empty(t, searchWith(searchTerm+" in:"+archivedChannel.Id, th.BasicTeam.Id, false))
+			assert.Equal(t, []string{archivedPost.Id}, searchWith(searchTerm+" in:"+archivedChannel.Id, th.BasicTeam.Id, true))
 		})
 	})
 

@@ -7,6 +7,7 @@ import {closeRightHandSide, showMentions} from 'actions/views/rhs';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {RHSStates} from 'utils/constants';
+import {defaultMentionFilters} from 'utils/mention_search';
 
 import type {GlobalState} from 'types/store';
 
@@ -57,6 +58,7 @@ describe('components/global/AtMentionsButton', () => {
                         isSidebarOpen: true,
                         rhsState: RHSStates.MENTION,
                         searchTeam: null,
+                        mentionFilters: defaultMentionFilters,
                     },
                 },
             } as unknown as GlobalState,
@@ -76,6 +78,29 @@ describe('components/global/AtMentionsButton', () => {
                         isSidebarOpen: true,
                         rhsState: RHSStates.MENTION,
                         searchTeam: 'team_id',
+                        mentionFilters: defaultMentionFilters,
+                    },
+                },
+            } as unknown as GlobalState,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Recent mentions'}));
+        expect(showMentions).toHaveBeenCalledTimes(1);
+        expect(closeRightHandSide).not.toHaveBeenCalled();
+    });
+
+    test('should reopen all mentions when the mentions view is filtered but not scoped to a team', async () => {
+        // A channel, type or date filter narrows the view just as a team does, without setting
+        // searchTeam. Closing on it would leave no way back to all mentions from this button.
+        renderWithContext(
+            <AtMentionsButton/>,
+            {
+                views: {
+                    rhs: {
+                        isSidebarOpen: true,
+                        rhsState: RHSStates.MENTION,
+                        searchTeam: null,
+                        mentionFilters: {...defaultMentionFilters, channelIds: ['channel_id']},
                     },
                 },
             } as unknown as GlobalState,
