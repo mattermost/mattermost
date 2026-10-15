@@ -280,9 +280,7 @@ export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
         descriptionId = channelModerationPermissionMessages.descriptionMembers?.id ?? '';
         descriptionDefaultMessage = channelModerationPermissionMessages?.descriptionMembers?.defaultMessage ?? '';
     }
-    const permissionTitle = channelModerationPermissionMessages?.title
-        ? formatMessage(channelModerationPermissionMessages.title)
-        : props.name;
+    const permissionTitle = channelModerationPermissionMessages?.title ? formatMessage(channelModerationPermissionMessages.title) : props.name;
     return (
         <tr>
             <td>
@@ -475,9 +473,7 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                 id='channel_moderation'
                 title={channelModerationHeaderMessages.titleMessage}
                 subtitle={
-                    guestAccountsEnabled ?
-                        channelModerationHeaderMessages.subtitleMessageForMembersAndGuests :
-                        channelModerationHeaderMessages.subtitleMessageForMembers
+                    guestAccountsEnabled ? channelModerationHeaderMessages.subtitleMessageForMembersAndGuests : channelModerationHeaderMessages.subtitleMessageForMembers
                 }
             >
                 <div className='channel-moderation'>
