@@ -49,7 +49,7 @@ const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideAre
         badge = (
             <FormattedMessage
                 id='admin.health_dashboard.finding.unknown_badge'
-                defaultMessage='Unknown ({severity} when firing)'
+                defaultMessage='Unknown ({severity} if firing)'
                 values={{severity}}
             />
         );
