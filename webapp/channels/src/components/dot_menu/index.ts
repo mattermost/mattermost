@@ -23,7 +23,7 @@ import {
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
+import {isPostPendingOrFailed, isSystemMessage} from 'mattermost-redux/utils/post_utils';
 
 import {burnPostNow} from 'actions/burn_on_read_deletion';
 import {
@@ -116,7 +116,7 @@ function makeMapStateToProps() {
             postEditTimeLimit: config.PostEditTimeLimit,
             isLicensed: license.IsLicensed === 'true',
             teamId: getCurrentTeamId(state),
-            canEdit: PostUtils.canEditPost(state, post, license, config, channel, userId),
+            canEdit: PostUtils.canEditPost(state, post, license, config, channel, userId) && !isPostPendingOrFailed(post),
             canDelete: PostUtils.canDeletePost(state, post, channel),
             teamUrl,
             userId,

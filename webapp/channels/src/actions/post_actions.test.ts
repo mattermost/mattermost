@@ -388,6 +388,31 @@ describe('Actions.Posts', () => {
         expect(withPendingPostData).toEqual(false);
         expect(testStore.getActions()).toEqual([]);
 
+        // should resolve a stale optimistic id to the confirmed server post after create
+        const pendingId = 'current_user_id:1710000000000';
+        const confirmedPost = {
+            ...latestPost,
+            id: 'server_post_id',
+            pending_post_id: pendingId,
+            file_ids: undefined,
+        } as Post;
+        const afterCreateState = JSON.parse(JSON.stringify(state)) as GlobalState;
+        delete afterCreateState.entities.posts.posts[latestPost.id];
+        afterCreateState.entities.posts.posts[confirmedPost.id] = confirmedPost;
+
+        testStore = mockStore(afterCreateState);
+        const {data: resolvedData} = await testStore.dispatch(Actions.setEditingPost(pendingId, 'test'));
+        expect(resolvedData).toEqual(true);
+        expect(testStore.getActions()[0].payload[0]).toEqual(
+            {data: {isRHS: false, postId: 'server_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
+        );
+
+        // missing post id should no-op without throwing
+        testStore = mockStore(afterCreateState);
+        const {data: missingData} = await testStore.dispatch(Actions.setEditingPost('missing_post_id', 'test'));
+        expect(missingData).toEqual(false);
+        expect(testStore.getActions()).toEqual([]);
+
         // should not save draft when it already exists
         const stateWithDraft = {
             ...state,

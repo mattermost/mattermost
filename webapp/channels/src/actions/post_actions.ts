@@ -21,7 +21,7 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
+import {canEditPost, comparePosts, isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
 import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
 import {setGlobalItem} from 'actions/storage';
@@ -322,22 +322,36 @@ export function unpinPost(postId: string): ActionFuncAsync<boolean> {
     };
 }
 
+// After send, the UI may still hold the optimistic client id while the store has the server post.
+export function resolvePostForEditing(state: GlobalState, postId: string): Post | undefined {
+    const posts = PostSelectors.getAllPosts(state);
+    const direct = posts[postId];
+
+    if (direct && !isPostPendingOrFailed(direct)) {
+        return direct;
+    }
+
+    return Object.values(posts).find(
+        (candidate) => candidate.pending_post_id === postId && !isPostPendingOrFailed(candidate),
+    );
+}
+
 export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFunc<boolean, GlobalState> {
     const getFilesForPost = makeGetFilesForPost();
 
     return (dispatch, getState) => {
         const state = getState();
-        let post = PostSelectors.getPost(state, postId);
+        let post = resolvePostForEditing(state, postId);
+
+        if (!post) {
+            return {data: false};
+        }
 
         // getPost selectors doesn't include post's file metadata, so we need to add it manually
         if (post.file_ids?.length) {
             // if the post has files, get their metadata and  insert it into the post object
-            const files = getFilesForPost(state, postId);
+            const files = getFilesForPost(state, post.id);
             post = {...post, metadata: {...post.metadata, files}};
-        }
-
-        if (!post || post.pending_post_id === postId) {
-            return {data: false};
         }
 
         const config = state.entities.general.config;
@@ -352,11 +366,12 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
             return {data: false};
         }
 
-        const storageKey = `${StoragePrefixes.EDIT_DRAFT}${post.id}`;
+        const resolvedPostId = post.id;
+        const storageKey = `${StoragePrefixes.EDIT_DRAFT}${resolvedPostId}`;
 
         const actions: AnyAction[] = [{
             type: ActionTypes.TOGGLE_EDITING_POST,
-            data: {postId, refocusId, isRHS, show: true},
+            data: {postId: resolvedPostId, refocusId, isRHS, show: true},
         }];
 
         // We need to see if post's draft is already in store, if it is, we don't need to set it again
