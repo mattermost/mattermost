@@ -422,3 +422,122 @@ func TestGetAdvancedLogs(t *testing.T) {
 		require.Equal(t, []byte("valid log data"), fileDatas[0].Body)
 	})
 }
+
+// newLogPathTestService builds a minimal PlatformService backed by an in-memory config store,
+// with its log root pinned to root so the test does not depend on MM_LOG_PATH.
+func newLogPathTestService(t *testing.T, root string, mutate func(*model.Config)) *PlatformService {
+	t.Helper()
+
+	configStore := config.NewTestMemoryStore()
+	// feature flag writes are dropped by the store unless read-only FF mode is disabled
+	configStore.SetReadOnlyFF(false)
+
+	cfg := configStore.Get().Clone()
+	mutate(cfg)
+	_, _, err := configStore.Set(cfg)
+	require.NoError(t, err)
+
+	ps := &PlatformService{configStore: configStore}
+	ps.SetLogRootPathOverride(root)
+
+	return ps
+}
+
+func TestInitLoggingLogPathEnforcement(t *testing.T) {
+	// root and outside are siblings so neither is a path prefix of the other
+	base := t.TempDir()
+	root := path.Join(base, "logs")
+	require.NoError(t, os.MkdirAll(root, 0700))
+	outside := path.Join(base, "evil")
+	require.NoError(t, os.MkdirAll(outside, 0700))
+
+	outsideFile := path.Join(outside, "out.log")
+
+	withOutOfRootTarget := func(enforce bool) func(*model.Config) {
+		return func(cfg *model.Config) {
+			*cfg.LogSettings.EnableFile = false
+			*cfg.LogSettings.EnableConsole = false
+			cfg.LogSettings.AdvancedLoggingJSON = json.RawMessage(`{"evil": {"type": "file", "format": "json", "levels": [{"id": 2, "name": "error"}], "options": {"filename": "` + outsideFile + `"}}}`)
+			cfg.FeatureFlags.EnforceLogPathRoot = enforce
+		}
+	}
+
+	t.Run("flag on aborts with an error and never opens the target", func(t *testing.T) {
+		require.NoError(t, os.RemoveAll(outsideFile))
+
+		ps := newLogPathTestService(t, root, withOutOfRootTarget(true))
+		require.True(t, config.IsLogPathEnforcementEnabled(ps.Config()), "feature flag should have been persisted")
+
+		err := ps.initLogging()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "outside logging root")
+		assert.Contains(t, err.Error(), outsideFile)
+
+		_, statErr := os.Stat(outsideFile)
+		assert.True(t, os.IsNotExist(statErr), "the out-of-root target must not be created")
+	})
+
+	t.Run("flag on leaves previously configured targets untouched", func(t *testing.T) {
+		inRootFile := path.Join(root, "good.log")
+		require.NoError(t, os.RemoveAll(inRootFile))
+
+		ps := newLogPathTestService(t, root, func(cfg *model.Config) {
+			*cfg.LogSettings.EnableFile = false
+			*cfg.LogSettings.EnableConsole = false
+			cfg.LogSettings.AdvancedLoggingJSON = json.RawMessage(`{"good": {"type": "file", "format": "json", "levels": [{"id": 2, "name": "error"}], "options": {"filename": "` + inRootFile + `"}}}`)
+			cfg.FeatureFlags.EnforceLogPathRoot = true
+		})
+		require.NoError(t, ps.initLogging())
+
+		// now swap in an out-of-root target and reconfigure, as a config reload would
+		cfg := ps.Config().Clone()
+		withOutOfRootTarget(true)(cfg)
+		_, _, err := ps.configStore.Set(cfg)
+		require.NoError(t, err)
+
+		require.Error(t, ps.ReconfigureLogger())
+
+		ps.logger.Error("still writing to the original target")
+		ps.logger.Flush()
+
+		contents, readErr := os.ReadFile(inRootFile)
+		require.NoError(t, readErr, "the original in-root target should still be configured")
+		assert.Contains(t, string(contents), "still writing to the original target")
+
+		_, statErr := os.Stat(outsideFile)
+		assert.True(t, os.IsNotExist(statErr), "the out-of-root target must not be created")
+	})
+
+	t.Run("flag off only warns", func(t *testing.T) {
+		ps := newLogPathTestService(t, root, withOutOfRootTarget(false))
+		require.False(t, config.IsLogPathEnforcementEnabled(ps.Config()))
+
+		assert.NoError(t, ps.initLogging())
+	})
+
+	t.Run("flag on with all paths inside the root succeeds", func(t *testing.T) {
+		ps := newLogPathTestService(t, root, func(cfg *model.Config) {
+			*cfg.LogSettings.EnableFile = true
+			*cfg.LogSettings.FileLocation = root
+			*cfg.LogSettings.EnableConsole = false
+			cfg.LogSettings.AdvancedLoggingJSON = json.RawMessage(`{"good": {"type": "file", "format": "json", "levels": [{"id": 2, "name": "error"}], "options": {"filename": "` + path.Join(root, "adv.log") + `"}}}`)
+			cfg.FeatureFlags.EnforceLogPathRoot = true
+		})
+
+		assert.NoError(t, ps.initLogging())
+	})
+
+	t.Run("flag on rejects an out-of-root audit path", func(t *testing.T) {
+		ps := newLogPathTestService(t, root, func(cfg *model.Config) {
+			*cfg.LogSettings.EnableFile = false
+			*cfg.LogSettings.EnableConsole = false
+			*cfg.ExperimentalAuditSettings.FileEnabled = true
+			*cfg.ExperimentalAuditSettings.FileName = path.Join(outside, "audit.log")
+			cfg.FeatureFlags.EnforceLogPathRoot = true
+		})
+
+		err := ps.initLogging()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "ExperimentalAuditSettings.FileName")
+	})
+}
