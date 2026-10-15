@@ -3020,10 +3020,6 @@
     "translation": "{{.PostId}} byl již smazán."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Nelze najít existující příspěvek, nebo komentář k aktualizaci."
-  },
-  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Není možné upravovat zprávu ve smazaném kanálu."
   },
@@ -10015,18 +10011,6 @@
     "translation": "Nelze převést pole vlastnosti na pole vlastního atributu profilu"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Nepodařilo se načíst pole CPA"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Prázdná hodnota atributu LDAP"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "nepodařilo se načíst pole CPA"
-  },
-  {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "Příkaz atributu výrazu SAML je neplatný"
   },
@@ -14619,5 +14603,157 @@
   {
     "id": "api.command_remote.cluster_removed.result_removed",
     "translation": "odstraněno"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` není platná hodnota pro `{{.Arg}}`"
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Funkce Stav webu není povolena."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Funkce Stav webu vyžaduje licenci Enterprise."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Nelze se přesunout na začátek souboru."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Nelze načíst zjištění stavu webu."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Zjištění stavu webu nebylo nalezeno."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Nelze načíst seznam zjištění stavu webu."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Atribut již není synchronizován z tohoto zdroje, takže jej synchronizace nemůže změnit."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Možnosti atributu synchronizovaného z AD/LDAP nebo SAML spravuje synchronizace a nelze je přidávat, přejmenovávat ani odebírat."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Synchronizovaný atribut má neplatné možnosti."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Neplatný zdroj synchronizace atributů."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Neplatné ID uživatele pro synchronizaci atributů."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Nelze určit, které možnosti synchronizovaného atributu se používají."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Konfigurace protokolování obsahuje cestu k souboru protokolu nebo auditu mimo kořenový adresář protokolů. Podrobnosti najdete v protokolech serveru."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Čas sběru dat není znám."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Část konfigurace není dostupná."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Diagnostika serveru není dostupná."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Historie úloh není dostupná."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Podrobnosti licence nejsou dostupné."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Seznam pluginů není dostupný."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Pravidlo neočekávaně selhalo a nebylo možné jej vyhodnotit."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Statistiky využití nejsou dostupné."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} používá http://, takže se oznámení push odesílají nešifrovaně."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} má neplatné schéma. Mobilní uživatelé nebudou dostávat oznámení."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Doplňte do hodnoty PushNotificationServer předponu https:// a ověřte jeho dostupnost z aplikačního uzlu."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer nepoužívá https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Každý pokus o odeslání oznámení push selže s chybou „unsupported protocol scheme“."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Nastavte PushNotificationServer na https://push.mattermost.com nebo na vlastní hostovanou push proxy."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Oznámení push jsou zapnutá, ale PushNotificationServer je prázdný"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com je testovací push proxy Mattermost. Nemá žádnou smlouvu o úrovni služeb (SLA), má omezenou propustnost a není určena pro produkční provoz. Doručování oznámení push do mobilních zařízení bude nespolehlivé pro cokoli nad rámec testování v malém měřítku."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Přejděte na https://push.mattermost.com (produkční službu Hosted Push Notification Service, která je součástí Enterprise) nebo na vlastní hostovanou push proxy."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer odkazuje na push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "Hodnota SiteURL je vyžadována pro adresy URL webhooků, zpětná volání OAuth, data oznámení push pro mobilní zařízení a odkazy v e-mailech. Dokud je prázdná, integrace nefungují."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Nastavte SiteURL na veřejnou adresu URL serveru s protokolem HTTPS."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "Hodnota ServiceSettings.SiteURL je prázdná"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "Hodnota SiteURL je {{.url}}. Soubory cookie relací a ověřovací tokeny se přenášejí nešifrovaně."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Provozujte Mattermost přes HTTPS a aktualizujte SiteURL na adresu https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL používá http:// (ne https://)"
   }
 ]

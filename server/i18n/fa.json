@@ -14569,5 +14569,173 @@
   {
     "id": "api.command_remote.cluster_removed.result_removed",
     "translation": "حذف شد"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` یک `{{.Arg}}` معتبر نیست"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "این فیلد به یک الگوی ویژگی سراسری (Global Attribute) پیوند دارد و نمی‌توان آن را از طریق API ویژگی‌های کاربر تغییر داد. به‌جای آن از API ویژگی‌های سراسری استفاده کنید."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "ایجاد ایموجی امکان‌پذیر نیست. تصویر برای پردازش بیش از حد بزرگ است. از تصویری با ابعاد کوچک‌تر یا فریم‌های کمتر استفاده کنید."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "صفحهٔ سلامت سایت فعال نیست."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "صفحهٔ سلامت سایت به مجوز Enterprise نیاز دارد."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "شما اجازهٔ ارسال پیام‌های حذف پس از خواندن را در این کانال ندارید."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "بازگشت به ابتدای فایل امکان‌پذیر نیست."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "دریافت یافتهٔ سلامت امکان‌پذیر نیست."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "یافتهٔ سلامت پیدا نشد."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "دریافت یافته‌های سلامت امکان‌پذیر نیست."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "این ویژگی دیگر از این منبع همگام‌سازی نمی‌شود، بنابراین همگام‌سازی آن منبع نمی‌تواند آن را تغییر دهد."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "گزینه‌های ویژگی‌ای که از AD/LDAP یا SAML همگام‌سازی می‌شود، توسط همگام‌سازی مدیریت می‌شوند و نمی‌توان آن‌ها را افزود، تغییر نام داد یا حذف کرد."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "ویژگی همگام‌سازی‌شده گزینه‌های نامعتبری دارد."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "منبع همگام‌سازی ویژگی نامعتبر است."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "شناسهٔ کاربر برای همگام‌سازی ویژگی نامعتبر است."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "تعیین اینکه کدام گزینه‌های ویژگی همگام‌سازی‌شده در حال استفاده هستند، امکان‌پذیر نیست."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "پیکربندی ثبت گزارش شامل مسیر فایل گزارش یا ممیزی‌ای است که خارج از پوشهٔ ریشهٔ گزارش‌ها قرار دارد. برای جزئیات، گزارش‌های سرور را بررسی کنید."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "زمان جمع‌آوری داده‌ها نامشخص است."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "بخش پیکربندی در دسترس نیست."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "اطلاعات عیب‌یابی سرور در دسترس نیست."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "تاریخچهٔ کارها در دسترس نیست."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "جزئیات مجوز در دسترس نیست."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "فهرست افزونه‌ها در دسترس نیست."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "این قاعده به‌طور غیرمنتظره با خطا مواجه شد و قابل ارزیابی نبود."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "آمار استفاده در دسترس نیست."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} از http:// استفاده می‌کند، بنابراین اعلان‌های پوش به‌صورت رمزنگاری‌نشده ارسال می‌شوند."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} پیشوند پروتکل نامعتبری دارد. کاربران موبایل اعلان دریافت نخواهند کرد."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "پیشوند https:// را به ابتدای PushNotificationServer اضافه کنید و دسترس‌پذیری آن را از گره برنامه بررسی کنید."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer از https:// استفاده نمی‌کند"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "هر تلاش برای ارسال اعلان پوش با خطای 'unsupported protocol scheme' ناموفق خواهد بود."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "PushNotificationServer را روی https://push.mattermost.com یا یک پروکسی اعلان پوش خودمیزبان تنظیم کنید."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "اعلان‌های پوش فعال است، اما PushNotificationServer خالی است"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com پروکسی آزمایشی اعلان پوش Mattermost است. این سرویس هیچ SLA (توافق‌نامهٔ سطح خدمات) ندارد، توان عملیاتی آن محدود است و برای استفاده در محیط عملیاتی در نظر گرفته نشده است. تحویل اعلان‌های پوش موبایل برای هر کاربردی فراتر از آزمایش در مقیاس کوچک غیرقابل اعتماد خواهد بود."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "به https://push.mattermost.com (سرویس عملیاتی Hosted Push Notification Service که همراه با Enterprise ارائه می‌شود) یا به یک پروکسی اعلان پوش خودمیزبان تغییر دهید."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer به push-test.mattermost.com اشاره می‌کند"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL برای URLهای وب‌هوک، callbackهای OAuth، محتوای اعلان‌های پوش موبایل و پیوندهای ایمیل لازم است. تا زمانی که خالی باشد، ادغام‌ها کار نمی‌کنند."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "SiteURL را روی URL عمومی HTTPS سرور تنظیم کنید."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL خالی است"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL برابر با {{.url}} است. کوکی‌های جلسه و توکن‌های احراز هویت به‌صورت رمزنگاری‌نشده در شبکه منتقل می‌شوند."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Mattermost را از طریق HTTPS ارائه دهید و SiteURL را به نشانی https:// به‌روزرسانی کنید."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL از http:// استفاده می‌کند (نه https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "پیام‌های حذف پس از خواندن را نمی‌توان به‌صورت پیام‌های زمان‌بندی‌شدهٔ تکرارشونده ارسال کرد."
   }
 ]

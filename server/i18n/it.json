@@ -14569,5 +14569,173 @@
   {
     "id": "api.command_remote.cluster_removed.result_removed",
     "translation": "rimossa"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` non è un valore valido per `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Questo campo è collegato a un modello di Attributo globale e non può essere modificato tramite l'API Attributi utente. Usa invece l'API Attributi globali."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Impossibile creare l'emoji. L'immagine è troppo grande per essere elaborata. Prova con un'immagine di dimensioni inferiori o con meno fotogrammi."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "La pagina Integrità del sito non è abilitata."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "La pagina Integrità del sito richiede una licenza Enterprise."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "Non hai il permesso di inviare messaggi con distruzione alla lettura in questo canale."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Impossibile posizionarsi all'inizio del file."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Impossibile recuperare il rilevamento di integrità."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Rilevamento di integrità non trovato."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Impossibile recuperare i rilevamenti di integrità."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "L'attributo non è più sincronizzato da questa fonte, quindi la sincronizzazione non può modificarlo."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Le opzioni di un attributo sincronizzato da AD/LDAP o SAML sono gestite dalla sincronizzazione e non possono essere aggiunte, rinominate o rimosse."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "L'attributo sincronizzato ha opzioni non valide."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Fonte di sincronizzazione delle proprietà non valida."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "ID utente non valido per la sincronizzazione delle proprietà."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Impossibile determinare quali opzioni dell'attributo sincronizzato sono in uso."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "La configurazione dei log contiene un percorso di file di log o di audit esterno alla directory radice dei log. Controlla i log del server per i dettagli."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Ora di raccolta dei dati sconosciuta."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Sezione di configurazione non disponibile."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Diagnostica del server non disponibile."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Cronologia dei processi non disponibile."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Dettagli della licenza non disponibili."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Elenco dei plugin non disponibile."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "La regola non è riuscita in modo imprevisto e non è stato possibile valutarla."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Statistiche di utilizzo non disponibili."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} usa http://, quindi le notifiche push vengono inviate in chiaro."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} ha uno schema non valido. Gli utenti dei dispositivi mobili non riceveranno le notifiche."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Aggiungi il prefisso https:// a PushNotificationServer e verifica che sia raggiungibile dal nodo dell'applicazione."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer non usa https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Ogni tentativo di invio push non riuscirà con l'errore 'unsupported protocol scheme'."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Imposta PushNotificationServer su https://push.mattermost.com o su un proxy push self-hosted."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Notifiche push abilitate ma PushNotificationServer è vuoto"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com è il proxy push di test di Mattermost. Non ha SLA, ha una capacità limitata e non è destinato all'uso in produzione. Il recapito delle notifiche push sui dispositivi mobili sarà inaffidabile per qualsiasi uso che vada oltre i test su piccola scala."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Passa a https://push.mattermost.com (l'Hosted Push Notification Service di produzione incluso con Enterprise) o a un proxy push self-hosted."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer punta a push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL è necessario per gli URL dei webhook, i callback OAuth, i payload delle notifiche push per dispositivi mobili e i link nelle email. Le integrazioni non funzionano finché è vuoto."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Imposta SiteURL sull'URL HTTPS pubblico del server."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL è vuoto"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL è {{.url}}. I cookie di sessione e i token di autenticazione transitano in chiaro."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Pubblica Mattermost tramite HTTPS e aggiorna SiteURL all'indirizzo https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL usa http:// (non https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "I messaggi con distruzione alla lettura non possono essere inviati come messaggi programmati ricorrenti."
   }
 ]
