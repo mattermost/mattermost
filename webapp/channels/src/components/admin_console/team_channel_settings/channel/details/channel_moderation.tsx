@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import isNil from 'lodash/isNil';
 import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {ChannelModeration as ChannelPermissions} from '@mattermost/types/channels';
 
 import {Permissions, Roles} from 'mattermost-redux/constants';
