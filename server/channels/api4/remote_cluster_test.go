@@ -448,6 +448,22 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		require.Empty(t, rc)
 	})
 
+	t.Run("should fail with a save error if the connection already exists", func(t *testing.T) {
+		_, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+			RemoteId:  remoteId,
+			Name:      rcAcceptInvite.Name,
+			SiteURL:   "https://" + model.NewId() + ".example.com",
+			Token:     model.NewId(),
+			CreatorId: th.SystemAdminUser.Id,
+		})
+		require.Nil(t, appErr)
+
+		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
+		CheckInternalErrorStatus(t, resp)
+		CheckErrorID(t, err, "api.remote_cluster.save.app_error")
+		require.Empty(t, rc)
+	})
+
 	t.Run("should return a sanitized remote cluster if the action succeeds", func(t *testing.T) {
 		t.Skip("Requires server2server communication: ToBeImplemented")
 	})

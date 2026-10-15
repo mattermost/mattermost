@@ -7,11 +7,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // AcceptInvitation is called when accepting an invitation to connect with a remote cluster.
+// Failures to save the remote cluster are returned as *model.AppError; failures contacting the
+// remote and the remote's rejection reason are returned as plain errors.
 func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, error) {
 	// Generate new token for RemoteToken only if invite version is 2 or greater
 	var remoteToken string
@@ -34,7 +37,11 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 
 	rcSaved, err := rcs.server.GetStore().RemoteCluster().Save(rc)
 	if err != nil {
-		return nil, err
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// confirm the invitation with the originating site

@@ -180,7 +180,7 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 	// invite is encoded as base64 and encrypted
 	invite, dErr := a.DecryptRemoteClusterInvite(blob, password)
 	if dErr != nil {
-		return response(args.T("api.command_remote.decode_invitation.error", map[string]any{"Error": dErr.Error()}))
+		return response(args.T("api.command_remote.decode_invitation.error", map[string]any{"Error": logAndTranslateAppErr(a, args, "Failed to decode secure connection invitation", dErr)}))
 	}
 
 	rcs, _ := a.GetRemoteClusterService()
@@ -195,6 +195,11 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 
 	rc, err := rcs.AcceptInvitation(invite, name, displayname, args.UserId, url, "")
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return response(args.T("api.command_remote.accept_invitation.error", map[string]any{"Error": logAndTranslateAppErr(a, args, "Failed to accept secure connection invitation", appErr, mlog.String("remote_id", invite.RemoteId))}))
+		}
+		a.Log().Warn("Failed to accept secure connection invitation", mlog.String("remote_id", invite.RemoteId), mlog.Err(err))
 		return response(args.T("api.command_remote.accept_invitation.error", map[string]any{"Error": err.Error()}))
 	}
 
@@ -229,7 +234,7 @@ func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs ma
 func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[string]string) *model.CommandResponse {
 	list, err := a.GetAllRemoteClusters(0, 999999, model.RemoteClusterQueryFilter{IncludeDeleted: true})
 	if err != nil {
-		return response(args.T("api.command_remote.fetch_status.error", map[string]any{"Error": err.Error()}))
+		return response(args.T("api.command_remote.fetch_status.error", map[string]any{"Error": logAndTranslateAppErr(a, args, "Failed to fetch secure connections", err)}))
 	}
 
 	if len(list) == 0 {
@@ -263,6 +268,18 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[st
 		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s | %s | %s | %s |\n", rc.Name, rc.DisplayName, rc.RemoteId, rc.GetSiteURL(), rc.DefaultTeamId, accepted, online, lastPing, deleted)
 	}
 	return response(sb.String())
+}
+
+// logAndTranslateAppErr logs appErr in full and returns only its message, translated for the caller.
+func logAndTranslateAppErr(a *app.App, args *model.CommandArgs, logMsg string, appErr *model.AppError, fields ...mlog.Field) string {
+	level := mlog.LvlWarn
+	if appErr.StatusCode >= 400 && appErr.StatusCode < 500 {
+		level = mlog.LvlDebug
+	}
+	a.Log().Log(level, logMsg, append(fields, mlog.Err(appErr))...)
+
+	appErr.Translate(args.T)
+	return appErr.Message
 }
 
 func isOnline(lastPing int64) bool {
