@@ -30,6 +30,7 @@ import {editLatestPost} from 'actions/views/create_comment';
 
 import {useDebounce} from 'hooks/useDebounce';
 import {useLatest} from 'hooks/useLatest';
+import {canHighlight} from 'utils/syntax_highlighting';
 
 import WysiwygImage from './wysiwyg_image';
 import {insertMarkdown, plainTextContent, serializeToMarkdown} from './wysiwyg_markdown';
@@ -38,9 +39,30 @@ import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
 import './wysiwyg_editor.scss';
 
-const lowlight = createLowlight(common);
+const commonLowlight = createLowlight(common);
 
-const MARKDOWN_PASTE_PATTERNS = /(?:^#{1,6}\s|^[*-]\s|^\d+\.\s|^>\s|\*\*\S.*?\S\*\*|\b__\S.*?\S__\b|~~\S.*?\S~~|`[^`\n]+`|^\|.*\|$|\[[^\]]+\]\([^)]+\))/m;
+// Posts only colour code blocks that name a language.
+const lowlight = {...commonLowlight, highlightAuto: (code: string) => commonLowlight.highlight('plaintext', code)};
+
+const VSCODE_LANGUAGES: Record<string, string> = {
+    javascriptreact: 'javascript',
+    typescriptreact: 'typescript',
+    shellscript: 'bash',
+    jsonc: 'json',
+};
+
+const getVSCodeLanguage = (data?: string): string | undefined => {
+    let mode: string | undefined;
+    try {
+        mode = JSON.parse(data || '{}').mode;
+    } catch {
+        return undefined;
+    }
+    const language = mode && mode !== 'markdown' ? VSCODE_LANGUAGES[mode] ?? mode : undefined;
+    return language && canHighlight(language) ? language : undefined;
+};
+
+const MARKDOWN_PASTE_PATTERNS = /(?:^```|^~~~|^#{1,6}\s|^[*-]\s|^\d+\.\s|^>\s|\*\*\S.*?\S\*\*|\b__\S.*?\S__\b|~~\S.*?\S~~|`[^`\n]+`|^\|.*\|$|\[[^\]]+\]\([^)]+\))/m;
 
 function buildEmojiDecorations(doc: PMNode): DecorationSet {
     const decorations: Decoration[] = [];
@@ -248,7 +270,6 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         }),
         CodeBlockLowlight.configure({
             lowlight,
-            defaultLanguage: 'plaintext',
             HTMLAttributes: {class: 'hljs'},
         }),
         Link.extend({inclusive: () => false}).configure({
@@ -358,12 +379,26 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     return false;
                 }
 
-                if (!MARKDOWN_PASTE_PATTERNS.test(text)) {
+                const ed = editorRef.current;
+                if (!ed || ed.isDestroyed) {
                     return false;
                 }
 
-                const ed = editorRef.current;
-                if (!ed || ed.isDestroyed) {
+                const language = getVSCodeLanguage(clipboard?.getData('vscode-editor-data'));
+                if (ed.isActive('codeBlock')) {
+                    if (language && !ed.getAttributes('codeBlock').language) {
+                        ed.commands.updateAttributes('codeBlock', {language});
+                    }
+                    return false;
+                }
+
+                if (language) {
+                    event.preventDefault();
+                    ed.commands.insertContent({type: 'codeBlock', attrs: {language}, content: [{type: 'text', text}]});
+                    return true;
+                }
+
+                if (!MARKDOWN_PASTE_PATTERNS.test(text)) {
                     return false;
                 }
 

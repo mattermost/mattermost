@@ -27,6 +27,7 @@ jest.mock('@tiptap/react', () => {
             const base: any = {
                 isDestroyed: false,
                 isEmpty: true,
+                isActive: () => false,
                 commands: {
                     clearContent: () => undefined,
                     focus: () => undefined,

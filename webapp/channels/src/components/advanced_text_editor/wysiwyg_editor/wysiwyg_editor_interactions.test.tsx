@@ -9,6 +9,7 @@ import {renderWithContext} from 'tests/react_testing_utils';
 
 import WysiwygEditor from './wysiwyg_editor';
 import type {WysiwygEditorHandle} from './wysiwyg_editor';
+import {serializeToMarkdown} from './wysiwyg_markdown';
 
 const press = (editor: Editor, key: string, init: KeyboardEventInit = {}) => act(() => {
     const event = new KeyboardEvent('keydown', {key, cancelable: true, ...init});
@@ -18,6 +19,20 @@ const press = (editor: Editor, key: string, init: KeyboardEventInit = {}) => act
 const typeText = (editor: Editor, text: string) => act(() => {
     editor.view.dispatch(editor.state.tr.insertText(text));
 });
+
+const pasteText = (editor: Editor, text: string, data: Record<string, string> = {}) => {
+    const clipboard: Record<string, string> = {'text/plain': text, ...data};
+    const event = {
+        preventDefault: jest.fn(),
+        clipboardData: {getData: (type: string) => clipboard[type] ?? '', files: []},
+    } as unknown as ClipboardEvent;
+
+    let handled = false;
+    act(() => {
+        handled = Boolean(editor.view.someProp('handlePaste', (handlePaste) => handlePaste(editor.view, event, editor.state.doc.slice(0))));
+    });
+    return handled;
+};
 
 const endOfText = (editor: Editor, text: string) => {
     let pos = -1;
@@ -82,20 +97,75 @@ describe('WysiwygEditor interactions', () => {
     test('pastes a full markdown sample with lists, task items and headings', () => {
         const {editor} = renderEditor('');
         const markdown = '1. first\n2. second\n\n## Tables\n\nhello *world*\n\n- [ ] todo\n- [x] done\n\n| a | b |\n| - | - |\n| 1 | 2 |';
-        const event = {
-            preventDefault: jest.fn(),
-            clipboardData: {getData: (type: string) => (type === 'text/plain' ? markdown : ''), files: []},
-        } as unknown as ClipboardEvent;
 
-        let handled;
-        act(() => {
-            handled = editor.view.someProp('handlePaste', (handlePaste) => handlePaste(editor.view, event, editor.state.doc.slice(0)));
-        });
-
-        expect(handled).toBe(true);
+        expect(pasteText(editor, markdown)).toBe(true);
         expect(editor.getHTML()).toContain('<h2 class="markdown__heading">Tables</h2>');
         expect(editor.getHTML()).toContain('<p>hello <em>world</em></p>');
         expect(editor.getHTML()).toContain('<p>[ ] todo</p>');
+    });
+
+    describe('code blocks', () => {
+        test('a code block without a language stays plain and is sent without one', () => {
+            const {editor} = renderEditor('');
+            act(() => {
+                editor.chain().setTextSelection(1).setCodeBlock().run();
+            });
+            typeText(editor, 'const a = 1;');
+
+            expect(editor.view.dom.querySelector('[class^="hljs-"]')).toBeNull();
+            expect(serializeToMarkdown(editor)).toMatch(/^```\nconst a = 1;\n```/);
+        });
+
+        test('pasting a fenced block creates a highlighted code block with its language', () => {
+            const {editor} = renderEditor('');
+
+            expect(pasteText(editor, '```js\nconst a = 1;\n```')).toBe(true);
+            expect(editor.getJSON().content?.[0]).toMatchObject({type: 'codeBlock', attrs: {language: 'js'}});
+            expect(editor.view.dom.querySelector('.hljs-keyword')).not.toBeNull();
+        });
+
+        test('pasting from VS Code into a code block without a language takes the VS Code language', () => {
+            const {editor} = renderEditor('');
+            act(() => {
+                editor.chain().setTextSelection(1).setCodeBlock().run();
+            });
+
+            pasteText(editor, 'def greet(name):\n    print(name)', {'vscode-editor-data': JSON.stringify({mode: 'python'})});
+
+            expect(editor.getAttributes('codeBlock').language).toBe('python');
+        });
+
+        test('pasting into a code block keeps a language the user chose', () => {
+            const {editor} = renderEditor('');
+            act(() => {
+                editor.chain().setTextSelection(1).setCodeBlock({language: 'go'}).run();
+            });
+
+            pasteText(editor, 'def greet(name):\n    print(name)', {'vscode-editor-data': JSON.stringify({mode: 'python'})});
+
+            expect(editor.getAttributes('codeBlock').language).toBe('go');
+        });
+
+        test.each([
+            ['javascript', 'const a = 1;\nfunction f(x) {\n    return x;\n}', 'javascript'],
+            ['typescriptreact', 'const view = (props: Props): number => {\n    const value: number = props.count;\n    return value;\n};', 'typescript'],
+            ['yaml', '- name: build\n  run: make', 'yaml'],
+        ])('pasting %s code from VS Code creates a code block posts can highlight', (mode, code, language) => {
+            const {editor} = renderEditor('');
+
+            expect(pasteText(editor, code, {'vscode-editor-data': JSON.stringify({mode})})).toBe(true);
+            expect(editor.getJSON().content?.[0]).toMatchObject({type: 'codeBlock', attrs: {language}});
+            expect(editor.view.dom.querySelector('pre [class^="hljs-"]')).not.toBeNull();
+        });
+
+        test('pasting markdown-like text inside a code block leaves it as code', () => {
+            const {editor} = renderEditor('');
+            act(() => {
+                editor.chain().setTextSelection(1).setCodeBlock().run();
+            });
+
+            expect(pasteText(editor, '- item\n**bold**')).toBe(false);
+        });
     });
 
     test('text typed after a link is not part of the link', () => {
