@@ -77,7 +77,7 @@ BindsTo=postgresql.service
 
 ## Step 5: Configure the server
 
-The package already installs the systemd unit. Run setup as root. It writes `/etc/mattermost/mattermost.env` (mode `0600`) and adds a drop-in so the unit loads that file. By default the active configuration is stored in PostgreSQL. Setup does not enable or start the service, and package install scripts do not run it.
+The package already installs the systemd unit and the `mattermost` user. Run setup as root. It writes `/etc/mattermost/mattermost.env` (mode `0600`) and adds a drop-in so the unit loads that file. By default the active configuration is stored in PostgreSQL. On a new installation, files go to `/var/lib/mattermost/data`, plugins to `/var/lib/mattermost/plugins` and `/var/lib/mattermost/client/plugins`, and logs to `/var/log/mattermost`. An existing installation keeps its current paths. Setup does not enable or start the service, and package install scripts do not run it.
 
 ```sh
 sudo mattermost setup

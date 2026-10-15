@@ -250,12 +250,19 @@ func newTestSetup(t *testing.T) (setupEnv, setupOptions, *bytes.Buffer, *setupCa
 	root := t.TempDir()
 	sys := t.TempDir()
 	uid, gid := currentIDs(t)
+	state := filepath.Join(root, "state")
 	env := setupEnv{
 		out:         buf,
 		in:          bufio.NewReader(strings.NewReader("")),
 		tty:         false,
 		geteuid:     func() int { return 0 },
 		installRoot: root,
+		state: statePaths{
+			data:          filepath.Join(state, "data"),
+			logs:          filepath.Join(state, "logs"),
+			plugins:       filepath.Join(state, "plugins"),
+			clientPlugins: filepath.Join(state, "client", "plugins"),
+		},
 		paths: systemdPaths{
 			etcUnit:   filepath.Join(sys, "etc/systemd/system/mattermost.service"),
 			dropInDir: filepath.Join(sys, "etc/systemd/system/mattermost.service.d"),
@@ -266,6 +273,9 @@ func newTestSetup(t *testing.T) (setupEnv, setupOptions, *bytes.Buffer, *setupCa
 				return 0, 0, errors.New("missing user")
 			}
 			return uid, gid, nil
+		},
+		createUser: func(string, int) error {
+			return errors.New("createUser should not be called")
 		},
 		dial: func(string) error { return nil },
 		inspect: func(string) (dbInspection, error) {
@@ -280,7 +290,7 @@ func newTestSetup(t *testing.T) (setupEnv, setupOptions, *bytes.Buffer, *setupCa
 			calls.peers++
 			return nil, nil
 		},
-		seedDatabase: func(_, migrateFrom, _ string) error {
+		seedDatabase: func(_, migrateFrom, _ string, _ bool) error {
 			calls.order = append(calls.order, "seed")
 			calls.migrate = migrateFrom
 			return nil
@@ -380,7 +390,11 @@ func TestSetupNewInstallDoesNotImportShippedConfig(t *testing.T) {
 	require.Contains(t, text, "Site URL: https://mattermost.example.com")
 	require.Contains(t, text, "systemctl enable --now mattermost")
 	require.Contains(t, text, "will not be read")
+	require.Contains(t, text, "File storage: "+env.state.data)
 	require.Contains(t, text, "Mattermost was not started.")
+	infoData, err := os.Stat(env.state.data)
+	require.NoError(t, err)
+	require.True(t, infoData.IsDir())
 }
 
 func TestSetupFileStoreOmitsDataSourceOverride(t *testing.T) {
@@ -541,16 +555,84 @@ func TestSetupDryRunWritesNothing(t *testing.T) {
 	require.Contains(t, out.String(), "Dry run")
 }
 
-func TestSetupMissingServiceUser(t *testing.T) {
+func TestApplyNewInstallPaths(t *testing.T) {
+	t.Parallel()
+	paths := defaultStatePaths()
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	applyNewInstallPaths(cfg, paths)
+	require.Equal(t, paths.data, *cfg.FileSettings.Directory)
+	require.Equal(t, paths.data, *cfg.FileSettings.ExportDirectory)
+	require.Equal(t, paths.logs, *cfg.LogSettings.FileLocation)
+	require.Equal(t, paths.plugins, *cfg.PluginSettings.Directory)
+	require.Equal(t, paths.clientPlugins, *cfg.PluginSettings.ClientDirectory)
+
+	custom := &model.Config{}
+	custom.SetDefaults()
+	custom.FileSettings.Directory = model.NewPointer("/srv/mattermost/data")
+	custom.FileSettings.ExportDirectory = model.NewPointer("/srv/mattermost/export")
+	applyNewInstallPaths(custom, paths)
+	require.Equal(t, "/srv/mattermost/data", *custom.FileSettings.Directory)
+	require.Equal(t, "/srv/mattermost/export", *custom.FileSettings.ExportDirectory)
+	require.Equal(t, paths.logs, *custom.LogSettings.FileLocation)
+}
+
+func TestSetupCreatesMissingServiceUser(t *testing.T) {
+	env, opts, out, _ := newTestSetup(t)
+	looked := 0
+	uid, gid := currentIDs(t)
+	env.lookupUser = func(string) (int, int, error) {
+		looked++
+		if looked == 1 {
+			return 0, 0, user.UnknownUserError(mattermostUser)
+		}
+		return uid, gid, nil
+	}
+	env.createUser = func(name string, uid int) error {
+		require.Equal(t, mattermostUser, name)
+		require.Equal(t, 500, uid)
+		return nil
+	}
+	opts.UID = 500
+	opts.UIDSet = true
+	require.NoError(t, runSetup(opts, env))
+	require.Contains(t, out.String(), "Created system user and group mattermost.")
+}
+
+func TestSetupNoCreateUser(t *testing.T) {
 	env, opts, _, _ := newTestSetup(t)
 	env.lookupUser = func(string) (int, int, error) {
-		return 0, 0, errors.New("user mattermost does not exist")
+		return 0, 0, user.UnknownUserError(mattermostUser)
+	}
+	opts.NoCreateUser = true
+	err := runSetup(opts, env)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "--no-create-user")
+	_, statErr := os.Stat(opts.EnvFile)
+	require.True(t, os.IsNotExist(statErr))
+}
+
+func TestSetupDeclinesUserCreation(t *testing.T) {
+	env, opts, _, _ := newTestSetup(t)
+	env.tty = true
+	env.in = bufio.NewReader(strings.NewReader("n\n"))
+	env.lookupUser = func(string) (int, int, error) {
+		return 0, 0, user.UnknownUserError(mattermostUser)
 	}
 	err := runSetup(opts, env)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "mattermost")
+	require.Contains(t, err.Error(), "does not exist")
 	_, statErr := os.Stat(opts.EnvFile)
 	require.True(t, os.IsNotExist(statErr))
+}
+
+func TestSetupLeavesExistingUserUnchanged(t *testing.T) {
+	env, opts, out, _ := newTestSetup(t)
+	opts.UID = 500
+	opts.UIDSet = true
+	require.NoError(t, runSetup(opts, env))
+	require.Contains(t, out.String(), "already exists")
+	require.Contains(t, out.String(), "Leaving it unchanged.")
 }
 
 func TestSetupRequiresRootOnLinux(t *testing.T) {

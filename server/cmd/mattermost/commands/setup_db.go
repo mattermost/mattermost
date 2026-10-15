@@ -238,7 +238,7 @@ func readConfigFile(path string) (*model.Config, error) {
 	return cfg, nil
 }
 
-func seedDatabase(dsn, migrateFrom, siteURL string) error {
+func seedDatabase(dsn, migrateFrom, siteURL string, newInstallPaths bool, paths statePaths) error {
 	if migrateFrom != "" {
 		if err := config.Migrate(migrateFrom, dsn); err != nil {
 			return redactError(err, dsn)
@@ -255,6 +255,9 @@ func seedDatabase(dsn, migrateFrom, siteURL string) error {
 	cfg.SqlSettings.DataSource = model.NewPointer(dsn)
 	if siteURL != "" {
 		cfg.ServiceSettings.SiteURL = model.NewPointer(siteURL)
+	}
+	if newInstallPaths {
+		applyNewInstallPaths(cfg, paths)
 	}
 	if _, _, err := store.Set(cfg); err != nil {
 		return redactError(err, dsn)
@@ -325,9 +328,10 @@ func binaryLatestMigration() (int, error) {
 	return latest, nil
 }
 
-func writeFileConfig(path, dsn, siteURL string, uid, gid int) error {
+func writeFileConfig(path, dsn, siteURL string, uid, gid int, paths statePaths) error {
 	cfg := &model.Config{}
 	cfg.SetDefaults()
+	applyNewInstallPaths(cfg, paths)
 	cfg.SqlSettings.DriverName = model.NewPointer(model.DatabaseDriverPostgres)
 	cfg.SqlSettings.DataSource = model.NewPointer(dsn)
 	if siteURL != "" {

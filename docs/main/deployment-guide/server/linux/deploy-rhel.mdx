@@ -64,20 +64,16 @@ sudo dnf update
 sudo dnf upgrade
 ```
 
-Extract the tarball, move it into place, and set ownership:
+Extract the tarball and move it into place:
 
 ```sh
 tar -xvzf mattermost*.gz
 sudo mv mattermost /opt
-sudo mkdir /opt/mattermost/data
-sudo useradd --system --user-group mattermost
-sudo chown -R mattermost:mattermost /opt/mattermost
-sudo chmod -R g+w /opt/mattermost
 ```
 
-<Note title="Custom paths and users">
+<Note title="Files, plugins, and the service user">
 
-If you use a path other than `/opt/mattermost` or a user/group name other than `mattermost`, use that name in every step that follows.
+On a new installation, `mattermost setup` creates the `mattermost` system user when it is missing. It stores files in `/var/lib/mattermost/data`, plugins in `/var/lib/mattermost/plugins` and `/var/lib/mattermost/client/plugins`, and logs in `/var/log/mattermost`. An existing installation keeps the paths it already uses. Pass `--uid` when this host must match a shared-storage uid. Setup does not change an existing user.
 
 </Note>
 
@@ -154,6 +150,14 @@ If the type is `default_t`, set a web-application context:
 ```sh
 sudo semanage fcontext -a -t httpd_sys_content_t "/opt/mattermost(/.*)?"
 sudo restorecon -R /opt/mattermost
+```
+
+A new installation also writes files, plugins, and logs outside `/opt/mattermost`. Give those directories a type Mattermost can write:
+
+```sh
+sudo semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/mattermost(/.*)?"
+sudo semanage fcontext -a -t httpd_sys_rw_content_t "/var/log/mattermost(/.*)?"
+sudo restorecon -R /var/lib/mattermost /var/log/mattermost
 ```
 
 **Allow Mattermost to bind to port 8065** (or your configured port):

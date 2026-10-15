@@ -35,8 +35,9 @@ service. Database configuration is the default. Pass --config-store file to writ
 /etc/mattermost/config.json instead.
 
 On a new database it stores the configuration, initializes the schema, and saves the
-Site URL. On an existing database it only writes this host's env file and systemd
-drop-in.`,
+Site URL. File storage, plugins, and logs are placed under /var. On an existing
+database it keeps that installation's paths and only writes this host's env file
+and systemd drop-in. When the mattermost user is missing, setup creates it.`,
 	Example: `  sudo mattermost setup --database-url 'postgres://mmuser@db.example.com:5432/mattermost?sslmode=disable' --site-url https://mattermost.example.com
 
   sudo mattermost setup`,
@@ -52,7 +53,9 @@ func init() {
 	SetupCmd.Flags().String("site-url", "", "Site URL for a new installation. Empty is valid.")
 	SetupCmd.Flags().String("migrate-from", "", "Import this configuration file when the database has no active configuration row.")
 	SetupCmd.Flags().String("env-file", defaultEnvFile, "systemd EnvironmentFile to write.")
-	SetupCmd.Flags().Bool("non-interactive", false, "Fail instead of prompting.")
+	SetupCmd.Flags().Bool("non-interactive", false, "Fail instead of prompting. Creates the mattermost user when it is missing.")
+	SetupCmd.Flags().Bool("no-create-user", false, "Stop when the mattermost user does not exist.")
+	SetupCmd.Flags().Int("uid", 0, "uid for the mattermost user when setup creates it. An existing user is left unchanged.")
 	SetupCmd.Flags().Bool("force", false, "Replace an env file that already points at a different database URL.")
 	SetupCmd.Flags().Bool("dry-run", false, "Print the installation type and connectivity results, then stop before writing.")
 	RootCmd.AddCommand(SetupCmd)
@@ -67,6 +70,9 @@ type setupOptions struct {
 	MigrateFrom    string
 	EnvFile        string
 	NonInteractive bool
+	NoCreateUser   bool
+	UID            int
+	UIDSet         bool
 	Force          bool
 	DryRun         bool
 }
@@ -82,11 +88,13 @@ type setupEnv struct {
 	paths                  systemdPaths
 	serviceActive          func() bool
 	lookupUser             func(string) (int, int, error)
+	createUser             func(string, int) error
+	state                  statePaths
 	dial                   func(string) error
 	inspect                func(string) (dbInspection, error)
 	readActiveConfig       func(string) (*model.Config, bool, error)
 	listPeers              func(string, string, int64) ([]clusterPeer, error)
-	seedDatabase           func(string, string, string) error
+	seedDatabase           func(string, string, string, bool) error
 	initSchema             func(string) error
 	updateStoredDataSource func(string) error
 	readFileConfig         func(string) (*model.Config, error)
@@ -100,32 +108,39 @@ type setupEnv struct {
 }
 
 func productionSetupEnv() setupEnv {
+	paths := defaultStatePaths()
 	return setupEnv{
-		out:                    os.Stdout,
-		in:                     bufio.NewReader(os.Stdin),
-		stdin:                  os.Stdin,
-		tty:                    term.IsTerminal(int(os.Stdin.Fd())),
-		geteuid:                os.Geteuid,
-		environ:                os.Environ(),
-		installRoot:            detectInstallRoot(),
-		paths:                  defaultSystemdPaths(),
-		serviceActive:          mattermostServiceActive,
-		lookupUser:             lookupServiceUser,
-		dial:                   dialTCP,
-		inspect:                inspectDatabase,
-		readActiveConfig:       readActiveConfig,
-		listPeers:              listClusterPeers,
-		seedDatabase:           seedDatabase,
+		out:              os.Stdout,
+		in:               bufio.NewReader(os.Stdin),
+		stdin:            os.Stdin,
+		tty:              term.IsTerminal(int(os.Stdin.Fd())),
+		geteuid:          os.Geteuid,
+		environ:          os.Environ(),
+		installRoot:      detectInstallRoot(),
+		paths:            defaultSystemdPaths(),
+		serviceActive:    mattermostServiceActive,
+		lookupUser:       lookupServiceUser,
+		createUser:       createServiceUser,
+		state:            paths,
+		dial:             dialTCP,
+		inspect:          inspectDatabase,
+		readActiveConfig: readActiveConfig,
+		listPeers:        listClusterPeers,
+		seedDatabase: func(dsn, migrateFrom, siteURL string, newInstallPaths bool) error {
+			return seedDatabase(dsn, migrateFrom, siteURL, newInstallPaths, paths)
+		},
 		initSchema:             initSchema,
 		updateStoredDataSource: updateStoredDataSource,
 		readFileConfig:         readConfigFile,
-		writeFileConfig:        writeFileConfig,
-		daemonReload:           systemctlDaemonReload,
-		binaryMigration:        binaryLatestMigration,
-		hostname:               os.Hostname,
-		goos:                   runtime.GOOS,
-		bind:                   bindAndClose,
-		now:                    time.Now,
+		writeFileConfig: func(path, dsn, siteURL string, uid, gid int) error {
+			return writeFileConfig(path, dsn, siteURL, uid, gid, paths)
+		},
+		daemonReload:    systemctlDaemonReload,
+		binaryMigration: binaryLatestMigration,
+		hostname:        os.Hostname,
+		goos:            runtime.GOOS,
+		bind:            bindAndClose,
+		now:             time.Now,
 	}
 }
 
@@ -139,6 +154,8 @@ func setupCmdF(cmd *cobra.Command, _ []string) error {
 	migrateFrom, _ := cmd.Flags().GetString("migrate-from")
 	envFile, _ := cmd.Flags().GetString("env-file")
 	nonInteractive, _ := cmd.Flags().GetBool("non-interactive")
+	noCreateUser, _ := cmd.Flags().GetBool("no-create-user")
+	uid, _ := cmd.Flags().GetInt("uid")
 	force, _ := cmd.Flags().GetBool("force")
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
 
@@ -151,6 +168,9 @@ func setupCmdF(cmd *cobra.Command, _ []string) error {
 		MigrateFrom:    migrateFrom,
 		EnvFile:        envFile,
 		NonInteractive: nonInteractive,
+		NoCreateUser:   noCreateUser,
+		UID:            uid,
+		UIDSet:         cmd.Flags().Changed("uid"),
 		Force:          force,
 		DryRun:         dryRun,
 	}, productionSetupEnv())
@@ -168,6 +188,9 @@ func runSetup(opts setupOptions, env setupEnv) error {
 	}
 	if opts.EnvFile == "" {
 		opts.EnvFile = defaultEnvFile
+	}
+	if opts.UIDSet && opts.UID <= 0 {
+		return errors.New("--uid must be a positive user id")
 	}
 	if err := mmConfigConflict(env.paths, opts.EnvFile); err != nil {
 		return err
@@ -235,14 +258,21 @@ func runSetup(opts setupOptions, env setupEnv) error {
 		return nil
 	}
 
-	uid, gid, err := env.lookupUser(mattermostUser)
+	uid, gid, err := env.ensureServiceUser(opts)
 	if err != nil {
 		return err
 	}
-	if err := ensureRuntimeDirs(runtimeDirs(env.installRoot, dirsFromConfig(checkCfg)), uid, gid); err != nil {
+	dirSpec := dirsFromConfig(checkCfg)
+	if !info.hasMigrations {
+		dirSpec = newInstallDirs(checkCfg, env.state)
+	}
+	if err := ensureRuntimeDirs(runtimeDirs(env.installRoot, dirSpec), uid, gid); err != nil {
 		return err
 	}
 	env.println("The mattermost user can write the runtime directories.")
+	if !info.hasMigrations {
+		env.printStatePaths(dirSpec)
+	}
 
 	binaryVersion, err := env.binaryMigration()
 	if err != nil {
@@ -277,7 +307,7 @@ func runSetup(opts setupOptions, env setupEnv) error {
 
 	if !info.hasMigrations {
 		if useDatabase {
-			if err := env.seedDatabase(dsn, opts.MigrateFrom, siteURL); err != nil {
+			if err := env.seedDatabase(dsn, opts.MigrateFrom, siteURL, true); err != nil {
 				return err
 			}
 			env.println("Configuration was stored in the database.")
@@ -292,7 +322,7 @@ func runSetup(opts setupOptions, env setupEnv) error {
 		}
 		env.println("Database schema was initialized.")
 	} else if !hasActive && opts.MigrateFrom != "" {
-		if err := env.seedDatabase(dsn, opts.MigrateFrom, ""); err != nil {
+		if err := env.seedDatabase(dsn, opts.MigrateFrom, "", false); err != nil {
 			return err
 		}
 		env.printf("Configuration was imported from %s. The stored DataSource is the setup URL.\n", opts.MigrateFrom)
@@ -565,6 +595,9 @@ func dirsFromConfig(cfg *model.Config) *modelConfigDirs {
 	if cfg.PluginSettings.ClientDirectory != nil {
 		dirs.clientPlugins = *cfg.PluginSettings.ClientDirectory
 	}
+	if cfg.FileSettings.ExportDirectory != nil {
+		dirs.export = *cfg.FileSettings.ExportDirectory
+	}
 	return dirs
 }
 
@@ -600,10 +633,63 @@ func storedDataSource(cfg *model.Config) string {
 	return *cfg.SqlSettings.DataSource
 }
 
+func (e setupEnv) printStatePaths(spec *modelConfigDirs) {
+	if spec == nil {
+		return
+	}
+	e.printf("File storage: %s\n", resolveUnderRoot(e.installRoot, spec.data))
+	e.printf("Logs: %s\n", resolveUnderRoot(e.installRoot, spec.logs))
+	e.printf("Plugins: %s\n", resolveUnderRoot(e.installRoot, spec.plugins))
+	e.printf("Client plugins: %s\n", resolveUnderRoot(e.installRoot, spec.clientPlugins))
+}
+
+func (e setupEnv) ensureServiceUser(opts setupOptions) (int, int, error) {
+	uid, gid, err := e.lookupUser(mattermostUser)
+	if err == nil {
+		if opts.UIDSet && uid != opts.UID {
+			e.printf("Warning: user %s already exists with uid %d. Leaving it unchanged.\n", mattermostUser, uid)
+		}
+		return uid, gid, nil
+	}
+	if _, missing := err.(user.UnknownUserError); !missing {
+		return 0, 0, err
+	}
+	if opts.NoCreateUser {
+		return 0, 0, errors.Errorf("user %s does not exist. Re-run without --no-create-user to create it", mattermostUser)
+	}
+	if e.tty && !opts.NonInteractive {
+		fmt.Fprint(e.out, "Create the system user and group 'mattermost'? [Y/n]: ")
+		line, readErr := e.in.ReadString('\n')
+		if readErr != nil && !errors.Is(readErr, io.EOF) {
+			return 0, 0, readErr
+		}
+		if !affirmDefaultYes(line) {
+			return 0, 0, errors.Errorf("user %s does not exist", mattermostUser)
+		}
+	}
+	if e.createUser == nil {
+		return 0, 0, errors.New("cannot create the mattermost user")
+	}
+	if err := e.createUser(mattermostUser, opts.UID); err != nil {
+		return 0, 0, err
+	}
+	e.printf("Created system user and group %s.\n", mattermostUser)
+	return e.lookupUser(mattermostUser)
+}
+
+func affirmDefaultYes(line string) bool {
+	switch strings.ToLower(strings.TrimSpace(line)) {
+	case "", "y", "yes":
+		return true
+	default:
+		return false
+	}
+}
+
 func lookupServiceUser(name string) (int, int, error) {
 	account, err := user.Lookup(name)
 	if err != nil {
-		return 0, 0, errors.Errorf("user %s does not exist. Create it before running setup; this command does not run useradd", name)
+		return 0, 0, err
 	}
 	uid, err := strconv.Atoi(account.Uid)
 	if err != nil {
@@ -614,6 +700,46 @@ func lookupServiceUser(name string) (int, int, error) {
 		return 0, 0, err
 	}
 	return uid, gid, nil
+}
+
+func createServiceUser(name string, uid int) error {
+	args := []string{
+		"--system",
+		"--user-group",
+		"--home-dir", mattermostHome,
+		"--shell", nologinShell(),
+	}
+	if uid > 0 {
+		args = append(args, "--uid", strconv.Itoa(uid))
+	}
+	args = append(args, name)
+	out, err := exec.Command(useraddBinary(), args...).CombinedOutput()
+	if err != nil {
+		msg := strings.TrimSpace(string(out))
+		if msg == "" {
+			msg = err.Error()
+		}
+		return errors.Errorf("useradd %s: %s", name, msg)
+	}
+	return nil
+}
+
+func useraddBinary() string {
+	for _, path := range []string{"/usr/sbin/useradd", "/sbin/useradd"} {
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+	}
+	return "useradd"
+}
+
+func nologinShell() string {
+	for _, path := range []string{"/usr/sbin/nologin", "/sbin/nologin"} {
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+	}
+	return "/usr/sbin/nologin"
 }
 
 func mattermostServiceActive() bool {

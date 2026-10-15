@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -81,11 +82,69 @@ func mkdirOwned(dir string, uid, gid int) error {
 	return nil
 }
 
+type statePaths struct {
+	data          string
+	logs          string
+	plugins       string
+	clientPlugins string
+}
+
+func defaultStatePaths() statePaths {
+	return statePaths{
+		data:          stateDataDir,
+		logs:          stateLogDir,
+		plugins:       statePluginDir,
+		clientPlugins: stateClientPluginDir,
+	}
+}
+
+func legacyStatePath(value string, defaults ...string) bool {
+	if strings.TrimSpace(value) == "" {
+		return true
+	}
+	cleaned := filepath.Clean(value)
+	for _, candidate := range defaults {
+		if cleaned == filepath.Clean(candidate) {
+			return true
+		}
+	}
+	return false
+}
+
+func applyNewInstallPaths(cfg *model.Config, paths statePaths) {
+	if cfg.FileSettings.Directory == nil || legacyStatePath(*cfg.FileSettings.Directory, model.FileSettingsDefaultDirectory, "data", "./data", "./data/") {
+		cfg.FileSettings.Directory = model.NewPointer(paths.data)
+	}
+	if cfg.FileSettings.ExportDirectory == nil || legacyStatePath(*cfg.FileSettings.ExportDirectory, model.FileSettingsDefaultDirectory, "data", "./data", "./data/") {
+		cfg.FileSettings.ExportDirectory = model.NewPointer(*cfg.FileSettings.Directory)
+	}
+	if cfg.LogSettings.FileLocation == nil || legacyStatePath(*cfg.LogSettings.FileLocation, "logs", "./logs", "./logs/") {
+		cfg.LogSettings.FileLocation = model.NewPointer(paths.logs)
+	}
+	if cfg.PluginSettings.Directory == nil || legacyStatePath(*cfg.PluginSettings.Directory, model.PluginSettingsDefaultDirectory, "plugins", "./plugins") {
+		cfg.PluginSettings.Directory = model.NewPointer(paths.plugins)
+	}
+	if cfg.PluginSettings.ClientDirectory == nil || legacyStatePath(*cfg.PluginSettings.ClientDirectory, model.PluginSettingsDefaultClientDirectory, "client/plugins", "./client/plugins") {
+		cfg.PluginSettings.ClientDirectory = model.NewPointer(paths.clientPlugins)
+	}
+}
+
+func newInstallDirs(cfg *model.Config, paths statePaths) *modelConfigDirs {
+	applied := &model.Config{}
+	if cfg != nil {
+		applied = cfg.Clone()
+	}
+	applied.SetDefaults()
+	applyNewInstallPaths(applied, paths)
+	return dirsFromConfig(applied)
+}
+
 type modelConfigDirs struct {
 	data          string
 	logs          string
 	plugins       string
 	clientPlugins string
+	export        string
 }
 
 func runtimeDirs(root string, cfg *modelConfigDirs) []string {
@@ -107,12 +166,19 @@ func runtimeDirs(root string, cfg *modelConfigDirs) []string {
 			client = cfg.clientPlugins
 		}
 	}
-	return []string{
+	dirs := []string{
 		resolveUnderRoot(root, data),
 		resolveUnderRoot(root, logs),
 		resolveUnderRoot(root, plugins),
 		resolveUnderRoot(root, client),
 	}
+	if cfg != nil && cfg.export != "" {
+		export := resolveUnderRoot(root, cfg.export)
+		if export != dirs[0] {
+			dirs = append(dirs, export)
+		}
+	}
+	return dirs
 }
 
 func resolveUnderRoot(root, path string) string {

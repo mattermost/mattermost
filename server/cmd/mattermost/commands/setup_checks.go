@@ -21,14 +21,19 @@ import (
 const minimumRequiredPostgresVersion = 150000
 
 const (
-	defaultEnvFile      = "/etc/mattermost/mattermost.env"
-	defaultFileConfig   = "/etc/mattermost/config.json"
-	mattermostUser      = "mattermost"
-	defaultGossipPort   = 8074
-	configStoreDatabase = "database"
-	configStoreFile     = "file"
-	newInstallationLine = "This is a new installation."
-	existingInstallLine = "This is an existing installation. This host will join the cluster."
+	defaultEnvFile       = "/etc/mattermost/mattermost.env"
+	defaultFileConfig    = "/etc/mattermost/config.json"
+	mattermostUser       = "mattermost"
+	mattermostHome       = "/var/lib/mattermost"
+	stateDataDir         = "/var/lib/mattermost/data"
+	stateLogDir          = "/var/log/mattermost"
+	statePluginDir       = "/var/lib/mattermost/plugins"
+	stateClientPluginDir = "/var/lib/mattermost/client/plugins"
+	defaultGossipPort    = 8074
+	configStoreDatabase  = "database"
+	configStoreFile      = "file"
+	newInstallationLine  = "This is a new installation."
+	existingInstallLine  = "This is an existing installation. This host will join the cluster."
 )
 
 type clusterPeer struct {
