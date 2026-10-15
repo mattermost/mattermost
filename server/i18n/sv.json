@@ -6333,10 +6333,6 @@
     "translation": "Redan raderat id={{.PostId}}."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Vi kunde inte hitta det ursprungliga inlägget eller kommentaren att uppdatera."
-  },
-  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Går ej att uppdatera ett meddelande i en raderad kanal."
   },

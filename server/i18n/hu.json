@@ -5360,10 +5360,6 @@
     "translation": "Már törölt azonosító={{.PostId}}."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Nem található a létező bejegyzés vagy frissítendő hozzászólás."
-  },
-  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Nem lehet frissíteni egy törölt csatornában lévő bejegyzést."
   },

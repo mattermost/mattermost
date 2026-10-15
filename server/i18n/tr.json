@@ -1379,10 +1379,6 @@
     "translation": "Silinmiş bir kanaldaki ileti güncellenemez."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Güncellenecek ileti ya da yorum bulunamadı."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Kod zaten silinmiş: {{.PostId}}."
   },

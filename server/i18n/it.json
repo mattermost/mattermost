@@ -1340,10 +1340,6 @@
     "translation": "Impossibile aggiornare una pubblicazione in un canale eliminato."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Non è stato possibile trovare la pubblicazione o il commento da aggiornare."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Già cancellato id={{.PostId}}."
   },

@@ -1332,10 +1332,6 @@
     "translation": "Can not update a post in a deleted channel."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Impossible de trouver le message existant ou le commentaire à modifier."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Déjà supprimé id={{.PostId}}"
   },

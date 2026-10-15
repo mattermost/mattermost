@@ -1374,10 +1374,6 @@
     "translation": "無法更新已刪除頻道的訊息。"
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "找不到可更新的訊息或註解。"
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "已刪除 id={{.PostId}}。"
   },

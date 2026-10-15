@@ -1374,10 +1374,6 @@
     "translation": "Can not update a post in a deleted channel."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "기존 글 또는 댓글을 찾을 수 없습니다."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "이미 삭제된 id={{.PostId}}."
   },
