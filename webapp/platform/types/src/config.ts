@@ -73,6 +73,7 @@ export type ClientConfig = {
     EnableEmailInvitations: string;
     EnableEmojiPicker: string;
     EnableFileAttachments: string;
+    EnableFileSearch: string;
     EnableFile: string;
     EnableGifPicker: string;
     EnableGuestAccounts: string;
@@ -946,6 +947,7 @@ export type ElasticsearchSettings = {
     Trace: string;
     IgnoredPurgeIndexes: string;
     EnableSearchPublicChannelsWithoutMembership: boolean;
+    EnableFileIndexing: boolean;
 };
 
 export type DataRetentionSettings = {

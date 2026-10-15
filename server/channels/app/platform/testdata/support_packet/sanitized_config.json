@@ -572,7 +572,8 @@
         "ClientKey": null,
         "Trace": null,
         "IgnoredPurgeIndexes": null,
-        "EnableSearchPublicChannelsWithoutMembership": null
+        "EnableSearchPublicChannelsWithoutMembership": null,
+        "EnableFileIndexing": null
     },
     "DataRetentionSettings": {
         "EnableMessageDeletion": null,
