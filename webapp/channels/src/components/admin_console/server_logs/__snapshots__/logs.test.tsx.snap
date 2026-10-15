@@ -155,68 +155,142 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                         Levels
                       </div>
                       <div
-                        class="FilterList_item"
+                        class="FilterList_items"
                       >
                         <div
-                          class="FilterList_checkbox"
+                          class="FilterList_item"
                         >
-                          <label>
-                            <input
-                              checked=""
-                              id="all"
-                              name="all"
-                              type="checkbox"
-                            />
-                            All levels
-                          </label>
+                          <div
+                            class="FilterList_checkbox"
+                          >
+                            <label
+                              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                              for="all"
+                            >
+                              <input
+                                checked=""
+                                class="_checkbox__input_1rll8_22"
+                                id="all"
+                                name="all"
+                                type="checkbox"
+                              />
+                              <span
+                                class="_checkbox__box_1rll8_41"
+                              >
+                                <span
+                                  class="_checkbox__icon_1rll8_66"
+                                >
+                                  <div
+                                    aria-hidden="true"
+                                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                                  >
+                                    <div
+                                      class="_icon__glyph-area_1i355_9"
+                                    >
+                                      <svg
+                                        fill="currentColor"
+                                        height="14"
+                                        version="1.1"
+                                        viewBox="0 0 24 24"
+                                        width="14"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <path
+                                          d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                                        />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                </span>
+                              </span>
+                              <span
+                                class="_checkbox__label_1rll8_117"
+                              >
+                                All levels
+                              </span>
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div
-                        class="FilterList_item"
-                      >
                         <div
-                          class="FilterList_checkbox"
+                          class="FilterList_item"
                         >
-                          <label>
-                            <input
-                              id="error"
-                              name="error"
-                              type="checkbox"
-                            />
-                            Error
-                          </label>
+                          <div
+                            class="FilterList_checkbox"
+                          >
+                            <label
+                              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                              for="error"
+                            >
+                              <input
+                                class="_checkbox__input_1rll8_22"
+                                id="error"
+                                name="error"
+                                type="checkbox"
+                              />
+                              <span
+                                class="_checkbox__box_1rll8_41"
+                              />
+                              <span
+                                class="_checkbox__label_1rll8_117"
+                              >
+                                Error
+                              </span>
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div
-                        class="FilterList_item"
-                      >
                         <div
-                          class="FilterList_checkbox"
+                          class="FilterList_item"
                         >
-                          <label>
-                            <input
-                              id="info"
-                              name="info"
-                              type="checkbox"
-                            />
-                            Info
-                          </label>
+                          <div
+                            class="FilterList_checkbox"
+                          >
+                            <label
+                              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                              for="info"
+                            >
+                              <input
+                                class="_checkbox__input_1rll8_22"
+                                id="info"
+                                name="info"
+                                type="checkbox"
+                              />
+                              <span
+                                class="_checkbox__box_1rll8_41"
+                              />
+                              <span
+                                class="_checkbox__label_1rll8_117"
+                              >
+                                Info
+                              </span>
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div
-                        class="FilterList_item"
-                      >
                         <div
-                          class="FilterList_checkbox"
+                          class="FilterList_item"
                         >
-                          <label>
-                            <input
-                              id="debug"
-                              name="debug"
-                              type="checkbox"
-                            />
-                            Debug
-                          </label>
+                          <div
+                            class="FilterList_checkbox"
+                          >
+                            <label
+                              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                              for="debug"
+                            >
+                              <input
+                                class="_checkbox__input_1rll8_22"
+                                id="debug"
+                                name="debug"
+                                type="checkbox"
+                              />
+                              <span
+                                class="_checkbox__box_1rll8_41"
+                              />
+                              <span
+                                class="_checkbox__label_1rll8_117"
+                              >
+                                Debug
+                              </span>
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>
