@@ -12,12 +12,20 @@ import (
 
 // getOpenFileDescriptors returns the number of open file descriptors for the current process.
 func getOpenFileDescriptors() (int64, error) {
-	entries, err := os.ReadDir("/dev/fd")
+	dir, err := os.Open("/dev/fd")
 	if err != nil {
 		return -1, err
 	}
-	// Subtract 1 because the ReadDir call itself opens a file descriptor that appears in the listing.
-	return max(int64(len(entries))-1, 0), nil
+	defer dir.Close()
+
+	// Only read the names: some descriptors, such as the Go runtime's kqueue, cannot be stat'ed
+	// through /dev/fd, and os.ReadDir fails on them.
+	names, err := dir.Readdirnames(-1)
+	if err != nil {
+		return -1, err
+	}
+	// Subtract 1 because the directory itself is an open file descriptor that appears in the listing.
+	return max(int64(len(names))-1, 0), nil
 }
 
 // getMaxFileDescriptors returns the soft file descriptor limit for the current process.
