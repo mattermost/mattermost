@@ -1018,7 +1018,7 @@
   "admin.customProfileAttribDesc.ldap": "(Valgfritt) Attributtet i AD/LDAP-serveren som brukes til å fylle ut {name} for brukere i Mattermost. Når dette er angitt, kan ikke brukerne redigere {name} selv, siden det synkroniseres med LDAP-serveren. Når feltet står tomt, kan brukerne angi {name} under <strong>Kontomeny > Kontoinnstillinger > Profil</strong>.",
   "admin.customProfileAttribDesc.saml": "(Valgfritt) Attributtet i SAML-påstanden som brukes til å fylle ut {name} for brukere i Mattermost.",
   "admin.customProfileAttribWarning": "(Advarsel) Dette attributtet blir konvertert til et TEXT-attributt hvis feltet er satt til å synkronisere.",
-  "admin.customProfileAttributes.linkedNonText": "Dette feltet er et administrasjonsattributt av typen {type} og kan ikke synkroniseres via LDAP eller SAML. Bare felt av teksttype støtter synkronisering.",
+  "admin.customProfileAttributes.linkedNonText": "Dette feltet er koblet til et attributt av typen {type} i Attributtadministrasjon og kan derfor ikke synkroniseres via AD/LDAP eller SAML. Bare attributter av typen tekst, valg og flervalg støtter synkronisering.",
   "admin.customProfileAttributes.managedByPlugin": "Dette feltet administreres av pluginen {pluginId} og kan ikke redigeres.",
   "admin.customProfileAttributes.subtitle": "Du kan legge til eller fjerne brukerattributter ved å gå til <link>siden for brukerattributter</link>.",
   "admin.customProfileAttributes.title": "Synkronisering av brukerattributter",
