@@ -235,7 +235,7 @@ func TestGetHealthFindingsRendering(t *testing.T) {
 
 		rendered := list.Findings[0]
 		assert.Equal(t, finding.Fingerprint, rendered.Fingerprint)
-		assert.Equal(t, "SiteURL uses http:// (not https)", rendered.Title)
+		assert.Equal(t, "SiteURL uses http:// (not https://)", rendered.Title)
 		assert.Equal(t, "Serve via HTTPS and update SiteURL accordingly.", rendered.Remediation)
 		assert.Equal(t, "SiteURL is http://example.com. Session cookies and auth tokens travel over the network unencrypted.", rendered.Message)
 		assert.Equal(t, finding.MessageID, rendered.MessageID)

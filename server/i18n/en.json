@@ -14418,7 +14418,7 @@
   },
   {
     "id": "health.rule.site_url_http.title",
-    "translation": "SiteURL uses http:// (not https)",
+    "translation": "SiteURL uses http:// (not https://)",
     "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; 'SiteURL' is a config setting name and should not be translated."
   },
   {
