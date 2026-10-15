@@ -468,7 +468,7 @@ type ServiceSettings struct {
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableCrossTeamSearch                             *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool   `access:"write_restrictable,cloud_restrictable"`
-	EnableFileSearch                                  *bool   `access:"write_restrictable"`
+	EnableFileSearch                                  *bool   `access:"site_file_sharing_and_downloads,write_restrictable"`
 	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
 	EnableUserTypingMessages                          *bool   `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableChannelViewedMessages                       *bool   `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -1648,11 +1648,11 @@ func NewLogSettings() *LogSettings {
 }
 
 func (s *LogSettings) isValid() *AppError {
-	if !isValidLogLevelName(*s.ConsoleLevel) {
+	if *s.EnableConsole && !isValidLogLevelName(*s.ConsoleLevel) {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log_level.app_error", map[string]any{"Setting": "LogSettings.ConsoleLevel", "Value": *s.ConsoleLevel}, "", http.StatusBadRequest)
 	}
 
-	if !isValidLogLevelName(*s.FileLevel) {
+	if *s.EnableFile && !isValidLogLevelName(*s.FileLevel) {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log_level.app_error", map[string]any{"Setting": "LogSettings.FileLevel", "Value": *s.FileLevel}, "", http.StatusBadRequest)
 	}
 
@@ -3302,6 +3302,7 @@ type ElasticsearchSettings struct {
 	Trace                                       *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	IgnoredPurgeIndexes                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSearchPublicChannelsWithoutMembership *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableFileIndexing                          *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -3419,6 +3420,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.EnableSearchPublicChannelsWithoutMembership == nil {
 		s.EnableSearchPublicChannelsWithoutMembership = new(true)
+	}
+
+	if s.EnableFileIndexing == nil {
+		s.EnableFileIndexing = new(true)
 	}
 }
 
@@ -4889,12 +4894,14 @@ func (s *LdapSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.ldap_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if appErr := validatePort(*s.LdapPort, false, "LdapSettings.LdapPort"); appErr != nil {
-		return appErr
-	}
+	if *s.Enable || *s.EnableSync {
+		if appErr := validatePort(*s.LdapPort, false, "LdapSettings.LdapPort"); appErr != nil {
+			return appErr
+		}
 
-	if appErr := validatePositiveNumber(*s.QueryTimeout, "LdapSettings.QueryTimeout"); appErr != nil {
-		return appErr
+		if appErr := validatePositiveNumber(*s.QueryTimeout, "LdapSettings.QueryTimeout"); appErr != nil {
+			return appErr
+		}
 	}
 
 	if *s.SyncIntervalMinutes <= 0 {
@@ -5080,7 +5087,7 @@ func (s *ServiceSettings) isValid() *AppError {
 		return appErr
 	}
 
-	if !(*s.WebserverMode == "gzip" || *s.WebserverMode == "nogzip" || *s.WebserverMode == "disabled") {
+	if !(*s.WebserverMode == "gzip" || *s.WebserverMode == "uncompressed" || *s.WebserverMode == "disabled") {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_mode.app_error", map[string]any{"Value": *s.WebserverMode}, "", http.StatusBadRequest)
 	}
 
