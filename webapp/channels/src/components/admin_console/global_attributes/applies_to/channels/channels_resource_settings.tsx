@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import React, {useCallback} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
+
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 
 import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
 
