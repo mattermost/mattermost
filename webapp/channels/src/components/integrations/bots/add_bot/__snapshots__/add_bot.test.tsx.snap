@@ -203,21 +203,26 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             post:all
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <div
-              class="checkbox no-padding"
+            <label
+              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 backstage-form__checkbox"
+              for="postAll"
             >
-              <label
-                for="postAll"
+              <input
+                class="_checkbox__input_1rll8_22"
+                id="postAll"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_1rll8_41"
+              />
+              <span
+                class="_checkbox__label_1rll8_117"
               >
-                <input
-                  id="postAll"
-                  type="checkbox"
-                />
                 Enabled
-              </label>
-            </div>
+              </span>
+            </label>
             <div
               class="form__help"
             >
@@ -235,21 +240,26 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             post:channels
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <div
-              class="checkbox no-padding"
+            <label
+              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 backstage-form__checkbox"
+              for="postChannels"
             >
-              <label
-                for="postChannels"
+              <input
+                class="_checkbox__input_1rll8_22"
+                id="postChannels"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_1rll8_41"
+              />
+              <span
+                class="_checkbox__label_1rll8_117"
               >
-                <input
-                  id="postChannels"
-                  type="checkbox"
-                />
                 Enabled
-              </label>
-            </div>
+              </span>
+            </label>
             <div
               class="form__help"
             >
