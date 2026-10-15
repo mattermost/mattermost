@@ -7584,7 +7584,7 @@
     "description": "Finding title on the System Console Site health page for a finding that applies to one cluster node; {title} is the already translated finding title and {node} is a hostname."
   },
   "admin.health_dashboard.finding.unknown_badge": {
-    "defaultMessage": "Unknown ({severity} when firing)",
+    "defaultMessage": "Unknown ({severity} if firing)",
     "description": "Badge on a finding row of the System Console Site health page for a check that could not be evaluated; {severity} is a severity label (Critical, Warning or Info) the finding would have if it fired."
   },
   "admin.health_dashboard.finding.unknown_fallback": {
