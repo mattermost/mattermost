@@ -1018,7 +1018,7 @@
   "admin.customProfileAttribDesc.ldap": "(Pasirenkama) AD/LDAP serverio atributas, naudojamas naudotojų laukui „{name}“ Mattermost užpildyti. Kai nustatyta, naudotojai negali redaguoti savo lauko „{name}“, nes jis sinchronizuojamas su LDAP serveriu. Kai palikta tuščia, naudotojai gali nustatyti savo lauką „{name}“ skiltyje <strong>Paskyros meniu > Paskyros nustatymai > Profilis</strong>.",
   "admin.customProfileAttribDesc.saml": "(Pasirenkama) SAML patvirtinimo atributas, kuris bus naudojamas naudotojų laukui „{name}“ Mattermost užpildyti.",
   "admin.customProfileAttribWarning": "(Įspėjimas) Jei laukas nustatytas sinchronizuoti, šis atributas bus konvertuotas į TEKSTO atributą.",
-  "admin.customProfileAttributes.linkedNonText": "Šis laukas yra tvarkymo atributas, kurio tipas {type}, ir jo negalima sinchronizuoti per LDAP arba SAML. Sinchronizavimas palaikomas tik teksto tipo laukams.",
+  "admin.customProfileAttributes.linkedNonText": "Šis laukas susietas su puslapyje „Atributų tvarkymas“ apibrėžtu atributu, kurio tipas {type}, todėl jo negalima sinchronizuoti per AD/LDAP arba SAML. Sinchronizavimas palaikomas tik teksto, pasirinkimo ir kelių reikšmių pasirinkimo tipo atributams.",
   "admin.customProfileAttributes.managedByPlugin": "Šį lauką tvarko papildinys {pluginId}, jo redaguoti negalima.",
   "admin.customProfileAttributes.subtitle": "Naudotojų atributų pridėti arba pašalinti galite <link>naudotojų atributų puslapyje</link>.",
   "admin.customProfileAttributes.title": "Naudotojų atributų sinchronizavimas",
