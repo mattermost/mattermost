@@ -102,67 +102,115 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                   Role
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="system_guest"
-                        name="system_guest"
-                        type="checkbox"
-                      />
-                      Guest
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        for="system_guest"
+                      >
+                        <input
+                          class="_checkbox__input_1rll8_22"
+                          id="system_guest"
+                          name="system_guest"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_1rll8_41"
+                        />
+                        <span
+                          class="_checkbox__label_1rll8_117"
+                        >
+                          Guest
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="channel_user"
-                        name="channel_user"
-                        type="checkbox"
-                      />
-                      Member
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        for="channel_user"
+                      >
+                        <input
+                          class="_checkbox__input_1rll8_22"
+                          id="channel_user"
+                          name="channel_user"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_1rll8_41"
+                        />
+                        <span
+                          class="_checkbox__label_1rll8_117"
+                        >
+                          Member
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="channel_admin"
-                        name="channel_admin"
-                        type="checkbox"
-                      />
-                      Channel Admin
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        for="channel_admin"
+                      >
+                        <input
+                          class="_checkbox__input_1rll8_22"
+                          id="channel_admin"
+                          name="channel_admin"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_1rll8_41"
+                        />
+                        <span
+                          class="_checkbox__label_1rll8_117"
+                        >
+                          Channel Admin
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="system_admin"
-                        name="system_admin"
-                        type="checkbox"
-                      />
-                      System Admin
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        for="system_admin"
+                      >
+                        <input
+                          class="_checkbox__input_1rll8_22"
+                          id="system_admin"
+                          name="system_admin"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_1rll8_41"
+                        />
+                        <span
+                          class="_checkbox__label_1rll8_117"
+                        >
+                          System Admin
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -358,67 +406,115 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                   Role
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="system_guest"
-                        name="system_guest"
-                        type="checkbox"
-                      />
-                      Guest
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        for="system_guest"
+                      >
+                        <input
+                          class="_checkbox__input_1rll8_22"
+                          id="system_guest"
+                          name="system_guest"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_1rll8_41"
+                        />
+                        <span
+                          class="_checkbox__label_1rll8_117"
+                        >
+                          Guest
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="channel_user"
-                        name="channel_user"
-                        type="checkbox"
-                      />
-                      Member
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        for="channel_user"
+                      >
+                        <input
+                          class="_checkbox__input_1rll8_22"
+                          id="channel_user"
+                          name="channel_user"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_1rll8_41"
+                        />
+                        <span
+                          class="_checkbox__label_1rll8_117"
+                        >
+                          Member
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="channel_admin"
-                        name="channel_admin"
-                        type="checkbox"
-                      />
-                      Channel Admin
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        for="channel_admin"
+                      >
+                        <input
+                          class="_checkbox__input_1rll8_22"
+                          id="channel_admin"
+                          name="channel_admin"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_1rll8_41"
+                        />
+                        <span
+                          class="_checkbox__label_1rll8_117"
+                        >
+                          Channel Admin
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="system_admin"
-                        name="system_admin"
-                        type="checkbox"
-                      />
-                      System Admin
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+                        for="system_admin"
+                      >
+                        <input
+                          class="_checkbox__input_1rll8_22"
+                          id="system_admin"
+                          name="system_admin"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_1rll8_41"
+                        />
+                        <span
+                          class="_checkbox__label_1rll8_117"
+                        >
+                          System Admin
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
