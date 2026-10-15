@@ -255,11 +255,13 @@ test.describe('Bot account attributes @bot_accounts', () => {
             const initialValue = `Owner initial ${suffix}`;
             const updatedValue = `Owner updated ${suffix}`;
 
-            // # Grant manage_bots to regular users and give the user a bot seeded with a text value
-            const systemUserRole = await adminClient.getRoleByName('system_user');
-            await adminClient.patchRole(systemUserRole.id, {
-                permissions: [...new Set([...systemUserRole.permissions, 'manage_bots'])],
+            // # Grant manage_bots to only this user, then give them a bot seeded with a text value
+            // There is no API to create a role, so borrow a built-in one whose defaults are a subset of system_user.
+            const botManagerRole = await adminClient.getRoleByName('system_custom_group_admin');
+            await adminClient.patchRole(botManagerRole.id, {
+                permissions: [...new Set([...botManagerRole.permissions, 'manage_bots'])],
             });
+            await adminClient.updateUserRoles(user.id, `system_user ${botManagerRole.name}`);
             const bot = await seedBot(adminClient, {[textField.id]: initialValue});
             await adminClient.assignBot(bot.user_id, user.id);
 
