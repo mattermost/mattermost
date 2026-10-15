@@ -51,7 +51,10 @@ How claims are read:
 
 <Note>
 
-\- Link only attributes that users can't change themselves at the provider, because their values feed access decisions. In Keycloak, for example, make the user profile attribute editable by admins only. - If the provider releases a claim only for a specific scope, add that scope in [Additional scopes](/administration-guide/configure/authentication-configuration-settings#openid-connect-other-additional-scopes). - Microsoft Entra ID omits the `groups` claim for users in more than 200 groups and sends a reference to Microsoft Graph instead. Mattermost treats such a claim as missing, which clears the attribute, so use group filtering or app roles instead. - Claim values are never written to the server log.
+- Link only attributes that users can't change themselves at the provider, because their values feed access decisions. In Keycloak, for example, make the user profile attribute editable by admins only.
+- If the provider releases a claim only for a specific scope, add that scope in [Additional scopes](/administration-guide/configure/authentication-configuration-settings#openid-connect-other-additional-scopes).
+- Microsoft Entra ID omits the `groups` claim for users in more than 200 groups and sends a reference to Microsoft Graph instead. Mattermost treats such a claim as missing, which clears the attribute, so use group filtering or app roles instead.
+- Claim values are never written to the server log.
 
 </Note>
 

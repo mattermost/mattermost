@@ -75,7 +75,7 @@ Synchronize an attribute's user values from your identity provider instead of ma
 1.  In the **Definition** section, select **Link to external source**, then select **AD/LDAP**, **SAML**, or **OpenID Connect**.
 2.  Enter the name of the attribute in your AD/LDAP directory or SAML response, or the claim in the OpenID Connect ID token or userinfo response, to sync the value from, then save.
 
-You can link both AD/LDAP and SAML to the same attribute. Linked sources are listed under **Synced with**.
+You can link both AD/LDAP and SAML to the same attribute, but not together with OpenID Connect. Linked sources are listed under **Synced with**.
 
 From Mattermost v12.1, you can link an attribute to an OpenID Connect claim, which is synced every time a user signs in through OpenID Connect. An attribute linked to OpenID Connect can't also be linked to AD/LDAP or SAML. See [Sync user attributes from OpenID Connect claims](/administration-guide/onboard/sso-openidconnect#sync-user-attributes-from-openid-connect-claims) for details.
 
