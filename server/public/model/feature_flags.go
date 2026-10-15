@@ -107,6 +107,13 @@ type FeatureFlags struct {
 
 	// ManagedChannelCategories enables server-side managed sidebar category enforcement (Enterprise).
 	ManagedChannelCategories bool
+
+	// FEATURE_FLAG_REMOVAL: EnforceLogPathRoot - remove this once every supported
+	// release carries the flag and enforcement becomes unconditional (MM-70595).
+	// When on, a log or audit file path resolving outside the logging root
+	// (MM_LOG_PATH, or the default logs dir) aborts server startup and is rejected
+	// on config save. When off, the same paths only produce an error log line.
+	EnforceLogPathRoot bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -157,6 +164,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CJKSearch = false
 
 	f.ManagedChannelCategories = false
+
+	f.EnforceLogPathRoot = false
 }
 
 // ToMap returns the feature flags as a map[string]string
