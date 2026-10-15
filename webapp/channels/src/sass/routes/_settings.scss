@@ -815,7 +815,10 @@
 
 .user-settings__submit-checkbox {
     padding-top: 0;
-    padding-bottom: 20px;
+
+    // Space before Save/Cancel. Use margin — .checkbox.no-padding { padding: 0 }
+    // (added for Compass left-gutter fix) overrides padding-bottom on this node.
+    margin-bottom: var(--spacing-xxl, 20px);
 }
 
 .section-min {
