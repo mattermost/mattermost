@@ -4356,8 +4356,8 @@
     "description": "Help text for a user-attribute mapping field in SAML admin settings; {name} is the attribute's display name."
   },
   "admin.customProfileAttributes.linkedNonText": {
-    "defaultMessage": "This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text, select and multiselect attributes support sync.",
-    "description": "Help text under a linked (Global Attribute) user-attribute field whose type cannot be synced; explains why the LDAP/SAML sync box is disabled. {type} is the field type identifier."
+    "defaultMessage": "This field is linked to an attribute of type {type} in Attribute Management, so it cannot be synced via AD/LDAP or SAML. Only text, select and multiselect attributes support sync.",
+    "description": "Help text under a user-attribute field in the AD/LDAP or SAML user attributes sync settings when the field is linked to an attribute defined on the System Console Attribute Management page and that attribute's type cannot be synced; explains why the sync box is disabled. {type} is the raw type identifier, such as date or user, and is not translated. 'Attribute Management' is the page name; match its translation."
   },
   "admin.customProfileAttributes.managedByPlugin": {
     "defaultMessage": "This field is managed by the {pluginId} plugin and cannot be edited.",

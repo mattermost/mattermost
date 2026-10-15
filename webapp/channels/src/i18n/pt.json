@@ -1018,7 +1018,7 @@
   "admin.customProfileAttribDesc.ldap": "(Opcional) O atributo no servidor AD/LDAP utilizado para preencher o {name} dos utilizadores no Mattermost. Quando definido, os utilizadores não podem editar o seu {name}, uma vez que é sincronizado com o servidor LDAP. Quando deixado em branco, os utilizadores podem definir o seu {name} em <strong>Menu da Conta > Definições da Conta > Perfil</strong>.",
   "admin.customProfileAttribDesc.saml": "(Opcional) O atributo na Asserção SAML que será utilizado para preencher o {name} dos utilizadores no Mattermost.",
   "admin.customProfileAttribWarning": "(Aviso) Este atributo será convertido num atributo de TEXTO se o campo for definido para sincronizar.",
-  "admin.customProfileAttributes.linkedNonText": "Este campo é um atributo de gestão do tipo {type} e não pode ser sincronizado via LDAP ou SAML. Apenas os campos do tipo texto suportam sincronização.",
+  "admin.customProfileAttributes.linkedNonText": "Este campo está associado a um atributo do tipo {type} na Gestão de Atributos, pelo que não pode ser sincronizado via AD/LDAP ou SAML. Apenas os atributos do tipo texto, seleção e seleção múltipla suportam sincronização.",
   "admin.customProfileAttributes.managedByPlugin": "Este campo é gerido pelo plugin {pluginId} e não pode ser editado.",
   "admin.customProfileAttributes.subtitle": "Pode adicionar ou remover atributos de utilizador na <link>página de atributos do utilizador</link>.",
   "admin.customProfileAttributes.title": "Sincronização de atributos do utilizador",
