@@ -109,7 +109,6 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             MaximumLoginAttempts: 10,
             ExperimentalEnableAuthenticationTransfer: true,
             EnableEmailInvitations: false,
-            MaximumPersonalAccessTokenLifetimeDays: 0,
         },
         TeamSettings: {
             EnableOpenServer: true,
