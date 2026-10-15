@@ -21,6 +21,7 @@ describe('components/feature_discovery', () => {
             const getPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
+            const openTrialForm = jest.fn();
 
             renderWithContext(
                 <FeatureDiscovery
@@ -45,6 +46,7 @@ describe('components/feature_discovery', () => {
                     isSubscriptionLoaded={true}
                     isPaidSubscription={false}
                     isEnterpriseReady={true}
+                    openTrialForm={openTrialForm}
                     actions={{
                         getPrevTrialLicense,
                         getCloudSubscription,
@@ -58,6 +60,7 @@ describe('components/feature_discovery', () => {
 
             expect(screen.getByRole('button', {name: 'Start trial'})).toBeInTheDocument();
             await userEvent.click(screen.getByRole('button', {name: 'Start trial'}));
+            expect(openTrialForm).toHaveBeenCalled();
             await userEvent.click(screen.getByText('Mattermost Software Evaluation Agreement'));
 
             //cloud option
@@ -316,6 +319,7 @@ describe('components/feature_discovery', () => {
             const getPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
+            const openTrialForm = jest.fn();
 
             renderWithContext(
                 <FeatureDiscovery
@@ -340,6 +344,7 @@ describe('components/feature_discovery', () => {
                     isSubscriptionLoaded={true}
                     isPaidSubscription={false}
                     isEnterpriseReady={true}
+                    openTrialForm={openTrialForm}
                     actions={{
                         getPrevTrialLicense,
                         getCloudSubscription,
@@ -352,13 +357,18 @@ describe('components/feature_discovery', () => {
             expect(screen.queryByText('Foo')).toBeInTheDocument();
 
             // Should show Start Trial button when Enterprise Ready and no previous trial
-            expect(screen.getByRole('button', {name: 'Start trial'})).toBeInTheDocument();
+            const startTrialButton = screen.getByRole('button', {name: 'Start trial'});
+            expect(startTrialButton).toBeInTheDocument();
+            expect(startTrialButton).toHaveAttribute('id', 'start_trial_btn');
+            expect(startTrialButton.className).toMatch(/size-medium/);
             expect(screen.queryByRole('button', {name: 'Contact sales'})).not.toBeInTheDocument();
 
             const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
             expect(featureLink).toBeInTheDocument();
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
+            expect(featureLink.tagName).toBe('A');
+            expect(featureLink.closest('button')).toBeNull();
 
             expect(getPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();

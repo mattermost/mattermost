@@ -1,35 +1,4 @@
 .FeatureDiscovery {
-    &--hostTrialActions {
-        display: grid;
-
-        .FeatureDiscovery_panel {
-            grid-area: 1 / 1;
-        }
-
-        .FeatureDiscovery_hostTrialFooter {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-m);
-            grid-area: 1 / 1;
-            align-self: end;
-            justify-self: start;
-            margin: 0 0 var(--spacing-xxxl) var(--spacing-xxxl);
-            max-width: calc(100% - 340px - (3 * var(--spacing-xxl)));
-        }
-
-        .FeatureDiscovery_actionRow {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: var(--spacing-m);
-        }
-
-        .FeatureDiscovery_learnMoreLink {
-            font-size: var(--font-size-100);
-            font-weight: var(--font-weight-semibold);
-        }
-    }
-
     .trial-error {
         margin-top: var(--spacing-m);
     }

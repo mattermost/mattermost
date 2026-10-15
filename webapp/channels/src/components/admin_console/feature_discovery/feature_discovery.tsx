@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
@@ -15,7 +14,6 @@ import type {ClientLicense} from '@mattermost/types/config';
 import {EmbargoedEntityTrialError} from 'components/admin_console/license_settings/trial_banner/trial_banner';
 import AlertBanner from 'components/alert_banner';
 import ExternalLink from 'components/external_link';
-import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import {licenseSkuToLabel} from 'components/widgets/tag/sku_tag';
 
@@ -54,6 +52,7 @@ type Props = {
     isPaidSubscription: boolean;
     customer?: CloudCustomer;
     showSkuTag?: boolean;
+    openTrialForm?: (onClose?: () => void) => void;
 };
 
 type State = {
@@ -123,6 +122,22 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         ),
     });
 
+    renderStartTrialPrimaryAction = (size: ButtonProps['size'] = 'medium'): ButtonProps => ({
+        emphasis: 'primary',
+        size,
+        id: 'start_trial_btn',
+        'data-testid': 'featureDiscovery_primaryCallToAction',
+        onClick: () => {
+            this.props.openTrialForm?.();
+        },
+        children: (
+            <FormattedMessage
+                id='admin.ldap_feature_discovery.call_to_action.primary'
+                defaultMessage='Start trial'
+            />
+        ),
+    });
+
     renderPostTrialActions = () => {
         return {
             primaryAction: this.renderContactSalesPrimaryAction(),
@@ -135,22 +150,10 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         secondaryAction: this.renderLearnMoreSecondaryAction(),
     });
 
-    renderHostStartTrialActions = () => (
-        <div className='FeatureDiscovery_actionRow'>
-            <StartTrialBtn renderAsButton={true}/>
-            <ExternalLink
-                location='feature_discovery'
-                className='FeatureDiscovery_learnMoreLink'
-                href={this.props.learnMoreURL}
-                data-testid='featureDiscovery_secondaryCallToAction'
-            >
-                <FormattedMessage
-                    id='admin.ldap_feature_discovery.call_to_action.secondary'
-                    defaultMessage='Learn more'
-                />
-            </ExternalLink>
-        </div>
-    );
+    renderHostStartTrialActions = () => ({
+        primaryAction: this.renderStartTrialPrimaryAction(),
+        secondaryAction: this.renderLearnMoreSecondaryAction('tertiary'),
+    });
 
     renderTrialExtras = (gettingTrialError: React.ReactNode) => {
         return (
@@ -264,7 +267,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         const showPostTrialCta = this.props.prevTrialLicense?.IsLicensed === 'true' || this.props.isEnterpriseReady === false;
         const showHostStartTrialActions = !showPostTrialCta && !isCloud;
         const panelActions = showPostTrialCta ? this.renderPostTrialActions() : (
-            isCloud ? this.renderCloudStartTrialActions() : {}
+            isCloud ? this.renderCloudStartTrialActions() : this.renderHostStartTrialActions()
         );
 
         // Pass null when hidden so the panel does not fall back to its PROFESSIONAL default.
@@ -272,9 +275,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
 
         return (
             <div
-                className={classNames('FeatureDiscovery', {
-                    'FeatureDiscovery--hostTrialActions': showHostStartTrialActions,
-                })}
+                className='FeatureDiscovery'
                 data-testid='featureDiscovery'
             >
                 <FeatureDiscoveryPanel
@@ -300,12 +301,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                         children: featureDiscoveryImage,
                     }}
                 />
-                {showHostStartTrialActions && (
-                    <div className='FeatureDiscovery_hostTrialFooter'>
-                        {this.renderHostStartTrialActions()}
-                        {this.renderTrialExtras(gettingTrialError)}
-                    </div>
-                )}
+                {showHostStartTrialActions && this.renderTrialExtras(gettingTrialError)}
             </div>
         );
     }
