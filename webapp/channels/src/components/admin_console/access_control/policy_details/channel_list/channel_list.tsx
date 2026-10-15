@@ -7,6 +7,7 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
@@ -355,26 +356,23 @@ class ChannelList extends React.PureComponent<Props, State> {
             });
         }
 
+        const autoAddHeaderStatus = this.getAllChannelsAutoAddStatus();
+
         columns.push(
             {
                 name: (
                     <div className='ChannelList__autoAddHeader'>
-                        <input
-                            type='checkbox'
+                        <Checkbox
                             id='auto-add-header-checkbox'
                             className='header-checkbox'
+                            data-testid='auto-add-header-checkbox'
                             aria-label={this.props.intl.formatMessage({
                                 id: 'admin.access_control.policy.channel_list.autoAddHeader',
                                 defaultMessage: 'Auto-add members',
                             })}
-                            checked={this.getAllChannelsAutoAddStatus().allActive}
+                            checked={autoAddHeaderStatus.allActive}
+                            indeterminate={autoAddHeaderStatus.mixed}
                             disabled={this.props.saving}
-                            ref={(input) => {
-                                if (input) {
-                                    const {mixed} = this.getAllChannelsAutoAddStatus();
-                                    input.indeterminate = mixed;
-                                }
-                            }}
                             onChange={this.handleBulkAutoAddToggle}
                         />
                         <span className='header-text'>
@@ -462,10 +460,10 @@ class ChannelList extends React.PureComponent<Props, State> {
                     team: channel.team_display_name,
                     autoAdd: (
                         <div className='ChannelList__autoAddColumn'>
-                            <input
-                                type='checkbox'
+                            <Checkbox
                                 id={`auto-add-checkbox-${channel.id}`}
                                 className='channel-checkbox'
+                                data-testid={`auto-add-checkbox-${channel.id}`}
                                 checked={autoAddStatus}
                                 disabled={this.props.saving}
                                 onChange={() => this.handleAutoAddToggle(channel.id, autoAddStatus)}
