@@ -105,6 +105,12 @@ env:
 
 jobs:
   prepare-run:
+    # Commit statuses are SHA-scoped. Keep every publisher (including the
+    # aggregate snapshot) under this same lock; never discard queued publishers.
+    concurrency:
+      group: e2e-status-publish-${{ inputs.commit_sha }}
+      cancel-in-progress: false
+      queue: max
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -165,6 +171,18 @@ jobs:
         run: |
           echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
+
+      - name: ci/claim-status
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-status@b7c56bd6b3ad12d204631e4ec9d24352f1ffde06  # actions/e2e-status
+        with:
+          composite-identity: ${{ steps.composite-identity.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          operation: claim
+          state: pending
+          description: E2E tests queued or running
+          triage-status-context: e2e-test/triage
+          triage-lanes: e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise
 
   # Install webapp node_modules once via the shared webapp-setup action, then
   # workers restore the same stable cache. The node_modules cache is keyed only
@@ -246,6 +264,7 @@ jobs:
           playwright-project: ${{ inputs.playwright_project }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           commit-status-context: ${{ inputs.context_name }}
+          post-pending-commit-status: "false"
           image-tag: ${{ inputs.server_image_tag }}
           image-aliases: ${{ inputs.server_image_aliases }}
 
@@ -347,6 +366,12 @@ jobs:
           if-no-files-found: ignore
 
   report:
+    # Commit statuses are SHA-scoped. Keep every publisher (including the
+    # aggregate snapshot) under this same lock; never discard queued publishers.
+    concurrency:
+      group: e2e-status-publish-${{ inputs.commit_sha }}
+      cancel-in-progress: false
+      queue: max
     runs-on: ubuntu-24.04
     needs: [prepare-run, dispatch-begin, workers]
     if: always()
@@ -364,6 +389,7 @@ jobs:
         with:
           persist-credentials: false
       - name: ci/run-summary
+        if: always()
         id: summary
         continue-on-error: true
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@e2d5032cfa71a3ad11b0975b135cd221564f2787 # 2026-08-06
@@ -378,7 +404,22 @@ jobs:
           pr-number: ${{ inputs.pr_number }}
           ref-branch: ${{ inputs.ref_branch }}
           commit-status-context: ${{ inputs.context_name }}
+          update-commit-status: "false"
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: ci/publish-result
+        # The diagnostic summary runs even on cancellation. A cancelled lane
+        # must leave its current pending status (or a newer owner's result) alone.
+        if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' }}
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-status@b7c56bd6b3ad12d204631e4ec9d24352f1ffde06  # actions/e2e-status
+        with:
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          state: ${{ steps.summary.outcome == 'success' && 'success' || 'failure' }}
+          description: ${{ steps.summary.outputs.commit_status_description || 'E2E results unavailable or incomplete; re-run the failed jobs' }}
+          target-url: ${{ steps.summary.outputs.report_url }}
+          triage-status-context: e2e-test/triage
+          triage-lanes: e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise
       # Is this red run the PR's fault? History rules plus a second judge with
       # checkable evidence; writes the required status only in enforce mode.
       # Answers from earlier runs on the same PR (the same commit on master), so a
@@ -388,7 +429,7 @@ jobs:
       # the cache action saves only when the job succeeds, and a red run is the
       # one most likely to be re-run.
       - name: Restore triage answers
-        if: always() && steps.summary.outcome != 'success'
+        if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' && steps.summary.outcome != 'success' }}
         continue-on-error: true
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
@@ -406,15 +447,16 @@ jobs:
         # Only a red run is worth triaging: the verdict can turn a red run green
         # and never the other way round, so on a green one there is nothing for
         # it to change.
-        if: always() && steps.summary.outcome != 'success'
+        if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' && steps.summary.outcome != 'success' }}
         continue-on-error: true
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@233e0ecfa816b3bf263f9e823e5bdec8090820dd # actions/e2e-triage
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@b7c56bd6b3ad12d204631e4ec9d24352f1ffde06 # actions/e2e-triage
         with:
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           status-context: ${{ inputs.context_name }}
-          # One triage check for the whole PR, summarising Playwright and Cypress.
-          triage-status-context: e2e-test/triage
-          triage-lanes: e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise
+          # Only these two PR lanes share an aggregate. Other editions and
+          # trunk contexts use the action's default per-lane triage check.
+          triage-status-context: ${{ (inputs.context_name == 'e2e-test/playwright-full/enterprise' || inputs.context_name == 'e2e-test/cypress-full/enterprise') && 'e2e-test/triage' || '' }}
+          triage-lanes: ${{ (inputs.context_name == 'e2e-test/playwright-full/enterprise' || inputs.context_name == 'e2e-test/cypress-full/enterprise') && 'e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise' || '' }}
           test-root: e2e-tests/playwright/specs
           github-token: ${{ secrets.GITHUB_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -427,6 +469,16 @@ jobs:
         with:
           path: e2e-triage-answers.json
           key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number && format('pr{0}', fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number) || fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: ci/refresh-lane-summary
+        if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' }}
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-status@b7c56bd6b3ad12d204631e4ec9d24352f1ffde06  # actions/e2e-status
+        with:
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          operation: refresh
+          triage-status-context: e2e-test/triage
+          triage-lanes: e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:

@@ -492,3 +492,41 @@ The commit short SHA links to the commit on GitHub. The PR number links to the p
 - `e2e-tests/playwright/` - Playwright test suite
 - `e2e-tests/.ci/` - CI configuration and environment files
 - `e2e-tests/Makefile` - Makefile with targets for running tests, generating cycles, and reporting
+
+## Status ownership across dispatch paths
+
+Cypress and Playwright serialize each lane by resolved PR, suite, edition and
+report type, independent of the workflow dispatch ref. Status publishers also
+share `e2e-status-publish-<full tested SHA>` with `cancel-in-progress: false` and
+`queue: max`, because statuses and the cross-lane summary belong to a commit.
+The toolkit `e2e-status` action claims pending before preparation and guards all
+raw results, skips and triage verdicts by run ID and publishing attempt. The
+TSIO actions collect diagnostics with their status side effects disabled.
+Cancelled runs retain diagnostic summaries/artifacts and cannot publish.
+Missing current reports remain red, and a later pending/raw result refreshes
+the aggregate instead of leaving an old all-green snapshot.
+
+Regression checks:
+
+```sh
+python3 .github/scripts/test_e2e_status_workflows.py  # requires PyYAML
+# In mattermost-test-automation-toolkit:
+node --test scripts/e2e-*.test.js
+```
+
+For workflow lint, actionlint 1.7.11 and 1.7.12 predate GitHub's `queue: max` property.
+Until the installed linter supports it, exclude only its `unexpected key
+"queue" for "concurrency" section` diagnostic and run the structural test above;
+keep all other workflow checks enabled.
+
+Rollout requires these workflow changes on **both** dispatch source refs:
+automated dispatch uses the selected PR ref, while manual dispatch can use
+master. `e2e-tests-check.yml` also dispatches without `--ref`, so its automatic
+E2E-only trigger uses the default branch (master). The existing toolkit PR supplies the pinned owned writer; its immutable
+commit is usable by this branch before toolkit main is updated. Merging the
+Mattermost workflow changes into master is still required for manual/master
+dispatches (and other branches need the updated workflows). The manual override and verified-label workflows must also contain the SHA
+publication lock. Running workflows
+keep their original YAML and pinned actions, so drain older unguarded runs
+before relying on ownership. Branch tests and a push do not repair production
+or update already-running reporters. No TSIO service deployment is required.

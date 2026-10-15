@@ -77,7 +77,8 @@ jobs:
               exit 1
             fi
 
-            echo "PR_NUMBER=${INPUT_PR_NUMBER}" >> $GITHUB_OUTPUT
+            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number')
+            echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
             echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_OUTPUT
             echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref')" >> $GITHUB_OUTPUT
             exit 0
@@ -111,7 +112,9 @@ jobs:
             fi
 
             echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
-            echo "COMMIT_SHA=${INPUT_COMMIT_SHA}" >> $GITHUB_OUTPUT
+            # Status publication locks use the full tested SHA, never the dispatch ref.
+            COMMIT_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${INPUT_COMMIT_SHA}" --jq '.sha')
+            echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_OUTPUT
             echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref // empty' 2>/dev/null || echo "")" >> $GITHUB_OUTPUT
             exit 0
           fi
