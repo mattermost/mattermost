@@ -1090,7 +1090,8 @@ func TestChannelReadPermissionClassification(t *testing.T) {
 // TestChannelScopedEventsCarryTheReadAccessHook pins the websocket contract for every
 // publisher of channel content. A denied user stays a channel member, so the broadcast
 // still names them as a recipient; without the hook the event hands them content over a
-// connection where post events are already cut off.
+// connection where post events are already cut off. The publishers don't attach it
+// themselves: Publish does, for any channel whose read access is governed.
 func TestChannelScopedEventsCarryTheReadAccessHook(t *testing.T) {
 	cases := []struct {
 		name string
@@ -1101,6 +1102,34 @@ func TestChannelScopedEventsCarryTheReadAccessHook(t *testing.T) {
 		expectACS func(mockACS *eMocks.AccessControlServiceInterface)
 		run       func(t *testing.T, h *channelReadAccessHarness)
 	}{
+		{
+			name: "posts",
+			events: []model.WebsocketEventType{
+				model.WebsocketEventPosted,
+				model.WebsocketEventPostEdited,
+				model.WebsocketEventPostDeleted,
+			},
+			expectACS: func(mockACS *eMocks.AccessControlServiceInterface) {
+				// Notifying the channel's members evaluates their access.
+				decides(mockACS, true)
+			},
+			run: func(t *testing.T, h *channelReadAccessHarness) {
+				post, _, appErr := h.th.App.CreatePost(h.th.Context, &model.Post{
+					UserId:    h.th.BasicUser.Id,
+					ChannelId: h.th.BasicChannel.Id,
+					Message:   "a post",
+				}, h.th.BasicChannel, model.CreatePostFlags{})
+				require.Nil(t, appErr)
+
+				post = post.Clone()
+				post.Message = "an edited post"
+				_, _, appErr = h.th.App.UpdatePost(h.th.Context, post, nil)
+				require.Nil(t, appErr)
+
+				_, appErr = h.th.App.DeletePost(h.th.Context, post.Id, h.th.BasicUser.Id)
+				require.Nil(t, appErr)
+			},
+		},
 		{
 			name: "bookmarks",
 			events: []model.WebsocketEventType{
@@ -1228,6 +1257,7 @@ func TestChannelScopedEventsCarryTheReadAccessHook(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			h := setupChannelReadAccessTest(t)
 			mockACS := h.mockACS(t)
+			governed(mockACS)
 			if tc.expectACS != nil {
 				tc.expectACS(mockACS)
 			}
@@ -1502,5 +1532,169 @@ func TestNotificationEmailWithholdsContentsUnderReadAccessPolicy(t *testing.T) {
 		require.NoError(t, err)
 		requireWithheld(t, emailNotification)
 		emailServiceMock.AssertExpectations(t)
+	})
+}
+
+// TestAttachChannelReadAccessHook covers the pre-publish hook that gives channel events the
+// read-access hook without their publishers opting in.
+func TestAttachChannelReadAccessHook(t *testing.T) {
+	event := func(eventType model.WebsocketEventType, channelID, userID string) *model.WebSocketEvent {
+		return model.NewWebSocketEvent(eventType, "", channelID, userID, nil, "")
+	}
+
+	requireHooked := func(t *testing.T, message *model.WebSocketEvent, channelID string) {
+		t.Helper()
+		require.Equal(t, []string{broadcastChannelReadAccess}, message.GetBroadcast().BroadcastHooks)
+		require.Equal(t, []map[string]any{{"channel_id": channelID}}, message.GetBroadcast().BroadcastHookArgs)
+	}
+
+	t.Run("hooks a content event in a governed channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		message := event(model.WebsocketEventReactionAdded, h.th.BasicChannel.Id, "")
+		h.th.App.attachChannelReadAccessHook(message)
+		requireHooked(t, message, h.th.BasicChannel.Id)
+	})
+
+	t.Run("hooks an event sent to one user in a governed channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		message := event(model.WebsocketEventPersistentNotificationTriggered, h.th.BasicChannel.Id, h.th.BasicUser2.Id)
+		h.th.App.attachChannelReadAccessHook(message)
+		requireHooked(t, message, h.th.BasicChannel.Id)
+	})
+
+	t.Run("leaves a channel no policy governs alone", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		h.mockACS(t).On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+			Return(false, nil)
+
+		message := event(model.WebsocketEventReactionAdded, h.th.BasicChannel.Id, "")
+		h.th.App.attachChannelReadAccessHook(message)
+		require.Empty(t, message.GetBroadcast().BroadcastHooks)
+	})
+
+	t.Run("leaves everything alone while enforcement is off", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		h.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
+		})
+
+		message := event(model.WebsocketEventReactionAdded, h.th.BasicChannel.Id, "")
+		h.th.App.attachChannelReadAccessHook(message)
+		require.Empty(t, message.GetBroadcast().BroadcastHooks)
+		mockACS.AssertNotCalled(t, "ActionHasPermissionPolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("leaves events without a channel, DMs and GMs alone", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+
+		dm := h.th.CreateDmChannel(t, h.th.BasicUser2)
+		gm := h.th.CreateGroupChannel(t, h.th.BasicUser2, h.th.CreateUser(t))
+		for _, channelID := range []string{"", dm.Id, gm.Id} {
+			message := event(model.WebsocketEventReactionAdded, channelID, "")
+			h.th.App.attachChannelReadAccessHook(message)
+			require.Empty(t, message.GetBroadcast().BroadcastHooks, "channel %q", channelID)
+		}
+		mockACS.AssertNotCalled(t, "ActionHasPermissionPolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("leaves exempt events and plugin events alone", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+
+		for _, eventType := range []model.WebsocketEventType{
+			model.WebsocketEventUserRemoved,
+			model.WebsocketEventChannelDeleted,
+			model.WebsocketEventTyping,
+			model.WebsocketEventEphemeralMessage,
+			model.WebsocketEventThreadReadChanged,
+			"custom_com.example.plugin_refresh",
+		} {
+			message := event(eventType, h.th.BasicChannel.Id, "")
+			h.th.App.attachChannelReadAccessHook(message)
+			require.Empty(t, message.GetBroadcast().BroadcastHooks, "%s", eventType)
+		}
+		mockACS.AssertNotCalled(t, "ActionHasPermissionPolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("channel_access_control_updated keeps only its redacting hook", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		message := event(model.WebsocketEventChannelAccessControlUpdated, h.th.BasicChannel.Id, "")
+		useChannelReadAccessRedactHook(message, h.th.BasicChannel.Id)
+		h.th.App.attachChannelReadAccessHook(message)
+		require.Equal(t, []string{broadcastChannelReadAccessRedact}, message.GetBroadcast().BroadcastHooks)
+	})
+
+	t.Run("doesn't hook an event twice", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		message := event(model.WebsocketEventReactionAdded, h.th.BasicChannel.Id, "")
+		h.th.App.attachChannelReadAccessHook(message)
+		h.th.App.attachChannelReadAccessHook(message)
+		requireHooked(t, message, h.th.BasicChannel.Id)
+	})
+
+	t.Run("hooks the event when the channel can't be resolved", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		h.mockACS(t)
+
+		channelID := model.NewId()
+		message := event(model.WebsocketEventReactionAdded, channelID, "")
+		h.th.App.attachChannelReadAccessHook(message)
+		requireHooked(t, message, channelID)
+	})
+}
+
+// TestPublishAttachesTheReadAccessHook covers the wiring: publishers that never call a
+// read-access helper still get the hook, because Publish attaches it.
+func TestPublishAttachesTheReadAccessHook(t *testing.T) {
+	t.Run("persistent_notification_triggered", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		h.th.AddUserToChannel(t, h.th.BasicUser2, h.th.BasicChannel)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		// The push path evaluates the recipient's access before the event is published.
+		decides(mockACS, true)
+
+		events := []model.WebsocketEventType{model.WebsocketEventPersistentNotificationTriggered}
+		requireReadAccessHook(t, h, events, func(t *testing.T, h *channelReadAccessHarness) {
+			mentions := &MentionResults{Mentions: map[string]MentionType{h.th.BasicUser2.Id: KeywordMention}}
+			profileMap := model.UserMap{h.th.BasicUser.Id: h.th.BasicUser, h.th.BasicUser2.Id: h.th.BasicUser2}
+			require.NoError(t, h.th.App.sendPersistentNotifications(h.th.BasicPost, h.th.BasicChannel, h.th.BasicTeam,
+				mentions, profileMap, map[string]map[string]model.StringMap{}))
+		})
+	})
+
+	t.Run("an event published straight to the platform", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		events := []model.WebsocketEventType{model.WebsocketEventPostEdited}
+		requireReadAccessHook(t, h, events, func(t *testing.T, h *channelReadAccessHarness) {
+			h.th.Server.Platform().Publish(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", h.th.BasicChannel.Id, "", nil, ""))
+		})
+	})
+}
+
+// TestPostRevealedCarriesTheReadAccessHook covers post_revealed, which carries the revealed
+// post to one user with no channel in its broadcast, so Publish can't hook it.
+func TestPostRevealedCarriesTheReadAccessHook(t *testing.T) {
+	h := setupChannelReadAccessTest(t)
+	h.mockACS(t)
+
+	events := []model.WebsocketEventType{model.WebsocketEventPostRevealed}
+	requireReadAccessHook(t, h, events, func(t *testing.T, h *channelReadAccessHarness) {
+		require.Nil(t, h.th.App.publishPostRevealedEventToAuthor(h.rctx, h.th.BasicPost, h.th.BasicUser2.Id, ""))
+		require.Nil(t, h.th.App.publishPostRevealedEventToUser(h.rctx, h.th.BasicPost, h.th.BasicUser2.Id, ""))
 	})
 }

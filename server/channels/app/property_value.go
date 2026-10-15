@@ -362,7 +362,6 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 				message.Add("object_type", objectType)
 				message.Add("target_id", targetID)
 				message.Add("values", string(valuesJSON))
-				a.setupBroadcastHookForChannelReadAccess(channelID, message)
 				a.Publish(message)
 			}
 		}
@@ -409,7 +408,6 @@ func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *mo
 	message.Add("object_type", value.TargetType)
 	message.Add("target_id", value.TargetID)
 	message.Add("values", string(valuesJSON))
-	a.setupBroadcastHookForChannelReadAccess(channelID, message)
 	a.Publish(message)
 	return nil
 }
@@ -435,7 +433,6 @@ func (a *App) DeletePropertyValuesForTarget(rctx request.CTX, groupID, targetTyp
 	message.Add("object_type", targetType)
 	message.Add("target_id", targetID)
 	message.Add("values", "[]")
-	a.setupBroadcastHookForChannelReadAccess(channelID, message)
 	a.Publish(message)
 	return nil
 }

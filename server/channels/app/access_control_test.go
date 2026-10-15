@@ -1274,6 +1274,9 @@ func TestUpdateChannelBlocksTypeConversionWhenPolicyEnforced(t *testing.T) {
 	th.App.Srv().ch.AccessControl = mockACS
 	t.Cleanup(func() { th.App.Srv().ch.AccessControl = originalACS })
 	mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).Return((*model.AppError)(nil)).Maybe()
+	// Publishing channel_updated asks whether read access is governed for the channel.
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).Return(false, nil).Maybe()
+	mockACS.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, model.AccessControlPolicyActionChannelReadAccess).Return(false, nil).Maybe()
 
 	stampPolicy := func(t *testing.T, channelID string) {
 		t.Helper()

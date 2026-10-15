@@ -888,7 +888,6 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 		return nil, model.NewAppError("UpdateChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	messageWs.Add("channel", string(channelJSON))
-	a.setupBroadcastHookForChannelReadAccess(channel.Id, messageWs)
 	a.Publish(messageWs)
 
 	return channel, nil

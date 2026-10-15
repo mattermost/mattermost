@@ -685,6 +685,38 @@ func (h *onlyChannelAdminsBroadcastHook) Process(msg *platform.HookedWebSocketEv
 // replay queue, so a dropped event leaves no gap for the client to notice.
 type channelReadAccessBroadcastHook struct{}
 
+// channelReadAccessExemptEvents are the channel-scoped events attachChannelReadAccessHook
+// leaves unfiltered:
+//   - membership and lifecycle events, which carry only ids and let a denied user's
+//     client drop or update the channel;
+//   - events that echo the recipient's own action back to them;
+//   - typing, which shows activity rather than content;
+//   - channel_access_control_updated, which denied users need and which strips the
+//     channel for them through channelReadAccessRedactBroadcastHook instead.
+var channelReadAccessExemptEvents = map[model.WebsocketEventType]struct{}{
+	model.WebsocketEventUserAdded:                           {},
+	model.WebsocketEventUserRemoved:                         {},
+	model.WebsocketEventChannelDeleted:                      {},
+	model.WebsocketEventChannelRestored:                     {},
+	model.WebsocketEventChannelSchemeUpdated:                {},
+	model.WebsocketEventReceivedGroupAssociatedToChannel:    {},
+	model.WebsocketEventReceivedGroupNotAssociatedToChannel: {},
+	model.WebsocketEventChannelAccessControlUpdated:         {},
+
+	model.WebsocketEventEphemeralMessage:      {},
+	model.WebsocketEventDraftCreated:          {},
+	model.WebsocketEventDraftUpdated:          {},
+	model.WebsocketEventDraftDeleted:          {},
+	model.WebsocketEventFileDownloadRejected:  {},
+	model.WebsocketEventFileUploadRejected:    {},
+	model.WebsocketEventPostUnread:            {},
+	model.WebsocketEventPostBurned:            {},
+	model.WebsocketEventBurnOnReadAllRevealed: {},
+	model.WebsocketEventThreadReadChanged:     {},
+
+	model.WebsocketEventTyping: {},
+}
+
 func useChannelReadAccessHook(message *model.WebSocketEvent, channelID string) {
 	message.GetBroadcast().AddHook(broadcastChannelReadAccess, map[string]any{
 		"channel_id": channelID,

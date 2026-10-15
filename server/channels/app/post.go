@@ -1283,7 +1283,11 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	}
 
 	a.setupBroadcastHookForAbacFiles(post, message)
-	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
+	// For some events the channel ID is not attached to the event directly so we need to get it from the post.
+	// Some of such events are channel_member_updated,user_removed, scheduled_post events, etc
+	if message.GetBroadcast().ChannelId == "" {
+		a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
+	}
 
 	a.Publish(message)
 	return nil
@@ -3846,14 +3850,12 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	userMessage.Add("post", sanitizedPostJSON)
 	userMessage.GetBroadcast().ContainsSanitizedData = true
-	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, userMessage)
 	a.Publish(userMessage)
 
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	adminMessage.Add("post", string(postJSON))
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
-	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, adminMessage)
 	a.Publish(adminMessage)
 
 	a.Srv().Go(func() {
@@ -4433,6 +4435,8 @@ func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Pos
 		event.Add("recipients", []string{})
 	}
 
+	// Sent to one user without a channel, so the central read-access hook can't see it.
+	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, event)
 	a.Publish(event)
 
 	return nil
@@ -4457,6 +4461,8 @@ func (a *App) publishPostRevealedEventToUser(rctx request.CTX, post *model.Post,
 
 	event.Add("post", postJSON)
 
+	// Sent to one user without a channel, so the central read-access hook can't see it.
+	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, event)
 	a.Publish(event)
 
 	return nil

@@ -6,6 +6,8 @@ package app
 import (
 	"context"
 	"net/http"
+	"slices"
+	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -187,10 +189,47 @@ func (a *App) setupBroadcastHookForChannelReadAccess(channelID string, message *
 	useChannelReadAccessHook(message, channelID)
 }
 
-// SetupBroadcastHookForChannelReadAccess exposes setupBroadcastHookForChannelReadAccess to
-// services outside the app package that publish channel-scoped events.
-func (a *App) SetupBroadcastHookForChannelReadAccess(channelID string, message *model.WebSocketEvent) {
-	a.setupBroadcastHookForChannelReadAccess(channelID, message)
+func (a *App) attachChannelReadAccessHook(message *model.WebSocketEvent) {
+	if !a.channelReadAccessEnforcementActive() {
+		return
+	}
+
+	broadcast := message.GetBroadcast()
+	if broadcast == nil || broadcast.ChannelId == "" {
+		return
+	}
+
+	eventType := message.EventType()
+	if _, exempt := channelReadAccessExemptEvents[eventType]; exempt || strings.HasPrefix(string(eventType), "custom_") {
+		return
+	}
+
+	if slices.Contains(broadcast.BroadcastHooks, broadcastChannelReadAccess) ||
+		slices.Contains(broadcast.BroadcastHooks, broadcastChannelReadAccessRedact) {
+		return
+	}
+
+	rctx := request.EmptyContext(a.Log())
+	// The bare cached read: governance comes from the policy cache, so the channel's
+	// hydrated policy actions aren't needed.
+	channel, appErr := a.Srv().getChannel(rctx, broadcast.ChannelId)
+	if appErr != nil {
+		rctx.Logger().Warn("Failed to resolve channel for channel_read_access; filtering the event anyway",
+			mlog.String("channel_id", broadcast.ChannelId),
+			mlog.String("event", string(eventType)),
+			mlog.Err(appErr),
+		)
+		useChannelReadAccessHook(message, broadcast.ChannelId)
+		return
+	}
+
+	if channel.IsGroupOrDirect() {
+		return
+	}
+
+	if governed, _ := a.channelReadAccessGoverned(rctx, channel); governed {
+		useChannelReadAccessHook(message, broadcast.ChannelId)
+	}
 }
 
 func (a *App) HasChannelReadAccess(rctx request.CTX, userID string, channel *model.Channel) bool {
