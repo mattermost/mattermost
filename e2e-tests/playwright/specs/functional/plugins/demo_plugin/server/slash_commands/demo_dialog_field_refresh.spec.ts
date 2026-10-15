@@ -107,6 +107,9 @@ test('should update form fields dynamically when project type changes via /dialo
     // don't clear it, force a full plugin recovery cycle once and keep retrying — see
     // recoverDemoPlugin's doc comment for why that is the one action known to help.
     for (let attempt = 0; attempt < 12; attempt++) {
+        if (!(await dialog.isVisible())) {
+            break;
+        }
         if (attempt === 6) {
             await recoverDemoPlugin(adminClient);
         }

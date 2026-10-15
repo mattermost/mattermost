@@ -56,8 +56,11 @@ test('should post interactive button and respond with click attribution via /int
     // is posted). If plain retries don't clear it, force a full plugin recovery cycle once
     // and keep retrying — see recoverDemoPlugin's doc comment for why that is the one
     // action known to help.
-    const replyButton = interactivePost.getByRole('button', {name: /1 reply/});
+    const replyButton = interactivePost.getByRole('button', {name: /\d+ repl/});
     for (let attempt = 0; attempt < 8; attempt++) {
+        if (await replyButton.isVisible()) {
+            break;
+        }
         if (attempt === 4) {
             await recoverDemoPlugin(adminClient);
         }

@@ -64,6 +64,9 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
         .filter({hasText: 'updated ephemeral action'})
         .last();
     for (let attempt = 0; attempt < 8; attempt++) {
+        if (await updatedPost.getByText('updated ephemeral action', {exact: true}).isVisible()) {
+            break;
+        }
         await ephemeralPost.getByRole('button', {name: 'Update', exact: true}).click();
         try {
             await expect(updatedPost.getByText('updated ephemeral action', {exact: true})).toBeVisible({
@@ -89,6 +92,9 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
         .filter({hasText: '(message deleted)'})
         .last();
     for (let attempt = 0; attempt < 8; attempt++) {
+        if (await deletedPost.getByText('(message deleted)', {exact: true}).isVisible()) {
+            break;
+        }
         await updatedPost.getByRole('button', {name: 'Delete', exact: true}).click();
         try {
             await expect(deletedPost.getByText('(message deleted)', {exact: true})).toBeVisible({
