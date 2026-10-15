@@ -42,8 +42,8 @@ The first step is to get your master database connection string. We recommend ac
 
 <Important>
 
-- `SqlSettings.DataSource` must start with `postgres://` or `mysql://`. If it doesn't, add it to the beginning based on the database in use. For example: `postgres://mmuser:really_secure_password@localhost:5432/mattermost?sslmode=disable&connect_timeout=10`
-- If you see `\u0026`, replace it with `&`. For example: `mysql://mmuser:really_secure_password@tcp(127.0.0.1:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s`
+- `SqlSettings.DataSource` must be a `postgres://` URL. For example: `postgres://mmuser:<mmuser-password>@localhost:5432/mattermost?sslmode=disable&connect_timeout=10`. `mattermost setup` accepts PostgreSQL only.
+- If you see `\u0026`, replace it with `&`.
 
 </Important>
 
@@ -57,11 +57,7 @@ MM_CONFIG='postgres://mmuser:<mmuser-password>@localhost:5432/mattermost?sslmode
 
 Hosts that already load `/opt/mattermost/config/mattermost.environment` should keep that file. `mattermost setup` stops when the unit's effective `MM_CONFIG` comes from a different file, so it will not replace that path.
 
-Run this command to verify the permissions on your Mattermost directory:
-
-``` sh
-sudo chown -R mattermost:mattermost /opt/mattermost
-```
+`mattermost setup` does not change ownership of `/opt/mattermost`. It creates the runtime directories it needs and leaves the rest of the install tree alone. Do not recursively change ownership of `/opt/mattermost`.
 
 ### Enable local mode
 
@@ -80,7 +76,7 @@ sudo systemctl restart mattermost
 You can use the [mmctl config migrate](/administration-guide/manage/mmctl-command-line-tool#mmctl-config-migrate) command to migrate the configuration by running the following command:
 
 ``` sh
-./bin/mmctl config migrate path/to/config.json "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10" --local
+./bin/mmctl config migrate path/to/config.json "postgres://mmuser:<mmuser-password>@localhost:5432/mattermost?sslmode=disable&connect_timeout=10" --local
 ```
 
 <Important>
@@ -110,7 +106,7 @@ The second line of output will have the location of the running `mattermost.serv
       Loaded: loaded (/etc/systemd/system/mattermost.service; enabled; vendor preset: enabled)
 ```
 
-Edit this file as *root* to add the below text just above the line that begins with `ExecStart`:
+Prefer `sudo systemctl edit mattermost` so a package upgrade does not overwrite the change. Do not edit `/lib/systemd/system/mattermost.service`. If you edit the unit shown above instead, add the below text just above the line that begins with `ExecStart`:
 
 ``` text
 EnvironmentFile=/etc/mattermost/mattermost.env

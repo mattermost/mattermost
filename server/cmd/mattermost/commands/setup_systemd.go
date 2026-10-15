@@ -119,15 +119,47 @@ func parseEnvFile(data string) map[string]string {
 }
 
 func systemdUnquote(value string) string {
-	if len(value) >= 2 {
-		if (value[0] == '"' && value[len(value)-1] == '"') || (value[0] == '\'' && value[len(value)-1] == '\'') {
-			return value[1 : len(value)-1]
-		}
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	if value[0] == '"' || value[0] == '\'' {
+		return systemdUnquoteWord(value)
 	}
 	if i := strings.IndexByte(value, '#'); i >= 0 {
 		return strings.TrimSpace(value[:i])
 	}
 	return value
+}
+
+func systemdUnquoteWord(value string) string {
+	var b strings.Builder
+	var quote byte
+	for i := 0; i < len(value); i++ {
+		c := value[i]
+		if quote != 0 {
+			if c == '\\' && quote == '"' && i+1 < len(value) {
+				b.WriteByte(value[i+1])
+				i++
+				continue
+			}
+			if c == quote {
+				quote = 0
+				continue
+			}
+			b.WriteByte(c)
+			continue
+		}
+		if c == '"' || c == '\'' {
+			quote = c
+			continue
+		}
+		if c == '#' {
+			break
+		}
+		b.WriteByte(c)
+	}
+	return b.String()
 }
 
 func splitEnvFilePaths(value string) []string {
@@ -165,6 +197,46 @@ func splitEnvFilePaths(value string) []string {
 	return paths
 }
 
+func splitEnvAssignments(value string) []string {
+	var parts []string
+	var b strings.Builder
+	var quote byte
+	flush := func() {
+		if b.Len() == 0 {
+			return
+		}
+		parts = append(parts, b.String())
+		b.Reset()
+	}
+	for i := 0; i < len(value); i++ {
+		c := value[i]
+		if quote != 0 {
+			if c == '\\' && quote == '"' && i+1 < len(value) {
+				b.WriteByte(value[i+1])
+				i++
+				continue
+			}
+			if c == quote {
+				quote = 0
+				continue
+			}
+			b.WriteByte(c)
+			continue
+		}
+		if c == '"' || c == '\'' {
+			quote = c
+			continue
+		}
+		if c == ' ' || c == '\t' {
+			flush()
+			continue
+		}
+		b.WriteByte(c)
+	}
+	flush()
+	return parts
+}
+
 func parseUnitAssignments(path string) ([]unitAssign, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -192,22 +264,35 @@ func parseUnitAssignments(path string) ([]unitAssign, error) {
 		value = strings.TrimSpace(value)
 		switch key {
 		case "EnvironmentFile":
+			if value == "" {
+				out = append(out, unitAssign{kind: "reset-file"})
+				continue
+			}
 			for _, envPath := range splitEnvFilePaths(value) {
 				out = append(out, unitAssign{kind: "file", path: envPath})
 			}
 		case "Environment":
-			envKey, envValue, ok := strings.Cut(value, "=")
-			if !ok {
+			if value == "" {
+				out = append(out, unitAssign{kind: "reset-env"})
 				continue
 			}
-			out = append(out, unitAssign{kind: "env", key: strings.TrimSpace(envKey), value: systemdUnquote(strings.TrimSpace(envValue))})
+			for _, assignment := range splitEnvAssignments(value) {
+				envKey, envValue, ok := strings.Cut(assignment, "=")
+				if !ok || strings.TrimSpace(envKey) == "" {
+					continue
+				}
+				out = append(out, unitAssign{kind: "env", key: strings.TrimSpace(envKey), value: envValue})
+			}
 		}
 	}
 	return out, nil
 }
 
 func effectiveMMConfig(mainUnit string, dropIns []string) (mmConfigSource, error) {
-	var last mmConfigSource
+	var current mmConfigSource
+	var currentKind string
+	var fromFile mmConfigSource
+	var fromEnv mmConfigSource
 	files := make([]string, 0, 1+len(dropIns))
 	if mainUnit != "" {
 		files = append(files, mainUnit)
@@ -222,7 +307,26 @@ func effectiveMMConfig(mainUnit string, dropIns []string) (mmConfigSource, error
 			return mmConfigSource{}, err
 		}
 		for _, assign := range assigns {
-			if assign.kind == "file" {
+			switch assign.kind {
+			case "reset-file":
+				fromFile = mmConfigSource{}
+				if currentKind == "file" {
+					current = fromEnv
+					currentKind = ""
+					if fromEnv.found {
+						currentKind = "env"
+					}
+				}
+			case "reset-env":
+				fromEnv = mmConfigSource{}
+				if currentKind == "env" {
+					current = fromFile
+					currentKind = ""
+					if fromFile.found {
+						currentKind = "file"
+					}
+				}
+			case "file":
 				data, err := os.ReadFile(assign.path)
 				if err != nil {
 					if os.IsNotExist(err) {
@@ -231,16 +335,20 @@ func effectiveMMConfig(mainUnit string, dropIns []string) (mmConfigSource, error
 					return mmConfigSource{}, err
 				}
 				if value, ok := parseEnvFile(string(data))["MM_CONFIG"]; ok {
-					last = mmConfigSource{value: value, source: assign.path, found: true}
+					fromFile = mmConfigSource{value: value, source: assign.path, found: true}
+					current = fromFile
+					currentKind = "file"
 				}
-				continue
-			}
-			if assign.key == "MM_CONFIG" {
-				last = mmConfigSource{value: assign.value, source: path, found: true}
+			default:
+				if assign.key == "MM_CONFIG" {
+					fromEnv = mmConfigSource{value: assign.value, source: path, found: true}
+					current = fromEnv
+					currentKind = "env"
+				}
 			}
 		}
 	}
-	return last, nil
+	return current, nil
 }
 
 func mmConfigConflict(paths systemdPaths, envFile string) error {
@@ -262,14 +370,22 @@ func mmConfigConflict(paths systemdPaths, envFile string) error {
 	return errors.Errorf("MM_CONFIG is already loaded from %s. Setup will not add %s over that file", src.source, envFile)
 }
 
-func installSystemd(paths systemdPaths, envFile string, reload func() error) error {
+func unitForInstall(envFile, installRoot string) string {
+	content := strings.ReplaceAll(shippedMattermostUnit, defaultEnvFile, envFile)
+	root := filepath.Clean(installRoot)
+	if root == "" || root == "." || root == "/opt/mattermost" {
+		return content
+	}
+	return strings.ReplaceAll(content, "/opt/mattermost", root)
+}
+
+func installSystemd(paths systemdPaths, envFile, installRoot string, reload func() error) error {
 	main := paths.mainUnit()
 	if main == "" {
 		if err := os.MkdirAll(filepath.Dir(paths.etcUnit), 0755); err != nil {
 			return err
 		}
-		content := strings.ReplaceAll(shippedMattermostUnit, defaultEnvFile, envFile)
-		if err := os.WriteFile(paths.etcUnit, []byte(content), 0644); err != nil {
+		if err := os.WriteFile(paths.etcUnit, []byte(unitForInstall(envFile, installRoot)), 0644); err != nil {
 			return err
 		}
 	} else {
@@ -288,10 +404,12 @@ func installSystemd(paths systemdPaths, envFile string, reload func() error) err
 		}
 	}
 	if reload != nil {
-		if err := reload(); err != nil {
-			return err
-		}
+		return reload()
 	}
+	return nil
+}
+
+func confirmSystemdEnv(paths systemdPaths, envFile string) error {
 	dropIns, err := paths.dropIns()
 	if err != nil {
 		return err
@@ -304,6 +422,33 @@ func installSystemd(paths systemdPaths, envFile string, reload func() error) err
 		return errors.Errorf("systemd unit does not load MM_CONFIG from %s", envFile)
 	}
 	return nil
+}
+
+func unitValue(path, want string) (string, bool) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", false
+	}
+	section := ""
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if strings.HasPrefix(line, "[") && strings.HasSuffix(line, "]") {
+			section = strings.Trim(line, "[]")
+			continue
+		}
+		if !strings.EqualFold(section, "Service") {
+			continue
+		}
+		key, value, ok := strings.Cut(line, "=")
+		if !ok || !strings.EqualFold(strings.TrimSpace(key), want) {
+			continue
+		}
+		return systemdUnquote(strings.TrimSpace(value)), true
+	}
+	return "", false
 }
 
 func writeDropIn(dir, envFile string) error {

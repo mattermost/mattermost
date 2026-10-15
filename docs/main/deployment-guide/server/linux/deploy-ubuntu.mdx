@@ -67,9 +67,14 @@ sudo apt install mattermost -y
 Mattermost installs to `/opt/mattermost`. The package creates a `mattermost` user and group and a systemd unit file. The service is **not** enabled or started at this point.
 
 :::note[systemd dependencies]
-The Mattermost package doesn't declare a database dependency in its systemd unit (the package is used for both single-host and external-database installs). If you installed PostgreSQL on the same host, add the following to the `[Unit]` section of `/lib/systemd/system/mattermost.service`:
+The Mattermost package doesn't declare a database dependency in its systemd unit (the package is used for both single-host and external-database installs). If you installed PostgreSQL on the same host, add a drop-in. Do not edit `/lib/systemd/system/mattermost.service`. Package upgrades replace that file.
+
+```sh
+sudo systemctl edit mattermost
+```
 
 ```ini
+[Unit]
 After=postgresql.service
 BindsTo=postgresql.service
 ```
@@ -95,11 +100,15 @@ You should see the Mattermost HTML response.
 On a new installation, setup asks for the PostgreSQL URL and the Site URL. A non-interactive install:
 
 ```sh
+printf '%s\n' 'postgres://mmuser:<mmuser-password>@<host>:5432/mattermost?sslmode=disable' | sudo tee /root/mattermost-database.url >/dev/null
+sudo chmod 600 /root/mattermost-database.url
 sudo mattermost setup \
-  --database-url 'postgres://mmuser:<mmuser-password>@<host>:5432/mattermost?sslmode=disable' \
+  --database-url-file /root/mattermost-database.url \
   --site-url 'https://mattermost.example.com' \
   --non-interactive
 ```
+
+The URL file keeps the password out of the shell history and the process list. Remove it after setup. `--database-url -` reads one line from stdin instead.
 
 :::note[TLS mode for `DataSource`]
 The `sslmode` value depends on your database environment. The two relevant options are `disable` and `require`. Managed services such as AWS Lightsail require `sslmode=require`. Check your provider's documentation.
@@ -109,7 +118,7 @@ Pass `--config-store file` to keep configuration in a file. Setup then writes `/
 
 Once the environment file is in place, Mattermost does not read `/opt/mattermost/config/config.json`. Change settings afterward in the System Console, with `mmctl`, or by editing `/etc/mattermost/config.json` when you chose file storage. Set [`SupportSettings.SupportEmail`](/administration-guide/configure/site-configuration-settings#support-email-address) to the address users contact for help.
 
-An existing server that already has configuration in PostgreSQL can be joined with the same command. Setup reports that this host is joining the cluster and does not replace the cluster's Site URL. Do not run setup as part of an `apt upgrade`.
+An existing server that already has configuration in PostgreSQL can be joined with the same command. Setup reports that this is an existing installation, checks connectivity, and writes this host's environment file. It adds a systemd drop-in only when the unit does not already load that file. It does not change the stored configuration or the Site URL. Do not run setup as part of an `apt upgrade`.
 
 ## Step 6: Update Mattermost
 

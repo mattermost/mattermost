@@ -34,6 +34,10 @@ const (
 	privilegeProbeTable  = "db_check"
 	privilegeProbeCreate = "CREATE TABLE db_check (id integer)"
 	privilegeProbeDrop   = "DROP TABLE db_check"
+	// setupAdvisoryLockKey is held from inspection through schema init so two
+	// hosts cannot both seed an empty database.
+	setupAdvisoryLockKey int64 = 0x4d4d535554
+	setupLockWait              = 15 * time.Minute
 )
 
 type dbInspection struct {
@@ -81,7 +85,7 @@ func redactDSN(err error, dsn string) string {
 	return msg
 }
 
-func inspectDatabase(dsn string) (dbInspection, error) {
+func inspectDatabase(dsn string, probe bool) (dbInspection, error) {
 	handle, err := openPostgres(dsn)
 	if err != nil {
 		return dbInspection{}, err
@@ -129,6 +133,9 @@ func inspectDatabase(dsn string) (dbInspection, error) {
 		}
 		return info, nil
 	}
+	if !probe {
+		return info, nil
+	}
 
 	warning, err := probeCreateTable(ctx, handle)
 	if err != nil {
@@ -137,6 +144,53 @@ func inspectDatabase(dsn string) (dbInspection, error) {
 	info.probedCreate = true
 	info.probeDropWarning = warning
 	return info, nil
+}
+
+// lockSetupDatabase holds a session advisory lock until unlock is called.
+// wait is invoked only when another session already holds it.
+func lockSetupDatabase(dsn string, wait func()) (func(), error) {
+	handle, err := openPostgres(dsn)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), setupDBTimeout)
+	conn, err := handle.Conn(ctx)
+	cancel()
+	if err != nil {
+		handle.Close()
+		return nil, redactError(err, dsn)
+	}
+	closeAll := func() {
+		conn.Close()
+		handle.Close()
+	}
+
+	tryCtx, tryCancel := context.WithTimeout(context.Background(), setupDBTimeout)
+	var got bool
+	err = conn.QueryRowContext(tryCtx, "SELECT pg_try_advisory_lock($1)", setupAdvisoryLockKey).Scan(&got)
+	tryCancel()
+	if err != nil {
+		closeAll()
+		return nil, redactError(err, dsn)
+	}
+	if !got {
+		if wait != nil {
+			wait()
+		}
+		waitCtx, waitCancel := context.WithTimeout(context.Background(), setupLockWait)
+		_, err = conn.ExecContext(waitCtx, "SELECT pg_advisory_lock($1)", setupAdvisoryLockKey)
+		waitCancel()
+		if err != nil {
+			closeAll()
+			return nil, errors.Errorf("timed out waiting for another setup to finish: %s", redactDSN(err, dsn))
+		}
+	}
+	return func() {
+		unlockCtx, unlockCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		_, _ = conn.ExecContext(unlockCtx, "SELECT pg_advisory_unlock($1)", setupAdvisoryLockKey)
+		unlockCancel()
+		closeAll()
+	}, nil
 }
 
 func readPostgresIdentity(ctx context.Context, handle *sql.DB, versionNum int) (string, string) {
@@ -168,16 +222,42 @@ func readPostgresVendor(ctx context.Context, handle *sql.DB) (postgresVendor, er
 }
 
 func probeCreateTable(ctx context.Context, handle *sql.DB) (string, error) {
-	if _, err := handle.ExecContext(ctx, privilegeProbeCreate); err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), "already exists") {
-			return "", errors.Errorf("table %s already exists. Drop it and run setup again", privilegeProbeTable)
-		}
+	warning, err := probeCreateRollback(ctx, handle)
+	if err == nil {
+		return warning, nil
+	}
+	if !tableAlreadyExists(err) {
 		return "", err
 	}
-	if _, err := handle.ExecContext(context.Background(), privilegeProbeDrop); err != nil {
-		return fmt.Sprintf("Could not delete table %s. Drop it before starting Mattermost.", privilegeProbeTable), nil
+	if _, dropErr := handle.ExecContext(ctx, privilegeProbeDrop); dropErr != nil {
+		return fmt.Sprintf("Table %s already exists and could not be removed. Drop it before starting Mattermost.", privilegeProbeTable), nil
 	}
+	return probeCreateRollback(ctx, handle)
+}
+
+func probeCreateRollback(ctx context.Context, handle *sql.DB) (string, error) {
+	tx, err := handle.BeginTx(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+	rolledBack := false
+	defer func() {
+		if !rolledBack {
+			_ = tx.Rollback()
+		}
+	}()
+	if _, err := tx.ExecContext(ctx, privilegeProbeCreate); err != nil {
+		return "", err
+	}
+	if err := tx.Rollback(); err != nil {
+		return fmt.Sprintf("Could not roll back the %s check. Drop the table if it remains.", privilegeProbeTable), nil
+	}
+	rolledBack = true
 	return "", nil
+}
+
+func tableAlreadyExists(err error) bool {
+	return err != nil && strings.Contains(strings.ToLower(err.Error()), "already exists")
 }
 
 func setupTableExists(ctx context.Context, handle *sql.DB, table string) (bool, error) {
@@ -303,21 +383,6 @@ func seedDatabase(dsn, migrateFrom, siteURL string, newInstallPaths bool, paths 
 	return nil
 }
 
-func updateStoredDataSource(dsn string) error {
-	store, err := config.NewStoreFromDSN(dsn, false, nil, false)
-	if err != nil {
-		return redactError(err, dsn)
-	}
-	defer store.Close()
-
-	cfg := store.Get().Clone()
-	cfg.SqlSettings.DataSource = model.NewPointer(dsn)
-	if _, _, err := store.Set(cfg); err != nil {
-		return redactError(err, dsn)
-	}
-	return nil
-}
-
 func initSchema(dsn string) error {
 	logger := mlog.CreateConsoleLogger()
 	defer func() { _ = logger.Shutdown() }()
@@ -326,6 +391,8 @@ func initSchema(dsn string) error {
 	settings.SetDefaults(false)
 	settings.DriverName = model.NewPointer(model.DatabaseDriverPostgres)
 	settings.DataSource = model.NewPointer(dsn)
+	settings.MaxOpenConns = model.NewPointer(2)
+	settings.MaxIdleConns = model.NewPointer(2)
 
 	store, err := sqlstore.New(settings, logger, nil, sqlstore.DisableMorphLogging())
 	if err != nil {
@@ -366,8 +433,28 @@ func binaryLatestMigration() (int, error) {
 	return latest, nil
 }
 
-func writeFileConfig(path, dsn, siteURL string, uid, gid int, paths statePaths) error {
-	cfg := &model.Config{}
+func configFileDataSource(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	cfg := model.ConfigFromJSON(strings.NewReader(string(data)))
+	if cfg == nil {
+		return "", errors.Errorf("could not parse configuration file %s", path)
+	}
+	if cfg.SqlSettings.DataSource == nil {
+		return "", nil
+	}
+	return *cfg.SqlSettings.DataSource, nil
+}
+
+func writeFileConfig(path, dsn, siteURL string, uid, gid int, paths statePaths, imported *model.Config) error {
+	var cfg *model.Config
+	if imported != nil {
+		cfg = imported.Clone()
+	} else {
+		cfg = &model.Config{}
+	}
 	cfg.SetDefaults()
 	applyNewInstallPaths(cfg, paths)
 	cfg.SqlSettings.DriverName = model.NewPointer(model.DatabaseDriverPostgres)
@@ -375,7 +462,7 @@ func writeFileConfig(path, dsn, siteURL string, uid, gid int, paths statePaths) 
 	if siteURL != "" {
 		cfg.ServiceSettings.SiteURL = model.NewPointer(siteURL)
 	}
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+	if err := ensureConfigDir(filepath.Dir(path)); err != nil {
 		return err
 	}
 	store, err := config.NewStoreFromDSN(path, false, nil, true)

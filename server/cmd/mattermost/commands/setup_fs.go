@@ -6,7 +6,9 @@ package commands
 import (
 	"net"
 	"os"
+	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -75,7 +77,7 @@ func mkdirOwned(dir string, uid, gid int) error {
 		return nil
 	}
 	for i := len(created) - 1; i >= 0; i-- {
-		if err := os.Chown(created[i], uid, gid); err != nil {
+		if err := os.Lchown(created[i], uid, gid); err != nil {
 			return errors.Wrapf(err, "cannot chown %s", created[i])
 		}
 	}
@@ -199,7 +201,7 @@ func writeEnvFile(path, contents string) error {
 		return err
 	}
 
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+	if err := ensureConfigDir(filepath.Dir(path)); err != nil {
 		return err
 	}
 	tmp, err := os.CreateTemp(filepath.Dir(path), ".mattermost.env.*")
@@ -233,6 +235,33 @@ func writeEnvFile(path, contents string) error {
 	}
 	chownRoot(path)
 	return nil
+}
+
+// ensureConfigDir creates the directory for the env file and, for
+// /etc/mattermost, gives it mode 1770 root:mattermost. The sticky bit lets the
+// service create certificate files without renaming the root-owned env file.
+func ensureConfigDir(dir string) error {
+	mode := os.FileMode(0755)
+	shared := filepath.Clean(dir) == filepath.Dir(defaultEnvFile)
+	if shared {
+		mode = 01770
+	}
+	if err := os.MkdirAll(dir, mode); err != nil {
+		return err
+	}
+	if !shared || os.Geteuid() != 0 {
+		return nil
+	}
+	gid := 0
+	if group, err := user.LookupGroup(mattermostUser); err == nil {
+		if n, convErr := strconv.Atoi(group.Gid); convErr == nil {
+			gid = n
+		}
+	}
+	if err := os.Chown(dir, 0, gid); err != nil {
+		return err
+	}
+	return os.Chmod(dir, mode)
 }
 
 func chownRoot(path string) {

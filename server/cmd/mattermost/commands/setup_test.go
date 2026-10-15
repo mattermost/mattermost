@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -58,32 +59,38 @@ func TestValidateSiteURL(t *testing.T) {
 	}
 }
 
-func TestDecideDataSourceUpdate(t *testing.T) {
+func TestRejectDifferentEnvURL(t *testing.T) {
 	t.Parallel()
 	const next = "postgres://mmuser:new@db.example.com/mattermost"
 	const previous = "postgres://mmuser:old@db.example.com/mattermost"
 
-	update, err := decideDataSourceUpdate(next, true, next, next, false)
-	require.NoError(t, err)
-	require.False(t, update)
+	require.NoError(t, rejectDifferentEnvURL(next, next, false))
+	require.Error(t, rejectDifferentEnvURL(previous, next, false))
+	require.NoError(t, rejectDifferentEnvURL(previous, next, true))
+	require.NoError(t, rejectDifferentEnvURL("", next, false))
+}
 
-	_, err = decideDataSourceUpdate(previous, true, previous, next, false)
-	require.Error(t, err)
+func TestSystemdQuoteRoundTrip(t *testing.T) {
+	t.Parallel()
+	raw := `postgres://mmuser:se cret"\@db/mattermost`
+	require.Equal(t, raw, systemdUnquote(systemdQuote(raw)))
+	vals := parseEnvFile(renderEnvFile(raw, raw))
+	require.Equal(t, raw, vals["MM_CONFIG"])
+	require.Equal(t, raw, vals["MM_SQLSETTINGS_DATASOURCE"])
+}
 
-	update, err = decideDataSourceUpdate(previous, true, previous, next, true)
-	require.NoError(t, err)
-	require.True(t, update)
+func TestPrivilegedListenWarning(t *testing.T) {
+	t.Parallel()
+	require.Empty(t, privilegedListenWarning(":8065"))
+	require.Contains(t, privilegedListenWarning(":443"), "443")
+	require.Contains(t, privilegedListenWarning(":443"), "reverse proxy")
+}
 
-	update, err = decideDataSourceUpdate(model.SqlSettingsDefaultDataSource, true, "", next, false)
-	require.NoError(t, err)
-	require.True(t, update)
-
-	_, err = decideDataSourceUpdate("postgres://other:secret@elsewhere/mattermost", true, "", next, true)
-	require.Error(t, err)
-
-	update, err = decideDataSourceUpdate("", false, "", next, false)
-	require.NoError(t, err)
-	require.False(t, update)
+func TestPeerIsSelf(t *testing.T) {
+	t.Parallel()
+	peer := clusterPeer{Hostname: "Setup-Host"}
+	require.True(t, peerIsSelf(peer, []string{"setup-host"}))
+	require.False(t, peerIsSelf(peer, []string{"other.example.com"}))
 }
 
 func TestCompareSchema(t *testing.T) {
@@ -106,20 +113,23 @@ func TestCompareSchema(t *testing.T) {
 
 func TestDialPeers(t *testing.T) {
 	t.Parallel()
+	var mu sync.Mutex
 	var dialed []string
 	peers := []clusterPeer{{Hostname: "a.example.com", GossipPort: 8074}, {Hostname: "b.example.com", GossipPort: 8075}}
-	err := dialPeers(peers, 8074, func(addr string) error {
+	failed := dialPeers(peers, 8074, func(addr string) error {
+		mu.Lock()
 		dialed = append(dialed, addr)
+		mu.Unlock()
 		if strings.HasPrefix(addr, "b.example.com") {
 			return errors.New("connection refused")
 		}
 		return nil
 	})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "b.example.com")
-	require.Contains(t, err.Error(), "8075")
-	require.Contains(t, err.Error(), "8074")
-	require.Equal(t, []string{"a.example.com:8074", "b.example.com:8075"}, dialed)
+	require.Len(t, failed, 1)
+	require.Contains(t, failed[0], "b.example.com")
+	require.Contains(t, failed[0], "8075")
+	require.Contains(t, failed[0], "8074")
+	require.ElementsMatch(t, []string{"a.example.com:8074", "b.example.com:8075"}, dialed)
 }
 
 func TestMMOverrides(t *testing.T) {
@@ -196,6 +206,11 @@ func TestSELinuxStatus(t *testing.T) {
 	status, warning = selinuxStatus("1\n", false, "system_u:object_r:mattermost_t:s0")
 	require.Equal(t, "enforcing, binary mattermost_t", status)
 	require.Contains(t, warning, "mattermost_t")
+
+	status, warning = selinuxStatus("1\n", false, "system_u:object_r:usr_t:s0")
+	require.Equal(t, "enforcing, binary usr_t", status)
+	require.Contains(t, warning, "semanage")
+	require.NotContains(t, warning, "must be allowed")
 
 	status, warning = selinuxStatus("0\n", false, "system_u:object_r:mattermost_t:s0")
 	require.Equal(t, "permissive, binary mattermost_t", status)
@@ -339,12 +354,23 @@ func TestEffectiveMMConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, setupFile, src.source)
 	require.Equal(t, "postgres://new", src.value)
+
+	quoted := filepath.Join(root, "quoted.service")
+	require.NoError(t, os.WriteFile(quoted, []byte("[Service]\nEnvironment=\"MM_CONFIG=postgres://quoted/db\"\n"), 0644))
+	src, err = effectiveMMConfig(quoted, nil)
+	require.NoError(t, err)
+	require.Equal(t, "postgres://quoted/db", src.value)
+
+	reset := filepath.Join(root, "reset.conf")
+	require.NoError(t, os.WriteFile(reset, []byte("[Service]\nEnvironment=\n"), 0644))
+	src, err = effectiveMMConfig(quoted, []string{reset})
+	require.NoError(t, err)
+	require.False(t, src.found)
 }
 
 type setupCalls struct {
 	order   []string
 	migrate string
-	updated bool
 	file    bool
 	binds   []string
 	peers   int
@@ -396,7 +422,7 @@ func newTestSetup(t *testing.T) (setupEnv, setupOptions, *bytes.Buffer, *setupCa
 			return errors.New("createUser should not be called")
 		},
 		dial: func(string) error { return nil },
-		inspect: func(string) (dbInspection, error) {
+		inspect: func(string, bool) (dbInspection, error) {
 			calls.order = append(calls.order, "inspect")
 			return dbInspection{version: 160000, encoding: "UTF8", hasMigrations: false, probedCreate: true}, nil
 		},
@@ -417,12 +443,8 @@ func newTestSetup(t *testing.T) (setupEnv, setupOptions, *bytes.Buffer, *setupCa
 			calls.order = append(calls.order, "schema")
 			return nil
 		},
-		updateStoredDataSource: func(string) error {
-			calls.updated = true
-			return nil
-		},
 		readFileConfig: readConfigFile,
-		writeFileConfig: func(path, _, _ string, _, _ int) error {
+		writeFileConfig: func(path, _, _ string, _, _ int, _ *model.Config) error {
 			calls.file = true
 			require.Equal(t, defaultFileConfig, path)
 			return nil
@@ -446,6 +468,75 @@ func newTestSetup(t *testing.T) (setupEnv, setupOptions, *bytes.Buffer, *setupCa
 		EnvFile:        filepath.Join(t.TempDir(), "mattermost.env"),
 	}
 	return env, opts, buf, calls
+}
+
+func TestSetupDatabaseURLFile(t *testing.T) {
+	env, opts, _, calls := newTestSetup(t)
+	path := filepath.Join(t.TempDir(), "database.url")
+	require.NoError(t, os.WriteFile(path, []byte(opts.DatabaseURL+"\n"), 0600))
+	opts.DatabaseURL = ""
+	opts.DatabaseURLFile = path
+	require.NoError(t, runSetup(opts, env))
+	require.Contains(t, calls.order, "seed")
+
+	env, opts, _, _ = newTestSetup(t)
+	opts.DatabaseURLFile = path
+	err := runSetup(opts, env)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "only one")
+}
+
+func TestSetupRejectsEnvChangeBeforeSeed(t *testing.T) {
+	env, opts, _, calls := newTestSetup(t)
+	require.NoError(t, os.WriteFile(opts.EnvFile, []byte("MM_CONFIG="+systemdQuote("postgres://other/db")+"\n"), 0600))
+	err := runSetup(opts, env)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "--force")
+	require.NotContains(t, calls.order, "seed")
+	require.NotContains(t, calls.order, "schema")
+}
+
+func TestSetupFileStoreKeepsImportedConfig(t *testing.T) {
+	env, opts, _, _ := newTestSetup(t)
+	opts.ConfigStore = configStoreFile
+	src := filepath.Join(t.TempDir(), "old.json")
+	original := &model.Config{}
+	original.ServiceSettings.EnableDeveloper = model.NewPointer(true)
+	require.NoError(t, os.WriteFile(src, model.ToJSON(original), 0600))
+	opts.MigrateFrom = src
+	var got *model.Config
+	env.writeFileConfig = func(_, _, _ string, _, _ int, imported *model.Config) error {
+		got = imported
+		return nil
+	}
+	require.NoError(t, runSetup(opts, env))
+	require.NotNil(t, got)
+	require.NotNil(t, got.ServiceSettings.EnableDeveloper)
+	require.True(t, *got.ServiceSettings.EnableDeveloper)
+}
+
+func TestWriteFileConfigAppliesImport(t *testing.T) {
+	imported := &model.Config{}
+	imported.SetDefaults()
+	imported.TeamSettings.SiteName = model.NewPointer("Imported Site")
+	root := t.TempDir()
+	path := filepath.Join(root, "config.json")
+	paths := statePaths{
+		data:          filepath.Join(root, "data"),
+		logs:          filepath.Join(root, "logs"),
+		plugins:       filepath.Join(root, "plugins"),
+		clientPlugins: filepath.Join(root, "client", "plugins"),
+	}
+	dsn := "postgres://mmuser:secret@db.example.com/mattermost?sslmode=disable"
+	require.NoError(t, writeFileConfig(path, dsn, "https://mattermost.example.com", os.Getuid(), os.Getgid(), paths, imported))
+	saved, err := readConfigFile(path)
+	require.NoError(t, err)
+	require.Equal(t, "Imported Site", *saved.TeamSettings.SiteName)
+	require.Equal(t, dsn, *saved.SqlSettings.DataSource)
+	require.Equal(t, filepath.Clean(paths.data), filepath.Clean(*saved.FileSettings.Directory))
+	info, err := os.Stat(path)
+	require.NoError(t, err)
+	require.Equal(t, os.FileMode(0600), info.Mode().Perm())
 }
 
 func TestSetupNonInteractiveMissingURL(t *testing.T) {
@@ -493,8 +584,8 @@ func TestSetupNewInstallDoesNotImportShippedConfig(t *testing.T) {
 
 	data, err := os.ReadFile(opts.EnvFile)
 	require.NoError(t, err)
-	require.Contains(t, string(data), "MM_CONFIG="+opts.DatabaseURL+"\n")
-	require.Contains(t, string(data), "MM_SQLSETTINGS_DATASOURCE="+opts.DatabaseURL+"\n")
+	require.Contains(t, string(data), "MM_CONFIG="+systemdQuote(opts.DatabaseURL)+"\n")
+	require.Contains(t, string(data), "MM_SQLSETTINGS_DATASOURCE="+systemdQuote(opts.DatabaseURL)+"\n")
 	info, err := os.Stat(opts.EnvFile)
 	require.NoError(t, err)
 	require.Equal(t, os.FileMode(0600), info.Mode().Perm())
@@ -502,8 +593,10 @@ func TestSetupNewInstallDoesNotImportShippedConfig(t *testing.T) {
 	unit, err := os.ReadFile(env.paths.etcUnit)
 	require.NoError(t, err)
 	require.Contains(t, string(unit), "EnvironmentFile="+opts.EnvFile)
+	require.Contains(t, string(unit), "ExecStart="+filepath.Join(env.installRoot, "bin", "mattermost"))
 
 	text := out.String()
+	require.Contains(t, text, "Initializing the database schema. This can take several minutes.")
 	require.Contains(t, text, "[+] "+newInstallationLine)
 	require.Contains(t, text, "[+] Can create a table in the current schema.")
 	require.Contains(t, text, "System information")
@@ -528,7 +621,7 @@ func TestSetupFileStoreOmitsDataSourceOverride(t *testing.T) {
 	require.Contains(t, calls.order, "schema")
 	data, err := os.ReadFile(opts.EnvFile)
 	require.NoError(t, err)
-	require.Equal(t, "MM_CONFIG="+defaultFileConfig+"\n", string(data))
+	require.Equal(t, "MM_CONFIG="+systemdQuote(defaultFileConfig)+"\n", string(data))
 }
 
 func TestSetupExistingJoinSkipsSeedAndSiteURL(t *testing.T) {
@@ -536,7 +629,7 @@ func TestSetupExistingJoinSkipsSeedAndSiteURL(t *testing.T) {
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	cfg.SqlSettings.DataSource = model.NewPointer(opts.DatabaseURL)
-	env.inspect = func(string) (dbInspection, error) {
+	env.inspect = func(string, bool) (dbInspection, error) {
 		calls.order = append(calls.order, "inspect")
 		return dbInspection{version: 160000, encoding: "UTF8", hasMigrations: true, schemaVersion: 234}, nil
 	}
@@ -550,7 +643,6 @@ func TestSetupExistingJoinSkipsSeedAndSiteURL(t *testing.T) {
 
 	require.NoError(t, runSetup(opts, env))
 	require.Equal(t, []string{"inspect", "read"}, calls.order)
-	require.False(t, calls.updated)
 	require.Empty(t, calls.binds)
 	text := out.String()
 	require.Contains(t, text, "[+] "+existingInstallLine)
@@ -562,14 +654,14 @@ func TestSetupExistingJoinSkipsSeedAndSiteURL(t *testing.T) {
 	require.Contains(t, string(dropIn), "EnvironmentFile="+opts.EnvFile)
 }
 
-func TestSetupClusterDialFailureStopsBeforeEnvFile(t *testing.T) {
-	env, opts, _, calls := newTestSetup(t)
+func TestSetupClusterDialFailureWarnsAndContinues(t *testing.T) {
+	env, opts, out, calls := newTestSetup(t)
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	cfg.SqlSettings.DataSource = model.NewPointer(opts.DatabaseURL)
 	cfg.ClusterSettings.Enable = model.NewPointer(true)
 	cfg.ClusterSettings.ClusterName = model.NewPointer("production")
-	env.inspect = func(string) (dbInspection, error) {
+	env.inspect = func(string, bool) (dbInspection, error) {
 		return dbInspection{version: 160000, encoding: "UTF8", hasMigrations: true, schemaVersion: 234}, nil
 	}
 	env.readActiveConfig = func(string) (*model.Config, bool, error) {
@@ -582,13 +674,39 @@ func TestSetupClusterDialFailureStopsBeforeEnvFile(t *testing.T) {
 	}
 	env.dial = func(string) error { return errors.New("connection refused") }
 
-	err := runSetup(opts, env)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "peer.example.com")
+	require.NoError(t, runSetup(opts, env))
+	require.Contains(t, out.String(), "peer.example.com")
+	require.Contains(t, out.String(), "This host will join the cluster.")
 	require.Equal(t, 1, calls.peers)
 	_, statErr := os.Stat(opts.EnvFile)
-	require.True(t, os.IsNotExist(statErr))
+	require.NoError(t, statErr)
 	require.NotContains(t, calls.order, "seed")
+}
+
+func TestSetupSkipsDialToThisHost(t *testing.T) {
+	env, opts, out, _ := newTestSetup(t)
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.SqlSettings.DataSource = model.NewPointer(opts.DatabaseURL)
+	cfg.ClusterSettings.Enable = model.NewPointer(true)
+	env.inspect = func(string, bool) (dbInspection, error) {
+		return dbInspection{version: 160000, encoding: "UTF8", hasMigrations: true, schemaVersion: 234}, nil
+	}
+	env.readActiveConfig = func(string) (*model.Config, bool, error) {
+		return cfg, true, nil
+	}
+	env.hostname = func() (string, error) { return "setup-host", nil }
+	env.listPeers = func(string, string, int64) ([]clusterPeer, error) {
+		return []clusterPeer{{Hostname: "setup-host", GossipPort: 8074}}, nil
+	}
+	dialed := 0
+	env.dial = func(string) error {
+		dialed++
+		return errors.New("connection refused")
+	}
+	require.NoError(t, runSetup(opts, env))
+	require.Equal(t, 0, dialed)
+	require.Contains(t, out.String(), "30 minutes")
 }
 
 func TestSetupSchemaNewerThanBinary(t *testing.T) {
@@ -596,7 +714,7 @@ func TestSetupSchemaNewerThanBinary(t *testing.T) {
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	cfg.SqlSettings.DataSource = model.NewPointer(opts.DatabaseURL)
-	env.inspect = func(string) (dbInspection, error) {
+	env.inspect = func(string, bool) (dbInspection, error) {
 		return dbInspection{version: 160000, encoding: "UTF8", hasMigrations: true, schemaVersion: 999}, nil
 	}
 	env.readActiveConfig = func(string) (*model.Config, bool, error) {
@@ -609,45 +727,41 @@ func TestSetupSchemaNewerThanBinary(t *testing.T) {
 	require.True(t, os.IsNotExist(statErr))
 }
 
-func TestSetupForceRefusesDifferentStoredDatabase(t *testing.T) {
-	env, opts, _, calls := newTestSetup(t)
-	opts.Force = true
+func TestSetupLeavesDifferentStoredDataSource(t *testing.T) {
+	env, opts, out, _ := newTestSetup(t)
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	cfg.SqlSettings.DataSource = model.NewPointer("postgres://other:secret@elsewhere/mattermost")
-	env.inspect = func(string) (dbInspection, error) {
-		return dbInspection{version: 160000, encoding: "UTF8", hasMigrations: true, schemaVersion: 234}, nil
-	}
-	env.readActiveConfig = func(string) (*model.Config, bool, error) {
-		return cfg, true, nil
-	}
-	err := runSetup(opts, env)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "different database")
-	require.False(t, calls.updated)
-	_, statErr := os.Stat(opts.EnvFile)
-	require.True(t, os.IsNotExist(statErr))
-}
-
-func TestSetupForceUpdatesMatchingDataSource(t *testing.T) {
-	env, opts, _, calls := newTestSetup(t)
-	opts.Force = true
-	previous := "postgres://mmuser:old@db.example.com/mattermost"
-	require.NoError(t, os.WriteFile(opts.EnvFile, []byte("MM_CONFIG="+previous+"\n"), 0600))
-	cfg := &model.Config{}
-	cfg.SetDefaults()
-	cfg.SqlSettings.DataSource = model.NewPointer(previous)
-	env.inspect = func(string) (dbInspection, error) {
+	env.inspect = func(string, bool) (dbInspection, error) {
 		return dbInspection{version: 160000, encoding: "UTF8", hasMigrations: true, schemaVersion: 234}, nil
 	}
 	env.readActiveConfig = func(string) (*model.Config, bool, error) {
 		return cfg, true, nil
 	}
 	require.NoError(t, runSetup(opts, env))
-	require.True(t, calls.updated)
+	require.Contains(t, out.String(), "left unchanged")
+	_, statErr := os.Stat(opts.EnvFile)
+	require.NoError(t, statErr)
+}
+
+func TestSetupForceReplacesEnvURL(t *testing.T) {
+	env, opts, _, _ := newTestSetup(t)
+	opts.Force = true
+	previous := "postgres://mmuser:old@db.example.com/mattermost"
+	require.NoError(t, os.WriteFile(opts.EnvFile, []byte("MM_CONFIG="+previous+"\n"), 0600))
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.SqlSettings.DataSource = model.NewPointer(previous)
+	env.inspect = func(string, bool) (dbInspection, error) {
+		return dbInspection{version: 160000, encoding: "UTF8", hasMigrations: true, schemaVersion: 234}, nil
+	}
+	env.readActiveConfig = func(string) (*model.Config, bool, error) {
+		return cfg, true, nil
+	}
+	require.NoError(t, runSetup(opts, env))
 	data, err := os.ReadFile(opts.EnvFile)
 	require.NoError(t, err)
-	require.Contains(t, string(data), "MM_CONFIG="+opts.DatabaseURL)
+	require.Contains(t, string(data), "MM_CONFIG="+systemdQuote(opts.DatabaseURL))
 }
 
 func TestSetupKeepsExistingFileConfig(t *testing.T) {
@@ -655,8 +769,10 @@ func TestSetupKeepsExistingFileConfig(t *testing.T) {
 	opts.ConfigStoreSet = false
 	path := filepath.Join(env.installRoot, "config", "config.json")
 	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0755))
-	require.NoError(t, os.WriteFile(path, []byte("{}\n"), 0600))
-	env.inspect = func(string) (dbInspection, error) {
+	cfg := &model.Config{}
+	cfg.SqlSettings.DataSource = model.NewPointer(opts.DatabaseURL)
+	require.NoError(t, os.WriteFile(path, model.ToJSON(cfg), 0600))
+	env.inspect = func(string, bool) (dbInspection, error) {
 		return dbInspection{version: 160000, encoding: "UTF8", hasMigrations: true, schemaVersion: 200}, nil
 	}
 	require.NoError(t, runSetup(opts, env))
@@ -664,7 +780,24 @@ func TestSetupKeepsExistingFileConfig(t *testing.T) {
 	require.NotContains(t, calls.order, "schema")
 	data, err := os.ReadFile(opts.EnvFile)
 	require.NoError(t, err)
-	require.Equal(t, "MM_CONFIG="+path+"\n", string(data))
+	require.Equal(t, "MM_CONFIG="+systemdQuote(path)+"\n", string(data))
+}
+
+func TestSetupRejectsSampleFileConfig(t *testing.T) {
+	env, opts, _, calls := newTestSetup(t)
+	opts.ConfigStoreSet = false
+	path := filepath.Join(env.installRoot, "config", "config.json")
+	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0755))
+	require.NoError(t, os.WriteFile(path, []byte("{}\n"), 0600))
+	env.inspect = func(string, bool) (dbInspection, error) {
+		return dbInspection{version: 160000, encoding: "UTF8", hasMigrations: true, schemaVersion: 200}, nil
+	}
+	err := runSetup(opts, env)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "--migrate-from")
+	require.NotContains(t, calls.order, "seed")
+	_, statErr := os.Stat(opts.EnvFile)
+	require.True(t, os.IsNotExist(statErr))
 }
 
 func TestSetupDryRunWritesNothing(t *testing.T) {
@@ -675,7 +808,11 @@ func TestSetupDryRunWritesNothing(t *testing.T) {
 	_, err := os.Stat(opts.EnvFile)
 	require.True(t, os.IsNotExist(err))
 	require.Contains(t, out.String(), newInstallationLine)
+	require.Contains(t, out.String(), "Dry run skipped the table check.")
+	require.Contains(t, out.String(), "Listen address :8065 is free.")
 	require.Contains(t, out.String(), "Dry run")
+	require.NotContains(t, calls.order, "seed")
+	require.NotEmpty(t, calls.binds)
 }
 
 func TestApplyNewInstallPaths(t *testing.T) {
@@ -770,8 +907,17 @@ func TestSetupRequiresRootOnLinux(t *testing.T) {
 
 func TestPostgresWarnings(t *testing.T) {
 	t.Parallel()
-	require.NotEmpty(t, postgresWarnings(140000, "UTF8"))
+	old := postgresWarnings(140000, "UTF8")
+	require.NotEmpty(t, old)
+	require.Contains(t, old[0], "14.0")
+	require.NotContains(t, old[0], "140000")
 	require.NotEmpty(t, postgresWarnings(160000, "SQL_ASCII"))
 	require.Empty(t, postgresWarnings(160000, "UTF8"))
-	require.NotEmpty(t, siteURLWarnings("http://localhost:8065"))
+
+	loopback := strings.Join(siteURLWarnings("http://localhost:8065"), " ")
+	require.Contains(t, loopback, "loopback")
+	require.Contains(t, loopback, "http")
+	httpOnly := strings.Join(siteURLWarnings("http://mattermost.example.com"), " ")
+	require.NotContains(t, httpOnly, "loopback")
+	require.Contains(t, httpOnly, "secure origin")
 }

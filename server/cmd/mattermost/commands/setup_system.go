@@ -123,8 +123,18 @@ func selinuxStatus(enforceFile string, missing bool, label string) (string, stri
 		return mode, ""
 	}
 	status := mode + ", binary " + typ
-	if mode == "enforcing" && confinedSELinuxType(typ) {
-		return status, fmt.Sprintf("SELinux is enforcing and the binary is labeled %s. That domain must be allowed to write /var/lib/mattermost and /var/log/mattermost.", typ)
+	if mode != "enforcing" {
+		return status, ""
+	}
+	switch typ {
+	case "bin_t", "unconfined_t", "unconfined_exec_t", "unlabeled_t":
+		return status, ""
+	case "usr_t", "default_t":
+		return status, fmt.Sprintf("SELinux is enforcing and the binary is labeled %s, not bin_t. Label it before starting: semanage fcontext -a -t bin_t \"/opt/mattermost/bin(/.*)?\" && restorecon -RF /opt/mattermost/bin", typ)
+	default:
+		if confinedSELinuxType(typ) {
+			return status, fmt.Sprintf("SELinux is enforcing and the binary is labeled %s. That domain must be allowed to write /var/lib/mattermost and /var/log/mattermost.", typ)
+		}
 	}
 	return status, ""
 }
