@@ -7975,7 +7975,7 @@
   },
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
-    "translation": "채널에 리모컨을 초대할 수 없습니다."
+    "translation": "채널에 원격 서버를 초대할 수 없습니다."
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",

@@ -9519,7 +9519,7 @@
   },
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
-    "translation": "无法邀请远程用户加入频道"
+    "translation": "无法邀请远程连接加入频道。"
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
