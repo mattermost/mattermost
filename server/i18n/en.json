@@ -14304,7 +14304,7 @@
   {
     "id": "health.reason.collected_at_unknown",
     "translation": "Collection time unknown.",
-    "description": "Health dashboard reason shown when a health check could not run because the time its data was collected is unknown, so ages and durations cannot be measured, so the check's status is unknown."
+    "description": "Health dashboard reason shown when a health check could not run because the time its data was collected is unknown. Without it, ages and durations cannot be measured, so the check's status is unknown."
   },
   {
     "id": "health.reason.config_unavailable",
