@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {FormatXMLElementFn} from 'intl-messageformat';
+import type {JSX} from 'react';
 import type {
     MessageDescriptor,
     PrimitiveType,
@@ -23,11 +24,18 @@ type AdminDefinitionConfigSchemaComponent = {
     id: string;
     component: Component;
     isBeta?: boolean;
+    stateKey?: string;
 };
 
 export type ConsoleAccess = {read: {[key: string]: boolean}; write: {[key: string]: boolean}};
 
 type Validator = (value: any) => ValidationResult;
+
+export type AdminDefinitionSettingProductionWarning = {
+    isEnabled: Check;
+    title: MessageDescriptor;
+    text: MessageDescriptor;
+};
 
 type AdminDefinitionSettingCustom = Omit<AdminDefinitionSettingBase, 'label'> & {
     type: 'custom';
@@ -52,6 +60,9 @@ type AdminDefinitionSettingBase = {
     onConfigSave?: (displayVal: any, previousVal?: any) => any;
     isHidden?: Check;
     isDisabled?: Check;
+
+    // Danger callout when isEnabled is true. Wired for bool/text settings in schema_admin_settings and ldap_boolean_setting.
+    production_warning?: AdminDefinitionSettingProductionWarning;
 };
 
 export type AdminDefinitionSettingBanner = AdminDefinitionSettingBase & {
@@ -175,6 +186,7 @@ AdminDefinitionSettingExpandable;
 
 export type AdminDefinitionConfigSchemaSettings = {
     id: string;
+    stateKey?: string;
     name: string | MessageDescriptor;
     isBeta?: boolean;
     isHidden?: Check;

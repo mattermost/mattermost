@@ -249,6 +249,15 @@ const state: GlobalState = {
             values: {byTargetId: {}, byFieldId: {}},
             groups: {byId: {}, byName: {}},
         },
+        renderPermissions: {
+            byResource: {},
+            invalidatedAt: 0,
+            invalidatedAtByResource: {},
+        },
+        health: {
+            findings: {},
+            evaluatedAt: 0,
+        },
     },
     errors: [],
     requests: {

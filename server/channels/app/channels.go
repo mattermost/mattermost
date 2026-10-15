@@ -42,13 +42,15 @@ type Channels struct {
 	filestore       filestore.FileBackend
 	exportFilestore filestore.FileBackend
 
-	postActionCookieSecret []byte
+	postActionCookieSecret   []byte
+	samlRelayStateSigningKey []byte
 
 	pluginCommandsLock            sync.RWMutex
 	pluginCommands                []*PluginCommand
 	pluginsLock                   sync.RWMutex
 	pluginsEnvironment            *plugin.Environment
 	pluginConfigListenerID        string
+	pluginLicenseListenerID       string
 	pluginClusterLeaderListenerID string
 
 	// guardCache caches ChannelGuards rows by ChannelId -> []*store.ChannelGuard.
@@ -82,8 +84,9 @@ type Channels struct {
 	AccessControl    einterfaces.AccessControlServiceInterface
 	Intune           einterfaces.IntuneInterface
 
-	attributeViewRefreshMut  sync.Mutex
-	attributeViewRefreshLast time.Time
+	attributeViewRefreshMut   sync.Mutex
+	attributeViewRefreshLast  time.Time
+	attributeViewNeedsRefresh atomic.Bool
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -94,15 +97,13 @@ type Channels struct {
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
 
-	dndTaskMut sync.Mutex
-	dndTask    *model.ScheduledTask
+	dndTask           leaderTask
+	postReminderTask  leaderTask
+	scheduledPostTask leaderTask
 
-	postReminderMut  sync.Mutex
-	postReminderTask *model.ScheduledTask
+	healthCheckTask leaderTask
 
 	interruptQuitChan chan struct{}
-	scheduledPostMut  sync.Mutex
-	scheduledPostTask *model.ScheduledTask
 }
 
 func NewChannels(s *Server) (*Channels, error) {
@@ -304,6 +305,8 @@ func (ch *Channels) Start() error {
 		}
 	})
 
+	ch.AddConfigListener(ch.clearABACRenderCachesOnFlip)
+
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
@@ -313,17 +316,20 @@ func (ch *Channels) Start() error {
 		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
 
+	if err := ch.ensureSamlRelayStateSigningKey(); err != nil {
+		return errors.Wrapf(err, "unable to ensure SAML RelayState signing key")
+	}
+
 	return nil
 }
 
 func (ch *Channels) Stop() error {
 	ch.ShutDownPlugins()
 
-	ch.dndTaskMut.Lock()
-	if ch.dndTask != nil {
-		ch.dndTask.Cancel()
-	}
-	ch.dndTaskMut.Unlock()
+	ch.dndTask.stop()
+	ch.postReminderTask.stop()
+	ch.scheduledPostTask.stop()
+	ch.healthCheckTask.stop()
 
 	close(ch.interruptQuitChan)
 

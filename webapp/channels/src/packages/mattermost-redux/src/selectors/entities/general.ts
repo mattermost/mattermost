@@ -22,8 +22,12 @@ export function getFeatureFlagValue(state: GlobalState, key: keyof FeatureFlags)
     return getConfig(state)?.[`FeatureFlag${key}` as keyof Partial<ClientConfig>];
 }
 
-export function isCustomProfileAttributesEnabled(state: GlobalState): boolean {
-    return getConfig(state).FeatureFlagCustomProfileAttributes === 'true';
+export function isPostAttributesEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagPostAttributes === 'true';
+}
+
+export function isPostDeliveryTrackingEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagPostDeliveryTracking === 'true';
 }
 
 // Discoverable Private Channels is gated by the FeatureFlagDiscoverableChannels
@@ -31,6 +35,25 @@ export function isCustomProfileAttributesEnabled(state: GlobalState): boolean {
 // admin queue routes are all hidden — old clients see today's behavior.
 export function isDiscoverableChannelsEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagDiscoverableChannels === 'true';
+}
+
+export function isChannelAttributesEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagChannelAttributes === 'true';
+}
+
+/**
+ * Whether required-attribute enforcement is active: hard-blocking channel
+ * creation without a value, and hiding required attribute inputs from the
+ * create-channel modal. Classification gets one courtesy exception to the
+ * latter — see new_channel_modal.tsx — but is not otherwise special-cased.
+ *
+ * Both the `ChannelAttributes` umbrella and the `ChannelAttributesRequired`
+ * sub-flag must be true. Mirrors the server-side
+ * `FeatureFlags.IsChannelAttributesRequiredEnabled()` helper.
+ */
+export function isChannelAttributesRequiredEnabled(state: GlobalState): boolean {
+    return isChannelAttributesEnabled(state) &&
+        getConfig(state).FeatureFlagChannelAttributesRequired === 'true';
 }
 
 export function isPermissionPoliciesEnabled(state: GlobalState): boolean {

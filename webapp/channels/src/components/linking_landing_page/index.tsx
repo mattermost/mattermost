@@ -21,6 +21,7 @@ function mapStateToProps(state: GlobalState) {
         siteName: config.SiteName,
         brandImageUrl: Client4.getBrandImageUrl('0'),
         enableCustomBrand: config.EnableCustomBrand === 'true',
+        enableDesktopLandingPage: config.EnableDesktopLandingPage === 'true',
     };
 }
 

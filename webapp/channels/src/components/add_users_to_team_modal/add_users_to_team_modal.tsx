@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
@@ -62,7 +62,7 @@ type State = {
 const ABAC_MATCH_HARD_CAP = 1000;
 
 export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
-    selectedItemRef: React.RefObject<HTMLDivElement>;
+    selectedItemRef: React.RefObject<HTMLDivElement | null>;
 
     public constructor(props: Props) {
         super(props);
@@ -176,7 +176,7 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
         return (
             <div
                 key={option.id}
-                ref={isSelected ? this.selectedItemRef : option.id}
+                ref={isSelected ? this.selectedItemRef : undefined}
                 className={'more-modal__row ' + (blocked ? 'more-modal__row--disabled' : 'clickable ') + rowSelected}
                 aria-disabled={blocked}
                 onClick={blocked ? undefined : () => onAdd(option)}

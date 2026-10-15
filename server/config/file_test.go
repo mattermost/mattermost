@@ -497,6 +497,20 @@ func TestFileStoreSet(t *testing.T) {
 		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)
 	})
 
+	t.Run("retired feature flags forced off", func(t *testing.T) {
+		configStore, tearDown := setupConfigFileStore(t, emptyConfig)
+		defer tearDown()
+
+		newCfg := &model.Config{}
+		newCfg.FeatureFlags = &model.FeatureFlags{AppsEnabled: true, MoveThreadsEnabled: true}
+
+		_, _, err := configStore.Set(newCfg)
+		require.NoError(t, err)
+
+		assert.False(t, configStore.Get().FeatureFlags.AppsEnabled)
+		assert.False(t, configStore.Get().FeatureFlags.MoveThreadsEnabled)
+	})
+
 	t.Run("read-only", func(t *testing.T) {
 		configStore, tearDown := setupConfigFileStore(t, readOnlyConfig)
 		defer tearDown()
@@ -629,6 +643,42 @@ func TestFileStoreLoad(t *testing.T) {
 		err = fs.Load()
 		require.NoError(t, err)
 		assertFileNotEqualsConfig(t, emptyConfig, path)
+	})
+
+	t.Run("migrate legacy atmos/camo image proxy type", func(t *testing.T) {
+		cfg := minimalConfig.Clone()
+		cfg.ImageProxySettings.Enable = new(true)
+		cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeLegacyAtmosCamo)
+
+		path, tearDown := setupConfigFile(t, cfg)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.True(t, *fs.Get().ImageProxySettings.Enable)
+		assert.Equal(t, model.ImageProxyTypeLocal, *fs.Get().ImageProxySettings.ImageProxyType)
+
+		actualConfig := getActualFileConfig(t, path)
+		assert.Equal(t, model.ImageProxyTypeLocal, *actualConfig.ImageProxySettings.ImageProxyType)
+	})
+
+	t.Run("retired feature flags from environment forced off", func(t *testing.T) {
+		configStore, tearDown := setupConfigFileStore(t, minimalConfig)
+		defer tearDown()
+
+		os.Setenv("MM_FEATUREFLAGS_APPSENABLED", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_APPSENABLED")
+		os.Setenv("MM_FEATUREFLAGS_MOVETHREADSENABLED", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_MOVETHREADSENABLED")
+
+		err := configStore.Load()
+		require.NoError(t, err)
+		assert.False(t, configStore.Get().FeatureFlags.AppsEnabled)
+		assert.False(t, configStore.Get().FeatureFlags.MoveThreadsEnabled)
 	})
 
 	t.Run("honour environment", func(t *testing.T) {
@@ -943,6 +993,83 @@ func TestFileStoreSave(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://new", *store.Get().ServiceSettings.SiteURL)
+	})
+}
+
+// addUnknownConfigKeys takes valid, marshaled config data and adds keys that don't
+// correspond to any field in model.Config, simulating settings removed from a past
+// release that a deployment might still be carrying in its on disk config.
+func addUnknownConfigKeys(t *testing.T, cfgData []byte) []byte {
+	t.Helper()
+
+	var raw map[string]any
+	require.NoError(t, json.Unmarshal(cfgData, &raw))
+
+	raw["SomeRemovedSettings"] = map[string]any{"Enable": true}
+
+	elasticsearchSettings, ok := raw["ElasticsearchSettings"].(map[string]any)
+	require.True(t, ok)
+	elasticsearchSettings["BulkIndexingTimeWindowSeconds"] = 30
+
+	updated, err := json.Marshal(raw)
+	require.NoError(t, err)
+
+	return updated
+}
+
+func TestFileStoreUnknownConfigKeys(t *testing.T) {
+	t.Run("load ignores unknown keys", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		cfgData, err := marshalConfig(minimalConfig)
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(path, addUnknownConfigKeys(t, cfgData), 0644))
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, "http://minimal", *fs.Get().ServiceSettings.SiteURL)
+	})
+
+	t.Run("save drops unknown keys", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		cfgData, err := marshalConfig(minimalConfig)
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(path, addUnknownConfigKeys(t, cfgData), 0644))
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		// NewStoreFromBacking's initial Load() already persists the normalized
+		// config, which would strip the unknown keys on its own. Reinject them
+		// right before Set() so the assertions below actually exercise Set,
+		// not the load-time normalization.
+		require.NoError(t, os.WriteFile(path, addUnknownConfigKeys(t, cfgData), 0644))
+
+		_, _, err = fs.Set(fs.Get())
+		require.NoError(t, err)
+
+		f, err := os.Open(path)
+		require.NoError(t, err)
+		defer f.Close()
+
+		var actualRaw map[string]any
+		require.NoError(t, json.NewDecoder(f).Decode(&actualRaw))
+
+		assert.NotContains(t, actualRaw, "SomeRemovedSettings")
+
+		elasticsearchSettings, ok := actualRaw["ElasticsearchSettings"].(map[string]any)
+		require.True(t, ok)
+		assert.NotContains(t, elasticsearchSettings, "BulkIndexingTimeWindowSeconds")
 	})
 }
 

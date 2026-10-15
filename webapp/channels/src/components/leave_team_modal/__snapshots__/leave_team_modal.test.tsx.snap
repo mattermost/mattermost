@@ -9,62 +9,59 @@ exports[`components/LeaveTeamModal should render the leave team model 1`] = `
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="leaveTeamModalLabel"
+    aria-modal="true"
+    class="fade modal-confirm in modal"
+    id="leaveTeamModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="leaveTeamModalLabel"
-      class="fade modal-confirm in modal"
-      id="leaveTeamModal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="a11y__modal modal-dialog"
     >
       <div
-        class="a11y__modal modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-header"
         >
-          <div
-            class="modal-header"
+          <h1
+            class="modal-title"
+            id="leaveTeamModalLabel"
           >
-            <h1
-              class="modal-title"
-              id="leaveTeamModalLabel"
-            >
-              Leave the team?
-            </h1>
-          </div>
-          <div
-            class="modal-body"
+            Leave the team?
+          </h1>
+        </div>
+        <div
+          class="modal-body"
+        >
+          <strong>
+            You will be removed from 0 private channels on this team.
+          </strong>
+           If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="btn btn-tertiary"
+            id="leaveTeamNo"
+            type="button"
           >
-            <strong>
-              You will be removed from 0 private channels on this team.
-            </strong>
-             If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?
-          </div>
-          <div
-            class="modal-footer"
+            No
+          </button>
+          <button
+            class="btn btn-danger"
+            id="leaveTeamYes"
+            type="button"
           >
-            <button
-              class="btn btn-tertiary"
-              id="leaveTeamNo"
-              type="button"
-            >
-              No
-            </button>
-            <button
-              class="btn btn-danger"
-              id="leaveTeamYes"
-              type="button"
-            >
-              Yes
-            </button>
-          </div>
+            Yes
+          </button>
         </div>
       </div>
     </div>

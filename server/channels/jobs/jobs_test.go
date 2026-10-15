@@ -773,6 +773,40 @@ func TestPublishJobStatus(t *testing.T) {
 		})
 	})
 
+	t.Run("sets required permissions by job type", func(t *testing.T) {
+		testCases := []struct {
+			name       string
+			jobType    string
+			permission *model.Permission
+		}{
+			{"data retention", model.JobTypeDataRetention, model.PermissionReadDataRetentionJob},
+			{"message export", model.JobTypeMessageExport, model.PermissionReadComplianceExportJob},
+			{"elasticsearch indexing", model.JobTypeElasticsearchPostIndexing, model.PermissionReadElasticsearchPostIndexingJob},
+			{"elasticsearch aggregation", model.JobTypeElasticsearchPostAggregation, model.PermissionReadElasticsearchPostAggregationJob},
+			{"ldap sync", model.JobTypeLdapSync, model.PermissionReadLdapSyncJob},
+			{"generic jobs", model.JobTypeExportProcess, model.PermissionReadJobs},
+			{"access control sync", model.JobTypeAccessControlSync, model.PermissionManageSystem},
+			{"access control team sync", model.JobTypeAccessControlTeamSync, model.PermissionManageTeamAccessRules},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.name, func(t *testing.T) {
+				jobServer, _, _ := makeJobServer(t)
+				var captured *model.WebSocketEvent
+				jobServer.publish = func(ev *model.WebSocketEvent) { captured = ev }
+
+				job := &model.Job{Id: "job_id", Type: testCase.jobType}
+				jobServer.publishJobStatus(job, model.JobStatusSuccess)
+
+				assertPublishedJob(t, captured, model.JobStatusSuccess)
+				// ContainsSensitiveData stays true as a fail-closed fallback for nodes that
+				// predate RequiredPermissions during a mixed-version cluster rollout.
+				require.True(t, captured.GetBroadcast().ContainsSensitiveData)
+				require.Equal(t, []string{testCase.permission.Id}, captured.GetBroadcast().RequiredPermissions)
+			})
+		}
+	})
+
 	t.Run("broadcasts correct status", func(t *testing.T) {
 		jobServer, _, _ := makeJobServer(t)
 		var captured *model.WebSocketEvent
@@ -780,13 +814,32 @@ func TestPublishJobStatus(t *testing.T) {
 
 		job := &model.Job{
 			Id:     "job_id",
-			Type:   "job_type",
+			Type:   model.JobTypeMessageExport,
 			Status: model.JobStatusInProgress,
 			Data:   map[string]string{"requesting_user_id": "user1", "policy_id": "pol1"},
 		}
 		jobServer.publishJobStatus(job, model.JobStatusSuccess)
 
 		assertPublishedJob(t, captured, model.JobStatusSuccess)
+		require.True(t, captured.GetBroadcast().ContainsSensitiveData)
+		require.Equal(t, []string{model.PermissionReadComplianceExportJob.Id}, captured.GetBroadcast().RequiredPermissions)
+	})
+
+	t.Run("unknown job type falls back to sensitive data", func(t *testing.T) {
+		jobServer, _, _ := makeJobServer(t)
+		var captured *model.WebSocketEvent
+		jobServer.publish = func(ev *model.WebSocketEvent) { captured = ev }
+
+		job := &model.Job{
+			Id:     "job_id",
+			Type:   "unknown_job_type",
+			Status: model.JobStatusInProgress,
+		}
+		jobServer.publishJobStatus(job, model.JobStatusSuccess)
+
+		assertPublishedJob(t, captured, model.JobStatusSuccess)
+		require.True(t, captured.GetBroadcast().ContainsSensitiveData)
+		require.Empty(t, captured.GetBroadcast().RequiredPermissions)
 	})
 
 	t.Run("ClaimJob publishes in_progress", func(t *testing.T) {

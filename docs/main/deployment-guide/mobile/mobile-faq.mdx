@@ -232,7 +232,7 @@ After the above, your `/assets/override/config.json` file would look something l
 > &#125;
 > ```
 
-7.  Finally, [compile your own version](https://developers.mattermost.com/contribute/mobile/build-your-own/) of the Mattermost mobile app and Mattermost push proxy server.
+7.  Finally, [compile your own version](https://docs.mattermost.com/developers/contribute/more-info/mobile/build-your-own/) of the Mattermost mobile app and Mattermost push proxy server.
 
 ## How can I get Google SSO to work with the Mattermost mobile app?
 
@@ -246,7 +246,7 @@ The app checks for platform-specific configuration on app install. If no configu
 
 **Set up for iOS**
 
-1.  Create an `apple-app-site-association` file in the `.well-known` directory at the root of your server. It should be accessible by navigating to `https://&lt;your-site-name&gt;/.well-known/apple-app-site-association`. There should not be a file extension.
+1.  Create an `apple-app-site-association` file in the `.well-known` directory at the root of your server. It should be accessible by navigating to `https://<your-site-name>/.well-known/apple-app-site-association`. There should not be a file extension.
 2.  In order to handle deep links, paste the following `JSON` into the `apple-app-site-association` file. Make sure to place your app ID in the `appID` property:
 
 {/* */}
@@ -265,7 +265,7 @@ The app checks for platform-specific configuration on app install. If no configu
 
 3.  Add the associated domains entitlement to your app via the Apple developer portal.
 4.  Add an entitlement that specifies the domains your app supports via the Xcode entitlements manager.
-5.  Before installing the app with the new entitlement, make sure that you can view the contents of the `apple-app-site-association` file via a browser by navigating to `https://&lt;your-site-name&gt;/.well-known/apple-app-site-association`. The app will check for this file on install and, if found, will allow outside permalinks to open the app.
+5.  Before installing the app with the new entitlement, make sure that you can view the contents of the `apple-app-site-association` file via a browser by navigating to `https://<your-site-name>/.well-known/apple-app-site-association`. The app will check for this file on install and, if found, will allow outside permalinks to open the app.
 
 Official documentation for configuring deep linking on iOS can be found [here](https://developer.apple.com/library/archive/documentation/General/Conceptual/AppSearch/UniversalLinks.html).
 
@@ -290,7 +290,7 @@ When your IT policy requires a corporate proxy to scan and audit all outbound tr
 
 The Mattermost push notification service is designed to send traffic directly to the [Apple Push Notification Service (APNS)](https://developer.apple.com/documentation/usernotifications) and [Google Fire Cloud Messaging (FCM)](https://firebase.google.com/docs/cloud-messaging) services.
 
-In a proxy-aware configuration, a pre-proxy relay accepts messages from the [Mattermost Push Proxy](https://developers.mattermost.com/contribute/mobile/push-notifications/service/) and forwards them to a corporate proxy enforcing your internal IT requirements, before transmitting to their final destination.
+In a proxy-aware configuration, a pre-proxy relay accepts messages from the [Mattermost Push Proxy](https://docs.mattermost.com/developers/contribute/more-info/mobile/push-notifications/service/) and forwards them to a corporate proxy enforcing your internal IT requirements, before transmitting to their final destination.
 
 See a sample architectural overview below:
 
@@ -308,7 +308,7 @@ Some legacy corporate proxy configurations may be incompatible with the requirem
 
 In this case, a post-proxy relay can be deployed to take messages from the Mattermost server passing through your corporate IT proxy in the incompatible format, e.g. HTTP/1.1, transform it to HTTP/2 and relay it to its final destination, either to the [Apple Push Notification Service (APNS)](https://developer.apple.com/documentation/usernotifications) and [Google Fire Cloud Messaging (FCM)](https://firebase.google.com/docs/cloud-messaging) services.
 
-Ths **post-proxy relay** [can be configured using the Mattermost Push Proxy installation guide](https://developers.mattermost.com/contribute/mobile/push-notifications/service/) with connection restrictions to meet your custom security and compliance requirements.
+This **post-proxy relay** [can be configured using the Mattermost Push Proxy installation guide](https://docs.mattermost.com/developers/contribute/more-info/mobile/push-notifications/service/) with connection restrictions to meet your custom security and compliance requirements.
 
 In place of a DMZ, you can also host in a trusted cloud environment such as AWS or Azure depending on your internal approvals and policies.
 
@@ -316,7 +316,7 @@ In place of a DMZ, you can also host in a trusted cloud environment such as AWS 
 
 ### Whitelist Mattermost push notification proxy to bypass your corporate proxy server
 
-Depending on your internal IT policy and approved waivers/exceptions, you may choose to deploy the [Mattermost Push Proxy](https://developers.mattermost.com/contribute/mobile/push-notifications/service/) to connect directly to [Apple Push Notification Service (APNS)](https://developer.apple.com/documentation/usernotifications) without your corporate proxy.
+Depending on your internal IT policy and approved waivers/exceptions, you may choose to deploy the [Mattermost Push Proxy](https://docs.mattermost.com/developers/contribute/more-info/mobile/push-notifications/service/) to connect directly to [Apple Push Notification Service (APNS)](https://developer.apple.com/documentation/usernotifications) without your corporate proxy.
 
 You will need to [whitelist one subdomain and one port from Apple](https://developer.apple.com/library/archive/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingwithAPNs.html#//apple_ref/doc/uid/TP40008194-CH11-SW1) for this option:
 

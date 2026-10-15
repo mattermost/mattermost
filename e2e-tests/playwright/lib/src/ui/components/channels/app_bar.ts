@@ -8,11 +8,13 @@ export default class ChannelsAppBar {
     readonly container: Locator;
 
     readonly playbooksIcon;
+    readonly demoPluginButton;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.playbooksIcon = container.locator('#app-bar-icon-playbooks').getByRole('img');
+        this.demoPluginButton = container.locator('#app-bar-icon-com\\.mattermost\\.demo-plugin');
     }
 
     async toBeVisible() {

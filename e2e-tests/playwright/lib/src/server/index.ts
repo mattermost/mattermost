@@ -4,11 +4,22 @@
 export {makeClient} from './client';
 export {PlaywrightClient4} from './playwright_client';
 export {createRandomChannel} from './channel';
-export {getOnPremServerConfig, mergeWithOnPremServerConfig} from './default_config';
 export {initSetup, getAdminClient} from './init';
+export {clearAdminLoginLockout, getAdminClientHealing} from './admin_lockout';
+export {clearAdminLockout} from './lockout';
+export {restorePendingConfigPatches} from './patch_config';
+export type {RestoreConfig} from './patch_config';
+export {resetConfig} from './reset_config';
+export {resetRoles} from './roles';
 export {createRandomPost} from './post';
 export {createNewTeam, createRandomTeam} from './team';
-export {createNewUserProfile, createRandomUser, getDefaultAdminUser, isOutsideRemoteUserHour} from './user';
+export {
+    createNewUserProfile,
+    createRandomUser,
+    getDefaultAdminUser,
+    isOutsideRemoteUserHour,
+    setDefaultOnboardingPreferences,
+} from './user';
 export {extractEmailLink, getRecentEmail} from './email';
 export type {InbucketEmail} from './email';
 export {
@@ -36,7 +47,13 @@ export {
     verifyUserNotInChannel,
     updateUserAttributes,
 } from './abac_helpers';
-export {installAndEnablePlugin, isPluginActive, getPluginStatus} from './plugin';
+export {
+    defaultEnabledPluginIds,
+    disableUnexpectedPlugins,
+    installAndEnablePlugin,
+    isPluginActive,
+    getPluginStatus,
+} from './plugin';
 export {isWebhookTestServerReachable, setupWebhookTestServer} from './webhook_server';
 export {
     generateLdapUser,
@@ -47,14 +64,32 @@ export {
     ensureOpenldap,
 } from './openldap';
 export type {LdapUser} from './openldap';
-export {createKeycloakUser, deleteKeycloakUser, samlServerConfig, ensureKeycloak} from './keycloak';
+export {
+    generateKeycloakUser,
+    createKeycloakUser,
+    deleteKeycloakUser,
+    suspendKeycloakUser,
+    samlServerConfig,
+    keycloakSamlDescriptorUrl,
+    ensureKeycloak,
+    openidServerConfig,
+    ensureKeycloakOpenId,
+} from './keycloak';
 export type {KeycloakUser} from './keycloak';
 export {listMinioObjectKeys, ensureMinio} from './minio';
 export {elasticsearchServerConfig, ensureElasticsearch} from './elasticsearch';
 export {opensearchServerConfig, ensureOpensearch} from './opensearch';
 export {ensureAzurite, listAzuriteBlobNames} from './azurite';
-export {ensureLocalFile} from './filestore';
+export {ensureLocalFile, listMattermostDataFiles} from './filestore';
 export {ensurePostgresSearch} from './postgres_search';
 export {ensureFeatureFlag} from './feature_flags';
-export {runMmctl, ensureMmctl} from './mmctl';
+export {ensureDefaultServerEnv} from './default_server_env';
+export {defaultFeatureFlags} from './default_feature_flags';
+export {ensurePhase2MigrationCompleted} from './migrations';
+export {ensureInternalSiteUrl, ensureServerEnv, ensureSiteUrl} from './server_env';
+export {generateTotp, enableUserMfa} from './mfa';
+export {runMmctl, runMmctlLocal, ensureMmctl} from './mmctl';
 export type {MmctlResult} from './mmctl';
+export {upgradeServerImage} from './version';
+export {saveUpgradePhaseLogs} from './upgrade_logs';
+export type {UpgradeLogPhase} from './upgrade_logs';

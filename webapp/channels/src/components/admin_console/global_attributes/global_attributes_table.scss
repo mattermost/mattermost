@@ -24,9 +24,88 @@
     }
 }
 
+.GlobalAttributesTable__appliesTo {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0;
+    margin: 0;
+    gap: 8px;
+    list-style: none;
+}
+
+// Compass Small chip (proto CatalogListing Applies-to): 20px tall,
+// 10/12 type, 4px radius, 4×8 padding.
+.GlobalAttributesTable__appliesToChip {
+    display: inline-flex;
+    overflow: hidden;
+    align-items: center;
+    padding: 4px 8px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    line-height: 12px;
+    white-space: nowrap;
+}
+
+.GlobalAttributesTable__attribute {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.GlobalAttributesTable__nameRow {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+}
+
 .GlobalAttributesTable__name {
+    overflow: hidden;
     color: var(--center-channel-color);
     font-weight: variables.$font-weight--semibold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.GlobalAttributesTable__nameConflict {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    color: var(--away-indicator);
+}
+
+.GlobalAttributesTable__subtitle {
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+    white-space: normal;
+}
+
+.GlobalAttributesTable__link--classification {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    text-decoration: none;
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+
+    &:focus-visible {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
 }
 
 .GlobalAttributesTable__empty {
@@ -49,6 +128,15 @@
     td.actions,
     th.actions {
         text-align: right;
+    }
+
+    // table-layout is auto (never overridden), so max-width here is what
+    // actually caps this column -- the inner .GlobalAttributesTable__name
+    // span's own ellipsis-truncation rule only kicks in once the column
+    // itself is this narrow.
+    td.attribute,
+    th.attribute {
+        max-width: 65ch;
     }
 
     table.adminConsoleListTable thead tr th {

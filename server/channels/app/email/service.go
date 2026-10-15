@@ -49,6 +49,7 @@ func condenseSiteURL(siteURL string) string {
 type Service struct {
 	config  func() *model.Config
 	license func() *model.License
+	logger  mlog.LoggerIFace
 
 	userService *users.UserService
 	store       store.Store
@@ -57,15 +58,19 @@ type Service struct {
 	perMinuteEmailRateLimiter *throttled.GCRARateLimiterCtx
 	perHourEmailRateLimiter   *throttled.GCRARateLimiterCtx
 	EmailBatching             *EmailBatchingJob
+
+	postDeliveryRecorder func(userID string, post *model.Post)
 }
 
 type ServiceConfig struct {
 	ConfigFn  func() *model.Config
 	LicenseFn func() *model.License
 
-	TemplatesContainer *templates.Container
-	UserService        *users.UserService
-	Store              store.Store
+	TemplatesContainer     *templates.Container
+	UserService            *users.UserService
+	Store                  store.Store
+	Logger                 mlog.LoggerIFace
+	PostDeliveryRecorderFn func(userID string, post *model.Post)
 }
 
 func NewService(config ServiceConfig) (*Service, error) {
@@ -73,11 +78,13 @@ func NewService(config ServiceConfig) (*Service, error) {
 		return nil, err
 	}
 	service := &Service{
-		config:             config.ConfigFn,
-		templatesContainer: config.TemplatesContainer,
-		license:            config.LicenseFn,
-		store:              config.Store,
-		userService:        config.UserService,
+		config:               config.ConfigFn,
+		templatesContainer:   config.TemplatesContainer,
+		license:              config.LicenseFn,
+		logger:               config.Logger,
+		store:                config.Store,
+		userService:          config.UserService,
+		postDeliveryRecorder: config.PostDeliveryRecorderFn,
 	}
 	if err := service.setUpRateLimiters(); err != nil {
 		return nil, err

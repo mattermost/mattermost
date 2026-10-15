@@ -4,6 +4,7 @@
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {supportsHierarchy} from '@mattermost/types/properties';
 import type {UserPropertyValueType} from '@mattermost/types/properties_user';
 
 import {getCustomProfileAttributeValues} from 'mattermost-redux/actions/users';
@@ -14,6 +15,7 @@ import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import type {GlobalState} from 'types/store';
 
+import ProfilePopoverGraphAttribute from './profile_popover_graph_attribute';
 import ProfilePopoverPhone from './profile_popover_phone';
 import ProfilePopoverSelectAttribute from './profile_popover_select_attribute';
 import ProfilePopoverTextAttribute from './profile_popover_text_attribute';
@@ -91,6 +93,12 @@ const ProfilePopoverCustomAttributes = ({
                     </strong>
                     {(attribute.type === 'multiselect' || attribute.type === 'select' || attribute.type === 'rank') && (
                         <ProfilePopoverSelectAttribute
+                            attribute={attribute}
+                            userProfile={userProfile}
+                        />
+                    )}
+                    {supportsHierarchy(attribute) && (
+                        <ProfilePopoverGraphAttribute
                             attribute={attribute}
                             userProfile={userProfile}
                         />

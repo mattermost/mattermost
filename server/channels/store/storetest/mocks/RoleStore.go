@@ -5,9 +5,8 @@
 package mocks
 
 import (
-	context "context"
-
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -196,9 +195,9 @@ func (_m *RoleStore) GetAll() ([]*model.Role, error) {
 	return r0, r1
 }
 
-// GetByName provides a mock function with given fields: ctx, name
-func (_m *RoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
-	ret := _m.Called(ctx, name)
+// GetByName provides a mock function with given fields: rctx, name
+func (_m *RoleStore) GetByName(rctx request.CTX, name string) (*model.Role, error) {
+	ret := _m.Called(rctx, name)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByName")
@@ -206,19 +205,19 @@ func (_m *RoleStore) GetByName(ctx context.Context, name string) (*model.Role, e
 
 	var r0 *model.Role
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.Role, error)); ok {
-		return rf(ctx, name)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.Role, error)); ok {
+		return rf(rctx, name)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *model.Role); ok {
-		r0 = rf(ctx, name)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.Role); ok {
+		r0 = rf(rctx, name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Role)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, name)
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, name)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import AdminDefinition from './admin_definition';
-import type {AdminDefinitionSetting, AdminDefinitionSettingBanner} from './types';
+import type {AdminDefinitionSetting} from './types';
 
 describe('AdminDefinition - Enable Testing setting', () => {
     const getDeveloperSettings = () => {
@@ -11,26 +11,6 @@ describe('AdminDefinition - Enable Testing setting', () => {
 
         return (schema && 'settings' in schema && schema.settings) ? schema.settings : [];
     };
-
-    test('includes a warning banner before the EnableTesting setting', () => {
-        const settings = getDeveloperSettings();
-        const bannerIndex = settings.findIndex((setting: AdminDefinitionSetting) => setting.type === 'banner');
-        const enableTestingIndex = settings.findIndex((setting: AdminDefinitionSetting) => setting.key === 'ServiceSettings.EnableTesting');
-
-        expect(bannerIndex).toBeGreaterThanOrEqual(0);
-        expect(enableTestingIndex).toBeGreaterThanOrEqual(0);
-        expect(bannerIndex).toBeLessThan(enableTestingIndex);
-
-        const banner = settings[bannerIndex] as AdminDefinitionSettingBanner;
-        expect(banner.banner_type).toBe('warning');
-        expect(typeof banner.label).toBe('object');
-        if (banner.label && typeof banner.label === 'object') {
-            expect(banner.label).toMatchObject({
-                id: 'admin.service.testingWarning',
-                defaultMessage: expect.stringContaining('Never enable this setting in production.'),
-            });
-        }
-    });
 
     test('has explicit non-production guidance in the EnableTesting help text', () => {
         const settings = getDeveloperSettings();

@@ -37,7 +37,7 @@ Resolves the DSN exactly like 'mattermost db migrate' / 'mattermost db init':
 the --config flag, then MM_CONFIG, then config.json (which is then loaded as
 a config store and SqlSettings.DataSource is used).`,
 	Example: `  # Database DSN passed via --config (preferred for readiness probes)
-  $ mattermost db ping --config postgres://mmuser:mostest@localhost/mattermost --timeout 2m
+  $ mattermost db ping --config postgres://mmuser:mostest_password@localhost/mattermost --timeout 2m
 
   # Or via MM_CONFIG
   $ MM_CONFIG=postgres://localhost/mattermost mattermost db ping`,
@@ -92,7 +92,7 @@ func dbPingCmdF(command *cobra.Command, _ []string) error {
 	defer cancel()
 
 	return pingWithRetry(ctx, db, retryInterval, logger.With(
-		mlog.String("dataSource", sanitized),
+		mlog.String("data_source", sanitized),
 	))
 }
 

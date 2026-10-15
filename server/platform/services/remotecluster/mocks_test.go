@@ -4,7 +4,6 @@
 package remotecluster
 
 import (
-	"context"
 	"slices"
 	"sync"
 	"testing"
@@ -75,7 +74,7 @@ func (ms *mockServer) GetStore() store.Store {
 	remoteClusterStoreMock.On("SetLastPingAt", anyId).Return(nil)
 
 	userStoreMock := &mocks.UserStore{}
-	userStoreMock.On("Get", context.Background(), anyUserId).Return(ms.user, nil)
+	userStoreMock.On("Get", mock.Anything, anyUserId).Return(ms.user, nil)
 
 	storeMock := &mocks.Store{}
 	storeMock.On("RemoteCluster").Return(remoteClusterStoreMock)

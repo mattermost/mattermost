@@ -1,0 +1,117 @@
+package a
+
+import (
+	"errors"
+	"time"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+)
+
+const (
+	snakeKey = "batch_start_time"
+	camelKey = "batchStartTime"
+)
+
+type notMlog struct{}
+
+func (notMlog) String(key string, val string) string { return key }
+
+func valid() {
+	mlog.Debug("message",
+		mlog.String("user_id", "abc"),
+		mlog.Int("count", 1),
+		mlog.Uint("size", uint(1)),
+		mlog.Float("ratio", 1.0),
+		mlog.Bool("is_leader", true),
+		mlog.Any("data", nil),
+		mlog.Array("ids", []string(nil)),
+		mlog.Map("props", map[string]string(nil)),
+		mlog.Duration("elapsed", nil),
+		mlog.Millis("started_at", 0),
+		mlog.Time("created_at", time.Time{}),
+		mlog.Stringer("channel_type", nil),
+		mlog.NamedErr("upload_err", nil),
+		mlog.Err(errors.New("boom")),
+	)
+
+	// Digits are allowed within and as whole segments.
+	mlog.Info("message", mlog.String("sha256", ""), mlog.String("channel_id_2", ""))
+
+	// Keys resolved from constants are checked too.
+	mlog.Info("message", mlog.String(snakeKey, ""))
+}
+
+func fixable() {
+	mlog.Debug("message",
+		mlog.String("user_id", ""),              // want `mlog field key "userId" is not snake_case, use "user_id"`
+		mlog.String("user_id", ""),              // want `mlog field key "UserID" is not snake_case, use "user_id"`
+		mlog.Int("per_page", 0),                 // want `mlog field key "perPage" is not snake_case, use "per_page"`
+		mlog.String("cluster_discovery_id", ""), // want `mlog field key "ClusterDiscoveryID" is not snake_case, use "cluster_discovery_id"`
+		mlog.String("request_url_path", ""),     // want `mlog field key "requestURLPath" is not snake_case, use "request_url_path"`
+		mlog.String("diff", ""),                 // want `mlog field key "Diff" is not snake_case, use "diff"`
+		mlog.String("channel_name", ""),         // want `mlog field key "channel name" is not snake_case, use "channel_name"`
+		mlog.String("features_users", ""),       // want `mlog field key "features.users" is not snake_case, use "features_users"`
+		mlog.String("user_id", ""),              // want `mlog field key "user-id" is not snake_case, use "user_id"`
+		mlog.String("user_id", ""),              // want `mlog field key "_user_id" is not snake_case, use "user_id"`
+		mlog.String("user_id", ""),              // want `mlog field key "user__id" is not snake_case, use "user_id"`
+		mlog.String("channel_id2", ""),          // want `mlog field key "channelId2" is not snake_case, use "channel_id2"`
+		mlog.Array("user_ids", []string(nil)),   // want `mlog field key "userIDs" is not snake_case, use "user_ids"`
+	)
+}
+
+// instantiated covers the generic constructors called with explicit type
+// arguments, where the call expression wraps the selector in an index rather
+// than being the selector itself.
+func instantiated() {
+	mlog.Debug("message",
+		mlog.Int[int64]("count", 1),
+		mlog.Array[[]string, string]("ids", nil),
+		mlog.Map[map[string]string, string, string]("props", nil),
+
+		mlog.Int[int64]("per_page", 1),                                // want `mlog field key "perPage" is not snake_case, use "per_page"`
+		mlog.Array[[]string, string]("user_ids", nil),                 // want `mlog field key "userIDs" is not snake_case, use "user_ids"`
+		mlog.Map[map[string]string, string, string]("map_props", nil), // want `mlog field key "mapProps" is not snake_case, use "map_props"`
+		mlog.String[string](camelKey, ""),                             // want `mlog field key "batchStartTime" is not snake_case$`
+	)
+}
+
+func unfixable() {
+	mlog.Debug("message",
+		// Would start with a digit, so there is no mechanical rename.
+		mlog.String("2fa", ""), // want `mlog field key "2fa" is not snake_case$`
+		mlog.String("", ""),    // want `mlog field key "" is not snake_case$`
+	)
+
+	// Renaming a constant's value is out of scope, so this is reported without
+	// a suggested fix.
+	mlog.Info("message", mlog.String(camelKey, "")) // want `mlog field key "batchStartTime" is not snake_case$`
+}
+
+func ignored(key string) {
+	// Not the mlog package.
+	var n notMlog
+	_ = n.String("userId", "")
+
+	// Not statically known.
+	mlog.Info("message", mlog.String(key, ""))
+}
+
+// everyConstructor gives each keyed constructor its own diagnostic, so that
+// dropping one from keyedFieldConstructors fails a test.
+func everyConstructor() {
+	mlog.Debug("message",
+		mlog.Any("any_value", nil),                    // want `mlog field key "anyValue" is not snake_case, use "any_value"`
+		mlog.Array("array_ids", []string(nil)),        // want `mlog field key "arrayIds" is not snake_case, use "array_ids"`
+		mlog.Bool("bool_flag", true),                  // want `mlog field key "boolFlag" is not snake_case, use "bool_flag"`
+		mlog.Duration("duration_elapsed", nil),        // want `mlog field key "durationElapsed" is not snake_case, use "duration_elapsed"`
+		mlog.Float("float_ratio", 1.0),                // want `mlog field key "floatRatio" is not snake_case, use "float_ratio"`
+		mlog.Int("int_count", 1),                      // want `mlog field key "intCount" is not snake_case, use "int_count"`
+		mlog.Map("map_props", map[string]string(nil)), // want `mlog field key "mapProps" is not snake_case, use "map_props"`
+		mlog.Millis("millis_started_at", 0),           // want `mlog field key "millisStartedAt" is not snake_case, use "millis_started_at"`
+		mlog.NamedErr("named_err", nil),               // want `mlog field key "namedErr" is not snake_case, use "named_err"`
+		mlog.String("string_name", ""),                // want `mlog field key "stringName" is not snake_case, use "string_name"`
+		mlog.Stringer("stringer_type", nil),           // want `mlog field key "stringerType" is not snake_case, use "stringer_type"`
+		mlog.Time("time_created_at", time.Time{}),     // want `mlog field key "timeCreatedAt" is not snake_case, use "time_created_at"`
+		mlog.Uint("uint_size", uint(1)),               // want `mlog field key "uintSize" is not snake_case, use "uint_size"`
+	)
+}

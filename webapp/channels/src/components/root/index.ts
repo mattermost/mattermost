@@ -32,7 +32,6 @@ import {
     loadConfigAndMe,
     handleLoginLogoutSignal,
     redirectToOnboardingOrDefaultTeam,
-    logIfConcurrentReactEnabled,
 } from './actions';
 import Root from './root';
 
@@ -78,7 +77,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             loadConfigAndMe,
             loadRecentlyUsedCustomEmojis,
-            logIfConcurrentReactEnabled,
             migrateRecentEmojis,
             initializeProducts,
             handleLoginLogoutSignal,

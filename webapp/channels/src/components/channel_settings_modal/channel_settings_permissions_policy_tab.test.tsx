@@ -9,6 +9,7 @@ import {
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
 } from '@mattermost/types/access_control';
+import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
@@ -173,13 +174,35 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
     };
 
     const openNewRuleEditor = async () => {
-        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+        const view = renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
 
         const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
         await waitFor(() => expect(addRuleButton).toBeEnabled());
         await userEvent.click(addRuleButton);
 
         await screen.findByTestId('permissions-policy-editor');
+
+        return view;
+    };
+
+    const openExistingRuleEditor = async (props = baseProps) => {
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                rules: [{
+                    name: 'Existing rule',
+                    role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+                    actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                    expression: 'user.attributes.team == "eng"',
+                }],
+            },
+        });
+
+        const view = renderWithContext(<ChannelSettingsPermissionsPolicyTab {...props}/>, initialState);
+
+        await userEvent.click(await screen.findByText('Existing rule'));
+        await screen.findByTestId('permissions-policy-editor');
+
+        return view;
     };
 
     const openNewRuleEditorWithFields = async () => {
@@ -356,6 +379,230 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         expect(screen.queryByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_DOWNLOAD_FILE}`)).not.toBeInTheDocument();
     });
 
+    test('deletes the channel policy when saving after removing the only permission rule', async () => {
+        // A channel whose policy holds a single permission rule and nothing
+        // else (no membership rule, no imports). Removing that rule would leave
+        // an empty policy, which the server rejects with
+        // "Unable to save access control policy." (MM-70153).
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                id: 'channel_id',
+                rules: [{
+                    name: 'Only rule',
+                    role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+                    actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                    expression: 'user.attributes.department == "eng"',
+                }],
+                imports: [],
+            },
+        });
+        mockActions.deleteChannelPolicy.mockResolvedValue({data: true});
+
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+
+        // Delete the only rule from the list.
+        await userEvent.click(await screen.findByTestId(/^permissions-policy-row-delete-/));
+        expect(await screen.findByText('No permission rules yet. Click "Add rule" to create one.')).toBeInTheDocument();
+
+        // Save the now-empty rule set.
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+        // The empty policy is removed rather than saved, so no error appears.
+        await waitFor(() => {
+            expect(mockActions.deleteChannelPolicy).toHaveBeenCalledWith('channel_id');
+        });
+        expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+        expect(screen.queryByText('Unable to save access control policy.')).not.toBeInTheDocument();
+        expect(await screen.findByText('Settings saved')).toBeInTheDocument();
+    });
+
+    test('does not resurrect auto-add when recreating a policy after empty delete', async () => {
+        // Regression: after deleting a channel policy via the empty-rules path,
+        // adding a rule and saving again (without closing the tab) must create a
+        // policy carrying nothing from the deleted one. Auto-add now rides on the
+        // membership rule, so stale rules would silently re-enable membership
+        // sync — and the deprecated active flag on the fetched policy must not
+        // turn into auto-add either.
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                id: 'channel_id',
+                active: true,
+                rules: [{
+                    name: 'Only rule',
+                    role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+                    actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                    expression: 'user.attributes.department == "eng"',
+                }],
+                imports: [],
+            },
+        });
+        mockActions.deleteChannelPolicy.mockResolvedValue({data: true});
+        mockActions.saveChannelPolicy.mockResolvedValue({
+            data: {
+                rules: [{
+                    name: 'Recreated rule',
+                    role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+                    actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                    expression: EXPRESSION,
+                }],
+            },
+        });
+
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+
+        // Delete the only rule and persist (triggers channel-policy delete).
+        await userEvent.click(await screen.findByTestId(/^permissions-policy-row-delete-/));
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+        await waitFor(() => {
+            expect(mockActions.deleteChannelPolicy).toHaveBeenCalledWith('channel_id');
+        });
+        expect(await screen.findByText('Settings saved')).toBeInTheDocument();
+
+        // Without closing the tab, add a new rule and save again.
+        const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
+        await waitFor(() => expect(addRuleButton).toBeEnabled());
+        await userEvent.click(addRuleButton);
+        await screen.findByTestId('table-editor');
+        act(() => {
+            latestTableEditorProps().onChange(EXPRESSION);
+        });
+        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`));
+        await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Recreated rule');
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+
+        expect(await screen.findByText('Recreated rule')).toBeInTheDocument();
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
+        });
+        const recreated = mockActions.saveChannelPolicy.mock.calls[0][0];
+        expect(recreated.rules).toEqual([expect.objectContaining({name: 'Recreated rule'})]);
+        expect(recreated.rules.some((rule: AccessControlPolicyRule) => rule.metadata?.auto_add)).toBe(false);
+    });
+
+    test('saves the remaining membership rule when the last permission rule is removed', async () => {
+        // When a membership rule remains, removing the last permission rule must
+        // still save the policy (keeping the membership rule) rather than delete
+        // the whole channel policy.
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                id: 'channel_id',
+                rules: [
+                    {actions: ['membership'], expression: 'user.attributes.team == "ops"'},
+                    {
+                        name: 'Only permission rule',
+                        role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+                        actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                        expression: 'user.attributes.department == "eng"',
+                    },
+                ],
+                imports: [],
+            },
+        });
+        mockActions.saveChannelPolicy.mockResolvedValue({data: {rules: [{actions: ['membership'], expression: 'user.attributes.team == "ops"'}]}});
+
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+
+        // Remove the single permission rule (the membership rule is not listed here).
+        await userEvent.click(await screen.findByTestId(/^permissions-policy-row-delete-/));
+        expect(await screen.findByText('No permission rules yet. Click "Add rule" to create one.')).toBeInTheDocument();
+
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+        // The policy is saved with only the membership rule; it is not deleted.
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
+        });
+        const savedPolicy = mockActions.saveChannelPolicy.mock.calls[0][0];
+        expect(savedPolicy.rules).toEqual([{actions: ['membership'], expression: 'user.attributes.team == "ops"'}]);
+        expect(mockActions.deleteChannelPolicy).not.toHaveBeenCalled();
+    });
+
+    test('treats a 404 from the delete as success when removing the only permission rule', async () => {
+        // The rule may have been added and removed before any policy was
+        // persisted, so a 404 on delete means "already gone" — an effective
+        // success, not an error.
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                id: 'channel_id',
+                rules: [{
+                    name: 'Only rule',
+                    role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+                    actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                    expression: 'user.attributes.department == "eng"',
+                }],
+                imports: [],
+            },
+        });
+        mockActions.deleteChannelPolicy.mockResolvedValue({error: {status_code: 404}});
+
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+
+        await userEvent.click(await screen.findByTestId(/^permissions-policy-row-delete-/));
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+        expect(await screen.findByText('Settings saved')).toBeInTheDocument();
+        expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+    });
+
+    test('saves (not deletes) the policy when imports remain after removing the last permission rule', async () => {
+        // Imports keep the policy valid even with no rules, so the policy must be
+        // saved (preserving its imports) rather than deleted.
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                id: 'channel_id',
+                rules: [{
+                    name: 'Only rule',
+                    role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+                    actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                    expression: 'user.attributes.department == "eng"',
+                }],
+                imports: ['parent-policy-id'],
+            },
+        });
+        mockActions.saveChannelPolicy.mockResolvedValue({data: {rules: [], imports: ['parent-policy-id']}});
+
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+
+        await userEvent.click(await screen.findByTestId(/^permissions-policy-row-delete-/));
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
+        });
+        const savedPolicy = mockActions.saveChannelPolicy.mock.calls[0][0];
+        expect(savedPolicy.rules).toEqual([]);
+        expect(savedPolicy.imports).toEqual(['parent-policy-id']);
+        expect(mockActions.deleteChannelPolicy).not.toHaveBeenCalled();
+    });
+
+    test('surfaces an error when deleting the emptied channel policy fails', async () => {
+        // If the backend delete fails for a real reason (not a 404), the tab must
+        // surface the error instead of silently reporting success.
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                id: 'channel_id',
+                rules: [{
+                    name: 'Only rule',
+                    role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+                    actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                    expression: 'user.attributes.department == "eng"',
+                }],
+                imports: [],
+            },
+        });
+        mockActions.deleteChannelPolicy.mockResolvedValue({error: {message: 'boom', status_code: 500}});
+
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+
+        await userEvent.click(await screen.findByTestId(/^permissions-policy-row-delete-/));
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__save-btn'));
+
+        expect(await screen.findByText('boom')).toBeInTheDocument();
+        expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+    });
+
     test('preserves in-progress edits to an existing rule when validation fails', async () => {
         // Seed an existing permission rule so the non-404 load branch and the
         // edit path are exercised.
@@ -389,5 +636,128 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         expect(screen.getByTestId('permissions-policy-editor')).toBeInTheDocument();
         expect(screen.getByTestId('table-editor-value')).toHaveTextContent(newExpression);
         expect(screen.getByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
+    });
+
+    test('reports unsaved changes to the modal while a rule is open in the editor', async () => {
+        const setAreThereUnsavedChanges = jest.fn();
+
+        await openExistingRuleEditor({...baseProps, setAreThereUnsavedChanges});
+
+        // An open editor holds a draft the modal cannot save for the user, so it
+        // counts as unsaved even before the rule is edited — that is what makes
+        // the modal block section switches.
+        await waitFor(() => {
+            expect(setAreThereUnsavedChanges).toHaveBeenLastCalledWith(true);
+        });
+
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-cancel'));
+
+        await waitFor(() => {
+            expect(setAreThereUnsavedChanges).toHaveBeenLastCalledWith(false);
+        });
+    });
+
+    test('explains the blocked section switch while the rule editor is open', async () => {
+        const {rerender} = await openExistingRuleEditor();
+
+        expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+
+        rerender(
+            <ChannelSettingsPermissionsPolicyTab
+                {...baseProps}
+                showTabSwitchError={true}
+            />,
+        );
+
+        // The same floating footer the rest of the modal uses, in its error state.
+        expect(await screen.findByText('You have unsaved changes')).toBeInTheDocument();
+        expect(screen.getByTestId('SaveChangesPanel__save-btn')).toBeDisabled();
+
+        // The modal clears the flag on a timeout.
+        rerender(
+            <ChannelSettingsPermissionsPolicyTab
+                {...baseProps}
+                showTabSwitchError={false}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+        });
+    });
+
+    test('explains the blocked section switch while a new rule is being added', async () => {
+        const {rerender} = await openNewRuleEditor();
+
+        rerender(
+            <ChannelSettingsPermissionsPolicyTab
+                {...baseProps}
+                showTabSwitchError={true}
+            />,
+        );
+
+        expect(await screen.findByText('You have unsaved changes')).toBeInTheDocument();
+    });
+
+    test('leaves the rule editor when the blocked-switch footer is cancelled', async () => {
+        const {rerender} = await openExistingRuleEditor();
+
+        rerender(
+            <ChannelSettingsPermissionsPolicyTab
+                {...baseProps}
+                showTabSwitchError={true}
+            />,
+        );
+
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__cancel-btn'));
+
+        // Back on the rules list, with the rule the editor was showing intact.
+        expect(screen.queryByTestId('permissions-policy-editor')).not.toBeInTheDocument();
+        expect(screen.getByText('Existing rule')).toBeInTheDocument();
+    });
+
+    test('keeps the in-progress draft when a section switch is blocked', async () => {
+        const {rerender} = await openExistingRuleEditor();
+        await screen.findByTestId('table-editor');
+
+        const newExpression = 'user.attributes.team == "ops"';
+        await userEvent.clear(screen.getByTestId('permissions-policy-editor-name'));
+        await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Renamed rule');
+        act(() => {
+            latestTableEditorProps().onChange(newExpression);
+        });
+
+        rerender(
+            <ChannelSettingsPermissionsPolicyTab
+                {...baseProps}
+                showTabSwitchError={true}
+            />,
+        );
+
+        expect(await screen.findByText('You have unsaved changes')).toBeInTheDocument();
+
+        // The message asks the user to save the rule, so the rule has to survive it.
+        expect(screen.getByTestId('permissions-policy-editor-name')).toHaveValue('Renamed rule');
+        expect(screen.getByTestId('table-editor-value')).toHaveTextContent(newExpression);
+    });
+
+    test('keeps a save validation error visible when a section switch is blocked', async () => {
+        const {rerender} = await openExistingRuleEditor();
+
+        await userEvent.clear(screen.getByTestId('permissions-policy-editor-name'));
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+        expect(await screen.findByTestId('permissions-policy-editor-error')).toHaveTextContent('Each permission rule needs a unique name.');
+
+        // A blocked section switch must not overwrite the reason the rule
+        // cannot be saved in the first place.
+        rerender(
+            <ChannelSettingsPermissionsPolicyTab
+                {...baseProps}
+                showTabSwitchError={true}
+            />,
+        );
+
+        expect(screen.getByTestId('permissions-policy-editor-error')).toHaveTextContent('Each permission rule needs a unique name.');
+        expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
     });
 });

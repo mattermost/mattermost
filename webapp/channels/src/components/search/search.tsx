@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, useRef} from 'react';
-import type {FormEvent} from 'react';
+import type {FormEvent, JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 

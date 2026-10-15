@@ -220,7 +220,7 @@ describe('Teams Suite', () => {
         cy.get('#teamName').should('be.visible').clear().type(teamName);
 
         // Save new team name annd close<
-        cy.uiSaveAndClose();
+        saveAndCloseTeamSettings();
 
         // Team display name shows as "Testing Team" at top of team menu
         cy.uiGetLHSHeader().findByText(teamName);
@@ -245,8 +245,8 @@ describe('Teams Suite', () => {
         cy.get('#teamDescription').should('be.visible').clear().type(teamDescription);
         cy.get('#teamDescription').should('have.value', teamDescription);
 
-        // Save and close
-        cy.uiSaveAndClose();
+        // # Save and close
+        saveAndCloseTeamSettings();
 
         cy.wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
 
@@ -271,7 +271,7 @@ describe('Teams Suite', () => {
         cy.get('#public-private-selector-button-O').should('exist').and('not.have.class', 'selected').click();
 
         // # Save and close
-        cy.uiSaveAndClose();
+        saveAndCloseTeamSettings();
 
         // # Login as new user
         cy.apiLogin(newUser);
@@ -307,7 +307,7 @@ describe('Teams Suite', () => {
         // * Verify Private Team card is selected (open joining disabled by default)
         cy.get('#public-private-selector-button-P').should('exist').and('have.class', 'selected');
 
-        // # Save and close
+        // # Close the modal
         cy.uiClose();
 
         // # Login as new user
@@ -336,6 +336,17 @@ describe('Teams Suite', () => {
         cy.get('.more-modal__list').should('be.visible').children().should('have.length', 1);
     });
 });
+
+function saveAndCloseTeamSettings() {
+    // # Save the changes
+    cy.uiSave();
+
+    // * Wait for changes to be saved so the modal can be closed
+    cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
+
+    // # Close the modal
+    cy.uiClose();
+}
 
 function removeTeamMember(teamName, username) {
     cy.apiAdminLogin();

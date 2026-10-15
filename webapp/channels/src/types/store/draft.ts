@@ -54,6 +54,10 @@ export function isPostDraftEmpty(draft: PostDraft): boolean {
     return !hasMessage && !hasAttachment && !hasUploadingFiles && !hasPriority && !hasBurnOnRead;
 }
 
+export function draftHasAttachments(draft: Pick<PostDraft, 'fileInfos' | 'uploadsInProgress'>): boolean {
+    return draft.fileInfos?.length > 0 || draft.uploadsInProgress?.length > 0;
+}
+
 export function scheduledPostToPostDraft(scheduledPost: ScheduledPost): PostDraft {
     return {
         message: scheduledPost.message,

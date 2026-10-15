@@ -185,7 +185,7 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 		inaccessibleCount := lenPosts - accessibleCount
 		// Linearly cover shorter route to traverse posts map
 		if inaccessibleCount < accessibleCount {
-			for i := 0; i < bounds.start; i++ {
+			for i := range bounds.start {
 				delete(posts, order[i])
 			}
 			for i := bounds.end + 1; i < lenPosts; i++ {

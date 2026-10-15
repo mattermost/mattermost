@@ -63,7 +63,7 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         loadingMessage: messages.loading,
         noOptionsMessage: messages.noOptions,
     };
-    private selectRef: RefObject<SelectInstance<T, true>>;
+    private selectRef: RefObject<SelectInstance<T, true> | null>;
 
     constructor(props: Props<T>) {
         super(props);
@@ -138,7 +138,7 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
             <>
                 {icon}
                 {channel.display_name}
-                <span className='channel-name'>{channel.name}</span>
+                <span className='channel-name'>{'~'}{channel.name}</span>
             </>
         );
     };

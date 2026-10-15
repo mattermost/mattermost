@@ -5,6 +5,20 @@ import type {ProviderResults} from './suggestion_results';
 
 export type ResultsCallback<Item> = (result: ProviderResults<Item>) => void;
 
+/**
+ * A Provider as seen by SuggestionBox, including the optional hooks that SuggestionBox calls on any provider which
+ * implements them. These aren't declared on Provider itself because doing so would either require every subclass to
+ * implement them or would emit instance fields that shadow the subclasses which do.
+ */
+export type SuggestionProvider = Provider & {
+
+    /** Called after a suggestion from this provider has been completed into the input. */
+    handleCompleteWord?: (term: string, matchedPretext: string, callback: (pretext: string) => void) => void;
+
+    /** Called to open a command's form in a modal instead of completing it as text. */
+    openAppsModalFromCommand?: (pretext: string) => void;
+};
+
 export default abstract class Provider {
     latestPrefix: string;
     latestComplete: boolean;

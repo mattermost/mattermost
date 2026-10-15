@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
@@ -120,7 +120,6 @@ export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
         return (
             <div
                 key={option.id}
-                ref={isSelected ? 'selected' : option.id}
                 className={'more-modal__row clickable ' + rowSelected}
                 onClick={() => onAdd(option)}
                 onMouseMove={() => onMouseMove(option)}

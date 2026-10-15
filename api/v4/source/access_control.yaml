@@ -675,3 +675,44 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/access_control/decisions/actions/search:
+    post:
+      tags:
+        - access control
+      summary: Search allowed actions for the current user (render-time decision)
+      description: |
+        Returns non-authoritative, render-time ABAC decisions for the current
+        session user on a given resource and set of actions. Use these decisions
+        to decide whether to show or hide UI controls before the user attempts
+        an action.
+
+        The subject is always the authenticated session user; there is no way to
+        probe another user's decisions. Server-side enforcement always re-evaluates
+        the full policy on the actual request and remains the source of truth.
+
+        Gated by the `PermissionPolicies` feature flag and an Enterprise license.
+        When ABAC is inactive for the resource, every action is returned as
+        `allowed: true, evaluated: true`.
+
+        ##### Permissions
+        Must be authenticated (any logged-in user).
+      operationId: SearchAccessControlDecisionActions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActionSearchRequest"
+      responses:
+        "200":
+          description: Render-time action decisions returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionSearchResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

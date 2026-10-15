@@ -57,7 +57,7 @@ type State = {
 
 export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;
-    private selectedItemRef: React.RefObject<HTMLDivElement>;
+    private selectedItemRef: React.RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);
@@ -188,7 +188,7 @@ export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
         return (
             <div
                 key={option.id}
-                ref={isSelected ? this.selectedItemRef : option.id}
+                ref={isSelected ? this.selectedItemRef : undefined}
                 className={'more-modal__row clickable ' + rowSelected}
                 onClick={() => onAdd(option)}
                 onMouseMove={() => (onMouseMove ? onMouseMove(option) : undefined)}

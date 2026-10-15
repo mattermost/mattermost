@@ -18,15 +18,18 @@ import {isSendOnCtrlEnter} from 'selectors/preferences';
 
 import {SendPostOptions} from 'components/advanced_text_editor/send_button/send_post_options';
 
+import type {RepeatDisabledReason} from 'utils/scheduled_post_repeat';
+
 import './send_button.scss';
 
 type SendButtonProps = {
     handleSubmit: (schedulingInfo?: SchedulingInfo) => void;
     disabled: boolean;
     channelId: string;
+    repeatDisabledReason?: RepeatDisabledReason;
 };
 
-const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
+const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason}: SendButtonProps) => {
     const {formatMessage} = useIntl();
     const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
@@ -87,6 +90,7 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
                     disabled={disabled}
                     onSelect={handleSubmit}
                     channelId={channelId}
+                    repeatDisabledReason={repeatDisabledReason}
                 />
             }
         </div>

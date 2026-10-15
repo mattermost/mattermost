@@ -113,7 +113,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const loginIdInput = useRef<HTMLInputElement>(null);
     const passwordInput = useRef<HTMLInputElement>(null);
-    const closeSessionExpiredNotification = useRef<() => void>();
+    const closeSessionExpiredNotification = useRef<() => void>(undefined);
 
     const [loginId, setLoginId] = useState(extraParam === Constants.SIGNIN_VERIFIED && emailParam ? emailParam : '');
     const [password, setPassword] = useState('');

@@ -1,0 +1,30 @@
+diff --git a/node_modules/react-overlays/cjs/Modal.js b/node_modules/react-overlays/cjs/Modal.js
+index 2247ad0..51cdaba 100644
+--- a/node_modules/react-overlays/cjs/Modal.js
++++ b/node_modules/react-overlays/cjs/Modal.js
+@@ -218,9 +218,7 @@ var Modal = /*#__PURE__*/(0, _react.forwardRef)(function (_ref, ref) {
+     if (keyboard && e.keyCode === 27 && modal.isTopModal()) {
+       onEscapeKeyDown == null ? void 0 : onEscapeKeyDown(e);
+ 
+-      if (!e.defaultPrevented) {
+-        onHide();
+-      }
++      onHide();
+     }
+   });
+   var removeFocusListenerRef = (0, _react.useRef)();
+diff --git a/node_modules/react-overlays/esm/Modal.js b/node_modules/react-overlays/esm/Modal.js
+index 42f79e4..1f43388 100644
+--- a/node_modules/react-overlays/esm/Modal.js
++++ b/node_modules/react-overlays/esm/Modal.js
+@@ -196,9 +196,7 @@ var Modal = /*#__PURE__*/forwardRef(function (_ref, ref) {
+     if (keyboard && e.keyCode === 27 && modal.isTopModal()) {
+       onEscapeKeyDown == null ? void 0 : onEscapeKeyDown(e);
+ 
+-      if (!e.defaultPrevented) {
+-        onHide();
+-      }
++      onHide();
+     }
+   });
+   var removeFocusListenerRef = useRef();

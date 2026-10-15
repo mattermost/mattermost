@@ -64,11 +64,11 @@ func (ms *mockSuite) HasPermissionToResolveChannelMention(rctx request.CTX, user
 	return true
 }
 
-func (ms *mockSuite) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
+func (ms *mockSuite) HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
 	return true
 }
 
-func (ms *mockSuite) MFARequired(rctx request.CTX) *model.AppError {
+func (ms *mockSuite) MFARequired(rctx request.CTX, method string) *model.AppError {
 	return nil
 }
 
@@ -174,7 +174,7 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 	_, _, err = configStore.Set(memoryConfig)
 	require.NoError(tb, err)
 
-	options = append(options, ConfigStore(configStore))
+	options = append(options, ConfigStore(configStore), DisableGlobalLogger())
 
 	ps, err := New(
 		ServiceConfig{

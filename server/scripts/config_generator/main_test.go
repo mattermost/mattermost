@@ -24,7 +24,6 @@ func TestDefaultsGenerator(t *testing.T) {
 	b, err := os.ReadFile(tmpFile.Name())
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(b, &config))
-	require.Equal(t, *config.SqlSettings.AtRestEncryptKey, "")
 	require.Equal(t, *config.FileSettings.PublicLinkSalt, "")
 
 	require.Equal(t, *config.Office365Settings.Scope, model.Office365SettingsDefaultScope)

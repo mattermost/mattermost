@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
@@ -89,6 +90,14 @@ describe('AdminDefinition - Classification Markings discovery', () => {
         expect('name' in schema ? schema.name : undefined).toEqual(settingsSubsection.title);
     });
 
+    test('advertises Enterprise Advanced as the required tier in the restricted indicator', () => {
+        const restrictedIndicator = discoverySubsection.restrictedIndicator;
+        expect(restrictedIndicator).toBeDefined();
+
+        const indicator = restrictedIndicator!.value({} as CloudState);
+        expect(indicator.props.minimumPlanRequiredForFeature).toBe(LicenseSkus.EnterpriseAdvanced);
+    });
+
     test('shows discovery instead of settings for Professional licenses', () => {
         expect(isHidden(settingsSubsection, classificationConfigEnabled, professionalLicense)).toBe(true);
         expect(isHidden(discoverySubsection, classificationConfigEnabled, professionalLicense)).toBe(false);
@@ -99,9 +108,9 @@ describe('AdminDefinition - Classification Markings discovery', () => {
         expect(isHidden(discoverySubsection, classificationConfigEnabled, unlicensed)).toBe(false);
     });
 
-    test('shows settings instead of discovery for Enterprise licenses', () => {
-        expect(isHidden(settingsSubsection, classificationConfigEnabled, enterpriseLicense)).toBe(false);
-        expect(isHidden(discoverySubsection, classificationConfigEnabled, enterpriseLicense)).toBe(true);
+    test('shows discovery instead of settings for Enterprise licenses', () => {
+        expect(isHidden(settingsSubsection, classificationConfigEnabled, enterpriseLicense)).toBe(true);
+        expect(isHidden(discoverySubsection, classificationConfigEnabled, enterpriseLicense)).toBe(false);
     });
 
     test('shows settings instead of discovery for Enterprise Advanced licenses', () => {
@@ -129,8 +138,8 @@ describe('AdminDefinition - Classification Markings discovery', () => {
         expect(isHidden(discoverySubsection, classificationConfigDisabled, professionalLicense)).toBe(true);
 
         // The disabled flag must override an otherwise-unlocking license.
-        expect(isHidden(settingsSubsection, classificationConfigDisabled, enterpriseLicense)).toBe(true);
-        expect(isHidden(discoverySubsection, classificationConfigDisabled, enterpriseLicense)).toBe(true);
+        expect(isHidden(settingsSubsection, classificationConfigDisabled, enterpriseAdvancedLicense)).toBe(true);
+        expect(isHidden(discoverySubsection, classificationConfigDisabled, enterpriseAdvancedLicense)).toBe(true);
     });
 
     test('renders the Classification Markings feature discovery component through a custom setting', () => {

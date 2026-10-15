@@ -4,6 +4,24 @@
 import type {Client4} from '@mattermost/client';
 import type {PluginManifest} from '@mattermost/types/plugins';
 
+import {aiPluginId, callsPluginId, npsPluginId, playbooksPluginId} from '@/constant';
+
+/** The prepackaged plugins model.Config.SetDefaults() enables, so active on a fresh install. */
+export const defaultEnabledPluginIds = [aiPluginId, callsPluginId, npsPluginId, playbooksPluginId];
+
+/** Deactivates every active plugin outside the default set plus `keep`, returning what it disabled. */
+export async function disableUnexpectedPlugins(client: Client4, keep: string[] = []): Promise<string[]> {
+    const expected = new Set([...defaultEnabledPluginIds, ...keep]);
+    const {active} = await client.getPlugins();
+    const unexpected = active.filter((plugin: PluginManifest) => !expected.has(plugin.id)).map((plugin) => plugin.id);
+
+    for (const pluginId of unexpected) {
+        await client.disablePlugin(pluginId);
+    }
+
+    return unexpected;
+}
+
 export async function isPluginActive(client: Client4, pluginId: string): Promise<boolean> {
     const plugins = await client.getPlugins();
     return plugins.active.some((plugin: PluginManifest) => plugin.id === pluginId);

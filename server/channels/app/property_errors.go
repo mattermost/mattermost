@@ -41,6 +41,8 @@ func mapPropertyServiceError(where string, err error) *model.AppError {
 		return model.NewAppError(where, "app.property_field.create.limit_reached.app_error", nil, err.Error(), http.StatusUnprocessableEntity).Wrap(err)
 	case errors.Is(err, properties.ErrGroupFieldLimitReached):
 		return model.NewAppError(where, "app.property_field.create.group_limit_reached.app_error", nil, err.Error(), http.StatusUnprocessableEntity).Wrap(err)
+	case errors.Is(err, properties.ErrTargetFieldLimitReached):
+		return model.NewAppError(where, "app.property_field.create.target_limit_reached.app_error", nil, err.Error(), http.StatusUnprocessableEntity).Wrap(err)
 	case errors.Is(err, properties.ErrLicenseRequired):
 		return model.NewAppError(where, "app.property.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	case errors.Is(err, properties.ErrInvalidFieldAttrs):
@@ -61,6 +63,16 @@ func mapPropertyServiceError(where string, err error) *model.AppError {
 	var notFoundErr *store.ErrNotFound
 	if errors.As(err, &notFoundErr) {
 		return model.NewAppError(where, "app.property.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	// Every rejection the store raises about the shape of what it was handed is one
+	// of these -- an option link naming another field, a self-loop, an endpoint that
+	// is not a live option of the field. They describe the request rather than the
+	// server, so a 500 would send a caller looking in the wrong place. The detail is
+	// the store's own message, which names the field or option at fault and no more.
+	var invalidInputErr *store.ErrInvalidInput
+	if errors.As(err, &invalidInputErr) {
+		return model.NewAppError(where, "app.property.invalid_input.app_error", nil, invalidInputErr.Error(), http.StatusBadRequest).Wrap(err)
 	}
 
 	var resultsMismatchErr *store.ErrResultsMismatch

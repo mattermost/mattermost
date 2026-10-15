@@ -955,13 +955,15 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			"Feature Flags",
 			&model.Config{
 				FeatureFlags: &model.FeatureFlags{
-					TestFeature: "myvalue",
+					TestFeature:    "myvalue",
+					PostAttributes: true,
 				},
 			},
 			"",
 			nil,
 			map[string]string{
-				"FeatureFlagTestFeature": "myvalue",
+				"FeatureFlagTestFeature":    "myvalue",
+				"FeatureFlagPostAttributes": "true",
 			},
 		},
 		{

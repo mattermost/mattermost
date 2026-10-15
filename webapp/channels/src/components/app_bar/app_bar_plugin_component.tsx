@@ -108,13 +108,12 @@ const AppBarPluginComponent = ({
                 id={buttonId}
                 className={classNames('app-bar__icon', {'app-bar__icon--active': isButtonActive})}
                 onClick={() => {
-                    if (channel && channelMember) {
-                        component.action?.(channel, channelMember);
-                        return;
-                    }
                     if ('rhsComponentId' in component) {
                         component.action();
+                        return;
                     }
+
+                    component.action?.(channel, channelMember);
                 }}
             >
                 {content}

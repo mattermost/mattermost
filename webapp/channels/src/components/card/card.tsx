@@ -5,12 +5,12 @@ import classNames from 'classnames';
 import React, {Children, isValidElement, cloneElement} from 'react';
 
 import CardBody from './card_body';
+import type {CardChildProps} from './card_body';
 import CardHeader from './card_header';
 
 import './card.scss';
 
-type Props = {
-    expanded?: boolean;
+type Props = CardChildProps & {
     className?: string;
     children?: React.ReactNode;
 };
@@ -20,12 +20,13 @@ export default class Card extends React.PureComponent<Props> {
     public static Body = CardBody;
 
     render() {
-        const {expanded, children} = this.props;
+        const {expanded, disableExpandAnimation, children} = this.props;
 
         const childrenWithProps = Children.map(children, (child) => {
-            // Checking isValidElement is the safe way and avoids a TS error too.
-            if (isValidElement<{expanded?: boolean}>(child)) {
-                return cloneElement(child, {expanded});
+            // Only Header and Body understand these; forwarding them to any other
+            // child leaks them onto a host element as unknown DOM attributes.
+            if (isValidElement<CardChildProps>(child) && (child.type === CardHeader || child.type === CardBody)) {
+                return cloneElement(child, {expanded, disableExpandAnimation});
             }
             return child;
         });

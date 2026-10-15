@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"context"
 	"database/sql"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -74,12 +74,14 @@ type Store struct {
 	SessionAttributeStore           mocks.SessionAttributeStore
 	AutoTranslationStore            mocks.AutoTranslationStore
 	ContentFlaggingStore            mocks.ContentFlaggingStore
+	DeliveryTrackingStore           mocks.DeliveryTrackingStore
 	RecapStore                      mocks.RecapStore
 	ScheduledRecapStore             mocks.ScheduledRecapStore
 	ReadReceiptStore                mocks.ReadReceiptStore
 	TemporaryPostStore              mocks.TemporaryPostStore
 	ViewStore                       mocks.ViewStore
 	ChannelJoinRequestStore         mocks.ChannelJoinRequestStore
+	HealthFindingStore              mocks.HealthFindingStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
@@ -180,6 +182,9 @@ func (s *Store) AutoTranslation() store.AutoTranslationStore {
 func (s *Store) ContentFlagging() store.ContentFlaggingStore {
 	return &s.ContentFlaggingStore
 }
+func (s *Store) DeliveryTracking() store.DeliveryTrackingStore {
+	return &s.DeliveryTrackingStore
+}
 func (s *Store) Recap() store.RecapStore {
 	return &s.RecapStore
 }
@@ -195,6 +200,9 @@ func (s *Store) TemporaryPost() store.TemporaryPostStore {
 func (s *Store) ChannelJoinRequest() store.ChannelJoinRequestStore {
 	return &s.ChannelJoinRequestStore
 }
+func (s *Store) HealthFinding() store.HealthFindingStore {
+	return &s.HealthFindingStore
+}
 func (s *Store) View() store.ViewStore {
 	return &s.ViewStore
 }
@@ -204,7 +212,7 @@ func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error
 	}, nil
 }
 
-func (s *Store) GetDiagnostics(_ context.Context) (*store.DatabaseDiagnostics, error) {
+func (s *Store) GetDiagnostics(_ request.CTX) (*store.DatabaseDiagnostics, error) {
 	return &store.DatabaseDiagnostics{}, nil
 }
 
@@ -256,11 +264,13 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.SessionAttributeStore,
 		&s.AutoTranslationStore,
 		&s.ContentFlaggingStore,
+		&s.DeliveryTrackingStore,
 		&s.RecapStore,
 		&s.ScheduledRecapStore,
 		&s.ReadReceiptStore,
 		&s.TemporaryPostStore,
 		&s.ViewStore,
 		&s.ChannelJoinRequestStore,
+		&s.HealthFindingStore,
 	)
 }

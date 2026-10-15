@@ -269,9 +269,12 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                     width: '100%',
                 };
             } else {
+                // A dimensionless SVG has no intrinsic size, so reserving a fixed 350px height left
+                // the browser-default preview floating in a tall, mostly empty box. Let the
+                // container shrink to the rendered SVG instead.
                 imageContainerStyle = {
-                    height: 350,
-                    maxWidth: '100%',
+                    height: 'auto',
+                    width: '100%',
                 };
             }
         }

@@ -3,7 +3,7 @@
 
 /* eslint-disable max-lines */
 
-import React, {PureComponent} from 'react';
+import React, {PureComponent, type JSX} from 'react';
 import {defineMessage, defineMessages, FormattedDate, FormattedMessage, FormattedList, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -11,7 +11,7 @@ import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
 import ReactSelect from 'react-select';
 
 import type {LockProfileFieldsSetting} from '@mattermost/types/config';
-import {supportsOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -22,6 +22,8 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
+import {asGraphValueIds} from 'components/property_fields/graph';
+import GraphProfileAttribute from 'components/property_fields/graph/graph_profile_attribute';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
@@ -213,6 +215,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
     constructor(props: Props) {
         super(props);
+
         this.state = this.setupInitialState(props);
     }
 
@@ -469,7 +472,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
             }
         }
-        if (attributeField.type === 'multiselect' && !attributeValue) {
+
+        if ((attributeField.type === 'multiselect' || attributeField.type === 'graph') && !attributeValue) {
             attributeValue = [];
         }
 
@@ -1485,6 +1489,35 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             // Hide source_only fields from user profiles
             return attribute.attrs?.access_mode !== 'source_only';
         }).map((attribute) => {
+            if (attribute.type === 'graph') {
+                const sectionName = 'customAttribute_' + attribute.id;
+                const stored = this.props.user.custom_profile_attributes?.[attribute.id];
+                const draft = this.state.customAttributeValues[attribute.id];
+                return (
+                    <GraphProfileAttribute
+                        key={sectionName}
+                        attribute={attribute}
+                        sectionName={sectionName}
+                        active={this.props.activeSection === sectionName}
+                        areAllSectionsInactive={this.props.activeSection === ''}
+                        storedValue={stored}
+                        draftIds={asGraphValueIds(draft)}
+                        onDraftIdsChange={(nextIds) => this.setState({
+                            customAttributeValues: {
+                                ...this.state.customAttributeValues,
+                                [attribute.id]: nextIds,
+                            },
+                        })}
+                        onSubmit={() => this.submitAttribute([attribute.id])}
+                        updateSection={this.updateSection}
+                        sectionIsSaving={this.state.sectionIsSaving}
+                        serverError={this.state.serverError}
+                        isMobileView={this.props.isMobileView}
+                        user={this.props.user}
+                    />
+                );
+            }
+
             const sectionName = 'customAttribute_' + attribute.id;
             const active = this.props.activeSection === sectionName;
             let max = null;
@@ -1494,25 +1527,33 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     return '';
                 }
 
-                if (supportsOptions(attribute)) {
+                if (valueRefersToOptions(attribute)) {
                     const attribOptions = attribute.attrs.options;
+                    const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
                     if (!attribOptions) {
+                        if (optionsOmitted) {
+                            if (Array.isArray(attributeValue)) {
+                                return attributeValue.map((value) => ({label: value, value}));
+                            }
+                            return {label: attributeValue, value: attributeValue};
+                        }
                         return '';
                     }
                     if (Array.isArray(attributeValue)) {
                         return attributeValue.map((value) => {
                             const option = attribOptions.find((o) => o.id === value);
-                            if (option) {
-                                return {label: option?.name, value: option?.id};
-                            }
-                            return null;
-                        }).filter((value) => value != null);
+
+                            return {label: option?.name ?? value, value};
+                        });
                     }
 
                     // Handle single select
                     const option = attribOptions.find((o) => o.id === attributeValue);
                     if (option) {
                         return {label: option?.name, value: option?.id};
+                    }
+                    if (optionsOmitted) {
+                        return {label: attributeValue, value: attributeValue};
                     }
                     return '';
                 }
@@ -1559,7 +1600,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 // by the owning integration; the server rejects human value
                 // writes, so render them read-only just like synced fields.
                 const isOwnerManaged = Boolean(attribute.attrs?.owners?.length);
-                const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected;
+                const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
+
+                const omitLocksField = optionsOmitted;
+                const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected || omitLocksField;
 
                 if (isSynced) {
                     extraInfo = (
@@ -1599,6 +1643,15 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             />
                         </span>
                     );
+                } else if (omitLocksField) {
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.general.field_options_omitted'
+                                defaultMessage='This field has too many options to be edited here.'
+                            />
+                        </span>
+                    );
                 }
 
                 // Only render inputs if the field is editable by the user
@@ -1610,11 +1663,12 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         attributeLabel = '';
                     }
 
-                    if (supportsOptions(attribute)) {
-                        const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
+                    if (valueRefersToOptions(attribute)) {
+                        const attribOptions: PropertyFieldOption[] = (attribute.attrs!.options as PropertyFieldOption[]) ?? [];
                         const opts = attribOptions.map((o) => {
                             return {label: o.name, value: o.id} as SelectOption;
                         });
+
                         inputs.push(
                             <ReactSelect
                                 isMulti={attribute.type === 'multiselect' ? true : undefined}
@@ -1692,8 +1746,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 );
             }
             let describe: JSX.Element | string = '';
-            if (this.props.user.custom_profile_attributes?.[attribute.id]) {
-                const attributeValue = getDisplayValue(this.props.user.custom_profile_attributes?.[attribute.id]);
+            const storedValue = this.props.user.custom_profile_attributes?.[attribute.id];
+
+            if (storedValue) {
+                const attributeValue = getDisplayValue(storedValue);
                 if (attributeValue) {
                     if (typeof attributeValue === 'string') {
                         describe = attributeValue;

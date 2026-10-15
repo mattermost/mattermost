@@ -96,7 +96,7 @@ The cache layer is transparent to callers but provides significant performance
 benefits for read-heavy operations:
 
 	// This call may be served from cache
-	user, err := store.User().Get(ctx, userID)
+	user, err := store.User().Get(rctx, userID)
 
 	// Cache is automatically invalidated on updates
 	updatedUser, err := store.User().Update(ctx, user, allowRoleUpdate)

@@ -15,7 +15,7 @@ Administrators can remotely wipe Mattermost data from mobile devices in case of 
 
 ### Compliance policies
 
-Mattermost can be integrated with mobile device management solutions to enforce compliance policies. These policies ensure that mobile devices accessing the application adhere to security standards, such as encryption, password complexity, and device integrity. Learm more about [compliance with Mattermost](/administration-guide/compliance-with-mattermost).
+Mattermost can be integrated with mobile device management solutions to enforce compliance policies. These policies ensure that mobile devices accessing the application adhere to security standards, such as encryption, password complexity, and device integrity. Learn more about [compliance with Mattermost](/administration-guide/comply/comply-index).
 
 ### Mobile access platforms
 
@@ -36,6 +36,12 @@ Learn more about the [security capabilities enabled through Intune MAM](/deploym
 Jailbreaking or rooting a device disables many built-in security measures, making the device prone to malware and unauthorized access. This protection enables Mattermost administrators to deny access from any mobile device that appears to have been tampered with or is running a non-standard version of the operating system. Additionally, a rooted device may stop checking for software updates and security patches, and it might not be able to install them because the kernel is no longer properly signed.
 
 By detecting such devices, Mattermost ensures that only secure, uncompromised devices can access sensitive data. When enabled by the system admin, this proactive measure ensures the underlying mobile platform operates reliably and performs the expected kernel and operating system security protections before sending any customer data to the Mattermost application, and minimizes risk in environments where personal device security cannot be guaranteed. Learn more about Mattermost [mobile jailbreak and root detection](/deployment-guide/mobile/mobile-security-features#jailbreak-and-root-detection).
+
+## Session attribute collection
+
+Session attributes let the mobile app report the posture of the current connection - the device, the network it's on, and how it's managed - so administrators can require a specific posture before a user performs a controlled action, like uploading or downloading a file. Reported values are held only in the server's in-memory session cache and are refreshed on a per-attribute interval that administrators control. After the TTL expires, Mattermost can continue to evaluate the last value during the grace period. If no fresh report arrives before TTL plus grace period, the attribute is treated as absent and policies that require it deny access.
+
+Reporting the Wi-Fi network name requires the user to grant location access, because both iOS and Android gate Wi-Fi information behind that permission. Learn more about Mattermost [mobile session attribute collection](/deployment-guide/mobile/mobile-security-features#session-attribute-collection) and how administrators [enable and use session attributes](/administration-guide/manage/admin/session-attributes).
 
 ## Biometric authentication
 
