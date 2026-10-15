@@ -6,7 +6,7 @@ package commands
 import (
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -94,7 +94,7 @@ func (p systemdPaths) dropIns() ([]string, error) {
 		}
 		names = append(names, entry.Name())
 	}
-	sort.Strings(names)
+	slices.Sort(names)
 	out := make([]string, len(names))
 	for i, name := range names {
 		out[i] = filepath.Join(p.dropInDir, name)

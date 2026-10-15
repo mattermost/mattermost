@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"path/filepath"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -221,7 +220,7 @@ func dialPeers(peers []clusterPeer, configuredPort int, dial func(string) error)
 			out = append(out, msg)
 		}
 	}
-	sort.Strings(out)
+	slices.Sort(out)
 	return out
 }
 
