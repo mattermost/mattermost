@@ -38,8 +38,12 @@ export default class ProfileModal {
         this.securityTab = new SecurityTab(container.getByRole('tabpanel', {name: 'Security'}));
 
         this.closeButton = container.getByRole('button', {name: 'Close'});
-        this.saveButton = container.locator('button:has-text("Save")');
-        this.cancelButton = container.locator('button:has-text("Cancel")');
+        this.saveButton = container.getByRole('button', {name: 'Save'});
+        // getByTestId, not getByRole('button', {name: 'Cancel'}): a custom profile attribute whose
+        // display name contains "Cancel" gives its own Edit button an accessible name like "Cancel
+        // X Edit" (title + button text via aria-labelledby), which getByRole's substring name match
+        // would also pick up alongside the real Cancel button.
+        this.cancelButton = container.getByTestId('cancelButton');
         this.managedByAdminMessage = container.getByText(
             'This field is managed by your System Admin. Contact them to request a change.',
         );
