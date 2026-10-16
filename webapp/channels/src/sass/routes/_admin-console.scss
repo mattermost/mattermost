@@ -643,12 +643,6 @@
         font-weight: 400;
     }
 
-    .logs-banner {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-    }
 }
 
 .job-table__table {
@@ -1201,18 +1195,19 @@
     height: 100%;
     flex-direction: column;
 
-    // We keep the banner the same width and only expand the content box.
-    .banner {
-        max-width: 920px;
-    }
-
-    .banner-buttons {
+    // Logs need the full content width (Compass AdminPanel defaults to 920px).
+    > .AdminPanel.logs-panel {
         display: flex;
+        max-width: none;
+        height: 100%;
+        min-height: 0;
+        flex: 1;
+        flex-direction: column;
 
-        .banner-buttons__log-format {
+        // Keep the log format radios aligned with header action buttons.
+        .logs-panel__log-format {
             display: flex;
             align-items: center;
-            margin-right: 28px;
             gap: 8px;
 
             label {
@@ -1226,10 +1221,31 @@
                 }
             }
         }
-    }
 
-    > .btn {
-        width: fit-content;
+        // Stretch Compass collapse/body so LogTable can fill remaining height.
+        > [class*='admin-panel__collapse'] {
+            display: flex;
+            min-height: 0;
+            flex: 1;
+            flex-direction: column;
+        }
+
+        [class*='admin-panel__collapse-inner'] {
+            display: flex;
+            min-height: 0;
+            flex: 1;
+            flex-direction: column;
+        }
+
+        [class*='admin-panel__body'] {
+            display: flex;
+            min-height: 0;
+            flex: 1;
+            flex-direction: column;
+
+            // DataGrid already provides its own search/table chrome; drop body padding.
+            padding: 0;
+        }
     }
 
     .LogTable {

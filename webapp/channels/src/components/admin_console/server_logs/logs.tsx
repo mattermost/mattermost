@@ -5,6 +5,7 @@ import debounce from 'lodash/debounce';
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {DownloadOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
 import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {
     LogFilter,
@@ -17,6 +18,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import LogList from './log_list';
 import PlainLogList from './plain_log_list';
@@ -57,6 +59,8 @@ const messages = defineMessages({
     logFormatTitle: {id: 'admin.logs.logFormatTitle', defaultMessage: 'Log Format:'},
     logFormatJson: {id: 'admin.logs.logFormatJson', defaultMessage: 'JSON'},
     logFormatPlain: {id: 'admin.logs.logFormatPlain', defaultMessage: 'Plain text'},
+    reload: {id: 'admin.logs.ReloadLogs', defaultMessage: 'Reload Logs'},
+    download: {id: 'admin.logs.DownloadLogs', defaultMessage: 'Download Logs'},
 });
 export const searchableStrings = [
     messages.title,
@@ -180,7 +184,7 @@ export default class Logs extends React.PureComponent<Props, State> {
         if (!this.props.isPlainLogs) {
             toggleLogFormat = (
                 <div
-                    className='banner-buttons__log-format'
+                    className='logs-panel__log-format'
                     id='admin.logs.LogFormat'
                     role='radiogroup'
                     aria-labelledby='admin.logs.LogFormat.legend'
@@ -224,37 +228,35 @@ export default class Logs extends React.PureComponent<Props, State> {
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-logs-content admin-console__content'>
-                        <div className='logs-banner'>
-                            <div className='banner'>
-                                <div className='banner__content'>
-                                    <FormattedMessage {...messages.bannerDesc}/>
-                                </div>
-                            </div>
-                            <div className='banner-buttons'>
-                                {toggleLogFormat}
-                                <Button
-                                    type='submit'
-                                    emphasis='primary'
-                                    onClick={this.reload}
-                                >
-                                    <FormattedMessage
-                                        id='admin.logs.ReloadLogs'
-                                        defaultMessage='Reload Logs'
-                                    />
-                                </Button>
-                                <ExternalLink
-                                    location='download_logs'
-                                    className={buttonClassNames({emphasis: 'primary'})}
-                                    href={Client4.getUrl() + '/api/v4/logs/download'}
-                                >
-                                    <FormattedMessage
-                                        id='admin.logs.DownloadLogs'
-                                        defaultMessage='Download Logs'
-                                    />
-                                </ExternalLink>
-                            </div>
-                        </div>
-                        {list}
+                        <AdminPanel
+                            id='server_logs'
+                            className='logs-panel'
+                            title={messages.title}
+                            subtitle={messages.bannerDesc}
+                            button={
+                                <>
+                                    {toggleLogFormat}
+                                    <Button
+                                        type='button'
+                                        emphasis='tertiary'
+                                        onClick={this.reload}
+                                    >
+                                        <RefreshIcon size={16}/>
+                                        <FormattedMessage {...messages.reload}/>
+                                    </Button>
+                                    <ExternalLink
+                                        location='download_logs'
+                                        className={buttonClassNames({emphasis: 'tertiary'})}
+                                        href={Client4.getUrl() + '/api/v4/logs/download'}
+                                    >
+                                        <DownloadOutlineIcon size={16}/>
+                                        <FormattedMessage {...messages.download}/>
+                                    </ExternalLink>
+                                </>
+                            }
+                        >
+                            {list}
+                        </AdminPanel>
                     </div>
                 </div>
             </div>
