@@ -130,12 +130,9 @@ export type State = {
 
 export default class AddBot extends React.PureComponent<Props, State> {
     previewBlob: string | null = null;
-<<<<<<< HEAD
     private readonly fileInputRef = React.createRef<HTMLInputElement>();
-=======
     private submitting = false;
     private unmounted = false;
->>>>>>> origin/master
 
     constructor(props: Props) {
         super(props);
