@@ -1155,6 +1155,21 @@
     "description": "API error when a user lacks permission to move a custom slash command to another team."
   },
   {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "A single quote near `{{.Near}}` is not closed before ` --`. Close it, or use double quotes if the value contains ` --`.",
+    "description": "Slash command error when a single quoted argument value reaches a flag before its closing quote. {{.Near}} is the nearest flag (such as --name) or the command action, never the value itself."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Unexpected text near `{{.Near}}`. Wrap a value that contains spaces in quotes, and use double quotes if the value also contains an apostrophe.",
+    "description": "Slash command error when a word is not the action, a flag or a flag's value, usually because a value with spaces was not quoted. {{.Near}} is the nearest flag (such as --name) or the command action, never the value itself."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "A quote near `{{.Near}}` is never closed.",
+    "description": "Slash command error when a quoted argument value has no closing quote. {{.Near}} is the nearest flag (such as --name) or the command action, never the value itself."
+  },
+  {
     "id": "api.command.team_mismatch.app_error",
     "translation": "Unable to update commands across teams.",
     "description": "API error when an update would move a slash command from one team to another, which is not allowed; 'commands' are slash commands."
