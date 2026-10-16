@@ -527,7 +527,7 @@
   "admin.accesscontrol.title": "Attributbaserad åtkomst",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.desc": "När detta är aktiverat fylls attributet **TLS device ID** i från förfrågningshuvudet `X-Mattermost-Session-Attribute-Device-Id`, vilket låter en omvänd proxy som utför ömsesidig TLS intyga en enhetsidentitet som klienten inte kan förfalska. **Obs!** Enhetsidentiteten accepteras från förfrågningshuvudet, så alla klienter måste ansluta till Mattermost via en proxy som sätter det och tar bort det från inkommande förfrågningar.",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Lita på proxyns huvud för enhetsidentitet",
-  "admin.accesscontrol.user_properties.link.label": "Användarattributer",
+  "admin.accesscontrol.user_properties.link.label": "Attributhantering",
   "admin.accessibility.add_users_to_role": "Lägg till användare i rollen",
   "admin.accessibility.delete_orphaned_field": "Radera föräldralöst fält",
   "admin.accessibility.next_page": "Nästa sida",

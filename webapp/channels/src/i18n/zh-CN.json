@@ -527,7 +527,7 @@
   "admin.accesscontrol.title": "基于属性的访问",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.desc": "启用后，**TLS 设备 ID** 属性将根据 `X-Mattermost-Session-Attribute-Device-Id` 请求标头填充，从而让执行双向 TLS 的反向代理能够断言客户端无法伪造的设备身份。**注意**：设备身份取自请求标头，因此所有客户端都必须通过设置该标头并从入站请求中剥离该标头的代理连接到 Mattermost。",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "信任代理设备身份标头",
-  "admin.accesscontrol.user_properties.link.label": "用户属性",
+  "admin.accesscontrol.user_properties.link.label": "属性管理",
   "admin.accessibility.add_users_to_role": "添加用户到角色",
   "admin.accessibility.delete_orphaned_field": "删除孤立字段",
   "admin.accessibility.next_page": "下一页",

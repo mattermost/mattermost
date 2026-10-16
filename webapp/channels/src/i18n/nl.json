@@ -527,7 +527,7 @@
   "admin.accesscontrol.title": "Toegang op basis van kenmerken",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.desc": "Indien ingeschakeld wordt het attribuut **TLS device ID** gevuld vanuit de aanvraagheader `X-Mattermost-Session-Attribute-Device-Id`, waardoor een reverse proxy die mutual TLS uitvoert een apparaatidentiteit kan bevestigen die de client niet kan vervalsen. **Let op:** De apparaatidentiteit wordt overgenomen uit de aanvraagheader, dus alle clients moeten met Mattermost verbinden via een proxy die deze header instelt en uit binnenkomende aanvragen verwijdert.",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Apparaatidentiteitsheader van de proxy vertrouwen",
-  "admin.accesscontrol.user_properties.link.label": "Gebruikerskenmerken",
+  "admin.accesscontrol.user_properties.link.label": "Attribuutbeheer",
   "admin.accessibility.add_users_to_role": "Gebruikers aan rol toevoegen",
   "admin.accessibility.delete_orphaned_field": "Verweesd veld verwijderen",
   "admin.accessibility.next_page": "Volgende pagina",
