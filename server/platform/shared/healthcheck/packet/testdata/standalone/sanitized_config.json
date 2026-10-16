@@ -15,7 +15,10 @@
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 10,
-        "MaxOpenConns": 100
+        "MaxOpenConns": 100,
+        "Trace": false,
+        "QueryTimeout": 30,
+        "ReplicaLagSettings": []
     },
     "EmailSettings": {
         "SendEmailNotifications": true,
@@ -37,6 +40,10 @@
         "EnableGossipCompression": true,
         "ReadOnlyConfig": true,
         "GossipPort": 8074
+    },
+    "ElasticsearchSettings": {
+        "EnableIndexing": false,
+        "EnableSearching": false
     },
     "FeatureFlags": {
         "TestFeature": "off",
