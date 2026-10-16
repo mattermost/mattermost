@@ -14342,21 +14342,6 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
-    "id": "health.rule.db_connection_is_ip.message",
-    "translation": "{{.setting}} references the database host by IP address rather than a DNS name. Database failover and DNS-based high availability stop working transparently.",
-    "description": "Health dashboard finding detail when a database connection string uses an IP address as its host; {{.setting}} is the config setting name (for example SqlSettings.DataSource) and should not be translated."
-  },
-  {
-    "id": "health.rule.db_connection_is_ip.remediation",
-    "translation": "Replace the IP address with the database service's DNS name.",
-    "description": "Health dashboard fix-it step for a database connection string that uses an IP address as its host."
-  },
-  {
-    "id": "health.rule.db_connection_is_ip.title",
-    "translation": "Raw IP address in database connection string",
-    "description": "Health dashboard finding title when a database connection string uses an IP address instead of a host name."
-  },
-  {
     "id": "health.rule.db_ha_failover_storm_risk.message",
     "translation": "Each node opens one connection pool per data source, up to MaxOpenConns each. With {{.nodes}} nodes, MaxOpenConns={{.max_open}}, and {{.data_sources}} data sources, a database failover can produce up to {{.burst}} simultaneous connection attempts to the newly promoted primary, and the DataSource host does not look like a connection pooler. If that exceeds the database's max_connections, it rejects connections ('sorry, too many clients already') and recovery takes longer.",
     "description": "Health dashboard finding detail for the risk of a reconnection burst after a database failover in a cluster; {{.nodes}}, {{.max_open}}, {{.data_sources}} and {{.burst}} are numbers. 'MaxOpenConns', 'DataSource' and 'max_connections' are setting names and 'sorry, too many clients already' is a literal PostgreSQL error; do not translate them."
