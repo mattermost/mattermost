@@ -8,7 +8,7 @@ export type {TestContainersServiceName} from './test_config';
 export {
     assertUpgradeFromFreshStart,
     assertUpgradeToRequiresPriorFromRun,
-    exportUpgradeProjectSelection,
+    exportUpgradePathProjectSelection,
     getUpgradeFromServerImage,
     getUpgradeToServerImage,
     isUpgradeFromProjectSelected,
