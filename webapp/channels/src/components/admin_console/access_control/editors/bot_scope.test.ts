@@ -9,7 +9,6 @@ import {
     getSyncedAttributeReferences,
     hasBalancedParens,
     isBotScopePolicy,
-    isMaskingFailureExpression,
     referencedUserAttributeNames,
     unwrapBotExpression,
     wrapBotExpression,
@@ -465,20 +464,6 @@ describe('isSimpleExpression on server-serialized bodies', () => {
         'c masking off GET',
     ])('%s unwrapped is not simple', (name) => {
         expect(isSimpleExpression(fixture(name).unwrapped)).toBe(false);
-    });
-});
-
-describe('isMaskingFailureExpression', () => {
-    it.each([
-        ['false', true],
-        [' false\n', true],
-        ['!user.isbot || false', false],
-        [PROGRAM_DRAGON, false],
-        ['', false],
-        ['true', false],
-        ['False', false],
-    ])('%j -> %s', (input, expected) => {
-        expect(isMaskingFailureExpression(input)).toBe(expected);
     });
 });
 

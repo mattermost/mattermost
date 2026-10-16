@@ -125,10 +125,6 @@ export function wrapBotExpression(expr: string): string {
     return `${BOT_SCOPE_PREFIX}(${expr}\n)`;
 }
 
-export function isMaskingFailureExpression(expr: string): boolean {
-    return expr.trim() === 'false';
-}
-
 type MaskedExpression = {
     code: string;
     literals: string[];

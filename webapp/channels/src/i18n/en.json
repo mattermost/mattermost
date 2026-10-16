@@ -10527,14 +10527,6 @@
     "defaultMessage": "Configure user attributes",
     "description": "Button in the notice on the permission policy edit page that navigates to the user attributes configuration page."
   },
-  "admin.permission_policies.edit.notice.false_rule.text": {
-    "defaultMessage": "The server returned `false` for this policy's rule. Saving it denies these permissions to everyone it applies to.",
-    "description": "Warning text (markdown) explaining that the loaded rule is `false` and saving keeps denying the permissions; `false` in backticks is a code literal."
-  },
-  "admin.permission_policies.edit.notice.false_rule.title": {
-    "defaultMessage": "This policy's rule couldn't be read",
-    "description": "Warning title on the permission policy editor when a loaded rule is the literal `false` (the server could not read it)."
-  },
   "admin.permission_policies.edit.notice.synced_bot.text": {
     "defaultMessage": "{attributes} {count, plural, one {is} other {are}} synced from LDAP or SAML, and bots can't hold synced values. This policy will deny every bot.",
     "description": "Warning text (markdown) for a Bot accounts policy that references synced attributes; {attributes} is a localized list of attribute labels (each in backticks) and {count} is how many there are."

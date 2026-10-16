@@ -37,7 +37,6 @@ import {
     getSyncedAttributeReferences,
     hasBalancedParens,
     isBotScopePolicy,
-    isMaskingFailureExpression,
     unwrapBotExpression,
     wrapBotExpression,
 } from '../../access_control/editors/bot_scope';
@@ -167,7 +166,6 @@ function PermissionPolicyDetails({
     const [pageLoaded, setPageLoaded] = useState(false);
     const [loadFailed, setLoadFailed] = useState(false);
     const [showTest, setShowTest] = useState(false);
-    const [hasFalseRule, setHasFalseRule] = useState(false);
 
     const isBotScope = selectedRole === BOT_ROLE_KEY;
 
@@ -263,7 +261,6 @@ function PermissionPolicyDetails({
                 setExpression(inner);
                 setSelectedPermissions(getPermissionActions(rules));
                 setEditorMode(isSimpleExpression(inner) ? 'table' : 'cel');
-                setHasFalseRule(rules.some((rule) => isMaskingFailureExpression(rule.expression || '')));
             });
             await Promise.all([fieldsPromise, policyPromise]);
         } else {
@@ -524,22 +521,6 @@ function PermissionPolicyDetails({
                                                 getHistory().push('/admin_console/system_attributes/manage_attributes');
                                             },
                                         }}
-                                    />
-                                </div>
-                            )}
-
-                            {hasFalseRule && (
-                                <div className='admin-console__warning-notice'>
-                                    <SectionNotice
-                                        type='warning'
-                                        title={formatMessage({
-                                            id: 'admin.permission_policies.edit.notice.false_rule.title',
-                                            defaultMessage: 'This policy\'s rule couldn\'t be read',
-                                        })}
-                                        text={formatMessage({
-                                            id: 'admin.permission_policies.edit.notice.false_rule.text',
-                                            defaultMessage: 'The server returned `false` for this policy\'s rule. Saving it denies these permissions to everyone it applies to.',
-                                        })}
                                     />
                                 </div>
                             )}

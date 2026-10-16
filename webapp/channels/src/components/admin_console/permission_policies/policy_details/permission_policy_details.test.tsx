@@ -521,26 +521,6 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 expect(lastCELProps().value).toBe(WRAPPED_E);
             });
 
-            test('a false rule shows the unreadable-rule warning', async () => {
-                renderWithPolicy({expressions: ['false']});
-
-                expect(await screen.findByText('This policy\'s rule couldn\'t be read')).toBeInTheDocument();
-                expect(screen.getByText(/denies these permissions to everyone it applies to/)).toBeInTheDocument();
-            });
-
-            test('a false rule in a later rule still shows the warning', async () => {
-                renderWithPolicy({expressions: [E, 'false']});
-
-                expect(await screen.findByText('This policy\'s rule couldn\'t be read')).toBeInTheDocument();
-            });
-
-            test('a readable rule shows no unreadable-rule warning', async () => {
-                renderWithExpression(E);
-
-                await screen.findByTestId('table-editor');
-                expect(screen.queryByText('This policy\'s rule couldn\'t be read')).not.toBeInTheDocument();
-            });
-
             test('a Members has-any-of group without parens opens in table mode', async () => {
                 renderWithExpression(HAS_ANY_OF);
 
