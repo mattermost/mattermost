@@ -7,8 +7,7 @@
         "TLSMinVer": "1.2",
         "Forward80To443": false,
         "EnableIncomingWebhooks": true,
-        "EnableOutgoingWebhooks": true,
-        "EnableUserTypingMessages": true
+        "EnableOutgoingWebhooks": true
     },
     "TeamSettings": {
         "MaxNotificationsPerChannel": 1000

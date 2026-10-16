@@ -14502,21 +14502,6 @@
     "description": "Health dashboard finding title when the server could not connect to its SMTP server while email notifications are enabled."
   },
   {
-    "id": "health.rule.typing_messages_at_scale.message",
-    "translation": "Typing events are the leading cause of 'websocket.slow: dropping message' errors and websocket churn on large deployments.",
-    "description": "Health dashboard finding detail when typing indicators are on in a workspace with 5000 or more active users; 'websocket.slow: dropping message' is a literal log message and should not be translated."
-  },
-  {
-    "id": "health.rule.typing_messages_at_scale.remediation",
-    "translation": "Consider disabling ServiceSettings.EnableUserTypingMessages. To keep typing indicators, raise ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds (default 5000 ms) so clients send typing events less often, or lower TeamSettings.MaxNotificationsPerChannel, since clients stop sending typing events in channels with at least that many members.",
-    "description": "Health dashboard fix-it step for typing indicators in a large workspace; the 'ServiceSettings.' and 'TeamSettings.' values are config setting paths and should not be translated."
-  },
-  {
-    "id": "health.rule.typing_messages_at_scale.title",
-    "translation": "Typing indicators enabled with 5000 or more active users",
-    "description": "Health dashboard finding title when typing indicators are on in a workspace with 5000 or more active users."
-  },
-  {
     "id": "health.rule.version.unknown.latest",
     "translation": "Latest release unknown: it could not be fetched, or the packet does not record it.",
     "description": "Health dashboard reason shown when a version check could not run because the latest Mattermost release could not be fetched from GitHub or is not recorded in the Support Packet being evaluated, so the check's status is unknown."

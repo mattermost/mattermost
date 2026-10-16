@@ -166,61 +166,6 @@ func TestMaxNotificationsPerChannel(t *testing.T) {
 	}
 }
 
-func TestTypingMessagesAtScale(t *testing.T) {
-	t.Parallel()
-
-	snapshot := func(enabled bool, activeUsers *int64) *healthcheck.Snapshot {
-		s := configSnapshot(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableUserTypingMessages = new(enabled)
-		})
-		if activeUsers != nil {
-			s.Stats = &model.SupportPacketStats{ActiveUsers: activeUsers}
-			s.Sections[model.SectionStats] = nil
-		}
-		return s
-	}
-
-	statsUnknown := messagingWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable}
-
-	testCases := []struct {
-		name     string
-		snapshot *healthcheck.Snapshot
-		want     messagingWant
-	}{
-		{name: "config section absent", snapshot: &healthcheck.Snapshot{}, want: configUnknownWant},
-		{name: "setting unset", snapshot: configSnapshot(func(*model.Config) {}), want: configUnknownWant},
-		{name: "typing disabled with stats absent", snapshot: snapshot(false, nil), want: resolvedWant},
-		{name: "typing disabled at scale", snapshot: snapshot(false, new(int64(20000))), want: resolvedWant},
-		{name: "typing enabled with stats absent", snapshot: snapshot(true, nil), want: statsUnknown},
-		{
-			name: "typing enabled with active users uncollected",
-			snapshot: func() *healthcheck.Snapshot {
-				s := snapshot(true, nil)
-				s.Stats = &model.SupportPacketStats{}
-				return s
-			}(),
-			want: statsUnknown,
-		},
-		{
-			name:     "below the threshold",
-			snapshot: snapshot(true, new(int64(4999))),
-			want:     messagingWant{state: healthcheck.StateResolved, value: new(float64(4999))},
-		},
-		{
-			name:     "at the threshold",
-			snapshot: snapshot(true, new(int64(5000))),
-			want:     messagingWant{state: healthcheck.StateFiring, messageID: "health.rule.typing_messages_at_scale.message", value: new(float64(5000))},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			assertResult(t, typingMessagesAtScale, tc.snapshot, tc.want)
-		})
-	}
-}
-
 func TestSMTPUnreachable(t *testing.T) {
 	t.Parallel()
 

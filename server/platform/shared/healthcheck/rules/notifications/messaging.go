@@ -9,15 +9,13 @@ import (
 )
 
 func init() {
-	healthcheck.Register(pushIDOnly, maxNotificationsPerChannel, typingMessagesAtScale, smtpUnreachable)
+	healthcheck.Register(pushIDOnly, maxNotificationsPerChannel, smtpUnreachable)
 }
 
 const (
 	maxNotificationsPerChannelLimit = 5000
-	typingMessagesUserLimit         = 5000
 
 	notificationsConsolePath = "/admin_console/environment/notifications"
-	postsConsolePath         = "/admin_console/site_config/posts"
 	smtpConsolePath          = "/admin_console/environment/smtp"
 )
 
@@ -50,21 +48,6 @@ var maxNotificationsPerChannel = healthcheck.Rule{
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "TeamSettings.MaxNotificationsPerChannel",
 	Eval:       evalMaxNotificationsPerChannel,
-}
-
-var typingMessagesAtScale = healthcheck.Rule{
-	Code:     "TYPING_MESSAGES_AT_SCALE",
-	Area:     model.AreaNotifications,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.typing_messages_at_scale.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.typing_messages_at_scale.remediation"),
-		ConsolePath:   postsConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "ServiceSettings.EnableUserTypingMessages",
-	Eval:       evalTypingMessagesAtScale,
 }
 
 var smtpUnreachable = healthcheck.Rule{
@@ -120,26 +103,6 @@ func evalMaxNotificationsPerChannel(s *healthcheck.Snapshot) []healthcheck.Resul
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.max_notifications_per_channel.message")).WithValue(float64(limit))}
 	default:
 		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(limit))}
-	}
-}
-
-func evalTypingMessagesAtScale(s *healthcheck.Snapshot) []healthcheck.Result {
-	enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ServiceSettings.EnableUserTypingMessages })
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !enabled {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
-	users, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.ActiveUsers })
-	switch {
-	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
-	case users >= typingMessagesUserLimit:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.typing_messages_at_scale.message")).WithValue(float64(users))}
-	default:
-		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(users))}
 	}
 }
 
