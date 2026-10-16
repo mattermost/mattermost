@@ -5,10 +5,9 @@ import React from 'react';
 
 import SettingItemMax from 'components/setting_item_max';
 
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {A11yCustomEventTypes} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
-
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 describe('components/SettingItemMax', () => {
     const baseProps = {

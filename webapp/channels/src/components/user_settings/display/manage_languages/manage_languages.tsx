@@ -95,6 +95,7 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
 
     handleKeyDown = (e: React.KeyboardEvent) => {
         const modalBody = document.querySelector('.modal-body');
+
         // Space/Enter open the controlled menu (react-select Space alone is unreliable
         // when menuIsOpen is controlled and the control was not focused on mount).
         if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
