@@ -98,12 +98,16 @@ Each resource you add has its own settings. Select a resource to expand its sett
 
 ### Users
 
+The **Users** resource also applies to bot accounts. Bots are evaluated by access control policies the same way as users, so a bot needs the attribute values a policy requires. From Mattermost v12.1, bot attribute values can be set from **Integrations \> Bot Accounts** or through the API. See [Bot attributes](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/#bot-attributes) for details.
+
 - **Profile display**: Controls whether the attribute appears on user profiles: **Always**, **When set** (default), or **Hidden**.
-- **Who can set the value**: **Member** lets users set their own value, and system admins can still change it. **System Administrator** restricts the value to system admins and identity provider synchronization.
+- **Who can set the value**: **Member** lets users set their own value, and system admins can still change it. From Mattermost v12.1, a bot's owner can also set **Member** values for the bot. **System Administrator** restricts the value to system admins and identity provider synchronization, for users and bots alike.
 
 <Security>
 
 Attributes used in access control policies should be set by **System Administrator** or synchronized from an identity provider. Users can't change these values themselves, so they can't grant themselves access. By default, ABAC rules exclude attributes users can set themselves, unless `EnableUserManagedAttributes` is enabled. See [User attributes](/administration-guide/manage/admin/user-attributes#before-you-begin) for details.
+
+If you enable `EnableUserManagedAttributes`, keep in mind that bot owners can set **Member** values on their bots, which can grant those bots access. Keep attributes used in access control policies at **System Administrator**.
 
 </Security>
 
