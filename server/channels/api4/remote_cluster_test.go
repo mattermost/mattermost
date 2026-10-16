@@ -6,6 +6,7 @@ package api4
 import (
 	"context"
 	"encoding/base64"
+	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -448,7 +449,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		require.Empty(t, rc)
 	})
 
-	t.Run("should fail with a save error if the connection already exists", func(t *testing.T) {
+	t.Run("should fail with a conflict error if the connection already exists", func(t *testing.T) {
 		_, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
 			RemoteId:  remoteId,
 			Name:      rcAcceptInvite.Name,
@@ -459,8 +460,8 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		require.Nil(t, appErr)
 
 		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
-		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.remote_cluster.save.app_error")
+		checkHTTPStatus(t, resp, http.StatusConflict)
+		CheckErrorID(t, err, "api.remote_cluster.save_not_unique.app_error")
 		require.Empty(t, rc)
 	})
 

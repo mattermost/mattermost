@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // AcceptInvitation is called when accepting an invitation to connect with a remote cluster.
@@ -40,6 +41,10 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 		var appErr *model.AppError
 		if errors.As(err, &appErr) {
 			return nil, appErr
+		}
+		var conflictErr *store.ErrConflict
+		if errors.As(err, &conflictErr) {
+			return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.save_not_unique.app_error", nil, "", http.StatusConflict).Wrap(err)
 		}
 		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

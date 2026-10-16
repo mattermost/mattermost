@@ -280,7 +280,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		require.NotNil(t, appErr, "no secure connection should be stored")
 	})
 
-	t.Run("store failure replies with a translated message instead of the database error", func(t *testing.T) {
+	t.Run("existing connection replies with a translated conflict message instead of the database error", func(t *testing.T) {
 		// Accepting an invite for a connection that already exists under the same name
 		// violates the RemoteClusters primary key.
 		existing := seedRemoteCluster(t, th)
@@ -289,7 +289,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 
 		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name "+existing.Name+" --password "+password+" --invite "+code)
 
-		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.save.app_error")}), text)
+		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.save_not_unique.app_error")}), text)
 		rc, appErr := th.App.GetRemoteCluster(existing.RemoteId, false)
 		require.Nil(t, appErr, "the existing connection must be left in place")
 		assert.Equal(t, existing.SiteURL, rc.SiteURL)
