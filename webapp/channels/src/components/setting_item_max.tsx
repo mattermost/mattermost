@@ -100,7 +100,7 @@ const SettingItemMax = ({
             );
             const isNonPrimaryContentButton = Boolean(
                 closestButton &&
-                /button--emphasis-(tertiary|quaternary|link)/.test(closestButton.className),
+                (/button--emphasis-(tertiary|quaternary|link)/).test(closestButton.className),
             );
 
             if (disableEnterSubmit !== true &&
@@ -130,7 +130,7 @@ const SettingItemMax = ({
                     'button:not(#saveSetting):not(#cancelSetting)',
                 );
                 const focusableButton = Array.from(buttons).find(
-                    (button) => !/button--emphasis-(tertiary|quaternary|link)/.test(button.className),
+                    (button) => !(/button--emphasis-(tertiary|quaternary|link)/).test(button.className),
                 );
                 if (focusableButton) {
                     a11yFocus(focusableButton);
