@@ -8,7 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {MagnifyIcon} from '@mattermost/compass-icons/components';
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 import type {Group} from '@mattermost/types/groups';
 
 import {searchProfiles} from 'mattermost-redux/actions/users';
@@ -16,7 +16,6 @@ import {searchProfiles} from 'mattermost-redux/actions/users';
 import {openModal} from 'actions/views/modals';
 import {setPopoverSearchTerm} from 'actions/views/search';
 
-import {QuickInput} from 'components/quick_input/quick_input';
 import GroupMemberList from 'components/user_group_popover/group_member_list';
 import UserGroupsModal from 'components/user_groups_modal';
 import ViewUserGroupModal from 'components/view_user_group_modal';
@@ -166,15 +165,14 @@ const UserGroupPopover = ({
             </Header>
             {group.member_count > 10 ? (
                 <SearchBar>
-                    <MagnifyIcon/>
-                    <QuickInput
-                        type='text'
+                    <SearchInput
+                        size='small'
                         className='user-group-popover_search-bar'
                         placeholder={formatMessage({id: 'user_group_popover.searchGroupMembers', defaultMessage: 'Search members'})}
                         value={searchTerm}
                         onChange={handleSearch}
-                        clearable={true}
                         onClear={handleClear}
+                        clearButtonProps={{'data-testid': 'input-clear'}}
                     />
                 </SearchBar>
             ) : null}
@@ -266,60 +264,9 @@ const Dot = styled(NoShrink)`
 
 const SearchBar = styled.div`
     margin: 4px 12px 12px 12px;
-    padding: 0 1px;
-    height: 32px;
-    position: relative;
-    display: flex;
-    align-items: center;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 4px;
-    overflow: hidden;
 
-    &:hover {
-        border-color: rgba(var(--center-channel-color-rgb), 0.48);
-    }
-
-    &:focus-within {
-        border-color: var(--button-bg);
-        box-shadow: inset 0 0 0 1px var(--button-bg);
-    }
-
-    & > div {
-        display: flex;
-        align-items: center;
-        flex: 1;
-    }
-
-    input {
+    .user-group-popover_search-bar {
         width: 100%;
-        font-size: 12px;
-        border: none;
-        padding: 0;
-        color: var(--center-channel-color);
-        background: var(--center-channel-bg);
-        flex: 1;
-    }
-
-    input.a11y--focused {
-        box-shadow: none;
-    }
-
-    svg {
-        width: 18px;
-        height: 100%;
-        margin: 0 6px;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-    }
-
-    .input-clear {
-        width: 36px;
-        position: relative;
-        right: 0;
-    }
-
-    .icon {
-        display: flex;
-        font-size: 14px;
     }
 `;
 

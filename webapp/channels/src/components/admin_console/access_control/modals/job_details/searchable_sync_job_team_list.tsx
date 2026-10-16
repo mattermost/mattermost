@@ -4,12 +4,12 @@
 import React, {useState, useRef, useEffect, type JSX} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 import {Button} from '@mattermost/shared/components/button';
 import type {Team} from '@mattermost/types/teams';
 
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
-import QuickInput from 'components/quick_input';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -137,11 +137,9 @@ const SearchableSyncJobTeamList = (props: Props) => {
         teamListScroll.current?.scrollTo({top: 0});
     };
 
-    const handleChange = (e?: React.FormEvent<HTMLInputElement>) => {
-        if (e?.currentTarget) {
-            setTeamSearchValue(e.currentTarget.value);
-            props.search(e.currentTarget.value);
-        }
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTeamSearchValue(e.currentTarget.value);
+        props.search(e.currentTarget.value);
     };
 
     const handleClear = () => {
@@ -224,21 +222,16 @@ const SearchableSyncJobTeamList = (props: Props) => {
 
     const input = (
         <div className='filter-row'>
-            <span
-                id='searchIcon'
-                aria-hidden='true'
-            >
-                <i className='icon icon-magnify'/>
-            </span>
-            <QuickInput
+            <SearchInput
                 id='searchTeamsTextbox'
-                className='form-control filter-textbox'
+                className='filter-textbox'
+                size='large'
                 placeholder={props.intl.formatMessage({id: 'admin.jobTable.syncResults.teams.search', defaultMessage: 'Search teams'})}
-                onInput={handleChange}
-                clearable={true}
+                onChange={handleChange}
                 onClear={handleClear}
                 value={teamSearchValue}
                 aria-label={props.intl.formatMessage({id: 'admin.jobTable.syncResults.teams.search', defaultMessage: 'Search teams'})}
+                clearButtonProps={{'data-testid': 'input-clear'}}
             />
         </div>
     );
