@@ -19,13 +19,15 @@ const AUTHOR_REMINDER = [
   'Copy unchanged lines through unchanged.',
   'Give each brief action its own heading or procedure. A sentence inside another section does not close it.',
   'Do not add error strings, bind or firewall detail, or packaging variables.',
+  'Match sibling spacing. Do not put a blank line between a label and its code fence.',
 ].join(' ');
 
 /** Writer-loop only. docs-review.yml does not send this. */
 export const PREOPEN_REVIEW_NOTE = [
   'This is a pre-open review of an AI documentation draft.',
-  'REQUEST_CHANGES only when new text is factually wrong, or a required capability is missing as its own heading or procedure.',
+  'REQUEST_CHANGES only when new text is factually wrong, a required capability is missing as its own heading or procedure, or added lines insert blank lines the sibling sections do not use.',
   'A capability mentioned only inside another section is missing.',
+  'A blank line between a field label and its code fence, or between every sentence, is a spacing defect in added text. The blank line after a callout opening tag is required.',
   'Do not request exact error strings, bind addresses, firewall rules, port conflicts, or packaging variables. That is COMMENT at most, and only when the pull request evidence already states the behaviour.',
   'Do not request fixes to unchanged context lines.',
 ].join('\n');

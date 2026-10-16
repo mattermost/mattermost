@@ -28,6 +28,12 @@ other line through unchanged, including heading case, spacing, grammar, typos, a
 fence style. Conventions apply to the text you add. Reviewer feedback about a line you
 did not add is out of scope; do not apply it.
 
+New sections use the spacing of the sibling sections on that page. If a label sits on
+the line immediately above its sentence or code fence, keep it there. Do not insert a
+blank line between the label and the fence, or a blank line after every sentence.
+Callouts are the exception: leave the blank line after the opening tag that
+conventions require.
+
 ## How much to write
 
 Match the depth of the page you are editing and of the source pull request's release

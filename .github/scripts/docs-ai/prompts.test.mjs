@@ -90,4 +90,5 @@ test('writer prompt keeps a draft to the introduced change', () => {
   assert.match(prompt, /```summary/);
   assert.match(prompt, /Reviewer feedback is not evidence/);
   assert.match(prompt, /does not close an\naction/);
+  assert.match(prompt, /blank line between the label and the fence/);
 });
