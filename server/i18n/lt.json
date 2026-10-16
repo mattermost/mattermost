@@ -2947,15 +2947,15 @@
     "translation": "Klaida gaunant prieigos raktą iš DB prieš trinant."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Naudotojų registracija išjungta."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Registracijos nuoroda nebegalioja."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Registracijos nuoroda atrodo netinkama."
   },
   {
@@ -3299,10 +3299,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
     "translation": "Negalima atnaujinti pranešimo apribotame tiesioginių pranešimų kanale."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Nepavyko rasti atnaujinamo pranešimo ar komentaro."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3746,7 +3742,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Nepavyko atšaukti nuotolinio serverio kvietimo į kanalą"
+    "translation": "Nepavyko atšaukti nuotolinio serverio kvietimo į kanalą."
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -7048,19 +7044,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Nepavyksta nutildyti būklės patikros radinio."
+    "translation": "Nepavyko nutildyti būklės pastebėjimo."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Būklės patikros radinys nerastas."
+    "translation": "Būklės pastebėjimas nerastas."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Nepavyksta atšaukti būklės patikros radinio nutildymo."
+    "translation": "Nepavyko atšaukti būklės pastebėjimo nutildymo."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Būklės patikros radinys nerastas."
+    "translation": "Būklės pastebėjimas nerastas."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -8747,11 +8743,11 @@
     "translation": "Nepavyko ištrinti nuolatinio pranešimo įrašo"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Nepavyksta gauti pranešimo prioriteto"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Nepavyksta gauti pranešimo prioriteto su kontekstu"
   },
   {
@@ -8783,7 +8779,7 @@
     "translation": "Atnaujinant nuostatas įvyko klaida."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Nepavyko išanalizuoti iš anksto supakuoto papildinio versijos."
   },
   {
@@ -11029,10 +11025,6 @@
     "translation": "LDAP ryšio patikra nepavyko. Serveris: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Klaida: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Nepavyko gauti CPA laukų"
-  },
-  {
     "id": "ent.ldap.create_fail",
     "translation": "Nepavyksta sukurti LDAP naudotojo."
   },
@@ -11123,10 +11115,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Viršytas dydžio limitas. Pabandykite padidinti nustatymą „Didžiausias puslapio dydis“. Daugiau informacijos rasite adresu https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Tuščia LDAP atributo reikšmė"
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -11353,10 +11341,6 @@
     "translation": "SAML prisijungimas nepavyko, nes tapatybės teikėjo atsakymas neužšifruotas. Kreipkitės į sistemos administratorių."
   },
   {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Nepavyko gauti CPA lauko (-ų)"
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Iš tapatybės teikėjo gautas tuščias atsakymas."
   },
@@ -11481,11 +11465,11 @@
     "translation": "Funkcija {{.Feature}} nepasiekiama su dabartine licencija"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Nepavyksta išanalizuoti URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Nepavyksta gauti kanalų."
   },
   {
@@ -13018,7 +13002,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Netinkamas žiniatinklio serverio režimas {{.Value}}. Turi būti 'gzip', 'nogzip' arba 'disabled'."
+    "translation": "Netinkamas žiniatinklio serverio režimas {{.Value}}. Turi būti 'gzip', 'uncompressed' arba 'disabled'."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -14611,5 +14595,165 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Nepavyko rasti naudotojo {{.user}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NERASTAS**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "pašalintas"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` nėra tinkama `{{.Arg}}` reikšmė"
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Svetainės būklės skydelis neįjungtas."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Svetainės būklės skydeliui reikalinga Enterprise licencija."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Nepavyko pereiti į failo pradžią."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Nepavyko gauti būklės pastebėjimo."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Būklės pastebėjimas nerastas."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Nepavyko gauti būklės pastebėjimų."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Atributas nebesinchronizuojamas iš šio šaltinio, todėl sinchronizavimas negali jo keisti."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Iš AD/LDAP arba SAML sinchronizuojamo atributo parinktis tvarko sinchronizavimas, todėl jų negalima pridėti, pervardyti ar pašalinti."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Sinchronizuojamo atributo parinktys netinkamos."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Netinkamas savybių sinchronizavimo šaltinis."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Netinkamas savybių sinchronizavimo naudotojo ID."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Nepavyko nustatyti, kurios sinchronizuojamo atributo parinktys naudojamos."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Žurnalų konfigūracijoje yra žurnalo arba audito failo kelias, esantis už žurnalų šakninio katalogo ribų. Išsamesnės informacijos ieškokite serverio žurnaluose."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Duomenų surinkimo laikas nežinomas."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Konfigūracijos skyrius nepasiekiamas."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Serverio diagnostika nepasiekiama."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Užduočių istorija nepasiekiama."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Licencijos informacija nepasiekiama."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Papildinių sąrašas nepasiekiamas."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Vykdant taisyklę įvyko netikėta klaida, todėl jos nepavyko įvertinti."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Naudojimo statistika nepasiekiama."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} naudoja http://, todėl tiesioginiai pranešimai siunčiami nešifruoti."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} turi netinkamą URL schemą. Mobiliųjų įrenginių naudotojai negaus pranešimų."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "PushNotificationServer pradžioje nurodykite https:// ir patikrinkite, ar jis pasiekiamas iš programos mazgo."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer nenaudoja https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Kiekvienas bandymas išsiųsti tiesioginį pranešimą baigsis klaida „unsupported protocol scheme“."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Nukreipkite PushNotificationServer į https://push.mattermost.com arba į savarankiškai talpinamą tiesioginių pranešimų tarpinį serverį."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Tiesioginiai pranešimai įjungti, bet PushNotificationServer tuščias"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com yra Mattermost bandomasis tiesioginių pranešimų tarpinis serveris. Jam netaikomas SLA, jo pralaidumas ribotas ir jis neskirtas gamybinei aplinkai. Tiesioginių pranešimų pristatymas į mobiliuosius įrenginius bus nepatikimas visais atvejais, išskyrus nedidelio masto bandymus."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Perjunkite į https://push.mattermost.com (gamybinę Hosted Push Notification Service paslaugą, įtrauktą į Enterprise) arba į savarankiškai talpinamą tiesioginių pranešimų tarpinį serverį."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer nukreiptas į push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL reikalingas žiniatinklio kablių URL, OAuth atgalinio iškvietimo adresams, mobiliųjų tiesioginių pranešimų turiniui ir el. laiškų nuorodoms. Kol jis tuščias, integracijos neveikia."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Nustatykite SiteURL į viešąjį serverio HTTPS URL."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL tuščias"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL yra {{.url}}. Seanso slapukai ir autentifikavimo raktai perduodami nešifruoti."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Teikite Mattermost per HTTPS ir atnaujinkite SiteURL į https:// adresą."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL naudoja http:// (ne https://)"
   }
 ]

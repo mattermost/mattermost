@@ -174,7 +174,7 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 	_, _, err = configStore.Set(memoryConfig)
 	require.NoError(tb, err)
 
-	options = append(options, ConfigStore(configStore))
+	options = append(options, ConfigStore(configStore), DisableGlobalLogger())
 
 	ps, err := New(
 		ServiceConfig{

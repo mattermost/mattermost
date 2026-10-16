@@ -10,7 +10,7 @@
 .content-flagging-section-setting {
     display: flex;
     width: 100%;
-    align-items: baseline;
+    align-items: center;
 
     .setting-title {
         min-width: 290px;
@@ -24,7 +24,13 @@
     .setting-content {
         display: flex;
         flex: 1;
+        align-items: center;
         gap: var(--spacing-xxxl);
+
+        // Compass Radio defaults to width: 100%; keep True/False side-by-side.
+        > label {
+            width: auto;
+        }
     }
 }
 

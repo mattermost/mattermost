@@ -1002,6 +1002,26 @@ export function saveCustomProfileAttribute(userID: string, attributeID: string, 
     };
 }
 
+export function updateUserCustomProfileAttributeValues(userID: string, values: Record<string, string | string[]>): ActionFuncAsync<Record<string, string | string[]>> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.updateUserCustomProfileAttributesValues(userID, values);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: UserTypes.RECEIVED_CPA_VALUES,
+            data: {userID, customAttributeValues: data},
+        });
+
+        return {data};
+    };
+}
+
 export function patchUser(user: UserProfile): ActionFuncAsync<UserProfile> {
     return async (dispatch) => {
         let data: UserProfile;
