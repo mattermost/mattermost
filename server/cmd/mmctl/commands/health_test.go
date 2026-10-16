@@ -9,6 +9,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -389,6 +390,8 @@ func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, false, false), []string{})
 		s.Require().NoError(err)
 
+		// The upgrade target depends on the release table and today's date.
+		output := regexp.MustCompile(` The newest supported Extended Support Release is [0-9.]+\.`).ReplaceAllString(s.printedHealthFindings(), "")
 		s.Equal(healthPacketDisclaimer+`
 
 Last evaluated `+evaluatedAt+` (0 minutes ago)
@@ -400,10 +403,10 @@ Notifications
 
 Version
   CRITICAL  Mattermost version is past end-of-life
-            Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15. No security patches ship for this release line. The newest supported Extended Support Release is 11.7.
+            Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15. No security patches ship for this release line.
             → Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.
 
-2 critical`, s.printedHealthFindings())
+2 critical`, output)
 	})
 
 	s.Run("an old packet is not reported as stopped evaluation", func() {
