@@ -1090,6 +1090,7 @@ describe('GlobalClassificationIndicators section', () => {
 
         const settingsPanel = container.querySelector('#classification_markings_settings.AdminPanel');
         expect(settingsPanel).toBeInTheDocument();
+
         // Compass AdminPanel body-only variant (no title) — no header heading.
         expect(settingsPanel?.querySelector('h2')).not.toBeInTheDocument();
 

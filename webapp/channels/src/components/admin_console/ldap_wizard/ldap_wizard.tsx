@@ -14,11 +14,11 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 import {useSectionNavigation} from 'components/common/hooks/useSectionNavigation';
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 
 import Constants from 'utils/constants';
 import {isMessageDescriptor} from 'utils/i18n';
