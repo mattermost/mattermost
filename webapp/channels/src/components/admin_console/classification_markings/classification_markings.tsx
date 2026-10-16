@@ -31,7 +31,7 @@ import {getHistory} from 'utils/browser_history';
 
 import {
     AddLevelButton,
-    AddLevelButtonRow,
+    ClassificationLevelsBody,
     InformationNoticeWrapper,
     PresetDropdownWrapper,
 } from './classification_markings_styled';
@@ -836,21 +836,21 @@ export default function ClassificationMarkings({disabled}: Props) {
                         title={msg.levelsTitle}
                         subtitle={msg.levelsDescription}
                     >
-                        <ClassificationLevelsTable
-                            levels={levels}
-                            updateLevel={updateLevel}
-                            deleteLevel={deleteLevel}
-                            onReorder={handleReorder}
-                            disabled={readOnly}
-                        />
-                        {!readOnly && (
-                            <AddLevelButtonRow>
+                        <ClassificationLevelsBody>
+                            <ClassificationLevelsTable
+                                levels={levels}
+                                updateLevel={updateLevel}
+                                deleteLevel={deleteLevel}
+                                onReorder={handleReorder}
+                                disabled={readOnly}
+                            />
+                            {!readOnly && (
                                 <AddLevelButton onClick={addLevel}>
                                     <PlusIcon size={14}/>
                                     <FormattedMessage {...msg.levelsAdd}/>
                                 </AddLevelButton>
-                            </AddLevelButtonRow>
-                        )}
+                            )}
+                        </ClassificationLevelsBody>
                     </AdminPanel>
                 )}
 

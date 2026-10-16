@@ -71,9 +71,10 @@ export const PresetDropdownWrapper = styled.div`
     }
 `;
 
-export const AddLevelButtonRow = styled.div`
-    margin-top: 16px;
-    margin-left: 16px;
+export const ClassificationLevelsBody = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 `;
 
 export const AddLevelButton = styled(Button).attrs({
