@@ -388,9 +388,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         const editTable = (value: string) => act(() => lastTableProps().onChange(value));
         const clickSave = () => userEvent.click(screen.getByTestId('saveSetting'));
         const savedPayload = (index = mockCreatePolicy.mock.calls.length - 1) => mockCreatePolicy.mock.calls[index][0];
-        const triggerTest = () => act(async () => {
-            await lastTableProps().onTestClick!();
-        });
+        const triggerTest = () => act(() => lastTableProps().onTestClick!());
 
         const deferred = <T, >() => {
             let resolve!: (value: T) => void;
@@ -756,23 +754,6 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
             });
 
-            test('a double click validates and saves once', async () => {
-                const check = deferred<CELExpressionError[]>();
-                checkExpressionSpy.mockReturnValue(check.promise);
-                await renderDirtyBotPolicy();
-
-                await clickSave();
-                await clickSave();
-
-                expect(checkExpressionSpy).toHaveBeenCalledTimes(1);
-                expect(screen.getByTestId('saveSetting')).toBeDisabled();
-
-                await act(async () => check.resolve([]));
-
-                await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
-                expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
-            });
-
             test('an edit during the save check still saves the validated rule', async () => {
                 const check = deferred<CELExpressionError[]>();
                 checkExpressionSpy.mockReturnValue(check.promise);
@@ -797,11 +778,13 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
                 await clickSave();
                 expect(lastTableProps().disabled).toBe(true);
+                expect(screen.getByTestId('saveSetting')).toBeDisabled();
 
                 await act(async () => check.resolve([]));
 
                 expect(await screen.findByText(/There are errors in the form above: boom/)).toBeInTheDocument();
                 expect(lastTableProps().disabled).toBe(false);
+                expect(screen.getByTestId('saveSetting')).toBeEnabled();
             });
 
             test('disables the CEL editor while saving', async () => {
@@ -906,103 +889,17 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 expect(props.policy.roles).toEqual(['system_user']);
                 expect(props.policy.rules).toEqual([{actions: ['download_file_attachment'], expression: WRAPPED_E}]);
                 expect(props.targetRole).toBe('system_user');
-                expect(checkExpressionSpy).toHaveBeenCalledWith(E);
-            });
-
-            test.each([
-                ['an || breakout', BREAKOUT_OR],
-                ['a ternary breakout', BREAKOUT_TERNARY],
-            ])('%s blocks opening without a network check', async (_label, expression) => {
-                renderBotPolicy([WRAPPED_E], SIM_STATE);
-                await screen.findByTestId('table-editor');
-                await editTable(expression);
-
-                await triggerTest();
-
-                expect(screen.queryByTestId('simulate-modal')).not.toBeInTheDocument();
-                expect(screen.getByText(/This expression isn't valid\. Check parentheses and quotes\.$/)).toBeInTheDocument();
                 expect(checkExpressionSpy).not.toHaveBeenCalled();
             });
 
-            test('expression check errors block opening', async () => {
-                checkExpressionSpy.mockResolvedValue([{message: 'undeclared reference', line: 1, column: 1}]);
-                renderBotPolicy([WRAPPED_E], SIM_STATE);
-                await screen.findByTestId('table-editor');
+            test('Simulate in the CEL editor opens the modal without an expression check', async () => {
+                renderBotPolicy([BOT_C_RETURNED], SIM_STATE);
+                await screen.findByTestId('cel-editor');
 
-                await triggerTest();
+                act(() => lastCELProps().onTestClick!());
 
-                expect(screen.queryByTestId('simulate-modal')).not.toBeInTheDocument();
-                expect(screen.getByText(/Details: undeclared reference/)).toBeInTheDocument();
-            });
-
-            test('an expression check failure blocks opening', async () => {
-                checkExpressionSpy.mockRejectedValue(new Error('network'));
-                renderBotPolicy([WRAPPED_E], SIM_STATE);
-                await screen.findByTestId('table-editor');
-
-                await triggerTest();
-
-                expect(screen.queryByTestId('simulate-modal')).not.toBeInTheDocument();
-                expect(screen.getByText(/Couldn't validate the expression\. Try again\./)).toBeInTheDocument();
-            });
-
-            test('a draft edited during the check does not open', async () => {
-                const check = deferred<CELExpressionError[]>();
-                checkExpressionSpy.mockReturnValue(check.promise);
-                renderBotPolicy([WRAPPED_E], SIM_STATE);
-                await screen.findByTestId('table-editor');
-
-                let pending!: Promise<void>;
-                act(() => {
-                    pending = lastTableProps().onTestClick!() as unknown as Promise<void>;
-                });
-                await editTable('user.attributes.teams == "other"');
-                await act(async () => {
-                    check.resolve([]);
-                    await pending;
-                });
-
-                expect(screen.queryByTestId('simulate-modal')).not.toBeInTheDocument();
-            });
-
-            test('a draft edited during a failing check shows no stale error', async () => {
-                const check = deferred<CELExpressionError[]>();
-                checkExpressionSpy.mockReturnValue(check.promise);
-                renderBotPolicy([WRAPPED_E], SIM_STATE);
-                await screen.findByTestId('table-editor');
-
-                let pending!: Promise<void>;
-                act(() => {
-                    pending = lastTableProps().onTestClick!() as unknown as Promise<void>;
-                });
-                await editTable('user.attributes.teams == "other"');
-                await act(async () => {
-                    check.resolve([{message: 'undeclared reference', line: 1, column: 1}]);
-                    await pending;
-                });
-
-                expect(screen.queryByTestId('simulate-modal')).not.toBeInTheDocument();
-                expect(screen.queryByText(/undeclared reference/)).not.toBeInTheDocument();
-            });
-
-            test('a switch to Members during a failing check shows no bot error', async () => {
-                const check = deferred<CELExpressionError[]>();
-                checkExpressionSpy.mockReturnValue(check.promise);
-                renderBotPolicy([WRAPPED_E], SIM_STATE);
-                await screen.findByTestId('table-editor');
-
-                let pending!: Promise<void>;
-                act(() => {
-                    pending = lastTableProps().onTestClick!() as unknown as Promise<void>;
-                });
-                await selectScope('pp-role-option-system_user');
-                await act(async () => {
-                    check.resolve([{message: 'undeclared reference', line: 1, column: 1}]);
-                    await pending;
-                });
-
-                expect(screen.queryByTestId('simulate-modal')).not.toBeInTheDocument();
-                expect(screen.queryByText(/undeclared reference/)).not.toBeInTheDocument();
+                expect(await screen.findByTestId('simulate-modal')).toBeInTheDocument();
+                expect(checkExpressionSpy).not.toHaveBeenCalled();
             });
 
             test('Members simulates the unwrapped rule without a check', async () => {

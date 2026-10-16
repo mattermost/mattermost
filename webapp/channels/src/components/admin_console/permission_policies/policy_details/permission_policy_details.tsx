@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback, useMemo, useRef, type JSX} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, type JSX} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -169,14 +169,8 @@ function PermissionPolicyDetails({
     const [loadFailed, setLoadFailed] = useState(false);
     const [showTest, setShowTest] = useState(false);
     const [hasFalseRule, setHasFalseRule] = useState(false);
-    const submittingRef = useRef(false);
-    const expressionRef = useRef(expression);
-    expressionRef.current = expression;
 
     const isBotScope = selectedRole === BOT_ROLE_KEY;
-    const botScopeRef = useRef(isBotScope);
-    botScopeRef.current = isBotScope;
-
     const tableEditorValue = useMemo(() => getTableEditorValue(expression), [expression]);
 
     const {formatMessage, formatList} = useIntl();
@@ -334,11 +328,10 @@ function PermissionPolicyDetails({
     };
 
     const handleSubmit = async () => {
-        if (submittingRef.current || !preSaveCheck()) {
+        if (saving || !preSaveCheck()) {
             return;
         }
 
-        submittingRef.current = true;
         setSaving(true);
         try {
             if (isBotScope) {
@@ -375,26 +368,11 @@ function PermissionPolicyDetails({
             actions.setNavigationBlocked(false);
             getHistory().push('/admin_console/system_attributes/permission_policies');
         } finally {
-            submittingRef.current = false;
             setSaving(false);
         }
     };
 
-    const handleTestClick = async () => {
-        if (isBotScope) {
-            const checked = expression.trim();
-            const validationError = await validateBotScopeExpression(checked);
-            if (expressionRef.current.trim() !== checked || !botScopeRef.current) {
-                return;
-            }
-            if (validationError) {
-                setServerError(validationError);
-                return;
-            }
-            setServerError(undefined);
-        }
-        setShowTest(true);
-    };
+    const handleTestClick = () => setShowTest(true);
 
     const handleDelete = async () => {
         if (!policyId) {
