@@ -3694,9 +3694,9 @@ func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
 		s.PluginStates[PluginIdAI] = &PluginState{Enable: true}
 	}
 
-	if s.PluginStates[PluginIdMetrics] == nil {
-		// Enable the metrics plugin by default if performance monitoring is enabled
-		s.PluginStates[PluginIdMetrics] = &PluginState{Enable: ms.Enable != nil && *ms.Enable}
+	if s.PluginStates[PluginIdMetrics] == nil && ms.Enable != nil && *ms.Enable {
+		// Left unset otherwise, so the plugin gets enabled once performance monitoring is turned on
+		s.PluginStates[PluginIdMetrics] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -4387,6 +4387,7 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.CacheSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
+	o.LogSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings, o.MetricsSettings)
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
@@ -4398,7 +4399,6 @@ func (o *Config) SetDefaults() {
 	o.DataRetentionSettings.SetDefaults()
 	o.MobileEphemeralModeSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
-	o.LogSettings.SetDefaults()
 	o.ExperimentalAuditSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()

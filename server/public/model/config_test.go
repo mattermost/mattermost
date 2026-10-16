@@ -1401,7 +1401,18 @@ func TestConfigDefaultMetricsPluginState(t *testing.T) {
 		c1 := Config{}
 		c1.SetDefaults()
 
-		assert.False(t, c1.PluginSettings.PluginStates[PluginIdMetrics].Enable)
+		assert.NotContains(t, c1.PluginSettings.PluginStates, PluginIdMetrics)
+	})
+
+	t.Run("should enable metrics plugin once performance monitoring gets enabled", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		*c1.MetricsSettings.Enable = true
+		c1.SetDefaults()
+
+		require.Contains(t, c1.PluginSettings.PluginStates, PluginIdMetrics)
+		assert.True(t, c1.PluginSettings.PluginStates[PluginIdMetrics].Enable)
 	})
 
 	t.Run("should enable metrics plugin if performance monitoring is enabled", func(t *testing.T) {

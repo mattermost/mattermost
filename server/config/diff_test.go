@@ -766,9 +766,6 @@ func TestDiff(t *testing.T) {
 						"mattermost-ai": {
 							Enable: true,
 						},
-						"com.mattermost.mattermost-plugin-metrics": {
-							Enable: false,
-						},
 						"playbooks": {
 							Enable: true,
 						},
@@ -804,9 +801,6 @@ func TestDiff(t *testing.T) {
 						"mattermost-ai": {
 							Enable: true,
 						},
-						"com.mattermost.mattermost-plugin-metrics": {
-							Enable: false,
-						},
 						"playbooks": {
 							Enable: true,
 						},
@@ -833,9 +827,6 @@ func TestDiff(t *testing.T) {
 						},
 						"mattermost-ai": {
 							Enable: true,
-						},
-						"com.mattermost.mattermost-plugin-metrics": {
-							Enable: false,
 						},
 						"playbooks": {
 							Enable: true,
