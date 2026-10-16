@@ -79,7 +79,7 @@ describe('Archived channels', () => {
         cy.get('button.btn-secondary.btn-danger', {timeout: TIMEOUTS.TWO_SEC}).findAllByText('Archive Channel').should('be.visible');
 
         // * Verify that the other widget appears
-        cy.get('section.AdminPanel, .AdminPanel').should('be.visible').should('have.length', 5);
+        cy.get('.AdminPanel').should('be.visible').should('have.length', 5);
 
         // # Save and wait for redirect
         cy.get('#saveSetting').click();
