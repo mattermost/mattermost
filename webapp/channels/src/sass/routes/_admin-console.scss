@@ -1305,6 +1305,11 @@
         min-height: 0;
         flex: 1;
         flex-direction: column;
+
+        .log__panel {
+            min-height: 0;
+            flex: 1;
+        }
     }
 }
 
