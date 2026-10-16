@@ -20,28 +20,43 @@ const day = 24 * time.Hour
 
 // newSnapshot returns a healthy licensed workspace that no rule in this package fires on.
 func newSnapshot() *healthcheck.Snapshot {
-	return &healthcheck.Snapshot{
-		CollectedAt: collectedAt,
-		License: &model.License{
-			Features:     &model.Features{Users: new(500)},
-			SkuShortName: model.LicenseShortSkuEnterprise,
-			ExpiresAt:    collectedAt.Add(365 * day).UnixMilli(),
-		},
-		Stats: &model.SupportPacketStats{
-			ActiveUsers:         new(int64(300)),
-			SingleChannelGuests: new(int64(0)),
-			MonthlyActiveUsers:  new(int64(250)),
-			IncomingWebhooks:    new(int64(20)),
-			BotAccounts:         new(int64(10)),
-		},
-		Config: &model.SupportPacketConfig{Config: &model.Config{
-			GuestAccountsSettings: model.GuestAccountsSettings{Enable: new(true)},
-		}},
-		Plugins: &model.SupportPacketPluginList{
-			Enabled: []model.Manifest{{Id: "com.mattermost.calls"}, {Id: "playbooks"}, {Id: "mattermost-ai"}},
-		},
-		Sections: map[model.WorkspaceSection]error{model.SectionConfig: nil, model.SectionPlugins: nil, model.SectionStats: nil},
+	diag := &model.SupportPacketDiagnostics{License: model.SupportPacketLicense{
+		Users:        500,
+		SkuShortName: model.LicenseShortSkuEnterprise,
+		ExpiresAt:    collectedAt.Add(365 * day).UnixMilli(),
+	}}
+	s := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{{
+		Hostname:    "app-1",
+		IsLeader:    true,
+		Diagnostics: &model.NodeDiagnostics{Diagnostics: diag},
+	}})
+	s.CollectedAt = collectedAt
+	s.Stats = &model.SupportPacketStats{
+		ActiveUsers:         new(int64(300)),
+		SingleChannelGuests: new(int64(0)),
+		MonthlyActiveUsers:  new(int64(250)),
+		IncomingWebhooks:    new(int64(20)),
+		BotAccounts:         new(int64(10)),
 	}
+	s.Config = &model.SupportPacketConfig{Config: &model.Config{
+		GuestAccountsSettings: model.GuestAccountsSettings{Enable: new(true)},
+	}}
+	s.Plugins = &model.SupportPacketPluginList{
+		Enabled: []model.Manifest{{Id: "com.mattermost.calls"}, {Id: "playbooks"}, {Id: "mattermost-ai"}},
+	}
+	s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil, model.SectionPlugins: nil, model.SectionStats: nil}
+	return s
+}
+
+// licenseOf returns the leader's license summary, which tests edit in place.
+func licenseOf(s *healthcheck.Snapshot) *model.SupportPacketLicense {
+	license, _ := s.License()
+	return license
+}
+
+func removeLicense(s *healthcheck.Snapshot) {
+	leader, _ := s.Leader()
+	leader.Diagnostics = nil
 }
 
 type want struct {
@@ -101,7 +116,7 @@ func TestExpiryRules(t *testing.T) {
 	rules := []healthcheck.Rule{licenseExpired, licenseExpiring}
 	expiringIn := func(d time.Duration) *healthcheck.Snapshot {
 		s := newSnapshot()
-		s.License.ExpiresAt = collectedAt.Add(d).UnixMilli()
+		licenseOf(s).ExpiresAt = collectedAt.Add(d).UnixMilli()
 		return s
 	}
 
@@ -151,7 +166,7 @@ func TestExpiryRules(t *testing.T) {
 				now := time.Now().Truncate(time.Millisecond)
 				s := newSnapshot()
 				s.CollectedAt = now.Add(-40 * day)
-				s.License.ExpiresAt = now.Add(-20 * day).UnixMilli()
+				licenseOf(s).ExpiresAt = now.Add(-20 * day).UnixMilli()
 				return s
 			},
 			want: map[string]want{"LICENSE_EXPIRED": resolved, "LICENSE_EXPIRING": firing(20)},
@@ -169,7 +184,7 @@ func TestExpiryRules(t *testing.T) {
 			name: "expiry not recorded",
 			snapshot: func() *healthcheck.Snapshot {
 				s := newSnapshot()
-				s.License.ExpiresAt = 0
+				licenseOf(s).ExpiresAt = 0
 				return s
 			},
 			want: map[string]want{"LICENSE_EXPIRED": unknown(healthcheck.ReasonLicenseUnavailable), "LICENSE_EXPIRING": unknown(healthcheck.ReasonLicenseUnavailable)},
@@ -178,7 +193,7 @@ func TestExpiryRules(t *testing.T) {
 			name: "no license",
 			snapshot: func() *healthcheck.Snapshot {
 				s := newSnapshot()
-				s.License = nil
+				removeLicense(s)
 				return s
 			},
 			want: map[string]want{"LICENSE_EXPIRED": unknown(healthcheck.ReasonLicenseUnavailable), "LICENSE_EXPIRING": unknown(healthcheck.ReasonLicenseUnavailable)},
@@ -213,7 +228,7 @@ func TestLicenseTrial(t *testing.T) {
 	t.Run("trial", func(t *testing.T) {
 		t.Parallel()
 		s := newSnapshot()
-		s.License.IsTrial = true
+		licenseOf(s).IsTrial = true
 		assertResults(t, rules, s, map[string]want{"LICENSE_TRIAL": firingNoValue()})
 		assert.Equal(t, "health.rule.license_trial.message", evalLicenseTrial(s)[0].MessageID)
 	})
@@ -226,7 +241,7 @@ func TestLicenseTrial(t *testing.T) {
 	t.Run("no license", func(t *testing.T) {
 		t.Parallel()
 		s := newSnapshot()
-		s.License = nil
+		removeLicense(s)
 		assertResults(t, rules, s, map[string]want{"LICENSE_TRIAL": unknown(healthcheck.ReasonLicenseUnavailable)})
 	})
 }
@@ -269,7 +284,7 @@ func TestSeatUtilizationRules(t *testing.T) {
 			name: "entry licenses count single-channel guests",
 			snapshot: func() *healthcheck.Snapshot {
 				s := seated(520, 30)
-				s.License.SkuShortName = model.LicenseShortSkuMattermostEntry
+				licenseOf(s).SkuShortName = model.LicenseShortSkuMattermostEntry
 				return s
 			},
 			want: map[string]want{
@@ -374,7 +389,7 @@ func TestSeatUtilizationRules(t *testing.T) {
 			name: "single-channel guests unknown on entry",
 			snapshot: func() *healthcheck.Snapshot {
 				s := newSnapshot()
-				s.License.SkuShortName = model.LicenseShortSkuMattermostEntry
+				licenseOf(s).SkuShortName = model.LicenseShortSkuMattermostEntry
 				s.Stats.SingleChannelGuests = nil
 				return s
 			},
@@ -393,7 +408,7 @@ func TestSeatUtilizationRules(t *testing.T) {
 			name: "seat count unknown",
 			snapshot: func() *healthcheck.Snapshot {
 				s := newSnapshot()
-				s.License.Features.Users = nil
+				licenseOf(s).Users = 0
 				return s
 			},
 			want: all(unknown(healthcheck.ReasonLicenseUnavailable)),
@@ -402,7 +417,7 @@ func TestSeatUtilizationRules(t *testing.T) {
 			name: "no license",
 			snapshot: func() *healthcheck.Snapshot {
 				s := newSnapshot()
-				s.License = nil
+				removeLicense(s)
 				return s
 			},
 			want: map[string]want{"SEATS_OVER_DEPLOYED": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_NEAR_CAPACITY": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_LOW_UTILIZATION": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_LIMIT_REACHED": unknown(healthcheck.ReasonLicenseUnavailable)},
@@ -431,8 +446,8 @@ func TestSeatsLimitReached(t *testing.T) {
 	rules := []healthcheck.Rule{seatsLimitReached, seatsOverDeployed}
 	enforced := func(used int64, extraUsers *int) *healthcheck.Snapshot {
 		s := newSnapshot()
-		s.License.IsSeatCountEnforced = true
-		s.License.ExtraUsers = extraUsers
+		licenseOf(s).IsSeatCountEnforced = true
+		licenseOf(s).ExtraUsers = extraUsers
 		s.Stats.ActiveUsers = new(used)
 		return s
 	}
@@ -461,7 +476,7 @@ func TestSeatsLimitReached(t *testing.T) {
 			name: "not enforced",
 			snapshot: func() *healthcheck.Snapshot {
 				s := enforced(600, nil)
-				s.License.IsSeatCountEnforced = false
+				licenseOf(s).IsSeatCountEnforced = false
 				return s
 			},
 			want: map[string]want{"SEATS_LIMIT_REACHED": resolved, "SEATS_OVER_DEPLOYED": firing(120)},
@@ -470,7 +485,7 @@ func TestSeatsLimitReached(t *testing.T) {
 			name: "enforcement not recorded",
 			snapshot: func() *healthcheck.Snapshot {
 				s := enforced(600, nil)
-				s.License.ExpiresAt = 0
+				licenseOf(s).ExpiresAt = 0
 				return s
 			},
 			want: map[string]want{"SEATS_LIMIT_REACHED": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_OVER_DEPLOYED": firing(120)},
@@ -488,7 +503,7 @@ func TestSeatsLimitReached(t *testing.T) {
 			name: "enforced with seat count unknown",
 			snapshot: func() *healthcheck.Snapshot {
 				s := enforced(600, nil)
-				s.License.Features.Users = nil
+				licenseOf(s).Users = 0
 				return s
 			},
 			want: map[string]want{"SEATS_LIMIT_REACHED": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_OVER_DEPLOYED": unknown(healthcheck.ReasonLicenseUnavailable)},

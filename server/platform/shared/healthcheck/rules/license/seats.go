@@ -103,7 +103,7 @@ func seatsUsed(s *healthcheck.Snapshot) (used int64, reasonID string) {
 	if !ok {
 		return 0, healthcheck.ReasonStatsUnavailable
 	}
-	if s.License.IsMattermostEntry() {
+	if license, ok := s.License(); ok && license.SkuShortName == model.LicenseShortSkuMattermostEntry {
 		return active, ""
 	}
 
@@ -174,10 +174,11 @@ func evalSeatsLowUtilization(s *healthcheck.Snapshot) []healthcheck.Result {
 
 func evalSeatsLimitReached(s *healthcheck.Snapshot) []healthcheck.Result {
 	// Packets predating the seat enforcement flag also lack an expiry, so false there means unrecorded.
-	if _, ok := s.LicenseExpiresAt(); !ok {
+	license, ok := s.License()
+	if !ok || license.ExpiresAt == 0 {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
 	}
-	if !s.License.IsSeatCountEnforced {
+	if !license.IsSeatCountEnforced {
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
 
@@ -186,7 +187,7 @@ func evalSeatsLimitReached(s *healthcheck.Snapshot) []healthcheck.Result {
 		return []healthcheck.Result{healthcheck.Unknown(reasonID)}
 	}
 
-	limit := int64(seats + model.SafeDereference(s.License.ExtraUsers))
+	limit := int64(seats + model.SafeDereference(license.ExtraUsers))
 	if used < limit {
 		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(used))}
 	}
