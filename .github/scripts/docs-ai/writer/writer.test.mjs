@@ -611,6 +611,7 @@ test('renderPrBody describes the change and omits the review trail', () => {
   assert.doesNotMatch(body, /Open concerns/);
   assert.match(PREOPEN_REVIEW_NOTE, /exact error strings/);
   assert.match(PREOPEN_REVIEW_NOTE, /blank line between a field label/);
+  assert.match(PREOPEN_REVIEW_NOTE, /Related capabilities may share a section/);
 
   const missing = renderPrBody({sourcePr: '1', summary: '', milestoneVersion: ''});
   assert.match(missing, /NOT PRESENT — REQUIRES HUMAN JUDGMENT/);

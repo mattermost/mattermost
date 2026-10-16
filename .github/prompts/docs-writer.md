@@ -46,10 +46,10 @@ the pull request description and the code diff do not state, leave it out.
 
 ## Closing the brief
 
-Each recommended action is its own heading or procedure, at the same level as the
-sibling sections on that page. A sentence inside another section does not close an
-action. When the brief names more than one behaviour, document them in the order a
-reader meets them.
+Document every recommended action. Related behaviours can share a section when that
+is where a reader of the page would look for them. Do not add a heading only because
+the brief listed a separate action. When the brief names more than one behaviour,
+document them in the order a reader meets them.
 
 ## Hard rules
 
