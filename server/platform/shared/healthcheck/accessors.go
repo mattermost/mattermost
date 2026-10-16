@@ -40,6 +40,7 @@ func (s *Snapshot) ConfigInt64(get func(*model.Config) *int64) (int64, bool) {
 }
 
 // configValue returns ok=false when the config section is absent or the field is nil.
+// TODO: make this a generic method on Snapshot once the module targets Go 1.27.
 func configValue[T any](s *Snapshot, get func(*model.Config) *T) (T, bool) {
 	var zero T
 	if get == nil || !s.Has(model.SectionConfig) || s.Config == nil || s.Config.Config == nil {
