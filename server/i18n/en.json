@@ -14393,8 +14393,8 @@
   },
   {
     "id": "health.rule.cluster_version_skew.message.no_majority",
-    "translation": "No single version is reported by most nodes, so this node cannot be compared with the rest of the cluster.",
-    "description": "Health dashboard reason shown for one cluster node when the nodes are split evenly between versions, so the node's status is unknown."
+    "translation": "The nodes are split between versions, with no version more common than the others, so it is not clear which nodes are out of date.",
+    "description": "Health dashboard reason shown for one cluster node when two or more versions are tied for the most common version, so the node's status is unknown."
   },
   {
     "id": "health.rule.cluster_version_skew.message.node",
