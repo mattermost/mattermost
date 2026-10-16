@@ -3,6 +3,7 @@
 
 import React, {
     useCallback,
+    useEffect,
     useMemo,
     useState,
     useRef,
@@ -53,6 +54,10 @@ type ChannelSettingsModalProps = {
     focusOriginElement?: string;
 };
 
+type ChannelSettingsModalBodyProps = Omit<ChannelSettingsModalProps, 'channelId'> & {
+    channel: Channel;
+};
+
 const BuiltInTabIds = {
     INFO: 'info',
     ACCESS_RULES: 'access_rules',
@@ -93,10 +98,32 @@ function getPreferredActiveTab(activeTab: string, visibleBuiltInTabs: SidebarTab
     return visibleBuiltInTabs[0]?.name ?? visiblePluginTabs[0]?.name ?? BuiltInTabIds.INFO;
 }
 
-function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
+function ChannelSettingsModal(props: ChannelSettingsModalProps) {
+    const channel = useSelector((state: GlobalState) => getChannel(state, props.channelId));
+    const {onExited} = props;
+
+    useEffect(() => {
+        if (!channel) {
+            onExited();
+        }
+    }, [channel, onExited]);
+
+    if (!channel) {
+        return null;
+    }
+
+    return (
+        <ChannelSettingsModalBody
+            {...props}
+            channel={channel}
+        />
+    );
+}
+
+function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement}: ChannelSettingsModalBodyProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
+    const channelId = channel.id;
     const visiblePluginTabRegistrations = useSelector((state: GlobalState) => {
         const currentChannel = getChannel(state, channelId);
         if (!currentChannel) {

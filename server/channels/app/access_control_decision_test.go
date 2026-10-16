@@ -223,20 +223,28 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			Resource: channelResource,
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 3)
-		require.Len(t, resp.Results, 3)
+		require.Len(t, resp.Decisions, 4)
+		require.Len(t, resp.Results, 4)
 		resultNames := make(map[string]bool, len(resp.Results))
 		for _, r := range resp.Results {
 			resultNames[r.Action.Name] = true
 		}
 		require.True(t, resultNames[model.AccessControlPolicyActionUploadFileAttachment])
 		require.True(t, resultNames[model.AccessControlPolicyActionDownloadFileAttachment])
+		require.True(t, resultNames[model.AccessControlPolicyActionChannelReadAccess])
 		require.True(t, resultNames[model.AccessControlPolicyActionCreateBurnOnReadPost])
 	})
 
 	t.Run("discovery mode ABAC active permitted in results denied excluded", func(t *testing.T) {
 		enableABAC(t)
+		// channel_read_access is answered by its enforcement gate, which only reaches the
+		// PDP under Enterprise Advanced and when a policy governs the action.
+		originalLicense := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		t.Cleanup(func() { th.App.Srv().SetLicense(originalLicense) })
 		mockACS := withMockACS(t)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+			Return(true, (*model.AppError)(nil))
 
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
@@ -245,12 +253,15 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment ||
 				req.Action == model.AccessControlPolicyActionCreateBurnOnReadPost
 		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionChannelReadAccess
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
 
 		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 3)
+		require.Len(t, resp.Decisions, 4)
 		require.Len(t, resp.Results, 1)
 		require.Equal(t, model.AccessControlPolicyActionUploadFileAttachment, resp.Results[0].Action.Name)
 	})

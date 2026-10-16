@@ -3059,6 +3059,12 @@ func TestGetRecommendedChannelsForTeam(t *testing.T) {
 		// PermanentDeleteChannel during cleanup calls DeletePolicy on the ACS.
 		mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
 			Return((*model.AppError)(nil)).Maybe()
+		// Recommendations also pass through the channel_read_access filter, which
+		// nothing here governs.
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).
+			Return(false, (*model.AppError)(nil)).Maybe()
+		mockACS.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, mock.Anything).
+			Return(false, (*model.AppError)(nil)).Maybe()
 
 		included, _, _ := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
 			TeamId:      th.BasicTeam.Id,
@@ -3794,6 +3800,12 @@ func TestSearchAllChannels(t *testing.T) {
 			[]string{openChannel.Id},
 		},
 		{
+			// The term has to contain a character model.NewId and
+			// model.NewRandomString cannot emit ('l' and 'v' are absent from
+			// their base32 alphabet). These cases assert an exact result count,
+			// so a term spelled only from that alphabet - "what" was one - is
+			// occasionally matched by a randomly generated Name or DisplayName
+			// belonging to another channel in the fixture.
 			"Name search",
 			// Prefix of Name "whatever". Term "what" also matches InitBasic DisplayNames
 			// ("dn_"+NewId()); z-base32 includes w/h/a/t but not v.
