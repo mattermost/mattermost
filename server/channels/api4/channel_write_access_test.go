@@ -395,6 +395,50 @@ func TestChannelAccessDoesNotGateReviewerAssignment(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
+// An update to a scheduled post is saved to the channel it was scheduled in, whatever
+// channel_id the client sends, so the write gate must check that stored channel.
+func TestChannelWriteAccessChecksScheduledPostStoredChannel(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		*cfg.ServiceSettings.ScheduledPosts = true
+	})
+
+	// Scheduled before the policy is installed, so creating it is not under test.
+	scheduled, _, err := th.Client.CreateScheduledPost(context.Background(), &model.ScheduledPost{
+		Draft: model.Draft{
+			CreateAt:  model.GetMillis(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "scheduled",
+		},
+		ScheduledAt: model.GetMillis() + 100000,
+	})
+	require.NoError(t, err)
+
+	// Writing is denied in BasicChannel only; BasicChannel2 allows it.
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionChannelWriteAccess && req.Resource.ID == th.BasicChannel.Id
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	scheduled.Message = "edited through another channel"
+	scheduled.ChannelId = th.BasicChannel2.Id
+	_, _, err = th.Client.UpdateScheduledPost(context.Background(), scheduled)
+	require.True(t, isChannelReadAccessDenial(err, abacWriteDeniedErrorID), "expected the write denial, got %v", err)
+
+	stored, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, scheduled.Id)
+	require.NoError(t, storeErr)
+	require.Equal(t, "scheduled", stored.Message)
+	require.Equal(t, th.BasicChannel.Id, stored.ChannelId)
+}
+
 // An incoming webhook posts into its channel with no session to evaluate later, so
 // setting one up there -- creating it, or moving an existing hook in -- is the write.
 func TestChannelWriteAccessGatesIncomingWebhooks(t *testing.T) {
