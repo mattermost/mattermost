@@ -2105,6 +2105,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 				return nil, err.Error()
 			}
 			req.Header.Add("Mattermost-User-Id", "userid")
+			req.Header.Add("Mattermost-Plugin-ID", "com.mattermost.server")
 			resp := p.API.PluginHTTP(req)
 			if resp == nil {
 				return nil, "Nil resp"
@@ -2165,6 +2166,17 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	assert.Equal(t, "ok", ret)
 }
 
+type flushObservingRecorder struct {
+	*httptest.ResponseRecorder
+	flushed chan struct{}
+	once    sync.Once
+}
+
+func (w *flushObservingRecorder) Flush() {
+	w.ResponseRecorder.Flush()
+	w.once.Do(func() { close(w.flushed) })
+}
+
 func TestInterpluginPluginHTTPContext(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -2193,6 +2205,20 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 
 		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {
+			case "/core-identity":
+				_, _ = w.Write([]byte(r.Header.Get("Mattermost-Plugin-ID")))
+			case "/core-wait":
+				defer func() { p.events <- "core-wait:exited" }()
+				p.events <- "core-wait:started"
+				<-r.Context().Done()
+				p.events <- "core-wait:" + r.Context().Err().Error()
+			case "/core-stream":
+				defer func() { p.events <- "core-stream:exited" }()
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte("start"))
+				w.(http.Flusher).Flush()
+				<-r.Context().Done()
+				p.events <- "core-stream:" + r.Context().Err().Error()
 			case "/deadline-expire":
 				deadline, ok := r.Context().Deadline()
 				if !ok || time.Until(deadline) <= 0 || time.Until(deadline) > 5*time.Second {
@@ -2247,7 +2273,7 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 		}
 
 		func main() {
-			plugin.ClientMain(&MyPlugin{events: make(chan string, 1)})
+			plugin.ClientMain(&MyPlugin{events: make(chan string, 8)})
 		}
 		`,
 			// The caller plugin exercises PluginHTTP from the other side of the RPC boundary.
@@ -2256,6 +2282,7 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 
 		import (
 			"context"
+			"errors"
 			"fmt"
 			"io"
 			"net/http"
@@ -2286,6 +2313,16 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 
 		type MyPlugin struct {
 			plugin.MattermostPlugin
+		}
+
+		type readEntry struct {
+			io.ReadCloser
+			entered chan struct{}
+		}
+
+		func (r *readEntry) Read(p []byte) (int, error) {
+			close(r.entered)
+			return r.ReadCloser.Read(p)
 		}
 
 		func (p *MyPlugin) expectServerEvent(expected string) error {
@@ -2377,24 +2414,42 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 
 			// After headers, cancellation reaches both the response body and the remote handler.
 			streamCtx, streamCancel := context.WithCancel(context.Background())
+			defer streamCancel()
 			req, _ = http.NewRequestWithContext(streamCtx, http.MethodGet, "/contextserver/stream", nil)
 			resp = p.API.PluginHTTP(req)
 			if resp == nil {
 				return nil, "stream response is nil"
 			}
+			defer resp.Body.Close()
 			firstChunk := make([]byte, len("start"))
 			if _, err = io.ReadFull(resp.Body, firstChunk); err != nil || string(firstChunk) != "start" {
 				return nil, fmt.Sprintf("initial stream read: %q, %v", firstChunk, err)
 			}
-			streamCancel()
+			streamProbe := &readEntry{ReadCloser: resp.Body, entered: make(chan struct{})}
+			resp.Body = streamProbe
 			readErrCh := make(chan error, 1)
 			go func() {
 				_, readErr := resp.Body.Read(make([]byte, 1))
 				readErrCh <- readErr
 			}()
 			select {
+			case <-streamProbe.entered:
+			case <-time.After(testTimeout):
+				streamCancel()
+				_ = resp.Body.Close()
+				return nil, "stream read did not start"
+			}
+			select {
+			case readErr := <-readErrCh:
+				streamCancel()
+				_ = resp.Body.Close()
+				return nil, fmt.Sprintf("stream read ended before cancellation: %v", readErr)
+			case <-time.After(50 * time.Millisecond):
+			}
+			streamCancel()
+			select {
 			case err = <-readErrCh:
-				if err != context.Canceled {
+				if !errors.Is(err, context.Canceled) {
 					return nil, fmt.Sprintf("stream cancellation error: %v", err)
 				}
 			case <-time.After(testTimeout):
@@ -2405,29 +2460,42 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 				return nil, err.Error()
 			}
 
-			streamDeadlineCtx, streamDeadlineCancel := context.WithTimeout(context.Background(), time.Second)
+			streamDeadlineCtx, streamDeadlineCancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer streamDeadlineCancel()
 			req, _ = http.NewRequestWithContext(streamDeadlineCtx, http.MethodGet, "/contextserver/stream", nil)
 			resp = p.API.PluginHTTP(req)
 			if resp == nil {
 				return nil, "deadline stream response is nil"
 			}
+			defer resp.Body.Close()
 			if _, err = io.ReadFull(resp.Body, firstChunk); err != nil || string(firstChunk) != "start" {
 				return nil, fmt.Sprintf("deadline stream initial read: %q, %v", firstChunk, err)
 			}
+			deadlineProbe := &readEntry{ReadCloser: resp.Body, entered: make(chan struct{})}
+			resp.Body = deadlineProbe
 			readErrCh = make(chan error, 1)
 			go func() {
-				for {
-					_, readErr := resp.Body.Read(make([]byte, 1))
-					if readErr != nil {
-						readErrCh <- readErr
-						return
-					}
-				}
+				_, readErr := resp.Body.Read(make([]byte, 1))
+				readErrCh <- readErr
 			}()
 			select {
+			case <-deadlineProbe.entered:
+			case <-time.After(testTimeout):
+				streamDeadlineCancel()
+				_ = resp.Body.Close()
+				return nil, "deadline stream read did not start"
+			}
+			if streamDeadlineCtx.Err() != nil {
+				return nil, fmt.Sprintf("deadline stream read started after expiry: %v", streamDeadlineCtx.Err())
+			}
+			select {
+			case readErr := <-readErrCh:
+				return nil, fmt.Sprintf("deadline stream read ended before expiry: %v", readErr)
+			case <-time.After(50 * time.Millisecond):
+			}
+			select {
 			case err = <-readErrCh:
-				if err != context.DeadlineExceeded && err != io.EOF {
+				if !errors.Is(err, context.DeadlineExceeded) {
 					return nil, fmt.Sprintf("stream deadline error: %v", err)
 				}
 			case <-time.After(testTimeout):
@@ -2541,7 +2609,7 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 		th.App.ServeInternalPluginRequest("", httptest.NewRecorder(), req, "", "contextserver")
 		close(requestDone)
 	}()
-	requireServerEvent := func(expected string) {
+	requireServerEvent := func(t *testing.T, expected string) {
 		eventCtx, eventCancel := context.WithTimeout(context.Background(), testTimeout)
 		defer eventCancel()
 		eventRequest, eventErr := http.NewRequestWithContext(eventCtx, http.MethodGet, "/event", nil)
@@ -2551,7 +2619,7 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 		require.Equal(t, expected, eventRecorder.Body.String())
 	}
 
-	requireServerEvent("direct:started")
+	requireServerEvent(t, "direct:started")
 	cancelRequest()
 	select {
 	case <-requestDone:
@@ -2559,9 +2627,92 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 		require.FailNow(t, "direct server-to-plugin cancellation timed out")
 	}
 
-	requireServerEvent("direct:" + context.Canceled.Error())
+	requireServerEvent(t, "direct:"+context.Canceled.Error())
 	_, writeErr := bodyWriter.Write([]byte("late"))
 	require.ErrorIs(t, writeErr, io.ErrClosedPipe)
+
+	identityRequest, err := http.NewRequest(http.MethodGet, "/core-identity", nil)
+	require.NoError(t, err)
+	identityRequest.Header.Set("Mattermost-Plugin-ID", "forged-plugin")
+	identityRecorder := httptest.NewRecorder()
+	th.App.ServeInternalPluginRequest("", identityRecorder, identityRequest, "", "contextserver")
+	require.Equal(t, "com.mattermost.server", identityRecorder.Body.String())
+
+	for _, test := range []struct {
+		name     string
+		path     string
+		deadline bool
+		stream   bool
+	}{
+		{"cancel-before-headers", "/core-wait", false, false},
+		{"deadline-before-headers", "/core-wait", true, false},
+		{"cancel-during-stream", "/core-stream", false, true},
+		{"deadline-during-stream", "/core-stream", true, true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var ctx context.Context
+			var cancel context.CancelFunc
+			if test.deadline {
+				ctx, cancel = context.WithTimeout(context.Background(), 12*time.Second)
+			} else {
+				ctx, cancel = context.WithCancel(context.Background())
+			}
+			defer cancel()
+			request, requestErr := http.NewRequestWithContext(ctx, http.MethodGet, test.path, nil)
+			require.NoError(t, requestErr)
+			writer := &flushObservingRecorder{ResponseRecorder: httptest.NewRecorder(), flushed: make(chan struct{})}
+			done := make(chan struct{})
+			go func() {
+				th.App.ServeInternalPluginRequest("", writer, request, "", "contextserver")
+				close(done)
+			}()
+
+			if test.stream {
+				select {
+				case <-writer.flushed:
+				case <-time.After(testTimeout):
+					require.FailNow(t, "core stream did not flush its first chunk")
+				}
+				require.Equal(t, "start", writer.Body.String())
+			} else {
+				requireServerEvent(t, "core-wait:started")
+			}
+			require.NoError(t, ctx.Err(), "stage must be reached before cancellation or deadline")
+			if test.deadline {
+				select {
+				case <-ctx.Done():
+				case <-time.After(15 * time.Second):
+					require.FailNow(t, "core deadline did not expire")
+				}
+				require.ErrorIs(t, ctx.Err(), context.DeadlineExceeded)
+			} else {
+				cancel()
+			}
+			select {
+			case <-done:
+			case <-time.After(testTimeout):
+				require.FailNow(t, "core dispatch did not finish after cancellation")
+			}
+			stage := "core-wait"
+			if test.stream {
+				stage = "core-stream"
+			}
+			reason := context.Canceled
+			if test.deadline {
+				reason = context.DeadlineExceeded
+			}
+			requireServerEvent(t, stage+":"+reason.Error())
+			requireServerEvent(t, stage+":exited")
+		})
+	}
+
+	// Cancellation and stream closure leave the receiver usable.
+	okRequest, err := http.NewRequest(http.MethodPost, "/ok", strings.NewReader("reuse"))
+	require.NoError(t, err)
+	okRecorder := httptest.NewRecorder()
+	th.App.ServeInternalPluginRequest("", okRecorder, okRequest, "", "contextserver")
+	require.Equal(t, http.StatusCreated, okRecorder.Code)
+	require.Equal(t, "reuse", okRecorder.Body.String())
 }
 
 func TestInterpluginPluginHTTPCancellationWithLegacyDestination(t *testing.T) {
