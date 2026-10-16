@@ -8,36 +8,40 @@ import (
 	"time"
 )
 
-// ReleaseLifecycle classifies one release line. ESR is fixed when the line ships; EOLDate is a
-// forecast and may be extended, which is why health rules weigh it against the build date.
+// ReleaseLifecycle classifies one release line.
 type ReleaseLifecycle struct {
 	MajorMinor string
-	ESR        bool
-	// EOLDate is the day support ends, zero for regular releases.
+	// EOLDate is the day support for this line ends, for regular releases and ESRs alike.
+	// Patches shipped after it for customers who have not upgraded do not move it.
 	EOLDate time.Time
+	ESR     bool
 }
 
-// releaseLifecycles is newest first, like versions. It ends at the oldest ESR still receiving
-// patches when the table was written, so every line below it had ended. Add an entry when a
-// line is added to versions, and cherry-pick EOL extensions to every supported release branch.
+func eolDate(year int, month time.Month, day int) time.Time {
+	return time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+}
+
+// releaseLifecycles is newest first, like versions. It ends at the oldest ESR still supported
+// when the table was written, so every line below it had ended. Add an entry when a line is
+// added to versions.
 // Source: https://docs.mattermost.com/product-overview/mattermost-server-releases.html
 var releaseLifecycles = []ReleaseLifecycle{
-	{MajorMinor: "12.1"},
-	{MajorMinor: "12.0"},
-	{MajorMinor: "11.11"},
-	{MajorMinor: "11.10"},
-	{MajorMinor: "11.9"},
-	{MajorMinor: "11.8"},
-	{MajorMinor: "11.7", ESR: true, EOLDate: time.Date(2027, time.May, 15, 0, 0, 0, 0, time.UTC)},
-	{MajorMinor: "11.6"},
-	{MajorMinor: "11.5"},
-	{MajorMinor: "11.4"},
-	{MajorMinor: "11.3"},
-	{MajorMinor: "11.2"},
-	{MajorMinor: "11.1"},
-	{MajorMinor: "11.0"},
-	{MajorMinor: "10.12"},
-	{MajorMinor: "10.11", ESR: true, EOLDate: time.Date(2026, time.August, 15, 0, 0, 0, 0, time.UTC)},
+	{MajorMinor: "12.1", EOLDate: eolDate(2027, time.February, 15)}, // Forecast: not on the releases page yet.
+	{MajorMinor: "12.0", EOLDate: eolDate(2027, time.January, 15)},
+	{MajorMinor: "11.11", EOLDate: eolDate(2026, time.December, 15)},
+	{MajorMinor: "11.10", EOLDate: eolDate(2026, time.November, 15)},
+	{MajorMinor: "11.9", EOLDate: eolDate(2026, time.October, 15)},
+	{MajorMinor: "11.8", EOLDate: eolDate(2026, time.September, 15)},
+	{MajorMinor: "11.7", EOLDate: eolDate(2027, time.May, 15), ESR: true},
+	{MajorMinor: "11.6", EOLDate: eolDate(2026, time.July, 15)},
+	{MajorMinor: "11.5", EOLDate: eolDate(2026, time.June, 15)},
+	{MajorMinor: "11.4", EOLDate: eolDate(2026, time.May, 15)},
+	{MajorMinor: "11.3", EOLDate: eolDate(2026, time.April, 15)},
+	{MajorMinor: "11.2", EOLDate: eolDate(2026, time.March, 15)},
+	{MajorMinor: "11.1", EOLDate: eolDate(2026, time.February, 15)},
+	{MajorMinor: "11.0", EOLDate: eolDate(2026, time.January, 15)},
+	{MajorMinor: "10.12", EOLDate: eolDate(2025, time.December, 15)},
+	{MajorMinor: "10.11", EOLDate: eolDate(2026, time.August, 15), ESR: true},
 }
 
 // ReleaseLifecycles returns a copy of the release lifecycle table, newest first.

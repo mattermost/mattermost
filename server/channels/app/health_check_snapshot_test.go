@@ -233,7 +233,6 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	// Offline has no feed and dates the packet by its generation time; align them so only the
 	// rules are compared.
 	offline.Snapshot.Version.Latest = live.Version.Latest
-	offline.Snapshot.Version.BuildDate = live.Version.BuildDate
 	offline.Snapshot.CollectedAt = live.CollectedAt
 
 	evaluatedAt := time.Now()

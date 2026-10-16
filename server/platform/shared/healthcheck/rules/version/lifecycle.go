@@ -52,33 +52,25 @@ func (l line) String() string {
 	return fmt.Sprintf("%d.%d", l.major, l.minor)
 }
 
-// supportingESR finds the entry for version's line and e, the highest ESR at or below it.
-// belowFloor is true when the version predates the table; ok is false when it is newer than
-// every entry, missing from it, or unparseable.
-func supportingESR(table []model.ReleaseLifecycle, version string) (running, e model.ReleaseLifecycle, belowFloor, ok bool) {
+// lookup finds the entry for version's line. belowFloor is true when the version predates the
+// table; ok is false when it is newer than every entry, missing from it, or unparseable.
+func lookup(table []model.ReleaseLifecycle, version string) (running model.ReleaseLifecycle, belowFloor, ok bool) {
 	v, ok := parseLine(version)
 	if !ok || len(table) == 0 {
-		return running, e, false, false
+		return running, false, false
 	}
 
-	for i, entry := range table {
+	for _, entry := range table {
 		l, parsed := parseLine(entry.MajorMinor)
 		if !parsed || l.compare(v) < 0 {
-			return running, e, false, false
+			return running, false, false
 		}
-		if l.compare(v) > 0 {
-			continue
+		if l.compare(v) == 0 {
+			return entry, false, true
 		}
-
-		for _, older := range table[i:] {
-			if older.ESR {
-				return entry, older, false, true
-			}
-		}
-		return running, e, false, false
 	}
 
-	return running, e, true, true
+	return running, true, true
 }
 
 // target is the newest ESR newer than v that is still supported at the given time.
@@ -97,7 +89,6 @@ func target(table []model.ReleaseLifecycle, v line, at time.Time) (string, bool)
 type assessment struct {
 	version    line
 	running    model.ReleaseLifecycle
-	esr        model.ReleaseLifecycle
 	belowFloor bool
 	pastEOL    bool
 }
@@ -116,7 +107,7 @@ func assess(table []model.ReleaseLifecycle, s *healthcheck.Snapshot) (a assessme
 		return a, "", reasonVersionUnknown
 	}
 
-	running, e, belowFloor, ok := supportingESR(table, s.Version.Current)
+	running, belowFloor, ok := lookup(table, s.Version.Current)
 	switch {
 	case !ok:
 		return a, v.String(), reasonLineUnknown
@@ -127,8 +118,7 @@ func assess(table []model.ReleaseLifecycle, s *healthcheck.Snapshot) (a assessme
 	return assessment{
 		version:    v,
 		running:    running,
-		esr:        e,
 		belowFloor: belowFloor,
-		pastEOL:    !belowFloor && !s.CollectedAt.Before(e.EOLDate),
+		pastEOL:    !belowFloor && !s.CollectedAt.Before(running.EOLDate),
 	}, v.String(), ""
 }

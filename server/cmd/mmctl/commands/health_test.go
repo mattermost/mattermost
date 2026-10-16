@@ -399,11 +399,11 @@ Notifications
             → Prefix PushNotificationServer with https:// and verify reachability from the app node.
 
 Version
-  WARNING   Mattermost version may be past end-of-life
-            Running Mattermost 11.0.4. This build's release table shows support for this release line ending no later than 2026-08-15, when Extended Support Release 10.11 reaches end-of-life. This build predates that date, so an extension would not appear here. The newest supported Extended Support Release is 11.7.
-            → Confirm the support end date at https://docs.mattermost.com/product-overview/mattermost-server-releases.html. If support has ended, plan a staged upgrade to a supported Extended Support Release or the latest release.
+  CRITICAL  Mattermost version is past end-of-life
+            Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15. No security patches ship for this release line. The newest supported Extended Support Release is 11.7.
+            → Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.
 
-1 critical, 1 warning`, s.printedHealthFindings())
+2 critical`, s.printedHealthFindings())
 	})
 
 	s.Run("an old packet is not reported as stopped evaluation", func() {
@@ -447,10 +447,10 @@ Version
 		s.Equal(int64(healthTestPacketGeneratedAt), list.EvaluatedAt)
 		findings := list.Findings
 		s.Require().Len(findings, 2)
-		s.Equal("PUSH_BAD_SCHEME", findings[0].Code)
-		s.Equal("VERSION_EOL_UNVERIFIED", findings[1].Code)
-		s.Equal("PushNotificationServer does not use https://", findings[0].Title)
-		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[0].FirstSeenAt)
+		s.Equal("VERSION_EOL", findings[0].Code)
+		s.Equal("PUSH_BAD_SCHEME", findings[1].Code)
+		s.Equal("PushNotificationServer does not use https://", findings[1].Title)
+		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[1].FirstSeenAt)
 		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
 	})
 

@@ -47,9 +47,9 @@ func TestReleaseLifecycles(t *testing.T) {
 		}
 	})
 
-	t.Run("only ESRs have an EOL date", func(t *testing.T) {
+	t.Run("every entry has an EOL date", func(t *testing.T) {
 		for _, lifecycle := range lifecycles {
-			assert.Equal(t, lifecycle.ESR, !lifecycle.EOLDate.IsZero(), lifecycle.MajorMinor)
+			assert.False(t, lifecycle.EOLDate.IsZero(), lifecycle.MajorMinor)
 		}
 	})
 
