@@ -12,7 +12,7 @@ import (
 
 const (
 	readReplicaUsers   = 2_000
-	searchReplicaPosts = 1_000_000
+	searchReplicaPosts = 2_000_000
 	lowMaxOpenConns    = 75
 	lowMaxOpenUsers    = 1_000
 	highQueryTimeout   = 60
