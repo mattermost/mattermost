@@ -145,6 +145,13 @@ type FeatureFlags struct {
 	// Enable verifying plugin signatures against the MFI public key, in addition to the
 	// existing hard-coded Mattermost public key and any admin-configured public keys.
 	EnableMFIPluginSignaturePublicKey bool
+
+	// FEATURE_FLAG_REMOVAL: EnforceLogPathRoot - remove this once every supported
+	// release carries the flag and enforcement becomes unconditional (MM-70595).
+	// When on, a log or audit file path resolving outside the logging root
+	// (MM_LOG_PATH, or the default logs dir) aborts server startup and is rejected
+	// on config save. When off, the same paths only produce an error log line.
+	EnforceLogPathRoot bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -207,6 +214,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableConcurrentReact = false
 
 	f.EnableMFIPluginSignaturePublicKey = true
+
+	f.EnforceLogPathRoot = false
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope
