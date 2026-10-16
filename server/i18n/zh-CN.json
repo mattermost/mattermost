@@ -6719,23 +6719,23 @@
   },
   {
     "id": "app.group.uniqueness_error",
-    "translation": "群组成员已存在"
+    "translation": "用户组成员已存在"
   },
   {
     "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "无法移除 UserID 为“{{.UserId}}”的群组成员。"
+    "translation": "无法移除 UserID 为“{{.UserId}}”的用户组成员。"
   },
   {
     "id": "app.group.no_rows",
-    "translation": "未找到匹配的群组"
+    "translation": "未找到匹配的用户组"
   },
   {
     "id": "app.group.id.app_error",
-    "translation": "群组 ID 属性无效。"
+    "translation": "用户组 ID 属性无效。"
   },
   {
     "id": "app.group.group_syncable_already_deleted",
-    "translation": "群组同步已被删除"
+    "translation": "用户组同步已被删除"
   },
   {
     "id": "app.channel.save_member.exists.app_error",
@@ -8223,7 +8223,7 @@
   },
   {
     "id": "model.group.name.reserved_name.app_error",
-    "translation": "群组名称已作为保留名称存在"
+    "translation": "用户组名称已作为保留名称存在"
   },
   {
     "id": "model.draft.is_valid.user_id.app_error",
@@ -8651,7 +8651,7 @@
   },
   {
     "id": "api.command_invite.channel_constrained_user_denied",
-    "translation": "该频道由群组管理。该用户不是与该频道同步群组的成员。"
+    "translation": "该频道由用户组管理。该用户不是与该频道同步用户组的成员。"
   },
   {
     "id": "api.command_invite.successOverflow",
@@ -10135,7 +10135,7 @@
   },
   {
     "id": "app.group.user_not_found",
-    "translation": "更新群组时出错。未找到用户名为“{{.Username}}”的用户。"
+    "translation": "更新用户组时出错。未找到用户名为“{{.Username}}”的用户。"
   },
   {
     "id": "app.pap.assign_access_control_policy_to_channels.app_error",
@@ -10235,11 +10235,11 @@
   },
   {
     "id": "app.group.create_syncable_memberships.error",
-    "translation": "无法创建群组同步成员资格。"
+    "translation": "无法创建用户组同步成员资格。"
   },
   {
     "id": "app.group.delete_invalid_syncable_memberships.error",
-    "translation": "无法删除无效群组同步成员资格。"
+    "translation": "无法删除无效用户组同步成员资格。"
   },
   {
     "id": "model.config.is_valid.directory_whitespace.app_error",
@@ -10411,7 +10411,7 @@
   },
   {
     "id": "app.pap.access_control.channel_group_constrained",
-    "translation": "该频道受群组限制，无法应用访问控制策略。"
+    "translation": "该频道受用户组限制，无法应用访问控制策略。"
   },
   {
     "id": "app.pap.access_control.channel_shared",
