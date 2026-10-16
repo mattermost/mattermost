@@ -1189,17 +1189,23 @@
 }
 
 .admin-console .admin-console__content.admin-logs-content {
+    // Keep overflow:hidden so LogTable/DataGrid scroll inside the flex column
+    // instead of growing the page. Padding gives --elevation-1 (0 2px 3px) room
+    // to paint; without it the full-bleed panel clips the shadow on the sides.
     display: flex;
     overflow: hidden;
     max-width: none;
     height: 100%;
+    box-sizing: border-box;
     flex-direction: column;
+    padding: var(--spacing-xxs); // 6px > elevation-1 blur
 
     // Logs need the full content width (Compass AdminPanel defaults to 920px).
     > .AdminPanel.logs-panel {
         display: flex;
         max-width: none;
-        height: 100%;
+        // flex:1 fills the padded content box; avoid height:100% which would
+        // ignore the gutter and re-clip the elevation shadow.
         min-height: 0;
         flex: 1;
         flex-direction: column;
