@@ -33,7 +33,7 @@ var clusterGossipUnencrypted = healthcheck.Rule{
 		DocsURL:       haDocsURL,
 		ConsolePath:   haConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
+	Surface:    healthcheck.SurfaceInternal,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "ClusterSettings.EnableGossipEncryption",
 	Eval:       evalClusterGossipUnencrypted,

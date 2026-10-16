@@ -121,18 +121,19 @@ func TestRegistered(t *testing.T) {
 		rule       healthcheck.Rule
 		code       string
 		severity   healthcheck.Severity
+		surface    healthcheck.Surface
 		volatility healthcheck.Volatility
 		subject    string
 		nodeScoped bool
 	}{
-		{clusterGossipUnencrypted, "CLUSTER_GOSSIP_UNENCRYPTED", healthcheck.SeverityWarning, healthcheck.VolatilityStable, "ClusterSettings.EnableGossipEncryption", false},
-		{clusterLRUCache, "CLUSTER_LRU_CACHE", healthcheck.SeverityInfo, healthcheck.VolatilityThreshold, "CacheSettings.CacheType", false},
-		{rateLimitOffLarge, "RATELIMIT_OFF_LARGE", healthcheck.SeverityWarning, healthcheck.VolatilityThreshold, "RateLimitSettings.Enable", false},
-		{rateLimitStoreSmall, "RATELIMIT_STORE_SMALL", healthcheck.SeverityInfo, healthcheck.VolatilityStable, "RateLimitSettings.MemoryStoreSize", false},
-		{clusterSingleNode, "CLUSTER_SINGLE_NODE", healthcheck.SeverityCritical, healthcheck.VolatilityTopology, "ClusterSettings.Enable", false},
-		{clusterBadAdvertise, "CLUSTER_BAD_ADVERTISE", healthcheck.SeverityCritical, healthcheck.VolatilityStable, "ClusterSettings.AdvertiseAddress", false},
-		{clusterConfigWritable, "CLUSTER_CONFIG_WRITABLE", healthcheck.SeverityWarning, healthcheck.VolatilityStable, "ClusterSettings.ReadOnlyConfig", false},
-		{versionSkew, "CLUSTER_VERSION_SKEW", healthcheck.SeverityWarning, healthcheck.VolatilityTopology, "cluster.version", true},
+		{clusterGossipUnencrypted, "CLUSTER_GOSSIP_UNENCRYPTED", healthcheck.SeverityWarning, healthcheck.SurfaceInternal, healthcheck.VolatilityStable, "ClusterSettings.EnableGossipEncryption", false},
+		{clusterLRUCache, "CLUSTER_LRU_CACHE", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "CacheSettings.CacheType", false},
+		{rateLimitOffLarge, "RATELIMIT_OFF_LARGE", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "RateLimitSettings.Enable", false},
+		{rateLimitStoreSmall, "RATELIMIT_STORE_SMALL", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "RateLimitSettings.MemoryStoreSize", false},
+		{clusterSingleNode, "CLUSTER_SINGLE_NODE", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityTopology, "ClusterSettings.Enable", false},
+		{clusterBadAdvertise, "CLUSTER_BAD_ADVERTISE", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "ClusterSettings.AdvertiseAddress", false},
+		{clusterConfigWritable, "CLUSTER_CONFIG_WRITABLE", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "ClusterSettings.ReadOnlyConfig", false},
+		{versionSkew, "CLUSTER_VERSION_SKEW", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityTopology, "cluster.version", true},
 	}
 
 	registry := healthcheck.Builtin()
@@ -146,7 +147,7 @@ func TestRegistered(t *testing.T) {
 			for _, rule := range []healthcheck.Rule{tc.rule, registered} {
 				assert.Equal(t, tc.code, rule.Code)
 				assert.Equal(t, model.AreaCluster, rule.Area)
-				assert.Equal(t, healthcheck.SurfaceProduct, rule.Surface)
+				assert.Equal(t, tc.surface, rule.Surface)
 				assert.Equal(t, tc.severity, rule.Severity)
 				assert.Equal(t, tc.volatility, rule.Volatility)
 				assert.Equal(t, tc.subject, rule.Subject)
