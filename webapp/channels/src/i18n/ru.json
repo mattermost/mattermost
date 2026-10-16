@@ -527,7 +527,7 @@
   "admin.accesscontrol.title": "Доступ на основе атрибутов",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.desc": "Если включено, атрибут **TLS device ID** заполняется из заголовка запроса `X-Mattermost-Session-Attribute-Device-Id`, что позволяет обратному прокси-серверу с взаимным TLS подтверждать подлинность устройства, которую клиент не может подделать. **Примечание:** идентификатор устройства принимается из заголовка запроса, поэтому все клиенты должны подключаться к Mattermost через прокси-сервер, который устанавливает этот заголовок и удаляет его из входящих запросов.",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Доверять заголовку идентификации устройства от прокси-сервера",
-  "admin.accesscontrol.user_properties.link.label": "Атрибуты пользователя",
+  "admin.accesscontrol.user_properties.link.label": "Управление атрибутами",
   "admin.accessibility.add_users_to_role": "Добавить пользователей в роль",
   "admin.accessibility.delete_orphaned_field": "Удалить атрибут удалённого плагина",
   "admin.accessibility.next_page": "Следующая страница",

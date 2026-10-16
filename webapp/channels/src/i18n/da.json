@@ -527,7 +527,7 @@
   "admin.accesscontrol.title": "Attributbaseret adgang",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.desc": "Når dette er aktiveret, udfyldes attributten **TLS-enheds-ID** fra request-headeren `X-Mattermost-Session-Attribute-Device-Id`, så en reverse proxy, der udfører gensidig TLS, kan angive en enhedsidentitet, som klienten ikke kan forfalske. **Bemærk:** Enhedsidentiteten accepteres fra request-headeren, så alle klienter skal forbinde til Mattermost gennem en proxy, der sætter den og fjerner den fra indgående anmodninger.",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Stol på proxyens header for enhedsidentitet",
-  "admin.accesscontrol.user_properties.link.label": "Brugerattributter",
+  "admin.accesscontrol.user_properties.link.label": "Attributstyring",
   "admin.accessibility.add_users_to_role": "Tilføj brugere til rolle",
   "admin.accessibility.delete_orphaned_field": "Slet forældreløst felt",
   "admin.accessibility.next_page": "Næste side",

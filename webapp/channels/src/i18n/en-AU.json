@@ -527,7 +527,7 @@
   "admin.accesscontrol.title": "Attribute-Based Access",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.desc": "When enabled, the **TLS device ID** attribute is populated from the `X-Mattermost-Session-Attribute-Device-Id` request header, letting a reverse proxy that performs mutual TLS assert a device identity that the client cannot forge. **Note:** The device identity is accepted from the request header, so all clients must connect to Mattermost through a proxy that sets it and strips it from inbound requests.",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Trust proxy device identity header",
-  "admin.accesscontrol.user_properties.link.label": "User Attributes",
+  "admin.accesscontrol.user_properties.link.label": "Attribute Management",
   "admin.accessibility.add_users_to_role": "Add users to role",
   "admin.accessibility.delete_orphaned_field": "Delete orphaned field",
   "admin.accessibility.next_page": "Next page",

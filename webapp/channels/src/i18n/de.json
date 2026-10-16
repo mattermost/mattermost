@@ -527,7 +527,7 @@
   "admin.accesscontrol.title": "Attributbasierter Zugriff",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.desc": "Wenn aktiviert, wird das Attribut **TLS device ID** aus dem Anfrage-Header `X-Mattermost-Session-Attribute-Device-Id` befüllt. Dadurch kann ein Reverse-Proxy, der Mutual TLS durchführt, eine Geräteidentität bestätigen, die der Client nicht fälschen kann. **Hinweis:** Die Geräteidentität wird aus dem Anfrage-Header übernommen. Daher müssen sich alle Clients über einen Proxy mit Mattermost verbinden, der diesen Header setzt und ihn aus eingehenden Anfragen entfernt.",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Geräteidentitäts-Header des Proxys vertrauen",
-  "admin.accesscontrol.user_properties.link.label": "Benutzer-Attribute",
+  "admin.accesscontrol.user_properties.link.label": "Attributverwaltung",
   "admin.accessibility.add_users_to_role": "Benutzer zur Rolle hinzufügen",
   "admin.accessibility.delete_orphaned_field": "Verwaistes Feld löschen",
   "admin.accessibility.next_page": "Nächste Seite",

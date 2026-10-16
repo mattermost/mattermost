@@ -527,7 +527,7 @@
   "admin.accesscontrol.title": "Dostęp oparty na atrybutach",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.desc": "Po włączeniu tej opcji atrybut **TLS device ID** jest wypełniany na podstawie nagłówka żądania `X-Mattermost-Session-Attribute-Device-Id`, dzięki czemu odwrotne proxy realizujące wzajemne uwierzytelnianie TLS może potwierdzić tożsamość urządzenia, której klient nie jest w stanie sfałszować. **Uwaga:** Tożsamość urządzenia jest przyjmowana z nagłówka żądania, więc wszyscy klienci muszą łączyć się z Mattermost przez proxy, które ten nagłówek ustawia i usuwa z żądań przychodzących.",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Ufaj nagłówkowi tożsamości urządzenia z proxy",
-  "admin.accesscontrol.user_properties.link.label": "Atrybuty użytkownika",
+  "admin.accesscontrol.user_properties.link.label": "Zarządzanie atrybutami",
   "admin.accessibility.add_users_to_role": "Dodaj użytkowników do roli",
   "admin.accessibility.delete_orphaned_field": "Usuń osierocone pole",
   "admin.accessibility.next_page": "Następna strona",

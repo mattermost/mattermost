@@ -527,7 +527,7 @@
   "admin.accesscontrol.title": "属性ベースアクセス",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.desc": "有効な場合、**TLS device ID** 属性は `X-Mattermost-Session-Attribute-Device-Id` リクエストヘッダーから設定されます。これにより、相互TLSを行うリバースプロキシが、クライアントでは偽造できないデバイスの識別情報を提示できるようになります。**注意:** デバイスの識別情報はリクエストヘッダーから受け取るため、全てのクライアントは、このヘッダーを設定し、かつ受信リクエストからこのヘッダーを取り除くプロキシを経由してMattermostに接続する必要があります。",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "プロキシのデバイス識別ヘッダーを信頼する",
-  "admin.accesscontrol.user_properties.link.label": "ユーザー属性",
+  "admin.accesscontrol.user_properties.link.label": "属性管理",
   "admin.accessibility.add_users_to_role": "ユーザーをロールに追加する",
   "admin.accessibility.delete_orphaned_field": "孤立したフィールドを削除する",
   "admin.accessibility.next_page": "次のページ",

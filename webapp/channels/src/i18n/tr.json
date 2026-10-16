@@ -527,7 +527,7 @@
   "admin.accesscontrol.title": "Öznitelik temelli erişim",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.desc": "Açıldığında **TLS aygıt kimliği** özniteliği, `X-Mattermost-Session-Attribute-Device-Id` istek üst bilgisinden doldurulur. Böylece karşılıklı TLS uygulayan bir ters vekil sunucu, istemcinin taklit edemeyeceği bir aygıt kimliği bildirebilir. **Not:** Aygıt kimliği istek üst bilgisinden alındığından, tüm istemcilerin Mattermost sunucusuna, bu üst bilgiyi ayarlayan ve gelen isteklerden temizleyen bir vekil sunucu üzerinden bağlanması gerekir.",
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Vekil sunucu aygıt kimliği üst bilgisine güvenilsin",
-  "admin.accesscontrol.user_properties.link.label": "Kullanıcı öznitelikleri",
+  "admin.accesscontrol.user_properties.link.label": "Öznitelik yönetimi",
   "admin.accessibility.add_users_to_role": "Kullanıcıları role ekle",
   "admin.accessibility.delete_orphaned_field": "Sahipsiz özniteliği sil",
   "admin.accessibility.next_page": "Sonraki sayfa",
