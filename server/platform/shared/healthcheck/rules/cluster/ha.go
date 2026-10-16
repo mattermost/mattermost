@@ -179,7 +179,8 @@ func evalClusterLRUCache(s *healthcheck.Snapshot) []healthcheck.Result {
 	}
 }
 
-// The server writes NumberOfNodes as 1 when it has no running cluster, so that also fires.
+// The server writes NumberOfConnectedNodes as 1 when it has no running cluster, so that also fires.
+// NumberOfNodes would hide a node cut off from gossip, because it still counts its database registration.
 func evalClusterSingleNode(s *healthcheck.Snapshot) []healthcheck.Result {
 	enabled, ok := clusterEnabled(s)
 	if !ok {
@@ -190,10 +191,10 @@ func evalClusterSingleNode(s *healthcheck.Snapshot) []healthcheck.Result {
 	}
 
 	diag, ok := leaderDiag(s, model.SectionCluster)
-	if !ok || diag.Cluster.NumberOfNodes == nil {
+	if !ok || diag.Cluster.NumberOfConnectedNodes == nil {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
 	}
-	if *diag.Cluster.NumberOfNodes < 2 {
+	if *diag.Cluster.NumberOfConnectedNodes < 2 {
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_single_node.message"))}
 	}
 	return []healthcheck.Result{healthcheck.Resolved()}

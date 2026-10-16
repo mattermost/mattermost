@@ -32,7 +32,10 @@ func fileSource(diag *model.SupportPacketDiagnostics) {
 }
 
 func nodes(n int) func(*model.SupportPacketDiagnostics) {
-	return func(diag *model.SupportPacketDiagnostics) { diag.Cluster.NumberOfNodes = new(n) }
+	return func(diag *model.SupportPacketDiagnostics) {
+		diag.Cluster.NumberOfNodes = new(n)
+		diag.Cluster.NumberOfConnectedNodes = new(n)
+	}
 }
 
 func TestHARules(t *testing.T) {
@@ -42,7 +45,7 @@ func TestHARules(t *testing.T) {
 	everythingWrong := all(gossipOff, configWritable, advertise("127.0.0.1"))
 	fileSingleNode := func(diag *model.SupportPacketDiagnostics) {
 		fileSource(diag)
-		diag.Cluster.NumberOfNodes = new(1)
+		nodes(1)(diag)
 	}
 
 	testCases := []struct {
@@ -203,8 +206,13 @@ func TestClusterSingleNode(t *testing.T) {
 		{"empty cluster name and one node", configSnapshot(enabled, leaderNode(nodes(1))), firing(singleNodeMessage, nil)},
 		{"no cluster interface reports one node", configSnapshot(haEnabled, leaderNode(nodes(1))), firing(singleNodeMessage, nil)},
 		{"two nodes", configSnapshot(haEnabled, leaderNode(nodes(2))), resolved},
-		{"node count not collected", configSnapshot(haEnabled, leaderNode(func(diag *model.SupportPacketDiagnostics) {
-			diag.Cluster.NumberOfNodes = nil
+		{"other nodes registered in the database but not in gossip", configSnapshot(haEnabled, leaderNode(func(diag *model.SupportPacketDiagnostics) {
+			diag.Cluster.NumberOfNodes = new(3)
+			diag.Cluster.NumberOfConnectedNodes = new(1)
+		})), firing(singleNodeMessage, nil)},
+		{"packet from before the connected node count", configSnapshot(haEnabled, leaderNode(func(diag *model.SupportPacketDiagnostics) {
+			diag.Cluster.NumberOfNodes = new(3)
+			diag.Cluster.NumberOfConnectedNodes = nil
 		})), diagUnknown},
 		{"cluster section failed", configSnapshot(haEnabled, clusterFailed()), diagUnknown},
 		{"cluster section absent", configSnapshot(haEnabled, func() *healthcheck.NodeSnapshot {

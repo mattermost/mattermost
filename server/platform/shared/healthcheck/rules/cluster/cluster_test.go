@@ -74,6 +74,7 @@ func diagNode(hostname string, leader bool, mutate func(*model.SupportPacketDiag
 	diag.Server.Version = "11.1.0"
 	diag.Config.Source = "postgres://mmuser:****@db.example.com:5432/mattermost"
 	diag.Cluster.NumberOfNodes = new(3)
+	diag.Cluster.NumberOfConnectedNodes = new(3)
 	if mutate != nil {
 		mutate(diag)
 	}
