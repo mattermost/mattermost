@@ -30,6 +30,10 @@ describe('components/widgets/admin_console/AdminPanel', () => {
         expect(panel).toHaveClass('AdminPanel', 'clearfix', 'test-class-name');
         expect(panel).toHaveAttribute('id', 'test-id');
 
+        // section.AdminPanel is required for admin_panel.scss overflow:visible to
+        // beat Compass CSS-module overflow:hidden (equal single-class specificity).
+        expect(panel?.tagName).toBe('SECTION');
+
         // Verify content is rendered
         expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
         expect(screen.getByText('Test')).toBeInTheDocument();

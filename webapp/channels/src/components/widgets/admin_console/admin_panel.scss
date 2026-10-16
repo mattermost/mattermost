@@ -3,10 +3,22 @@
 // Legacy content helpers nested under the Compass-backed AdminPanel shell.
 // Outer spacing comes from Compass AdminPanel body (`spacing-xxl`); strip
 // redundant padding/backgrounds from common first-level children.
-.AdminPanel {
-    // Allow header/row menus to escape the Compass panel shell.
+// Compass AdminPanel CSS modules set `overflow: hidden` on the root (border-
+// radius clipping) and on collapse-inner (0fr/1fr expand animation). A plain
+// `.AdminPanel { overflow: visible }` loses to the module class on equal
+// specificity when the Compass stylesheet loads later — menus (e.g. Data
+// Retention row actions) get clipped. `section.AdminPanel` beats one module
+// class; when expandable and expanded, lift collapse-inner clipping so menus
+// can escape while collapsed panels keep overflow:hidden for the animation.
+section.AdminPanel {
     overflow: visible;
 
+    [class*='admin-panel__collapse--expanded'] > [class*='admin-panel__collapse-inner'] {
+        overflow: visible;
+    }
+}
+
+.AdminPanel {
     .AdminPanel__content {
         padding: 0;
     }
