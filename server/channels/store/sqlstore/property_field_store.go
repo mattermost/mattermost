@@ -243,6 +243,13 @@ func (s *SqlPropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([
 	return fields, nil
 }
 
+// GetForGroupVersion returns a new token on every call: without the cache layer
+// in front, nothing marks when the group's fields change, so a caller must never
+// reuse a value derived from them.
+func (s *SqlPropertyFieldStore) GetForGroupVersion(_ request.CTX, _ string) (string, error) {
+	return model.NewId(), nil
+}
+
 // SearchPropertyFields runs the PSAv2 field listing query.
 //
 // The store operates in two modes determined by opts.SinceUpdateAt:

@@ -230,6 +230,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 	fakeField := model.PropertyField{ID: "field-id", GroupID: "group-id", Name: "field-name"}
 	mockPropertyFieldStore := mocks.PropertyFieldStore{}
 	mockPropertyFieldStore.On("GetForGroup", mock.Anything, "group-id").Return([]*model.PropertyField{&fakeField}, nil)
+	mockPropertyFieldStore.On("GetForGroupVersion", mock.Anything, "group-id").Return(func(request.CTX, string) string { return model.NewId() }, nil)
 	mockPropertyFieldStore.On("Create", &fakeField).Return(&fakeField, nil)
 	mockPropertyFieldStore.On("Update", "group-id", []*model.PropertyField{&fakeField}, map[string]int64(nil)).Return([]*model.PropertyField{&fakeField}, nil)
 	mockPropertyFieldStore.On("Delete", "group-id", "field-id").Return(nil)
