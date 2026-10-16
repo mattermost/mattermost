@@ -429,6 +429,28 @@ describe('a translation run', () => {
             assert.match(s.stderr, /i18n\/style\.json: a run changes only/);
         });
 
+        test('judges a run by the glossary it started from', () => {
+            const en = repo.read('i18n/glossary/en.json');
+            const ru = repo.read('i18n/glossary/ru.json');
+            const de = repo.read('i18n/glossary/de.json');
+            const catalog = repo.read('webapp/channels/src/i18n/ru.json');
+            const add = (text, entry) => json({...JSON.parse(text), 'Save changes': entry});
+            repo.write('i18n/glossary/en.json', add(en, {definition: 'x', partOfSpeech: 'noun', doNotTranslate: true}));
+            repo.write('i18n/glossary/ru.json', add(ru, {target: 'Save changes'}));
+            repo.write('i18n/glossary/de.json', add(de, {target: 'Save changes'}));
+            repo.write('webapp/channels/src/i18n/ru.json', json({...JSON.parse(catalog), 'app.new': 'Save changes'}));
+            try {
+                const r = check();
+                assert.equal(r.status, 0, r.stderr);
+                assert.match(r.stdout, /warning: .*ru\.json: app\.new: identical to the English/);
+            } finally {
+                repo.write('i18n/glossary/en.json', en);
+                repo.write('i18n/glossary/ru.json', ru);
+                repo.write('i18n/glossary/de.json', de);
+                repo.write('webapp/channels/src/i18n/ru.json', catalog);
+            }
+        });
+
         test('holds any pull request to the rules for what it changes', () => {
             repo.git('checkout', '-q', 'master');
             try {

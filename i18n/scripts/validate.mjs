@@ -8,7 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import {workingTree} from './lib/repo.mjs';
+import {commitTree} from './lib/repo.mjs';
 import {validatePayload} from './lib/validate.mjs';
 import {paths, PLAN_VERSION, readJSON} from './lib/workdir.mjs';
 
@@ -38,7 +38,9 @@ if (!locales.length) {
     process.exit(2);
 }
 
-const tree = workingTree(plan.root);
+// The glossary and style as of the base: a run's own glossary additions do not
+// exempt its translations, which is how check_pr.mjs judges them too.
+const guidance = commitTree(plan.root, plan.base);
 let failed = 0;
 for (const locale of locales) {
     if (!Object.values(plan.surfaces).some(({locales: l}) => l[locale])) {
@@ -54,7 +56,7 @@ for (const locale of locales) {
         failed++;
         continue;
     }
-    const {errors, acknowledged, stats} = validatePayload({plan, locale, payload, tree});
+    const {errors, acknowledged, stats} = validatePayload({plan, locale, payload, tree: guidance});
     console.log(`${locale}: ${stats.answered} answered, ${stats.kept} changed items kept as they were, ${acknowledged.length} acknowledged`);
     if (errors.length) {
         failed++;
