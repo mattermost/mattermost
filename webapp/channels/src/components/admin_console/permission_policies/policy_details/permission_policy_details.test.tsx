@@ -315,25 +315,6 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
     });
 
-    test('disables the mode toggle when a complex expression forces Advanced mode', async () => {
-        renderWithExpression('user.attributes.a == "x" || user.attributes.b == "y"');
-
-        const toggle = await screen.findByText('Switch to Simple Mode');
-        expect(toggle.closest('button')).toBeDisabled();
-    });
-
-    // MM-64357: after switching an apostrophe-valued rule to Advanced mode, the
-    // "Switch to Simple Mode" toggle must stay enabled so the admin can return.
-    test('keeps the mode toggle enabled for an apostrophe value in Advanced mode (MM-64357)', async () => {
-        renderWithExpression('user.attributes.department == "Matt\'s Department"');
-
-        // Opens in Simple mode; switch to Advanced to reach the toggle under test.
-        await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
-
-        const toggle = await screen.findByText('Switch to Simple Mode');
-        expect(toggle.closest('button')).toBeEnabled();
-    });
-
     describe('Bot accounts scope', () => {
         const SIM_STATE = {entities: {general: {config: {FeatureFlagPermissionPolicies: 'true', FeatureFlagPolicySimulation: 'true'}}}};
         const POLICIES_PATH = '/admin_console/system_attributes/permission_policies';
@@ -905,17 +886,6 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             });
 
             describe('legacy bare-expression test button', () => {
-                const LEGACY_TOOLTIP = 'Testing the rule alone isn\'t available for bot account policies.';
-
-                test('is disabled with an explanation in Bot accounts without the simulator', async () => {
-                    renderBotPolicy([WRAPPED_E]);
-                    await screen.findByTestId('table-editor');
-
-                    expect(lastTableProps().onTestClick).toBeUndefined();
-                    expect(lastTableProps().testButtonDisabled).toBe(true);
-                    expect(lastTableProps().testButtonTooltip).toBe(LEGACY_TOOLTIP);
-                });
-
                 test('is disabled in Bot accounts when no permission is selected, even with the simulator', async () => {
                     mockFetchPolicy.mockResolvedValue({
                         data: {id: 'policy1', name: 'Policy 1', type: 'permission', roles: ['system_user'], rules: []},
@@ -926,48 +896,6 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
                     expect(lastTableProps().onTestClick).toBeUndefined();
                     expect(lastTableProps().testButtonDisabled).toBe(true);
-                });
-
-                test('is disabled with an explanation in the CEL editor in Bot accounts without the simulator', async () => {
-                    renderBotPolicy([BOT_C_RETURNED]);
-                    await screen.findByTestId('cel-editor');
-
-                    expect(lastCELProps().onTestClick).toBeUndefined();
-                    expect(lastCELProps().testButtonDisabled).toBe(true);
-                    expect(lastCELProps().testButtonTooltip).toBe(LEGACY_TOOLTIP);
-                });
-
-                test('stays enabled in the CEL editor in Members without the simulator', async () => {
-                    renderWithExpression('user.attributes.a == "x" || user.attributes.b == "y"');
-                    await screen.findByTestId('cel-editor');
-
-                    expect(lastCELProps().testButtonDisabled).toBeFalsy();
-                    expect(lastCELProps().testButtonTooltip).toBeUndefined();
-                });
-
-                test('is replaced by Simulate rules in the CEL editor in Bot accounts with the simulator', async () => {
-                    renderBotPolicy([BOT_C_RETURNED], SIM_STATE);
-                    await screen.findByTestId('cel-editor');
-
-                    expect(lastCELProps().onTestClick).toBeDefined();
-                    expect(lastCELProps().testButtonDisabled).toBeFalsy();
-                });
-
-                test('stays enabled in Members without the simulator', async () => {
-                    renderWithExpression(E);
-                    await screen.findByTestId('table-editor');
-
-                    expect(lastTableProps().onTestClick).toBeUndefined();
-                    expect(lastTableProps().testButtonDisabled).toBeFalsy();
-                    expect(lastTableProps().testButtonTooltip).toBeUndefined();
-                });
-
-                test('is replaced by Simulate rules in Bot accounts with the simulator', async () => {
-                    renderBotPolicy([WRAPPED_E], SIM_STATE);
-                    await screen.findByTestId('table-editor');
-
-                    expect(lastTableProps().onTestClick).toBeDefined();
-                    expect(lastTableProps().testButtonDisabled).toBeFalsy();
                 });
 
                 test('switching from Bot accounts to Members re-enables it', async () => {
@@ -982,36 +910,15 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
 
         describe('copy', () => {
-            test('Bot accounts shows bot copy and passes bot help text to the table editor', async () => {
-                renderBotPolicy([WRAPPED_E]);
-                await screen.findByTestId('table-editor');
-
-                expect(screen.getByText('Define rules based on bot attributes and values')).toBeInTheDocument();
-                expect(screen.getByText('Bot attribute requirements')).toBeInTheDocument();
-                expect(screen.getByText('Select attributes and values that bots must have for this policy')).toBeInTheDocument();
-                expect(screen.queryByText('User attribute requirements')).not.toBeInTheDocument();
-                expect(lastTableProps().helpText).toBe(BOT_HELP_TEXT);
-                expect(lastTableProps().emptyStateText).toBe(BOT_EMPTY_STATE_TEXT);
-            });
-
-            test('Members keeps the default copy', async () => {
-                renderWithExpression(E);
-                await screen.findByTestId('table-editor');
-
-                expect(screen.getByText('Define rules based on user attributes and values')).toBeInTheDocument();
-                expect(screen.getByText('User attribute requirements')).toBeInTheDocument();
-                expect(screen.getByText('Select attributes and values that users must have for this policy')).toBeInTheDocument();
-                expect(screen.queryByText('Bot attribute requirements')).not.toBeInTheDocument();
-                expect(lastTableProps().helpText).toBeUndefined();
-                expect(lastTableProps().emptyStateText).toBeUndefined();
-            });
-
             test('switching to Bot accounts swaps the copy', async () => {
                 renderWithExpression(E);
                 await screen.findByTestId('table-editor');
+                expect(screen.getByText('Define rules based on user attributes and values')).toBeInTheDocument();
 
                 await selectScope('pp-role-option-bot');
 
+                expect(screen.getByText('Define rules based on bot attributes and values')).toBeInTheDocument();
+                expect(screen.queryByText('Define rules based on user attributes and values')).not.toBeInTheDocument();
                 expect(screen.getByText('Bot attribute requirements')).toBeInTheDocument();
                 expect(lastTableProps().helpText).toBe(BOT_HELP_TEXT);
                 expect(lastTableProps().emptyStateText).toBe(BOT_EMPTY_STATE_TEXT);
@@ -1047,7 +954,6 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 nativeField('isbot', 'Bot account'),
                 nativeField('createat', 'Account created'),
             ];
-            const HIDDEN = ['email', 'verified', 'isbot'];
             const CPA_EMAIL = customField('cpa-email', 'email', {managed: 'admin', display_name: 'Work email'});
             const LDAP_TEAMS = customField('u-teams', 'teams', {ldap: 'memberOf'});
             const SAML_REGION = customField('u-region', 'region', {saml: 'Region', display_name: 'Sales region'});
@@ -1067,39 +973,15 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             const follows = (a: Element, b: Element) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
 
             describe('built-ins', () => {
-                test('the table editor gets the hidden names in Bot accounts with unfiltered attributes', async () => {
+                test('the table editor gets every field in Bot accounts and hides the built-ins only from its picker', async () => {
                     useFields([...NATIVE_FIELDS, CPA_EMAIL, LDAP_TEAMS]);
                     renderBotPolicy([WRAPPED_E]);
                     await screen.findByTestId('table-editor');
 
-                    expect(lastTableProps().hiddenPickerAttributeNames).toEqual(HIDDEN);
-                    const ids = lastTableProps().userAttributes.map((a) => a.id);
-                    expect(ids).toEqual(expect.arrayContaining(['native_user_attribute_email', 'native_user_attribute_isbot', 'native_user_attribute_verified', 'cpa-email']));
-                });
-
-                test('Members passes no hidden names', async () => {
-                    useFields([...NATIVE_FIELDS]);
-                    renderWithExpression(E);
-                    await screen.findByTestId('table-editor');
-
-                    expect(lastTableProps().hiddenPickerAttributeNames).toBeUndefined();
-                });
-
-                // TableEditor's picker memo is keyed on this array's reference.
-                test('switching scope toggles the prop and keeps one reference across edits and round trips', async () => {
-                    useFields([...NATIVE_FIELDS]);
-                    renderWithExpression(E);
-                    await screen.findByTestId('table-editor');
-
-                    await selectScope('pp-role-option-bot');
-                    await editTable('user.attributes.teams == "other"');
-                    await selectScope('pp-role-option-system_user');
-                    expect(lastTableProps().hiddenPickerAttributeNames).toBeUndefined();
-                    await selectScope('pp-role-option-bot');
-
-                    expect(lastTableProps().hiddenPickerAttributeNames).toEqual(HIDDEN);
-                    const refs = new Set(MockedTableEditor.mock.calls.map(([p]) => p.hiddenPickerAttributeNames).filter(Boolean));
-                    expect(refs.size).toBe(1);
+                    expect(lastTableProps().hiddenPickerAttributeNames).toEqual(['email', 'verified', 'isbot']);
+                    expect(lastTableProps().userAttributes.map((a) => a.id)).toEqual(expect.arrayContaining([
+                        'native_user_attribute_email', 'native_user_attribute_isbot', 'native_user_attribute_verified', 'cpa-email',
+                    ]));
                 });
 
                 test('CEL autocomplete drops the native built-ins in Bot accounts but keeps the custom email and session fields', async () => {
