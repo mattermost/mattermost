@@ -14343,7 +14343,7 @@
   },
   {
     "id": "health.rule.db_ha_failover_storm_risk.message",
-    "translation": "Each node opens one connection pool per data source, up to MaxOpenConns each. With {{.nodes}} nodes, MaxOpenConns={{.max_open}}, and {{.data_sources}} data sources, a database failover can produce up to {{.burst}} simultaneous connection attempts to the newly promoted primary, and the DataSource host does not look like a connection pooler. If that exceeds the database's max_connections, it rejects connections ('sorry, too many clients already') and recovery takes longer.",
+    "translation": "Each node keeps a pool of up to MaxOpenConns connections to the primary. With {{.nodes}} nodes and MaxOpenConns={{.max_open}}, a database failover can produce up to {{.burst}} simultaneous connection attempts to the newly promoted primary, and the DataSource host does not look like a connection pooler. If that exceeds the database's max_connections, it rejects connections ('sorry, too many clients already') and recovery takes longer.",
     "description": "Health dashboard finding detail for the risk of a reconnection burst after a database failover in a cluster; {{.nodes}}, {{.max_open}}, {{.data_sources}} and {{.burst}} are numbers. 'MaxOpenConns', 'DataSource' and 'max_connections' are setting names and 'sorry, too many clients already' is a literal PostgreSQL error; do not translate them."
   },
   {

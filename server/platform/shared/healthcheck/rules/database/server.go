@@ -11,12 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
-const (
-	// Mirrors sqlstore's minimumRequiredPostgresVersion, which this package cannot import.
-	minimumPostgresMajorVersion = 15
-
-	poolSaturatedPercent = 90
-)
+const poolSaturatedPercent = 90
 
 var dbPostgresUnsupported = healthcheck.Rule{
 	Code:     "DB_POSTGRES_UNSUPPORTED",
@@ -92,10 +87,10 @@ func evalDBPostgresUnsupported(s *healthcheck.Snapshot) []healthcheck.Result {
 	switch {
 	case !ok:
 		return unknownDiagnostics()
-	case major < minimumPostgresMajorVersion:
+	case major < model.MinimumPostgresMajorVersion:
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_postgres_unsupported.message")).
 			WithDetail("version", version).
-			WithDetail("minimum", strconv.Itoa(minimumPostgresMajorVersion))}
+			WithDetail("minimum", strconv.Itoa(model.MinimumPostgresMajorVersion))}
 	default:
 		return resolved()
 	}
@@ -107,13 +102,13 @@ func evalDBPoolSaturated(s *healthcheck.Snapshot) []healthcheck.Result {
 	if !ok {
 		return unknownConfig()
 	}
+	if maxOpen <= 0 {
+		return resolved()
+	}
 
 	diag, ok := leaderDiag(s, model.SectionDatabasePool)
 	if !ok || diag.Database.MasterConnectionsInUse == nil {
 		return unknownDiagnostics()
-	}
-	if maxOpen <= 0 {
-		return resolved()
 	}
 
 	inUse := *diag.Database.MasterConnectionsInUse

@@ -25,10 +25,9 @@ func typedVersionDiag(dbType, version string) *model.SupportPacketDiagnostics {
 	return diag
 }
 
-func poolDiag(inUse, idle *int, replicaConnections int) *model.SupportPacketDiagnostics {
+func poolDiag(inUse *int, replicaConnections int) *model.SupportPacketDiagnostics {
 	diag := &model.SupportPacketDiagnostics{}
 	diag.Database.MasterConnectionsInUse = inUse
-	diag.Database.MasterConnectionsIdle = idle
 	diag.Database.ReplicaConnections = replicaConnections
 	return diag
 }
@@ -88,16 +87,16 @@ func TestDBPoolSaturated(t *testing.T) {
 		snapshot *healthcheck.Snapshot
 		want     want
 	}{
-		{"config absent", newSnapshot(nil, nil, poolDiag(new(95), new(5), 0)), unknownConfigWant},
-		{"max open unset", newSnapshot(maxOpen(nil), nil, poolDiag(new(95), new(5), 0)), unknownConfigWant},
+		{"config absent", newSnapshot(nil, nil, poolDiag(new(95), 0)), unknownConfigWant},
+		{"max open unset", newSnapshot(maxOpen(nil), nil, poolDiag(new(95), 0)), unknownConfigWant},
 		{"leader diagnostics absent", newSnapshot(maxOpen(new(100)), nil, nil), unknownDiagWant},
-		{"in use not collected", newSnapshot(maxOpen(new(100)), nil, poolDiag(nil, nil, 0)), unknownDiagWant},
-		{"pool section failed", failSection(newSnapshot(maxOpen(new(100)), nil, poolDiag(new(95), new(5), 0)), model.SectionDatabasePool), unknownDiagWant},
-		{"95 of 100 in use", newSnapshot(maxOpen(new(100)), nil, poolDiag(new(95), new(5), 0)), firing.withValue(95)},
-		{"90 of 100 in use", newSnapshot(maxOpen(new(100)), nil, poolDiag(new(90), new(0), 0)), firing.withValue(90)},
-		{"89 of 100 in use", newSnapshot(maxOpen(new(100)), nil, poolDiag(new(89), new(0), 0)), resolvedWant.withValue(89)},
-		{"20 in use and 80 idle", newSnapshot(maxOpen(new(100)), nil, poolDiag(new(20), new(80), 0)), resolvedWant.withValue(20)},
-		{"unlimited pool", newSnapshot(maxOpen(new(0)), nil, poolDiag(new(500), new(0), 0)), resolvedWant},
+		{"in use not collected", newSnapshot(maxOpen(new(100)), nil, poolDiag(nil, 0)), unknownDiagWant},
+		{"pool section failed", failSection(newSnapshot(maxOpen(new(100)), nil, poolDiag(new(95), 0)), model.SectionDatabasePool), unknownDiagWant},
+		{"95 of 100 in use", newSnapshot(maxOpen(new(100)), nil, poolDiag(new(95), 0)), firing.withValue(95)},
+		{"90 of 100 in use", newSnapshot(maxOpen(new(100)), nil, poolDiag(new(90), 0)), firing.withValue(90)},
+		{"89 of 100 in use", newSnapshot(maxOpen(new(100)), nil, poolDiag(new(89), 0)), resolvedWant.withValue(89)},
+		{"20 of 100 in use", newSnapshot(maxOpen(new(100)), nil, poolDiag(new(20), 0)), resolvedWant.withValue(20)},
+		{"unlimited pool", newSnapshot(maxOpen(new(0)), nil, poolDiag(new(500), 0)), resolvedWant},
 	}
 
 	for _, tc := range testCases {
@@ -107,7 +106,7 @@ func TestDBPoolSaturated(t *testing.T) {
 		})
 	}
 
-	results := evalDBPoolSaturated(newSnapshot(maxOpen(new(100)), nil, poolDiag(new(95), new(5), 0)))
+	results := evalDBPoolSaturated(newSnapshot(maxOpen(new(100)), nil, poolDiag(new(95), 0)))
 	require.Len(t, results, 1)
 	assert.Equal(t, map[string]string{"in_use": "95", "max_open": "100", "percent": "95"}, results[0].Details)
 }
@@ -123,13 +122,13 @@ func TestDBReplicaUnused(t *testing.T) {
 		snapshot *healthcheck.Snapshot
 		want     want
 	}{
-		{"config absent", newSnapshot(nil, nil, poolDiag(nil, nil, 0)), unknownConfigWant},
-		{"no replicas configured", newSnapshot(defaultConfig(), nil, poolDiag(nil, nil, 0)), resolvedWant},
+		{"config absent", newSnapshot(nil, nil, poolDiag(nil, 0)), unknownConfigWant},
+		{"no replicas configured", newSnapshot(defaultConfig(), nil, poolDiag(nil, 0)), resolvedWant},
 		{"no replicas without diagnostics", newSnapshot(defaultConfig(), nil, nil), resolvedWant},
-		{"replica without connections", newSnapshot(withReplica, nil, poolDiag(nil, nil, 0)), firingWant("health.rule.db_replica_unused.message")},
-		{"replica connected", newSnapshot(withReplica, nil, poolDiag(nil, nil, 1)), resolvedWant},
+		{"replica without connections", newSnapshot(withReplica, nil, poolDiag(nil, 0)), firingWant("health.rule.db_replica_unused.message")},
+		{"replica connected", newSnapshot(withReplica, nil, poolDiag(nil, 1)), resolvedWant},
 		{"leader diagnostics absent", newSnapshot(withReplica, nil, nil), unknownDiagWant},
-		{"pool section failed", failSection(newSnapshot(withReplica, nil, poolDiag(nil, nil, 0)), model.SectionDatabasePool), unknownDiagWant},
+		{"pool section failed", failSection(newSnapshot(withReplica, nil, poolDiag(nil, 0)), model.SectionDatabasePool), unknownDiagWant},
 	}
 
 	for _, tc := range testCases {
