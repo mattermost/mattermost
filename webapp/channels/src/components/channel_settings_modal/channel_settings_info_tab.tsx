@@ -15,15 +15,6 @@ import {areManagedCategoriesEnabled, getChannelManagedCategoryName, isChannelCat
 import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
-import {
-    setShowPreviewOnChannelSettingsHeaderModal,
-    setShowPreviewOnChannelSettingsPurposeModal,
-} from 'actions/views/textbox';
-import {
-    showPreviewOnChannelSettingsHeaderModal,
-    showPreviewOnChannelSettingsPurposeModal,
-} from 'selectors/views/textbox';
-
 import ConvertConfirmModal from 'components/admin_console/team_channel_settings/convert_confirm_modal';
 import CategorySelector from 'components/category_selector/category_selector';
 import ChannelInfoAttributes from 'components/channel_attributes/channel_info_attributes';
@@ -67,8 +58,8 @@ function ChannelSettingsInfoTab({
 
     const getSidebarCategoryNamesForTeam = useRef(makeGetSidebarCategoryNamesForTeam());
 
-    const shouldShowPreviewPurpose = useSelector(showPreviewOnChannelSettingsPurposeModal);
-    const shouldShowPreviewHeader = useSelector(showPreviewOnChannelSettingsHeaderModal);
+    const [shouldShowPreviewPurpose, setShouldShowPreviewPurpose] = useState(false);
+    const [shouldShowPreviewHeader, setShouldShowPreviewHeader] = useState(false);
 
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
     const isDirect = channel.type === Constants.DM_CHANNEL;
@@ -240,12 +231,12 @@ function ChannelSettingsInfoTab({
     }, [internalUrlError]);
 
     const togglePurposePreview = useCallback(() => {
-        dispatch(setShowPreviewOnChannelSettingsPurposeModal(!shouldShowPreviewPurpose));
-    }, [dispatch, shouldShowPreviewPurpose]);
+        setShouldShowPreviewPurpose((prev) => !prev);
+    }, []);
 
     const toggleHeaderPreview = useCallback(() => {
-        dispatch(setShowPreviewOnChannelSettingsHeaderModal(!shouldShowPreviewHeader));
-    }, [dispatch, shouldShowPreviewHeader]);
+        setShouldShowPreviewHeader((prev) => !prev);
+    }, []);
 
     const discoverableTitle = formatMessage({
         id: 'channel_settings.discoverable.title',
