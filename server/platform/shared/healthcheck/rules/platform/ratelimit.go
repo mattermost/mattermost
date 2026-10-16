@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package cluster
+package platform
 
 import (
 	"strconv"
@@ -23,7 +23,7 @@ const (
 
 var rateLimitOffLarge = healthcheck.Rule{
 	Code:     "RATELIMIT_OFF_LARGE",
-	Area:     model.AreaCluster,
+	Area:     model.AreaPlatform,
 	Severity: healthcheck.SeverityWarning,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.ratelimit_off_large.title"),
@@ -38,7 +38,7 @@ var rateLimitOffLarge = healthcheck.Rule{
 
 var rateLimitStoreSmall = healthcheck.Rule{
 	Code:     "RATELIMIT_STORE_SMALL",
-	Area:     model.AreaCluster,
+	Area:     model.AreaPlatform,
 	Severity: healthcheck.SeverityInfo,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.ratelimit_store_small.title"),
@@ -64,7 +64,7 @@ func evalRateLimitOffLarge(s *healthcheck.Snapshot) []healthcheck.Result {
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
 
-	users, ok := registeredUsers(s)
+	users, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.RegisteredUsers })
 	switch {
 	case !ok:
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}

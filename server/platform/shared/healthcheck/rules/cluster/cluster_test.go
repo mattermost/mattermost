@@ -128,8 +128,6 @@ func TestRegistered(t *testing.T) {
 	}{
 		{clusterGossipUnencrypted, "CLUSTER_GOSSIP_UNENCRYPTED", healthcheck.SeverityWarning, healthcheck.SurfaceInternal, healthcheck.VolatilityStable, "ClusterSettings.EnableGossipEncryption", false},
 		{clusterLRUCache, "CLUSTER_LRU_CACHE", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "CacheSettings.CacheType", false},
-		{rateLimitOffLarge, "RATELIMIT_OFF_LARGE", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "RateLimitSettings.Enable", false},
-		{rateLimitStoreSmall, "RATELIMIT_STORE_SMALL", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "RateLimitSettings.MemoryStoreSize", false},
 		{clusterSingleNode, "CLUSTER_SINGLE_NODE", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityTopology, "ClusterSettings.Enable", false},
 		{clusterBadAdvertise, "CLUSTER_BAD_ADVERTISE", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "ClusterSettings.AdvertiseAddress", false},
 		{clusterConfigWritable, "CLUSTER_CONFIG_WRITABLE", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "ClusterSettings.ReadOnlyConfig", false},
