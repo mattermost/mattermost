@@ -77,15 +77,16 @@ describe('components/admin_console/server_logs/Logs', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should show search and show-errors for plain text mode', async () => {
+    test('should keep reload/download but hide JSON-only controls in plain text mode', async () => {
         await userEvent.click(screen.getByRole('radio', {name: /Plain text/i}));
 
         await waitFor(() => {
-            expect(screen.getByTestId('searchInput')).toBeInTheDocument();
-            expect(screen.getByRole('button', {name: /Show last/i})).toBeInTheDocument();
+            expect(screen.queryByTestId('searchInput')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /Show last/i})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /Filters/i})).not.toBeInTheDocument();
             expect(screen.getByRole('button', {name: /Reload Logs/i})).toBeInTheDocument();
             expect(screen.getByRole('link', {name: /Download Logs/i})).toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: /Filters/i})).not.toBeInTheDocument();
+            expect(screen.getByRole('radiogroup', {name: /Log Format/i})).toBeInTheDocument();
         });
     });
 

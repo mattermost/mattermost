@@ -131,11 +131,6 @@ export default class Logs extends React.PureComponent<Props, State> {
     };
 
     performSearch = debounce(() => {
-        // Plain-text search is handled inside PlainLogList.
-        if (this.state.isPlainLogs) {
-            return;
-        }
-
         const {search} = this.state;
 
         // Excluding level and timestamp from search
@@ -219,8 +214,6 @@ export default class Logs extends React.PureComponent<Props, State> {
                 previousPage={this.previousPage}
                 page={this.state.page}
                 perPage={this.state.perPage}
-                search={this.state.search}
-                onSearchChange={this.onSearchChange}
             />
         ) : (
             <LogList

@@ -39,16 +39,3 @@
         line-height: 16px;
     }
 }
-
-.plain-log-list {
-    .logs-panel__toolbar-actions {
-        display: flex;
-        flex-shrink: 0;
-        align-items: center;
-        gap: var(--spacing-xs);
-
-        > .btn {
-            margin-left: 0;
-        }
-    }
-}

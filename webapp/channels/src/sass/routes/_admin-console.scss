@@ -1305,19 +1305,6 @@
         min-height: 0;
         flex: 1;
         flex-direction: column;
-
-        // Match DataGrid search row chrome above the plain log panel.
-        .DataGrid_search {
-            height: auto;
-            min-height: 48px;
-            margin-bottom: 0;
-            background: transparent;
-        }
-
-        .log__panel {
-            min-height: 0;
-            flex: 1;
-        }
     }
 }
 

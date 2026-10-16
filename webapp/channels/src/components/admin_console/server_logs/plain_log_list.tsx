@@ -6,14 +6,10 @@ import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-in
 
 import {Button} from '@mattermost/shared/components/button';
 
-import DataGridSearch from 'components/admin_console/data_grid/data_grid_search';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import './log_list.scss';
-
 const NEXT_BUTTON_TIMEOUT = 500;
-const PLAIN_ERROR_PATTERN = /\[EROR\]|\[ERROR\]|\bERROR\b/i;
 
 interface Props extends WrappedComponentProps {
     loading: boolean;
@@ -22,13 +18,10 @@ interface Props extends WrappedComponentProps {
     perPage: number;
     nextPage: () => void;
     previousPage: () => void;
-    search: string;
-    onSearchChange: (term: string) => void;
 }
 
 type State = {
     nextDisabled: boolean;
-    showErrorsOnly: boolean;
 };
 
 class PlainLogList extends React.PureComponent<Props, State> {
@@ -41,24 +34,24 @@ class PlainLogList extends React.PureComponent<Props, State> {
 
         this.state = {
             nextDisabled: false,
-            showErrorsOnly: false,
         };
     }
 
     componentDidMount() {
-        this.scrollToBottom();
-    }
-
-    componentDidUpdate() {
-        this.scrollToBottom();
-    }
-
-    scrollToBottom = () => {
+        // Scroll Down to get the latest logs
         const node = this.logPanel.current;
         if (node) {
             node.scrollTop = node.scrollHeight;
         }
-    };
+    }
+
+    componentDidUpdate() {
+        // Scroll Down to get the latest logs
+        const node = this.logPanel.current;
+        if (node) {
+            node.scrollTop = node.scrollHeight;
+        }
+    }
 
     nextPage = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
@@ -75,34 +68,16 @@ class PlainLogList extends React.PureComponent<Props, State> {
         this.props.previousPage();
     };
 
-    getErrorCount = () => {
-        return this.props.logs.reduce((count, line) => (
-            PLAIN_ERROR_PATTERN.test(line) ? count + 1 : count
-        ), 0);
-    };
-
-    getVisibleLogs = () => {
-        const {logs, search} = this.props;
-        const term = search.trim().toLowerCase();
-
-        return logs.filter((line) => {
-            if (this.state.showErrorsOnly && !PLAIN_ERROR_PATTERN.test(line)) {
-                return false;
-            }
-            if (term && !line.toLowerCase().includes(term)) {
-                return false;
-            }
-            return true;
-        });
-    };
-
-    showErrors = () => {
-        this.setState({showErrorsOnly: true});
-    };
-
     render() {
-        const visibleLogs = this.getVisibleLogs();
+        if (this.props.loading) {
+            return (
+                <div className='log__panel'>
+                    <LoadingSpinner/>
+                </div>
+            );
+        }
 
+        let content = null;
         let nextButton;
         let previousButton;
 
@@ -144,58 +119,36 @@ class PlainLogList extends React.PureComponent<Props, State> {
             );
         }
 
-        const showErrorsButton = (
-            <Button
-                emphasis='tertiary'
-                size='sm'
-                onClick={this.showErrors}
-            >
-                <FormattedMessage
-                    id='admin.logs.showErrors'
-                    defaultMessage='Show last {n} errors'
-                    values={{n: this.getErrorCount()}}
-                />
-            </Button>
-        );
+        content = [];
 
-        const content: React.ReactNode[] = [];
-        if (!this.props.loading) {
-            for (let i = 0; i < visibleLogs.length; i++) {
-                const style: React.CSSProperties = {
-                    whiteSpace: 'nowrap',
-                    fontFamily: 'monospace',
-                    color: '',
-                };
+        for (let i = 0; i < this.props.logs.length; i++) {
+            const style: React.CSSProperties = {
+                whiteSpace: 'nowrap',
+                fontFamily: 'monospace',
+                color: '',
+            };
 
-                if (PLAIN_ERROR_PATTERN.test(visibleLogs[i])) {
-                    style.color = 'red';
-                }
-                content.push(<br key={'br_' + i}/>);
-                content.push(
-                    <span
-                        key={'log_' + i}
-                        style={style}
-                    >
-                        {visibleLogs[i]}
-                    </span>,
-                );
+            if (this.props.logs[i].indexOf('[EROR]') > 0) {
+                style.color = 'red';
             }
+            content.push(<br key={'br_' + i}/>);
+            content.push(
+                <span
+                    key={'log_' + i}
+                    style={style}
+                >
+                    {this.props.logs[i]}
+                </span>,
+            );
         }
-
         return (
             <div className='plain-log-list'>
-                <DataGridSearch
-                    onSearch={this.props.onSearchChange}
-                    term={this.props.search}
-                    extraComponent={showErrorsButton}
-                    disabled={this.props.loading}
-                />
                 <div
                     tabIndex={-1}
                     ref={this.logPanel}
                     className='log__panel'
                 >
-                    {this.props.loading ? <LoadingSpinner/> : content}
+                    {content}
                 </div>
                 <div className='pt-3 pb-3 filter-controls'>
                     {previousButton}
