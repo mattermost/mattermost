@@ -19,7 +19,6 @@ func init() {
 		dbPostgresUnsupported,
 		dbPoolSaturated,
 		dbReplicaUnused,
-		dbReplicaLagUnmonitored,
 		dbIdleExceedsOpen,
 	)
 }
