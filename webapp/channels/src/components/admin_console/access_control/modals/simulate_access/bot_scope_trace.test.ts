@@ -8,9 +8,8 @@ import type {
 } from '@mattermost/types/access_control';
 import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control';
 
-import {unwrapBotTraceExpression, unwrapBotTraceExpressionForTree, unwrapBotTraceTree} from './bot_scope_trace';
+import {unwrapBotTrace, unwrapBotTraceTree} from './bot_scope_trace';
 import {
-    SINGLE_RULE_BOT_WITH_ATTRIBUTE,
     SINGLE_RULE_BOT_WITHOUT_ATTRIBUTE,
     SINGLE_RULE_PERSON,
     TWO_RULE_FOLD_BOT_WITHOUT_ATTRIBUTE,
@@ -38,63 +37,6 @@ function guard(outcome: 'true' | 'false' | 'error', expression = '!user.isbot'):
 function or(expression: string, children: PolicySimulationEvaluationNode[], outcome: 'true' | 'false' = 'false'): PolicySimulationEvaluationNode {
     return {kind: 'or', expression, outcome, children};
 }
-
-describe('unwrapBotTraceExpression', () => {
-    test.each([
-        ['raw rule', `!user.isbot || (${CLEARANCE}\n)`, CLEARANCE],
-        ['JoinExpressions form', `(!user.isbot || (${CLEARANCE}\n))`, CLEARANCE],
-        ['JoinExpressions form with surrounding whitespace', `  (!user.isbot || (${CLEARANCE}\n))\n`, CLEARANCE],
-        ['masked leaf', '(!(user.isbot)) || (user.attributes.Clearance == "--------")', 'user.attributes.Clearance == "--------"'],
-        ['masked AND', `(!(user.isbot)) || ((${A}) && (${B}))`, `(${A}) && (${B})`],
-        ['masked form wrapped by JoinExpressions', `((!(user.isbot)) || (${CLEARANCE}))`, CLEARANCE],
-        ['re-serialized OR chain', `!user.isbot || ${A} || ${B}`, `${A} || ${B}`],
-        ['re-serialized AND body', `!user.isbot || ${A} && ${B}`, `${A} && ${B}`],
-    ])('unwraps %s', (_, input, expected) => {
-        expect(unwrapBotTraceExpression(input)).toBe(expected);
-    });
-
-    test.each([
-        ['plain', CLEARANCE],
-        ['plain, outer paren closes early', `(${A}) && (${B})`],
-        ['plain JoinExpressions form keeps its parens', `(${A})`],
-        ['prefix inside a string literal', 'user.attributes.Note == "!user.isbot || x"'],
-        ['guard on the right-hand side', `${A} || !user.isbot`],
-        ['empty string', ''],
-    ])('returns %s unchanged', (_, input) => {
-        expect(unwrapBotTraceExpression(input)).toBe(input);
-    });
-
-    describe('multi-rule folds', () => {
-        const rule = (e: string) => `!user.isbot || (${e}\n)`;
-        const masked = (e: string) => `(!(user.isbot)) || (${e})`;
-
-        test.each([
-            ['two-rule fold', `(${rule(CLEARANCE)}) || (${rule(A)})`, `(${CLEARANCE}) || (${A})`],
-            ['three-rule fold', `(${rule(CLEARANCE)}) || (${rule(A)}) || (${rule(B)})`, `(${CLEARANCE}) || (${A}) || (${B})`],
-            ['two-rule fold wrapped in outer parens', `((${rule(CLEARANCE)}) || (${rule(A)}))`, `(${CLEARANCE}) || (${A})`],
-            ['two-rule fold of stored chains', `(!user.isbot || ${A} || ${B}) || (${rule(C)})`, `(${A} || ${B}) || (${C})`],
-            ['masked two-rule fold', `(${masked(A)}) || (${masked(B)})`, `(${A}) || (${B})`],
-            ['masked three-rule fold (left-nested)', `((${masked(A)}) || (${masked(B)})) || (${masked(C)})`, `(${A}) || (${B}) || (${C})`],
-            ['masked three-rule fold (right-nested)', `(${masked(A)}) || ((${masked(B)}) || (${masked(C)}))`, `(${A}) || (${B}) || (${C})`],
-            ['masked four-rule fold (balanced)', `((${masked(A)}) || (${masked(B)})) || ((${masked(C)}) || (${masked(CLEARANCE)}))`, `(${A}) || (${B}) || (${C}) || (${CLEARANCE})`],
-            ['fold with a literal containing a segment separator', `(${rule('user.attributes.Note == ") || ("')}) || (${rule(A)})`, `(user.attributes.Note == ") || (") || (${A})`]])('unwraps %s', (_, input, expected) => {
-            expect(unwrapBotTraceExpression(input)).toBe(expected);
-        });
-
-        test.each([
-            ['fold with a non-Bot-scoped segment', `(${rule(A)}) || (${B})`],
-            ['fold with a non-Bot-scoped first segment', `(${B}) || (${rule(A)})`],
-            ['masked fold with a non-Bot-scoped segment', `((!(user.isbot)) || (${A})) || (${B})`],
-            ['AND of guarded segments', `(${rule(A)}) && (${rule(B)})`],
-            ['segments separated by something other than ||', `(${rule(A)}) (${rule(B)})`],
-            ['trailing ||', `(${rule(A)}) ||`],
-            ['unbalanced parens', `(${rule(A)}) || (${rule(B)}`],
-            ['plain fold', `(${A}) || (${B})`],
-        ])('returns %s unchanged', (_, input) => {
-            expect(unwrapBotTraceExpression(input)).toBe(input);
-        });
-    });
-});
 
 describe('unwrapBotTraceTree', () => {
     test('binary draft tree returns the rule subtree', () => {
@@ -152,7 +94,7 @@ describe('unwrapBotTraceTree', () => {
 
         const result = unwrapBotTraceTree(root);
 
-        expect(result).toEqual({kind: 'or', expression: `${A} || ${B}`, outcome: 'false', children: [a, b]});
+        expect(result).toEqual({kind: 'or', expression: `(${A}) || (${B})`, outcome: 'false', children: [a, b]});
         expect(result.children?.[0]).toBe(a);
         expect(result.children?.[1]).toBe(b);
     });
@@ -167,27 +109,29 @@ describe('unwrapBotTraceTree', () => {
         expect(result.children).toHaveLength(2);
         expect(result.children?.[0]).toBe(a);
         expect(result.children?.[1]).toBe(right);
-        expect(result.expression).toBe(`${A} || ${B} || ${C}`);
+        expect(result.expression).toBe(`(${A}) || (${B} || ${C})`);
     });
 
-    test('masked left-nested chain drops the guard', () => {
+    test('masked left-nested chain drops the guard from the rebuilt text', () => {
         const a = leaf('user.attributes.A == "--------"');
         const b = leaf('user.attributes.B == "--------"');
-        const maskedRootText = '((!(user.isbot)) || (user.attributes.A == "--------")) || (user.attributes.B == "--------")';
         const root = or(
-            maskedRootText,
+            '((!(user.isbot)) || (user.attributes.A == "--------")) || (user.attributes.B == "--------")',
             [or('(!(user.isbot)) || (user.attributes.A == "--------")', [guard('false', '!(user.isbot)'), a]), b],
         );
 
         const result = unwrapBotTraceTree(root);
 
-        expect(result.kind).toBe('or');
-        expect(result.children).toHaveLength(2);
         expect(result.children?.[0]).toBe(a);
         expect(result.children?.[1]).toBe(b);
+        expect(result.expression).toBe('(user.attributes.A == "--------") || (user.attributes.B == "--------")');
+    });
 
-        // Compound text is never rendered; the masked left-nested form is not a flat prefix, so it is left as-is.
-        expect(result.expression).toBe(maskedRootText);
+    test('rebuilt text skips an operand whose text is empty', () => {
+        const b = leaf(B);
+        const root = or(`!user.isbot || ${A} || ${B}`, [or(`!user.isbot || ${A}`, [guard('false'), leaf('')]), b]);
+
+        expect(unwrapBotTraceTree(root).expression).toBe(`(${B})`);
     });
 
     test('does not mutate the input tree', () => {
@@ -209,7 +153,7 @@ describe('unwrapBotTraceTree', () => {
         test('two-rule fold unwraps both sides', () => {
             const a = leaf(A);
             const b = leaf(B);
-            const root = or(`(!user.isbot || (${A}\n)) || (!user.isbot || (${B}\n))`, [rule(a), rule(b)]);
+            const root = or(`!user.isbot || ${A} || !user.isbot || ${B}`, [rule(a), rule(b)]);
 
             const result = unwrapBotTraceTree(root);
 
@@ -246,6 +190,7 @@ describe('unwrapBotTraceTree', () => {
             expect(result.children?.[0].kind).toBe('or');
             expect(result.children?.[0].children?.[0]).toBe(a);
             expect(result.children?.[0].children?.[1]).toBe(b);
+            expect(result.expression).toBe(`((${A}) || (${B})) || (${C})`);
         });
 
         test('masked three-rule fold (right-nested) unwraps every rule', () => {
@@ -278,6 +223,24 @@ describe('unwrapBotTraceTree', () => {
             expect(JSON.stringify(result)).not.toContain('isbot');
         });
 
+        test('balanced four-rule fold unwraps every rule', () => {
+            const a = leaf(A);
+            const b = leaf(B);
+            const c = leaf(C);
+            const d = leaf(CLEARANCE);
+            const root = or('r1 || r2 || r3 || r4', [
+                or('r1 || r2', [rule(a), rule(b)]),
+                or('r3 || r4', [rule(c), rule(d)]),
+            ]);
+
+            const result = unwrapBotTraceTree(root);
+
+            expect(result.children?.[0].children).toEqual([a, b]);
+            expect(result.children?.[1].children).toEqual([c, d]);
+            expect(result.expression).toBe(`((${A}) || (${B})) || ((${C}) || (${CLEARANCE}))`);
+            expect(JSON.stringify(result)).not.toContain('isbot');
+        });
+
         test('fold for a person (every guard true) is kept', () => {
             const root = or('r1 || r2', [rule(leaf(A), '!user.isbot', 'true'), rule(leaf(B), '!user.isbot', 'true')], 'true');
 
@@ -289,6 +252,13 @@ describe('unwrapBotTraceTree', () => {
         const root = or(`!user.isbot || ${CLEARANCE}`, [guard('true'), leaf(CLEARANCE)], 'true');
 
         expect(unwrapBotTraceTree(root)).toBe(root);
+    });
+
+    test('an allowed bot (guard false, body true) shows only the body', () => {
+        const body = leaf(CLEARANCE, 'true');
+        const root = or(`!user.isbot || ${CLEARANCE}`, [guard('false'), body], 'true');
+
+        expect(unwrapBotTrace(root.expression, root)).toEqual({expression: CLEARANCE, evaluationTree: body});
     });
 
     test('a person (guard true) keeps the left-nested tree', () => {
@@ -373,7 +343,7 @@ describe('unwrapBotTraceTree', () => {
     });
 });
 
-describe('unwrapBotTraceExpressionForTree (captured server traces)', () => {
+describe('unwrapBotTrace (captured server traces)', () => {
     const SECRET = 'user.attributes.QA3Clearance == "Secret"';
     const TOP_SECRET = 'user.attributes.QA3Clearance == "TopSecret"';
 
@@ -393,33 +363,37 @@ describe('unwrapBotTraceExpressionForTree (captured server traces)', () => {
     ])('an allowed person keeps the guard in both the text and the tree (%s)', (_, decision) => {
         const blame = draftBlame(decision);
 
-        expect(unwrapBotTraceTree(blame.tree)).toBe(blame.tree);
-        expect(unwrapBotTraceExpressionForTree(blame.expression, blame.tree)).toBe(blame.expression);
+        const result = unwrapBotTrace(blame.expression, blame.tree);
+
+        expect(result.evaluationTree).toBe(blame.tree);
+        expect(result.expression).toBe(blame.expression);
     });
 
     test.each([
-        ['allowed bot, single rule', SINGLE_RULE_BOT_WITH_ATTRIBUTE, SECRET, 'compare'],
-        ['denied bot, single rule', SINGLE_RULE_BOT_WITHOUT_ATTRIBUTE, SECRET, 'compare'],
-        ['denied bot, two-rule fold', TWO_RULE_FOLD_BOT_WITHOUT_ATTRIBUTE, `(${SECRET}) || (${TOP_SECRET})`, 'or'],
-    ])('a %s loses the guard in both the text and the tree', (_, decision, expectedText, rootKind) => {
+        ['single rule', SINGLE_RULE_BOT_WITHOUT_ATTRIBUTE, SECRET, 'compare'],
+        ['two-rule fold', TWO_RULE_FOLD_BOT_WITHOUT_ATTRIBUTE, `(${SECRET}) || (${TOP_SECRET})`, 'or'],
+    ])('a denied bot loses the guard in both the text and the tree (%s)', (_, decision, expectedText, rootKind) => {
         const blame = draftBlame(decision);
-        const tree = unwrapBotTraceTree(blame.tree);
 
-        expect(unwrapBotTraceExpressionForTree(blame.expression, blame.tree)).toBe(expectedText);
-        expect(tree.kind).toBe(rootKind);
-        expect(JSON.stringify(tree)).not.toContain('user.isbot');
+        const result = unwrapBotTrace(blame.expression, blame.tree);
+
+        expect(result.expression).toBe(expectedText);
+        expect(result.evaluationTree?.kind).toBe(rootKind);
+        expect(JSON.stringify(result.evaluationTree)).not.toContain('user.isbot');
     });
 
-    test('without a tree the text is unwrapped as before', () => {
-        const blame = draftBlame(SINGLE_RULE_PERSON);
+    test('without a tree the text is returned as-is, guard included', () => {
+        const blame = draftBlame(SINGLE_RULE_BOT_WITHOUT_ATTRIBUTE);
 
-        expect(unwrapBotTraceExpressionForTree(blame.expression)).toBe(SECRET);
-        expect(unwrapBotTraceExpressionForTree(blame.expression)).toBe(unwrapBotTraceExpression(blame.expression));
+        expect(unwrapBotTrace(blame.expression)).toEqual({expression: blame.expression});
     });
 
     test('a peer policy without the guard is returned unchanged', () => {
         const blame = blameOf(SINGLE_RULE_PERSON, POLICY_SIMULATION_BLAME_SOURCES.PEER_POLICY);
 
-        expect(unwrapBotTraceExpressionForTree(blame.expression, blame.tree)).toBe(blame.expression);
+        const result = unwrapBotTrace(blame.expression, blame.tree);
+
+        expect(result.evaluationTree).toBe(blame.tree);
+        expect(result.expression).toBe(blame.expression);
     });
 });

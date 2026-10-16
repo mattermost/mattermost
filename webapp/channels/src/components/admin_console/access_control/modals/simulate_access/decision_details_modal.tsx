@@ -25,7 +25,7 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import ProfilePicture from 'components/profile_picture';
 
-import {unwrapBotTraceExpressionForTree, unwrapBotTraceTree} from './bot_scope_trace';
+import {unwrapBotTrace} from './bot_scope_trace';
 import DecisionChip from './decision_chip';
 
 import './decision_details_modal.scss';
@@ -873,12 +873,13 @@ function buildTraceFromBlame(
     action: string,
     policy?: AccessControlPolicy,
 ): DenyTrace | null {
-    const expression = blame.expression || lookupDraftExpression(blame, policy);
-    if (!expression) {
+    const rawExpression = blame.expression || lookupDraftExpression(blame, policy);
+    if (!rawExpression) {
         return null;
     }
+    const {expression, evaluationTree} = unwrapBotTrace(rawExpression, blame.evaluation_tree);
     const trace: DenyTrace = {
-        expression: unwrapBotTraceExpressionForTree(expression, blame.evaluation_tree),
+        expression,
         outcome: blame.outcome === 'allow' ? 'allow' : 'deny',
     };
     if (blame.rule_name) {
@@ -918,8 +919,7 @@ function buildTraceFromBlame(
     if (blame.merged_rules && blame.merged_rules.length > 1) {
         trace.mergedRules = blame.merged_rules.map((m) => ({
             name: m.name,
-            expression: m.expression && unwrapBotTraceExpressionForTree(m.expression, m.evaluation_tree ?? blame.evaluation_tree),
-            evaluationTree: m.evaluation_tree && unwrapBotTraceTree(m.evaluation_tree),
+            ...unwrapBotTrace(m.expression ?? '', m.evaluation_tree),
         }));
     } else if (
         blame.role &&
@@ -932,15 +932,15 @@ function buildTraceFromBlame(
     ) {
         const merged = (policy.rules ?? []).
             filter((r) => r.role === blame.role && (r.actions ?? []).includes(action)).
-            map((r) => ({name: r.name ?? '', expression: unwrapBotTraceExpressionForTree(r.expression, blame.evaluation_tree)})).
+            map((r) => ({name: r.name ?? ''})).
             filter((m) => m.name);
         if (merged.length > 1) {
             trace.mergedRules = merged;
         }
     }
 
-    if (blame.evaluation_tree) {
-        trace.evaluationTree = unwrapBotTraceTree(blame.evaluation_tree);
+    if (evaluationTree) {
+        trace.evaluationTree = evaluationTree;
     }
     return trace;
 }

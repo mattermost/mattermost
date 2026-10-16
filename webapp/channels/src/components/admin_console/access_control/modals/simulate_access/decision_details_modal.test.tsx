@@ -63,14 +63,18 @@ const botClearanceTree = (outcome: 'true' | 'false' = 'false'): PolicySimulation
     children: [guard(outcome), clearanceLeaf],
 });
 
+const ruleATree = (): PolicySimulationEvaluationNode => ({
+    kind: 'or',
+    expression: `!user.isbot || ${A}`,
+    outcome: 'false',
+    children: [guard('false'), compareLeaf(A)],
+});
+
 const joinedTree = (): PolicySimulationEvaluationNode => ({
     kind: 'or',
     expression: `(!user.isbot || ${CLEARANCE}) || (!user.isbot || ${A})`,
     outcome: 'false',
-    children: [
-        botClearanceTree(),
-        {kind: 'or', expression: `!user.isbot || ${A}`, outcome: 'false', children: [guard('false'), compareLeaf(A)]},
-    ],
+    children: [botClearanceTree(), ruleATree()],
 });
 
 const draftPolicy = (rules: AccessControlPolicy['rules']): AccessControlPolicy => ({
@@ -105,63 +109,6 @@ function flatExpression(container: HTMLElement): string | null | undefined {
 }
 
 describe('DecisionDetailsModal bot-scope unwrapping', () => {
-    test('flat fallback hides the guard on the JoinExpressions form', async () => {
-        renderDetails({
-            decision: false,
-            blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE, rule_name: 'rule1', expression: `(${WRAPPED})`}],
-        });
-
-        const ruleBlock = await expandTrace();
-
-        expect(flatExpression(ruleBlock)).toBe(CLEARANCE);
-        expect(ruleBlock).not.toHaveTextContent('user.isbot');
-        expect(screen.queryByTestId(`simulate-access-details-tree-${ACTION}`)).not.toBeInTheDocument();
-        expect(within(ruleBlock).getByText('Rule: rule1')).toBeInTheDocument();
-    });
-
-    test('flat fallback hides the guard on the stored rule form', async () => {
-        renderDetails({
-            decision: false,
-            blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE, rule_name: 'rule1', expression: WRAPPED}],
-        });
-
-        const ruleBlock = await expandTrace();
-
-        expect(flatExpression(ruleBlock)).toBe(CLEARANCE);
-        expect(ruleBlock).not.toHaveTextContent('user.isbot');
-    });
-
-    test('flat fallback hides the guard on the masked form', async () => {
-        renderDetails({
-            decision: false,
-            blame: [{
-                source: POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE,
-                rule_name: 'rule1',
-                expression: '(!(user.isbot)) || (user.attributes.Clearance == "--------")',
-            }],
-        });
-
-        const ruleBlock = await expandTrace();
-
-        expect(flatExpression(ruleBlock)).toBe('user.attributes.Clearance == "--------"');
-        expect(ruleBlock).not.toHaveTextContent('user.isbot');
-    });
-
-    test('flat fallback hides the guard when the expression comes from the draft lookup', async () => {
-        renderDetails(
-            {
-                decision: false,
-                blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE, rule_name: 'rule1'}],
-            },
-            draftPolicy([{name: 'rule1', actions: [ACTION], expression: WRAPPED}]),
-        );
-
-        const ruleBlock = await expandTrace();
-
-        expect(flatExpression(ruleBlock)).toBe(CLEARANCE);
-        expect(ruleBlock).not.toHaveTextContent('user.isbot');
-    });
-
     test('binary tree for a bot renders only the rule subtree', async () => {
         renderDetails({
             decision: false,
@@ -258,15 +205,16 @@ describe('DecisionDetailsModal bot-scope unwrapping', () => {
         expect(within(ruleBlock).getByText('Policy: Bot uploads')).toBeInTheDocument();
     });
 
-    test('server merged rules unwrap both the per-rule tree and the per-rule flat text', async () => {
+    test('server merged rules unwrap each per-rule tree', async () => {
         renderDetails({
             decision: false,
             blame: [{
                 source: POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE,
                 expression: JOINED,
+                evaluation_tree: joinedTree(),
                 merged_rules: [
                     {name: 'rule1', expression: WRAPPED, evaluation_tree: botClearanceTree()},
-                    {name: 'rule2', expression: WRAPPED_A},
+                    {name: 'rule2', expression: WRAPPED_A, evaluation_tree: ruleATree()},
                 ],
             }],
         });
@@ -275,19 +223,25 @@ describe('DecisionDetailsModal bot-scope unwrapping', () => {
         const first = screen.getByTestId(`simulate-access-details-merged-rule-${ACTION}-1`);
         const second = screen.getByTestId(`simulate-access-details-merged-rule-${ACTION}-2`);
 
-        expect(first).not.toHaveTextContent('user.isbot');
         expect(within(first).getByTestId('simulate-access-trace-node-compare-false')).toBeInTheDocument();
-        expect(within(first).queryByTestId('simulate-access-trace-node-or-false')).not.toBeInTheDocument();
         expect(within(first).queryByTestId('simulate-access-trace-node-not-false')).not.toBeInTheDocument();
-        expect(flatExpression(second)).toBe(A);
+        expect(first).not.toHaveTextContent('user.isbot');
+        expect(within(second).getByText(A)).toBeInTheDocument();
+        expect(within(second).queryByTestId('simulate-access-trace-node-not-false')).not.toBeInTheDocument();
         expect(second).not.toHaveTextContent('user.isbot');
     });
 
-    test('client merged-rules fallback shows the combined header and an unwrapped joined expression', async () => {
+    test('client merged-rules fallback shows the combined header over the unwrapped merged tree', async () => {
         renderDetails(
             {
                 decision: false,
-                blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE, rule_name: 'rule1', role: 'system_user', expression: JOINED}],
+                blame: [{
+                    source: POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE,
+                    rule_name: 'rule1',
+                    role: 'system_user',
+                    expression: JOINED,
+                    evaluation_tree: joinedTree(),
+                }],
             },
             draftPolicy([
                 {name: 'rule1', role: 'system_user', actions: [ACTION], expression: WRAPPED},
@@ -296,9 +250,11 @@ describe('DecisionDetailsModal bot-scope unwrapping', () => {
         );
 
         const ruleBlock = await expandTrace();
+        const tree = screen.getByTestId(`simulate-access-details-tree-${ACTION}`);
 
         expect(within(ruleBlock).getByText('Combined evaluation for role system_user')).toBeInTheDocument();
-        expect(flatExpression(ruleBlock)).toBe(`(${CLEARANCE}) || (${A})`);
+        expect(screen.queryByTestId(`simulate-access-details-merged-${ACTION}`)).not.toBeInTheDocument();
+        expect(within(tree).queryByTestId('simulate-access-trace-node-not-false')).not.toBeInTheDocument();
         expect(ruleBlock).not.toHaveTextContent('user.isbot');
     });
 
@@ -374,33 +330,6 @@ describe('DecisionDetailsModal bot-scope unwrapping', () => {
         expect(within(tree).getAllByTestId('simulate-access-trace-node-or-false')).toHaveLength(2);
         expect(within(tree).getAllByTestId('simulate-access-trace-node-compare-false')).toHaveLength(3);
         expect(tree).not.toHaveTextContent('user.isbot');
-    });
-
-    test('joined multi-rule flat fallback hides every guard', async () => {
-        renderDetails({
-            decision: false,
-            blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE, expression: JOINED}],
-        });
-
-        const ruleBlock = await expandTrace();
-
-        expect(flatExpression(ruleBlock)).toBe(`(${CLEARANCE}) || (${A})`);
-        expect(ruleBlock).not.toHaveTextContent('user.isbot');
-    });
-
-    test('masked joined multi-rule flat fallback hides every guard', async () => {
-        renderDetails({
-            decision: false,
-            blame: [{
-                source: POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE,
-                expression: '((!(user.isbot)) || (user.attributes.A == "--------")) || ((!(user.isbot)) || (user.attributes.B == "--------"))',
-            }],
-        });
-
-        const ruleBlock = await expandTrace();
-
-        expect(flatExpression(ruleBlock)).toBe('(user.attributes.A == "--------") || (user.attributes.B == "--------")');
-        expect(ruleBlock).not.toHaveTextContent('user.isbot');
     });
 
     test('a person allowed by the policy keeps the guard branch', async () => {
@@ -559,37 +488,15 @@ describe('DecisionDetailsModal bot-scope unwrapping (captured server traces)', (
         expect(tree).not.toHaveTextContent('user.isbot');
     });
 
-    test('without a tree the flat text is unwrapped as before', async () => {
-        renderDetails({decision: false, blame: [{...draftBlameOf(SINGLE_RULE_PERSON), evaluation_tree: undefined}]});
+    test('without a tree the flat text is shown as-is', async () => {
+        renderDetails({decision: false, blame: [{...draftBlameOf(SINGLE_RULE_BOT_WITHOUT_ATTRIBUTE), evaluation_tree: undefined}]});
 
         const ruleBlock = await expandTrace();
 
-        expect(flatExpression(ruleBlock)).toBe(SECRET);
-        expect(ruleBlock).not.toHaveTextContent('user.isbot');
+        expect(flatExpression(ruleBlock)).toBe(`(!(user.isbot)) || (${SECRET})`);
     });
 
-    test('a merged rule without its own tree follows the merged tree for an allowed person', async () => {
-        const [rule1, rule2] = foldRules(TWO_RULE_FOLD_PERSON);
-        renderDetails({
-            decision: true,
-            blame: [{
-                ...draftBlameOf(TWO_RULE_FOLD_PERSON),
-                merged_rules: [
-                    {name: 'rule1', expression: rule1.expression, evaluation_tree: rule1},
-                    {name: 'rule2', expression: rule2.expression},
-                ],
-            }],
-        });
-
-        await expandTrace();
-        const first = screen.getByTestId(`simulate-access-details-merged-rule-${ACTION}-1`);
-        const second = screen.getByTestId(`simulate-access-details-merged-rule-${ACTION}-2`);
-
-        expect(within(first).getByTestId('simulate-access-trace-node-not-true')).toBeInTheDocument();
-        expect(flatExpression(second)).toBe(`(!(user.isbot)) || (${TOP_SECRET})`);
-    });
-
-    test('a merged rule without its own tree follows the merged tree for a denied bot', async () => {
+    test('a merged rule without its own tree shows its text as-is', async () => {
         const [rule1, rule2] = foldRules(TWO_RULE_FOLD_BOT_WITHOUT_ATTRIBUTE);
         renderDetails({
             decision: false,
@@ -607,6 +514,6 @@ describe('DecisionDetailsModal bot-scope unwrapping (captured server traces)', (
         const second = screen.getByTestId(`simulate-access-details-merged-rule-${ACTION}-2`);
 
         expect(first).not.toHaveTextContent('user.isbot');
-        expect(flatExpression(second)).toBe(TOP_SECRET);
+        expect(flatExpression(second)).toBe(`(!(user.isbot)) || (${TOP_SECRET})`);
     });
 });
