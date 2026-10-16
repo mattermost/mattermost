@@ -6,6 +6,7 @@ import type {DialogElement} from '@mattermost/types/integrations';
 
 import {
     convertDialogToAppForm,
+    convertServerDialogResponseToAppForm,
     convertAppFormValuesToDialogSubmission,
     convertElement,
     DialogElementTypes,
@@ -543,6 +544,39 @@ describe('dialog_conversion', () => {
             expect(form.fields?.[0].type).toBe('text');
             expect(form.fields?.[0].label).toBe('Text Field');
             expect(form.fields?.[0].is_required).toBe(true);
+        });
+
+        it('should set submit_buttons on the form when provided', () => {
+            const {form} = convertDialogToAppForm(
+                [{name: 'choice', type: 'select', display_name: 'Choice', options: [{text: 'A', value: 'a'}]} as DialogElement],
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                '',
+                '',
+                legacyOptions,
+                'choice',
+            );
+
+            expect(form.submit_buttons).toBe('choice');
+        });
+
+        it('should leave submit_buttons undefined when not provided or empty', () => {
+            const convert = (submitButtons?: string) => convertDialogToAppForm([], 'Test Dialog', undefined, undefined, undefined, '', '', legacyOptions, submitButtons);
+
+            expect(convert().form.submit_buttons).toBeUndefined();
+            expect(convert('').form.submit_buttons).toBeUndefined();
+        });
+
+        it('should carry submit_buttons through convertServerDialogResponseToAppForm', () => {
+            const {form} = convertServerDialogResponseToAppForm({
+                title: 'Server Dialog',
+                elements: [{name: 'choice', type: 'select', display_name: 'Choice', options: [{text: 'A', value: 'a'}]}],
+                submit_buttons: 'choice',
+            }, legacyOptions);
+
+            expect(form.submit_buttons).toBe('choice');
         });
 
         it('should pass introduction text without escaping (Markdown.format handles sanitization)', () => {

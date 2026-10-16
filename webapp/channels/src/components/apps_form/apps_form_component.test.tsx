@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {AppFormValues} from '@mattermost/types/apps';
+
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
 import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
@@ -438,6 +440,81 @@ describe('AppsFormComponent', () => {
             expect(submit).toHaveBeenCalledWith({
                 values: expect.any(Object),
             });
+        });
+
+        test('should submit the clicked button value even when it is an empty string', async () => {
+            const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    submit,
+                },
+                form: {
+                    ...baseProps.form,
+                    submit_buttons: 'action_buttons',
+                    fields: [
+                        {
+                            name: 'action_buttons',
+                            type: 'static_select',
+                            options: [
+                                {label: 'Save', value: 'save'},
+                                {label: 'Discard', value: ''},
+                            ],
+                            value: {label: 'Save', value: 'save'},
+                        },
+                    ],
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Discard'}));
+
+            expect(submit).toHaveBeenCalledWith({
+                values: expect.objectContaining({action_buttons: ''}),
+            });
+        });
+
+        test('should submit the first submit_buttons option when Enter is pressed', async () => {
+            const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    submit,
+                },
+                form: {
+                    ...baseProps.form,
+                    submit_buttons: 'action_buttons',
+                    fields: [
+                        {name: 'note', type: 'text', label: 'Note'},
+                        {
+                            name: 'action_buttons',
+                            type: 'static_select',
+                            is_required: true,
+                            options: [
+                                {label: 'Add Note', value: 'add'},
+                                {label: 'Save & Close', value: 'save'},
+                            ],
+                        },
+                    ],
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Implicit form submission clicks the first submit button, so the hidden
+            // select gets that option's value rather than failing validation.
+            await userEvent.type(screen.getByRole('textbox', {name: /note/i}), 'hello{enter}');
+
+            expect(submit).toHaveBeenCalledTimes(1);
+            expect(submit).toHaveBeenCalledWith({
+                values: expect.objectContaining({note: 'hello', action_buttons: 'add'}),
+            });
+            expect(screen.queryByText(/please fix all field errors/i)).not.toBeInTheDocument();
         });
     });
 
@@ -1860,6 +1937,332 @@ describe('AppsFormComponent', () => {
             );
 
             expect(screen.getByTestId('innerinput')).toHaveFocus();
+        });
+    });
+
+    describe('refreshNonce and hidden', () => {
+        const textField = (name: string, value: string, label = name) => ({name, type: 'text' as const, label, value});
+
+        const initialForm: Props['form'] = {
+            ...baseProps.form,
+            fields: [textField('text_a', 'server a'), textField('text_b', 'server b')],
+        };
+
+        const deferred = <T,>() => {
+            let resolve!: (v: T) => void;
+            let reject!: (e: unknown) => void;
+            const promise = new Promise<T>((res, rej) => {
+                resolve = res;
+                reject = rej;
+            });
+            return {promise, resolve, reject};
+        };
+
+        const formResponse = (fields: Props['form']['fields']) => ({
+            data: {type: AppCallResponseTypes.FORM, form: {...initialForm, fields}},
+        });
+
+        // Mimics AppsFormContainer: the latest refreshed form is fed back to AppsForm as
+        // the form prop, and superseded or post-unmount responses are not applied.
+        const renderForm = (refreshForm: jest.Mock, extra?: Partial<Props>) => {
+            let currentForm = extra?.form ?? initialForm;
+            let nonce: number | undefined;
+            let seq = 0;
+            let unmounted = false;
+            let rerenderForm: () => void = () => {};
+
+            const containerRefreshForm = async (values: AppFormValues) => {
+                const mySeq = ++seq;
+                const res = await refreshForm(values);
+                if (unmounted || mySeq !== seq) {
+                    return {data: {type: AppCallResponseTypes.OK}};
+                }
+                if (res?.data?.type === AppCallResponseTypes.FORM) {
+                    currentForm = res.data.form;
+                    rerenderForm();
+                }
+                return res;
+            };
+
+            const buildProps = (): Props => ({
+                ...baseProps,
+                ...extra,
+                form: currentForm,
+                refreshNonce: nonce,
+                actions: {...baseProps.actions, ...extra?.actions, refreshForm: containerRefreshForm},
+            });
+            const view = renderWithContext(<AppsForm {...buildProps()}/>);
+            rerenderForm = () => view.rerender(<AppsForm {...buildProps()}/>);
+
+            const bump = (next: number) => {
+                nonce = next;
+                rerenderForm();
+            };
+            const unmount = () => {
+                unmounted = true;
+                view.unmount();
+            };
+            return {...view, bump, unmount};
+        };
+
+        test('should re-apply user-entered values and show server values for untouched fields after refresh', async () => {
+            const refreshForm = jest.fn().mockResolvedValue(
+                formResponse([textField('text_a', 'refreshed a'), textField('text_b', 'refreshed b')]),
+            );
+            const {bump} = renderForm(refreshForm);
+
+            await userEvent.clear(screen.getByDisplayValue('server a'));
+            await userEvent.type(screen.getByRole('textbox', {name: /text_a/}), 'typed by user');
+
+            bump(1);
+
+            await waitFor(() => {
+                expect(screen.getByDisplayValue('typed by user')).toBeVisible();
+                expect(screen.getByDisplayValue('refreshed b')).toBeVisible();
+            });
+            expect(refreshForm).toHaveBeenCalledTimes(1);
+            expect(refreshForm).toHaveBeenCalledWith(expect.objectContaining({text_a: 'typed by user', text_b: 'server b'}));
+            expect(screen.getByDisplayValue('typed by user')).toBeVisible();
+            expect(screen.queryByDisplayValue('refreshed a')).not.toBeInTheDocument();
+        });
+
+        test('should not re-apply a user value to a field that became an action button', async () => {
+            const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+            const refreshForm = jest.fn().mockResolvedValue(formResponse([
+                {name: 'text_a', type: 'action_button', label: 'Go', action_button_url: 'https://example.com/a'},
+                textField('text_b', 'refreshed b'),
+            ]));
+            const {bump} = renderForm(refreshForm, {actions: {...baseProps.actions, submit}});
+
+            await userEvent.type(screen.getByRole('textbox', {name: /text_a/}), 'typed');
+
+            bump(1);
+
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'Go'})).toBeVisible();
+            });
+            await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+
+            await waitFor(() => {
+                expect(submit).toHaveBeenCalled();
+            });
+            expect(submit.mock.calls[0][0].values.text_a).toBeUndefined();
+        });
+
+        describe('re-applying option values', () => {
+            const radioField = (options: string[], value = 'a') => ({
+                name: 'mission',
+                type: 'radio' as const,
+                label: 'Mission',
+                value,
+                options: options.map((o) => ({label: o.toUpperCase(), value: o})),
+            });
+            const radioForm = {...initialForm, fields: [radioField(['a', 'b'])]};
+
+            test('should keep a picked option that still exists after refresh', async () => {
+                const refreshForm = jest.fn().mockResolvedValue(formResponse([radioField(['a', 'b', 'c'])]));
+                const {bump} = renderForm(refreshForm, {form: radioForm});
+
+                await userEvent.click(screen.getByRole('radio', {name: 'B'}));
+                bump(1);
+
+                await waitFor(() => {
+                    expect(screen.getByRole('radio', {name: 'C'})).toBeInTheDocument();
+                    expect(document.querySelector('.apps-form-modal-body-loading')).toBeNull();
+                });
+                expect(screen.getByRole('radio', {name: 'B'})).toBeChecked();
+            });
+
+            test('should use the server value when the picked option was removed', async () => {
+                const refreshForm = jest.fn().mockResolvedValue(formResponse([radioField(['a', 'c'])]));
+                const {bump} = renderForm(refreshForm, {form: radioForm});
+
+                await userEvent.click(screen.getByRole('radio', {name: 'B'}));
+                bump(1);
+
+                await waitFor(() => {
+                    expect(screen.getByRole('radio', {name: 'C'})).toBeInTheDocument();
+                    expect(document.querySelector('.apps-form-modal-body-loading')).toBeNull();
+                });
+                expect(screen.getByRole('radio', {name: 'A'})).toBeChecked();
+            });
+
+            test('should drop removed options from a multi-value field', async () => {
+                const checkboxField = (options: string[]) => ({
+                    name: 'crew',
+                    type: 'checkbox_group' as const,
+                    label: 'Crew',
+                    options: options.map((o) => ({label: o.toUpperCase(), value: o})),
+                });
+                const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+                const refreshForm = jest.fn().mockResolvedValue(formResponse([checkboxField(['x', 'z'])]));
+                const {bump} = renderForm(refreshForm, {
+                    form: {...initialForm, fields: [checkboxField(['x', 'y', 'z'])]},
+                    actions: {...baseProps.actions, submit},
+                });
+
+                await userEvent.click(screen.getByRole('checkbox', {name: 'X'}));
+                await userEvent.click(screen.getByRole('checkbox', {name: 'Y'}));
+                bump(1);
+
+                await waitFor(() => {
+                    expect(screen.queryByRole('checkbox', {name: 'Y'})).not.toBeInTheDocument();
+                });
+                await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+
+                await waitFor(() => {
+                    expect(submit).toHaveBeenCalled();
+                });
+                expect(submit.mock.calls[0][0].values.crew).toEqual(['x']);
+            });
+
+            test('should not re-apply a user value to a field that changed type', async () => {
+                const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+                const refreshForm = jest.fn().mockResolvedValue(formResponse([
+                    {name: 'text_a', type: 'bool', label: 'text_a'},
+                    textField('text_b', 'refreshed b'),
+                ]));
+                const {bump} = renderForm(refreshForm, {actions: {...baseProps.actions, submit}});
+
+                await userEvent.type(screen.getByRole('textbox', {name: /text_a/}), 'typed');
+                bump(1);
+
+                await waitFor(() => {
+                    expect(screen.getByDisplayValue('refreshed b')).toBeVisible();
+                });
+                await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+
+                await waitFor(() => {
+                    expect(submit).toHaveBeenCalled();
+                });
+                expect(submit.mock.calls[0][0].values.text_a).toBe(false);
+            });
+        });
+
+        test('should not send a clicked submit button value with a later refresh', async () => {
+            const submit = jest.fn().mockResolvedValue({error: {type: 'error', text: 'Try again'}});
+            const refreshForm = jest.fn().mockResolvedValue(formResponse([textField('text_a', 'refreshed a')]));
+            const {bump} = renderForm(refreshForm, {
+                form: {
+                    ...initialForm,
+                    submit_buttons: 'action',
+                    fields: [
+                        textField('text_a', 'server a'),
+                        {name: 'action', type: 'static_select', label: 'Action', options: [{label: 'Retry', value: 'retry'}]},
+                    ],
+                },
+                actions: {...baseProps.actions, submit},
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: 'Retry'}));
+            await waitFor(() => {
+                expect(screen.getByText('Try again')).toBeVisible();
+            });
+            expect(submit).toHaveBeenCalledWith({values: expect.objectContaining({action: 'retry'})});
+
+            bump(1);
+
+            await waitFor(() => {
+                expect(refreshForm).toHaveBeenCalledTimes(1);
+            });
+            expect(refreshForm.mock.calls[0][0].action).toBeNull();
+        });
+
+        test('should ignore a superseded refresh response', async () => {
+            const first = deferred<ReturnType<typeof formResponse>>();
+            const second = deferred<ReturnType<typeof formResponse>>();
+            const refreshForm = jest.fn().
+                mockReturnValueOnce(first.promise).
+                mockReturnValueOnce(second.promise);
+            const {bump} = renderForm(refreshForm);
+
+            bump(1);
+            bump(2);
+            expect(refreshForm).toHaveBeenCalledTimes(2);
+
+            // The older response must not clear the loading state of the newer refresh.
+            first.resolve(formResponse([textField('text_a', 'stale a'), textField('text_b', 'stale b')]));
+            await first.promise;
+            expect(document.querySelector('.apps-form-modal-body-loading')).not.toBeNull();
+            expect(screen.queryByDisplayValue('stale a')).not.toBeInTheDocument();
+
+            second.resolve(formResponse([textField('text_a', 'newest a'), textField('text_b', 'newest b')]));
+            await waitFor(() => {
+                expect(screen.getByDisplayValue('newest a')).toBeVisible();
+            });
+            await waitFor(() => {
+                expect(document.querySelector('.apps-form-modal-body-loading')).toBeNull();
+            });
+            expect(screen.queryByDisplayValue('stale a')).not.toBeInTheDocument();
+        });
+
+        test('should not update state when the refresh response arrives after unmount', async () => {
+            const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+            const pending = deferred<ReturnType<typeof formResponse>>();
+            const refreshForm = jest.fn().mockReturnValue(pending.promise);
+            const {bump, unmount} = renderForm(refreshForm);
+
+            bump(1);
+            unmount();
+            pending.resolve(formResponse([textField('text_a', 'late a'), textField('text_b', 'late b')]));
+            await pending.promise;
+
+            const unmountedWarnings = consoleError.mock.calls.filter((args) =>
+                args.some((a) => typeof a === 'string' && a.includes('unmounted')),
+            );
+            expect(unmountedWarnings).toHaveLength(0);
+            consoleError.mockRestore();
+        });
+
+        test('should show an error and stop loading when refreshForm rejects', async () => {
+            const refreshForm = jest.fn().mockRejectedValue(new Error('refresh exploded'));
+            const {bump} = renderForm(refreshForm);
+
+            bump(1);
+
+            await waitFor(() => {
+                expect(screen.getByText('refresh exploded')).toBeVisible();
+            });
+            expect(document.querySelector('.apps-form-modal-body-loading')).toBeNull();
+            expect(screen.getByDisplayValue('server a')).toBeVisible();
+        });
+
+        test('should not refresh when refreshNonce is 0', () => {
+            const refreshForm = jest.fn().mockResolvedValue(formResponse([]));
+            const {bump} = renderForm(refreshForm);
+
+            bump(0);
+
+            expect(refreshForm).not.toHaveBeenCalled();
+        });
+
+        test('should hide the modal and its backdrop when hidden is true', () => {
+            renderForm(jest.fn(), {hidden: true});
+
+            expect(document.querySelector('.apps-form-modal')).toHaveStyle({display: 'none'});
+            expect(document.querySelector('.modal-backdrop')).toHaveStyle({display: 'none'});
+        });
+
+        test('should leave element ids off while hidden so they resolve to the visible dialog', () => {
+            renderForm(jest.fn(), {hidden: true});
+
+            expect(document.querySelector('.apps-form-modal')).not.toHaveAttribute('id');
+            expect(document.querySelector('.apps-form-modal')).not.toHaveAttribute('aria-labelledby');
+            ['#appsModalLabel', '#appsModalSubmit', '#appsModalCancel'].forEach((selector) => {
+                expect(document.querySelector(selector)).toBeNull();
+            });
+        });
+
+        test('should label the visible dialog with its own title', () => {
+            renderForm(jest.fn());
+
+            expect(screen.getByRole('dialog')).toHaveAccessibleName(/Title$/);
+        });
+
+        test('should not hide the modal when hidden is not set', () => {
+            renderForm(jest.fn());
+
+            expect(document.querySelector('#appsModal')).not.toHaveStyle({display: 'none'});
         });
     });
 });
