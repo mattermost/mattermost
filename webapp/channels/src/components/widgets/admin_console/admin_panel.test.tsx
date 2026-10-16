@@ -82,4 +82,22 @@ describe('components/widgets/admin_console/AdminPanel', () => {
 
         expect(onActionClick).toHaveBeenCalledTimes(1);
     });
+
+    test('should render headerless chrome when title, subtitle, and actions are omitted', () => {
+        renderWithContext(
+            <AdminPanel
+                id='headerless-id'
+                className='test-class-name'
+            >
+                {'Body only'}
+            </AdminPanel>,
+        );
+
+        const panel = document.getElementById('headerless-id');
+        expect(panel).toHaveClass('AdminPanel', 'AdminPanel--headerless', 'clearfix', 'test-class-name');
+        expect(panel?.tagName).toBe('SECTION');
+        expect(screen.queryByRole('heading', {level: 2})).not.toBeInTheDocument();
+        expect(screen.getByText('Body only')).toBeInTheDocument();
+        expect(panel?.querySelector('.AdminPanel__body')).toBeInTheDocument();
+    });
 });

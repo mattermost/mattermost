@@ -758,10 +758,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                     />
                 </form>
                 {enabled && (
-                    <AdminPanel
-                        id='classification_markings_settings'
-                        title={msg.pageTitle}
-                    >
+                    <AdminPanel id='classification_markings_settings'>
                         <form
                             className='form-horizontal'
                             onSubmit={(e) => e.preventDefault()}

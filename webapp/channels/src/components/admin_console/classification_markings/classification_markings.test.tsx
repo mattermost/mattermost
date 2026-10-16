@@ -1087,9 +1087,16 @@ describe('GlobalClassificationIndicators section', () => {
         const enableFieldset = container.querySelector('#classificationEnabled');
         expect(enableFieldset?.closest('.admin-console__setting-group')).toBeInTheDocument();
         expect(enableFieldset?.closest('#classification_markings_settings')).not.toBeInTheDocument();
-        expect(container.querySelector('#classification_markings_settings.AdminPanel')).toBeInTheDocument();
+
+        const settingsPanel = container.querySelector('#classification_markings_settings.AdminPanel');
+        expect(settingsPanel).toBeInTheDocument();
+        expect(settingsPanel).toHaveClass('AdminPanel--headerless');
+        expect(settingsPanel?.querySelector('h2')).not.toBeInTheDocument();
+
         expect(container.querySelector('#classification_levels.AdminPanel')).toBeInTheDocument();
         expect(container.querySelector('#global_classification_indicators.AdminPanel')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {level: 2, name: 'Classification levels'})).toBeInTheDocument();
+        expect(screen.getByRole('heading', {level: 2, name: 'Global Classification Indicators'})).toBeInTheDocument();
         expect(screen.getByText('Configure the global classification banner')).toBeInTheDocument();
         expect(screen.getByText('Global Classification Banner')).toBeInTheDocument();
     });
