@@ -5,27 +5,27 @@
 }
 
 .SystemRolePermissions {
-    padding: 2rem 2rem 2rem 2rem;
-    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xxl); // 24px between permission rows
+    padding: 0;
     color: rgba(var(--sys-center-channel-color-rgb), 0.87);
 
     .PermissionRow {
-        &:nth-child(even) {
-            background: rgba(255, 255, 255, 0.5);
-        }
-
         .PermissionSection {
             display: flex;
             height: auto;
             flex-direction: row;
+            gap: var(--spacing-xxxl); // 32px between text and dropdown columns
+            align-items: center;
 
             .PermissionSectionText {
                 display: flex;
                 flex-direction: column;
                 flex-grow: 3;
                 align-content: flex-start;
-                padding: 14px 16px;
-                margin-top: 10px;
+                padding: 0;
+                margin: 0;
 
                 .PermissionSectionText_title {
                     color: rgba(var(--sys-center-channel-color-rgb), 0.87);
@@ -39,8 +39,9 @@
             }
 
             .PermissionSectionDropdown {
-                padding: 0 16px;
-                margin: auto;
+                padding: 0;
+                margin: 0;
+                flex-shrink: 0;
 
                 .Menu__content {
                     min-width: 256px;
@@ -131,13 +132,16 @@
         }
 
         .PermissionSubsections {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-l);
             padding-left: 16px;
             border-left: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
-            margin: 0 0 14px 16px;
+            margin: var(--spacing-l) 0 0 16px;
 
             .PermissionSection {
                 height: auto;
-                padding: 4px 0;
+                padding: 0;
 
                 .PermissionSectionText {
                     .PermissionSectionText_title {
@@ -146,7 +150,7 @@
                     }
 
                     padding: 0;
-                    margin: auto;
+                    margin: 0;
                 }
 
                 .PermissionSection_description {
@@ -162,13 +166,9 @@
                 }
 
                 .PermissionSectionDropdown {
-                    padding: 0 16px;
+                    padding: 0;
                     margin: 0;
                 }
-            }
-
-            .PermissionSection:last-of-type {
-                padding-bottom: 0;
             }
         }
     }
