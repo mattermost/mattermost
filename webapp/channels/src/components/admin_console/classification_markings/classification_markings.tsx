@@ -71,6 +71,8 @@ import {PENDING_LEVEL_PREFIX, PRESET_CUSTOM, PRESET_EMPTY, presets} from './util
 import SaveChangesPanel from '../save_changes_panel';
 import {AdminWrapper, DangerText} from '../system_properties/controls';
 
+import './classification_markings.scss';
+
 const MEMBERSHIP_POLICIES_URL = '/admin_console/system_attributes/membership_policies';
 
 const msg = defineMessages({
@@ -702,7 +704,7 @@ export default function ClassificationMarkings({disabled}: Props) {
     const readOnly = disabled || fieldConflict !== null;
 
     return (
-        <div className='wrapper--fixed'>
+        <div className='wrapper--fixed ClassificationMarkings'>
             <AdminHeader>
                 <FormattedMessage {...msg.pageTitle}/>
             </AdminHeader>
@@ -729,37 +731,41 @@ export default function ClassificationMarkings({disabled}: Props) {
                         />
                     </InformationNoticeWrapper>
                 )}
-                <AdminPanel
-                    id='classification_markings_settings'
-                    title={msg.pageTitle}
-                    subtitle={msg.enableDescription}
+                <form
+                    className='admin-console__setting-group form-horizontal'
+                    onSubmit={(e) => e.preventDefault()}
                 >
-                    <form
-                        className='form-horizontal'
-                        onSubmit={(e) => e.preventDefault()}
+                    <BooleanSetting
+                        id='classificationEnabled'
+                        label={<FormattedMessage {...msg.enableTitle}/>}
+                        value={enabled}
+                        onChange={handleClassificationEnabledChange}
+                        disabled={readOnly}
+                        setByEnv={false}
+                        helpText={<FormattedMessage {...msg.enableDescription}/>}
+                        trueText={(
+                            <FormattedMessage
+                                id='admin.classification_markings.enable.true'
+                                defaultMessage='True'
+                            />
+                        )}
+                        falseText={(
+                            <FormattedMessage
+                                id='admin.classification_markings.enable.false'
+                                defaultMessage='False'
+                            />
+                        )}
+                    />
+                </form>
+                {enabled && (
+                    <AdminPanel
+                        id='classification_markings_settings'
+                        title={msg.pageTitle}
                     >
-                        <BooleanSetting
-                            id='classificationEnabled'
-                            label={<FormattedMessage {...msg.enableTitle}/>}
-                            value={enabled}
-                            onChange={handleClassificationEnabledChange}
-                            disabled={readOnly}
-                            setByEnv={false}
-                            helpText={<FormattedMessage {...msg.enableDescription}/>}
-                            trueText={(
-                                <FormattedMessage
-                                    id='admin.classification_markings.enable.true'
-                                    defaultMessage='True'
-                                />
-                            )}
-                            falseText={(
-                                <FormattedMessage
-                                    id='admin.classification_markings.enable.false'
-                                    defaultMessage='False'
-                                />
-                            )}
-                        />
-                        {enabled && (
+                        <form
+                            className='form-horizontal'
+                            onSubmit={(e) => e.preventDefault()}
+                        >
                             <Setting
                                 inputId='DropdownInput_classificationPreset'
                                 label={<FormattedMessage {...msg.presetTitle}/>}
@@ -781,54 +787,54 @@ export default function ClassificationMarkings({disabled}: Props) {
                                     />
                                 </PresetDropdownWrapper>
                             </Setting>
-                        )}
-                        {enabled && abacEnabled && (
-                            <Setting
-                                inputId='clearanceAttribute'
-                                label={<FormattedMessage {...msg.clearanceTitle}/>}
-                                helpText={
-                                    <FormattedMessage
-                                        {...msg.clearanceHelp}
-                                        values={{link: membershipPolicyLink}}
-                                    />
-                                }
-                                setByEnv={false}
-                            >
-                                <label className='checkbox-inline'>
-                                    <input
-                                        data-testid='clearanceAttributeCheckbox'
-                                        type='checkbox'
-                                        checked={clearanceEnabled}
-                                        onChange={handleClearanceChange}
-                                        disabled={readOnly || clearanceConflict !== null}
-                                    />
-                                    <FormattedMessage {...msg.clearanceCheckbox}/>
-                                </label>
-                                {clearanceConflict && (
-                                    <InformationNoticeWrapper>
-                                        <SectionNotice
-                                            type='danger'
-                                            title={<FormattedMessage {...msg.conflictClearanceTitle}/>}
-                                            text={formatMessage(msg.conflictClearance, {name: clearanceConflict.name})}
+                            {abacEnabled && (
+                                <Setting
+                                    inputId='clearanceAttribute'
+                                    label={<FormattedMessage {...msg.clearanceTitle}/>}
+                                    helpText={
+                                        <FormattedMessage
+                                            {...msg.clearanceHelp}
+                                            values={{link: membershipPolicyLink}}
                                         />
-                                    </InformationNoticeWrapper>
-                                )}
-                                {/* Suppressed while the blocking conflict above is showing: the
-                                    checkbox is disabled then, so nothing would be created and
-                                    this notice would describe an outcome that cannot happen. */}
-                                {!clearanceConflict && clearanceTemplateConflict && (
-                                    <InformationNoticeWrapper>
-                                        <SectionNotice
-                                            type='warning'
-                                            title={<FormattedMessage {...msg.clearanceTemplateWarningTitle}/>}
-                                            text={formatMessage(msg.clearanceTemplateWarning, {name: clearanceTemplateConflict.name})}
+                                    }
+                                    setByEnv={false}
+                                >
+                                    <label className='checkbox-inline'>
+                                        <input
+                                            data-testid='clearanceAttributeCheckbox'
+                                            type='checkbox'
+                                            checked={clearanceEnabled}
+                                            onChange={handleClearanceChange}
+                                            disabled={readOnly || clearanceConflict !== null}
                                         />
-                                    </InformationNoticeWrapper>
-                                )}
-                            </Setting>
-                        )}
-                    </form>
-                </AdminPanel>
+                                        <FormattedMessage {...msg.clearanceCheckbox}/>
+                                    </label>
+                                    {clearanceConflict && (
+                                        <InformationNoticeWrapper>
+                                            <SectionNotice
+                                                type='danger'
+                                                title={<FormattedMessage {...msg.conflictClearanceTitle}/>}
+                                                text={formatMessage(msg.conflictClearance, {name: clearanceConflict.name})}
+                                            />
+                                        </InformationNoticeWrapper>
+                                    )}
+                                    {/* Suppressed while the blocking conflict above is showing: the
+                                        checkbox is disabled then, so nothing would be created and
+                                        this notice would describe an outcome that cannot happen. */}
+                                    {!clearanceConflict && clearanceTemplateConflict && (
+                                        <InformationNoticeWrapper>
+                                            <SectionNotice
+                                                type='warning'
+                                                title={<FormattedMessage {...msg.clearanceTemplateWarningTitle}/>}
+                                                text={formatMessage(msg.clearanceTemplateWarning, {name: clearanceTemplateConflict.name})}
+                                            />
+                                        </InformationNoticeWrapper>
+                                    )}
+                                </Setting>
+                            )}
+                        </form>
+                    </AdminPanel>
+                )}
 
                 {enabled && (
                     <AdminPanel

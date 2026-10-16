@@ -742,7 +742,10 @@ describe('ClassificationMarkings component', () => {
 
         await screen.findByText('True');
 
-        expect(container.querySelector('#classification_markings_settings.AdminPanel')).toBeInTheDocument();
+        // Enable sits outside AdminPanel (Content Flagging / Data Spillage pattern);
+        // settings panel only mounts once classification is enabled.
+        expect(container.querySelector('#classificationEnabled')?.closest('.admin-console__setting-group')).toBeInTheDocument();
+        expect(container.querySelector('#classification_markings_settings.AdminPanel')).not.toBeInTheDocument();
         expect(screen.getByRole('heading', {name: 'Classification markings are informational only'})).toBeInTheDocument();
         expect(
             screen.getByText('Markings are not tied to access control decisions at this time and are for display purposes only.'),
@@ -1081,6 +1084,9 @@ describe('GlobalClassificationIndicators section', () => {
         const {container} = renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Global Classification Indicators');
 
+        const enableFieldset = container.querySelector('#classificationEnabled');
+        expect(enableFieldset?.closest('.admin-console__setting-group')).toBeInTheDocument();
+        expect(enableFieldset?.closest('#classification_markings_settings')).not.toBeInTheDocument();
         expect(container.querySelector('#classification_markings_settings.AdminPanel')).toBeInTheDocument();
         expect(container.querySelector('#classification_levels.AdminPanel')).toBeInTheDocument();
         expect(container.querySelector('#global_classification_indicators.AdminPanel')).toBeInTheDocument();
