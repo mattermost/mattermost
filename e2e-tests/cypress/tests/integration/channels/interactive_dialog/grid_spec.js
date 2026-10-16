@@ -301,7 +301,6 @@ describe('Interactive Dialog - Grid layout', () => {
             // * Typed values survive both resizes, because a width change is an
             // ordinary refresh
             cy.get('.apps-form-grid tbody tr').first().find('td input').first().should('have.value', '7');
-
         });
 
         closeAppsFormModal();
