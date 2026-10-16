@@ -61,31 +61,63 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  checked=""
-                  data-testid="Enabletrue"
-                  id="Enabletrue"
-                  name="Enable"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  data-testid="Enablefalse"
-                  id="Enablefalse"
-                  name="Enable"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="Enabletrue"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="Enabletrue"
+                    id="Enabletrue"
+                    name="Enable"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="Enablefalse"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="Enablefalse"
+                    id="Enablefalse"
+                    name="Enable"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="Enablehelp-text"
@@ -178,31 +210,63 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  data-testid="UseIPAddresstrue"
-                  id="UseIPAddresstrue"
-                  name="UseIPAddress"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  checked=""
-                  data-testid="UseIPAddressfalse"
-                  id="UseIPAddressfalse"
-                  name="UseIPAddress"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="UseIPAddresstrue"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="UseIPAddresstrue"
+                    id="UseIPAddresstrue"
+                    name="UseIPAddress"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="UseIPAddressfalse"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="UseIPAddressfalse"
+                    id="UseIPAddressfalse"
+                    name="UseIPAddress"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="UseIPAddresshelp-text"
@@ -224,31 +288,63 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  data-testid="EnableGossipEncryptiontrue"
-                  id="EnableGossipEncryptiontrue"
-                  name="EnableGossipEncryption"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  checked=""
-                  data-testid="EnableGossipEncryptionfalse"
-                  id="EnableGossipEncryptionfalse"
-                  name="EnableGossipEncryption"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipEncryptiontrue"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipEncryptiontrue"
+                    id="EnableGossipEncryptiontrue"
+                    name="EnableGossipEncryption"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipEncryptionfalse"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipEncryptionfalse"
+                    id="EnableGossipEncryptionfalse"
+                    name="EnableGossipEncryption"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="EnableGossipEncryptionhelp-text"
@@ -270,31 +366,63 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  data-testid="EnableGossipCompressiontrue"
-                  id="EnableGossipCompressiontrue"
-                  name="EnableGossipCompression"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  checked=""
-                  data-testid="EnableGossipCompressionfalse"
-                  id="EnableGossipCompressionfalse"
-                  name="EnableGossipCompression"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipCompressiontrue"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipCompressiontrue"
+                    id="EnableGossipCompressiontrue"
+                    name="EnableGossipCompression"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipCompressionfalse"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipCompressionfalse"
+                    id="EnableGossipCompressionfalse"
+                    name="EnableGossipCompression"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="EnableGossipCompressionhelp-text"
@@ -420,31 +548,63 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  checked=""
-                  data-testid="Enabletrue"
-                  id="Enabletrue"
-                  name="Enable"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  data-testid="Enablefalse"
-                  id="Enablefalse"
-                  name="Enable"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="Enabletrue"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="Enabletrue"
+                    id="Enabletrue"
+                    name="Enable"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="Enablefalse"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="Enablefalse"
+                    id="Enablefalse"
+                    name="Enable"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="Enablehelp-text"
@@ -537,31 +697,63 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  data-testid="UseIPAddresstrue"
-                  id="UseIPAddresstrue"
-                  name="UseIPAddress"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  checked=""
-                  data-testid="UseIPAddressfalse"
-                  id="UseIPAddressfalse"
-                  name="UseIPAddress"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="UseIPAddresstrue"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="UseIPAddresstrue"
+                    id="UseIPAddresstrue"
+                    name="UseIPAddress"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="UseIPAddressfalse"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="UseIPAddressfalse"
+                    id="UseIPAddressfalse"
+                    name="UseIPAddress"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="UseIPAddresshelp-text"
@@ -583,31 +775,63 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  data-testid="EnableGossipEncryptiontrue"
-                  id="EnableGossipEncryptiontrue"
-                  name="EnableGossipEncryption"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  checked=""
-                  data-testid="EnableGossipEncryptionfalse"
-                  id="EnableGossipEncryptionfalse"
-                  name="EnableGossipEncryption"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipEncryptiontrue"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipEncryptiontrue"
+                    id="EnableGossipEncryptiontrue"
+                    name="EnableGossipEncryption"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipEncryptionfalse"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipEncryptionfalse"
+                    id="EnableGossipEncryptionfalse"
+                    name="EnableGossipEncryption"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="EnableGossipEncryptionhelp-text"
@@ -629,31 +853,63 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  checked=""
-                  data-testid="EnableGossipCompressiontrue"
-                  id="EnableGossipCompressiontrue"
-                  name="EnableGossipCompression"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  data-testid="EnableGossipCompressionfalse"
-                  id="EnableGossipCompressionfalse"
-                  name="EnableGossipCompression"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipCompressiontrue"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipCompressiontrue"
+                    id="EnableGossipCompressiontrue"
+                    name="EnableGossipCompression"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipCompressionfalse"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipCompressionfalse"
+                    id="EnableGossipCompressionfalse"
+                    name="EnableGossipCompression"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="EnableGossipCompressionhelp-text"
@@ -779,31 +1035,63 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  checked=""
-                  data-testid="Enabletrue"
-                  id="Enabletrue"
-                  name="Enable"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  data-testid="Enablefalse"
-                  id="Enablefalse"
-                  name="Enable"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="Enabletrue"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="Enabletrue"
+                    id="Enabletrue"
+                    name="Enable"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="Enablefalse"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="Enablefalse"
+                    id="Enablefalse"
+                    name="Enable"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="Enablehelp-text"
@@ -896,31 +1184,63 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  data-testid="UseIPAddresstrue"
-                  id="UseIPAddresstrue"
-                  name="UseIPAddress"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  checked=""
-                  data-testid="UseIPAddressfalse"
-                  id="UseIPAddressfalse"
-                  name="UseIPAddress"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="UseIPAddresstrue"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="UseIPAddresstrue"
+                    id="UseIPAddresstrue"
+                    name="UseIPAddress"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="UseIPAddressfalse"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="UseIPAddressfalse"
+                    id="UseIPAddressfalse"
+                    name="UseIPAddress"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="UseIPAddresshelp-text"
@@ -942,31 +1262,63 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  data-testid="EnableGossipEncryptiontrue"
-                  id="EnableGossipEncryptiontrue"
-                  name="EnableGossipEncryption"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  checked=""
-                  data-testid="EnableGossipEncryptionfalse"
-                  id="EnableGossipEncryptionfalse"
-                  name="EnableGossipEncryption"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipEncryptiontrue"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipEncryptiontrue"
+                    id="EnableGossipEncryptiontrue"
+                    name="EnableGossipEncryption"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipEncryptionfalse"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipEncryptionfalse"
+                    id="EnableGossipEncryptionfalse"
+                    name="EnableGossipEncryption"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="EnableGossipEncryptionhelp-text"
@@ -988,31 +1340,63 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  data-testid="EnableGossipCompressiontrue"
-                  id="EnableGossipCompressiontrue"
-                  name="EnableGossipCompression"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  checked=""
-                  data-testid="EnableGossipCompressionfalse"
-                  id="EnableGossipCompressionfalse"
-                  name="EnableGossipCompression"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipCompressiontrue"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipCompressiontrue"
+                    id="EnableGossipCompressiontrue"
+                    name="EnableGossipCompression"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipCompressionfalse"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipCompressionfalse"
+                    id="EnableGossipCompressionfalse"
+                    name="EnableGossipCompression"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="EnableGossipCompressionhelp-text"
@@ -1138,31 +1522,63 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  checked=""
-                  data-testid="Enabletrue"
-                  id="Enabletrue"
-                  name="Enable"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  data-testid="Enablefalse"
-                  id="Enablefalse"
-                  name="Enable"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="Enabletrue"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="Enabletrue"
+                    id="Enabletrue"
+                    name="Enable"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="Enablefalse"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="Enablefalse"
+                    id="Enablefalse"
+                    name="Enable"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="Enablehelp-text"
@@ -1255,31 +1671,63 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  data-testid="UseIPAddresstrue"
-                  id="UseIPAddresstrue"
-                  name="UseIPAddress"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  checked=""
-                  data-testid="UseIPAddressfalse"
-                  id="UseIPAddressfalse"
-                  name="UseIPAddress"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="UseIPAddresstrue"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="UseIPAddresstrue"
+                    id="UseIPAddresstrue"
+                    name="UseIPAddress"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="UseIPAddressfalse"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="UseIPAddressfalse"
+                    id="UseIPAddressfalse"
+                    name="UseIPAddress"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="UseIPAddresshelp-text"
@@ -1301,31 +1749,63 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  checked=""
-                  data-testid="EnableGossipEncryptiontrue"
-                  id="EnableGossipEncryptiontrue"
-                  name="EnableGossipEncryption"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  data-testid="EnableGossipEncryptionfalse"
-                  id="EnableGossipEncryptionfalse"
-                  name="EnableGossipEncryption"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipEncryptiontrue"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipEncryptiontrue"
+                    id="EnableGossipEncryptiontrue"
+                    name="EnableGossipEncryption"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipEncryptionfalse"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipEncryptionfalse"
+                    id="EnableGossipEncryptionfalse"
+                    name="EnableGossipEncryption"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="EnableGossipEncryptionhelp-text"
@@ -1347,31 +1827,63 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-gkBvtd joVEQU"
               >
-                <input
-                  data-testid="EnableGossipCompressiontrue"
-                  id="EnableGossipCompressiontrue"
-                  name="EnableGossipCompression"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  checked=""
-                  data-testid="EnableGossipCompressionfalse"
-                  id="EnableGossipCompressionfalse"
-                  name="EnableGossipCompression"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipCompressiontrue"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipCompressiontrue"
+                    id="EnableGossipCompressiontrue"
+                    name="EnableGossipCompression"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="EnableGossipCompressionfalse"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="EnableGossipCompressionfalse"
+                    id="EnableGossipCompressionfalse"
+                    name="EnableGossipCompression"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="EnableGossipCompressionhelp-text"
