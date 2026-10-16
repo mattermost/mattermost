@@ -1,203 +1,180 @@
 ---
 name: translate-i18n
-description: Fill missing translations across every supported locale by fanning out one subagent per locale. Use when en.json has gained keys that the locale catalogs do not have — after a feature lands, after merging master, or when `npm run i18n-verify-translations` / `make i18n-verify` reports missing keys.
+description: Bring every locale's webapp and server catalogs up to date with en.json, with one translator subagent per locale, through the checked pipeline in i18n/scripts/. Use for the daily translation run, attended or not, after a feature lands, or when CI reports missing keys.
 ---
 
-# Parallel i18n translation
+# Translation runs
 
-[`i18n/AGENTS.md`](../../../i18n/AGENTS.md) is the brief for translating *one*
-locale. This is the recipe for doing all of them at once without the result being
-inconsistent slop.
+[`i18n/AGENTS.md`](../../../i18n/AGENTS.md) is the brief for translating, and
+documents the worklist, the answer file and the rules. This is the recipe for
+running the whole thing: **plan → describe → glossary → translate → validate →
+apply → PR.** Every step is a command, and every command refuses to go on past
+a problem, so the recipe is mostly about what to do when one stops.
 
-The shape is: **describe → agree terminology → fan out → validate → apply.**
-The middle step is the one people skip, and it is the one that decides whether
-every locale uses the same word for a new product concept.
-
-Everything below assumes the repository root (the directory containing
-`server/` and `webapp/`). Scripts live in `scripts/` next to this file.
+Run from the repository root. The work directory, `/tmp/i18n-run` here, lives
+outside the repository.
 
 ## Which model
 
 Use the strongest model available for every step, and set it explicitly on
-each agent rather than inheriting — if the session is running something
-lesser, upgrade for this work.
+each agent rather than inheriting. A bad translation is very hard to recover
+from. It passes the checks, ships in a language the reviewer does not read,
+and is usually found by a user. Pay for the best output at the point it is
+produced.
 
-A bad translation is very hard to recover from. It passes every checker here,
-ships in a language the reviewer does not read, and is usually found by a
-user. Nothing downstream will catch it, so pay for the best output at the
-point it is produced.
-
-## 0. Establish the gap
-
-Extract, sync the catalogs to `en.json`, then measure.
+## 1. Plan
 
 ```bash
-cd webapp/channels && npm run i18n-extract && cd -
-cd server && make i18n-extract && cd -
-node .claude/skills/translate-i18n/scripts/apply_translations.mjs /tmp/i18n-run
-node .claude/skills/translate-i18n/scripts/build_manifest.mjs /tmp/i18n-run
+git fetch origin master
+git switch -c translations/$(date -u +%F) origin/master
+node i18n/scripts/plan.mjs /tmp/i18n-run
 ```
 
-Running `apply_translations.mjs` with nothing to apply is the sync: it seeds
-every `en.json` key that a catalog lacks as `""`, and prunes every key
-`en.json` no longer has. Afterwards each catalog holds exactly `en.json`'s keys,
-so **untranslated is a value, not a missing key** — and that makes the gap a
-per-locale fact rather than a union across all of them.
+For each surface and locale, the plan compares `en.json` with the catalog, and
+with `en.json` at the locale's entry in `i18n/baseline.json`. It prints one row
+per locale:
 
-`build_manifest.mjs` reads it back off the catalogs and writes
-`/tmp/i18n-run/gaps/<locale>.json`, one worklist per locale with the English and
-the description already merged in, plus `new_keys.json` holding the union for the
-description and glossary passes. If it reports zero, there is nothing to do.
+- **new**: keys with no translation.
+- **changed**: keys whose English changed since the baseline. Some are false
+  alarms, where the translation still fits, and the translator says so by
+  returning it unchanged.
+- **repair**: existing translations with a missing plural form or the wrong
+  form of address. Shown as taken/available, at most `--max-repairs`, 25 by
+  default, per surface and locale.
+- **carried**: renamed keys whose English and description are unchanged. The
+  translation moves across with no translator involved.
+- **pruned**: keys `en.json` no longer has.
 
-Read these numbers, not just the first:
+It stops, writing no plan, in two cases:
 
-- **untranslated** — the work. 300 keys is a normal feature merge; 5,000 means
-  something else went wrong and fanning out will just multiply it.
-- **removed** — keys `en.json` dropped. Expected after a merge, but a key you did
-  not expect to lose means `en.json` is wrong.
-- **seeded** — keys the catalogs never had.
-- **carried** — renames: translations moved to a new key whose English and
-  description are unchanged. They are not new work. **not carried** lists
-  renames whose description changed, which are translated again.
+- **Worklist keys with no description**, listed in
+  `/tmp/i18n-run/undescribed.json`. Go to step 2.
+- **An unusual gap**: more than 1,000 distinct new keys, or more than 300
+  changed or pruned, on one surface. A day of development does not produce
+  that; a bad merge, a broken extract or a renamed namespace does. Find out
+  which before going further. `--accept-unusual` is for a person who has
+  looked, never for an unattended run.
 
-## 1. Descriptions
+## 2. Descriptions
 
 A translator cannot render `Select` or `No recent session` without knowing
-where it appears. Every new key needs a `description` in its surface's
-`en.json` first.
+where it appears. Fill every key in `undescribed.json` by spawning agents over
+chunks of about 100 keys. Instruct each to find the call site in source, and to
+write where the string appears, what each placeholder refers to, and whatever
+disambiguates it: noun or verb, title or body, admin or end user. It must not
+restate the English. [`i18n/AGENTS.md`](../../../i18n/AGENTS.md#before-translating-the-english)
+has the rules and says which file each surface's description goes in.
 
-```bash
-cd webapp/channels && npm run i18n-extract && cd -
-cd server && make i18n-extract && cd -
-```
+This step reliably finds defects in the English: hardcoded constants, wrong
+prepositions, typos. A run never changes the English. Record each defect for
+the PR, and leave it for a PR of its own.
 
-That adds the new keys with empty descriptions. Fill them by spawning agents
-over chunks of ~100 keys, each instructed to **find the actual usage in
-source** rather than paraphrase the English. Chunk so no agent handles more
-than it can search carefully.
+Commit the descriptions on their own, then plan again.
 
-A description must say where the string appears, what each placeholder refers
-to, and any disambiguation a translator needs (noun or verb? title or body?
-admin or end user?). It must not restate the English.
+## 3. Glossary
 
-This step reliably surfaces bugs — hardcoded English constants, wrong
-prepositions, typos — because it is the first time anyone reads every new
-string next to its call site. Fix the English before translating it.
+Run the [glossary candidate pass](../../../i18n/AGENTS.md#glossary-candidates)
+over `/tmp/i18n-run/strings.json`, every new and changed English string, before
+any translator starts. Skipping it is the most expensive mistake available
+here. One agent per locale translating "exposure report" with no glossary entry
+produces one term per locale, each defensible, and nothing notices.
 
-Rebuild the manifest afterwards. The worklists carry the descriptions, so ones
-written now are only in the files the agents read if you regenerate them — and if
-you fixed any English, re-extract first:
+A run adds terms and never edits existing ones. Check the files with
+`node i18n/scripts/check_glossary.mjs`, commit the additions on their own, and
+list each new term in the PR. Plan again afterwards, so the worklists carry the
+new terms.
 
-```bash
-node .claude/skills/translate-i18n/scripts/build_manifest.mjs /tmp/i18n-run
-```
+## 4. Translate: one agent per locale
 
-## 2. Glossary candidates — do not skip this
+One agent per locale with a worklist in `/tmp/i18n-run/worklists/`. Do not give
+one agent several locales: quality drops when an agent switches between
+languages, and a per-locale agent calibrates against its own catalog.
 
-Run the glossary pass described in
-[`i18n/AGENTS.md`](../../../i18n/AGENTS.md#glossary-candidates). One agent
-proposes new terms; you agree them; they land in `i18n/glossary/` **before**
-any locale agent starts.
-
-Skipping this is the single highest-cost mistake available here. One agent per
-locale translating "exposure report" with no glossary entry will produce one
-term per locale, each individually defensible, and no checker will notice.
-
-## 3. Fan out, one agent per locale
-
-One agent per locale, not one agent per batch of locales. Translation quality
-drops when a single agent context-switches between languages, and per-locale
-agents can each calibrate against their own existing catalog.
-
-Give every agent:
+Give each agent:
 
 - the repository root, and an instruction to read `i18n/AGENTS.md` first
-- `i18n/glossary/<locale>.json` plus `i18n/glossary/en.json`
-- `/tmp/i18n-run/gaps/<locale>.json` — that locale's worklist alone, English
-  and descriptions already merged in. It is deliberately not the union: a locale
-  that already has a string is not asked for it again, and the validator in step
-  4 checks the answer against this file
-- **that locale's plural categories for both surfaces** — the webapp's from
-  `new Intl.PluralRules(locale).resolvedOptions().pluralCategories`, and a
-  warning that the server's go-i18n may require fewer, which only
-  `make i18n-verify` decides. An agent that guesses will fail it
-- an instruction to calibrate register against the existing
-  `webapp/channels/src/i18n/<locale>.json`
-- a single output path, `{"webapp": {...}, "server": {...}}`
+- `/tmp/i18n-run/worklists/<locale>.json`, which already carries the English,
+  descriptions, glossary terms, plural forms, form of address and nearby
+  translations
+- the single file it writes, `/tmp/i18n-run/translations/<locale>.json`, and the
+  command to check it, `node i18n/scripts/validate.mjs /tmp/i18n-run <locale>`,
+  to run until it reports no errors
+- an instruction to change no file in the repository
 
-Tell each agent to write only to its output path and to modify no repository
-file. One agent per locale editing catalogs concurrently will corrupt them.
+An agent that cannot get a locale to validate leaves no answer file; that
+locale waits for the next run. Do not have an agent edit a catalog directly.
 
-Locales worth extra care in the prompt: `hu`/`tr`/`ko` (agglutination and
-particles — tell them to rephrase rather than suffix an interpolated value), and
-`en-AU` (localisation, not translation — most strings should come back
-unchanged).
-
-## 4. Validate before applying
+## 5. Validate
 
 ```bash
-node .claude/skills/translate-i18n/scripts/validate_translations.mjs /tmp/i18n-run <locale>
+node i18n/scripts/validate.mjs /tmp/i18n-run
 ```
 
-Checks key parity, ICU parse with the runtime parser, variable and tag parity
-in both directions, argument-type parity, plural categories for the locale,
-the apostrophe trap, and English left untranslated. Step 5 runs the same check
-on every payload and applies nothing if any has an error, so this step is for
-iterating on one locale's output, not a gate you have to remember.
+Every error names the key and the rule. Read the `acknowledge` reasons too.
+"Product name" for a string that is not one is a translator silencing a check.
+Send it back.
 
-"Identical to English" is reported as a warning, not an error, because product
-names, protocol acronyms and pure-placeholder strings legitimately match. Read
-the list; do not assume.
-
-## 5. Apply and verify for real
+## 6. Apply
 
 ```bash
-node .claude/skills/translate-i18n/scripts/apply_translations.mjs /tmp/i18n-run
-cd webapp/channels && npm run i18n-verify-translations && cd -
-cd tools/mmgotool && go run . i18n verify --server-dir=../../server && cd -
+node i18n/scripts/apply.mjs /tmp/i18n-run
 ```
 
-This is the same command as step 0 — it is one pipeline, run twice. Every catalog
-on both surfaces goes through the same four phases whatever the payload contains:
+All or nothing, in order:
 
-1. **add** the translations the payload supplies. An existing translation is never
-   overwritten, so re-running is safe.
-2. **seed** every remaining `en.json` key as `""`.
-3. **order** each catalog as it already is: code-point key order on the webapp,
-   which the checker enforces; on the server, existing ids stay put and new ones
-   are appended. Either way a run's diff is only what it adds or prunes.
-4. **prune** the keys `en.json` no longer has, recording what they said in
-   `/tmp/i18n-run/pruned/<locale>.json`.
+1. It refuses a plan the catalogs, `en.json` or the baseline have moved away
+   from.
+2. It validates every answer file, and applies nothing if any has an error.
+3. It writes every catalog: answers, carried renames, pruned keys. A rename
+   still waiting on a translator keeps its old key, whose translation the next
+   plan offers.
+4. It runs both CI checkers, and restores every file if either fails.
+5. It moves the baseline to the plan's base for each surface and locale with
+   nothing left: one with an answer file, or with only repairs. A locale left
+   out keeps its baseline, so the next plan finds the same work again.
 
-It preserves the 2-space/trailing-newline convention and only writes a file
-whose content actually changed, so a run with nothing to do leaves no diff.
+It writes `/tmp/i18n-run/report.md` for the PR, and `pruned.json` with the
+translations pruning removed. Commit the catalogs and `i18n/baseline.json`
+together.
 
-The **untranslated** count is what tells you whether you are finished. It should
-be zero here; anything else is a key an agent skipped, still sitting in the
-catalog as `""`. Go back and get it translated rather than reverting it.
+## 7. The pull request
 
-Pruning is the normal way a key retired from `en.json` leaves the catalogs —
-a rename upstream orphans the old id in every catalog — so it needs no flag and is not
-an error. Read the summary anyway: every removal is counted and named there,
-and a key you did not expect to lose is the signal that `en.json` is wrong.
+Run what CI runs:
 
-Both verify commands must pass exactly as written, with no flags. A `""` left by
-step 0's seeding fails them, and fails CI too.
+```bash
+node i18n/scripts/check_pr.mjs
+node i18n/scripts/check_glossary.mjs
+```
 
-## Pitfalls
+`check_pr.mjs` re-derives the plan from where the branch left master, and fails
+the run if it does anything else. That means any change to the English, to a key
+outside its worklist, to an existing glossary term, or to a file other than the
+catalogs, `en.json` descriptions, the glossary and the baseline. It also fails a
+baseline entry moved anywhere but the base, or moved with new keys still
+untranslated.
 
-- **Do not let agents edit catalogs directly.** Collect JSON, apply centrally.
-- **Do not skip step 2.** See above.
-- **`en-AU` is not a translation.** Expect ~2 changed strings out of 300, and
-  be suspicious of an agent that returns more.
-- **A renamed key keeps its translations.** When a key leaves `en.json` and one
-  missing key now has exactly its English and description, apply carries each
-  locale's translation across and reports it as **carried**. A rename whose
-  English or description also changed is not carried: a clarified description
-  can mean the old translation had the wrong sense.
-- **Translate only what is missing.** `build_manifest.mjs` deliberately emits
-  only the gap, and `apply_translations.mjs` refuses to overwrite. Resist
-  widening the scope to "improve" existing translations in the same pass: two
-  independent runs over the same 200 strings agreed just 38% of the time, both
-  structurally valid. Re-translating produces a large diff that is neither
-  better nor reviewable.
+The PR body is `report.md`. It lists, per locale, what was translated, kept,
+repaired, carried and pruned, and the locales left for the next run. It also
+holds every acknowledgment and note. Add the new glossary terms and the English
+defects found in step 2. The reviewer, who reads few of these languages, checks
+those lists.
+
+## Running unattended
+
+A daily run with no person in the loop follows everything above, and also:
+
+- **One open translation PR at a time.** If one is open, stop. When it merges,
+  the next plan picks up everything since, because each locale's baseline says
+  where it stopped.
+- **Stop rather than improvise.** An unusual plan, an `apply.mjs` that restores
+  the catalogs, or a `check_pr.mjs` failure ends the run with a report, not a
+  workaround. Never pass `--accept-unusual`, `--no-verify` or `--base`, and
+  never edit `plan.json`, a worklist or `i18n/baseline.json` by hand.
+- **Never change the English, `i18n/style.json`, or an existing glossary
+  term.** Report a defect in a note instead. CI enforces all three.
+- **An acknowledgment is a specific reason**, such as "SAML stays in English
+  here, as in admin.saml.title", never a formula.
+- **Partial is fine.** Drop a locale that will not validate and ship the rest;
+  `report.md` names what was left.
+- **Keep the commits apart**: descriptions, glossary terms, translations. Each
+  is reviewed differently.
