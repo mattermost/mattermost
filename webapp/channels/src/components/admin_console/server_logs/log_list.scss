@@ -3,7 +3,6 @@
 
     .DataGrid {
         .DataGrid_search {
-            // Reload/Download + errors need room beside search/Filters.
             height: auto;
             min-height: 48px;
         }
@@ -19,18 +18,6 @@
             width: 100%;
             align-items: center;
             cursor: pointer;
-        }
-    }
-
-    .logs-panel__toolbar-actions {
-        display: flex;
-        flex-shrink: 0;
-        align-items: center;
-        gap: var(--spacing-xs); // 8px
-
-        // Prefer flex gap over global `.btn + .btn { margin-left }`.
-        > .btn {
-            margin-left: 0;
         }
     }
 
@@ -50,5 +37,18 @@
         color: var(--dnd-indicator);
         font-weight: bold;
         line-height: 16px;
+    }
+}
+
+.plain-log-list {
+    .logs-panel__toolbar-actions {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        gap: var(--spacing-xs);
+
+        > .btn {
+            margin-left: 0;
+        }
     }
 }

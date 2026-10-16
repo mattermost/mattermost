@@ -64,14 +64,29 @@ describe('components/admin_console/server_logs/Logs', () => {
         expect(screen.getByRole('radiogroup', {name: /Log Format/i})).toBeInTheDocument();
         expect(container.querySelector('.LogTable .DataGrid')).toBeInTheDocument();
 
-        const toolbar = container.querySelector('.logs-panel__toolbar-actions');
-        expect(toolbar).toBeInTheDocument();
-        expect(toolbar).toContainElement(screen.getByRole('button', {name: /Show last/i}));
-        expect(toolbar).toContainElement(screen.getByRole('button', {name: /Reload Logs/i}));
-        expect(toolbar).toContainElement(screen.getByRole('link', {name: /Download Logs/i}));
-        expect(container.querySelector('.DataGrid_search')?.contains(toolbar)).toBe(true);
+        const primaryToolbar = container.querySelector('.logs-panel__toolbar');
+        expect(primaryToolbar).toBeInTheDocument();
+        expect(primaryToolbar).toContainElement(screen.getByRole('radiogroup', {name: /Log Format/i}));
+        expect(primaryToolbar).toContainElement(screen.getByRole('button', {name: /Reload Logs/i}));
+        expect(primaryToolbar).toContainElement(screen.getByRole('link', {name: /Download Logs/i}));
+
+        expect(container.querySelector('.DataGrid_search')).toContainElement(
+            screen.getByRole('button', {name: /Show last/i}),
+        );
 
         expect(container).toMatchSnapshot();
+    });
+
+    test('should show search and show-errors for plain text mode', async () => {
+        await userEvent.click(screen.getByRole('radio', {name: /Plain text/i}));
+
+        await waitFor(() => {
+            expect(screen.getByTestId('searchInput')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /Show last/i})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /Reload Logs/i})).toBeInTheDocument();
+            expect(screen.getByRole('link', {name: /Download Logs/i})).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /Filters/i})).not.toBeInTheDocument();
+        });
     });
 
     test.each(['caller', 'msg', 'worker', 'job_id', 'whatever'])('should search input be performed on %s attribute',

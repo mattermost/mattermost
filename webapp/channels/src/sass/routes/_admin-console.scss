@@ -1204,19 +1204,36 @@
         flex: 1;
         flex-direction: column;
 
-        // Log format sits in the panel body under the subtitle, above the table.
+        // Primary toolbar: Log Format (start) + Reload/Download (end) for both modes.
+        .logs-panel__toolbar {
+            display: flex;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-m);
+            gap: var(--spacing-s);
+        }
+
+        .logs-panel__toolbar-start {
+            display: flex;
+            min-width: 0;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--spacing-s);
+        }
+
         .logs-panel__log-format {
             display: flex;
             flex-shrink: 0;
             align-items: center;
-            margin-bottom: var(--spacing-m);
-            gap: 8px;
+            gap: var(--spacing-xs);
 
             label {
                 display: inline-flex;
                 align-items: center;
                 margin-bottom: 0;
-                gap: 8px;
+                gap: var(--spacing-xs);
 
                 input[type="radio"] {
                     margin-top: 0;
@@ -1234,11 +1251,6 @@
             > .btn {
                 margin-left: 0;
             }
-        }
-
-        .plain-log-list__toolbar {
-            justify-content: flex-end;
-            margin-bottom: var(--spacing-m);
         }
 
         // Stretch Compass collapse/body so LogTable can fill remaining height.
@@ -1287,6 +1299,19 @@
         min-height: 0;
         flex: 1;
         flex-direction: column;
+
+        // Match DataGrid search row chrome above the plain log panel.
+        .DataGrid_search {
+            height: auto;
+            min-height: 48px;
+            margin-bottom: 0;
+            background: transparent;
+        }
+
+        .log__panel {
+            min-height: 0;
+            flex: 1;
+        }
     }
 }
 
