@@ -1,6 +1,8 @@
 .job-table__data-retention {
     .job-table__table {
-        border: none;
+        // Match AdminPanel table scroll chrome (e.g. compliance-panel__table).
+        border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+        border-radius: var(--radius-m);
     }
 
     .table > thead > tr > th,
