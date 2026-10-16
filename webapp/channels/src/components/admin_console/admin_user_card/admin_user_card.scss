@@ -122,18 +122,18 @@ input.AdminUserCard__picture-input[type='file'] {
 .AdminUserCard__user-nickname {
     color: rgba(var(--center-channel-color-rgb), 0.75);
     font-family: var(--font-family-body);
-    font-size: var(--font-size-100);
+    font-size: var(--font-size-75);
     font-weight: var(--font-weight-regular);
-    line-height: var(--line-height-100);
+    line-height: var(--line-height-75);
 }
 
 .AdminUserCard__user-id {
     margin: 0;
     color: rgba(var(--center-channel-color-rgb), 0.75);
     font-family: var(--font-family-body);
-    font-size: var(--font-size-100);
+    font-size: var(--font-size-75);
     font-weight: var(--font-weight-regular);
-    line-height: var(--line-height-100);
+    line-height: var(--line-height-75);
 }
 
 .AdminUserCard__body {
