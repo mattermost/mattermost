@@ -11,6 +11,11 @@ The short version:
   non-English catalogs. Prefer the `translate-i18n` skill to fill translations;
   manual fixes from a native speaker are welcome too, ideally with the corrected
   term added to [`i18n/glossary/`](../../../../i18n/glossary/).
+- CI holds every translation a PR adds or changes to the rules in
+  `i18n/AGENTS.md`, which are stricter than the checkers: a plural missing a
+  form the locale uses fails, for example. Run
+  `node i18n/scripts/check_pr.mjs` from the repository root to see what it
+  will say.
 - `en.json` is generated from source, except for each key's `description`.
   Keys and English come from the `defaultMessage` at each call site: change the
   source string and run `npm run i18n-extract` from `webapp/channels`, never
