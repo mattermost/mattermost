@@ -19,6 +19,12 @@ func versionDiag(version *string) *model.SupportPacketDiagnostics {
 	return diag
 }
 
+func typedVersionDiag(dbType, version string) *model.SupportPacketDiagnostics {
+	diag := versionDiag(&version)
+	diag.Database.Type = &dbType
+	return diag
+}
+
 func poolDiag(inUse, idle *int, replicaConnections int) *model.SupportPacketDiagnostics {
 	diag := &model.SupportPacketDiagnostics{}
 	diag.Database.MasterConnectionsInUse = inUse
@@ -50,6 +56,8 @@ func TestDBPostgresUnsupported(t *testing.T) {
 		{"16", newSnapshot(defaultConfig(), nil, versionDiag(new("16"))), resolvedWant},
 		{"garbage", newSnapshot(defaultConfig(), nil, versionDiag(new("garbage"))), unknownDiagWant},
 		{"empty", newSnapshot(defaultConfig(), nil, versionDiag(new(""))), unknownDiagWant},
+		{"postgres type", newSnapshot(defaultConfig(), nil, typedVersionDiag(model.DatabaseDriverPostgres, "14.9")), firing},
+		{"mysql type", newSnapshot(defaultConfig(), nil, typedVersionDiag("mysql", "8.0.36")), unknownDiagWant},
 	}
 
 	for _, tc := range testCases {

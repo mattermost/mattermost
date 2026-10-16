@@ -65,6 +65,7 @@ func TestDBHAFailoverStormRisk(t *testing.T) {
 		{"redacted dsn above 400", newSnapshot(clusterConfig(200, model.FakeSetting), nil, clusterDiag(new(3))), unknownConfigWant},
 		{"pgbouncer host", newSnapshot(clusterConfig(200, "postgres://****:****@pgbouncer.internal:6432/mattermost"), nil, clusterDiag(new(3))), resolvedWant.withValue(600)},
 		{"keyword form pooler host", newSnapshot(clusterConfig(200, "host=PGPool.example.com port=5432 dbname=mattermost"), nil, clusterDiag(new(3))), resolvedWant.withValue(600)},
+		{"pooler in a host list", newSnapshot(clusterConfig(200, "postgres://****:****@pgbouncer-a.internal:6432,pgbouncer-b.internal:6432/mattermost"), nil, clusterDiag(new(3))), resolvedWant.withValue(600)},
 		{"pooler only in the path", newSnapshot(clusterConfig(200, "postgres://****:****@db.example.com:5432/pooler"), nil, clusterDiag(new(3))), firing.withValue(600)},
 	}
 
