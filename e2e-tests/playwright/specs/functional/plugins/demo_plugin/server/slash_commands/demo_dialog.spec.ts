@@ -95,6 +95,10 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
         if (attempt === 6) {
             await recoverDemoPlugin(adminClient);
         }
+        // A previous submit may have succeeded after its wait timed out — don't click again.
+        if (attempt > 0 && !(await dialog.isVisible())) {
+            break;
+        }
         await dialog.getByRole('button', {name: 'Submit'}).click();
         try {
             await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
@@ -198,6 +202,9 @@ test('should post cancellation notification when /dialog is cancelled', async ({
 });
 
 test('should show validation errors when required fields are submitted empty', async ({pw}) => {
+    // The dialog-open retries below can span a plugin recovery cycle; leave room for them.
+    test.setTimeout(duration.four_min);
+
     // # Setup
     const {user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
@@ -242,6 +249,9 @@ test('should show validation errors when required fields are submitted empty', a
 });
 
 test('should show general error and keep dialog open on /dialog error submit', async ({pw}) => {
+    // The dialog-open retries below can span a plugin recovery cycle; leave room for them.
+    test.setTimeout(duration.four_min);
+
     // # Setup
     const {user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
@@ -288,6 +298,9 @@ test('should show general error and keep dialog open on /dialog error submit', a
 });
 
 test('should show general error on /dialog error-no-elements confirm', async ({pw}) => {
+    // The dialog-open retries below can span a plugin recovery cycle; leave room for them.
+    test.setTimeout(duration.four_min);
+
     // # Setup
     const {user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();

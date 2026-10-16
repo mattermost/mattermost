@@ -110,6 +110,10 @@ test('should update form fields dynamically when project type changes via /dialo
         if (attempt === 6) {
             await recoverDemoPlugin(adminClient);
         }
+        // A previous submit may have succeeded after its wait timed out — don't click again.
+        if (attempt > 0 && !(await dialog.isVisible())) {
+            break;
+        }
         await dialog.getByRole('button', {name: 'Create Project'}).click();
         try {
             await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});

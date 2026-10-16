@@ -18,9 +18,9 @@ test('should open right-hand sidebar when demo plugin App Bar button is clicked'
     // recovery cycle — the App Bar icon can briefly disappear or no-op mid reconnect)
     const rhsPanel = channelsPage.page.getByRole('region', {name: 'Demo Plugin'});
     for (let attempt = 0; attempt < 4; attempt++) {
-        await expect(channelsPage.appBar.demoPluginButton).toBeVisible();
-        await channelsPage.appBar.demoPluginButton.click();
         try {
+            await expect(channelsPage.appBar.demoPluginButton).toBeVisible();
+            await channelsPage.appBar.demoPluginButton.click();
             await expect(rhsPanel).toBeVisible({timeout: duration.ten_sec});
             break;
         } catch (err) {

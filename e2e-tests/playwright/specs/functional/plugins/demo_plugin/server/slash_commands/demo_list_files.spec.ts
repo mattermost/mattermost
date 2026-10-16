@@ -8,8 +8,9 @@ import {demoPluginId, duration, expect, getFileFromAsset, test} from '@mattermos
 
 async function sendSlashCommand(page: Page, send: () => Promise<void>, adminClient: Client4): Promise<void> {
     // Slash commands hit POST /api/v4/commands/execute — not POST /posts (see web client executeCommand).
-    // Retry once if the server returns 500 (plugin transiently inactive between setup and first use).
-    for (let attempt = 0; attempt < 2; attempt++) {
+    // Retry if the server returns 500 (plugin transiently inactive between setup and first use) or
+    // 404 (the plugin is up but its slash commands aren't registered yet).
+    for (let attempt = 0; attempt < 3; attempt++) {
         const responsePromise = page.waitForResponse(
             (r) => r.url().includes('/api/v4/commands/execute') && r.request().method() === 'POST',
             {timeout: duration.half_min},
@@ -18,8 +19,8 @@ async function sendSlashCommand(page: Page, send: () => Promise<void>, adminClie
         if (response.ok()) {
             return;
         }
-        if (attempt === 0 && response.status() === 500) {
-            // Plugin may be transiently inactive — re-enable and retry.
+        if (attempt < 2 && (response.status() === 500 || response.status() === 404)) {
+            // Plugin may be transiently inactive or still registering commands — re-enable and retry.
             try {
                 await adminClient.enablePlugin(demoPluginId);
                 await new Promise((r) => setTimeout(r, 1500));

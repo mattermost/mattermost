@@ -8,9 +8,9 @@ import {sendDemoSlashCommand} from '../../helpers';
 test('should send ephemeral post with Update and Delete actions via /ephemeral command', async ({pw}) => {
     // A concurrent plugin_crash.spec.ts worker can leave the demo plugin's post-action hooks
     // broken for up to ~50s while it crashes and fully recovers the shared plugin (see that
-    // spec for the recovery budget the retries below are sized against). test.slow() triples
-    // the test timeout so those retries have room to outlast that window.
-    test.slow();
+    // spec for the recovery budget the retries below are sized against). An explicit four-minute
+    // timeout leaves room for setup, UI actions and those retries to outlast that window.
+    test.setTimeout(duration.four_min);
 
     // # Setup
     const {user, team} = await pw.initSetup();
@@ -64,6 +64,10 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
         .filter({hasText: 'updated ephemeral action'})
         .last();
     for (let attempt = 0; attempt < 8; attempt++) {
+        // A previous click may have taken effect after its wait timed out — don't click again.
+        if (attempt > 0 && (await updatedPost.getByText('updated ephemeral action', {exact: true}).isVisible())) {
+            break;
+        }
         await ephemeralPost.getByRole('button', {name: 'Update', exact: true}).click();
         try {
             await expect(updatedPost.getByText('updated ephemeral action', {exact: true})).toBeVisible({
@@ -89,6 +93,10 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
         .filter({hasText: '(message deleted)'})
         .last();
     for (let attempt = 0; attempt < 8; attempt++) {
+        // A previous click may have taken effect after its wait timed out — don't click again.
+        if (attempt > 0 && (await deletedPost.getByText('(message deleted)', {exact: true}).isVisible())) {
+            break;
+        }
         await updatedPost.getByRole('button', {name: 'Delete', exact: true}).click();
         try {
             await expect(deletedPost.getByText('(message deleted)', {exact: true})).toBeVisible({
