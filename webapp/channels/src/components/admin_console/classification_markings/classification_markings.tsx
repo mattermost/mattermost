@@ -6,6 +6,7 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
+import {PlusIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
@@ -24,11 +25,13 @@ import type {ValueType} from 'components/dropdown_input';
 import LoadingScreen from 'components/loading_screen';
 import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {getHistory} from 'utils/browser_history';
 
 import {
+    AddLevelButton,
+    AddLevelButtonRow,
     InformationNoticeWrapper,
     PresetDropdownWrapper,
 } from './classification_markings_styled';
@@ -822,12 +825,10 @@ export default function ClassificationMarkings({disabled}: Props) {
                 </form>
 
                 {enabled && (
-                    <AdminPanelWithButton
+                    <AdminPanel
                         id='classification_levels'
                         title={msg.levelsTitle}
                         subtitle={msg.levelsDescription}
-                        buttonText={readOnly ? undefined : msg.levelsAdd}
-                        onButtonClick={readOnly ? undefined : addLevel}
                     >
                         <ClassificationLevelsTable
                             levels={levels}
@@ -836,7 +837,15 @@ export default function ClassificationMarkings({disabled}: Props) {
                             onReorder={handleReorder}
                             disabled={readOnly}
                         />
-                    </AdminPanelWithButton>
+                        {!readOnly && (
+                            <AddLevelButtonRow>
+                                <AddLevelButton onClick={addLevel}>
+                                    <PlusIcon size={14}/>
+                                    <FormattedMessage {...msg.levelsAdd}/>
+                                </AddLevelButton>
+                            </AddLevelButtonRow>
+                        )}
+                    </AdminPanel>
                 )}
 
                 {enabled && (

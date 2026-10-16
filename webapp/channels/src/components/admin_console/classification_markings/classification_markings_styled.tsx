@@ -3,6 +3,8 @@
 
 import styled from 'styled-components';
 
+import {Button} from '@mattermost/shared/components/button';
+
 export const GlobalBannerSectionSetting = styled.div`
     min-height: 36px;
 
@@ -66,6 +68,20 @@ export const PresetDropdownWrapper = styled.div`
             font-size: 16px;
             line-height: 16px;
         }
+    }
+`;
+
+export const AddLevelButtonRow = styled.div`
+    margin-top: 16px;
+    margin-left: 16px;
+`;
+
+export const AddLevelButton = styled(Button).attrs({
+    type: 'button',
+    emphasis: 'tertiary',
+})`
+    && {
+        padding-inline: 16px;
     }
 `;
 
