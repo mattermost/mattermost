@@ -36,7 +36,7 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--spacing-xxl);
-    margin-bottom: -32px;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     background: rgba(var(--center-channel-color-rgb), 0.04);
     gap: var(--spacing-m);
 }
@@ -46,6 +46,7 @@
     min-width: 0;
     flex: 1 1 auto;
     align-items: center;
+    margin-bottom: calc(-1 * (var(--spacing-xxl) + var(--spacing-xs))); // -32px
     gap: var(--admin-user-card-header-gap);
 }
 
@@ -148,7 +149,6 @@ input.AdminUserCard__picture-input[type='file'] {
     flex: 1 1 auto;
 
     // Match the header title stack: card padding + avatar + header gap.
-    // Top padding restored so fields clear the header's -32px overlap.
     padding: var(--spacing-xxl);
     padding-left: calc(var(--spacing-xxl) + var(--admin-user-card-avatar-size) + var(--admin-user-card-header-gap));
     background: var(--center-channel-bg);
