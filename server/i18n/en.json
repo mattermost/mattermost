@@ -14378,18 +14378,18 @@
   },
   {
     "id": "health.rule.max_notifications_per_channel.message",
-    "translation": "A single @channel in a large channel fans out thousands of notifications at once, which causes latency spikes.",
-    "description": "Health dashboard finding detail when the per-channel notification limit is above 5000; '@channel' is a Mattermost mention and should not be translated."
+    "translation": "@channel, @all and @here are allowed in channels with more than 5000 members. A single channel-wide mention there fans out thousands of notifications at once, which causes latency spikes.",
+    "description": "Health dashboard finding detail when the per-channel notification limit is above 5000; '@channel', '@all' and '@here' are Mattermost mentions and should not be translated."
   },
   {
     "id": "health.rule.max_notifications_per_channel.remediation",
-    "translation": "Keep TeamSettings.MaxNotificationsPerChannel at or below 1000 (the default) unless the user population demands otherwise. The same limit also governs typing indicators: clients stop sending typing events in channels with at least this many members, so raising it also raises typing event fan-out.",
-    "description": "Health dashboard fix-it step for a high per-channel notification limit; 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and should not be translated."
+    "translation": "Lower TeamSettings.MaxNotificationsPerChannel to 5000 or less (the default is 1000). @channel, @all and @here are disabled in channels with more members than this limit, so check with the teams that use them in large channels first.",
+    "description": "Health dashboard fix-it step for a high per-channel notification limit; 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and '@channel', '@all' and '@here' are Mattermost mentions, none should be translated."
   },
   {
     "id": "health.rule.max_notifications_per_channel.title",
-    "translation": "TeamSettings.MaxNotificationsPerChannel is above 5000",
-    "description": "Health dashboard finding title when the per-channel notification limit is above 5000; 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and should not be translated."
+    "translation": "Channel-wide mentions allowed in very large channels",
+    "description": "Health dashboard finding title when the per-channel notification limit is above 5000, so @channel, @all and @here work in channels with more than 5000 members; '@channel', '@all' and '@here' are Mattermost mentions and should not be translated."
   },
   {
     "id": "health.rule.push_bad_scheme.message.http",
@@ -14428,12 +14428,12 @@
   },
   {
     "id": "health.rule.push_id_only.message",
-    "translation": "PushNotificationContents is set to full, so the message text and sender are included in the push payload, which travels through the Apple and Google push services.",
+    "translation": "PushNotificationContents is set to full, so the message text and sender are included in the push payload, which travels through the push proxy and the Apple and Google push services.",
     "description": "Health dashboard finding detail when push notifications carry the full message text; 'PushNotificationContents' is a config setting name and 'full' is its value, neither should be translated."
   },
   {
     "id": "health.rule.push_id_only.remediation",
-    "translation": "For maximum push privacy, set EmailSettings.PushNotificationContents to id_loaded. Only a message ID is sent, and the mobile app fetches the message content from the server.",
+    "translation": "For maximum push privacy, set EmailSettings.PushNotificationContents to id_loaded. Only a message ID is sent, and the mobile app fetches the message content from the server. Mobile devices must then be able to reach the server when a notification arrives, so on servers only reachable through a VPN or internal network, notifications can't show message content. If full is a deliberate choice, mute this finding.",
     "description": "Health dashboard fix-it step for push notifications that carry the full message text; 'EmailSettings.PushNotificationContents' is the config setting path and 'id_loaded' is its value, neither should be translated."
   },
   {
