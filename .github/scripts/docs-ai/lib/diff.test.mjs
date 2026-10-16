@@ -108,3 +108,28 @@ test('unifiedDiff on a long page reports the insertion and not the unchanged hea
   assert.doesNotMatch(diff, /\+line 4999\b/);
   assert.doesNotMatch(diff, /-line 0\b/);
 });
+
+test('unifiedDiff treats an empty original as an existing file', () => {
+  const path = 'docs/main/a.mdx';
+  const diff = unifiedDiff([{path, content: 'Hello\n'}], [{path, content: ''}]);
+  assert.match(diff, /^--- a\/docs\/main\/a\.mdx$/m);
+  assert.match(diff, /^\+Hello$/m);
+});
+
+test('unifiedDiff reports a change to the trailing newline only', () => {
+  const path = 'docs/main/a.mdx';
+  const diff = unifiedDiff([{path, content: 'Body\n'}], [{path, content: 'Body'}]);
+  assert.match(diff, /No newline at end of file/);
+});
+
+test('unifiedDiff joins new and edited files', () => {
+  const diff = unifiedDiff(
+    [
+      {path: 'docs/main/new.mdx', content: 'New\n'},
+      {path: 'docs/main/a.mdx', content: 'One\nTwo\n'},
+    ],
+    [{path: 'docs/main/a.mdx', content: 'One\n'}],
+  );
+  assert.match(diff, /^\+New\n(?=diff --git a\/docs\/main\/a\.mdx)/m);
+  assert.match(diff, /^\+Two$/m);
+});
