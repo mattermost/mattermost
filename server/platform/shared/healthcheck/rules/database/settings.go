@@ -98,22 +98,6 @@ var dbQueryTimeoutHigh = healthcheck.Rule{
 	Eval:       evalDBQueryTimeoutHigh,
 }
 
-var dbReplicaLagUnmonitored = healthcheck.Rule{
-	Code:     "DB_REPLICA_LAG_UNMONITORED",
-	Area:     model.AreaDatabase,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.db_replica_lag_unmonitored.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.db_replica_lag_unmonitored.remediation"),
-		DocsURL:       databaseDocsURL,
-		ConsolePath:   databaseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "SqlSettings.ReplicaLagSettings",
-	Eval:       evalDBReplicaLagUnmonitored,
-}
-
 var dbIdleExceedsOpen = healthcheck.Rule{
 	Code:     "DB_IDLE_EXCEEDS_OPEN",
 	Area:     model.AreaDatabase,
@@ -225,27 +209,6 @@ func evalDBQueryTimeoutHigh(s *healthcheck.Snapshot) []healthcheck.Result {
 	case timeout >= highQueryTimeout:
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_query_timeout_high.message")).
 			WithDetail("timeout", strconv.Itoa(timeout))}
-	default:
-		return resolved()
-	}
-}
-
-// Replica lag is only computed inside the metrics collector, so it needs metrics on to matter.
-func evalDBReplicaLagUnmonitored(s *healthcheck.Snapshot) []healthcheck.Result {
-	cfg, ok := config(s)
-	if !ok {
-		return unknownConfig()
-	}
-	if len(cfg.SqlSettings.DataSourceReplicas) == 0 {
-		return resolved()
-	}
-
-	metrics, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.MetricsSettings.Enable })
-	switch {
-	case !ok:
-		return unknownConfig()
-	case metrics && len(cfg.SqlSettings.ReplicaLagSettings) == 0:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_replica_lag_unmonitored.message"))}
 	default:
 		return resolved()
 	}

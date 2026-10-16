@@ -14462,21 +14462,6 @@
     "description": "Health dashboard finding title when the database query timeout is well above its 30 second default. 'SqlSettings.QueryTimeout' is a setting name and should not be translated."
   },
   {
-    "id": "health.rule.db_replica_lag_unmonitored.message",
-    "translation": "Read replicas and metrics are enabled, but no replica lag queries are defined, so you can't alert when a replica falls behind and starts serving stale reads.",
-    "description": "Health dashboard finding detail when read replicas are configured without replica lag monitoring."
-  },
-  {
-    "id": "health.rule.db_replica_lag_unmonitored.remediation",
-    "translation": "Configure ReplicaLagSettings with a per-replica lag query, and scrape it via Prometheus.",
-    "description": "Health dashboard fix-it step when read replicas are configured without replica lag monitoring. 'ReplicaLagSettings' is a setting name and 'Prometheus' is a product name; do not translate them."
-  },
-  {
-    "id": "health.rule.db_replica_lag_unmonitored.title",
-    "translation": "SqlSettings.ReplicaLagSettings not configured",
-    "description": "Health dashboard finding title when read replicas are configured without replica lag monitoring. 'SqlSettings.ReplicaLagSettings' is a setting name and should not be translated."
-  },
-  {
     "id": "health.rule.db_replica_unused.message",
     "translation": "DataSourceReplicas is set but no replica is connected. The replica is unreachable or misconfigured, and reads are falling back to the primary.",
     "description": "Health dashboard finding detail when read replicas are configured but none is connected. 'DataSourceReplicas' is a setting name and should not be translated."

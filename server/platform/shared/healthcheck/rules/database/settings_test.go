@@ -180,43 +180,6 @@ func TestDBQueryTimeoutHigh(t *testing.T) {
 	}
 }
 
-func TestDBReplicaLagUnmonitored(t *testing.T) {
-	t.Parallel()
-
-	replicas := func(metrics *bool, lag []*model.ReplicaLagSettings) *model.Config {
-		cfg := defaultConfig()
-		cfg.SqlSettings.DataSourceReplicas = []string{replicaDSN}
-		cfg.SqlSettings.ReplicaLagSettings = lag
-		cfg.MetricsSettings.Enable = metrics
-		return cfg
-	}
-
-	noReplicas := defaultConfig()
-	noReplicas.MetricsSettings.Enable = new(true)
-
-	lag := []*model.ReplicaLagSettings{{DataSource: new(model.FakeSetting), QueryAbsoluteLag: new("select 1")}}
-
-	testCases := []struct {
-		name     string
-		snapshot *healthcheck.Snapshot
-		want     want
-	}{
-		{"config absent", newSnapshot(nil, nil, nil), unknownConfigWant},
-		{"replicas, metrics on, no lag settings", newSnapshot(replicas(new(true), nil), nil, nil), firingWant("health.rule.db_replica_lag_unmonitored.message")},
-		{"replicas, metrics on, redacted lag settings", newSnapshot(replicas(new(true), lag), nil, nil), resolvedWant},
-		{"replicas, metrics off", newSnapshot(replicas(new(false), nil), nil, nil), resolvedWant},
-		{"replicas, metrics unset", newSnapshot(replicas(nil, nil), nil, nil), unknownConfigWant},
-		{"no replicas", newSnapshot(noReplicas, nil, nil), resolvedWant},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			assertResult(t, dbReplicaLagUnmonitored, tc.snapshot, tc.want)
-		})
-	}
-}
-
 func TestDBIdleExceedsOpen(t *testing.T) {
 	t.Parallel()
 
