@@ -2,6 +2,13 @@
 // See LICENSE.txt for license information.
 
 .ContentFlaggingSettings {
+    // Single enable BooleanSetting under form-horizontal: keep label/radio
+    // padding alignment, but drop the default 25px form-group margin — sibling
+    // spacing comes from admin-console__content gap.
+    .admin-console__setting-group > .form-group {
+        margin-bottom: 0;
+    }
+
     .content-flagging-section-setting {
         display: flex;
     }
