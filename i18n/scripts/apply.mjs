@@ -23,7 +23,7 @@ import path from 'path';
 import {parseArgs} from 'util';
 
 import {BASELINE, catalogPath, parseCatalog, readBaseline, serializeBaseline, serializeCatalog, SURFACES} from './lib/catalogs.mjs';
-import {workingTree} from './lib/repo.mjs';
+import {commitTree, workingTree} from './lib/repo.mjs';
 import {validatePayload} from './lib/validate.mjs';
 import {digest, paths, PLAN_VERSION, readJSON, writeJSON} from './lib/workdir.mjs';
 
@@ -53,6 +53,7 @@ if (plan.version !== PLAN_VERSION) {
 }
 const root = plan.root;
 const tree = workingTree(root);
+const guidance = commitTree(root, plan.base);
 
 // 1. The plan was computed from files that are still the files.
 if (digest(tree) !== plan.digest) {
@@ -81,7 +82,7 @@ for (const [locale, payload] of Object.entries(payloads)) {
         invalid++;
         continue;
     }
-    results[locale] = validatePayload({plan, locale, payload, tree});
+    results[locale] = validatePayload({plan, locale, payload, tree: guidance});
     if (results[locale].errors.length) {
         invalid++;
         console.error(`${locale}: ${results[locale].errors.length} error(s), for example:\n  ${results[locale].errors.slice(0, 5).join('\n  ')}`);

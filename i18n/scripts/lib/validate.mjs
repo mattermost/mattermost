@@ -11,7 +11,7 @@
 //
 // It answers every worklist item, and nothing else. For a changed item, the
 // current translation is a valid answer: it says the translation still fits
-// the new English.
+// the new English. tree is where the glossary and style are read from.
 import {same, SURFACES} from './catalogs.mjs';
 import {readGlossary, readStyle} from './glossary.mjs';
 import {checkTranslation} from './rules.mjs';

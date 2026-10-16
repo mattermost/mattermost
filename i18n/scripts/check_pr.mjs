@@ -77,12 +77,18 @@ for (const surface of Object.keys(SURFACES)) {
     }
 }
 
-// Every pull request: what it writes is held to the rules for new work.
+// A base with no baseline is before the pipeline existed: nothing to hold a run to.
+const baselineMoved = then.read(BASELINE) !== null && head.read(BASELINE) !== then.read(BASELINE);
+
+// Every pull request: what it writes is held to the rules for new work. A run
+// is judged by the glossary it started from, so a term it adds cannot exempt
+// its own translations.
+const guidance = baselineMoved ? then : head;
 for (const surface of Object.keys(SURFACES)) {
     const en = parseSource(head.read(sourceDir(surface)), surface);
     for (const [locale, {added, changed, after}] of Object.entries(changes[surface])) {
-        const glossary = readGlossary(head, locale);
-        const style = readStyle(head, locale);
+        const glossary = readGlossary(guidance, locale);
+        const style = readStyle(guidance, locale);
         for (const k of [...added, ...changed]) {
             const value = after.get(k);
             if (!en.has(k) || isBlank(value)) {
@@ -95,8 +101,6 @@ for (const surface of Object.keys(SURFACES)) {
     }
 }
 
-// A base with no baseline is before the pipeline existed: nothing to hold a run to.
-const baselineMoved = then.read(BASELINE) !== null && head.read(BASELINE) !== then.read(BASELINE);
 if (baselineMoved) {
     checkRun();
 }
