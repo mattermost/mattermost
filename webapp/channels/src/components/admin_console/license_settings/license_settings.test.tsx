@@ -71,6 +71,26 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         expect(container.querySelectorAll('.right-panel > .panel-card')).toHaveLength(1);
     });
 
+    test('banner section is empty when no seat/trial/renew banners render', () => {
+        // license_settings.scss uses .admin-console__banner_section:empty
+        // { display: none } so shared .admin-console__content gap does not
+        // add an extra 20px above .top-wrapper when banners return null.
+        // Far-future expiry (raw ms; moment parsing is unreliable under fakeDate)
+        // + low seat usage keeps renew/seat banners off.
+        const props = {
+            ...defaultProps,
+            license: {
+                ...defaultProps.license,
+                ExpiresAt: '1893456000000', // 2030-01-01T00:00:00Z
+            },
+            totalUsers: 1,
+        };
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const banner = container.querySelector('.admin-console__banner_section');
+        expect(banner).not.toBeNull();
+        expect(banner!.childElementCount).toBe(0);
+    });
+
     test('should match snapshot enterprise build with license and isDisabled set to true', () => {
         const {container} = renderWithContext(
             <LicenseSettings
