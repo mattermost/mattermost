@@ -529,13 +529,13 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
             >
               <button
                 aria-label="Remove This Icon"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--padding-compact_mytxt_64 _icon-button--rounded_mytxt_115"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--padding-compact_13ryy_72 _icon-button--rounded_13ryy_123"
                 data-testid="removeSettingPicture"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -654,13 +654,13 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
             >
               <button
                 aria-label="Remove Profile Picture"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--padding-compact_mytxt_64 _icon-button--rounded_mytxt_115"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--padding-compact_13ryy_72 _icon-button--rounded_13ryy_123"
                 data-testid="removeSettingPicture"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"

@@ -12,14 +12,14 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="custom_category_1 category options"
-      class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--style-inverted_mytxt_145 _icon-button--active_mytxt_25 SidebarMenu_menuButton"
+      class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--style-inverted_13ryy_159 _icon-button--active_13ryy_31 SidebarMenu_menuButton"
       data-active="true"
       id="SidebarCategoryMenu-Button-test_category_id"
       type="button"
     >
       <span
         aria-hidden="true"
-        class="_icon-button__icon-slot_mytxt_33"
+        class="_icon-button__icon-slot_13ryy_41"
       >
         <div
           aria-hidden="true"

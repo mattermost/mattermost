@@ -35,12 +35,12 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
           >
             <button
               aria-label="Back"
-              class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 modal-header-back-button"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 modal-header-back-button"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_mytxt_33"
+                class="_icon-button__icon-slot_13ryy_41"
               >
                 <div
                   aria-hidden="true"
@@ -74,12 +74,12 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
           </div>
           <button
             aria-label="Close"
-            class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 user-groups-modal__header-close"
+            class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 user-groups-modal__header-close"
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_mytxt_33"
+              class="_icon-button__icon-slot_13ryy_41"
             >
               <div
                 aria-hidden="true"

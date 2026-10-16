@@ -101,14 +101,14 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
         1 - 1 of 1
       </div>
       <button
-        aria-label="Go to previous page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Previous page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -134,15 +134,15 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
         </span>
       </button>
       <button
-        aria-label="Go to next page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Next page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         data-testid="page-link-next"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -777,14 +777,14 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
         1 - 10 of 30
       </div>
       <button
-        aria-label="Go to previous page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Previous page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -810,14 +810,14 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
         </span>
       </button>
       <button
-        aria-label="Go to next page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Next page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         data-testid="page-link-next"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"

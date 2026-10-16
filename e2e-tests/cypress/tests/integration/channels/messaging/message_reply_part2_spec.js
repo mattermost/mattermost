@@ -93,7 +93,7 @@ describe('Message Reply', () => {
             });
 
             // * Reply count is visible and shows expected value
-            cy.get(`#CENTER_commentIcon_${rootId} .post-menu__comment-count`).should('be.visible').and('have.text', '1');
+            cy.get(`#CENTER_commentIcon_${rootId}`).find('[class*="icon-button__count"]').should('be.visible').and('have.text', '1');
         });
 
         // # Close RHS

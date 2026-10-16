@@ -33,13 +33,13 @@ exports[`components/sidebar/sidebar_channel should match snapshot 1`] = `
           aria-expanded="false"
           aria-haspopup="true"
           aria-label="Channel options for "
-          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--style-inverted_mytxt_145 SidebarMenu_menuButton"
+          class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--style-inverted_13ryy_159 SidebarMenu_menuButton"
           id="SidebarChannelMenu-Button-channel_id"
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_mytxt_33"
+            class="_icon-button__icon-slot_13ryy_41"
           >
             <div
               aria-hidden="true"
@@ -129,13 +129,13 @@ exports[`components/sidebar/sidebar_channel should match snapshot when active 1`
           aria-expanded="false"
           aria-haspopup="true"
           aria-label="Channel options for "
-          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--style-inverted_mytxt_145 SidebarMenu_menuButton"
+          class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--style-inverted_13ryy_159 SidebarMenu_menuButton"
           id="SidebarChannelMenu-Button-channel_id"
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_mytxt_33"
+            class="_icon-button__icon-slot_13ryy_41"
           >
             <div
               aria-hidden="true"
@@ -199,13 +199,13 @@ exports[`components/sidebar/sidebar_channel should match snapshot when collapsed
           aria-expanded="false"
           aria-haspopup="true"
           aria-label="Channel options for "
-          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--style-inverted_mytxt_145 SidebarMenu_menuButton"
+          class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--style-inverted_13ryy_159 SidebarMenu_menuButton"
           id="SidebarChannelMenu-Button-channel_id"
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_mytxt_33"
+            class="_icon-button__icon-slot_13ryy_41"
           >
             <div
               aria-hidden="true"
@@ -269,13 +269,13 @@ exports[`components/sidebar/sidebar_channel should match snapshot when unread 1`
           aria-expanded="false"
           aria-haspopup="true"
           aria-label="Channel options for "
-          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--style-inverted_mytxt_145 SidebarMenu_menuButton"
+          class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--style-inverted_13ryy_159 SidebarMenu_menuButton"
           id="SidebarChannelMenu-Button-channel_id"
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_mytxt_33"
+            class="_icon-button__icon-slot_13ryy_41"
           >
             <div
               aria-hidden="true"

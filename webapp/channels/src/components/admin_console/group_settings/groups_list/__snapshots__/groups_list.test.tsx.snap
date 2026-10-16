@@ -471,14 +471,14 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        aria-label="Go to previous page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Previous page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -504,14 +504,14 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         </span>
       </button>
       <button
-        aria-label="Go to next page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Next page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -770,14 +770,14 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        aria-label="Go to previous page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Previous page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -803,14 +803,14 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         </span>
       </button>
       <button
-        aria-label="Go to next page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Next page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1069,14 +1069,14 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        aria-label="Go to previous page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Previous page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1102,14 +1102,14 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         </span>
       </button>
       <button
-        aria-label="Go to next page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Next page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1358,14 +1358,14 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 3 of 3
       </div>
       <button
-        aria-label="Go to previous page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Previous page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1391,14 +1391,14 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         </span>
       </button>
       <button
-        aria-label="Go to next page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Next page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1920,14 +1920,14 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 200 of 401
       </div>
       <button
-        aria-label="Go to previous page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Previous page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1953,13 +1953,13 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         </span>
       </button>
       <button
-        aria-label="Go to next page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Next page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2481,13 +2481,13 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         201 - 400 of 401
       </div>
       <button
-        aria-label="Go to previous page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Previous page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2514,13 +2514,13 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       </button>
       <button
         aria-describedby="_r_12_"
-        aria-label="Go to next page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Next page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2769,13 +2769,13 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         201 - 400 of 401
       </div>
       <button
-        aria-label="Go to previous page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Previous page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2802,13 +2802,13 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       </button>
       <button
         aria-describedby="_r_1c_"
-        aria-label="Go to next page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Next page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -3078,14 +3078,14 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        aria-label="Go to previous page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Previous page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -3111,14 +3111,14 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         </span>
       </button>
       <button
-        aria-label="Go to next page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+        aria-label="Next page"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"

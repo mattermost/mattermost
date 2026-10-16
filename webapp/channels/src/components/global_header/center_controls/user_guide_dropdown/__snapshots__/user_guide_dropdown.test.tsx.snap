@@ -11,12 +11,12 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       aria-expanded="false"
       aria-haspopup="true"
       aria-label="Help"
-      class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 _icon-button--padding-compact_mytxt_64 _icon-button--style-inverted_mytxt_145"
+      class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159"
       type="button"
     >
       <span
         aria-hidden="true"
-        class="_icon-button__icon-slot_mytxt_33"
+        class="_icon-button__icon-slot_13ryy_41"
       >
         <div
           aria-hidden="true"
@@ -56,12 +56,12 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       aria-expanded="false"
       aria-haspopup="true"
       aria-label="Help"
-      class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 _icon-button--padding-compact_mytxt_64 _icon-button--style-inverted_mytxt_145"
+      class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159"
       type="button"
     >
       <span
         aria-hidden="true"
-        class="_icon-button__icon-slot_mytxt_33"
+        class="_icon-button__icon-slot_13ryy_41"
       >
         <div
           aria-hidden="true"
@@ -101,12 +101,12 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       aria-expanded="false"
       aria-haspopup="true"
       aria-label="Help"
-      class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 _icon-button--padding-compact_mytxt_64 _icon-button--style-inverted_mytxt_145"
+      class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159"
       type="button"
     >
       <span
         aria-hidden="true"
-        class="_icon-button__icon-slot_mytxt_33"
+        class="_icon-button__icon-slot_13ryy_41"
       >
         <div
           aria-hidden="true"

@@ -42,8 +42,6 @@ type Props = {
     size?: React.ComponentProps<typeof IconButton>['size'];
 };
 
-const LEGACY_BTN_CLASSES = /\b(btn|btn-icon|btn-xs|btn-sm|btn-md|btn-lg)\b/g;
-
 const HeaderIconWrapper = (props: Props) => {
     const {
         active,
@@ -66,11 +64,6 @@ const HeaderIconWrapper = (props: Props) => {
 
     const ariaLabelText = ariaLabelOverride ?? tooltipText;
 
-    const cleanedClassName = (buttonClass ?? 'channel-header__icon').
-        replace(LEGACY_BTN_CLASSES, '').
-        replace(/\s{2,}/g, ' ').
-        trim();
-
     // IconButton does not expose a count element id; set it for legacy Cypress selectors.
     useLayoutEffect(() => {
         if (!buttonRef.current || count === undefined || !countId) {
@@ -92,7 +85,7 @@ const HeaderIconWrapper = (props: Props) => {
                     ref={buttonRef}
                     id={buttonId}
                     size={size}
-                    className={cleanedClassName}
+                    className={buttonClass ?? 'channel-header__icon'}
                     icon={children}
                     count={count}
                     active={active}

@@ -49,12 +49,12 @@ exports[`components/LeaveChannelModal should match snapshot for the policy enfor
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 GenericModal__close"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_mytxt_33"
+                class="_icon-button__icon-slot_13ryy_41"
               >
                 <div
                   aria-hidden="true"
@@ -175,12 +175,12 @@ exports[`components/LeaveChannelModal should match snapshot, init 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 GenericModal__close"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_mytxt_33"
+                class="_icon-button__icon-slot_13ryy_41"
               >
                 <div
                   aria-hidden="true"
@@ -227,24 +227,24 @@ exports[`components/LeaveChannelModal should match snapshot, init 1`] = `
                   class="ConfirmModal__footer"
                 >
                   <button
-                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+                    class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                     data-testid="cancel-button"
                     id="cancelModalButton"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Cancel
                     </span>
                   </button>
                   <button
-                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                     id="confirmModalButton"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Yes, leave channel
                     </span>

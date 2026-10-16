@@ -54,8 +54,8 @@
             background: rgba(var(--center-channel-color-rgb), 0.08);
             color: rgba(var(--center-channel-color-rgb), 0.75);
 
-            .channel-members-rhs__send-message {
-                display: block;
+            button.channel-members-rhs__send-message {
+                display: inline-flex;
                 flex: 0 0 auto;
             }
         }
@@ -106,7 +106,8 @@
         line-height: 18px;
     }
 
-    &__send-message {
+    // `button.` raises specificity so IconButton's display:inline-flex does not win the hide rule.
+    button#{&}__send-message {
         display: none;
         margin-left: 8px;
     }

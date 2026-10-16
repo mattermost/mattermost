@@ -165,7 +165,7 @@ describe('Recent Emoji', () => {
             cy.get(`#post_${postId}`).trigger('mouseover');
         });
 
-        cy.get('#recent_reaction_0').should('exist').then((recentReaction) => {
+        cy.get('#recent_reaction_0 .emoticon--post-menu').should('exist').then((recentReaction) => {
             // * Assert that instead of custom emoji the system emoji is present as most recent in quick reaction menu
             expect(recentReaction[0].style.backgroundImage).to.include('static/emoji/');
         });

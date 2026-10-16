@@ -60,12 +60,12 @@ exports[`components/post_edit_history should display error screen if errors are 
                   >
                     <button
                       aria-label="Expand Sidebar Icon"
-                      class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 sidebar--right__expand"
+                      class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 sidebar--right__expand"
                       type="button"
                     >
                       <span
                         aria-hidden="true"
-                        class="_icon-button__icon-slot_mytxt_33"
+                        class="_icon-button__icon-slot_13ryy_41"
                       >
                         <div
                           aria-hidden="true"
@@ -92,13 +92,13 @@ exports[`components/post_edit_history should display error screen if errors are 
                     </button>
                     <button
                       aria-label="Close Sidebar Icon"
-                      class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 sidebar--right__close"
+                      class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 sidebar--right__close"
                       id="searchResultsCloseButton"
                       type="button"
                     >
                       <span
                         aria-hidden="true"
-                        class="_icon-button__icon-slot_mytxt_33"
+                        class="_icon-button__icon-slot_13ryy_41"
                       >
                         <div
                           aria-hidden="true"
@@ -302,12 +302,12 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                   >
                     <button
                       aria-label="Expand Sidebar Icon"
-                      class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 sidebar--right__expand"
+                      class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 sidebar--right__expand"
                       type="button"
                     >
                       <span
                         aria-hidden="true"
-                        class="_icon-button__icon-slot_mytxt_33"
+                        class="_icon-button__icon-slot_13ryy_41"
                       >
                         <div
                           aria-hidden="true"
@@ -334,13 +334,13 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                     </button>
                     <button
                       aria-label="Close Sidebar Icon"
-                      class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 sidebar--right__close"
+                      class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 sidebar--right__close"
                       id="searchResultsCloseButton"
                       type="button"
                     >
                       <span
                         aria-hidden="true"
-                        class="_icon-button__icon-slot_mytxt_33"
+                        class="_icon-button__icon-slot_13ryy_41"
                       >
                         <div
                           aria-hidden="true"

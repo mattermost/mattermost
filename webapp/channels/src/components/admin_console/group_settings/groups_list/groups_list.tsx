@@ -4,19 +4,13 @@
 import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import {
-    ChevronLeftIcon,
-    ChevronRightIcon,
-} from '@mattermost/compass-icons/components';
-import {Icon} from '@mattermost/compass-ui/components/icon';
-import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import GroupRow from 'components/admin_console/group_settings/group_row';
+import PaginationButtons from 'components/common/pagination_buttons';
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import SearchIcon from 'components/widgets/icons/search_icon';
@@ -524,24 +518,12 @@ class GroupsList extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </div>
-                        <WithTooltip title={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.previous', defaultMessage: 'Go to previous page'})}>
-                            <IconButton
-                                size='small'
-                                icon={<Icon glyph={<ChevronLeftIcon/>}/>}
-                                onClick={(e: any) => this.previousPage(e)}
-                                disabled={firstPage}
-                                aria-label={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.previous', defaultMessage: 'Go to previous page'})}
-                            />
-                        </WithTooltip>
-                        <WithTooltip title={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.next', defaultMessage: 'Go to next page'})}>
-                            <IconButton
-                                size='small'
-                                icon={<Icon glyph={<ChevronRightIcon/>}/>}
-                                onClick={(e: any) => this.nextPage(e)}
-                                disabled={lastPage}
-                                aria-label={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.next', defaultMessage: 'Go to next page'})}
-                            />
-                        </WithTooltip>
+                        <PaginationButtons
+                            onPrevious={(e) => this.previousPage(e)}
+                            onNext={(e) => this.nextPage(e)}
+                            disablePrevious={firstPage}
+                            disableNext={lastPage}
+                        />
                     </div>
                 }
             </div>

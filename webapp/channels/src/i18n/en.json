@@ -17104,12 +17104,12 @@
     "description": "Empty-state text shown inside admin console tables when there are no rows to display."
   },
   "adminConsole.list.table.pagination.next": {
-    "defaultMessage": "Go to next page",
-    "description": "Accessibility label for the next-page arrow button below admin console tables."
+    "defaultMessage": "Next page",
+    "description": "Accessibility label and tooltip for the next-page arrow in shared list pagination controls (admin console and backstage lists)."
   },
   "adminConsole.list.table.pagination.previous": {
-    "defaultMessage": "Go to previous page",
-    "description": "Accessibility label for the previous-page arrow button below admin console tables."
+    "defaultMessage": "Previous page",
+    "description": "Accessibility label and tooltip for the previous-page arrow in shared list pagination controls (admin console and backstage lists)."
   },
   "adminConsole.list.table.rowCount.label": {
     "defaultMessage": "Show {count} rows per page",
@@ -18135,17 +18135,9 @@
     "defaultMessage": "{overflowUnnamedCount, plural, =0 {{names}} =1 {{names} and one other} other {{names} and # others}}",
     "description": "Tooltip for the overflow indicator on a stack of user avatars; {names} is a list of usernames and {overflowUnnamedCount} the count of further unnamed people."
   },
-  "backstage_list.nextButton.ariaLabel": {
-    "defaultMessage": "Next",
-    "description": "Aria-label of the icon-only next-page button in the pagination footer of backstage lists (integrations, emoji)."
-  },
   "backstage_list.paginatorCount": {
     "defaultMessage": "{startCount, number} - {endCount, number} of {total, number}",
     "description": "Pagination range indicator in the footer of backstage lists; {startCount} and {endCount} are the first/last visible item numbers, {total} is the total item count."
-  },
-  "backstage_list.previousButton.ariaLabel": {
-    "defaultMessage": "Previous",
-    "description": "Aria-label of the icon-only previous-page button in the pagination footer of backstage lists."
   },
   "backstage_list.search": {
     "defaultMessage": "Search",
@@ -31394,6 +31386,10 @@
   "trial_benefits.modal.useSsoTitle": {
     "defaultMessage": "Use SSO (with OpenID, SAML, Google, O365)",
     "description": "Carousel slide title in the trial benefits modal; SSO means single sign-on."
+  },
+  "tutorial_tip.close": {
+    "defaultMessage": "Close",
+    "description": "Accessible name and tooltip for the dismiss control on an in-app tour tip."
   },
   "tutorial_tip.done": {
     "defaultMessage": "Done",

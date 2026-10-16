@@ -54,13 +54,13 @@ exports[`components/integrations/InstalledIncomingWebhook should match snapshot 
           <span>
             <button
               aria-label="Copy URL"
-              class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
+              class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 ml-2"
               data-testid="copyText"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_mytxt_33"
+                class="_icon-button__icon-slot_13ryy_41"
               >
                 <div
                   aria-hidden="true"

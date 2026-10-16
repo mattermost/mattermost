@@ -29,13 +29,13 @@ exports[`components/ChannelHeader should match snapshot with last active display
             >
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -94,12 +94,12 @@ exports[`components/ChannelHeader should match snapshot with last active display
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -126,13 +126,13 @@ exports[`components/ChannelHeader should match snapshot with last active display
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -191,13 +191,13 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
             >
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -245,12 +245,12 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -277,13 +277,13 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -342,13 +342,13 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
@@ -380,7 +380,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelMemberCountText"
                 >
                   2
@@ -388,14 +388,14 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--active_mytxt_25 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--active_13ryy_31 channel-header__icon"
                 data-active="true"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -440,12 +440,12 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -472,13 +472,13 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -537,13 +537,13 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
@@ -575,7 +575,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelMemberCountText"
                 >
                   2
@@ -583,13 +583,13 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -634,12 +634,12 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -666,13 +666,13 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -731,13 +731,13 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
@@ -769,7 +769,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelMemberCountText"
                 >
                   2
@@ -777,13 +777,13 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -828,12 +828,12 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -860,13 +860,13 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -925,13 +925,13 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
@@ -963,7 +963,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelMemberCountText"
                 >
                   2
@@ -971,14 +971,14 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
               </button>
               <button
                 aria-label="Pinned messages"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--active_mytxt_25 _icon-button--has-count_mytxt_111 channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--active_13ryy_31 _icon-button--has-count_13ryy_119 channel-header__icon channel-header__icon--wide"
                 data-active="true"
                 id="channelHeaderPinButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -1008,7 +1008,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                   </div>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelPinnedPostCountText"
                 >
                   2
@@ -1016,13 +1016,13 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -1067,12 +1067,12 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1099,13 +1099,13 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1164,13 +1164,13 @@ exports[`components/ChannelHeader should render archived view 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
@@ -1202,7 +1202,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelMemberCountText"
                 >
                   2
@@ -1210,13 +1210,13 @@ exports[`components/ChannelHeader should render archived view 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -1261,12 +1261,12 @@ exports[`components/ChannelHeader should render archived view 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1293,13 +1293,13 @@ exports[`components/ChannelHeader should render archived view 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1358,13 +1358,13 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
             >
               <button
                 aria-label="Unmute"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__mute channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__mute channel-header__icon"
                 id="toggleMute"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -1391,13 +1391,13 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
               </button>
               <button
                 aria-label="Members"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
@@ -1429,7 +1429,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelMemberCountText"
                 >
                   2
@@ -1437,13 +1437,13 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -1488,12 +1488,12 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1520,13 +1520,13 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1585,13 +1585,13 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
@@ -1623,7 +1623,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelMemberCountText"
                 >
                   2
@@ -1631,13 +1631,13 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -1682,12 +1682,12 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1714,13 +1714,13 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1779,13 +1779,13 @@ exports[`components/ChannelHeader should render properly when custom status is e
             >
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -1844,12 +1844,12 @@ exports[`components/ChannelHeader should render properly when custom status is e
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1876,13 +1876,13 @@ exports[`components/ChannelHeader should render properly when custom status is e
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -1941,13 +1941,13 @@ exports[`components/ChannelHeader should render properly when custom status is s
             >
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -2009,12 +2009,12 @@ exports[`components/ChannelHeader should render properly when custom status is s
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2041,13 +2041,13 @@ exports[`components/ChannelHeader should render properly when custom status is s
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2106,13 +2106,13 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
@@ -2144,7 +2144,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelMemberCountText"
                 >
                   2
@@ -2152,13 +2152,13 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -2203,12 +2203,12 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2235,13 +2235,13 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2300,13 +2300,13 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
@@ -2338,7 +2338,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelMemberCountText"
                 >
                   2
@@ -2346,13 +2346,13 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -2397,12 +2397,12 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2429,13 +2429,13 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2494,13 +2494,13 @@ exports[`components/ChannelHeader should render properly when populated with cha
             >
               <button
                 aria-label="Members"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
@@ -2532,7 +2532,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelMemberCountText"
                 >
                   2
@@ -2540,13 +2540,13 @@ exports[`components/ChannelHeader should render properly when populated with cha
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -2591,12 +2591,12 @@ exports[`components/ChannelHeader should render properly when populated with cha
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2623,13 +2623,13 @@ exports[`components/ChannelHeader should render properly when populated with cha
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2688,13 +2688,13 @@ exports[`components/ChannelHeader should render properly when there are pending 
             >
               <button
                 aria-label="Members — pending join requests"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
@@ -2731,7 +2731,7 @@ exports[`components/ChannelHeader should render properly when there are pending 
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelMemberCountText"
                 >
                   2
@@ -2739,13 +2739,13 @@ exports[`components/ChannelHeader should render properly when there are pending 
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -2790,12 +2790,12 @@ exports[`components/ChannelHeader should render properly when there are pending 
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2822,13 +2822,13 @@ exports[`components/ChannelHeader should render properly when there are pending 
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -2887,13 +2887,13 @@ exports[`components/ChannelHeader should render shared view 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
@@ -2925,7 +2925,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelMemberCountText"
                 >
                   2
@@ -2933,13 +2933,13 @@ exports[`components/ChannelHeader should render shared view 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -2984,12 +2984,12 @@ exports[`components/ChannelHeader should render shared view 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -3016,13 +3016,13 @@ exports[`components/ChannelHeader should render shared view 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -3081,13 +3081,13 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
             >
               <button
                 aria-label="Members"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
@@ -3119,7 +3119,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelMemberCountText"
                 >
                   2
@@ -3127,13 +3127,13 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
               </button>
               <button
                 aria-label="Pinned messages"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--has-count_mytxt_111 channel-header__icon channel-header__icon--wide"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 _icon-button--has-count_13ryy_119 channel-header__icon channel-header__icon--wide"
                 id="channelHeaderPinButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -3163,7 +3163,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                   </div>
                 </span>
                 <span
-                  class="_icon-button__count_mytxt_51"
+                  class="_icon-button__count_13ryy_59"
                   id="channelPinnedPostCountText"
                 >
                   2
@@ -3171,13 +3171,13 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 channel-header__icon"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -3222,12 +3222,12 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -3254,13 +3254,13 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 channel-header__icon channel-header__icon--small"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
