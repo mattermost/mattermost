@@ -23,6 +23,17 @@
     }
 }
 
+// Match Compass AdminPanel chrome (surface, border, radius, elevation).
+// Scoped to GlobalAttributes so shared admin-console__container / __wrapper
+// layout chrome is unchanged for other System Console pages. Do not set
+// overflow:hidden — row-action menus escape the panel.
+.admin-console .GlobalAttributes__root .GlobalAttributes__panel {
+    background: var(--center-channel-bg);
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: var(--radius-m);
+    box-shadow: var(--elevation-1);
+}
+
 .GlobalAttributes__newAttribute {
     flex-shrink: 0;
     margin-inline-start: 16px;

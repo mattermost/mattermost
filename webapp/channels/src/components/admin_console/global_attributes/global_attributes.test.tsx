@@ -53,6 +53,13 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         expect(header.getByRole('button', {name: 'New attribute'})).toBeInTheDocument();
         expect(screen.getByRole('heading', {name: 'Attribute Management'})).toBeInTheDocument();
 
+        // Content container uses scoped AdminPanel-equivalent chrome
+        // (GlobalAttributes__panel), not a global admin-console__wrapper change.
+        expect(screen.getByTestId('global_attributes')).toHaveClass(
+            'admin-console__container',
+            'GlobalAttributes__panel',
+        );
+
         await waitFor(() => {
             expect(screen.getByTestId('global-attributes-empty')).toBeInTheDocument();
         });
