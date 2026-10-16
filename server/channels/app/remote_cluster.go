@@ -188,6 +188,11 @@ func (a *App) UnregisterPluginRemoteForSharedChannels(pluginID, remoteID string)
 func (a *App) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError) {
 	rc, err := a.Srv().Store().RemoteCluster().Save(rc)
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
+
 		if sqlstore.IsUniqueConstraintError(errors.Cause(err), []string{sqlstore.RemoteClusterSiteURLUniqueIndex}) {
 			return nil, model.NewAppError("AddRemoteCluster", "api.remote_cluster.save_not_unique.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

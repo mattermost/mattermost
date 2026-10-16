@@ -6,6 +6,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -298,31 +299,71 @@ func ValidateLogFilePath(filePath string, loggingRoot string) error {
 	return nil
 }
 
-// WarnIfLogPathsOutsideRoot validates log file paths in the config and logs errors for paths outside the logging root.
-// This is called during config save to identify configurations that will cause server startup to fail in a future version.
-// Currently only logs errors; in a future version this will block server startup.
-func WarnIfLogPathsOutsideRoot(cfg *model.Config) {
-	loggingRoot := GetLogRootPath()
+// LogPathOutsideRootWarning is the message logged when a log or audit file path resolves
+// outside the logging root and the server is not configured to reject it.
+const LogPathOutsideRootWarning = "Log file path in logging config is outside the logging root directory. " +
+	"Set the EnforceLogPathRoot feature flag to reject this configuration now; enforcement will become the default in a future release. " +
+	"To fix, set the MM_LOG_PATH environment variable to a parent directory containing all log paths, or move log files into the logging root."
 
-	// Check LogSettings.AdvancedLoggingJSON
-	if !utils.IsEmptyJSON(cfg.LogSettings.AdvancedLoggingJSON) {
-		validateAdvancedLoggingConfig(cfg.LogSettings.AdvancedLoggingJSON, "LogSettings.AdvancedLoggingJSON", loggingRoot)
-	}
-
-	// Check ExperimentalAuditSettings.AdvancedLoggingJSON
-	if !utils.IsEmptyJSON(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) {
-		validateAdvancedLoggingConfig(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON, "ExperimentalAuditSettings.AdvancedLoggingJSON", loggingRoot)
-	}
+// IsLogPathEnforcementEnabled reports whether a log path outside the logging root should be
+// treated as fatal rather than merely logged. Nil-safe: cfg may carry no feature flags at all.
+func IsLogPathEnforcementEnabled(cfg *model.Config) bool {
+	return cfg != nil && cfg.FeatureFlags != nil && cfg.FeatureFlags.EnforceLogPathRoot
 }
 
-func validateAdvancedLoggingConfig(loggingJSON json.RawMessage, configName string, loggingRoot string) {
-	logCfg := make(mlog.LoggerConfiguration)
-	if err := json.Unmarshal(loggingJSON, &logCfg); err != nil {
-		return
+// ValidateLogPaths checks every log and audit file path in cfg against loggingRoot, returning an
+// error naming the first one that resolves outside it. The fields checked are
+// LogSettings.FileLocation, LogSettings.AdvancedLoggingJSON, ExperimentalAuditSettings.FileName
+// and ExperimentalAuditSettings.AdvancedLoggingJSON.
+//
+// loggingRoot is a parameter rather than a call to GetLogRootPath so a caller holding a
+// per-instance override (see PlatformService.getLogRootPath) can supply its own root.
+func ValidateLogPaths(cfg *model.Config, loggingRoot string) error {
+	if cfg == nil {
+		return nil
 	}
 
-	for targetName, target := range logCfg {
-		if target.Type != "file" {
+	// LogSettings.FileLocation feeds the built-in `_defFile` target.
+	if model.SafeDereference(cfg.LogSettings.EnableFile) {
+		logFile := GetLogFileLocation(model.SafeDereference(cfg.LogSettings.FileLocation))
+		if err := ValidateLogFilePath(logFile, loggingRoot); err != nil {
+			return fmt.Errorf("LogSettings.FileLocation: %w", err)
+		}
+	}
+
+	if err := validateAdvancedLoggingPaths(cfg.LogSettings.AdvancedLoggingJSON, "LogSettings.AdvancedLoggingJSON", loggingRoot); err != nil {
+		return err
+	}
+
+	// ExperimentalAuditSettings.FileName feeds the built-in `_defAudit` target.
+	if model.SafeDereference(cfg.ExperimentalAuditSettings.FileEnabled) {
+		auditFile := model.SafeDereference(cfg.ExperimentalAuditSettings.FileName)
+		if err := ValidateLogFilePath(auditFile, loggingRoot); err != nil {
+			return fmt.Errorf("ExperimentalAuditSettings.FileName: %w", err)
+		}
+	}
+
+	return validateAdvancedLoggingPaths(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON, "ExperimentalAuditSettings.AdvancedLoggingJSON", loggingRoot)
+}
+
+// validateAdvancedLoggingPaths validates the file targets of an advanced logging config.
+//
+// Unparseable JSON is skipped rather than reported: it defines no file target, so it cannot write
+// anywhere, and LogSettings.isValid/ConfigureLogger already reject it with a better message.
+func validateAdvancedLoggingPaths(loggingJSON json.RawMessage, configSection string, loggingRoot string) error {
+	if utils.IsEmptyJSON(loggingJSON) {
+		return nil
+	}
+
+	logCfg := make(mlog.LoggerConfiguration)
+	if err := json.Unmarshal(loggingJSON, &logCfg); err != nil {
+		return nil
+	}
+
+	// map iteration order is random; sort so the reported target is deterministic
+	for _, targetName := range slices.Sorted(maps.Keys(logCfg)) {
+		target := logCfg[targetName]
+		if !strings.EqualFold(target.Type, "file") {
 			continue
 		}
 
@@ -334,14 +375,11 @@ func validateAdvancedLoggingConfig(loggingJSON json.RawMessage, configName strin
 		}
 
 		if err := ValidateLogFilePath(fileOption.Filename, loggingRoot); err != nil {
-			mlog.Error("Log file path in logging config is outside logging root directory. This configuration will cause server startup to fail in a future version. To fix, set MM_LOG_PATH environment variable to a parent directory containing all log paths, or move log files to the configured logging root.",
-				mlog.String("config_section", configName),
-				mlog.String("target", targetName),
-				mlog.String("path", fileOption.Filename),
-				mlog.String("logging_root", loggingRoot),
-				mlog.Err(err))
+			return fmt.Errorf("%s target %q: %w", configSection, targetName, err)
 		}
 	}
+
+	return nil
 }
 
 func makeSimpleConsoleTarget(level string, outputJSON bool, color bool) (mlog.TargetCfg, error) {
