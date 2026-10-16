@@ -36,6 +36,7 @@ export function validatePayload({plan, locale, payload, tree}) {
     const acknowledge = payload.acknowledge || {};
     const notes = payload.notes || {};
     const soft = new Set();
+    const failed = new Set();
     const refs = new Set();
 
     for (const surface of Object.keys(SURFACES)) {
@@ -64,6 +65,7 @@ export function validatePayload({plan, locale, payload, tree}) {
             }
             for (const f of checkTranslation({item, value, locale, surface, glossary, style})) {
                 if (f.severity === 'error') {
+                    failed.add(ref);
                     errors.push(`${ref}: ${f.message}`);
                 } else if (typeof acknowledge[ref] === 'string' && acknowledge[ref].trim()) {
                     soft.add(ref);
@@ -76,7 +78,9 @@ export function validatePayload({plan, locale, payload, tree}) {
     }
 
     for (const ref of Object.keys(acknowledge)) {
-        if (!soft.has(ref)) {
+        if (failed.has(ref) && !soft.has(ref)) {
+            errors.push(`acknowledge.${ref}: an error cannot be acknowledged; fix the translation`);
+        } else if (!soft.has(ref)) {
             errors.push(`acknowledge.${ref}: nothing to acknowledge; remove it`);
         }
     }

@@ -76,7 +76,7 @@ const QUOTED = /`[^`]*`|"[^"\n]*"|“[^”\n]*”|'[^'\s]*'/g;
  * The words in a source string a translator would translate: its literal text,
  * less URLs, email addresses, doNotTranslate names, and anything shaped like an
  * identifier (SAML, AD/LDAP, maxFileSize, file.json, v2, .png, /header, @all,
- * manage_system).
+ * manage_system, [on|off]).
  */
 export function translatableWords(english, surface, glossary) {
     let text = proseOf(english, surface);
@@ -87,7 +87,7 @@ export function translatableWords(english, surface, glossary) {
             }
         }
     }
-    const tokens = (text.replace(/[\p{L}\p{N}]*_[\p{L}\p{N}_]*|[\p{L}\p{N}]+=/gu, ' ').match(WORD) || []).map((w) => w.replace(/[._/'’-]+$/u, ''));
+    const tokens = (text.replace(/[\p{L}\p{N}]*_[\p{L}\p{N}_]*|[\p{L}\p{N}]+=|\[[^\]]*\|[^\]]*\]/gu, ' ').match(WORD) || []).map((w) => w.replace(/[._/'’-]+$/u, ''));
     return tokens.filter((w) => (
         w.length > 1 &&
         !CODE_LITERALS.has(w) &&
@@ -115,9 +115,11 @@ function addressFindings(value, locale, surface, style) {
 function softChecks(item, value, locale, surface, glossary, style) {
     const out = [];
     if (!isEnglish(locale) && flatten(value) === flatten(item.english)) {
+        // A name is capitalised; three ordinary words are a sentence nobody translated.
         const words = translatableWords(item.english, surface, glossary);
+        const severity = words.filter((w) => w === w.toLowerCase()).length >= 3 ? 'error' : 'soft';
         if (words.length >= (isLatinScript(locale) ? 2 : 1)) {
-            out.push(finding('identical-to-english', 'soft', `identical to the English, which has words to translate (${words.slice(0, 4).join(' ')})`));
+            out.push(finding('identical-to-english', severity, `identical to the English, which has words to translate (${words.slice(0, 4).join(' ')})`));
         }
     } else if (!isEnglish(locale) && !isLatinScript(locale)) {
         // Lowercase words only: a capitalised one is usually a name, and a quoted
