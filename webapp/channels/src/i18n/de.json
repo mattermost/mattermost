@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Geräteidentitäts-Header des Proxys vertrauen",
   "admin.accesscontrol.user_properties.link.label": "Attributverwaltung",
   "admin.accessibility.add_users_to_role": "Benutzer zur Rolle hinzufügen",
-  "admin.accessibility.delete_orphaned_field": "Verwaistes Feld löschen",
+  "admin.accessibility.delete_orphaned_field": "Attribut eines deinstallierten Plugins löschen",
   "admin.accessibility.next_page": "Nächste Seite",
   "admin.accessibility.previous_page": "Vorherige Seite",
   "admin.advance.cluster": "Hochverfügbarkeit",

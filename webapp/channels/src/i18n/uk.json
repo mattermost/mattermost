@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Довіряти заголовку ідентичності пристрою від проксі",
   "admin.accesscontrol.user_properties.link.label": "Керування атрибутами",
   "admin.accessibility.add_users_to_role": "Додати користувачів до ролі",
-  "admin.accessibility.delete_orphaned_field": "Видалити поле без власника",
+  "admin.accessibility.delete_orphaned_field": "Видалити атрибут видаленого плагіна",
   "admin.accessibility.next_page": "Наступна сторінка",
   "admin.accessibility.previous_page": "Попередня сторінка",
   "admin.advance.cluster": "Висока доступність",

@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "A proxy eszközazonosság-fejlécének megbízhatónak tekintése",
   "admin.accesscontrol.user_properties.link.label": "Attribútumkezelés",
   "admin.accessibility.add_users_to_role": "Felhasználók hozzáadása a szerepkörhöz",
-  "admin.accessibility.delete_orphaned_field": "Árva mező törlése",
+  "admin.accessibility.delete_orphaned_field": "Eltávolított bővítmény attribútumának törlése",
   "admin.accessibility.next_page": "Következő oldal",
   "admin.accessibility.previous_page": "Előző oldal",
   "admin.advance.cluster": "Magas rendelkezésre állás",

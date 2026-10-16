@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Stol på enhetsidentitetshode fra proxy",
   "admin.accesscontrol.user_properties.link.label": "Attributtadministrasjon",
   "admin.accessibility.add_users_to_role": "Legg til brukere i rollen",
-  "admin.accessibility.delete_orphaned_field": "Slett foreldreløst attributt",
+  "admin.accessibility.delete_orphaned_field": "Slett attributt fra avinstallert plugin",
   "admin.accessibility.next_page": "Neste side",
   "admin.accessibility.previous_page": "Forrige side",
   "admin.advance.cluster": "Høy tilgjengelighet",

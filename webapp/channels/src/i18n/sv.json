@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Lita på proxyns huvud för enhetsidentitet",
   "admin.accesscontrol.user_properties.link.label": "Attributhantering",
   "admin.accessibility.add_users_to_role": "Lägg till användare i rollen",
-  "admin.accessibility.delete_orphaned_field": "Radera föräldralöst fält",
+  "admin.accessibility.delete_orphaned_field": "Radera attribut från avinstallerat plugin",
   "admin.accessibility.next_page": "Nästa sida",
   "admin.accessibility.previous_page": "Föregående sida",
   "admin.advance.cluster": "Hög tillgänglighet",

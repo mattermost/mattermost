@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Aveți încredere în antetul de identitate a dispozitivului trimis de proxy",
   "admin.accesscontrol.user_properties.link.label": "Gestionarea atributelor",
   "admin.accessibility.add_users_to_role": "Adăugați utilizatori la rol",
-  "admin.accessibility.delete_orphaned_field": "Ștergeți câmpul orfan",
+  "admin.accessibility.delete_orphaned_field": "Ștergeți atributul unui plugin dezinstalat",
   "admin.accessibility.next_page": "Pagina următoare",
   "admin.accessibility.previous_page": "Pagina anterioară",
   "admin.advance.cluster": "Valabilitate mare",

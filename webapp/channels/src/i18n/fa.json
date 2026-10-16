@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "اعتماد به هدر هویت دستگاه پروکسی",
   "admin.accesscontrol.user_properties.link.label": "مدیریت ویژگی‌ها",
   "admin.accessibility.add_users_to_role": "افزودن کاربران به نقش",
-  "admin.accessibility.delete_orphaned_field": "حذف فیلد بی‌صاحب",
+  "admin.accessibility.delete_orphaned_field": "حذف ویژگی افزونه‌ای که دیگر نصب نیست",
   "admin.accessibility.next_page": "صفحه بعد",
   "admin.accessibility.previous_page": "صفحه قبل",
   "admin.advance.cluster": "در دسترس بودن بالا",
