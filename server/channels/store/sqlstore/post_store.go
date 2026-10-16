@@ -807,11 +807,6 @@ func (s *SqlPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptio
 			return nil, errors.Wrapf(err, "invalid rootId with value=%s", rootId)
 		}
 
-		var visible sq.Sqlizer = sq.Eq{"p.DeleteAt": 0}
-		if threadUpdatesIncludeDeletions(opts) {
-			visible = sq.Or{visible, sq.Eq{"p.RootId": rootId}}
-		}
-
 		var query sq.SelectBuilder
 		query = s.getQueryBuilder().
 			Select(postSliceColumnsWithName("p")...).
@@ -827,13 +822,13 @@ func (s *SqlPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptio
 				}).Suffix(")"),
 			).
 			From("Posts p, replycount").
-			Where(sq.And{
-				sq.Or{
-					sq.Eq{"p.Id": rootId},
-					sq.Eq{"p.RootId": rootId},
-				},
-				visible,
+			Where(sq.Or{
+				sq.Eq{"p.Id": rootId},
+				sq.Eq{"p.RootId": rootId},
 			})
+		if !threadUpdatesIncludeDeletions(opts) {
+			query = query.Where(sq.Eq{"p.DeleteAt": 0})
+		}
 
 		var sort string
 		if opts.Direction != "" {
