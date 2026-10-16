@@ -102,6 +102,7 @@ test(
             mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
+        await pw.resetRoles();
 
         const channelName = `autotranslation-admin-${pw.random.id()}`;
         const created = await adminClient.createChannel({
@@ -145,6 +146,7 @@ test(
             mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
+        await pw.resetRoles();
 
         const channelName = `autotranslation-system-msg-${pw.random.id()}`;
         const created = await adminClient.createChannel({
