@@ -11,20 +11,16 @@
         .two-column-layout {
             .field-row {
                 display: flex;
-                margin-bottom: 16px;
-                gap: 20px;
+                margin-bottom: var(--spacing-l);
+                gap: var(--spacing-xl);
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
 
                 .field-column {
                     min-width: 0; // Allow content to shrink
                     flex: 1;
-
-                    &.left {
-                        padding-right: 10px;
-                    }
-
-                    &.right {
-                        padding-left: 10px;
-                    }
                 }
             }
         }
@@ -33,19 +29,15 @@
             display: block;
             font-weight: unset;
 
-            > span:nth-child(1) {
+            .field-label {
                 display: block;
-                margin-top: 12px;
-                margin-bottom: 6px;
+                margin: 0 0 var(--spacing-xs);
                 font-size: 12px;
                 font-weight: bold;
             }
 
-            > span:nth-child(2) {
-                vertical-align: middle;
-            }
-
-            input, select {
+            input,
+            select {
                 display: inline-block;
                 width: 100%;
                 max-width: 320px;
@@ -58,13 +50,52 @@
 
             .field-error {
                 display: block;
-                margin-top: 4px;
+                margin-top: var(--spacing-xxs);
                 color: var(--error-text);
                 font-size: 12px;
             }
 
             select[multiple] {
                 min-height: 80px;
+            }
+        }
+
+        // Icons sit inside the control so every field shares one left edge.
+        .field-control {
+            position: relative;
+            display: block;
+            max-width: 320px;
+
+            > svg {
+                position: absolute;
+                z-index: 1;
+                top: 50%;
+                left: 12px;
+                width: 16px;
+                height: 16px;
+                margin: 0;
+                fill: rgba(var(--sys-color-sidebar-text-rgb), 0.6);
+                pointer-events: none;
+                transform: translateY(-50%);
+            }
+
+            input.form-control {
+                width: 100%;
+                max-width: 100%;
+                padding-left: 36px;
+            }
+
+            &--text {
+                display: flex;
+                align-items: center;
+                min-height: 36px;
+                gap: var(--spacing-s);
+
+                > svg {
+                    position: static;
+                    flex: 0 0 auto;
+                    transform: none;
+                }
             }
         }
 
@@ -122,10 +153,10 @@
         .cpa-section-divider {
             display: flex;
             align-items: center;
-            padding-top: 16px;
+            padding-top: var(--spacing-xl);
             border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-            margin-top: 8px;
-            margin-bottom: 8px;
+            margin-top: var(--spacing-xl);
+            margin-bottom: var(--spacing-l);
 
             .cpa-section-header {
                 color: rgba(var(--center-channel-color-rgb), 0.72);
@@ -162,14 +193,6 @@
             font-size: 11px;
             font-weight: 600;
         }
-
-        svg {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            margin: 0 8px 0 0;
-            fill: rgba(var(--sys-color-sidebar-text-rgb), 0.6);
-        }
     }
 
     .teamlistLoading {
@@ -192,14 +215,10 @@
             .two-column-layout {
                 .field-row {
                     flex-direction: column;
-                    gap: 0;
+                    gap: var(--spacing-l);
 
-                    .field-column {
-                        padding: 0;
-
-                        &.right {
-                            margin-top: 16px;
-                        }
+                    .field-column.right {
+                        margin-top: 0;
                     }
                 }
             }

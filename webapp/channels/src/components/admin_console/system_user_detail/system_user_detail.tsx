@@ -1010,17 +1010,20 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         })();
 
         const fieldName = (
-            <FormattedMessage
-                id='admin.userManagement.userDetail.cpaField'
-                defaultMessage='{fieldName}'
-                values={{fieldName: getUserPropertyFieldLabel(field)}}
-            />
+            <span className='field-label'>
+                <FormattedMessage
+                    id='admin.userManagement.userDetail.cpaField'
+                    defaultMessage='{fieldName}'
+                    values={{fieldName: getUserPropertyFieldLabel(field)}}
+                />
+            </span>
         );
 
         const fieldBody = (
             <>
                 {field.type === 'graph' ? (
                     <label
+                        className='field-label'
                         htmlFor={`cpa-graph-button-${field.id}`}
                         onClick={() => {
                             // Graph Menu triggers are <div role="button"> so chip
@@ -1029,7 +1032,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             document.getElementById(`cpa-graph-button-${field.id}`)?.click();
                         }}
                     >
-                        {fieldName}
+                        <FormattedMessage
+                            id='admin.userManagement.userDetail.cpaField'
+                            defaultMessage='{fieldName}'
+                            values={{fieldName: getUserPropertyFieldLabel(field)}}
+                        />
                     </label>
                 ) : fieldName}
                 {fieldContent}
@@ -1073,39 +1080,41 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         // Add system fields
         fields.push(
             <label key='username'>
-                <FormattedMessage
-                    id='admin.userManagement.userDetail.username'
-                    defaultMessage='Username'
-                />
-                <AtIcon/>
-                {this.state.user?.auth_service ? (
-                    <WithTooltip
-                        title={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.managedByProvider.title',
-                            defaultMessage: 'Managed by login provider',
-                        })}
-                        hint={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.managedByProvider.username',
-                            defaultMessage: 'This username is managed by the {authService} login provider and cannot be changed here.',
-                        }, {
-                            authService: this.state.user.auth_service.toUpperCase(),
-                        })}
-                    >
-                        <input
-                            className='form-control'
-                            type='text'
-                            value={this.state.usernameField}
-                            disabled={true}
-                            readOnly={true}
-                            style={{cursor: 'not-allowed'}}
-                            placeholder={this.props.intl.formatMessage({
-                                id: 'admin.userManagement.userDetail.username.input',
-                                defaultMessage: 'Enter username',
+                <span className='field-label'>
+                    <FormattedMessage
+                        id='admin.userManagement.userDetail.username'
+                        defaultMessage='Username'
+                    />
+                </span>
+                <div className='field-control'>
+                    <AtIcon/>
+                    {this.state.user?.auth_service ? (
+                        <WithTooltip
+                            title={this.props.intl.formatMessage({
+                                id: 'admin.userManagement.userDetail.managedByProvider.title',
+                                defaultMessage: 'Managed by login provider',
                             })}
-                        />
-                    </WithTooltip>
-                ) : (
-                    <>
+                            hint={this.props.intl.formatMessage({
+                                id: 'admin.userManagement.userDetail.managedByProvider.username',
+                                defaultMessage: 'This username is managed by the {authService} login provider and cannot be changed here.',
+                            }, {
+                                authService: this.state.user.auth_service.toUpperCase(),
+                            })}
+                        >
+                            <input
+                                className='form-control'
+                                type='text'
+                                value={this.state.usernameField}
+                                disabled={true}
+                                readOnly={true}
+                                style={{cursor: 'not-allowed'}}
+                                placeholder={this.props.intl.formatMessage({
+                                    id: 'admin.userManagement.userDetail.username.input',
+                                    defaultMessage: 'Enter username',
+                                })}
+                            />
+                        </WithTooltip>
+                    ) : (
                         <input
                             className={classNames('form-control', {
                                 error: this.state.usernameError,
@@ -1121,53 +1130,55 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             aria-describedby='username-error'
                             aria-invalid={this.state.usernameError ? 'true' : 'false'}
                         />
-                        {this.state.usernameError && (
-                            <div
-                                id='username-error'
-                                className='field-error'
-                                data-testid='fieldError'
-                                role='alert'
-                                aria-live='polite'
-                            >
-                                {this.state.usernameError}
-                            </div>
-                        )}
-                    </>
+                    )}
+                </div>
+                {!this.state.user?.auth_service && this.state.usernameError && (
+                    <div
+                        id='username-error'
+                        className='field-error'
+                        data-testid='fieldError'
+                        role='alert'
+                        aria-live='polite'
+                    >
+                        {this.state.usernameError}
+                    </div>
                 )}
             </label>,
         );
 
         fields.push(
             <label key='email'>
-                <FormattedMessage
-                    id='admin.userManagement.userDetail.email'
-                    defaultMessage='Email'
-                />
-                <EmailIcon/>
-                {this.state.user?.auth_service ? (
-                    <WithTooltip
-                        title={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.managedByProvider.title',
-                            defaultMessage: 'Managed by login provider',
-                        })}
-                        hint={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.managedByProvider.email',
-                            defaultMessage: 'This email is managed by the {authService} login provider and cannot be changed here.',
-                        }, {
-                            authService: this.state.user.auth_service.toUpperCase(),
-                        })}
-                    >
-                        <input
-                            className='form-control'
-                            type='text'
-                            value={this.state.emailField}
-                            disabled={true}
-                            readOnly={true}
-                            style={{cursor: 'not-allowed'}}
-                        />
-                    </WithTooltip>
-                ) : (
-                    <>
+                <span className='field-label'>
+                    <FormattedMessage
+                        id='admin.userManagement.userDetail.email'
+                        defaultMessage='Email'
+                    />
+                </span>
+                <div className='field-control'>
+                    <EmailIcon/>
+                    {this.state.user?.auth_service ? (
+                        <WithTooltip
+                            title={this.props.intl.formatMessage({
+                                id: 'admin.userManagement.userDetail.managedByProvider.title',
+                                defaultMessage: 'Managed by login provider',
+                            })}
+                            hint={this.props.intl.formatMessage({
+                                id: 'admin.userManagement.userDetail.managedByProvider.email',
+                                defaultMessage: 'This email is managed by the {authService} login provider and cannot be changed here.',
+                            }, {
+                                authService: this.state.user.auth_service.toUpperCase(),
+                            })}
+                        >
+                            <input
+                                className='form-control'
+                                type='text'
+                                value={this.state.emailField}
+                                disabled={true}
+                                readOnly={true}
+                                style={{cursor: 'not-allowed'}}
+                            />
+                        </WithTooltip>
+                    ) : (
                         <input
                             className={classNames('form-control', {
                                 error: this.state.emailError,
@@ -1179,25 +1190,27 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             aria-describedby='email-error'
                             aria-invalid={this.state.emailError ? 'true' : 'false'}
                         />
-                        {this.state.emailError && (
-                            <div
-                                id='email-error'
-                                className='field-error'
-                                data-testid='fieldError'
-                                role='alert'
-                                aria-live='polite'
-                            >
-                                {this.state.emailError}
-                            </div>
-                        )}
-                    </>
+                    )}
+                </div>
+                {!this.state.user?.auth_service && this.state.emailError && (
+                    <div
+                        id='email-error'
+                        className='field-error'
+                        data-testid='fieldError'
+                        role='alert'
+                        aria-live='polite'
+                    >
+                        {this.state.emailError}
+                    </div>
                 )}
             </label>,
         );
 
         const nameField = (fieldKey: 'firstNameField' | 'lastNameField', label: React.ReactNode, onChange: (event: ChangeEvent<HTMLInputElement>) => void, placeholder: string, maxLength: number) => (
             <label key={fieldKey}>
-                {label}
+                <span className='field-label'>
+                    {label}
+                </span>
                 {this.state.user?.auth_service ? (
                     <WithTooltip
                         title={this.props.intl.formatMessage({
@@ -1264,38 +1277,46 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         fields.push(
             <label key='authMethod'>
-                <FormattedMessage
-                    id='admin.userManagement.userDetail.authenticationMethod'
-                    defaultMessage='Authentication Method'
-                />
-                <ShieldOutlineIcon/>
-                <span data-testid='authenticationMethodValue'>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
+                <span className='field-label'>
+                    <FormattedMessage
+                        id='admin.userManagement.userDetail.authenticationMethod'
+                        defaultMessage='Authentication Method'
+                    />
+                </span>
+                <div className='field-control field-control--text'>
+                    <ShieldOutlineIcon/>
+                    <span data-testid='authenticationMethodValue'>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
+                </div>
             </label>,
         );
 
         if (this.state.user?.auth_service) {
             fields.push(
                 <label key='authData'>
-                    <FormattedMessage
-                        id='admin.userManagement.userDetail.authData'
-                        defaultMessage='Auth Data'
-                    />
-                    <ShieldOutlineIcon/>
-                    <input
-                        className={classNames('form-control', {
-                            error: this.state.authDataError,
-                        })}
-                        type='text'
-                        value={this.state.authDataField}
-                        onChange={this.handleAuthDataChange}
-                        disabled={this.state.isSaving}
-                        placeholder={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.authData.input',
-                            defaultMessage: 'Enter auth data',
-                        })}
-                        aria-describedby='authdata-error'
-                        aria-invalid={this.state.authDataError ? 'true' : 'false'}
-                    />
+                    <span className='field-label'>
+                        <FormattedMessage
+                            id='admin.userManagement.userDetail.authData'
+                            defaultMessage='Auth Data'
+                        />
+                    </span>
+                    <div className='field-control'>
+                        <ShieldOutlineIcon/>
+                        <input
+                            className={classNames('form-control', {
+                                error: this.state.authDataError,
+                            })}
+                            type='text'
+                            value={this.state.authDataField}
+                            onChange={this.handleAuthDataChange}
+                            disabled={this.state.isSaving}
+                            placeholder={this.props.intl.formatMessage({
+                                id: 'admin.userManagement.userDetail.authData.input',
+                                defaultMessage: 'Enter auth data',
+                            })}
+                            aria-describedby='authdata-error'
+                            aria-invalid={this.state.authDataError ? 'true' : 'false'}
+                        />
+                    </div>
                     {this.state.authDataError && (
                         <div
                             id='authdata-error'
