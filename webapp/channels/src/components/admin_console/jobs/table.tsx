@@ -295,10 +295,12 @@ class JobTable extends React.PureComponent<Props, State> {
             );
         }
 
+        const panelTitle = this.props.createJobButtonText == null ? ' ' : this.props.createJobButtonText;
+
         return (
             <CompassAdminPanel
                 className={classNames('AdminPanel', 'JobTable', 'job-table__panel', this.props.className)}
-                title={this.props.createJobButtonText}
+                title={panelTitle}
                 subtitle={this.props.createJobHelpText}
                 headerActions={
                     <Button

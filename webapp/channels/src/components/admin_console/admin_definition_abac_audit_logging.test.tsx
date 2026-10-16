@@ -162,10 +162,13 @@ describe('AdminDefinition - ABAC audit logging toggle', () => {
                 config={{
                     AccessControlSettings: {
                         EnableAttributeBasedAccessControl: true,
+                        EnableUserManagedAttributes: false,
                         EnableAccessControlAuditLogging: false,
                         EnableChannelPolicyIndicators: true,
                         TrustProxyDeviceIdentityHeader: false,
                         EnforceDeviceIDConsistency: false,
+                        SyncJobIntervalSeconds: 0,
+                        AttributeRefreshIntervalSeconds: 0,
                     },
                     FeatureFlags: {
                         SessionAttributes: true,
