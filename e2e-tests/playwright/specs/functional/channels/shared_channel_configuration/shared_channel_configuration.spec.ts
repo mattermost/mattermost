@@ -387,7 +387,7 @@ test.describe('Shared channel configuration', () => {
         });
 
         let channelSettingsModal = await channelsPage.openChannelSettings();
-        let configurationTab = await channelSettingsModal.openConfigurationTab();
+        const configurationTab = await channelSettingsModal.openConfigurationTab();
         await expect
             .poll(
                 async () => {
@@ -413,14 +413,11 @@ test.describe('Shared channel configuration', () => {
 
         await channelsPage.page.reload();
         await channelsPage.toBeVisible();
+
+        // Without the permission the Configuration tab is not rendered at all
         channelSettingsModal = await channelsPage.openChannelSettings();
-        configurationTab = await channelSettingsModal.openConfigurationTab();
-        await expect
-            .poll(async () => !(await configurationTab.shareWithConnectedWorkspacesSection.isVisible()), {
-                timeout: 45000,
-                intervals: [1000, 2000, 3000],
-            })
-            .toBe(true);
+        await expect(channelSettingsModal.infoTab).toBeVisible();
+        await expect(channelSettingsModal.configurationTab).toHaveCount(0);
         await channelSettingsModal.close();
     });
 
