@@ -237,8 +237,7 @@ func (ps *PropertyService) getPropertyFieldFromMaster(rctx request.CTX, groupID,
 func (ps *PropertyService) getPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
 	fields, err := ps.fieldStore.GetMany(rctx, groupID, ids)
 	if err != nil {
-		var resultsMismatchErr *store.ErrResultsMismatch
-		if errors.As(err, &resultsMismatchErr) {
+		if _, ok := errors.AsType[*store.ErrResultsMismatch](err); ok {
 			return nil, fmt.Errorf("%w: %w", ErrFieldNotFound, err)
 		}
 		return nil, err

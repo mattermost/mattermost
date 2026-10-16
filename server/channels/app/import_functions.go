@@ -400,8 +400,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		// could silently link content to the wrong account.
 		user, nErr = a.Srv().Store().User().GetByAuth(data.AuthData, *data.AuthService)
 		if nErr != nil {
-			var nfErr *store.ErrNotFound
-			if !errors.As(nErr, &nfErr) {
+			if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
 				return model.NewAppError("importUser", "app.user.get_by_auth.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 			// No dest account matched this SSO identity.
@@ -428,8 +427,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 				// so existing accounts are found and updated rather than duplicated.
 				user, nErr = a.Srv().Store().User().GetByUsername(*data.Username)
 				if nErr != nil {
-					var nfUsernameErr *store.ErrNotFound
-					if !errors.As(nErr, &nfUsernameErr) {
+					if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
 						return model.NewAppError("importUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 					}
 					user = &model.User{}
@@ -449,8 +447,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	} else {
 		user, nErr = a.Srv().Store().User().GetByUsername(*data.Username)
 		if nErr != nil {
-			var nfErr *store.ErrNotFound
-			if !errors.As(nErr, &nfErr) {
+			if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
 				return model.NewAppError("importUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 			if deactivateMissingUsers {
@@ -1043,8 +1040,7 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 	var nErr error
 	bot, nErr = a.Srv().Store().Bot().GetByUsername(*data.Username)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(nErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
 			return model.NewAppError("importBot", "app.import.import_bot.lookup_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 		bot = &model.Bot{}
@@ -1601,16 +1597,14 @@ func (a *App) importReaction(rctx request.CTX, data *imports.ReactionImportData,
 	var user *model.User
 	var nErr error
 	if user, nErr = a.Srv().Store().User().GetByUsername(*data.User); nErr != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(nErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
 			return model.NewAppError("importReaction", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 		if report != nil {
 			if destUsername, ok := report.Remap.Lookup(*data.User); ok {
 				user, nErr = a.Srv().Store().User().GetByUsername(destUsername)
 				if nErr != nil {
-					var remapNfErr *store.ErrNotFound
-					if !errors.As(nErr, &remapNfErr) {
+					if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
 						return model.NewAppError("importReaction", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 					}
 				}
@@ -2673,10 +2667,9 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 				SchemeGuest: u.IsGuest(),
 			}
 			if _, nErr := a.Srv().Store().Channel().SaveMember(rctx, toInsert); nErr != nil {
-				var cErr *store.ErrConflict
 				// A concurrent importer may have inserted the row in the meantime — the row
 				// exists, which is all we need before the UPDATE.
-				if !errors.As(nErr, &cErr) {
+				if _, ok := errors.AsType[*store.ErrConflict](nErr); !ok {
 					return model.NewAppError("BulkImport", "app.import.import_direct_channel.save_member.error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 				}
 			} else {
@@ -3070,8 +3063,7 @@ func (a *App) importEmoji(rctx request.CTX, data *imports.EmojiImportData, dryRu
 
 	emoji, err := a.Srv().Store().Emoji().GetByName(rctx, *data.Name, true)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return model.NewAppError("importEmoji", "app.emoji.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -3139,8 +3131,7 @@ func (a *App) extractThreadMembers(rctx request.CTX, line *imports.LineImportWor
 			var uErr error
 			user, uErr = a.Srv().Store().User().GetByUsername(lookupUsername)
 			if uErr != nil {
-				var nfErr *store.ErrNotFound
-				if !errors.As(uErr, &nfErr) {
+				if _, ok := errors.AsType[*store.ErrNotFound](uErr); !ok {
 					return nil, line.LineNumber, model.NewAppError("extractThreadMembers", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(uErr)
 				}
 				if deactivateMissingUsers {
