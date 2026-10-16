@@ -225,11 +225,17 @@ if (notes.length) {
         lines.push(`- ${n.locale} \`${n.ref}\`: ${n.note}`);
     }
 }
-const remaining = Object.entries(plan.surfaces.webapp.locales).
-    map(([locale, l]) => [locale, l.repairsAvailable - (payloads[locale] ? Object.values(l.items).filter((i) => i.kind === 'repair').length : 0)]).
-    filter(([, n]) => n > 0);
-if (remaining.length) {
-    lines.push('', `Repairs left for later runs: ${remaining.map(([l, n]) => `${l} ${n}`).join(', ')}.`);
+const remaining = {};
+for (const [surface, {locales}] of Object.entries(plan.surfaces)) {
+    for (const [locale, l] of Object.entries(locales)) {
+        const left = l.repairsAvailable - (payloads[locale] ? Object.values(l.items).filter((i) => i.kind === 'repair').length : 0);
+        if (left > 0) {
+            (remaining[locale] ||= []).push(`${left} ${surface}`);
+        }
+    }
+}
+if (Object.keys(remaining).length) {
+    lines.push('', `Repairs left for later runs: ${Object.keys(remaining).sort().map((l) => `${l} ${remaining[l].join(' + ')}`).join(', ')}.`);
 }
 fs.writeFileSync(p.report, lines.join('\n') + '\n');
 
