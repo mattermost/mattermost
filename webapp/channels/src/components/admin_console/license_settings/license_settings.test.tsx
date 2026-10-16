@@ -63,6 +63,14 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('renders left and right panel-card containers for AdminPanel-equivalent chrome', () => {
+        // Surface chrome lives on .panel-card (Compass AdminPanel tokens in
+        // license_settings.scss) so the two-column layout is preserved.
+        const {container} = renderWithContext(<LicenseSettings {...defaultProps}/>);
+        expect(container.querySelectorAll('.left-panel > .panel-card')).toHaveLength(1);
+        expect(container.querySelectorAll('.right-panel > .panel-card')).toHaveLength(1);
+    });
+
     test('should match snapshot enterprise build with license and isDisabled set to true', () => {
         const {container} = renderWithContext(
             <LicenseSettings

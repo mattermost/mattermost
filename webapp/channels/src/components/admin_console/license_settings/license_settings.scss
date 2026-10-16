@@ -5,15 +5,24 @@
 .top-wrapper {
     display: flex;
 
+    // Match Compass AdminPanel chrome (surface, border, radius, elevation).
+    // Applied to .panel-card instead of wrapping in AdminPanel so the
+    // two-column left/right layout (568px + 332px) is preserved.
+    .left-panel,
+    .right-panel {
+        .panel-card {
+            background: var(--center-channel-bg);
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: var(--radius-m);
+            box-shadow: var(--elevation-1);
+        }
+    }
+
     .left-panel {
         width: 568px;
 
         .panel-card {
             padding: 28px 32px;
-            border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
-            border-radius: 4px;
-            background: var(--sys-center-channel-bg);
-            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
         }
     }
 
@@ -28,10 +37,6 @@
                 padding: 24px;
                 padding-top: 40px;
             }
-            border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
-            border-radius: 4px;
-            background: var(--sys-center-channel-bg);
-            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
         }
     }
 
