@@ -5,7 +5,6 @@ import React, {useState, type JSX} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -87,9 +86,9 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                                     >
                                         <i className='fa fa-external-link'/>
                                     </Link>
-                                    <Button
+                                    <button
+                                        type='button'
                                         className='policy-remove-icon'
-                                        destructive={true}
                                         aria-label={intl.formatMessage({
                                             id: 'admin.channel_settings.channel_detail.remove_policy.aria_label',
                                             defaultMessage: 'Remove policy',
@@ -99,7 +98,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                                         }}
                                     >
                                         <i className='fa fa-trash'/>
-                                    </Button>
+                                    </button>
                                 </td>
                             </tr>
                         ))}

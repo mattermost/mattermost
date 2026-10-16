@@ -92,8 +92,15 @@ const SettingItemMax = ({
             if (shiftEnter && isKeyPressed(e, Constants.KeyCodes.ENTER) && e.shiftKey) {
                 return;
             }
-            const isTertiaryButton = Boolean(
-                target.closest('button')?.className.includes('button--emphasis-tertiary'),
+            const closestButton = target.closest('button');
+            const isFooterNonSaveButton = Boolean(
+                closestButton &&
+                closestButton.id !== 'saveSetting' &&
+                closestButton.closest('.setting-list-item__buttons'),
+            );
+            const isNonPrimaryContentButton = Boolean(
+                closestButton &&
+                (/button--emphasis-(tertiary|quaternary|link)/).test(closestButton.className),
             );
 
             if (disableEnterSubmit !== true &&
@@ -102,7 +109,8 @@ const SettingItemMax = ({
                 target.tagName !== 'SELECT' &&
                 target.parentElement &&
                 target.parentElement.className !== 'react-select__input' &&
-                !isTertiaryButton &&
+                !isFooterNonSaveButton &&
+                !isNonPrimaryContentButton &&
                 target.id !== 'cancelSetting' &&
                 settingList.current &&
                 settingList.current.contains(target)) {
@@ -112,11 +120,23 @@ const SettingItemMax = ({
 
         if (settingList.current) {
             // Prefer form controls over footer Save/Cancel (Compass Buttons no longer use .btn).
-            const focusableElements: NodeListOf<HTMLElement> = settingList.current.querySelectorAll('button:not(#saveSetting):not(#cancelSetting), input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])');
-            if (focusableElements.length > 0) {
-                a11yFocus(focusableElements[0]);
+            const formControls: NodeListOf<HTMLElement> = settingList.current.querySelectorAll(
+                'input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea',
+            );
+            if (formControls.length > 0) {
+                a11yFocus(formControls[0]);
             } else {
-                a11yFocus(settingList.current);
+                const buttons: NodeListOf<HTMLElement> = settingList.current.querySelectorAll(
+                    'button:not(#saveSetting):not(#cancelSetting)',
+                );
+                const focusableButton = Array.from(buttons).find(
+                    (button) => !(/button--emphasis-(tertiary|quaternary|link)/).test(button.className),
+                );
+                if (focusableButton) {
+                    a11yFocus(focusableButton);
+                } else {
+                    a11yFocus(settingList.current);
+                }
             }
         }
 

@@ -83,7 +83,6 @@ const OpenIdConvert = ({
                 </p>
                 <div className='OpenIdConvert_actionWrapper'>
                     <Button
-                        className='btn'
                         emphasis='primary'
                         data-testid='openIdConvert'
                         disabled={disabled}
@@ -97,7 +96,6 @@ const OpenIdConvert = ({
                     <Button
                         asChild={true}
                         emphasis='secondary'
-                        className='btn-secondary'
                     >
                         <ExternalLink
                             location='openid_convert'

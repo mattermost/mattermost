@@ -1303,7 +1303,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+                        class="_button_aa8j5_2 _button--emphasis-link_aa8j5_127 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
@@ -1991,7 +1991,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+                        class="_button_aa8j5_2 _button--emphasis-link_aa8j5_127 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
@@ -2665,7 +2665,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+                        class="_button_aa8j5_2 _button--emphasis-link_aa8j5_127 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
@@ -3355,7 +3355,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+                        class="_button_aa8j5_2 _button--emphasis-link_aa8j5_127 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
@@ -4029,7 +4029,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+                        class="_button_aa8j5_2 _button--emphasis-link_aa8j5_127 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         disabled=""
                         id="remove-button"
@@ -4704,7 +4704,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+                        class="_button_aa8j5_2 _button--emphasis-link_aa8j5_127 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
@@ -5365,7 +5365,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+                        class="_button_aa8j5_2 _button--emphasis-link_aa8j5_127 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
@@ -8535,7 +8535,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+                        class="_button_aa8j5_2 _button--emphasis-link_aa8j5_127 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
@@ -9209,7 +9209,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
+                        class="_button_aa8j5_2 _button--emphasis-link_aa8j5_127 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"

@@ -520,6 +520,7 @@ const renderRemoveButton = (
             <div className='remove-button'>
                 <Button
                     type='button'
+                    emphasis='link'
                     destructive={true}
                     onClick={handleRemove}
                     disabled={isDisabled}
