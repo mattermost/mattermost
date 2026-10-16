@@ -36,8 +36,9 @@
  *
  * The per-message checks live in icu_rules.mjs, which the translation pipeline
  * in i18n/scripts/ runs too. Two of its rules are warnings here, because the
- * catalogs already ship strings that break them, and the pipeline repairs those
- * rather than CI failing every PR until someone does:
+ * catalogs already ship strings that break them. New and changed translations
+ * are held to them by i18n/scripts/check_pr.mjs instead, and translation runs
+ * repair the plural gaps a few at a time:
  *
  *   - a horizontal arrow in a right-to-left locale, which points backwards
  *   - a plural that shows its count but lacks a form the locale needs for

@@ -11,6 +11,11 @@ The short version:
   non-English catalogs. Prefer the `translate-i18n` skill to fill translations;
   manual fixes from a native speaker are welcome too, ideally with the corrected
   term added to [`i18n/glossary/`](../../i18n/glossary/).
+- CI holds every translation a PR adds or changes to the rules in
+  `i18n/AGENTS.md`, and warns about likely mistakes the checkers let through,
+  such as English left untranslated or the wrong form of address. Run
+  `node i18n/scripts/check_pr.mjs` from the repository root to see what it
+  will say.
 - `make i18n-extract`, run from `server`, adds the ids the code uses to
   `en.json` and orders it. You write each id's English `translation` and its
   `description` by hand, then re-run the extract.
