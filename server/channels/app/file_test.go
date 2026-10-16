@@ -9,9 +9,11 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/png"
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -1319,4 +1321,225 @@ func TestSendFileUploadRejectedEvent(t *testing.T) {
 			}
 		}, 1*time.Second, 100*time.Millisecond, "should not publish file_upload_rejected event when userID is empty")
 	})
+}
+
+func miniPreviewTestPNG(tb testing.TB, width, height int) []byte {
+	tb.Helper()
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	var buf bytes.Buffer
+	require.NoError(tb, png.Encode(&buf, img))
+	return buf.Bytes()
+}
+
+func miniPreviewTestPNGTruncatedBeforeIEND(tb testing.TB, width, height int) []byte {
+	tb.Helper()
+	data := miniPreviewTestPNG(tb, width, height)
+	const iendChunkLen = 12 // length + type + CRC
+	require.Greater(tb, len(data), iendChunkLen)
+	return data[:len(data)-iendChunkLen]
+}
+
+func TestGetFileInfo_MiniPreviewRecordedAfterDecodeAttempt(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	type readerKind int
+	const (
+		readerGetFileInfo readerKind = iota
+		readerGetFileInfos
+		readerGetFileInfosForPost
+	)
+
+	type uploaderKind int
+	const (
+		uploaderDoUploadFile uploaderKind = iota
+		uploaderUploadFileX
+	)
+
+	tests := []struct {
+		name                string
+		completeImage       bool
+		uploader            uploaderKind
+		reader              readerKind
+		concurrent          int
+		wantBytes           bool
+		replaceWithComplete bool
+	}{
+		{
+			name:       "GetFileInfo records decode attempt for incomplete image",
+			reader:     readerGetFileInfo,
+			concurrent: 1,
+		},
+		{
+			name:       "GetFileInfos records decode attempt for incomplete image",
+			reader:     readerGetFileInfos,
+			concurrent: 1,
+		},
+		{
+			name:       "concurrent GetFileInfo records decode attempt once",
+			reader:     readerGetFileInfo,
+			concurrent: 20,
+		},
+		{
+			name:          "GetFileInfo generates mini preview for complete image",
+			completeImage: true,
+			reader:        readerGetFileInfo,
+			concurrent:    1,
+			wantBytes:     true,
+		},
+		{
+			name:       "UploadFileX records decode attempt for incomplete image",
+			uploader:   uploaderUploadFileX,
+			reader:     readerGetFileInfo,
+			concurrent: 1,
+		},
+		{
+			name:          "UploadFileX generates mini preview for complete image",
+			completeImage: true,
+			uploader:      uploaderUploadFileX,
+			reader:        readerGetFileInfo,
+			concurrent:    1,
+			wantBytes:     true,
+		},
+		{
+			name:                "GetFileInfosForPost records decode attempt for incomplete image",
+			reader:              readerGetFileInfosForPost,
+			concurrent:          1,
+			replaceWithComplete: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			teamID := model.NewId()
+			channelID := model.NewId()
+			userID := model.NewId()
+			if tc.uploader == uploaderUploadFileX || tc.reader == readerGetFileInfosForPost {
+				teamID = th.BasicTeam.Id
+				channelID = th.BasicChannel.Id
+				userID = th.BasicUser.Id
+			}
+
+			var data []byte
+			if tc.completeImage {
+				data = miniPreviewTestPNG(t, 8, 8)
+			} else {
+				data = miniPreviewTestPNGTruncatedBeforeIEND(t, 8, 8)
+			}
+
+			var uploaded *model.FileInfo
+			var appErr *model.AppError
+			switch tc.uploader {
+			case uploaderUploadFileX:
+				uploaded, appErr = th.App.UploadFileX(th.Context, channelID, "preview.png",
+					bytes.NewReader(data),
+					UploadFileSetTeamId(teamID),
+					UploadFileSetUserId(userID),
+					UploadFileSetTimestamp(time.Now()),
+				)
+			default:
+				uploaded, appErr = th.App.DoUploadFile(th.Context, time.Now(), teamID, channelID, userID, "preview.png", data, false)
+			}
+			require.Nil(t, appErr)
+			require.NotNil(t, uploaded)
+			t.Cleanup(func() {
+				require.NoError(t, th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, uploaded.Id))
+				require.Nil(t, th.App.RemoveFile(uploaded.Path))
+			})
+			require.Equal(t, 8, uploaded.Width)
+			require.Equal(t, 8, uploaded.Height)
+			if tc.uploader == uploaderUploadFileX {
+				require.NotNil(t, uploaded.MiniPreview)
+				if tc.wantBytes {
+					require.NotEmpty(t, *uploaded.MiniPreview)
+				}
+			} else {
+				require.Nil(t, uploaded.MiniPreview)
+			}
+
+			var post *model.Post
+			if tc.reader == readerGetFileInfosForPost {
+				// Attach after CreatePost so the first GetFileInfosForPost is
+				// the first post file-info read of this file.
+				post, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+					Message:   "preview",
+					ChannelId: channelID,
+					UserId:    userID,
+				}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+				require.Nil(t, appErr)
+				require.NotNil(t, post)
+				require.NoError(t, th.App.Srv().Store().FileInfo().AttachToPost(th.Context, uploaded.Id, post.Id, channelID, userID))
+				post.FileIds = []string{uploaded.Id}
+			}
+
+			read := func() *[]byte {
+				t.Helper()
+				switch tc.reader {
+				case readerGetFileInfo:
+					info, err := th.App.GetFileInfo(th.Context, uploaded.Id)
+					require.Nil(t, err)
+					require.NotNil(t, info)
+					return info.MiniPreview
+				case readerGetFileInfos:
+					infos, err := th.App.GetFileInfos(th.Context, 0, 10, &model.GetFileInfosOptions{
+						UserIds: []string{userID},
+					})
+					require.Nil(t, err)
+					require.Len(t, infos, 1)
+					return infos[0].MiniPreview
+				case readerGetFileInfosForPost:
+					infos, _, err := th.App.GetFileInfosForPost(th.Context, post, false, false)
+					require.Nil(t, err)
+					require.Len(t, infos, 1)
+					return infos[0].MiniPreview
+				default:
+					t.Fatalf("unknown reader %v", tc.reader)
+					return nil
+				}
+			}
+
+			if tc.concurrent > 1 {
+				var wg sync.WaitGroup
+				errs := make(chan *model.AppError, tc.concurrent)
+				wg.Add(tc.concurrent)
+				for range tc.concurrent {
+					go func() {
+						defer wg.Done()
+						_, err := th.App.GetFileInfo(th.Context, uploaded.Id)
+						if err != nil {
+							errs <- err
+						}
+					}()
+				}
+				wg.Wait()
+				close(errs)
+				for err := range errs {
+					require.Nil(t, err)
+				}
+			} else {
+				first := read()
+				if tc.wantBytes {
+					require.NotNil(t, first)
+					require.NotEmpty(t, *first)
+				} else {
+					require.NotNil(t, first, "records that mini-preview generation was attempted so later reads skip decode")
+				}
+			}
+
+			if tc.replaceWithComplete {
+				_, writeErr := th.App.WriteFile(bytes.NewReader(miniPreviewTestPNG(t, 8, 8)), uploaded.Path)
+				require.Nil(t, writeErr)
+			}
+
+			// A later read must see the recorded attempt so decode work does not
+			// grow with the number of GetFileInfo / GetFileInfos calls.
+			later := read()
+			require.NotNil(t, later, "records that mini-preview generation was attempted so later reads skip decode")
+			if tc.wantBytes {
+				require.NotEmpty(t, *later)
+			} else if tc.replaceWithComplete {
+				require.Empty(t, *later, "records that mini-preview generation was attempted so later reads skip decode")
+			}
+		})
+	}
 }
