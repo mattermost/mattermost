@@ -2293,7 +2293,7 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
-    "translation": "Kunde inte hitta efterfrågad plugin på marknadsplatsen."
+    "translation": "Kunde inte hitta efterfrågat plugin på marknadsplatsen."
   },
   {
     "id": "app.plugin.marketplace_plugin_request.app_error",
@@ -11085,19 +11085,19 @@
   },
   {
     "id": "api.file.get_file.rejected_by_plugin",
-    "translation": "Filnedladdningen avvisades av en plugin"
+    "translation": "Filnedladdningen avvisades av ett plugin"
   },
   {
     "id": "api.file.get_file_preview.rejected_by_plugin",
-    "translation": "Nedladdning av filens förhandsvisning avvisades av en plugin"
+    "translation": "Nedladdning av filens förhandsvisning avvisades av ett plugin"
   },
   {
     "id": "api.file.get_file_thumbnail.rejected_by_plugin",
-    "translation": "Nedladdning av filens miniatyrbild avvisades av en plugin"
+    "translation": "Nedladdning av filens miniatyrbild avvisades av ett plugin"
   },
   {
     "id": "api.file.get_public_file.rejected_by_plugin",
-    "translation": "Nedladdning av publik fil avvisades av en plugin"
+    "translation": "Nedladdning av publik fil avvisades av ett plugin"
   },
   {
     "id": "api.file.test_connection_auth.app_error",
