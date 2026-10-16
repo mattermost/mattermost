@@ -1275,12 +1275,16 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
 
         const schemaSections = 'sections' in schema ? schema.sections : undefined;
         if ('settings' in schema && schema.settings && !schemaSections) {
+            // Same gap as section stacks so sibling AdminPanels (e.g. Languages +
+            // Auto Translation) are not flush against each other.
             return (
-                <SettingsGroup container={false}>
-                    {header}
-                    {buildSettingsList(schema.settings)}
-                    {footer}
-                </SettingsGroup>
+                <div className='admin-console__schema-sections'>
+                    <SettingsGroup container={false}>
+                        {header}
+                        {buildSettingsList(schema.settings)}
+                        {footer}
+                    </SettingsGroup>
+                </div>
             );
         } else if (schemaSections) {
             const sections: React.ReactNode[] = [];
@@ -1353,15 +1357,19 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                     return;
                 }
 
-                // Sections with enhanced properties use AdminSectionPanel for richer UI
-                const hasEnhancedProps = section.description || section.license_sku;
+                // Prefer Compass AdminPanel chrome when the section has a title,
+                // description/subtitle, or license badge. Map legacy `subtitle` to
+                // AdminSectionPanel's `description` so LDAP wizard and similar
+                // sections pick up AdminPanel without a separate migration.
+                const sectionDescription = section.description || section.subtitle;
+                const useAdminPanel = Boolean(section.title || sectionDescription || section.license_sku);
 
-                if (hasEnhancedProps) {
+                if (useAdminPanel) {
                     sections.push(
                         <AdminSectionPanel
                             key={section.key}
                             title={section.title}
-                            description={section.description}
+                            description={sectionDescription}
                             licenseSku={section.license_sku}
                             data-testid={section.key}
                         >
@@ -1370,8 +1378,18 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                             {footer}
                         </AdminSectionPanel>,
                     );
+                } else if (!section.title && !section.subtitle) {
+                    // Untitled sections that self-render AdminPanel (e.g. Membership
+                    // Policies list) must not get legacy config-section card chrome.
+                    sections.push(
+                        <React.Fragment key={section.key}>
+                            {header}
+                            {settingsList}
+                            {footer}
+                        </React.Fragment>,
+                    );
                 } else {
-                    // Standard sections use existing rendering
+                    // Legacy SettingsGroup path for remaining titled sections.
                     sections.push(
                         <div
                             className={'config-section'}
