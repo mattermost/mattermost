@@ -49,11 +49,8 @@ func evalAuditLogOff(s *healthcheck.Snapshot) []healthcheck.Result {
 	}
 }
 
-// Offline packets carry no license, so a nil license cannot rule out advanced audit targets.
+// An unknown license, as in packets from older servers, cannot rule out advanced audit targets.
 func allowAdvancedLogging(s *healthcheck.Snapshot) bool {
-	if s.License == nil {
-		return true
-	}
-	allowed, _ := s.LicenseFeature(func(f *model.Features) *bool { return f.AdvancedLogging })
-	return allowed
+	allowed, ok := s.LicenseFeature(func(f *model.Features) *bool { return f.AdvancedLogging })
+	return !ok || allowed
 }
