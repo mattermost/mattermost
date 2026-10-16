@@ -644,9 +644,11 @@
 }
 
 .group-profile-add-menu {
+    // Button now lives in Compass AdminPanel headerActions — no need to
+    // pull it up over a legacy body-header seam (that clipped under overflow).
     position: relative;
-    margin-top: -36px;
-    margin-left: 10px;
+    margin-top: 0;
+    margin-left: 0;
 
     .fa-caret-down {
         margin-left: 5px;
