@@ -3,15 +3,15 @@
 
 package api4
 
-// gzip-6 (production default) vs go-brrr-2 (brotliCompressionLevel, handlers.go):
+// gzip-6 (production default) vs go-brrr-2 (brotliCompressionLevel, brotli.go):
 //
-//	fixture                                    time/mem/ratio (gzip-6)     time/mem/ratio (go-brrr-2)
-//	tiny_ping_like_5_fields                      13.2us /  795KB / 1.34x     3.5us /  17KB / 1.40x
-//	small_single_resource_50_fields              34.7us /  799KB / 2.08x    12.5us /  22KB / 2.04x
-//	medium_post_list_page_800_fields            537.0us /  859KB / 2.23x   148.9us / 920KB / 2.36x
-//	large_realistic_1078_channels                 2.44ms /  1.0MB / 8.23x  815.2us / 2.0MB / 10.49x
-//	xlarge_old_hardcoded_limit_10000_channels    21.84ms /  2.9MB / 8.33x   8.19ms / 4.8MB / 8.96x
-//	adversarial_50000_channels                  122.97ms / 16.8MB / 8.37x  45.16ms / 12.0MB / 8.96x
+//	fixture                                    time/mem/ratio (gzip-6)      time/mem/ratio (go-brrr-2)
+//	tiny_ping_like_5_fields                      22.7us /  814KB / 1.34x      1.6us /   361B / 1.37x
+//	small_single_resource_50_fields              36.0us /  818KB / 2.06x      9.4us /  1.5KB / 2.05x
+//	medium_post_list_page_800_fields            576.3us /  879KB / 2.23x    118.0us /   45KB / 2.36x
+//	large_realistic_1078_channels                 2.55ms /  1.1MB / 8.24x   782.5us /  185KB / 10.49x
+//	xlarge_old_hardcoded_limit_10000_channels    23.52ms /  2.9MB / 8.33x    8.32ms /  3.2MB / 8.96x
+//	adversarial_50000_channels                  134.11ms / 17.6MB / 8.37x   46.66ms / 12.9MB / 8.96x
 //
 // Level 2 was picked over 1-11: it's faster and smaller than gzip-6 at every size
 // above, and levels 3+ buy at most a marginal ratio gain for a steep memory jump.
@@ -166,7 +166,7 @@ func compressGoBrrr(level int, body []byte) int {
 }
 
 // BenchmarkCompression compares gzip's production default against go-brrr at the
-// shipped level (brotliCompressionLevel, handlers.go). Run with:
+// shipped level (brotliCompressionLevel, brotli.go). Run with:
 //
 //	go test ./channels/api4/... -bench BenchmarkCompression -benchmem -run '^$'
 func BenchmarkCompression(b *testing.B) {

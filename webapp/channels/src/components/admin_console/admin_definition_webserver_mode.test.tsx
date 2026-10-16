@@ -39,13 +39,13 @@ describe('AdminDefinition - Webserver Mode setting', () => {
     });
 
     test('offers every supported mode, ordered by descending compression capability', () => {
-        expect(getOptions()?.map((option) => option.value)).toEqual(['brotli', 'gzip', 'uncompressed', 'disabled']);
+        expect(getOptions()?.map((option) => option.value)).toEqual(['gzip', 'uncompressed', 'disabled']);
     });
 
     test('gives every mode a display name', () => {
         const options = getOptions();
 
-        expect(options).toHaveLength(4);
+        expect(options).toHaveLength(3);
         options?.forEach((option) => {
             expect(option.display_name).toBeDefined();
         });

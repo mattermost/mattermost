@@ -529,13 +529,16 @@ type ServiceSettings struct {
 
 var MattermostGiphySdkKey string
 
-// "brotli" is a superset of "gzip": gzip everywhere, plus Brotli on API responses.
 func (s *ServiceSettings) CompressResponses() bool {
-	return *s.WebserverMode == "gzip" || *s.WebserverMode == "brotli"
+	return *s.WebserverMode == "gzip"
 }
 
-func (s *ServiceSettings) CompressResponsesWithBrotli() bool {
-	return *s.WebserverMode == "brotli"
+// CompressResponsesWithBrotli reports whether API responses should negotiate
+// Brotli compression with clients that advertise support for it, falling back
+// to gzip otherwise. Requires both gzip compression and the EnableBrotliCompression
+// feature flag.
+func (s *ServiceSettings) CompressResponsesWithBrotli(enableBrotliCompression bool) bool {
+	return s.CompressResponses() && enableBrotliCompression
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -5091,7 +5094,7 @@ func (s *ServiceSettings) isValid() *AppError {
 		return appErr
 	}
 
-	if !(*s.WebserverMode == "gzip" || *s.WebserverMode == "brotli" || *s.WebserverMode == "uncompressed" || *s.WebserverMode == "disabled") {
+	if !(*s.WebserverMode == "gzip" || *s.WebserverMode == "uncompressed" || *s.WebserverMode == "disabled") {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_mode.app_error", map[string]any{"Value": *s.WebserverMode}, "", http.StatusBadRequest)
 	}
 

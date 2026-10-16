@@ -420,12 +420,6 @@ func TestServiceSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: true,
 		},
-		"WebserverMode brotli is valid": {
-			ServiceSettings: ServiceSettings{
-				WebserverMode: new("brotli"),
-			},
-			ExpectError: false,
-		},
 		"WebsocketPort is out of range": {
 			ServiceSettings: ServiceSettings{
 				WebsocketPort: new(65536),
@@ -650,8 +644,7 @@ func TestServiceSettingsCompressResponses(t *testing.T) {
 		compress bool
 		brotli   bool
 	}{
-		"brotli":       {compress: true, brotli: true},
-		"gzip":         {compress: true, brotli: false},
+		"gzip":         {compress: true, brotli: true},
 		"uncompressed": {compress: false, brotli: false},
 		"disabled":     {compress: false, brotli: false},
 	} {
@@ -659,7 +652,9 @@ func TestServiceSettingsCompressResponses(t *testing.T) {
 			ss := ServiceSettings{WebserverMode: new(mode)}
 
 			assert.Equal(t, expected.compress, ss.CompressResponses())
-			assert.Equal(t, expected.brotli, ss.CompressResponsesWithBrotli())
+			assert.Equal(t, expected.brotli, ss.CompressResponsesWithBrotli(true))
+			assert.False(t, ss.CompressResponsesWithBrotli(false),
+				"brotli must stay off regardless of WebserverMode when the feature flag is off")
 		})
 	}
 }

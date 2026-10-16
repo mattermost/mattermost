@@ -263,7 +263,7 @@ func fixEmailAddressDisplayNames(cfg *model.Config) bool {
 // before v12 silently used for any value other than gzip or disabled.
 func fixWebserverMode(cfg *model.Config) bool {
 	switch *cfg.ServiceSettings.WebserverMode {
-	case "gzip", "brotli", "uncompressed", "disabled":
+	case "gzip", "uncompressed", "disabled":
 		return false
 	}
 

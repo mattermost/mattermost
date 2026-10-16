@@ -16,6 +16,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func decompressBrotli(t *testing.T, data []byte) []byte {
+	t.Helper()
+	decompressed, err := brrr.Decompress(data)
+	require.NoError(t, err)
+	return decompressed
+}
+
 // hijackableResponseWriter adds http.Hijacker support to httptest.ResponseRecorder,
 // which doesn't implement it, so tests can exercise the real WebSocket upgrade path.
 type hijackableResponseWriter struct {
@@ -55,8 +62,7 @@ func TestCompressionHandlerBrotli(t *testing.T) {
 		assert.Equal(t, "br", resp.Header().Get("Content-Encoding"))
 
 		// Verify the body is valid brotli-compressed data.
-		decompressed, err := brrr.Decompress(resp.Body.Bytes())
-		require.NoError(t, err)
+		decompressed := decompressBrotli(t, resp.Body.Bytes())
 		assert.Len(t, decompressed, 1400)
 	})
 
@@ -234,8 +240,7 @@ func TestCompressionHandlerBrotli(t *testing.T) {
 		h.ServeHTTP(resp, req)
 
 		assert.Equal(t, "br", resp.Header().Get("Content-Encoding"))
-		decompressed, err := brrr.Decompress(resp.Body.Bytes())
-		require.NoError(t, err)
+		decompressed := decompressBrotli(t, resp.Body.Bytes())
 		assert.Len(t, decompressed, 512*5)
 	})
 
@@ -253,8 +258,7 @@ func TestCompressionHandlerBrotli(t *testing.T) {
 		h.ServeHTTP(resp, req)
 
 		assert.Equal(t, "br", resp.Header().Get("Content-Encoding"))
-		decompressed, err := brrr.Decompress(resp.Body.Bytes())
-		require.NoError(t, err)
+		decompressed := decompressBrotli(t, resp.Body.Bytes())
 		assert.Equal(t, "small but flushed", string(decompressed))
 	})
 

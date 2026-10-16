@@ -37,8 +37,7 @@ func (api *API) APIHandler(h handlerFunc, opts ...APIHandlerOption) http.Handler
 	}
 	setHandlerOpts(handler, opts...)
 
-	cfg := api.srv.Config().ServiceSettings
-	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
+	return apiCompressionHandler(api.srv.Config(), handler, true)
 }
 
 // APIHandlerGzip is APIHandler without brotli: large file downloads (e.g. public
@@ -58,8 +57,7 @@ func (api *API) APIHandlerGzip(h handlerFunc, opts ...APIHandlerOption) http.Han
 	}
 	setHandlerOpts(handler, opts...)
 
-	cfg := api.srv.Config().ServiceSettings
-	return compressionHandler(handler, cfg.CompressResponses(), false)
+	return apiCompressionHandler(api.srv.Config(), handler, false)
 }
 
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
@@ -77,8 +75,7 @@ func (api *API) APISessionRequired(h handlerFunc, opts ...APIHandlerOption) http
 	}
 	setHandlerOpts(handler, opts...)
 
-	cfg := api.srv.Config().ServiceSettings
-	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
+	return apiCompressionHandler(api.srv.Config(), handler, true)
 }
 
 // APISessionRequiredGzip is APISessionRequired without brotli: large file downloads
@@ -98,8 +95,7 @@ func (api *API) APISessionRequiredGzip(h handlerFunc, opts ...APIHandlerOption) 
 	}
 	setHandlerOpts(handler, opts...)
 
-	cfg := api.srv.Config().ServiceSettings
-	return compressionHandler(handler, cfg.CompressResponses(), false)
+	return apiCompressionHandler(api.srv.Config(), handler, false)
 }
 
 // CloudAPIKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
@@ -117,8 +113,7 @@ func (api *API) CloudAPIKeyRequired(h handlerFunc, opts ...APIHandlerOption) htt
 	}
 	setHandlerOpts(handler, opts...)
 
-	cfg := api.srv.Config().ServiceSettings
-	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
+	return apiCompressionHandler(api.srv.Config(), handler, true)
 }
 
 // RemoteClusterTokenRequired provides a handler for remote cluster requests to /remotecluster endpoints.
@@ -137,8 +132,7 @@ func (api *API) RemoteClusterTokenRequired(h handlerFunc, opts ...APIHandlerOpti
 	}
 	setHandlerOpts(handler, opts...)
 
-	cfg := api.srv.Config().ServiceSettings
-	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
+	return apiCompressionHandler(api.srv.Config(), handler, true)
 }
 
 // APISessionRequiredMfa provides a handler for API endpoints which require a logged-in user session  but when accessed,
@@ -157,8 +151,7 @@ func (api *API) APISessionRequiredMfa(h handlerFunc, opts ...APIHandlerOption) h
 	}
 	setHandlerOpts(handler, opts...)
 
-	cfg := api.srv.Config().ServiceSettings
-	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
+	return apiCompressionHandler(api.srv.Config(), handler, true)
 }
 
 // APIHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
@@ -177,8 +170,7 @@ func (api *API) APIHandlerTrustRequester(h handlerFunc, opts ...APIHandlerOption
 	}
 	setHandlerOpts(handler, opts...)
 
-	cfg := api.srv.Config().ServiceSettings
-	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
+	return apiCompressionHandler(api.srv.Config(), handler, true)
 }
 
 // APISessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
@@ -196,8 +188,7 @@ func (api *API) APISessionRequiredTrustRequester(h handlerFunc, opts ...APIHandl
 	}
 	setHandlerOpts(handler, opts...)
 
-	cfg := api.srv.Config().ServiceSettings
-	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
+	return apiCompressionHandler(api.srv.Config(), handler, true)
 }
 
 // APISessionRequiredTrustRequesterGzip is APISessionRequiredTrustRequester without
@@ -217,8 +208,7 @@ func (api *API) APISessionRequiredTrustRequesterGzip(h handlerFunc, opts ...APIH
 	}
 	setHandlerOpts(handler, opts...)
 
-	cfg := api.srv.Config().ServiceSettings
-	return compressionHandler(handler, cfg.CompressResponses(), false)
+	return apiCompressionHandler(api.srv.Config(), handler, false)
 }
 
 // DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,
@@ -237,8 +227,7 @@ func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc, opts ...APIHand
 	}
 	setHandlerOpts(handler, opts...)
 
-	cfg := api.srv.Config().ServiceSettings
-	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
+	return apiCompressionHandler(api.srv.Config(), handler, true)
 }
 
 // APILocal provides a handler for API endpoints to be used in local
@@ -258,8 +247,7 @@ func (api *API) APILocal(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	}
 	setHandlerOpts(handler, opts...)
 
-	cfg := api.srv.Config().ServiceSettings
-	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
+	return apiCompressionHandler(api.srv.Config(), handler, true)
 }
 
 func (api *API) RateLimitedHandler(apiHandler http.Handler, settings model.RateLimitSettings) http.Handler {

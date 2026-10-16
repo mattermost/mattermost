@@ -344,7 +344,7 @@ func TestFixWebserverMode(t *testing.T) {
 		assert.Equal(t, "gzip", *cfg.ServiceSettings.WebserverMode)
 	})
 
-	for _, mode := range []string{"gzip", "brotli", "uncompressed", "disabled"} {
+	for _, mode := range []string{"gzip", "uncompressed", "disabled"} {
 		t.Run("supported "+mode, func(t *testing.T) {
 			cfg := &model.Config{}
 			cfg.SetDefaults()

@@ -76,14 +76,34 @@ func TestAPIHandlersWithCompression(t *testing.T) {
 	require.NoError(t, err)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 
+	th.ConfigStore.SetReadOnlyFF(false)
+
 	t.Run("with WebserverMode == \"gzip\"", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "gzip" })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.WebserverMode = "gzip"
+			cfg.FeatureFlags.EnableBrotliCompression = false
+		})
 
 		testAPIHandlerGzipMode(t, "ApiHandler", api.APIHandler(handlerForGzip(t)), "")
 		testAPIHandlerGzipMode(t, "ApiSessionRequired", api.APISessionRequired(handlerForGzip(t)), session.Token)
 		testAPIHandlerGzipMode(t, "ApiSessionRequiredMfa", api.APISessionRequiredMfa(handlerForGzip(t)), session.Token)
 		testAPIHandlerGzipMode(t, "ApiHandlerTrustRequester", api.APIHandlerTrustRequester(handlerForGzip(t)), "")
 		testAPIHandlerGzipMode(t, "ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForGzip(t)), session.Token)
+	})
+
+	t.Run("with WebserverMode == \"gzip\" and EnableBrotliCompression off, Accept-Encoding: br falls back to gzip", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.WebserverMode = "gzip"
+			cfg.FeatureFlags.EnableBrotliCompression = false
+		})
+
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		req.Header.Set("Accept-Encoding", "br, gzip")
+		api.APIHandler(handlerForGzip(t)).ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Equal(t, "gzip", resp.Header().Get("Content-Encoding"))
 	})
 
 	t.Run("with WebserverMode == \"uncompressed\"", func(t *testing.T) {
@@ -96,8 +116,11 @@ func TestAPIHandlersWithCompression(t *testing.T) {
 		testAPIHandlerNoGzipMode(t, "ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForGzip(t)), session.Token)
 	})
 
-	t.Run("with WebserverMode == \"brotli\" and Accept-Encoding: br", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "brotli" })
+	t.Run("with EnableBrotliCompression and Accept-Encoding: br", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.WebserverMode = "gzip"
+			cfg.FeatureFlags.EnableBrotliCompression = true
+		})
 
 		for _, tc := range []struct {
 			name    string
@@ -123,8 +146,11 @@ func TestAPIHandlersWithCompression(t *testing.T) {
 		}
 	})
 
-	t.Run("with WebserverMode == \"brotli\" and Accept-Encoding: gzip", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "brotli" })
+	t.Run("with EnableBrotliCompression and Accept-Encoding: gzip", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.WebserverMode = "gzip"
+			cfg.FeatureFlags.EnableBrotliCompression = true
+		})
 
 		for _, tc := range []struct {
 			name    string
@@ -150,8 +176,11 @@ func TestAPIHandlersWithCompression(t *testing.T) {
 		}
 	})
 
-	t.Run("with WebserverMode == \"brotli\", the Gzip handler variants never use brotli", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "brotli" })
+	t.Run("with EnableBrotliCompression, the Gzip handler variants never use brotli", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.WebserverMode = "gzip"
+			cfg.FeatureFlags.EnableBrotliCompression = true
+		})
 
 		for _, tc := range []struct {
 			name    string
