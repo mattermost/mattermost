@@ -1374,10 +1374,6 @@
     "translation": "無法更新已刪除頻道的訊息。"
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "找不到可更新的訊息或註解。"
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "已刪除 id={{.PostId}}。"
   },
@@ -5967,7 +5963,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "無法取得提供的策略當中的頻道。"
+    "translation": "無法取得提供的策略當中的團隊。"
   },
   {
     "id": "model.upload_session.is_valid.type.app_error",
@@ -9383,7 +9379,7 @@
   },
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
-    "translation": "無法遠端加入頻道"
+    "translation": "無法邀請遠端加入頻道。"
   },
   {
     "id": "api.shared_channel.get_shared_channel_remotes_error",
@@ -9395,7 +9391,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "無法取消遠端加入頻道邀請"
+    "translation": "無法取消遠端加入頻道的邀請。"
   },
   {
     "id": "app.channel.bookmark.get_existing.app_err",
@@ -12994,20 +12990,12 @@
     "translation": "LDAP 連線測試失敗。伺服器：{{.Server}}:{{.Port}}，ConnectionSecurity：{{.ConnectionType}}，PrivateKeyFilename：{{.PrivateKeyFilename}}，PublicCertificateFilename：{{.PublicCertFilename}}，BindUsername：{{.BindUsername}}。錯誤：{{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "取得 CPA 欄位失敗"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "AD/LDAP Id 無效"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "無法取得使用者。"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "LDAP 屬性值為空"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -13076,10 +13064,6 @@
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
     "translation": "推播代理介面為 nil。"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "取得 CPA 欄位失敗"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
@@ -14568,5 +14552,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys 無效：超過 {{.MaxCount}} 個關鍵字或 {{.MaxLength}} 位元組的上限。"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**找不到**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "已移除"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` 不是有效的 `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "此欄位已連結至全域屬性範本，無法透過使用者屬性 API 修改。請改用全域屬性 API。"
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "無法建立表情符號。圖片太大，無法處理。請嘗試使用尺寸較小或影格較少的圖片。"
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "未啟用網站健康狀態功能。"
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "網站健康狀態需要 Enterprise 授權。"
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "您沒有在此頻道中傳送閱後即焚訊息的權限。"
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "無法移動至檔案起始處。"
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "無法取得健康檢查結果。"
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "找不到健康檢查結果。"
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "無法取得健康檢查結果清單。"
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "此屬性已不再從此來源同步，因此同步無法變更它。"
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "從 AD/LDAP 或 SAML 同步的屬性，其選項由同步管理，無法新增、重新命名或移除。"
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "已同步的屬性含有無效的選項。"
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "無效的屬性同步來源。"
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "屬性同步的使用者 ID 無效。"
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "無法判斷已同步屬性的哪些選項正在使用中。"
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "日誌設定中包含位於日誌根目錄之外的日誌或稽核檔案路徑。請查看伺服器日誌以取得詳細資訊。"
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "資料收集時間未知。"
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "無法取得設定區段。"
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "無法取得伺服器診斷資訊。"
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "無法取得作業記錄。"
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "無法取得授權詳細資料。"
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "無法取得擴充程式清單。"
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "規則意外失敗，無法評估。"
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "無法取得使用統計資料。"
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} 使用 http://，因此推播通知會以明文傳送。"
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} 的通訊協定無效。行動裝置使用者將收不到通知。"
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "請在 PushNotificationServer 前加上 https://，並確認可從應用程式節點連線至該伺服器。"
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer 未使用 https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "每次推播嘗試都會失敗，並出現「unsupported protocol scheme」錯誤。"
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "請將 PushNotificationServer 指向 https://push.mattermost.com 或自行架設的推播代理伺服器。"
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "已啟用推播通知，但 PushNotificationServer 為空白"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com 是 Mattermost 的測試用推播代理伺服器。它沒有 SLA、傳輸量有限，且不適用於正式環境。除了小規模測試之外，行動推播的傳遞都將不可靠。"
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "請改用 https://push.mattermost.com（Enterprise 隨附的正式環境託管推播通知服務），或自行架設的推播代理伺服器。"
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer 指向 push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "Webhook 網址、OAuth 回呼、行動推播內容及電子郵件連結都需要 SiteURL。SiteURL 為空白時，整合功能將無法運作。"
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "請將 SiteURL 設定為伺服器的公開 HTTPS 網址。"
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL 為空白"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL 為 {{.url}}。工作階段 Cookie 與驗證 Token 會以明文傳輸。"
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "請透過 HTTPS 提供 Mattermost 服務，並將 SiteURL 更新為 https:// 位址。"
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL 使用 http://（而非 https://）"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "閱後即焚訊息無法以重複的排程訊息傳送。"
   }
 ]
