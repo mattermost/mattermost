@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "Norėdami siųsti pranešimus į iOS ir Android programas, naudokite HPNS ryšį su veiksnumo SLA",
   "admin.email.mhpnsHelp": "parsisiųsti<linkIOS> Svarbiausia iOS programa</linkIOS> iš iTunes. parsisiųsti<linkAndroid> Svarbiausia Android programa</linkAndroid> iš Google Play. Išmokti daugiau apie<linkHPNS> HPNS</linkHPNS>.",
   "admin.email.mtpns": "Norėdami siųsti pranešimus į iOS ir Android programėles, naudokite TPNS ryšį",
-  "admin.email.mtpnsHelp": "parsisiųsti<linkIOS> Svarbiausia iOS programa</linkIOS> iš iTunes. parsisiųsti<linkAndroid> Svarbiausia Android programa</linkAndroid> iš Google Play. Išmokti daugiau apie<linkHPNS> TPNS</linkHPNS>.",
+  "admin.email.mtpnsHelp": "parsisiųsti<linkIOS> Svarbiausia iOS programa</linkIOS> iš iTunes. parsisiųsti<linkAndroid> Svarbiausia Android programa</linkAndroid> iš Google Play. Išmokti daugiau apie<linkTPNS> TPNS</linkTPNS>.",
   "admin.email.pushOff": "Nesiųskite tiesioginių pranešimų",
   "admin.email.pushOffHelp": "Prašau pažiūrėk<link> tiesioginių pranešimų dokumentacija</link> norėdami sužinoti daugiau apie sąrankos parinktis.",
   "admin.email.pushServerEx": "Pvz.: „https://push-test.mattermost.com“",

@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "Используйте соединение HPNS с SLA uptime для отправки уведомлений в приложения iOS и Android",
   "admin.email.mhpnsHelp": "Скачать <linkIOS>Mattermost для iOS</linkIOS> из iTunes. Скачать <linkAndroid>Mattermost для Android</linkAndroid> из Google Play. Узнать подробнее о <linkHPNS>HPNS</linkHPNS>.",
   "admin.email.mtpns": "Используйте соединение TPNS для отправки уведомлений в приложения iOS и Android",
-  "admin.email.mtpnsHelp": "Скачать <linkIOS>Mattermost для iOS</linkIOS> из iTunes. Скачать <linkAndroid>Mattermost для Android</linkAndroid> из Google Play. Узнать подробнее о <linkHPNS>TPNS</linkHPNS>.",
+  "admin.email.mtpnsHelp": "Скачать <linkIOS>Mattermost для iOS</linkIOS> из iTunes. Скачать <linkAndroid>Mattermost для Android</linkAndroid> из Google Play. Узнать подробнее о <linkTPNS>TPNS</linkTPNS>.",
   "admin.email.pushOff": "Не отправлять push-уведомления",
   "admin.email.pushOffHelp": "Пожалуйста, ознакомьтесь с <link>документацией по push-уведомлениям</link>, чтобы узнать больше о параметрах настройки.",
   "admin.email.pushServerEx": "Например: \"https://push-test.mattermost.com\"",

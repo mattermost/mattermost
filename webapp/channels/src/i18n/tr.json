@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "iOS ve Android uygulamalarına bildirim göndermek için çalışma süresi hizmet düzeyi anlaşması ile HPNS bağlantısı kullanılsın",
   "admin.email.mhpnsHelp": "<linkIOS>Mattermost iOS uygulamasını</linkIOS> iTunes üzerinden indirin. <linkAndroid>Mattermost Android uygulamasını</linkAndroid> Google Play üzerinden indirin. <linkHPNS>Mattermost barındırılan anında bildirim hizmeti</linkHPNS> ile ilgili ayrıntılı bilgi alın.",
   "admin.email.mtpns": "iOS ve Android uygulamalarına bildirim göndermek için TPNS bağlantısı kullanılsın",
-  "admin.email.mtpnsHelp": "<linkIOS>Mattermost iOS uygulamasını</linkIOS> iTunes üzerinden indirin. <linkAndroid>Mattermost Android uygulamasını</linkAndroid> Google Play üzerinden indirin. <linkHPNS>Mattermost barındırılan anında bildirim hizmeti</linkHPNS> ile ilgili ayrıntılı bilgi alın.",
+  "admin.email.mtpnsHelp": "<linkIOS>Mattermost iOS uygulamasını</linkIOS> iTunes üzerinden indirin. <linkAndroid>Mattermost Android uygulamasını</linkAndroid> Google Play üzerinden indirin. <linkTPNS>Mattermost barındırılan anında bildirim hizmeti</linkTPNS> ile ilgili ayrıntılı bilgi alın.",
   "admin.email.pushOff": "Anında bildirimler gönderilmesin",
   "admin.email.pushOffHelp": "Kurulum seçenekleri ile ilgili ayrıntılı bilgi almak için <link>anında bildirim belgelerine</link> bakabilirsiniz.",
   "admin.email.pushServerEx": "Örnek: \"https://push-test.mattermost.com\"",

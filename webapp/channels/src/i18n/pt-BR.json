@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "Usar conexão HPNS com o SLA de tempo de atividade para enviar notificações para aplicativos iOS e Android",
   "admin.email.mhpnsHelp": "Baixe do App Store o aplicativo <linkIOS>Mattermost iOS</linkIOS>. Baixe do Google Play o aplicativo <linkAndroid>Mattermost Android</linkAndroid>. Saiba mais sobre <linkHPNS>HPNS</linkHPNS>.",
   "admin.email.mtpns": "Usar conexão TPNS para enviar notificações para aplicativos iOS e Android",
-  "admin.email.mtpnsHelp": "Baixe do App Store o aplicativo <linkIOS>Mattermost iOS</linkIOS>. Baixe do Google Play o aplicativo <linkAndroid>Mattermost Android</linkAndroid>. Saiba mais sobre <linkHPNS>HPNS</linkHPNS>.",
+  "admin.email.mtpnsHelp": "Baixe do App Store o aplicativo <linkIOS>Mattermost iOS</linkIOS>. Baixe do Google Play o aplicativo <linkAndroid>Mattermost Android</linkAndroid>. Saiba mais sobre <linkTPNS>HPNS</linkTPNS>.",
   "admin.email.pushOff": "Não enviar notificações push",
   "admin.email.pushOffHelp": "Por favor veja a <link>documentação de notificações push</link> para saber mais sobre as opções de configuração.",
   "admin.email.pushServerEx": "Ex: \"https://push-test.mattermost.com\"",

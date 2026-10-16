@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "Utilizar a ligação HPNS com SLA de disponibilidade para enviar notificações para as aplicações iOS e Android",
   "admin.email.mhpnsHelp": "Transfira a <linkIOS>aplicação Mattermost para iOS</linkIOS> a partir do iTunes. Transfira a <linkAndroid>aplicação Mattermost para Android</linkAndroid> a partir do Google Play. Saiba mais sobre o <linkHPNS>Serviço de Notificações Push Alojado do Mattermost</linkHPNS>.",
   "admin.email.mtpns": "Utilizar a ligação TPNS para enviar notificações para as aplicações iOS e Android",
-  "admin.email.mtpnsHelp": "Transfira a <linkIOS>aplicação Mattermost para iOS</linkIOS> a partir do iTunes. Transfira a <linkAndroid>aplicação Mattermost para Android</linkAndroid> a partir do Google Play. Saiba mais sobre o <linkHPNS>Serviço de Notificações Push Alojado do Mattermost</linkHPNS>.",
+  "admin.email.mtpnsHelp": "Transfira a <linkIOS>aplicação Mattermost para iOS</linkIOS> a partir do iTunes. Transfira a <linkAndroid>aplicação Mattermost para Android</linkAndroid> a partir do Google Play. Saiba mais sobre o <linkTPNS>Serviço de Notificações Push Alojado do Mattermost</linkTPNS>.",
   "admin.email.pushOff": "Não enviar notificações push",
   "admin.email.pushOffHelp": "Por favor, consulte a <link>documentação sobre notificações push</link> para saber mais sobre as opções de configuração.",
   "admin.email.pushServerEx": "Exemplo: \"https://push-test.mattermost.com\"",

@@ -5148,8 +5148,8 @@
     "description": "Radio option on the Push Notification Server admin page; TPNS (Test Push Notification Service) is an acronym to keep."
   },
   "admin.email.mtpnsHelp": {
-    "defaultMessage": "Download <linkIOS>Mattermost iOS app</linkIOS> from iTunes. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkHPNS>Mattermost Hosted Push Notification Service</linkHPNS>.",
-    "description": "Help text under the push notification server setting when using the Mattermost Test Push Notification Service; <linkIOS>, <linkAndroid> and <linkHPNS> wrap link texts."
+    "defaultMessage": "Download <linkIOS>Mattermost iOS app</linkIOS> from iTunes. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkTPNS>Mattermost Test Push Notification Service</linkTPNS>.",
+    "description": "Help text under the push notification server setting when using the Mattermost Test Push Notification Service; <linkIOS>, <linkAndroid> and <linkTPNS> wrap link texts."
   },
   "admin.email.pushOff": {
     "defaultMessage": "Do not send push notifications",

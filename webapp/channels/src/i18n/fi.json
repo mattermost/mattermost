@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "Käytä HPNS-yhteyttä, jossa käytettävyys-SLA, ilmoitusten lähettämiseen iOS- ja Android-sovelluksiin",
   "admin.email.mhpnsHelp": "Lataa <linkIOS>Mattermost iOS -sovellus</linkIOS> iTunesista. Lataa <linkAndroid>Mattermost Android -sovellus</linkAndroid> Google Playista. Lisätietoja <linkHPNS>HPNS:sta</linkHPNS>.",
   "admin.email.mtpns": "Käytä TPNS-yhteyttä ilmoitusten lähettämiseen iOS- ja Android-sovelluksiin",
-  "admin.email.mtpnsHelp": "Lataa <linkIOS>Mattermost iOS -sovellus</linkIOS> iTunesista. Lataa <linkAndroid>Mattermost Android -sovellus</linkAndroid> Google Playista. Lisätietoja <linkHPNS>TPNS:sta</linkHPNS>.",
+  "admin.email.mtpnsHelp": "Lataa <linkIOS>Mattermost iOS -sovellus</linkIOS> iTunesista. Lataa <linkAndroid>Mattermost Android -sovellus</linkAndroid> Google Playista. Lisätietoja <linkTPNS>TPNS:sta</linkTPNS>.",
   "admin.email.pushOff": "Älä lähetä push-ilmoituksia",
   "admin.email.pushOffHelp": "Katso <link>push-ilmoitusten dokumentaatio</link> saadaksesi lisätietoja asetusvaihtoehdoista.",
   "admin.email.pushServerEx": "Esim.: \"https://push-test.mattermost.com\"",

@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "使用有上線時間保障的 HPNS 連線以推播通知至 iOS 及 Android 應用程式",
   "admin.email.mhpnsHelp": "自 iTunes 下載 <linkIOS>Mattermost iOS</linkIOS>；自 Google Play 下載 <linkAndroid>Mattermost Android</linkAndroid>。了解 <linkHPNS>Mattermost 託管推播通知服務</linkHPNS> 的更多資訊。",
   "admin.email.mtpns": "使用 TPNS 連線以推播通知至 iOS 及 Android 應用程式",
-  "admin.email.mtpnsHelp": "自 iTunes 下載 <linkIOS>Mattermost iOS</linkIOS>；自 Google Play 下載 <linkAndroid>Mattermost Android</linkAndroid>。了解 <linkHPNS>TPNS</linkHPNS> 的更多資訊。",
+  "admin.email.mtpnsHelp": "自 iTunes 下載 <linkIOS>Mattermost iOS</linkIOS>；自 Google Play 下載 <linkAndroid>Mattermost Android</linkAndroid>。了解 <linkTPNS>TPNS</linkTPNS> 的更多資訊。",
   "admin.email.pushOff": "不要推播通知",
   "admin.email.pushOffHelp": "有關各種設定選項的差異詳情，請參閱<link>推播通知功能文件</link>。",
   "admin.email.pushServerEx": "如：「https://push-test.mattermost.com」",

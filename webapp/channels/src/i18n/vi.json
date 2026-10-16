@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "Sử dụng kết nối HPNS với SLA thời gian hoạt động để gửi thông báo đến các ứng dụng iOS và Android",
   "admin.email.mhpnsHelp": "Tải xuống <linkIOS>Ứng dụng iOS quan trọng nhất</linkIOS> từ iTunes. Tải xuống <linkAndroid>Ứng dụng Android quan trọng nhất</linkAndroid> từ Google Play. Tìm hiểu thêm về <linkHPNS>HPNS</linkHPNS>.",
   "admin.email.mtpns": "Sử dụng kết nối TPNS để gửi thông báo đến ứng dụng iOS và Android",
-  "admin.email.mtpnsHelp": "Tải xuống <linkIOS>Ứng dụng iOS quan trọng nhất</linkIOS> từ iTunes. Tải xuống <linkAndroid>Ứng dụng Android quan trọng nhất</linkAndroid> từ Google Play. Tìm hiểu thêm về <linkHPNS>TPNS</linkHPNS>.",
+  "admin.email.mtpnsHelp": "Tải xuống <linkIOS>Ứng dụng iOS quan trọng nhất</linkIOS> từ iTunes. Tải xuống <linkAndroid>Ứng dụng Android quan trọng nhất</linkAndroid> từ Google Play. Tìm hiểu thêm về <linkTPNS>TPNS</linkTPNS>.",
   "admin.email.pushOff": "Không gửi thông báo đẩy",
   "admin.email.pushOffHelp": "Vui lòng xem <link>tài liệu về thông báo đẩy</link> để tìm hiểu thêm về các tùy chọn thiết lập.",
   "admin.email.pushServerEx": "Ví dụ: \"https://push-test.mattermost.com\"",
