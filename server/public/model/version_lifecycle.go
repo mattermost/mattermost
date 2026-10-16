@@ -25,6 +25,7 @@ func eolDate(year int, month time.Month, day int) time.Time {
 // added to versions.
 // Source: https://docs.mattermost.com/product-overview/mattermost-server-releases.html
 var releaseLifecycles = []ReleaseLifecycle{
+	{MajorMinor: "12.2", EOLDate: eolDate(2027, time.March, 15)},
 	{MajorMinor: "12.1", EOLDate: eolDate(2027, time.February, 15)},
 	{MajorMinor: "12.0", EOLDate: eolDate(2027, time.January, 15)},
 	{MajorMinor: "11.11", EOLDate: eolDate(2026, time.December, 15)},
