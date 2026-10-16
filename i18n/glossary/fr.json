@@ -459,8 +459,12 @@
     "note": "Masculine: 'le plugin Agents'. With the brand: 'le plugin Mattermost Agents'."
   },
   "Hosted Push Notification Service": {
-    "target": "service hébergé de notifications push",
-    "note": "Masculine. With the owner: 'service hébergé de notifications push de Mattermost'. health.rule.push_test_proxy.remediation leaves the English name in the sentence; use the French form. HPNS stays as is."
+    "target": "Hosted Push Notification Service",
+    "note": "Masculine. Put 'service' before the name: 'le service Mattermost Hosted Push Notification Service', 'du service Hosted Push Notification Service'. HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Masculine. Put 'service' before the name: 'le service Mattermost Test Push Notification Service', 'du service Test Push Notification Service'. TPNS stays as is."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

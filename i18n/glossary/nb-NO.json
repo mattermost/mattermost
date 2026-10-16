@@ -477,6 +477,10 @@
     "target": "Hosted Push Notification Service",
     "note": "Service name kept in English. Introduce it with a Norwegian head noun rather than inflecting it: 'tjenesten Hosted Push Notification Service'. The acronym HPNS stays as is."
   },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name kept in English, like Hosted Push Notification Service: 'tjenesten Test Push Notification Service'. The acronym TPNS stays as is."
+  },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
   }

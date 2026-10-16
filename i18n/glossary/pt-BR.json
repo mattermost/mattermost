@@ -439,7 +439,11 @@
   },
   "Hosted Push Notification Service": {
     "target": "Hosted Push Notification Service",
-    "note": "Service name kept in English, masculine: 'o Hosted Push Notification Service'. The terms-of-service checkbox ships 'Serviço de Notificações mantido pela Mattermost', which drops 'push' and breaks the sentence; do not follow it. The acronym HPNS stays as is."
+    "note": "Service name kept in English, masculine: 'o Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name kept in English, masculine: 'o Test Push Notification Service'. The acronym TPNS stays as is."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

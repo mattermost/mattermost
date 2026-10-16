@@ -478,6 +478,10 @@
     "target": "Hosted Push Notification Service",
     "note": "Keep the English name undeclined and decline a preceding 'usluga': 'usluge Mattermost Hosted Push Notification Service', 'o usluzi ...'. HPNS stays as is."
   },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Keep the English name undeclined and decline a preceding 'usluga': 'usluge Mattermost Test Push Notification Service', 'o usluzi ...'. TPNS stays as is."
+  },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
   }

@@ -480,6 +480,10 @@
     "target": "Hosted Push Notification Service",
     "note": "Service name kept in English; it does not decline, so attach a Lithuanian head noun that carries the case: „Hosted Push Notification Service“ paslauga / paslaugą. The acronym HPNS stays as is."
   },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name kept in English; it does not decline, so attach a Lithuanian head noun that carries the case: „Test Push Notification Service“ paslauga / paslaugą. The acronym TPNS stays as is."
+  },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
   }

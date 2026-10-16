@@ -418,8 +418,12 @@
     "note": "Consistent in existing translations."
   },
   "Hosted Push Notification Service": {
-    "target": "託管推播通知服務",
-    "note": "With Mattermost: 'Mattermost 託管推播通知服務'. Consistent in existing translations. Keep the acronym HPNS: admin.email.mhpnsHelp ships 'TPNS' (the test service) as the link text — do not propagate."
+    "target": "Hosted Push Notification Service",
+    "note": "Service name; keep in English, with spaces around it in Chinese text and no translated head noun: 'Mattermost Hosted Push Notification Service 的使用條款'. Do not render it as 託管推播通知服務. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name; keep in English, like Hosted Push Notification Service. The acronym TPNS stays as is."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

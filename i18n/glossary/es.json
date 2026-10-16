@@ -429,7 +429,11 @@
   },
   "Hosted Push Notification Service": {
     "target": "Hosted Push Notification Service",
-    "note": "Keep the service name in English, masculine: el Hosted Push Notification Service de Mattermost; HPNS stays as is. admin.email.agreeHPNS currently paraphrases it as 'Servicio de Notificaciones Push alojado de Mattermost' — do not propagate."
+    "note": "Masculine: el Hosted Push Notification Service de Mattermost."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Masculine: el Test Push Notification Service de Mattermost."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

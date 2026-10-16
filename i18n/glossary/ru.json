@@ -459,8 +459,12 @@
     "note": "Inflect 'плагин' only: 'плагина Agents', 'в плагине Agents'. 'Mattermost Agents plugin' = 'плагин Mattermost Agents'."
   },
   "Hosted Push Notification Service": {
-    "target": "служба push-уведомлений, размещённая Mattermost",
-    "note": "Inflect: 'службы push-уведомлений, размещённой Mattermost (HPNS)'. Includes Mattermost already, so 'Mattermost Hosted Push Notification Service' renders the same way. The server health remediation (health.rule.push_test_proxy.remediation) ships the English name; translate it. Never call it Mattermost's 'own' push service."
+    "target": "Hosted Push Notification Service",
+    "note": "Service name kept in English; it does not decline, so carry the case on the head noun 'служба': 'служба Hosted Push Notification Service', 'службы Mattermost Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name kept in English; carry the case on 'служба': 'служба Test Push Notification Service'. The acronym TPNS stays as is."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

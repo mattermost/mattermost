@@ -463,6 +463,10 @@
     "target": "Hosted Push Notification Service",
     "note": "Service name kept in English: 'de Hosted Push Notification Service'. The acronym HPNS stays as is."
   },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name kept in English: 'de Test Push Notification Service'. The acronym TPNS stays as is."
+  },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
   }

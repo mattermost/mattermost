@@ -438,8 +438,12 @@
     "note": "Consistent in existing translations; 'Mattermost Agents plugin' = 'Plugin Mattermost Agents'."
   },
   "Hosted Push Notification Service": {
-    "target": "Dịch vụ thông báo đẩy do Mattermost lưu trữ",
-    "note": "Already includes Mattermost, so 'Mattermost Hosted Push Notification Service' renders the same way. admin.email.agreeHPNS ships the garbled 'Dịch vụ thông báo đẩy Mattermost Hosted Hosted' and health.rule.push_test_proxy.remediation leaves the name in English — do not propagate either."
+    "target": "Hosted Push Notification Service",
+    "note": "Service name; keep in English, introduced by the head noun 'dịch vụ': 'dịch vụ Mattermost Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name; keep in English, introduced by 'dịch vụ' like Hosted Push Notification Service. The acronym TPNS stays as is."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

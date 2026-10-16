@@ -459,7 +459,11 @@
   },
   "Hosted Push Notification Service": {
     "target": "Hosted Push Notification Service",
-    "note": "Keep the service name in English; masculine: der Mattermost Hosted Push Notification Service. Never 'Hosted Push Notifications Dienste'."
+    "note": "Masculine: der Mattermost Hosted Push Notification Service."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Masculine: der Mattermost Test Push Notification Service."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

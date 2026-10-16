@@ -436,8 +436,10 @@
     "note": "With the brand: 'Mattermost Agents 플러그인'."
   },
   "Hosted Push Notification Service": {
-    "target": "Hosted Push Notification Service",
-    "note": "Keep the English name. admin.email.agreeHPNS paraphrases it as 'Mattermost에서 호스트하는 푸쉬 알림' with the misspelling '푸쉬' and garbles the sentence; do not propagate it. Use '푸시' for 'push'. HPNS stays as is."
+    "target": "Hosted Push Notification Service"
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service"
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

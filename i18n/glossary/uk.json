@@ -460,8 +460,12 @@
     "note": "Inflect 'плагін' only: 'плагіна Agents', 'у плагіні Agents'. Consistent in existing translations."
   },
   "Hosted Push Notification Service": {
-    "target": "хостингова служба push-сповіщень",
-    "note": "With Mattermost: 'хостингова служба push-сповіщень Mattermost'. 'Hosted' qualifies the service: admin.email.agreeHPNS ships 'служби хостингових push-сповіщень' (hosted notifications) — do not propagate. admin.email.mhpnsHelp and health.rule.push_test_proxy.remediation leave the name in English — translate it."
+    "target": "Hosted Push Notification Service",
+    "note": "Service name; keep in English and undeclined. Put the head noun 'служба' in front and decline that: 'про службу Mattermost Hosted Push Notification Service', 'служби Mattermost Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name; keep in English and undeclined, with a declined 'служба' in front, like Hosted Push Notification Service. The acronym TPNS stays as is."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

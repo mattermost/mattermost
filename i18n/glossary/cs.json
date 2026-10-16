@@ -483,7 +483,11 @@
   },
   "Hosted Push Notification Service": {
     "target": "Hosted Push Notification Service",
-    "note": "Keep the service name in English, introduced by 'služba' (e.g. 'služba Mattermost Hosted Push Notification Service'); HPNS stays as is. admin.email.mhpnsHelp and admin.email.mtpnsHelp currently link the name as 'TPNS', which is the test service — do not propagate."
+    "note": "Keep the service name in English and decline the head noun 'služba' instead (e.g. 'o službě Mattermost Hosted Push Notification Service'); HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Keep the service name in English and decline the head noun 'služba' instead (e.g. 'o službě Mattermost Test Push Notification Service'); TPNS stays as is."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
