@@ -139,5 +139,12 @@ describe('components/widgets/admin_console/AdminPanel', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Expand section'}));
         expect(collapse).toHaveAttribute('aria-hidden', 'false');
         expect(screen.getByRole('button', {name: 'Collapse section'})).toBeInTheDocument();
+
+        // Even while expanded, webapp SCSS must not force overflow:visible on
+        // collapse-inner (Compass keeps it hidden for the grid animation).
+        const collapseInner = panel?.querySelector('[class*="admin-panel__collapse-inner"]') as HTMLElement;
+        expect(collapseInner).not.toBeNull();
+        expect(collapseInner.style.overflow).not.toBe('visible');
+        expect(window.getComputedStyle(collapseInner).overflow).not.toBe('visible');
     });
 });

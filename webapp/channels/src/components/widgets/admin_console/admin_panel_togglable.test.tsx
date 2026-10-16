@@ -43,7 +43,7 @@ describe('components/widgets/admin_console/AdminPanelTogglable', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('when expanded, collapse-inner is under the expanded modifier for menu overflow', () => {
+    test('when expanded, collapse uses expanded modifier and keeps collapse-inner for clipping', () => {
         renderWithContext(
             <AdminPanelTogglable {...defaultProps}>
                 {'Test'}
@@ -54,11 +54,17 @@ describe('components/widgets/admin_console/AdminPanelTogglable', () => {
         expect(panel?.tagName).toBe('SECTION');
         expect(panel).toHaveClass('AdminPanel');
 
-        // admin_panel.scss lifts overflow on this structure when expanded so menus
-        // are not clipped; collapsed panels keep Compass collapse-inner clipping.
+        // Compass adds --expanded at expand start; collapse-inner must stay
+        // overflow:hidden (Compass default) so mid-open content does not spill.
         const expanded = panel?.querySelector('[class*="admin-panel__collapse--expanded"]');
         expect(expanded).not.toBeNull();
-        expect(expanded?.querySelector('[class*="admin-panel__collapse-inner"]')).not.toBeNull();
+        const collapseInner = expanded?.querySelector('[class*="admin-panel__collapse-inner"]') as HTMLElement;
+        expect(collapseInner).not.toBeNull();
+
+        // Webapp SCSS must not force overflow:visible here (that spilled mid-animation).
+        // Compass CSS-module overflow:hidden may not resolve in jsdom; reject visible.
+        expect(collapseInner.style.overflow).not.toBe('visible');
+        expect(window.getComputedStyle(collapseInner).overflow).not.toBe('visible');
     });
 
     test('when collapsed, expanded modifier is absent so collapse clipping remains', () => {
@@ -73,6 +79,9 @@ describe('components/widgets/admin_console/AdminPanelTogglable', () => {
 
         const panel = document.getElementById('test-id');
         expect(panel?.querySelector('[class*="admin-panel__collapse--expanded"]')).toBeNull();
-        expect(panel?.querySelector('[class*="admin-panel__collapse-inner"]')).not.toBeNull();
+        const collapseInner = panel?.querySelector('[class*="admin-panel__collapse-inner"]') as HTMLElement;
+        expect(collapseInner).not.toBeNull();
+        expect(collapseInner.style.overflow).not.toBe('visible');
+        expect(window.getComputedStyle(collapseInner).overflow).not.toBe('visible');
     });
 });

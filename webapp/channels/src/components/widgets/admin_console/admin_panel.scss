@@ -8,14 +8,13 @@
 // `.AdminPanel { overflow: visible }` loses to the module class on equal
 // specificity when the Compass stylesheet loads later — menus (e.g. Data
 // Retention row actions) get clipped. `section.AdminPanel` beats one module
-// class; when expandable and expanded, lift collapse-inner clipping so menus
-// can escape while collapsed panels keep overflow:hidden for the animation.
+// class for the root. Do NOT lift collapse-inner overflow while
+// `--expanded` is set: Compass adds that modifier at expand *start*, so
+// mid-animation content would spill outside the panel. Leave Compass's
+// collapse-inner `overflow: hidden` so expand/collapse stays clipped;
+// non-expandable panels (and root overflow:visible) cover row menus.
 section.AdminPanel {
     overflow: visible;
-
-    [class*='admin-panel__collapse--expanded'] > [class*='admin-panel__collapse-inner'] {
-        overflow: visible;
-    }
 }
 
 // Headerless shell: Compass AdminPanel has no hideHeader API and always mounts
