@@ -2,10 +2,11 @@
     font-size: inherit;
     line-height: inherit;
 
+    // Spacing to the next sibling comes from `.admin-console__content` flex gap.
     &__settingsWrapper {
         width: 100%;
         max-width: 920px;
-        margin-bottom: var(--spacing-xl);
+        margin-bottom: 0;
     }
 
     // Match Compass AdminPanel chrome (center-channel tokens + spacing/type).
