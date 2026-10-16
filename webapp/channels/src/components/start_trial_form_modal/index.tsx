@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useState, type JSX} from 'react';
+import React, {useEffect, useMemo, useState, type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
@@ -20,7 +20,7 @@ import {isModalOpen} from 'selectors/views/modals';
 import {makeAsyncComponent} from 'components/async_load';
 import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
-import DropdownInput from 'components/dropdown_input';
+import {Select} from '@mattermost/compass-ui/components/select';
 import ExternalLink from 'components/external_link';
 import CountrySelector from 'components/payment_form/country_selector';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
@@ -212,15 +212,12 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         dispatch(closeModal(ModalIdentifiers.START_TRIAL_FORM_MODAL));
     };
 
-    const getOrgSizeDropdownValue = () => {
-        if (!orgSize) {
-            return undefined;
-        }
-        return {
-            value: orgSize,
-            label: formatMessage({id: orgSize, defaultMessage: OrgSize[orgSize as unknown as keyof typeof OrgSize]}),
-        };
-    };
+    const orgSizeOptions = useMemo(() => {
+        return Object.entries(OrgSize).map(([value, label]) => ({
+            value,
+            label: formatMessage({id: value, defaultMessage: label}),
+        }));
+    }, [formatMessage]);
 
     const isSubmitDisabled = (
         !name ||
@@ -297,16 +294,15 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                     required={true}
                     placeholder={formatMessage({id: 'start_trial_form.company_name', defaultMessage: 'Company Name'})}
                 />
-                <DropdownInput
-                    className={'company_size_dropdown'}
-                    onChange={(e) => {
-                        setOrgSize(e.value as OrgSize);
-                    }}
-                    value={getOrgSizeDropdownValue()}
-                    options={Object.entries(OrgSize).map(([value, label]) => ({value, label})) as any} // options type is not correctly set in DropdownInput component.
-                    legend={formatMessage({id: 'start_trial_form.company_size', defaultMessage: 'Company Size'})}
-                    placeholder={formatMessage({id: 'start_trial_form.company_size', defaultMessage: 'Company Size'})}
+                <Select
+                    className='company_size_dropdown'
+                    id='DropdownInput_company_size_dropdown'
                     name='company_size_dropdown'
+                    label={formatMessage({id: 'start_trial_form.company_size', defaultMessage: 'Company Size'})}
+                    placeholder={formatMessage({id: 'start_trial_form.company_size', defaultMessage: 'Company Size'})}
+                    value={orgSize || undefined}
+                    onChange={(value) => setOrgSize(value as OrgSize)}
+                    options={orgSizeOptions}
                 />
                 <div className='countries-section'>
                     <CountrySelector

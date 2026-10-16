@@ -154,20 +154,55 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <select
-              class="form-control"
+            <div
+              class="_select_h9fbq_2 _select--size-medium_h9fbq_167"
             >
-              <option
-                value="Member"
+              <div
+                class="_select__wrapper_h9fbq_8"
               >
-                Member
-              </option>
-              <option
-                value="System Admin"
-              >
-                System Admin
-              </option>
-            </select>
+                <button
+                  aria-controls="_r_0_-listbox"
+                  aria-expanded="false"
+                  aria-haspopup="listbox"
+                  class="_select__control_h9fbq_56"
+                  id="_r_0_"
+                  role="combobox"
+                  type="button"
+                >
+                  <span
+                    class="_select__value_h9fbq_82"
+                  >
+                    Member
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    class="_select__trailing-icon_h9fbq_99"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="14"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                </button>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -280,41 +315,55 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <select
-              class="form-control"
-              id="defaultTokenExpiry"
+            <div
+              class="_select_h9fbq_2 _select--size-medium_h9fbq_167 form-control"
             >
-              <option
-                value="none"
+              <div
+                class="_select__wrapper_h9fbq_8"
               >
-                No expiry
-              </option>
-              <option
-                value="7d"
-              >
-                7 days
-              </option>
-              <option
-                value="30d"
-              >
-                30 days
-              </option>
-              <option
-                value="90d"
-              >
-                90 days
-              </option>
-              <option
-                value="1y"
-              >
-                1 year
-              </option>
-              <option
-                value="custom"
-              >
-                Custom date…
-              </option>
-            </select>
+                <button
+                  aria-controls="defaultTokenExpiry-listbox"
+                  aria-expanded="false"
+                  aria-haspopup="listbox"
+                  class="_select__control_h9fbq_56"
+                  id="defaultTokenExpiry"
+                  role="combobox"
+                  type="button"
+                >
+                  <span
+                    class="_select__value_h9fbq_82"
+                  >
+                    No expiry
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    class="_select__trailing-icon_h9fbq_99"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="14"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div

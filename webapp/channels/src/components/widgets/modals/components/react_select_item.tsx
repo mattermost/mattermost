@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react';
+import React, {type JSX, useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import type {OnChangeValue} from 'react-select';
-import ReactSelect from 'react-select';
+
+import {Select} from '@mattermost/compass-ui/components/select';
 
 import {formatAsString} from 'utils/i18n';
 
@@ -46,23 +47,31 @@ function ReactSelectItemCreator({
     handleChange,
 }: Props): JSX.Element {
     const intl = useIntl();
+
+    const compassOptions = useMemo(() => {
+        return inputFieldData.options.map((option) => ({
+            value: option.value,
+            label: getOptionLabel(option, intl),
+        }));
+    }, [inputFieldData.options, intl]);
+
+    const onSelectChange = useCallback((value: string) => {
+        const selected = inputFieldData.options.find((option) => option.value === value);
+        if (selected) {
+            handleChange(selected);
+        }
+    }, [handleChange, inputFieldData.options]);
+
     const content = (
         <fieldset className='mm-modal-generic-section-item__fieldset-react-select'>
-            <ReactSelect
+            <Select
                 id={inputFieldData.id}
                 name={inputFieldData.name}
-                inputId={inputFieldData.inputId}
-                aria-labelledby={inputFieldData.ariaLabelledby}
-                className='react-select singleSelect react-select-top'
-                classNamePrefix='react-select'
-                options={inputFieldData.options}
-                isClearable={inputFieldData.clearable}
-                isSearchable={false}
-                onChange={handleChange}
-                value={inputFieldValue}
-                components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
-                getOptionLabel={(option) => getOptionLabel(option, intl)}
-
+                options={compassOptions}
+                onChange={onSelectChange}
+                value={inputFieldValue.value}
+                aria-label={inputFieldData.ariaLabelledby ? undefined : getOptionLabel(inputFieldValue, intl)}
+                listboxLabel={inputFieldData.ariaLabelledby ? undefined : getOptionLabel(inputFieldValue, intl)}
             />
         </fieldset>
     );
@@ -77,7 +86,3 @@ function ReactSelectItemCreator({
 }
 
 export default ReactSelectItemCreator;
-
-function NoIndicatorSeparatorComponent() {
-    return null;
-}

@@ -6,6 +6,7 @@ import type {ChangeEvent, FormEvent, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Select} from '@mattermost/compass-ui/components/select';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
@@ -699,23 +700,21 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <select
-                                    className='form-control'
+                                <Select
                                     value={this.state.role}
                                     disabled={!this.props.editingUserHasManageSystem}
-                                    onChange={this.updateRole}
-                                >
-                                    <option
-                                        value={roleOptionMember}
-                                    >
-                                        {Utils.localizeMessage({id: 'bot.add.role.member', defaultMessage: 'Member'})}
-                                    </option>
-                                    <option
-                                        value={roleOptionSystemAdmin}
-                                    >
-                                        {Utils.localizeMessage({id: 'bot.add.role.admin', defaultMessage: 'System Admin'})}
-                                    </option>
-                                </select>
+                                    onChange={(value) => this.updateRole({target: {value}} as ChangeEvent<HTMLSelectElement>)}
+                                    options={[
+                                        {
+                                            value: roleOptionMember,
+                                            label: Utils.localizeMessage({id: 'bot.add.role.member', defaultMessage: 'Member'}),
+                                        },
+                                        {
+                                            value: roleOptionSystemAdmin,
+                                            label: Utils.localizeMessage({id: 'bot.add.role.admin', defaultMessage: 'System Admin'}),
+                                        },
+                                    ]}
+                                />
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='bot.add.role.help'

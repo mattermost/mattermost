@@ -4,7 +4,7 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import ReactSelect, {type StylesConfig} from 'react-select';
+import {Select} from '@mattermost/compass-ui/components/select';
 
 import {GenericModal} from '@mattermost/components';
 import type {ServerError} from '@mattermost/types/errors';
@@ -26,11 +26,6 @@ import type {GlobalState} from 'types/store';
 import './flag_post_modal.scss';
 
 const noop = () => {};
-
-type SelectedOption = {
-    value: string;
-    label: string;
-};
 
 type Props = {
     postId: string;
@@ -87,26 +82,17 @@ export default function FlagPostModal({postId, onExited}: Props) {
         };
     }, [channel?.display_name, channel?.id, channel?.type, currentTeam?.name, post]);
 
-    // This is to bring react select dropdown above the modal body
-    const reactStyles = useMemo(() => {
-        return {
-            menuPortal: (provided) => ({
-                ...provided,
-                zIndex: 9999,
-            }),
-        } satisfies StylesConfig<SelectedOption, boolean>;
-    }, []);
+    const handleOptionChange = useCallback((selectedValue: string) => {
+        const selectedOption = reasons.find((option) => option.value === selectedValue);
+        const reasonLabel = selectedOption?.label ?? '';
+        setReason(reasonLabel);
 
-    const handleOptionChange = useCallback((selectedOption: SelectedOption | null) => {
-        const reason = selectedOption ? selectedOption.label : '';
-        setReason(reason);
-
-        if (reason === '') {
+        if (reasonLabel === '') {
             setReasonError(formatMessage({id: 'quarantine_message_modal.reason_required_error', defaultMessage: 'Please select a reason for quarantining this message.'}));
         } else {
             setReasonError('');
         }
-    }, [formatMessage]);
+    }, [formatMessage, reasons]);
 
     const handleCommentChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
         setComment(e.target.value);
@@ -205,14 +191,13 @@ export default function FlagPostModal({postId, onExited}: Props) {
                             defaultMessage='Reason for quarantining this message'
                         />
                     </div>
-                    <ReactSelect
-                        className='FlagPostModal__reason react-select react-select-top'
-                        classNamePrefix='react-select'
+                    <Select
+                        className='FlagPostModal__reason'
                         id='FlagPostModal__reason'
-                        menuPortalTarget={document.body}
-                        isClearable={false}
+                        portalContainer={document.body}
+                        zIndex={9999}
                         options={reasons}
-                        styles={reactStyles}
+                        value={reasons.find((option) => option.label === reason)?.value}
                         onChange={handleOptionChange}
                         placeholder={reasonSelectPlaceholder}
                     />

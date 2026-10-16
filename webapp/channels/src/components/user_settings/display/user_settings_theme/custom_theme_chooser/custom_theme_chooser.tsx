@@ -6,6 +6,7 @@ import type {ChangeEvent, ClipboardEvent, JSX, MouseEvent, RefObject} from 'reac
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
+import {Select} from '@mattermost/compass-ui/components/select';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -300,22 +301,18 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
         const linkAndButtonElements: JSX.Element[] = [];
         Constants.THEME_ELEMENTS.forEach((element, index) => {
             if (element.id === 'codeTheme') {
-                const codeThemeOptions: JSX.Element[] = [];
                 let codeThemeURL = '';
 
-                element.themes?.forEach((codeTheme, codeThemeIndex) => {
+                element.themes?.forEach((codeTheme) => {
                     if (codeTheme.id === theme[element.id]) {
                         codeThemeURL = codeTheme.iconURL;
                     }
-                    codeThemeOptions.push(
-                        <option
-                            key={'code-theme-key' + codeThemeIndex}
-                            value={codeTheme.id}
-                        >
-                            {codeTheme.uiName}
-                        </option>,
-                    );
                 });
+
+                const codeThemeSelectOptions = (element.themes ?? []).map((codeTheme) => ({
+                    value: codeTheme.id,
+                    label: codeTheme.uiName,
+                }));
 
                 centerChannelElements.push(
                     <div
@@ -332,14 +329,14 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                             className='input-group theme-group group--code dropdown'
                             id={element.id}
                         >
-                            <select
+                            <Select
                                 id='codeThemeSelect'
                                 className='form-control'
-                                defaultValue={theme[element.id]}
-                                onChange={this.onCodeThemeChange}
-                            >
-                                {codeThemeOptions}
-                            </select>
+                                aria-label={intl.formatMessage(messages[element.id])}
+                                value={String(theme[element.id])}
+                                onChange={(value) => this.onCodeThemeChange({target: {value}} as React.ChangeEvent<HTMLSelectElement>)}
+                                options={codeThemeSelectOptions}
+                            />
                             <WithTooltip
                                 title={
                                     <div className='code-popover'>

@@ -4,8 +4,7 @@
 import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
-import ReactSelect from 'react-select';
-import type {OnChangeValue, StylesConfig} from 'react-select';
+import {Select} from '@mattermost/compass-ui/components/select';
 
 import type {PreferenceType} from '@mattermost/types/preferences';
 
@@ -90,9 +89,10 @@ export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State
         }
     }
 
-    handleChange = (selected: OnChangeValue<Limit, boolean>) => {
-        if (selected && 'value' in selected) {
-            this.setState({limit: selected});
+    handleChange = (selectedValue: string) => {
+        const limit = limits.find((l) => String(l.value) === selectedValue);
+        if (limit) {
+            this.setState({limit});
         }
     };
 
@@ -149,17 +149,16 @@ export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State
                         <legend className='form-legend hidden-label'>
                             {title}
                         </legend>
-                        <ReactSelect
-                            className='react-select'
-                            classNamePrefix='react-select'
+                        <Select
                             id='limitVisibleGMsDMs'
-                            options={limits}
-                            isClearable={false}
+                            options={limits.map((limit) => ({
+                                value: String(limit.value),
+                                label: limit.label,
+                            }))}
                             onChange={this.handleChange}
-                            value={this.state.limit}
-                            isSearchable={false}
-                            menuPortalTarget={document.body}
-                            styles={reactStyles}
+                            value={String(this.state.limit.value)}
+                            portalContainer={document.body}
+                            zIndex={9999}
                         />
                         <div className='mt-5'>
                             <FormattedMessage
@@ -176,10 +175,3 @@ export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State
         );
     }
 }
-
-const reactStyles = {
-    menuPortal: (provided) => ({
-        ...provided,
-        zIndex: 9999,
-    }),
-} satisfies StylesConfig<Limit, boolean>;

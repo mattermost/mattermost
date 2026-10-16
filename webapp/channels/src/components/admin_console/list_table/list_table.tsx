@@ -7,10 +7,8 @@ import classNames from 'classnames';
 import React, {useMemo, useState} from 'react';
 import type {AriaAttributes, KeyboardEvent, MouseEvent, ReactNode} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
-import ReactSelect, {components} from 'react-select';
-import type {IndicatorsContainerProps, OnChangeValue} from 'react-select';
-
 import {DragVerticalIcon} from '@mattermost/compass-icons/components';
+import {Select} from '@mattermost/compass-ui/components/select';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -214,16 +212,17 @@ export function ListTable<TableType extends TableMandatoryTypes>(
         return PAGE_SIZES.map((size) => {
             return {
                 label: formatMessage(PageSizes[size]),
-                value: size,
+                value: String(size),
             };
         });
-    }, []);
+    }, [formatMessage]);
 
-    const selectedPageSize = pageSizeOptions.find((option) => option.value === props.table.getState().pagination.pageSize) || pageSizeOptions[0];
+    const currentPageSize = props.table.getState().pagination.pageSize;
+    const selectedPageSizeValue = pageSizeOptions.find((option) => Number(option.value) === currentPageSize)?.value || pageSizeOptions[0].value;
+    const selectedPageSizeLabel = pageSizeOptions.find((option) => option.value === selectedPageSizeValue)?.label || pageSizeOptions[0].label;
 
-    function handlePageSizeChange(selectedOption: OnChangeValue<PageSizeOption, false>) {
-        const {value} = selectedOption as PageSizeOption;
-        props.table.setPageSize(Number(value));
+    function handlePageSizeChange(pageSizeValue: string) {
+        props.table.setPageSize(Number(pageSizeValue));
     }
 
     function handleRowClick(event: MouseEvent<HTMLTableRowElement>) {
@@ -403,28 +402,18 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                     <div
                         className='adminConsoleListTablePageSize'
                         data-testid='listTableFoot-pageSize'
-                        aria-label={formatMessage({id: 'adminConsole.list.table.rowCount.label', defaultMessage: 'Show {count} rows per page'}, {count: selectedPageSize.label})}
+                        aria-label={formatMessage({id: 'adminConsole.list.table.rowCount.label', defaultMessage: 'Show {count} rows per page'}, {count: selectedPageSizeLabel})}
                     >
                         <FormattedMessage
                             id='adminConsole.list.table.rowsCount.(show)rowsPerPage'
                             defaultMessage='Show'
                         />
-                        <ReactSelect
-                            className='react-select'
-                            classNamePrefix='react-select'
-                            autoFocus={false}
-                            isClearable={false}
-                            isMulti={false}
-                            isSearchable={false}
-                            menuPlacement='top'
+                        <Select
                             options={pageSizeOptions}
-                            value={selectedPageSize}
+                            value={selectedPageSizeValue}
                             onChange={handlePageSizeChange}
-                            isDisabled={tableMeta.loadingState === LoadingStates.Loading}
-                            components={{
-                                IndicatorSeparator: null,
-                                IndicatorsContainer,
-                            }}
+                            disabled={tableMeta.loadingState === LoadingStates.Loading}
+                            aria-label={formatMessage({id: 'adminConsole.list.table.rowsPerPageSelect', defaultMessage: 'Rows per page'})}
                         />
                         <FormattedMessage
                             id='adminConsole.list.table.rowsCount.show(rowsPerPage)'
@@ -442,14 +431,6 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                 </div>
             )}
         </div>
-    );
-}
-
-function IndicatorsContainer(props: IndicatorsContainerProps<PageSizeOption>) {
-    return (
-        <components.IndicatorsContainer {...props}>
-            <i className='icon icon-chevron-down'/>
-        </components.IndicatorsContainer>
     );
 }
 
