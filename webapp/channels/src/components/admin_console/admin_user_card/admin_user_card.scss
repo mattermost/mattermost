@@ -157,5 +157,10 @@ input.AdminUserCard__picture-input[type='file'] {
     padding: var(--spacing-xxl);
     border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     background: var(--center-channel-bg);
-    gap: var(--spacing-m);
+    gap: var(--spacing-xs); // 8px
+
+    // Prefer flex gap over global `.btn + .btn { margin-left }`.
+    > .btn {
+        margin-left: 0;
+    }
 }
