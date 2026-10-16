@@ -6,6 +6,7 @@ package database
 import (
 	"net"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -27,21 +28,52 @@ var dbConnectionIsIP = healthcheck.Rule{
 	Eval:       evalDBConnectionIsIP,
 }
 
-// hostFromDSN extracts the host of a Postgres DSN in URL or keyword form.
-func hostFromDSN(dsn string) (string, bool) {
-	if u, err := url.Parse(dsn); err == nil && u.Host != "" {
-		host := u.Hostname()
-		return host, host != ""
-	}
-
-	for field := range strings.FieldsSeq(dsn) {
-		if key, value, found := strings.Cut(field, "="); found && key == "host" {
-			host := strings.Trim(value, "'")
-			return host, host != ""
+// hostsFromDSN returns every host and hostaddr a Postgres DSN in URL or keyword form names,
+// including the comma-separated lists the driver accepts for multi-host connections.
+func hostsFromDSN(dsn string) ([]string, bool) {
+	var hosts []string
+	add := func(list string) {
+		for host := range strings.SplitSeq(strings.Trim(list, "'"), ",") {
+			if h, _, err := net.SplitHostPort(host); err == nil {
+				host = h
+			}
+			if host = strings.Trim(host, "[]"); host != "" {
+				hosts = append(hosts, host)
+			}
 		}
 	}
 
-	return "", false
+	if rest, found := cutPostgresScheme(dsn); found {
+		authority, query, _ := strings.Cut(rest, "?")
+		authority, _, _ = strings.Cut(authority, "/")
+		if i := strings.LastIndex(authority, "@"); i >= 0 {
+			authority = authority[i+1:]
+		}
+		params, err := url.ParseQuery(query)
+		if err != nil {
+			return nil, false
+		}
+
+		add(authority)
+		add(params.Get("host"))
+		add(params.Get("hostaddr"))
+		return hosts, len(hosts) > 0
+	}
+
+	for field := range strings.FieldsSeq(dsn) {
+		if key, value, found := strings.Cut(field, "="); found && (key == "host" || key == "hostaddr") {
+			add(value)
+		}
+	}
+
+	return hosts, len(hosts) > 0
+}
+
+func cutPostgresScheme(dsn string) (string, bool) {
+	if rest, found := strings.CutPrefix(dsn, "postgres://"); found {
+		return rest, true
+	}
+	return strings.CutPrefix(dsn, "postgresql://")
 }
 
 func evalDBConnectionIsIP(s *healthcheck.Snapshot) []healthcheck.Result {
@@ -69,11 +101,11 @@ func ipHostResult(subject string, dsns []string, ok bool) healthcheck.Result {
 
 	firing := false
 	for _, dsn := range dsns {
-		host, ok := hostFromDSN(dsn)
+		hosts, ok := hostsFromDSN(dsn)
 		if !ok {
 			return healthcheck.UnknownSubject(subject, healthcheck.ReasonConfigUnavailable)
 		}
-		if net.ParseIP(host) != nil {
+		if slices.ContainsFunc(hosts, func(host string) bool { return net.ParseIP(host) != nil }) {
 			firing = true
 		}
 	}

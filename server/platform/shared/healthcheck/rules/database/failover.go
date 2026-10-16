@@ -79,11 +79,11 @@ func evalDBHAFailoverStormRisk(s *healthcheck.Snapshot) []healthcheck.Result {
 	if !ok {
 		return unknownConfig()
 	}
-	host, ok := hostFromDSN(dsn)
+	hosts, ok := hostsFromDSN(dsn)
 	if !ok {
 		return unknownConfig()
 	}
-	if isPoolerHost(host) {
+	if slices.ContainsFunc(hosts, isPoolerHost) {
 		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(burst))}
 	}
 
