@@ -7,7 +7,10 @@
 .SystemRolePermissions {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xxl); // 24px between permission rows
+
+    // Parent sections are separated by Compass Divider (includes vertical
+    // padding). Keep flex gap at 0 so spacing isn't doubled around each rule.
+    gap: 0;
     padding: 0;
     color: rgba(var(--sys-center-channel-color-rgb), 0.87);
 

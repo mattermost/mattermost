@@ -4,6 +4,7 @@
 import React from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {Divider} from '@mattermost/compass-ui/components/divider';
 import type {Role} from '@mattermost/types/roles';
 
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
@@ -306,18 +307,20 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
             this.removeSection('environment');
         }
 
-        return getSectionsListForRole(sectionsList, this.props.role.name, editedSectionsByRole).map((section: SystemSection) => {
+        return getSectionsListForRole(sectionsList, this.props.role.name, editedSectionsByRole).map((section: SystemSection, index: number) => {
             return (
-                <SystemRolePermission
-                    key={section.name}
-                    section={section}
-                    permissionsMap={permissionsMap}
-                    permissionsToUpdate={permissionsToUpdate}
-                    visibleSections={visibleSections}
-                    setSectionVisible={this.setSectionVisible}
-                    updatePermissions={this.props.updatePermissions}
-                    readOnly={this.props.readOnly}
-                />
+                <React.Fragment key={section.name}>
+                    {index > 0 && <Divider/>}
+                    <SystemRolePermission
+                        section={section}
+                        permissionsMap={permissionsMap}
+                        permissionsToUpdate={permissionsToUpdate}
+                        visibleSections={visibleSections}
+                        setSectionVisible={this.setSectionVisible}
+                        updatePermissions={this.props.updatePermissions}
+                        readOnly={this.props.readOnly}
+                    />
+                </React.Fragment>
             );
         });
     };

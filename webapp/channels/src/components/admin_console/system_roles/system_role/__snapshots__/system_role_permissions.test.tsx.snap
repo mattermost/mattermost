@@ -114,6 +114,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           <div />
         </div>
         <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
+        </div>
+        <div
           class="PermissionRow"
           data-testid="permissionRow_reporting"
         >
@@ -181,6 +188,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             </div>
           </div>
           <div />
+        </div>
+        <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
         </div>
         <div
           class="PermissionRow"
@@ -252,6 +266,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           <div />
         </div>
         <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
+        </div>
+        <div
           class="PermissionRow"
           data-testid="permissionRow_environment"
         >
@@ -319,6 +340,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             </div>
           </div>
           <div />
+        </div>
+        <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
         </div>
         <div
           class="PermissionRow"
@@ -390,6 +418,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           <div />
         </div>
         <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
+        </div>
+        <div
           class="PermissionRow"
           data-testid="permissionRow_authentication"
         >
@@ -459,6 +494,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           <div />
         </div>
         <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
+        </div>
+        <div
           class="PermissionRow"
           data-testid="permissionRow_plugins"
         >
@@ -512,6 +554,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
               </div>
             </div>
           </div>
+        </div>
+        <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
         </div>
         <div
           class="PermissionRow"
@@ -583,6 +632,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           <div />
         </div>
         <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
+        </div>
+        <div
           class="PermissionRow"
           data-testid="permissionRow_compliance"
         >
@@ -650,6 +706,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             </div>
           </div>
           <div />
+        </div>
+        <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
         </div>
         <div
           class="PermissionRow"
@@ -840,6 +903,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
           <div />
         </div>
         <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
+        </div>
+        <div
           class="PermissionRow"
           data-testid="permissionRow_user_management"
         >
@@ -907,6 +977,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             </div>
           </div>
           <div />
+        </div>
+        <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
         </div>
         <div
           class="PermissionRow"
@@ -978,6 +1055,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
           <div />
         </div>
         <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
+        </div>
+        <div
           class="PermissionRow"
           data-testid="permissionRow_authentication"
         >
@@ -1047,6 +1131,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
           <div />
         </div>
         <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
+        </div>
+        <div
           class="PermissionRow"
           data-testid="permissionRow_plugins"
         >
@@ -1100,6 +1191,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
               </div>
             </div>
           </div>
+        </div>
+        <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
         </div>
         <div
           class="PermissionRow"
@@ -1171,6 +1269,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
           <div />
         </div>
         <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
+        </div>
+        <div
           class="PermissionRow"
           data-testid="permissionRow_compliance"
         >
@@ -1238,6 +1343,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             </div>
           </div>
           <div />
+        </div>
+        <div
+          class="_divider_1wh3r_2"
+        >
+          <hr
+            class="_divider__line_1wh3r_6"
+          />
         </div>
         <div
           class="PermissionRow"
