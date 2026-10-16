@@ -14377,21 +14377,6 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
-    "id": "health.rule.link_previews_disabled.message",
-    "translation": "Users paste URLs and see only raw text, no preview cards.",
-    "description": "Health dashboard finding detail when website link previews are turned off; 'preview cards' are the title, description and image shown under a pasted link."
-  },
-  {
-    "id": "health.rule.link_previews_disabled.remediation",
-    "translation": "Enable ServiceSettings.EnableLinkPreviews. If previews are off on purpose (for example, on an air-gapped server or for privacy reasons), mute this finding.",
-    "description": "Health dashboard fix-it step for disabled link previews; 'ServiceSettings.EnableLinkPreviews' is the config setting path and should not be translated."
-  },
-  {
-    "id": "health.rule.link_previews_disabled.title",
-    "translation": "Link previews disabled",
-    "description": "Health dashboard finding title when website link previews are turned off."
-  },
-  {
     "id": "health.rule.max_notifications_per_channel.message",
     "translation": "A single @channel in a large channel fans out thousands of notifications at once, which causes latency spikes.",
     "description": "Health dashboard finding detail when the per-channel notification limit is above 5000; '@channel' is a Mattermost mention and should not be translated."

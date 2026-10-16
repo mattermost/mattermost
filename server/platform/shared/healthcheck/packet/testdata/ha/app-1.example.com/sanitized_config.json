@@ -8,7 +8,6 @@
         "Forward80To443": false,
         "EnableIncomingWebhooks": true,
         "EnableOutgoingWebhooks": true,
-        "EnableLinkPreviews": true,
         "EnableUserTypingMessages": true
     },
     "TeamSettings": {

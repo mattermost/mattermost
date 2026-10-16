@@ -29,7 +29,5 @@ func TestBuiltinRulesOnCloud(t *testing.T) {
 		}
 	}
 
-	assert.ElementsMatch(t, []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY",
-		"PUSH_ID_ONLY", "LINK_PREVIEWS_DISABLED",
-	}, cloud)
+	assert.ElementsMatch(t, []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY", "PUSH_ID_ONLY"}, cloud)
 }

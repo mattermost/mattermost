@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	healthcheck.Register(pushIDOnly, linkPreviewsDisabled, maxNotificationsPerChannel, typingMessagesAtScale, smtpUnreachable)
+	healthcheck.Register(pushIDOnly, maxNotificationsPerChannel, typingMessagesAtScale, smtpUnreachable)
 }
 
 const (
@@ -35,22 +35,6 @@ var pushIDOnly = healthcheck.Rule{
 	AppliesToCloud: true,
 	Subject:        "EmailSettings.PushNotificationContents",
 	Eval:           evalPushIDOnly,
-}
-
-var linkPreviewsDisabled = healthcheck.Rule{
-	Code:     "LINK_PREVIEWS_DISABLED",
-	Area:     model.AreaNotifications,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.link_previews_disabled.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.link_previews_disabled.remediation"),
-		ConsolePath:   postsConsolePath,
-	},
-	Surface:        healthcheck.SurfaceProduct,
-	Volatility:     healthcheck.VolatilityStable,
-	AppliesToCloud: true,
-	Subject:        "ServiceSettings.EnableLinkPreviews",
-	Eval:           evalLinkPreviewsDisabled,
 }
 
 var maxNotificationsPerChannel = healthcheck.Rule{
@@ -122,18 +106,6 @@ func evalPushIDOnly(s *healthcheck.Snapshot) []healthcheck.Result {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
 	case idLoaded:
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_id_only.message"))}
-	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-}
-
-func evalLinkPreviewsDisabled(s *healthcheck.Snapshot) []healthcheck.Result {
-	enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ServiceSettings.EnableLinkPreviews })
-	switch {
-	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	case !enabled:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.link_previews_disabled.message"))}
 	default:
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}

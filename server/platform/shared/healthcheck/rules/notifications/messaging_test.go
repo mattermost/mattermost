@@ -125,38 +125,6 @@ func TestPushIDOnlyAndPushServerCodesFireTogether(t *testing.T) {
 	assert.NotEqual(t, pushIDOnly.Subject, pushTestProxy.Subject)
 }
 
-func TestLinkPreviewsDisabled(t *testing.T) {
-	t.Parallel()
-
-	snapshot := func(enabled bool) *healthcheck.Snapshot {
-		return configSnapshot(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableLinkPreviews = new(enabled)
-		})
-	}
-
-	testCases := []struct {
-		name     string
-		snapshot *healthcheck.Snapshot
-		want     messagingWant
-	}{
-		{name: "config section absent", snapshot: &healthcheck.Snapshot{}, want: configUnknownWant},
-		{name: "setting unset", snapshot: configSnapshot(func(*model.Config) {}), want: configUnknownWant},
-		{
-			name:     "disabled",
-			snapshot: snapshot(false),
-			want:     messagingWant{state: healthcheck.StateFiring, messageID: "health.rule.link_previews_disabled.message"},
-		},
-		{name: "enabled", snapshot: snapshot(true), want: resolvedWant},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			assertResult(t, linkPreviewsDisabled, tc.snapshot, tc.want)
-		})
-	}
-}
-
 func TestMaxNotificationsPerChannel(t *testing.T) {
 	t.Parallel()
 
