@@ -55,12 +55,12 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 GenericModal__close"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_mytxt_33"
+                class="_icon-button__icon-slot_13ryy_41"
               >
                 <div
                   aria-hidden="true"
@@ -190,13 +190,13 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
                           aria-expanded="false"
                           aria-haspopup="true"
                           aria-label="Group 0 actions"
-                          class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+                          class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
                           id="customWrapper-group0"
                           type="button"
                         >
                           <span
                             aria-hidden="true"
-                            class="_icon-button__icon-slot_mytxt_33"
+                            class="_icon-button__icon-slot_13ryy_41"
                           >
                             <div
                               aria-hidden="true"
@@ -252,13 +252,13 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
                           aria-expanded="false"
                           aria-haspopup="true"
                           aria-label="Group 1 actions"
-                          class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+                          class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
                           id="customWrapper-group1"
                           type="button"
                         >
                           <span
                             aria-hidden="true"
-                            class="_icon-button__icon-slot_mytxt_33"
+                            class="_icon-button__icon-slot_13ryy_41"
                           >
                             <div
                               aria-hidden="true"
@@ -314,13 +314,13 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
                           aria-expanded="false"
                           aria-haspopup="true"
                           aria-label="Group 2 actions"
-                          class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+                          class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
                           id="customWrapper-group2"
                           type="button"
                         >
                           <span
                             aria-hidden="true"
-                            class="_icon-button__icon-slot_mytxt_33"
+                            class="_icon-button__icon-slot_13ryy_41"
                           >
                             <div
                               aria-hidden="true"
@@ -414,12 +414,12 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 GenericModal__close"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_mytxt_33"
+                class="_icon-button__icon-slot_13ryy_41"
               >
                 <div
                   aria-hidden="true"

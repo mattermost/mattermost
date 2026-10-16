@@ -154,13 +154,13 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
               </code>
               <button
                 aria-label="Copy Token"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 ml-2"
                 data-testid="copyText"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -290,13 +290,13 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
               </code>
               <button
                 aria-label="Copy Token"
-                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
+                class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 ml-2"
                 data-testid="copyText"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_mytxt_33"
+                  class="_icon-button__icon-slot_13ryy_41"
                 >
                   <div
                     aria-hidden="true"
@@ -353,13 +353,13 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
         1 - 2 of 2
         <button
           aria-label="Previous"
-          class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 ml-2 prev"
+          class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 ml-2 prev"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_mytxt_33"
+            class="_icon-button__icon-slot_13ryy_41"
           >
             <div
               aria-hidden="true"
@@ -386,13 +386,13 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
         </button>
         <button
           aria-label="Next"
-          class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 next"
+          class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 next"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_mytxt_33"
+            class="_icon-button__icon-slot_13ryy_41"
           >
             <div
               aria-hidden="true"

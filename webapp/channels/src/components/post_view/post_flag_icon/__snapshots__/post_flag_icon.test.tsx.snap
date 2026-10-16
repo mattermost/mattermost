@@ -4,13 +4,13 @@ exports[`components/post_view/PostFlagIcon should match snapshot 1`] = `
 <div>
   <button
     aria-label="save message"
-    class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 _icon-button--padding-compact_mytxt_64 post-menu__item"
+    class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 _icon-button--padding-compact_13ryy_72 post-menu__item"
     id="CENTER_flagIcon_post_id"
     type="button"
   >
     <span
       aria-hidden="true"
-      class="_icon-button__icon-slot_mytxt_33"
+      class="_icon-button__icon-slot_13ryy_41"
     >
       <div
         aria-hidden="true"
@@ -42,14 +42,14 @@ exports[`components/post_view/PostFlagIcon should match snapshot 2`] = `
 <div>
   <button
     aria-label="remove from saved"
-    class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 _icon-button--padding-compact_mytxt_64 _icon-button--active_mytxt_25 post-menu__item post-menu__item--active"
+    class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 _icon-button--padding-compact_13ryy_72 _icon-button--active_13ryy_31 post-menu__item post-menu__item--active"
     data-active="true"
     id="CENTER_flagIcon_post_id"
     type="button"
   >
     <span
       aria-hidden="true"
-      class="_icon-button__icon-slot_mytxt_33"
+      class="_icon-button__icon-slot_13ryy_41"
     >
       <div
         aria-hidden="true"

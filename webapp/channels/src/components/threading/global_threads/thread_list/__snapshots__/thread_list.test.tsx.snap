@@ -71,13 +71,13 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
         >
           <button
             aria-label="Mark all threads as read"
-            class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69"
+            class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
             id="threads-list__mark-all-as-read"
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_mytxt_33"
+              class="_icon-button__icon-slot_13ryy_41"
             >
               <div
                 aria-hidden="true"

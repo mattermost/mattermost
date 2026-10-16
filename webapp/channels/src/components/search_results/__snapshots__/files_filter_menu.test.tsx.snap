@@ -9,13 +9,13 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on all
       class="MenuWrapper "
     >
       <button
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 action-icon dots-icon"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -54,13 +54,13 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on aud
       class="MenuWrapper "
     >
       <button
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 action-icon dots-icon"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -84,7 +84,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on aud
             </div>
           </div>
           <span
-            class="_icon-button__unread-badge_mytxt_40"
+            class="_icon-button__unread-badge_13ryy_48"
           />
         </span>
       </button>
@@ -102,13 +102,13 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on cod
       class="MenuWrapper "
     >
       <button
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 action-icon dots-icon"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -132,7 +132,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on cod
             </div>
           </div>
           <span
-            class="_icon-button__unread-badge_mytxt_40"
+            class="_icon-button__unread-badge_13ryy_48"
           />
         </span>
       </button>
@@ -150,13 +150,13 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on doc
       class="MenuWrapper "
     >
       <button
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 action-icon dots-icon"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -180,7 +180,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on doc
             </div>
           </div>
           <span
-            class="_icon-button__unread-badge_mytxt_40"
+            class="_icon-button__unread-badge_13ryy_48"
           />
         </span>
       </button>
@@ -198,13 +198,13 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on ima
       class="MenuWrapper "
     >
       <button
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 action-icon dots-icon"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -228,7 +228,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on ima
             </div>
           </div>
           <span
-            class="_icon-button__unread-badge_mytxt_40"
+            class="_icon-button__unread-badge_13ryy_48"
           />
         </span>
       </button>
@@ -246,13 +246,13 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on pre
       class="MenuWrapper "
     >
       <button
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 action-icon dots-icon"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -276,7 +276,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on pre
             </div>
           </div>
           <span
-            class="_icon-button__unread-badge_mytxt_40"
+            class="_icon-button__unread-badge_13ryy_48"
           />
         </span>
       </button>
@@ -294,13 +294,13 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on spr
       class="MenuWrapper "
     >
       <button
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 action-icon dots-icon"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -324,7 +324,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on spr
             </div>
           </div>
           <span
-            class="_icon-button__unread-badge_mytxt_40"
+            class="_icon-button__unread-badge_13ryy_48"
           />
         </span>
       </button>
@@ -342,13 +342,13 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on vid
       class="MenuWrapper "
     >
       <button
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 action-icon dots-icon"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 action-icon dots-icon"
         id="filesFilterButton"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -372,7 +372,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on vid
             </div>
           </div>
           <span
-            class="_icon-button__unread-badge_mytxt_40"
+            class="_icon-button__unread-badge_13ryy_48"
           />
         </span>
       </button>

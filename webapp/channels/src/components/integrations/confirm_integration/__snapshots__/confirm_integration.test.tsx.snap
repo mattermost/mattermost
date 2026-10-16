@@ -60,13 +60,13 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, comma
         </code>
         <button
           aria-label="Copy Token"
-          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
+          class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 ml-2"
           data-testid="copyText"
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_mytxt_33"
+            class="_icon-button__icon-slot_13ryy_41"
           >
             <div
               aria-hidden="true"
@@ -167,13 +167,13 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, incom
         </code>
         <button
           aria-label="Copy Token"
-          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
+          class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 ml-2"
           data-testid="copyText"
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_mytxt_33"
+            class="_icon-button__icon-slot_13ryy_41"
           >
             <div
               aria-hidden="true"
@@ -272,13 +272,13 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         </code>
         <button
           aria-label="Copy Client Id"
-          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
+          class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 ml-2"
           data-testid="copyText"
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_mytxt_33"
+            class="_icon-button__icon-slot_13ryy_41"
           >
             <div
               aria-hidden="true"
@@ -313,13 +313,13 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         </code>
         <button
           aria-label="Copy Client Secret"
-          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
+          class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 ml-2"
           data-testid="copyText"
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_mytxt_33"
+            class="_icon-button__icon-slot_13ryy_41"
           >
             <div
               aria-hidden="true"
@@ -433,13 +433,13 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
         </code>
         <button
           aria-label="Copy Token"
-          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
+          class="_icon-button_13ryy_2 _icon-button--size-x-small_13ryy_63 ml-2"
           data-testid="copyText"
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_mytxt_33"
+            class="_icon-button__icon-slot_13ryy_41"
           >
             <div
               aria-hidden="true"

@@ -49,12 +49,12 @@ exports[`components/LeaveChannelModal should match snapshot for the policy enfor
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 GenericModal__close"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_mytxt_33"
+                class="_icon-button__icon-slot_13ryy_41"
               >
                 <div
                   aria-hidden="true"
@@ -175,12 +175,12 @@ exports[`components/LeaveChannelModal should match snapshot, init 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 GenericModal__close"
+              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_mytxt_33"
+                class="_icon-button__icon-slot_13ryy_41"
               >
                 <div
                   aria-hidden="true"

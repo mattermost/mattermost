@@ -133,12 +133,12 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       </div>
       <button
         aria-label="Go to previous page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 prev"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 prev"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -166,12 +166,12 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       <button
         aria-describedby="_r_a_"
         aria-label="Go to next page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 next"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 next"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -296,13 +296,13 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       </div>
       <button
         aria-label="Go to previous page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 prev"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 prev"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -329,12 +329,12 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       </button>
       <button
         aria-label="Go to next page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 next"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 next"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -419,13 +419,13 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       </div>
       <button
         aria-label="Go to previous page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 prev"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 prev"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
@@ -452,13 +452,13 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       </button>
       <button
         aria-label="Go to next page"
-        class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 next"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 next"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_mytxt_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"
