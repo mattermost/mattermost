@@ -123,7 +123,7 @@ func TestESRNearEOL(t *testing.T) {
 				state:     healthcheck.StateFiring,
 				messageID: "health.rule.version_esr_near_eol.message",
 				details:   map[string]string{"version": "10.11.4", "esr": "10.11", "eol_date": "2026-12-15"},
-				value:     value(89),
+				value:     new(89.0),
 			}),
 		},
 		{

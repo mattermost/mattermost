@@ -87,8 +87,6 @@ func with(wants map[string]want, code string, w want) map[string]want {
 	return wants
 }
 
-func value(v float64) *float64 { return &v }
-
 func behindBy(version, latest string, n int) map[string]want {
 	code, messageID := "VERSION_BEHIND", behindMessage
 	if n == 1 {
@@ -98,7 +96,7 @@ func behindBy(version, latest string, n int) map[string]want {
 		state:     healthcheck.StateFiring,
 		messageID: messageID,
 		details:   map[string]string{"version": version, "latest": latest},
-		value:     value(float64(n)),
+		value:     new(float64(n)),
 	})
 }
 
