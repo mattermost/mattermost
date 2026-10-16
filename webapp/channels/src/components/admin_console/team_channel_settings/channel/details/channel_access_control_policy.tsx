@@ -89,8 +89,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                                     </Link>
                                     <Button
                                         className='policy-remove-icon'
-                                        emphasis='tertiary'
-                                        size='small'
+                                        destructive={true}
                                         aria-label={intl.formatMessage({
                                             id: 'admin.channel_settings.channel_detail.remove_policy.aria_label',
                                             defaultMessage: 'Remove policy',
