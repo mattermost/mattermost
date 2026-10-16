@@ -1,15 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {LicenseSkus} from 'utils/constants';
 
 import AdminDefinition from './admin_definition';
-import type {AdminDefinitionSettingInput, Check, ConsoleAccess} from './types';
+import SchemaAdminSettings from './schema_admin_settings';
+import type {AdminDefinitionSettingInput, AdminDefinitionSubSectionSchema, Check, ConsoleAccess} from './types';
 
 jest.mock('mattermost-redux/selectors/entities/general', () => ({
     ...jest.requireActual('mattermost-redux/selectors/entities/general'),
@@ -120,5 +124,66 @@ describe('AdminDefinition - ABAC audit logging toggle', () => {
 
         expect(hiddenCheck(abacFeatureFlagEnabled, {}, enterpriseAdvancedLicense, true, readAccess)).toBe(false);
         expect(hiddenCheck(abacFeatureFlagEnabled, {}, professionalLicense, true, readAccess)).toBe(true);
+    });
+
+    test('sections define title and description for AdminSectionPanel / AdminPanel chrome', () => {
+        const subsection = AdminDefinition.system_attributes.subsections.attribute_based_access_control;
+        const schema = subsection.schema;
+        const sections = 'sections' in schema ? schema.sections ?? [] : [];
+
+        expect(sections).toHaveLength(2);
+
+        expect(sections[0].key).toBe('admin.accesscontrol.settings');
+        expect((sections[0].title as {id: string}).id).toBe('admin.accesscontrol.sections.settings.title');
+        expect((sections[0].description as {id: string}).id).toBe('admin.accesscontrol.sections.settings.description');
+
+        expect(sections[1].key).toBe('admin.accesscontrol.session_attributes');
+        expect((sections[1].title as {id: string}).id).toBe('admin.accesscontrol.session_attributes');
+        expect((sections[1].description as {id: string}).id).toBe('admin.accesscontrol.sections.session_attributes.description');
+    });
+
+    test('renders Access Control and Session Attributes sections as AdminPanel', () => {
+        mockedGetConfig.mockReturnValue({AuditLoggingActive: 'true'});
+
+        const subsection = AdminDefinition.system_attributes.subsections.attribute_based_access_control;
+        const schema = subsection.schema as AdminDefinitionSubSectionSchema;
+
+        const {container} = renderWithContext(
+            <SchemaAdminSettings
+                cloud={{} as never}
+                consoleAccess={consoleAccess}
+                editRole={jest.fn()}
+                enterpriseReady={true}
+                isCurrentUserSystemAdmin={true}
+                isDisabled={false}
+                license={enterpriseAdvancedLicense}
+                roles={{}}
+                setNavigationBlocked={jest.fn()}
+                config={{
+                    AccessControlSettings: {
+                        EnableAttributeBasedAccessControl: true,
+                        EnableAccessControlAuditLogging: false,
+                        EnableChannelPolicyIndicators: true,
+                        TrustProxyDeviceIdentityHeader: false,
+                        EnforceDeviceIDConsistency: false,
+                    },
+                    FeatureFlags: {
+                        SessionAttributes: true,
+                    },
+                } as Partial<AdminConfig>}
+                environmentConfig={{}}
+                schema={schema}
+                patchConfig={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByRole('heading', {name: 'Access Control'})).toBeInTheDocument();
+        expect(screen.getByText('Enable attribute-based access control and related membership policy settings.')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Session Attributes'})).toBeInTheDocument();
+        expect(screen.getByText('Configure how device identity is trusted and validated for session attributes.')).toBeInTheDocument();
+
+        expect(container.querySelector('[data-testid="admin.accesscontrol.settings"].AdminPanel')).toBeInTheDocument();
+        expect(container.querySelector('[data-testid="admin.accesscontrol.session_attributes"].AdminPanel')).toBeInTheDocument();
+        expect(container.querySelectorAll('.AdminPanel.AdminSectionPanel')).toHaveLength(2);
     });
 });
