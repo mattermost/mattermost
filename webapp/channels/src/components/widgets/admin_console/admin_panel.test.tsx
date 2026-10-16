@@ -83,7 +83,7 @@ describe('components/widgets/admin_console/AdminPanel', () => {
         expect(onActionClick).toHaveBeenCalledTimes(1);
     });
 
-    test('should render headerless chrome when title, subtitle, and actions are omitted', () => {
+    test('should render body-only Compass AdminPanel when title, subtitle, and actions are omitted', () => {
         renderWithContext(
             <AdminPanel
                 id='headerless-id'
@@ -94,11 +94,26 @@ describe('components/widgets/admin_console/AdminPanel', () => {
         );
 
         const panel = document.getElementById('headerless-id');
-        expect(panel).toHaveClass('AdminPanel', 'AdminPanel--headerless', 'clearfix', 'test-class-name');
+        expect(panel).toHaveClass('AdminPanel', 'clearfix', 'test-class-name');
+        expect(panel).not.toHaveClass('AdminPanel--headerless');
         expect(panel?.tagName).toBe('SECTION');
         expect(screen.queryByRole('heading', {level: 2})).not.toBeInTheDocument();
         expect(screen.getByText('Body only')).toBeInTheDocument();
-        expect(panel?.querySelector('.AdminPanel__body')).toBeInTheDocument();
+        expect(panel?.querySelector('[class*="admin-panel__body"]')).toBeInTheDocument();
+    });
+
+    test('should omit body chrome for header-only panels', () => {
+        renderWithContext(
+            <AdminPanel
+                {...defaultProps}
+                id='bodyless-id'
+            />,
+        );
+
+        const panel = document.getElementById('bodyless-id');
+        expect(panel).toHaveClass('AdminPanel');
+        expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('test-title-default');
+        expect(panel?.querySelector('[class*="admin-panel__body"]')).not.toBeInTheDocument();
     });
 
     test('should render plain string title and subtitle without MessageDescriptor', () => {

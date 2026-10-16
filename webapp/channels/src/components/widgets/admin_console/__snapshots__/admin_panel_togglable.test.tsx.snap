@@ -42,12 +42,12 @@ exports[`components/widgets/admin_console/AdminPanelTogglable should match snaps
           <button
             aria-expanded="true"
             aria-label="Collapse section"
-            class="_icon-button_g2m23_2 _icon-button--size-medium_g2m23_83"
+            class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91"
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_g2m23_33"
+              class="_icon-button__icon-slot_13ryy_41"
             >
               <div
                 aria-hidden="true"
@@ -135,12 +135,12 @@ exports[`components/widgets/admin_console/AdminPanelTogglable should match snaps
           <button
             aria-expanded="false"
             aria-label="Expand section"
-            class="_icon-button_g2m23_2 _icon-button--size-medium_g2m23_83"
+            class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91"
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_g2m23_33"
+              class="_icon-button__icon-slot_13ryy_41"
             >
               <div
                 aria-hidden="true"
@@ -171,6 +171,7 @@ exports[`components/widgets/admin_console/AdminPanelTogglable should match snaps
     <div
       aria-hidden="true"
       class="_admin-panel__collapse_iwm08_13"
+      inert=""
     >
       <div
         class="_admin-panel__collapse-inner_iwm08_21"

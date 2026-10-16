@@ -21,27 +21,6 @@ section.AdminPanel {
     }
 }
 
-// Headerless shell: Compass AdminPanel has no hideHeader API and always mounts
-// AdminPanelHeader when used. Mirror its surface + body padding when the webapp
-// wrapper omits title/subtitle/actions.
-section.AdminPanel.AdminPanel--headerless {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 920px;
-    background: var(--center-channel-bg);
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: var(--radius-m);
-    box-shadow: var(--elevation-1);
-
-    .AdminPanel__body {
-        flex: 1 1 auto;
-        width: 100%;
-        padding: var(--spacing-xxl);
-        box-sizing: border-box;
-    }
-}
-
 .AdminPanel {
     .AdminPanel__content {
         padding: 0;

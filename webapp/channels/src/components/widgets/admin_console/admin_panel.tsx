@@ -7,6 +7,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import {AdminPanel as CompassAdminPanel} from '@mattermost/compass-ui/components/admin-panel';
+import type {AdminPanelProps as CompassAdminPanelProps} from '@mattermost/compass-ui/components/admin-panel';
 
 import './admin_panel.scss';
 
@@ -18,9 +19,7 @@ type Props = {
 
     /**
      * Optional. When omitted (and there is no subtitle, button, or other header
-     * chrome), the panel renders Compass AdminPanel body chrome without a header.
-     * Compass AdminPanel itself always requires a title and always mounts
-     * AdminPanelHeader — there is no hideHeader / headerless prop upstream.
+     * chrome), Compass AdminPanel renders a body-only panel (no header).
      *
      * Prefer MessageDescriptor for i18n. Plain strings are allowed when the
      * caller already formatted the copy (e.g. Workspace Optimization sections).
@@ -30,7 +29,7 @@ type Props = {
     subtitleValues?: Record<string, unknown>;
     button?: React.ReactNode;
     children?: React.ReactNode;
-} & Omit<React.ComponentProps<typeof CompassAdminPanel>, 'title' | 'subtitle' | 'headerActions' | 'children' | 'className'>;
+} & Omit<CompassAdminPanelProps, 'title' | 'subtitle' | 'headerActions' | 'children' | 'className'>;
 
 function isMessageDescriptor(value: PanelText): value is MessageDescriptor {
     return typeof value === 'object' && value !== null && 'id' in value;
@@ -92,47 +91,53 @@ const AdminPanel = ({
     id,
     subtitleValues,
     expandable,
+    footer,
     ...rest
 }: Props) => {
-    // Compass AdminPanel always renders AdminPanelHeader and types `title` as
-    // required. When callers need panel chrome without a redundant header
-    // (e.g. Classification Markings settings after enable moved out), omit
-    // title/subtitle/actions and use a headerless shell that matches Compass
-    // surface + body padding.
+    const classNameWithFlags = classNames('AdminPanel', 'clearfix', className, {
+        'AdminPanel--expandable': expandable,
+    });
+
+    // Compass AdminPanel supports header-only, body-only, or both (footer optional).
+    // Omit title/header chrome for body-only panels; omit children for header-only.
     if (!hasCompassHeaderChrome({title, subtitle, button, expandable, ...rest})) {
+        const headerlessProps = {
+            id,
+            className: classNameWithFlags,
+            footer,
+            children,
+            ...rest,
+        } as CompassAdminPanelProps;
+
         return (
-            <section
-                id={id}
-                className={classNames('AdminPanel', 'AdminPanel--headerless', 'clearfix', className)}
-            >
-                <div className='AdminPanel__body'>
-                    {children}
-                </div>
-            </section>
+            <CompassAdminPanel
+                {...headerlessProps}
+            />
         );
     }
 
     const titleNode = renderPanelText(title);
+    const headedProps = {
+        id,
+        className: classNameWithFlags,
+        title: titleNode ?? (
+            <FormattedMessage
+                id='admin.panel.untitled'
+                defaultMessage=' '
+            />
+        ),
+        subtitle: renderPanelText(subtitle, subtitleValues),
+        headerActions: button,
+        expandable,
+        footer,
+        children,
+        ...rest,
+    } as CompassAdminPanelProps;
 
     return (
         <CompassAdminPanel
-            id={id}
-            className={classNames('AdminPanel', 'clearfix', className, {
-                'AdminPanel--expandable': expandable,
-            })}
-            title={titleNode ?? (
-                <FormattedMessage
-                    id='admin.panel.untitled'
-                    defaultMessage=' '
-                />
-            )}
-            subtitle={renderPanelText(subtitle, subtitleValues)}
-            headerActions={button}
-            expandable={expandable}
-            {...rest}
-        >
-            {children}
-        </CompassAdminPanel>
+            {...headedProps}
+        />
     );
 };
 
