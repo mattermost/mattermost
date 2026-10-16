@@ -96,6 +96,15 @@ describe('components/admin_console/workspace-optimization/dashboard', () => {
         expect(collapse).toHaveAttribute('aria-hidden', 'false');
         expect(screen.getByText('Update available')).toBeInTheDocument();
         expect(screen.getByText('Install the latest version.')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Collapse section'}));
+        expect(collapse).toHaveAttribute('aria-hidden', 'true');
+
+        // Whole header is clickable (former accordion behavior), not only the chevron.
+        await userEvent.click(screen.getByRole('heading', {name: 'Server updates'}));
+        expect(collapse).toHaveAttribute('aria-hidden', 'false');
+        await userEvent.click(screen.getByText('An update is available.'));
+        expect(collapse).toHaveAttribute('aria-hidden', 'true');
     });
 
     test('should show loading screen while metrics load', () => {

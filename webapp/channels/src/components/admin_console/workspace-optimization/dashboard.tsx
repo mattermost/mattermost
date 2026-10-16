@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';
+import type {AdminPanelExpandedState} from '@mattermost/compass-ui/components/admin-panel';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import LoadingScreen from 'components/loading_screen';
@@ -49,6 +50,28 @@ const WorkspaceOptimizationSectionPanel = ({
     collapseLabel,
 }: SectionPanelProps) => {
     const hasItems = items.length > 0;
+    const [expandedState, setExpandedState] = useState<AdminPanelExpandedState>('collapsed');
+
+    // Compass only toggles via the header chevron. Match the former Accordion
+    // cards: clicking anywhere on the header opens/closes the section.
+    const handlePanelClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
+        if (!hasItems) {
+            return;
+        }
+
+        const target = event.target as HTMLElement | null;
+        const header = event.currentTarget.querySelector('header');
+        if (!target || !header?.contains(target)) {
+            return;
+        }
+
+        // Expand IconButton already calls onExpandedStateChange — avoid a double toggle.
+        if (target.closest('[aria-expanded]')) {
+            return;
+        }
+
+        setExpandedState((current) => (current === 'expanded' ? 'collapsed' : 'expanded'));
+    }, [hasItems]);
 
     return (
         <AdminPanel
@@ -56,6 +79,7 @@ const WorkspaceOptimizationSectionPanel = ({
             className={classNames('WorkspaceOptimizationDashboard__section', {
                 'WorkspaceOptimizationDashboard__section--success': !hasItems,
                 'WorkspaceOptimizationDashboard__section--header-only': !hasItems,
+                'WorkspaceOptimizationDashboard__section--expandable': hasItems,
             })}
             title={title}
             subtitle={description}
@@ -63,9 +87,11 @@ const WorkspaceOptimizationSectionPanel = ({
             leadingIcon={hasItems ? icon : successIcon}
             button={hasItems ? chips : undefined}
             expandable={hasItems}
-            defaultExpandedState='collapsed'
+            expandedState={hasItems ? expandedState : undefined}
+            onExpandedStateChange={hasItems ? setExpandedState : undefined}
             expandLabel={expandLabel}
             collapseLabel={collapseLabel}
+            onClick={handlePanelClick}
         >
             {hasItems ? items : undefined}
         </AdminPanel>
