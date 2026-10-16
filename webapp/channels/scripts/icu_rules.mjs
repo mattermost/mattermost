@@ -277,10 +277,11 @@ export function checkMessage(source, message, locale) {
         if ((node.pluralType || 'cardinal') === 'cardinal') {
             const unused = Object.keys(node.options).filter((c) => !c.startsWith('=') && !used.includes(c));
             if (unused.length) {
-                findings.push(finding('plural-unused-category', 'warning', `plural "${node.value}" has a ${unused.join('/')} form that ${locale} never selects`));
+                findings.push(finding('plural-unused-category', 'warning', `plural "${node.value}" has a ${unused.join('/')} form that ${locale} never selects${unused.includes('one') ? '; for exactly one, write =1' : ''}`));
             }
         }
     }
 
-    return findings;
+    // Two plurals on one variable fail the same way; say it once.
+    return findings.filter((f, i) => findings.findIndex((g) => g.message === f.message) === i);
 }
