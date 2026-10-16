@@ -50,17 +50,11 @@ func releasesBehind(table []model.ReleaseLifecycle, running, latest line) int {
 		return 0
 	}
 
+	newest, _ := parseLine(table[0].MajorMinor)
 	var n int
-	var newest line
-	for i, entry := range table {
+	for _, entry := range table {
 		l, ok := parseLine(entry.MajorMinor)
-		if !ok {
-			continue
-		}
-		if i == 0 {
-			newest = l
-		}
-		if l.compare(running) > 0 && l.compare(latest) <= 0 {
+		if ok && l.compare(running) > 0 && l.compare(latest) <= 0 {
 			n++
 		}
 	}
@@ -84,7 +78,7 @@ func evalBehind(table []model.ReleaseLifecycle, now func() time.Time, messageID 
 		switch {
 		case reasonID != "":
 			return []healthcheck.Result{healthcheck.UnknownSubject(subject, reasonID)}
-		case a.running.ESR || a.ended():
+		case a.running.ESR || a.ended:
 			return []healthcheck.Result{healthcheck.ResolvedSubject(subject)}
 		}
 

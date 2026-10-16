@@ -52,11 +52,10 @@ func (l line) String() string {
 	return fmt.Sprintf("%d.%d", l.major, l.minor)
 }
 
-// lookup finds the entry for version's line. belowFloor is true when the version predates the
-// table; ok is false when it is newer than every entry, missing from it, or unparseable.
-func lookup(table []model.ReleaseLifecycle, version string) (running model.ReleaseLifecycle, belowFloor, ok bool) {
-	v, ok := parseLine(version)
-	if !ok || len(table) == 0 {
+// lookup finds the entry for line v. belowFloor is true when v predates the table; ok is false
+// when v is newer than every entry or missing from it.
+func lookup(table []model.ReleaseLifecycle, v line) (running model.ReleaseLifecycle, belowFloor, ok bool) {
+	if len(table) == 0 {
 		return running, false, false
 	}
 
@@ -90,12 +89,7 @@ type assessment struct {
 	version    line
 	running    model.ReleaseLifecycle
 	belowFloor bool
-	pastEOL    bool
-}
-
-// ended reports whether the running line is past its support, verified or not.
-func (a assessment) ended() bool {
-	return a.belowFloor || a.pastEOL
+	ended      bool
 }
 
 // assess returns the subject for every result and, when the version cannot be placed, the
@@ -107,7 +101,7 @@ func assess(table []model.ReleaseLifecycle, s *healthcheck.Snapshot, now time.Ti
 		return a, "", reasonVersionUnknown
 	}
 
-	running, belowFloor, ok := lookup(table, s.Version.Current)
+	running, belowFloor, ok := lookup(table, v)
 	if !ok {
 		return a, v.String(), reasonLineUnknown
 	}
@@ -116,6 +110,6 @@ func assess(table []model.ReleaseLifecycle, s *healthcheck.Snapshot, now time.Ti
 		version:    v,
 		running:    running,
 		belowFloor: belowFloor,
-		pastEOL:    !belowFloor && !now.Before(running.EOLDate),
+		ended:      belowFloor || !now.Before(running.EOLDate),
 	}, v.String(), ""
 }

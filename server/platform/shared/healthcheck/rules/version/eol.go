@@ -55,33 +55,30 @@ func evalVersionEOL(table []model.ReleaseLifecycle, now func() time.Time) func(*
 		switch {
 		case reasonID != "":
 			return []healthcheck.Result{healthcheck.UnknownSubject(subject, reasonID)}
-		case !a.ended():
+		case !a.ended:
 			return []healthcheck.Result{healthcheck.ResolvedSubject(subject)}
 		}
 
 		result := healthcheck.FiringSubject(subject, healthcheck.TranslationId("health.rule.version_eol.message")).
 			WithDetail("version", s.Version.Current)
-		if !a.belowFloor {
-			result = result.WithDetail("eol_date", a.running.EOLDate.Format(time.DateOnly))
-		}
-
-		// Regular releases are pointed at the latest release; only ESR customers get an ESR to move to.
-		if !a.belowFloor && !a.running.ESR {
-			result.MessageID = healthcheck.TranslationId("health.rule.version_eol.message.latest")
+		next, hasTarget := target(table, a.version, at)
+		if a.belowFloor {
+			result.MessageID = healthcheck.TranslationId("health.rule.version_eol.message.below_floor")
+			if hasTarget {
+				result = result.WithDetail("target", next)
+				result.MessageID = healthcheck.TranslationId("health.rule.version_eol.message.below_floor_target")
+			}
 			return []healthcheck.Result{result}
 		}
 
-		next, hasTarget := target(table, a.version, at)
+		result = result.WithDetail("eol_date", a.running.EOLDate.Format(time.DateOnly))
 		switch {
-		case a.belowFloor && hasTarget:
-			result.MessageID = healthcheck.TranslationId("health.rule.version_eol.message.below_floor_target")
-		case a.belowFloor:
-			result.MessageID = healthcheck.TranslationId("health.rule.version_eol.message.below_floor")
+		// Regular releases are pointed at the latest release; only ESR customers get an ESR to move to.
+		case !a.running.ESR:
+			result.MessageID = healthcheck.TranslationId("health.rule.version_eol.message.latest")
 		case hasTarget:
-			result.MessageID = healthcheck.TranslationId("health.rule.version_eol.message.target")
-		}
-		if hasTarget {
 			result = result.WithDetail("target", next)
+			result.MessageID = healthcheck.TranslationId("health.rule.version_eol.message.target")
 		}
 		return []healthcheck.Result{result}
 	}

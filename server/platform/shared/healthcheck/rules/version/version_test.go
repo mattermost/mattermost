@@ -23,11 +23,8 @@ func date(year int, month time.Month, d int) time.Time {
 var (
 	evaluatedAt = date(2026, time.September, 25)
 
-	reg106EOL  = date(2025, time.June, 15)
-	esr105EOL  = date(2026, time.March, 15)
 	reg119EOL  = date(2026, time.October, 15)
 	esr1011EOL = date(2026, time.December, 15)
-	esr118EOL  = date(2027, time.June, 15)
 )
 
 // stubTable is fictional, so the tests do not move when release engineering edits the real one.
@@ -36,12 +33,12 @@ var stubTable = []model.ReleaseLifecycle{
 	{MajorMinor: "11.11", EOLDate: date(2026, time.December, 15)},
 	{MajorMinor: "11.10", EOLDate: date(2026, time.November, 15)},
 	{MajorMinor: "11.9", EOLDate: reg119EOL},
-	{MajorMinor: "11.8", EOLDate: esr118EOL, ESR: true},
+	{MajorMinor: "11.8", EOLDate: date(2027, time.June, 15), ESR: true},
 	{MajorMinor: "11.0", EOLDate: date(2026, time.January, 15)},
 	{MajorMinor: "10.12", EOLDate: date(2025, time.December, 15)},
 	{MajorMinor: "10.11", EOLDate: esr1011EOL, ESR: true},
-	{MajorMinor: "10.6", EOLDate: reg106EOL},
-	{MajorMinor: "10.5", EOLDate: esr105EOL, ESR: true},
+	{MajorMinor: "10.6", EOLDate: date(2025, time.June, 15)},
+	{MajorMinor: "10.5", EOLDate: date(2026, time.March, 15), ESR: true},
 }
 
 func stubRules(now time.Time) map[string]func(*healthcheck.Snapshot) []healthcheck.Result {

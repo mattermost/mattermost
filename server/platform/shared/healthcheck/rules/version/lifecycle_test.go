@@ -13,26 +13,23 @@ func TestLookup(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
-		version    string
+		version    line
 		running    string
 		belowFloor bool
 		ok         bool
 	}{
-		{version: "11.8.3", running: "11.8", ok: true},
-		{version: "12.0.0", running: "12.0", ok: true},
-		{version: "11.0.1", running: "11.0", ok: true},
-		{version: "10.5.0", running: "10.5", ok: true},
-		{version: "10.4.9", belowFloor: true, ok: true},
-		{version: "9.11.0", belowFloor: true, ok: true},
-		{version: "12.1.0"},
-		{version: "11.5.0"},
-		{version: "v11.0.1"},
-		{version: "11"},
-		{version: ""},
+		{version: line{11, 8}, running: "11.8", ok: true},
+		{version: line{12, 0}, running: "12.0", ok: true},
+		{version: line{11, 0}, running: "11.0", ok: true},
+		{version: line{10, 5}, running: "10.5", ok: true},
+		{version: line{10, 4}, belowFloor: true, ok: true},
+		{version: line{9, 11}, belowFloor: true, ok: true},
+		{version: line{12, 1}},
+		{version: line{11, 5}},
 	} {
 		running, belowFloor, ok := lookup(stubTable, tc.version)
-		assert.Equal(t, tc.ok, ok, tc.version)
-		assert.Equal(t, tc.belowFloor, belowFloor, tc.version)
-		assert.Equal(t, tc.running, running.MajorMinor, tc.version)
+		assert.Equal(t, tc.ok, ok, tc.version.String())
+		assert.Equal(t, tc.belowFloor, belowFloor, tc.version.String())
+		assert.Equal(t, tc.running, running.MajorMinor, tc.version.String())
 	}
 }
