@@ -24,7 +24,7 @@ exports[`components/OpenIdConvert should match snapshot 1`] = `
         class="OpenIdConvert_actionWrapper"
       >
         <button
-          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 btn"
+          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
           data-testid="openIdConvert"
           type="button"
         >
@@ -35,7 +35,7 @@ exports[`components/OpenIdConvert should match snapshot 1`] = `
           </span>
         </button>
         <a
-          class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 btn-secondary"
+          class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56"
           data-testid="openIdLearnMore"
           href="https://www.mattermost.com/default-openid-docs?utm_source=mattermost&utm_medium=in-product&utm_content=openid_convert&uid=&sid=&edition=team&server_version="
           location="openid_convert"

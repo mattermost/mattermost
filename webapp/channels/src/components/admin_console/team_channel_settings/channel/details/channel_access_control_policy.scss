@@ -67,15 +67,17 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0;
-            border: none;
+            padding: 0 !important;
+            border: none !important;
             margin-left: 8px;
-            background: none;
+            background: none !important;
             color: rgba(var(--center-channel-color-rgb), 0.72);
             cursor: pointer;
             transform: translateY(-2px);
 
-            &:hover {
+            &:hover,
+            &:active {
+                background: none !important;
                 color: var(--error-text);
             }
 
