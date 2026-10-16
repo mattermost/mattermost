@@ -304,6 +304,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         const complexExpressions: Array<[string, string]> = [
             ['top-level OR of equalities', 'user.attributes.a == "x" || user.attributes.b == "y"'],
             ['parenthesized OR of equalities', 'user.attributes.a == "x" && (user.attributes.b == "y" || user.attributes.c == "z")'],
+            ['has-any-of group without parens followed by &&', '"a" in user.attributes.teams || "b" in user.attributes.teams && user.attributes.level == "Senior"'],
         ];
 
         test.each(complexExpressions)('%s', async (_label, expression) => {
@@ -342,13 +343,12 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         const BOT_C_RETURNED = '!user.isbot || ((user.attributes.Program == "Dragon") ? (user.attributes.Clearance == "Secret" &&\nuser.attributes.Program != "Phoenix") : (user.attributes.Clearance == "TopSecret" &&\nuser.attributes.Program == "Hydra"))';
         const BOT_C_UNWRAPPED = '(user.attributes.Program == "Dragon") ? (user.attributes.Clearance == "Secret" &&\nuser.attributes.Program != "Phoenix") : (user.attributes.Clearance == "TopSecret" &&\nuser.attributes.Program == "Hydra")';
         const BOT_D1_RETURNED = '!user.isbot || "a" in user.attributes.Tags || "b" in user.attributes.Tags';
-        const D1_PARENTHESIZED = '("a" in user.attributes.Tags || "b" in user.attributes.Tags)';
+        const D1_UNWRAPPED = '"a" in user.attributes.Tags || "b" in user.attributes.Tags';
         const E = 'user.attributes.teams == "engineering"';
         const WRAPPED_E = '!user.isbot || (user.attributes.teams == "engineering"\n)';
         const BREAKOUT_OR = 'user.attributes.teams == "x") || (true';
         const BREAKOUT_TERNARY = 'user.attributes.teams == "x") ? (true) : (false';
         const HAS_ANY_OF = '"a" in user.attributes.teams || "b" in user.attributes.teams';
-        const HAS_ANY_OF_PARENTHESIZED = `(${HAS_ANY_OF})`;
         const BOT_HELP_TEXT = 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).';
         const BOT_EMPTY_STATE_TEXT = 'Select a bot attribute and values to create a rule';
         const BOT_PROPS = {bot_scope: true};
@@ -435,11 +435,11 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 expect(selectorText()).toContain('Bot accounts');
             });
 
-            test('a wrapped has-any-of group without parens opens in table mode with the parens restored', async () => {
+            test('a wrapped has-any-of group without parens opens in table mode', async () => {
                 renderBotPolicy([BOT_D1_RETURNED]);
 
                 expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
-                expect(lastTableProps().value).toBe(D1_PARENTHESIZED);
+                expect(lastTableProps().value).toBe(D1_UNWRAPPED);
                 expect(selectorText()).toContain('Bot accounts');
             });
 
@@ -541,14 +541,14 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 expect(screen.queryByText('This policy\'s rule couldn\'t be read')).not.toBeInTheDocument();
             });
 
-            test('a Members has-any-of group without parens opens in table mode with the parens restored', async () => {
+            test('a Members has-any-of group without parens opens in table mode', async () => {
                 renderWithExpression(HAS_ANY_OF);
 
                 expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
-                expect(lastTableProps().value).toBe(HAS_ANY_OF_PARENTHESIZED);
+                expect(lastTableProps().value).toBe(HAS_ANY_OF);
             });
 
-            test('switching from CEL to table restores dropped parens', async () => {
+            test('a has-any-of group without parens can switch from CEL to table', async () => {
                 renderWithExpression('');
                 await screen.findByTestId('table-editor');
 
@@ -561,7 +561,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 await userEvent.click(toggle);
 
                 expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
-                expect(lastTableProps().value).toBe(HAS_ANY_OF_PARENTHESIZED);
+                expect(lastTableProps().value).toBe(HAS_ANY_OF);
             });
         });
 

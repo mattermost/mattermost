@@ -1470,6 +1470,46 @@ describe('isSimpleExpression', () => {
     test('native and CPA conditions combined with AND are simple', () => {
         expect(isSimpleExpression('user.verified == true && user.attributes.dept == "Eng"')).toBe(true);
     });
+
+    test('unparenthesized multiselect OR group is simple', () => {
+        expect(isSimpleExpression('"a" in user.attributes.skills || "b" in user.attributes.skills')).toBe(true);
+    });
+
+    test.each([
+        ['group first', '"a" in user.attributes.skills || "b" in user.attributes.skills && user.attributes.dept == "Eng"'],
+        ['group last', 'user.attributes.dept == "Eng" && "a" in user.attributes.skills || "b" in user.attributes.skills'],
+    ])('unparenthesized group mixed with && is NOT simple (%s)', (_label, expr) => {
+        expect(isSimpleExpression(expr)).toBe(false);
+    });
+
+    test('separately parenthesized OR operands are NOT simple', () => {
+        expect(isSimpleExpression('("a" in user.attributes.skills) || ("b" in user.attributes.skills)')).toBe(false);
+    });
+
+    test('&& and || inside literals do not split conditions', () => {
+        expect(isSimpleExpression('user.attributes.dept == "R&&D"')).toBe(true);
+        expect(isSimpleExpression('"a||b" in user.attributes.skills || "c" in user.attributes.skills')).toBe(true);
+    });
+
+    test.each([
+        ['after an equality', 'user.attributes.dept == "x") || (true'],
+        ['after a group', '"a" in user.attributes.skills || "b" in user.attributes.skills) || (true'],
+        ['inside an unterminated literal', 'user.attributes.dept == "x") || (true && user.attributes.a == "b'],
+    ])('paren breakout strings are NOT simple (%s)', (_label, expr) => {
+        expect(isSimpleExpression(expr)).toBe(false);
+    });
+
+    test('a group spanning lines is simple', () => {
+        expect(isSimpleExpression('"a" in user.attributes.skills ||\n"b" in user.attributes.skills')).toBe(true);
+    });
+
+    test('whitespace-only expression is simple', () => {
+        expect(isSimpleExpression('  \n')).toBe(true);
+    });
+
+    test('empty parens are NOT simple', () => {
+        expect(isSimpleExpression('()')).toBe(false);
+    });
 });
 
 describe('isMultiselectOrGroup', () => {
@@ -1481,8 +1521,8 @@ describe('isMultiselectOrGroup', () => {
         expect(isMultiselectOrGroup('("a" in user.attributes.X || "b" in user.attributes.X || "c" in user.attributes.X)')).toBe(true);
     });
 
-    test('rejects expression without parentheses', () => {
-        expect(isMultiselectOrGroup('"a" in user.attributes.X || "b" in user.attributes.X')).toBe(false);
+    test('accepts a group without parentheses', () => {
+        expect(isMultiselectOrGroup('"a" in user.attributes.X || "b" in user.attributes.X')).toBe(true);
     });
 
     test('rejects equality conditions in OR group', () => {
@@ -1491,6 +1531,34 @@ describe('isMultiselectOrGroup', () => {
 
     test('rejects malformed inner expression', () => {
         expect(isMultiselectOrGroup('(garbage || more garbage)')).toBe(false);
+    });
+
+    test('rejects parens that do not enclose the whole group', () => {
+        expect(isMultiselectOrGroup('("a" in user.attributes.X) || ("b" in user.attributes.X)')).toBe(false);
+    });
+
+    test('strips only one pair of enclosing parens', () => {
+        expect(isMultiselectOrGroup('(("a" in user.attributes.X || "b" in user.attributes.X))')).toBe(false);
+    });
+
+    test.each([
+        ['|| inside a literal', '"a||b" in user.attributes.X || "c" in user.attributes.X'],
+        ['parens inside literals', '("a)" in user.attributes.X || "(b" in user.attributes.X)'],
+        ['newlines and padding', '\n  "a" in user.attributes.X ||\n  "b" in user.attributes.X\n'],
+        ['a single parenthesized value', '("a" in user.attributes.X)'],
+        ['a single bare value', '"a" in user.attributes.X'],
+    ])('accepts %s', (_label, expr) => {
+        expect(isMultiselectOrGroup(expr)).toBe(true);
+    });
+
+    test.each([
+        ['empty', ''],
+        ['empty parens', '()'],
+        ['an unterminated literal', '"a" in user.attributes.X || "b'],
+        ['a group joined with &&', '"a" in user.attributes.X || "b" in user.attributes.X && user.attributes.c == "d"'],
+        ['a paren breakout after the group', '"a" in user.attributes.X || "b" in user.attributes.X) || (true'],
+    ])('rejects %s', (_label, expr) => {
+        expect(isMultiselectOrGroup(expr)).toBe(false);
     });
 });
 

@@ -4,8 +4,6 @@
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {isSimpleExpression} from './shared';
-
 // A Bot accounts policy is a system_user policy flagged with `props.bot_scope: true`
 // whose rule is stored as `!user.isbot || (<E>\n)`. The server re-serializes on read
 // but keeps this prefix first and verbatim for a well-formed `E`.
@@ -125,22 +123,6 @@ export function unwrapBotExpression(expr: string): string {
 // The newline keeps a trailing `// comment` in the expression from swallowing the `)`.
 export function wrapBotExpression(expr: string): string {
     return `${BOT_SCOPE_PREFIX}(${expr}\n)`;
-}
-
-// The server drops the parens around a lone "has any of" group, so retry with
-// them restored before falling back to CEL mode.
-export function getTableEditorValue(expr: string): string | null {
-    if (expr.trim() === '') {
-        return '';
-    }
-    if (isSimpleExpression(expr)) {
-        return expr;
-    }
-    const parenthesized = `(${expr})`;
-    if (isSimpleExpression(parenthesized)) {
-        return parenthesized;
-    }
-    return null;
 }
 
 export function isMaskingFailureExpression(expr: string): boolean {

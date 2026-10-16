@@ -7,7 +7,6 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {
     findMatchingParen,
     getSyncedAttributeReferences,
-    getTableEditorValue,
     hasBalancedParens,
     isBotScopePolicy,
     isMaskingFailureExpression,
@@ -15,6 +14,7 @@ import {
     unwrapBotExpression,
     wrapBotExpression,
 } from './bot_scope';
+import {isSimpleExpression} from './shared';
 
 const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']> = {}): UserPropertyField => ({
     id: `id-${name}`,
@@ -444,17 +444,18 @@ describe('findMatchingParen', () => {
     });
 });
 
-describe('getTableEditorValue', () => {
+describe('isSimpleExpression on server-serialized bodies', () => {
     it.each([
         'a masking on GET',
         'a masking off GET',
+        'd1 masking on GET',
+        'd1 masking off GET',
         'd2 masking on GET',
         'd3 masking on GET',
         'e masking on GET',
         'e masking off GET',
-    ])('%s unwrapped is simple and returned as is', (name) => {
-        const {unwrapped} = fixture(name);
-        expect(getTableEditorValue(unwrapped)).toBe(unwrapped);
+    ])('%s unwrapped is simple', (name) => {
+        expect(isSimpleExpression(fixture(name).unwrapped)).toBe(true);
     });
 
     it.each([
@@ -462,27 +463,8 @@ describe('getTableEditorValue', () => {
         'b masking off GET',
         'c masking on GET',
         'c masking off GET',
-    ])('%s unwrapped falls back to CEL mode', (name) => {
-        expect(getTableEditorValue(fixture(name).unwrapped)).toBeNull();
-    });
-
-    it('restores the parens the server dropped around a lone has-any-of group', () => {
-        const parenthesized = '("a" in user.attributes.Tags || "b" in user.attributes.Tags)';
-        expect(fixture('d1 masking on GET').unwrapped).toBe('"a" in user.attributes.Tags || "b" in user.attributes.Tags');
-        expect(getTableEditorValue(fixture('d1 masking on GET').unwrapped)).toBe(parenthesized);
-        expect(getTableEditorValue(fixture('d1 masking off GET').unwrapped)).toBe(parenthesized);
-    });
-
-    it('returns a masked placeholder rule as is', () => {
-        expect(getTableEditorValue('user.attributes.Level == "--------"')).toBe('user.attributes.Level == "--------"');
-    });
-
-    it.each(['', '   ', '\n'])('returns an empty string for blank input %j', (input) => {
-        expect(getTableEditorValue(input)).toBe('');
-    });
-
-    it('returns null for an expression that is not simple even with parens', () => {
-        expect(getTableEditorValue('user.attributes.A == "a" || user.attributes.B == "b"')).toBeNull();
+    ])('%s unwrapped is not simple', (name) => {
+        expect(isSimpleExpression(fixture(name).unwrapped)).toBe(false);
     });
 });
 

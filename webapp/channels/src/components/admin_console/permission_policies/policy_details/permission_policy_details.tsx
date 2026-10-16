@@ -35,7 +35,6 @@ import {getUserPropertyFieldLabel} from 'utils/properties';
 import {
     BOT_SCOPE_PROP,
     getSyncedAttributeReferences,
-    getTableEditorValue,
     hasBalancedParens,
     isBotScopePolicy,
     isMaskingFailureExpression,
@@ -43,7 +42,7 @@ import {
     wrapBotExpression,
 } from '../../access_control/editors/bot_scope';
 import CELEditor from '../../access_control/editors/cel_editor/editor';
-import {hasUsableAttributes, isNativeField, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
+import {hasUsableAttributes, isNativeField, isSimpleExpression, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
 import TableEditor from '../../access_control/editors/table_editor/table_editor';
 import {AVAILABLE_ROLES, BOT_ROLE_KEY, roleMessages, toServerRole} from '../roles';
 
@@ -171,7 +170,6 @@ function PermissionPolicyDetails({
     const [hasFalseRule, setHasFalseRule] = useState(false);
 
     const isBotScope = selectedRole === BOT_ROLE_KEY;
-    const tableEditorValue = useMemo(() => getTableEditorValue(expression), [expression]);
 
     const {formatMessage, formatList} = useIntl();
     const abacActions = useChannelAccessControlActions();
@@ -259,13 +257,12 @@ function PermissionPolicyDetails({
                 const botScope = loaded ? isBotScopePolicy(loaded) : false;
                 const raw = rules[0]?.expression || '';
                 const inner = botScope ? unwrapBotExpression(raw) : raw;
-                const tableValue = getTableEditorValue(inner);
 
                 setPolicyName(loaded?.name || '');
                 setSelectedRole(botScope ? BOT_ROLE_KEY : loaded?.roles?.[0] || 'system_user');
-                setExpression(tableValue ?? inner);
+                setExpression(inner);
                 setSelectedPermissions(getPermissionActions(rules));
-                setEditorMode(tableValue === null ? 'cel' : 'table');
+                setEditorMode(isSimpleExpression(inner) ? 'table' : 'cel');
                 setHasFalseRule(rules.some((rule) => isMaskingFailureExpression(rule.expression || '')));
             });
             await Promise.all([fieldsPromise, policyPromise]);
@@ -680,20 +677,8 @@ function PermissionPolicyDetails({
                                                 />
                                             )
                                         }
-                                        onClick={() => {
-                                            if (editorMode === 'table') {
-                                                setEditorMode('cel');
-                                                return;
-                                            }
-                                            if (tableEditorValue === null) {
-                                                return;
-                                            }
-                                            if (tableEditorValue !== expression) {
-                                                setExpression(tableEditorValue);
-                                            }
-                                            setEditorMode('table');
-                                        }}
-                                        isDisabled={noUsableAttributes || (editorMode === 'cel' && tableEditorValue === null)}
+                                        onClick={() => setEditorMode(editorMode === 'table' ? 'cel' : 'table')}
+                                        isDisabled={noUsableAttributes || (editorMode === 'cel' && !isSimpleExpression(expression))}
                                         tooltipText={(() => {
                                             if (noUsableAttributes) {
                                                 return formatMessage({
@@ -701,7 +686,7 @@ function PermissionPolicyDetails({
                                                     defaultMessage: 'Please configure user attributes to use the editor.',
                                                 });
                                             }
-                                            if (editorMode === 'cel' && tableEditorValue === null) {
+                                            if (editorMode === 'cel' && !isSimpleExpression(expression)) {
                                                 return formatMessage({
                                                     id: 'admin.permission_policies.edit.complex_expression_tooltip',
                                                     defaultMessage: 'Complex expression detected. Simple expressions editor is not available at the moment.',

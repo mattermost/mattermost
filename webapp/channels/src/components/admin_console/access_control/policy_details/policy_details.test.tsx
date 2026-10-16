@@ -598,6 +598,14 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             expect(screen.getByText('Switch to Simple Mode').closest('button')).toBeEnabled();
         });
 
+        test('a "has any of" group without parens stays switchable back to Simple Mode', async () => {
+            renderWithLoadedExpression('"Matt\'s" in user.attributes.program || "Phoenix" in user.attributes.program', 'program');
+
+            await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+
+            expect(screen.getByText('Switch to Simple Mode').closest('button')).toBeEnabled();
+        });
+
         test('a genuinely complex expression still disables the toggle (negative control)', async () => {
             renderWithLoadedExpression('size(user.attributes.roles) > 0', 'roles');
 
