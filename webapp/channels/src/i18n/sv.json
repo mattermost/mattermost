@@ -1282,7 +1282,7 @@
   "admin.elasticsearch.usernameDescription": "(Valfritt) Användarnamnet för autentisering på Elasticsearch servern.",
   "admin.elasticsearch.usernameExample": "T.ex.: \"elastic\"",
   "admin.elasticsearch.usernameTitle": "Användarnamn på server:",
-  "admin.email.agreeHPNS": " Jag förstår och accepterar Mattermost Hosted Push Notification Service <linkTerms>Användarvillkor</linkTerms> och <linkPrivacy>Integritetspolicy</linkPrivacy>.",
+  "admin.email.agreeHPNS": " Jag förstår och accepterar <linkTerms>Användarvillkor</linkTerms> och <linkPrivacy>Integritetspolicy</linkPrivacy> för Mattermosts värdbaserade push-aviseringstjänst.",
   "admin.email.allowEmailSignInDescription": "När aktiverad tillåts användare logga in med e-postadress och lösenord.",
   "admin.email.allowEmailSignInTitle": "Aktivera inloggning med e-post: ",
   "admin.email.allowSignupDescription": "När aktiverad tillåts att konton registreras med e-postadress och lösenord. Detta värde ska endast vara satt till falskt när du vill begränsa registrering till en tjänst med autoinloggning, t.ex. AD/LDAP, SAML eller GitLab.",

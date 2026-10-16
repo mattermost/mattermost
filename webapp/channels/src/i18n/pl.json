@@ -1282,7 +1282,7 @@
   "admin.elasticsearch.usernameDescription": "(Opcjonalnie) Użytkownik do autentyfikacji z serwerem Elasticsearch.",
   "admin.elasticsearch.usernameExample": "Np. \"elastic\"",
   "admin.elasticsearch.usernameTitle": "Użytkownik Serwera:",
-  "admin.email.agreeHPNS": " Rozumiem i akceptuję Hostowaną Usługę Powiadomień Push Mattermost <linkTerms>Warunki Świadczenia Usług</linkTerms> i <linkPrivacy>Politykę Prywatności</linkPrivacy>.",
+  "admin.email.agreeHPNS": " Rozumiem i akceptuję <linkTerms>Warunki Świadczenia Usług</linkTerms> i <linkPrivacy>Politykę Prywatności</linkPrivacy> usługi Mattermost Hosted Push Notification Service.",
   "admin.email.allowEmailSignInDescription": "Kiedy włączone, Mattermost pozwoli użytkownikom logować się za pomocą ich adresu e-mail i hasła.",
   "admin.email.allowEmailSignInTitle": "Włącz logowanie za pomocą adresu email:",
   "admin.email.allowSignupDescription": "Kiedy włączone, Mattermost zezwoli na zakładanie kont przy użyciu adresu email i hasła. Wyłącz tą opcję tylko wtedy, gdy chcesz ograniczyć zakładanie kont przez usługi jednokrotnego logowania takie jak AD/LDAP, SAML lub Gitlab.",

@@ -1282,7 +1282,7 @@
   "admin.elasticsearch.usernameDescription": "(Valinnainen) Käyttäjätunnus jolla autentikoidutaan Elasticsearch-palvelimeen.",
   "admin.elasticsearch.usernameExample": "Esim.: \"elastic\"",
   "admin.elasticsearch.usernameTitle": "Palvelimen käyttäjänimi:",
-  "admin.email.agreeHPNS": " Ymmärrän ja hyväksyn Mattermost Hosted Push Notification -palvelun <linkTerms>käyttöehdot</linkTerms> ja <linkPrivacy>tietosuojakäytännön</linkPrivacy>.",
+  "admin.email.agreeHPNS": " Ymmärrän ja hyväksyn Mattermost Hosted Push Notification Service -palvelun <linkTerms>käyttöehdot</linkTerms> ja <linkPrivacy>tietosuojakäytännön</linkPrivacy>.",
   "admin.email.allowEmailSignInDescription": "Kun tosi, Mattermost sallii käyttäjien kirjautumisen sähköpostiosoitteella ja salasanalla.",
   "admin.email.allowEmailSignInTitle": "Ota käyttöön sisäänkirjautuminen sähköpostilla: ",
   "admin.email.allowSignupDescription": "Kun tosi, Mattermost sallii tilin luonnin sähköpostiosoitteella ja salasanalla. Tämän arvon pitäisi olla pois vain jos haluat rajoittaa käyttöönoton single sign-on-palveluun kuten AD/LDAP, SAML tai GitLab.",

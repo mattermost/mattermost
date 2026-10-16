@@ -1282,7 +1282,7 @@
   "admin.elasticsearch.usernameDescription": "(オプション) Elasticsearchサーバーを認証するためのユーザー名。",
   "admin.elasticsearch.usernameExample": "例: \"elastic\"",
   "admin.elasticsearch.usernameTitle": "サーバーのユーザー名:",
-  "admin.email.agreeHPNS": " 私はMattermostがホストするプッシュ通知サービスの<linkTerms>利用規約</linkTerms>と<linkPrivacy>プライバシーポリシー</linkPrivacy>を理解し、同意します。",
+  "admin.email.agreeHPNS": " 私はMattermost Hosted Push Notification Serviceの<linkTerms>利用規約</linkTerms>と<linkPrivacy>プライバシーポリシー</linkPrivacy>を理解し、同意します。",
   "admin.email.allowEmailSignInDescription": "有効な場合、ユーザーは電子メールアドレスとパスワードを使用したサインインができるようになります。",
   "admin.email.allowEmailSignInTitle": "電子メールアドレスでのログインを有効にする:",
   "admin.email.allowSignupDescription": "有効な場合、Mattermostは電子メールアドレスとパスワードによるアカウント作成を許可します。この値は利用登録をAD/LDAP、SAML、GitLabなどによるシングルサインオンに制限したい時のみ無効にしてください。",

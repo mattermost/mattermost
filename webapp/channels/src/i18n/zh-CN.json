@@ -1290,7 +1290,7 @@
   "admin.email.allowUsernameSignInDescription": "当设为是时，使用邮箱的用户可以使用他们的用户名和密码登录，此设置不影响 AD/LDAP 登录。",
   "admin.email.allowUsernameSignInTitle": "启用使用用户名登录：",
   "admin.email.easHelp": "深入了解从<link>企业应用商店</link>编译并部署您自己的移动应用。",
-  "admin.email.mhpns": "使用拥有在线时间 SLA 的 TPNS 连接发送通知到 iOS 和安卓应用",
+  "admin.email.mhpns": "使用拥有在线时间 SLA 的 HPNS 连接发送通知到 iOS 和安卓应用",
   "admin.email.mhpnsHelp": "从 iTunes 下载 <linkIOS>Mattermost iOS 应用</linkIOS>。从 Google Play 下载 <linkAndroid>Mattermost Android 应用</linkAndroid>。了解更多关于 <linkHPNS>Mattermost 托管推送通知服务</linkHPNS> 的信息。",
   "admin.email.mtpns": "使用 TPNS 连接发送通知到 iOS 和安卓应用",
   "admin.email.mtpnsHelp": "从 iTunes 下载 <linkIOS>Mattermost iOS 应用</linkIOS>。从 Google Play 下载 <linkAndroid>Mattermost Android 应用</linkAndroid>。了解更多关于 <linkHPNS>Mattermost 托管推送通知服务</linkHPNS>。",

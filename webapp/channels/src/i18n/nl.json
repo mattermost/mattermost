@@ -1282,7 +1282,7 @@
   "admin.elasticsearch.usernameDescription": "(Optioneel) De gebruikersnaam om aan te melden bij de Elasticsearch-server.",
   "admin.elasticsearch.usernameExample": "Bijv..: elastisc",
   "admin.elasticsearch.usernameTitle": "Gebruikersnaam Server:",
-  "admin.email.agreeHPNS": " Ik begrijp en accepteer de Mattermost Hosted Push Notification Service <linkTerms>Terms of Service</linkTerms> en <linkPrivacy>Privacybeleid</linkPrivacy> .",
+  "admin.email.agreeHPNS": " Ik begrijp en accepteer de <linkTerms>Servicevoorwaarden</linkTerms> en het <linkPrivacy>Privacybeleid</linkPrivacy> van de Mattermost Hosted Push Notification Service.",
   "admin.email.allowEmailSignInDescription": "Indien ingeschakeld dan kunnen gebruikers inloggen in Mattermost met hun e-mailadres en wachtwoord.",
   "admin.email.allowEmailSignInTitle": "Inschakelen van inloggen met e-mail:",
   "admin.email.allowSignupDescription": "Als dit ingesteld is, staat Mattermost het aanmaken van accounts met behulp van e-mail en wachtwoord toe. Dit moet uitgeschakeld zijn als je het aanmelden wilt beperken tot een SSO-service zoals AD/LDAP, SAML of GitLab.",

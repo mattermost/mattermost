@@ -1282,7 +1282,7 @@
   "admin.elasticsearch.usernameDescription": "(Tùy chọn) Tên người dùng để xác thực với máy chủ Elasticsearch.",
   "admin.elasticsearch.usernameExample": "Ví dụ: \"co giãn\"",
   "admin.elasticsearch.usernameTitle": "Tên người dùng Máy chủ:",
-  "admin.email.agreeHPNS": " Tôi hiểu và chấp nhận <linkTerms>Điều khoản dịch vụ</linkTerms> và <linkPrivacy>Chính sách bảo mật</linkPrivacy> của Dịch vụ thông báo đẩy Mattermost Hosted Hosted.",
+  "admin.email.agreeHPNS": " Tôi hiểu và chấp nhận <linkTerms>Điều khoản dịch vụ</linkTerms> và <linkPrivacy>Chính sách bảo mật</linkPrivacy> của Dịch vụ thông báo đẩy do Mattermost lưu trữ.",
   "admin.email.allowEmailSignInDescription": "Khi đúng, Mattermost cho phép người dùng đăng nhập bằng email và mật khẩu của họ.",
   "admin.email.allowEmailSignInTitle": "Cho phép đăng nhập bằng email: ",
   "admin.email.allowSignupDescription": "Khi đúng, Mattermost cho phép tạo tài khoản bằng email và mật khẩu. Giá trị này chỉ nên sai khi bạn muốn giới hạn đăng ký một dịch vụ đăng nhập như AD / LDAP, SAML hoặc GitLab.",

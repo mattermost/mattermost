@@ -1282,7 +1282,7 @@
   "admin.elasticsearch.usernameDescription": "(Pasirenkama) Naudotojo vardas, skirtas autentifikuoti Elasticsearch serveryje.",
   "admin.elasticsearch.usernameExample": "Pvz.: \"elastingas\"",
   "admin.elasticsearch.usernameTitle": "Serverio naudotojo vardas:",
-  "admin.email.agreeHPNS": " Suprantu ir sutinku su „Mattermost Hosted Push Notification Service“.<linkTerms> Paslaugų teikimo sąlygomis</linkTerms> ir<linkPrivacy> Privatumo politika</linkPrivacy>.",
+  "admin.email.agreeHPNS": " Suprantu ir sutinku su „Mattermost Hosted Push Notification Service“ paslaugos <linkTerms>Paslaugų teikimo sąlygomis</linkTerms> ir <linkPrivacy>Privatumo politika</linkPrivacy>.",
   "admin.email.allowEmailSignInDescription": "Kai tiesa, Mattermost leidžia naudotojams prisijungti naudojant savo el. pašto adresą ir slaptažodį.",
   "admin.email.allowEmailSignInTitle": "Įgalinti prisijungimą el. paštu: ",
   "admin.email.allowSignupDescription": "Kai tiesa, Mattermost leidžia kurti paskyrą naudojant el. paštą ir slaptažodį. Ši vertė turėtų būti klaidinga tik tada, kai norite apriboti prisiregistravimą iki vieno prisijungimo paslaugos, pvz., AD / LDAP, SAML arba GitLab.",

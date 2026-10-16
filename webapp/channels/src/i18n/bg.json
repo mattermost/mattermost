@@ -1282,7 +1282,7 @@
   "admin.elasticsearch.usernameDescription": "(Незадължително) Потребителско име за удостоверяване в сървъра Elasticsearch.",
   "admin.elasticsearch.usernameExample": "Например: \"elastic\"",
   "admin.elasticsearch.usernameTitle": "Потребителско име в сървъра:",
-  "admin.email.agreeHPNS": " Разбирам и приемам <linkTerms>Условията за ползване</linkTerms> на хостваната от Mattermost услуга за известия и <linkPrivacy>Декларацията за поверителност</linkPrivacy>.",
+  "admin.email.agreeHPNS": " Разбирам и приемам <linkTerms>Условията за ползване</linkTerms> на услугата Mattermost Hosted Push Notification Service и <linkPrivacy>Декларацията за поверителност</linkPrivacy>.",
   "admin.email.allowEmailSignInDescription": "Когато е true, Mattermost позволява на потребителите да влизат, като използват ел. поща и паролата си.",
   "admin.email.allowEmailSignInTitle": "Активиране на влизането с ел.поща: ",
   "admin.email.allowSignupDescription": "Когато е true, Mattermost позволява създаване на акаунт с помощта на ел. поща и парола. Тази стойност трябва да е false само когато искате да ограничите регистрацията до една услуга за вход като AD/LDAP, SAML или GitLab.",

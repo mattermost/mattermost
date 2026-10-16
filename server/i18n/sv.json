@@ -14707,7 +14707,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Byt till https://push.mattermost.com (produktionstjänsten Hosted Push Notification Service som ingår i Enterprise) eller till en egen push-proxy."
+    "translation": "Byt till https://push.mattermost.com (Mattermosts värdbaserade push-aviseringstjänst för produktion, som ingår i Enterprise) eller till en egen push-proxy."
   },
   {
     "id": "health.rule.push_test_proxy.title",
