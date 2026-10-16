@@ -87,8 +87,8 @@ func TestBehindRules(t *testing.T) {
 			subject:  "10.6",
 			want: with(allCodes(resolved), "VERSION_EOL", want{
 				state:     healthcheck.StateFiring,
-				messageID: "health.rule.version_eol.message.target",
-				details:   map[string]string{"version": "10.6.3", "eol_date": "2025-06-15", "target": "11.8"},
+				messageID: "health.rule.version_eol.message.latest",
+				details:   map[string]string{"version": "10.6.3", "eol_date": "2025-06-15"},
 			}),
 		},
 		{

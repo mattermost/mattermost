@@ -14459,7 +14459,7 @@
   {
     "id": "health.rule.version_eol.message",
     "translation": "Running Mattermost {{.version}}. Support for this release line ended on {{.eol_date}}. No security patches ship for this release line.",
-    "description": "Health dashboard finding detail when the server's release line is past end-of-life; {{.version}} is the running version and {{.eol_date}} the day support for its release line ended (YYYY-MM-DD)."
+    "description": "Health dashboard finding detail when the server's Extended Support Release is past end-of-life and no newer Extended Support Release is still supported; {{.version}} is the running version and {{.eol_date}} the day support for its release line ended (YYYY-MM-DD). 'Extended Support Release' is a Mattermost release type."
   },
   {
     "id": "health.rule.version_eol.message.below_floor",
@@ -14472,9 +14472,14 @@
     "description": "Health dashboard finding detail when the server runs a release line older than every line in this build's release table; {{.version}} is the running version and {{.target}} the newest Extended Support Release still supported. 'Extended Support Release' is a Mattermost release type."
   },
   {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Running Mattermost {{.version}}. Support for this release line ended on {{.eol_date}}. No security patches ship for this release line. Upgrade to the latest release.",
+    "description": "Health dashboard finding detail when the server runs a regular (non-Extended Support) release that is past end-of-life; {{.version}} is the running version and {{.eol_date}} the day support for its release line ended (YYYY-MM-DD)."
+  },
+  {
     "id": "health.rule.version_eol.message.target",
     "translation": "Running Mattermost {{.version}}. Support for this release line ended on {{.eol_date}}. No security patches ship for this release line. The newest supported Extended Support Release is {{.target}}.",
-    "description": "Health dashboard finding detail when the server's release line is past end-of-life; {{.version}} is the running version, {{.eol_date}} the day support for its release line ended (YYYY-MM-DD), and {{.target}} the newest Extended Support Release still supported. 'Extended Support Release' is a Mattermost release type."
+    "description": "Health dashboard finding detail when the server's Extended Support Release is past end-of-life; {{.version}} is the running version, {{.eol_date}} the day support for its release line ended (YYYY-MM-DD), and {{.target}} the newest Extended Support Release still supported. 'Extended Support Release' is a Mattermost release type."
   },
   {
     "id": "health.rule.version_eol.remediation",

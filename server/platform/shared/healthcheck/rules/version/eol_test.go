@@ -15,13 +15,13 @@ func TestEOLRules(t *testing.T) {
 
 	runCases(t, []ruleCase{
 		{
-			name:     "regular release past its own EOL while the ESR below it is supported",
+			name:     "regular release past its own EOL is pointed at the latest release, not an ESR",
 			snapshot: newSnapshot("11.0.1", "12.0.0"),
 			subject:  "11.0",
 			want: with(allCodes(resolved), "VERSION_EOL", want{
 				state:     healthcheck.StateFiring,
-				messageID: "health.rule.version_eol.message.target",
-				details:   map[string]string{"version": "11.0.1", "eol_date": "2026-01-15", "target": "11.8"},
+				messageID: "health.rule.version_eol.message.latest",
+				details:   map[string]string{"version": "11.0.1", "eol_date": "2026-01-15"},
 			}),
 		},
 		{
@@ -31,7 +31,7 @@ func TestEOLRules(t *testing.T) {
 			subject:  "11.9",
 			want: with(allCodes(resolved), "VERSION_EOL", want{
 				state:     healthcheck.StateFiring,
-				messageID: "health.rule.version_eol.message",
+				messageID: "health.rule.version_eol.message.latest",
 				details:   map[string]string{"version": "11.9.0", "eol_date": "2026-10-15"},
 			}),
 		},
@@ -42,7 +42,7 @@ func TestEOLRules(t *testing.T) {
 			subject:  "11.9",
 			want: with(allCodes(resolved), "VERSION_EOL", want{
 				state:     healthcheck.StateFiring,
-				messageID: "health.rule.version_eol.message",
+				messageID: "health.rule.version_eol.message.latest",
 				details:   map[string]string{"version": "11.9.0", "eol_date": "2026-10-15"},
 			}),
 		},
@@ -85,14 +85,14 @@ func TestEOLRules(t *testing.T) {
 			}),
 		},
 		{
-			name:     "no supported ESR left to move to",
-			snapshot: newSnapshot("11.9.0", ""),
+			name:     "ESR with no supported ESR left to move to",
+			snapshot: newSnapshot("10.11.4", ""),
 			now:      date(2028, time.January, 1),
-			subject:  "11.9",
+			subject:  "10.11",
 			want: with(allCodes(resolved), "VERSION_EOL", want{
 				state:     healthcheck.StateFiring,
 				messageID: "health.rule.version_eol.message",
-				details:   map[string]string{"version": "11.9.0", "eol_date": "2026-10-15"},
+				details:   map[string]string{"version": "10.11.4", "eol_date": "2026-12-15"},
 			}),
 		},
 		{

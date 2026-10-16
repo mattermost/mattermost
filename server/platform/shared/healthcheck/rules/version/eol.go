@@ -61,6 +61,16 @@ func evalVersionEOL(table []model.ReleaseLifecycle, now func() time.Time) func(*
 
 		result := healthcheck.FiringSubject(subject, healthcheck.TranslationId("health.rule.version_eol.message")).
 			WithDetail("version", s.Version.Current)
+		if !a.belowFloor {
+			result = result.WithDetail("eol_date", a.running.EOLDate.Format(time.DateOnly))
+		}
+
+		// Regular releases are pointed at the latest release; only ESR customers get an ESR to move to.
+		if !a.belowFloor && !a.running.ESR {
+			result.MessageID = healthcheck.TranslationId("health.rule.version_eol.message.latest")
+			return []healthcheck.Result{result}
+		}
+
 		next, hasTarget := target(table, a.version, at)
 		switch {
 		case a.belowFloor && hasTarget:
@@ -69,9 +79,6 @@ func evalVersionEOL(table []model.ReleaseLifecycle, now func() time.Time) func(*
 			result.MessageID = healthcheck.TranslationId("health.rule.version_eol.message.below_floor")
 		case hasTarget:
 			result.MessageID = healthcheck.TranslationId("health.rule.version_eol.message.target")
-		}
-		if !a.belowFloor {
-			result = result.WithDetail("eol_date", a.running.EOLDate.Format(time.DateOnly))
 		}
 		if hasTarget {
 			result = result.WithDetail("target", next)
