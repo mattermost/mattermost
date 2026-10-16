@@ -112,10 +112,11 @@ func evalLicenseExpiring(s *healthcheck.Snapshot) []healthcheck.Result {
 }
 
 func evalLicenseTrial(s *healthcheck.Snapshot) []healthcheck.Result {
+	license, ok := s.License()
 	switch {
-	case s.License == nil:
+	case !ok:
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
-	case s.License.IsTrial:
+	case license.IsTrial:
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.license_trial.message"))}
 	default:
 		return []healthcheck.Result{healthcheck.Resolved()}
