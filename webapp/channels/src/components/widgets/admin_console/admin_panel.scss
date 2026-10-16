@@ -9,7 +9,6 @@
 // specificity when the Compass stylesheet loads later — menus (e.g. Data
 // Retention row actions) get clipped. `section.AdminPanel` beats one module
 // class for the root on non-expandable panels.
-//
 // Expandable panels must keep root `overflow: hidden` (Compass default). Our
 // menu-escape override would otherwise let body content paint outside the
 // panel while `grid-template-rows` animates open/closed.
@@ -25,9 +24,9 @@ section.AdminPanel {
     // Mirror the panel's bottom radii onto the footer so the background does
     // not square off through the rounded corners (e.g. Archive Team/Channel).
     > [class*='_admin-panel-footer_'] {
+        overflow: hidden;
         border-bottom-left-radius: var(--radius-m);
         border-bottom-right-radius: var(--radius-m);
-        overflow: hidden;
     }
 }
 

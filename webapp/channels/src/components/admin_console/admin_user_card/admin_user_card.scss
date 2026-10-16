@@ -7,7 +7,10 @@
     width: 100%;
     max-width: 920px;
     flex-direction: column;
-    overflow: hidden;
+
+    // Avoid overflow:hidden on the card root — the footer tertiary action
+    // (Manage User Settings) uses margin-left:auto and Cypress treats overflow
+    // clipping as "not visible". Clip radius on header/footer instead.
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: var(--radius-m);
     margin: 0;
@@ -24,15 +27,18 @@
 }
 
 .AdminUserCard__header {
+    overflow: hidden;
     flex-shrink: 0;
+    border-top-left-radius: var(--radius-m);
+    border-top-right-radius: var(--radius-m);
 }
 
 .AdminUserCard__header-main {
     position: relative;
     z-index: 1;
     display: flex;
-    box-sizing: border-box;
     width: 100%;
+    box-sizing: border-box;
     align-items: center;
     justify-content: space-between;
     padding: var(--spacing-xxl);
@@ -111,8 +117,8 @@ input.AdminUserCard__picture-input[type='file'] {
 .AdminUserCard__user-info {
     display: flex;
     overflow: hidden;
-    max-width: 100%;
     min-width: 0;
+    max-width: 100%;
     flex-wrap: wrap;
     align-items: center;
     margin: 0;
@@ -120,8 +126,8 @@ input.AdminUserCard__picture-input[type='file'] {
     font-family: var(--font-family-heading);
     font-size: var(--font-size-400);
     font-weight: var(--font-weight-semibold);
-    line-height: var(--line-height-400);
     gap: var(--spacing-xs);
+    line-height: var(--line-height-400);
     text-overflow: ellipsis;
 }
 
@@ -145,8 +151,8 @@ input.AdminUserCard__picture-input[type='file'] {
 .AdminUserCard__body {
     position: relative;
     z-index: 0;
-    box-sizing: border-box;
     width: 100%;
+    box-sizing: border-box;
     flex: 1 1 auto;
 
     // Match the header title stack: card padding + avatar + header gap.
@@ -157,13 +163,15 @@ input.AdminUserCard__picture-input[type='file'] {
 
 .AdminUserCard__footer {
     display: flex;
-    flex-wrap: wrap;
-    box-sizing: border-box;
     width: 100%;
+    box-sizing: border-box;
+    flex-wrap: wrap;
     align-items: center;
     padding: var(--spacing-xxl);
     border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     background: var(--center-channel-bg);
+    border-bottom-left-radius: var(--radius-m);
+    border-bottom-right-radius: var(--radius-m);
     gap: var(--spacing-xs); // 8px
 
     // Prefer flex gap over global `.btn + .btn { margin-left }`.

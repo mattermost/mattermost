@@ -78,8 +78,8 @@
                 width: 16px;
                 height: 16px;
                 margin: 0;
-                fill: rgba(var(--sys-color-sidebar-text-rgb), 0.6);
                 color: rgba(var(--sys-color-sidebar-text-rgb), 0.6);
+                fill: rgba(var(--sys-color-sidebar-text-rgb), 0.6);
                 pointer-events: none;
                 transform: translateY(-50%);
 
@@ -99,8 +99,8 @@
 
             &--text {
                 display: flex;
-                align-items: center;
                 min-height: 36px;
+                align-items: center;
                 gap: var(--spacing-s);
 
                 > span:has(> svg),

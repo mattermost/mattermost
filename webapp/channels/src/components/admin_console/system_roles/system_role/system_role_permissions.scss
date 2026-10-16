@@ -7,18 +7,18 @@
 .SystemRolePermissions {
     display: flex;
     flex-direction: column;
-
-    gap: var(--spacing-xxl); // 24px between parent permission sections
     padding: 0;
     color: rgba(var(--sys-center-channel-color-rgb), 0.87);
+
+    gap: var(--spacing-xxl); // 24px between parent permission sections
 
     .PermissionRow {
         .PermissionSection {
             display: flex;
             height: auto;
             flex-direction: row;
-            gap: var(--spacing-xxxl); // 32px between text and dropdown columns
             align-items: center;
+            gap: var(--spacing-xxxl); // 32px between text and dropdown columns
 
             .PermissionSectionText {
                 display: flex;
@@ -40,9 +40,9 @@
             }
 
             .PermissionSectionDropdown {
+                flex-shrink: 0;
                 padding: 0;
                 margin: 0;
-                flex-shrink: 0;
 
                 .Menu__content {
                     min-width: 256px;
@@ -135,10 +135,10 @@
         .PermissionSubsections {
             display: flex;
             flex-direction: column;
-            gap: var(--spacing-l);
             padding-left: 16px;
             border-left: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
             margin: var(--spacing-l) 0 0 16px;
+            gap: var(--spacing-l);
 
             .PermissionSection {
                 height: auto;
