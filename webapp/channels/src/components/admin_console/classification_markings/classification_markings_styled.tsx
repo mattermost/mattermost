@@ -82,6 +82,8 @@ export const AddLevelButton = styled(Button).attrs({
     emphasis: 'tertiary',
 })`
     && {
+        align-self: flex-start;
+        width: auto;
         padding-inline: 16px;
     }
 `;
