@@ -68,9 +68,9 @@
     // Match Compass AdminPanel chrome (center-channel tokens + spacing/type).
     div.OverallScore {
         display: flex;
-        box-sizing: border-box;
         width: 100%;
         max-width: 920px;
+        box-sizing: border-box;
         align-items: center;
         padding: var(--spacing-xxl);
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);

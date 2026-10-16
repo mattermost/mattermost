@@ -34,11 +34,11 @@
 
 .JobTable.AdminPanel {
     .job-table__table {
-        margin: 0;
+        max-height: none;
         padding: 0;
         border: none;
+        margin: 0;
         background: transparent;
-        max-height: none;
     }
 }
 
