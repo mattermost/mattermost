@@ -28,12 +28,16 @@
 }
 
 .AdminUserCard__header-main {
+    position: relative;
+    z-index: 1;
     display: flex;
     box-sizing: border-box;
     width: 100%;
     align-items: center;
     justify-content: space-between;
     padding: var(--spacing-xxl);
+    margin-bottom: -32px;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
     gap: var(--spacing-m);
 }
 
@@ -137,13 +141,15 @@ input.AdminUserCard__picture-input[type='file'] {
 }
 
 .AdminUserCard__body {
+    position: relative;
+    z-index: 0;
     box-sizing: border-box;
     width: 100%;
     flex: 1 1 auto;
 
     // Match the header title stack: card padding + avatar + header gap.
-    // No top padding — body sits flush under the header after the divider was removed.
-    padding: 0 var(--spacing-xxl) var(--spacing-xxl);
+    // Top padding restored so fields clear the header's -32px overlap.
+    padding: var(--spacing-xxl);
     padding-left: calc(var(--spacing-xxl) + var(--admin-user-card-avatar-size) + var(--admin-user-card-header-gap));
     background: var(--center-channel-bg);
 }
