@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "Koristi HPNS vezu s jamstvom dostupnosti (SLA) za slanje obavijesti iOS i Android aplikacijama",
   "admin.email.mhpnsHelp": "Preuzmi <linkIOS>Mattermost iOS aplikaciju</linkIOS> s iTunesa. Preuzmi <linkAndroid>Mattermost Android aplikaciju</linkAndroid> s Google Playa. Saznaj više o usluzi <linkHPNS>Mattermost Hosted Push Notification Service</linkHPNS>.",
   "admin.email.mtpns": "Koristi TPNS vezu za slanje obavijesti iOS i Android aplikacijama",
-  "admin.email.mtpnsHelp": "Preuzmi <linkIOS>Mattermost iOS aplikaciju</linkIOS> s iTunesa. Preuzmi <linkAndroid>Mattermost Android aplikaciju</linkAndroid> s Google Playa. Saznaj više o usluzi <linkTPNS>Mattermost Hosted Push Notification Service</linkTPNS>.",
+  "admin.email.mtpnsHelp": "Preuzmi <linkIOS>Mattermost iOS aplikaciju</linkIOS> s iTunesa. Preuzmi <linkAndroid>Mattermost Android aplikaciju</linkAndroid> s Google Playa. Saznaj više o usluzi <linkTPNS>Mattermost Test Push Notification Service</linkTPNS>.",
   "admin.email.pushOff": "Ne šalji push obavijesti",
   "admin.email.pushOffHelp": "Pogledaj <link>dokumentaciju o push obavijestima</link> da saznaš više o mogućnostima postavljanja.",
   "admin.email.pushServerEx": "Npr.: „https://push-test.mattermost.com”",

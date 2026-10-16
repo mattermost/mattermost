@@ -14695,7 +14695,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Chuyển sang https://push.mattermost.com (Dịch vụ thông báo đẩy do Mattermost lưu trữ dành cho môi trường sản xuất, đi kèm với Enterprise) hoặc một proxy đẩy tự lưu trữ."
+    "translation": "Chuyển sang https://push.mattermost.com (dịch vụ Hosted Push Notification Service dành cho môi trường sản xuất, đi kèm với Enterprise) hoặc một proxy đẩy tự lưu trữ."
   },
   {
     "id": "health.rule.push_test_proxy.title",

@@ -14695,7 +14695,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "切换到 https://push.mattermost.com（Enterprise 附带的生产环境托管推送通知服务）或自托管的推送代理。"
+    "translation": "切换到 https://push.mattermost.com（Enterprise 附带的生产环境 Hosted Push Notification Service）或自托管的推送代理。"
   },
   {
     "id": "health.rule.push_test_proxy.title",

@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "برای ارسال اعلان‌ها به برنامه‌های iOS و Android از اتصال HPNS با uptime SLA استفاده کنید",
   "admin.email.mhpnsHelp": "<linkIOS>برنامه Mattermost iOS</linkIOS>  را از iTunes دانلود کنید. <linkAndroid>برنامه Mattermost Android</linkAndroid> را از Google Play دانلود کنید. درباره <linkHPNS>HPNS</linkHPNS>  بیشتر بیاموزید.",
   "admin.email.mtpns": "از اتصال TPNS برای ارسال اعلان‌ها به برنامه‌های iOS و Android استفاده کنید",
-  "admin.email.mtpnsHelp": "<linkIOS>برنامه Mattermost iOS</linkIOS>  را از iTunes دانلود کنید. <linkAndroid>برنامه Mattermost Android</linkAndroid> را از Google Play دانلود کنید. درباره <linkTPNS>TPNS</linkTPNS>  بیشتر بیاموزید.",
+  "admin.email.mtpnsHelp": "<linkIOS>برنامه Mattermost iOS</linkIOS>  را از iTunes دانلود کنید. <linkAndroid>برنامه Mattermost Android</linkAndroid> را از Google Play دانلود کنید. درباره سرویس <linkTPNS>Mattermost Test Push Notification Service</linkTPNS> بیشتر بیاموزید.",
   "admin.email.pushOff": "اعلان فشار ارسال نکنید",
   "admin.email.pushOffHelp": "لطفاً برای کسب اطلاعات بیشتر درباره گزینه‌های راه‌اندازی، به <link>مستندات مربوط به اعلان‌های فشار</link>  مراجعه کنید.",
   "admin.email.pushServerEx": "به عنوان مثال: \"https://push-test.mattermost.com\"",

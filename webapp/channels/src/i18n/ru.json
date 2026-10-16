@@ -1282,7 +1282,7 @@
   "admin.elasticsearch.usernameDescription": "(Опционально) Имя пользователя для аутентификации на сервере Elasticsearch.",
   "admin.elasticsearch.usernameExample": "Пример: \"elastic\"",
   "admin.elasticsearch.usernameTitle": "Имя пользователя:",
-  "admin.email.agreeHPNS": " Я понимаю и принимаю <linkTerms>Условия предоставления услуг</linkTerms> и <linkPrivacy>Политику конфиденциальности</linkPrivacy> службы push-уведомлений, размещённой Mattermost (HPNS).",
+  "admin.email.agreeHPNS": " Я понимаю и принимаю <linkTerms>Условия предоставления услуг</linkTerms> и <linkPrivacy>Политику конфиденциальности</linkPrivacy> службы Mattermost Hosted Push Notification Service.",
   "admin.email.allowEmailSignInDescription": "При значении \"да\" Mattermost разрешает пользователям входить используя их емайл и пароль.",
   "admin.email.allowEmailSignInTitle": "Разрешить вход с помощью электронной почты: ",
   "admin.email.allowSignupDescription": "При значении \"да\" Mattermost разрешит создание учетных записей с использованием адреса электронной почты и пароля. Выберите \"нет\", если хотите разрешить доступ только через AD/LDAP, SAML или GitLab.",
