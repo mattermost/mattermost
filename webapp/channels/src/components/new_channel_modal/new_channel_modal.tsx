@@ -530,7 +530,7 @@ const NewChannelModal = () => {
                     <div className='title'>
                         <FormattedMessage
                             id={'channel_modal.create_board.tooltip_title'}
-                            defaultMessage={'Manage your task with a board'}
+                            defaultMessage={'Manage your tasks with a board'}
                         />
                     </div>
                     <div className='description'>

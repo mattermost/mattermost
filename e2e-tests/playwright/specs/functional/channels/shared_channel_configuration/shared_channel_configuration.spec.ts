@@ -54,6 +54,11 @@ async function ensureConfirmedRemote(adminClient: ClientWithRemotes, teamId: str
 }
 
 test.describe('Shared channel configuration', () => {
+    // Restore roles changed by these tests.
+    test.afterEach(async ({pw}) => {
+        await pw.resetRoles();
+    });
+
     test('Section visible when all conditions are met', async ({pw}) => {
         const {adminUser, adminClient, team} = await pw.initSetup();
 
@@ -439,11 +444,9 @@ test.describe('Shared channel configuration', () => {
 
         const roles = await adminClient.getRolesByNames(['channel_user']);
         const channelRole = roles[0];
-        const originalChannelPermissions = channelRole.permissions as string[];
-        const withoutManageChannelProperties = originalChannelPermissions.filter(
+        const withoutManageChannelProperties = (channelRole.permissions as string[]).filter(
             (p) => p !== 'manage_public_channel_properties',
         );
-        await adminClient.patchRole(channelRole.id, {permissions: withoutManageChannelProperties});
 
         const randomUser = await pw.random.user();
         const sharedChannelUser = await adminClient.createUser(randomUser, '', '');
@@ -460,35 +463,34 @@ test.describe('Shared channel configuration', () => {
         });
         await adminClient.addToChannel(sharedChannelUser.id, channel.id);
 
-        try {
-            const {channelsPage} = await pw.testBrowser.login(sharedChannelUser);
-            await channelsPage.goto(team.name, channelName);
-            await channelsPage.toBeVisible();
+        // Strip the permission after setup; afterEach restores it.
+        await adminClient.patchRole(channelRole.id, {permissions: withoutManageChannelProperties});
 
-            // Re-apply guard: a concurrent initSetup() may have reset ConnectedWorkspacesSettings
-            // between the initial patchConfig call and this browser action.
-            await adminClient.patchConfig({
-                ConnectedWorkspacesSettings: {
-                    EnableSharedChannels: true,
-                    EnableRemoteClusterService: true,
-                },
-            });
-            await pw.waitUntil(async () => {
-                const cfg = await adminClient.getConfig();
-                return cfg.ConnectedWorkspacesSettings?.EnableSharedChannels === true;
-            });
+        const {channelsPage} = await pw.testBrowser.login(sharedChannelUser);
+        await channelsPage.goto(team.name, channelName);
+        await channelsPage.toBeVisible();
 
-            const channelSettingsModal = await channelsPage.openChannelSettings();
-            await channelSettingsModal.toBeVisible();
+        // Re-apply guard: a concurrent initSetup() may have reset ConnectedWorkspacesSettings
+        // between the initial patchConfig call and this browser action.
+        await adminClient.patchConfig({
+            ConnectedWorkspacesSettings: {
+                EnableSharedChannels: true,
+                EnableRemoteClusterService: true,
+            },
+        });
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ConnectedWorkspacesSettings?.EnableSharedChannels === true;
+        });
 
-            await expect(channelSettingsModal.configurationTab).toBeVisible();
-            await expect(channelSettingsModal.infoTab).toHaveCount(0);
-            await expect(channelSettingsModal.configurationSettings.container).toBeVisible();
-            await expect(channelSettingsModal.configurationSettings.shareWithConnectedWorkspacesSection).toBeVisible();
+        const channelSettingsModal = await channelsPage.openChannelSettings();
+        await channelSettingsModal.toBeVisible();
 
-            await channelSettingsModal.close();
-        } finally {
-            await adminClient.patchRole(channelRole.id, {permissions: originalChannelPermissions});
-        }
+        await expect(channelSettingsModal.configurationTab).toBeVisible();
+        await expect(channelSettingsModal.infoTab).toHaveCount(0);
+        await expect(channelSettingsModal.configurationSettings.container).toBeVisible();
+        await expect(channelSettingsModal.configurationSettings.shareWithConnectedWorkspacesSection).toBeVisible();
+
+        await channelSettingsModal.close();
     });
 });

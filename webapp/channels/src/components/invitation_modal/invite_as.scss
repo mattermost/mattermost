@@ -7,18 +7,10 @@
         }
     }
 
-    .radio {
+    .radio-list__option {
         display: flex;
         align-items: center;
         gap: 8px;
-
-        &:first-child {
-            margin-top: 0;
-        }
-
-        &:last-child {
-            margin-bottom: 0;
-        }
 
         .disabled-legend {
             opacity: 0.73;

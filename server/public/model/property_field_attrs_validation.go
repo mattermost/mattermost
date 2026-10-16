@@ -412,10 +412,10 @@ func GetPropertyFieldSyncSource(field *PropertyField) string {
 		return ""
 	}
 	if ldap, _ := field.Attrs[PropertyFieldAttrLDAP].(string); ldap != "" {
-		return "ldap"
+		return PropertySyncSourceLDAP
 	}
 	if saml, _ := field.Attrs[PropertyFieldAttrSAML].(string); saml != "" {
-		return "saml"
+		return PropertySyncSourceSAML
 	}
 	return ""
 }
