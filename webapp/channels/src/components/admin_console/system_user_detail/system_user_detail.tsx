@@ -792,7 +792,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         ));
 
         fields.push(
-            <label key='authMethod'>
+            <div key='authMethod'>
                 <span className='field-label'>
                     <FormattedMessage
                         id='admin.userManagement.userDetail.authenticationMethod'
@@ -803,7 +803,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     <ShieldOutlineIcon/>
                     <span data-testid='authenticationMethodValue'>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
                 </div>
-            </label>,
+            </div>,
         );
 
         if (this.state.user?.auth_service) {
