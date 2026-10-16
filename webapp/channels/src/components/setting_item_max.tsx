@@ -120,9 +120,11 @@ const SettingItemMax = ({
 
         if (settingList.current) {
             // Prefer form controls over footer Save/Cancel (Compass Buttons no longer use .btn).
-            const formControls: NodeListOf<HTMLElement> = settingList.current.querySelectorAll(
-                'input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea',
-            );
+            // Include [tabindex]:not([tabindex="-1"]) so react-select (and similar) receive
+            // Edit→expand focus; .setting-list itself uses tabindex="-1" and is excluded.
+            const formControls = Array.from(settingList.current.querySelectorAll<HTMLElement>(
+                'input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])',
+            )).filter((el) => !el.closest('.setting-list-item__buttons'));
             if (formControls.length > 0) {
                 a11yFocus(formControls[0]);
             } else {
