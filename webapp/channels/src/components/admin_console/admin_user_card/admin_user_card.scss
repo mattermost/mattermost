@@ -46,7 +46,7 @@
     min-width: 0;
     flex: 1 1 auto;
     align-items: center;
-    margin-bottom: calc(-1 * (var(--spacing-xxl) + var(--spacing-xs))); // -32px
+    margin-bottom: calc(-1 * var(--spacing-xxxxxl)); // -48px
     gap: var(--admin-user-card-header-gap);
 }
 
@@ -104,6 +104,7 @@ input.AdminUserCard__picture-input[type='file'] {
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
+    padding-bottom: var(--spacing-l);
     gap: var(--spacing-xxxxs);
 }
 
