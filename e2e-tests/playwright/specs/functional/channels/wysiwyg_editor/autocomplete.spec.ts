@@ -66,7 +66,7 @@ test.describe('WYSIWYG editor - autocomplete suggestions', TAGS, () => {
 
         await expect(editor.suggestionList()).toBeVisible();
         await editor.press('Enter');
-        await expect(editor.input).toContainText(`~${linked.name}`);
+        await expect(editor.input.locator('.mention-link')).toHaveText(`~${linked.display_name}`);
     });
 
     /**
