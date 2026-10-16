@@ -8,9 +8,9 @@
     display: flex;
     flex-direction: column;
 
-    // Parent sections are separated by Compass Divider (includes vertical
-    // padding). Keep flex gap at 0 so spacing isn't doubled around each rule.
-    gap: 0;
+    // Parent sections alternate with Compass Divider; spacing-xs (8px) gaps
+    // the flex children so content isn't tight against each rule.
+    gap: var(--spacing-xs);
     padding: 0;
     color: rgba(var(--sys-center-channel-color-rgb), 0.87);
 
