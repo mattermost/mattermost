@@ -4,7 +4,6 @@
 package database
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -41,9 +40,6 @@ func TestDBHAFailoverStormRisk(t *testing.T) {
 	clusterUnset := clusterConfig(1000, primaryDSN)
 	clusterUnset.ClusterSettings.Enable = nil
 
-	clusterSectionFailed := newSnapshot(clusterConfig(200, primaryDSN), nil, clusterDiag(new(2)))
-	clusterSectionFailed.Nodes()[0].Diagnostics.Errors = map[model.NodeSection]error{model.SectionCluster: errors.New("boom")}
-
 	testCases := []struct {
 		name     string
 		snapshot *healthcheck.Snapshot
@@ -55,17 +51,22 @@ func TestDBHAFailoverStormRisk(t *testing.T) {
 		{"cluster off without diagnostics", newSnapshot(clusterOff, nil, nil), resolvedWant},
 		{"leader diagnostics absent", newSnapshot(clusterConfig(200, primaryDSN), nil, nil), unknownDiagWant},
 		{"node count not collected", newSnapshot(clusterConfig(200, primaryDSN), nil, clusterDiag(nil)), unknownDiagWant},
-		{"cluster section failed", clusterSectionFailed, unknownDiagWant},
+		{"cluster section failed", failSection(newSnapshot(clusterConfig(200, primaryDSN), nil, clusterDiag(new(2))), model.SectionCluster), unknownDiagWant},
 		{"single node", newSnapshot(clusterConfig(1000, primaryDSN), nil, clusterDiag(new(1))), resolvedWant},
 		{"burst at 400", newSnapshot(clusterConfig(200, primaryDSN), nil, clusterDiag(new(2))), firing.withValue(400)},
 		{"burst below 400", newSnapshot(clusterConfig(100, primaryDSN), nil, clusterDiag(new(3))), resolvedWant.withValue(300)},
-		{"replica counts as a data source", newSnapshot(clusterConfig(100, primaryDSN, replicaDSN), nil, clusterDiag(new(2))), firing.withValue(400)},
-		{"redacted replica", newSnapshot(clusterConfig(100, primaryDSN, model.FakeSetting), nil, clusterDiag(new(2))), unknownConfigWant},
+		{"replica pools do not count", newSnapshot(clusterConfig(100, primaryDSN, replicaDSN), nil, clusterDiag(new(2))), resolvedWant.withValue(200)},
 		{"redacted dsn below 400", newSnapshot(clusterConfig(100, model.FakeSetting), nil, clusterDiag(new(3))), resolvedWant.withValue(300)},
 		{"redacted dsn above 400", newSnapshot(clusterConfig(200, model.FakeSetting), nil, clusterDiag(new(3))), unknownConfigWant},
 		{"pgbouncer host", newSnapshot(clusterConfig(200, "postgres://****:****@pgbouncer.internal:6432/mattermost"), nil, clusterDiag(new(3))), resolvedWant.withValue(600)},
-		{"keyword form pooler host", newSnapshot(clusterConfig(200, "host=PGPool.example.com port=5432 dbname=mattermost"), nil, clusterDiag(new(3))), resolvedWant.withValue(600)},
+		{"keyword form dsn", newSnapshot(clusterConfig(200, "host=PGPool.example.com port=5432 dbname=mattermost"), nil, clusterDiag(new(3))), unknownConfigWant},
+		{"uppercase pooler host", newSnapshot(clusterConfig(200, "postgres://****:****@PGPool.example.com:5432/mattermost"), nil, clusterDiag(new(3))), resolvedWant.withValue(600)},
 		{"pooler in a host list", newSnapshot(clusterConfig(200, "postgres://****:****@pgbouncer-a.internal:6432,pgbouncer-b.internal:6432/mattermost"), nil, clusterDiag(new(3))), resolvedWant.withValue(600)},
+		{"pooler on localhost", newSnapshot(clusterConfig(200, "postgres://****:****@localhost:6432/mattermost"), nil, clusterDiag(new(3))), resolvedWant.withValue(600)},
+		{"pooler on ipv4 loopback", newSnapshot(clusterConfig(200, "postgres://****:****@127.0.0.1:6432/mattermost"), nil, clusterDiag(new(3))), resolvedWant.withValue(600)},
+		{"pooler on ipv6 loopback", newSnapshot(clusterConfig(200, "postgres://****:****@[::1]:6432/mattermost"), nil, clusterDiag(new(3))), resolvedWant.withValue(600)},
+		{"pooler on a unix socket", newSnapshot(clusterConfig(200, "postgres://****:****@/mattermost?host=/var/run/pgbouncer"), nil, clusterDiag(new(3))), resolvedWant.withValue(600)},
+		{"remote ip host", newSnapshot(clusterConfig(200, "postgres://****:****@10.0.0.7:5432/mattermost"), nil, clusterDiag(new(3))), firing.withValue(600)},
 		{"pooler only in the path", newSnapshot(clusterConfig(200, "postgres://****:****@db.example.com:5432/pooler"), nil, clusterDiag(new(3))), firing.withValue(600)},
 	}
 
@@ -80,7 +81,7 @@ func TestDBHAFailoverStormRisk(t *testing.T) {
 func TestDBHAFailoverStormRiskDetails(t *testing.T) {
 	t.Parallel()
 
-	results := evalDBHAFailoverStormRisk(newSnapshot(clusterConfig(100, primaryDSN, replicaDSN, replicaDSN), nil, clusterDiag(new(2))))
+	results := evalDBHAFailoverStormRisk(newSnapshot(clusterConfig(300, primaryDSN, replicaDSN), nil, clusterDiag(new(2))))
 	require.Len(t, results, 1)
-	assert.Equal(t, map[string]string{"nodes": "2", "max_open": "100", "data_sources": "3", "burst": "600"}, results[0].Details)
+	assert.Equal(t, map[string]string{"nodes": "2", "max_open": "300", "burst": "600"}, results[0].Details)
 }

@@ -4,6 +4,7 @@
 package database
 
 import (
+	"net"
 	"slices"
 	"strconv"
 	"strings"
@@ -33,7 +34,17 @@ var dbHAFailoverStormRisk = healthcheck.Rule{
 }
 
 func isPoolerHost(host string) bool {
-	host = strings.ToLower(host)
+	// Nodes share one database, so a local host in a cluster can only be a per-node pooler or proxy.
+	if strings.HasPrefix(host, "/") {
+		return true
+	}
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+	host = strings.ToLower(strings.Trim(host, "[]"))
+	if ip := net.ParseIP(host); host == "localhost" || (ip != nil && ip.IsLoopback()) {
+		return true
+	}
 	return slices.ContainsFunc(poolerHostMarkers, func(marker string) bool { return strings.Contains(host, marker) })
 }
 
@@ -59,18 +70,8 @@ func evalDBHAFailoverStormRisk(s *healthcheck.Snapshot) []healthcheck.Result {
 	if !ok {
 		return unknownConfig()
 	}
-	replicas, ok := s.ConfigStrings(func(cfg *model.Config) []string { return cfg.SqlSettings.DataSourceReplicas })
-	if !ok {
-		return unknownConfig()
-	}
-	searchReplicas, ok := s.ConfigStrings(func(cfg *model.Config) []string { return cfg.SqlSettings.DataSourceSearchReplicas })
-	if !ok {
-		return unknownConfig()
-	}
-
-	// Every data source gets its own pool of up to MaxOpenConns on every node.
-	dataSources := 1 + len(replicas) + len(searchReplicas)
-	burst := maxOpen * nodes * dataSources
+	// Only the primary pools reconnect to the promoted primary; replica pools keep their own hosts.
+	burst := maxOpen * nodes
 	if burst < failoverBurst {
 		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(burst))}
 	}
@@ -90,7 +91,6 @@ func evalDBHAFailoverStormRisk(s *healthcheck.Snapshot) []healthcheck.Result {
 	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_ha_failover_storm_risk.message")).
 		WithDetail("nodes", strconv.Itoa(nodes)).
 		WithDetail("max_open", strconv.Itoa(maxOpen)).
-		WithDetail("data_sources", strconv.Itoa(dataSources)).
 		WithDetail("burst", strconv.Itoa(burst)).
 		WithValue(float64(burst))}
 }

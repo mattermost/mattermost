@@ -48,8 +48,7 @@ func resolved() []healthcheck.Result {
 	return []healthcheck.Result{healthcheck.Resolved()}
 }
 
-// config returns the collected config, for rules that only need the length of a list
-// setting and so must not be blocked by a redacted entry.
+// config is for rules that only count list entries, so a redacted entry must not block them.
 func config(s *healthcheck.Snapshot) (*model.Config, bool) {
 	if !s.Has(model.SectionConfig) || s.Config == nil || s.Config.Config == nil {
 		return nil, false
