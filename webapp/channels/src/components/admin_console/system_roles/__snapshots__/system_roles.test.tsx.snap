@@ -17,47 +17,69 @@ exports[`admin_console/system_roles should match snapshot 1`] = `
       <div
         class="admin-console__content"
       >
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_0_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="SystemRoles"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Admin Roles
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Manage different levels of access to the system console.
-              </div>
-            </div>
-          </div>
-          <div
-            class="SystemRoles"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="DataGrid"
-              data-testid="dataGrid"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                class="DataGrid_header"
-                data-testid="dataGrid-header"
-              />
-              <div
-                class="DataGrid_rows"
-                data-testid="dataGrid-rows"
+                class="_admin-panel-header__start_19tix_19"
               >
                 <div
-                  class="DataGrid_row"
-                  data-testid="dataGrid-row"
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_0_"
+                    >
+                      Admin Roles
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Manage different levels of access to the system console.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="SystemRoles"
+            >
+              <div
+                class="DataGrid"
+                data-testid="dataGrid"
+              >
+                <div
+                  class="DataGrid_header"
+                  data-testid="dataGrid-header"
                 />
+                <div
+                  class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
+                >
+                  <div
+                    class="DataGrid_row"
+                    data-testid="dataGrid-row"
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>

@@ -10,68 +10,72 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       class="DataGrid_search"
     >
       <div
-        class="DataGrid_searchBar"
+        class="DataGrid_searchControls"
       >
-        <span
-          aria-hidden="true"
-          class="DataGrid_searchIcon"
-        >
-          <i
-            class="fa fa-search"
-            title="Search Icon"
-          />
-        </span>
-        <input
-          data-testid="searchInput"
-          placeholder="Search"
-          type="text"
-          value=""
-        />
-        <i
-          class="DataGrid_clearButton fa fa-times-circle hidden"
-          data-testid="clear-search"
-        />
-      </div>
-      <div
-        class="Filter"
-      >
-        <button
-          class="Filter_button"
-          type="button"
-        >
-          <i
-            class="Icon icon-filter-variant"
-          />
-          Filters
-        </button>
         <div
-          class="Filter_content"
+          class="DataGrid_searchBar"
         >
-          <div
-            class="Filter_header"
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
           >
-            <div
-              class="Filter_title"
-            >
-              Filter by
-            </div>
-            <a
-              class="Filter_reset"
-            >
-              Reset filters
-            </a>
-          </div>
-          <hr />
-          <div
-            class="Filter_lists"
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
           />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+        <div
+          class="Filter"
+        >
           <button
-            class="btn btn-primary btn-sm Filter_apply"
-            disabled=""
+            class="Filter_button"
             type="button"
           >
-            Apply
+            <i
+              class="Icon icon-filter-variant"
+            />
+            Filters
           </button>
+          <div
+            class="Filter_content"
+          >
+            <div
+              class="Filter_header"
+            >
+              <div
+                class="Filter_title"
+              >
+                Filter by
+              </div>
+              <a
+                class="Filter_reset"
+              >
+                Reset filters
+              </a>
+            </div>
+            <hr />
+            <div
+              class="Filter_lists"
+            />
+            <button
+              class="btn btn-primary btn-sm Filter_apply"
+              disabled=""
+              type="button"
+            >
+              Apply
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -278,68 +282,72 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       class="DataGrid_search"
     >
       <div
-        class="DataGrid_searchBar"
+        class="DataGrid_searchControls"
       >
-        <span
-          aria-hidden="true"
-          class="DataGrid_searchIcon"
-        >
-          <i
-            class="fa fa-search"
-            title="Search Icon"
-          />
-        </span>
-        <input
-          data-testid="searchInput"
-          placeholder="Search"
-          type="text"
-          value=""
-        />
-        <i
-          class="DataGrid_clearButton fa fa-times-circle hidden"
-          data-testid="clear-search"
-        />
-      </div>
-      <div
-        class="Filter"
-      >
-        <button
-          class="Filter_button"
-          type="button"
-        >
-          <i
-            class="Icon icon-filter-variant"
-          />
-          Filters
-        </button>
         <div
-          class="Filter_content"
+          class="DataGrid_searchBar"
         >
-          <div
-            class="Filter_header"
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
           >
-            <div
-              class="Filter_title"
-            >
-              Filter by
-            </div>
-            <a
-              class="Filter_reset"
-            >
-              Reset filters
-            </a>
-          </div>
-          <hr />
-          <div
-            class="Filter_lists"
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
           />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+        <div
+          class="Filter"
+        >
           <button
-            class="btn btn-primary btn-sm Filter_apply"
-            disabled=""
+            class="Filter_button"
             type="button"
           >
-            Apply
+            <i
+              class="Icon icon-filter-variant"
+            />
+            Filters
           </button>
+          <div
+            class="Filter_content"
+          >
+            <div
+              class="Filter_header"
+            >
+              <div
+                class="Filter_title"
+              >
+                Filter by
+              </div>
+              <a
+                class="Filter_reset"
+              >
+                Reset filters
+              </a>
+            </div>
+            <hr />
+            <div
+              class="Filter_lists"
+            />
+            <button
+              class="btn btn-primary btn-sm Filter_apply"
+              disabled=""
+              type="button"
+            >
+              Apply
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -621,68 +629,72 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       class="DataGrid_search"
     >
       <div
-        class="DataGrid_searchBar"
+        class="DataGrid_searchControls"
       >
-        <span
-          aria-hidden="true"
-          class="DataGrid_searchIcon"
-        >
-          <i
-            class="fa fa-search"
-            title="Search Icon"
-          />
-        </span>
-        <input
-          data-testid="searchInput"
-          placeholder="Search"
-          type="text"
-          value=""
-        />
-        <i
-          class="DataGrid_clearButton fa fa-times-circle hidden"
-          data-testid="clear-search"
-        />
-      </div>
-      <div
-        class="Filter"
-      >
-        <button
-          class="Filter_button"
-          type="button"
-        >
-          <i
-            class="Icon icon-filter-variant"
-          />
-          Filters
-        </button>
         <div
-          class="Filter_content"
+          class="DataGrid_searchBar"
         >
-          <div
-            class="Filter_header"
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
           >
-            <div
-              class="Filter_title"
-            >
-              Filter by
-            </div>
-            <a
-              class="Filter_reset"
-            >
-              Reset filters
-            </a>
-          </div>
-          <hr />
-          <div
-            class="Filter_lists"
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
           />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+        <div
+          class="Filter"
+        >
           <button
-            class="btn btn-primary btn-sm Filter_apply"
-            disabled=""
+            class="Filter_button"
             type="button"
           >
-            Apply
+            <i
+              class="Icon icon-filter-variant"
+            />
+            Filters
           </button>
+          <div
+            class="Filter_content"
+          >
+            <div
+              class="Filter_header"
+            >
+              <div
+                class="Filter_title"
+              >
+                Filter by
+              </div>
+              <a
+                class="Filter_reset"
+              >
+                Reset filters
+              </a>
+            </div>
+            <hr />
+            <div
+              class="Filter_lists"
+            />
+            <button
+              class="btn btn-primary btn-sm Filter_apply"
+              disabled=""
+              type="button"
+            >
+              Apply
+            </button>
+          </div>
         </div>
       </div>
     </div>
