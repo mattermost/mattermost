@@ -11,6 +11,9 @@ import {
   REPO_ROOT as DEFAULT_ROOT,
 } from '../lib/personas.mjs';
 import {DATA_NOTICE, block} from '../lib/untrusted.mjs';
+import {reviewPersona} from '../review/persona-review.mjs';
+import {assertSafeMdx, assertVersionAnchors, mergeFiles, parseFileBlocks} from './files.mjs';
+import {isAllowedPath} from './paths.mjs';
 
 const AUTHOR_REMINDER = [
   'Copy unchanged lines through unchanged.',
@@ -29,15 +32,24 @@ export const PREOPEN_REVIEW_NOTE = [
 
 const SUMMARY_RE = /`{3,}summary[ \t]*\n([\s\S]*?)\n`{3,}/;
 
+/**
+ * Drop HTML comment delimiters from model text. An unmatched opener at the
+ * start of a line is an HTML block through the end of the pull request body.
+ */
+export function sanitizeSummary(summary) {
+  return String(summary || '')
+    .replace(/<!--\s*docs-ai-[\s\S]*?-->/g, '')
+    .replaceAll('<!--', '')
+    .replaceAll('-->', '')
+    .trim();
+}
+
 /** Summary fence from an author response. Empty when the model omits it. */
 export function parseSummaryBlock(text) {
   const match = String(text || '').match(SUMMARY_RE);
   if (!match) return '';
-  return match[1].replace(/<!--\s*docs-ai-[\s\S]*?-->/g, '').trim();
+  return sanitizeSummary(match[1]);
 }
-import {reviewPersona} from '../review/persona-review.mjs';
-import {assertSafeMdx, assertVersionAnchors, mergeFiles, parseFileBlocks} from './files.mjs';
-import {isAllowedPath} from './paths.mjs';
 
 const WRITER_MODEL = process.env.DOCS_AI_WRITER_MODEL || 'claude-sonnet-4-6';
 const REVIEW_MODEL = process.env.DOCS_AI_REVIEW_MODEL || 'claude-sonnet-4-5-20250929';
@@ -418,9 +430,7 @@ export function renderPrBody({sourcePr, summary, milestoneVersion}) {
     );
   }
 
-  let change = String(summary || '')
-    .replace(/<!--\s*docs-ai-[\s\S]*?-->/g, '')
-    .trim();
+  let change = sanitizeSummary(summary);
   if (change.length > 2000) change = `${change.slice(0, 2000).trimEnd()}...`;
   lines.push('## Summary', '', change || '_The draft did not include a change summary._', '');
   lines.push('Pending human editorial review.');

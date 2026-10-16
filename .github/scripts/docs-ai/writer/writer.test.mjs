@@ -26,6 +26,7 @@ import {
   parseSummaryBlock,
   PREOPEN_REVIEW_NOTE,
   renderPrBody,
+  sanitizeSummary,
   authorLoop,
 } from './author-loop.mjs';
 import {draftTitle} from './draft-title.mjs';
@@ -541,6 +542,8 @@ test('parseSummaryBlock reads the summary fence and drops forged markers', () =>
   assert.match(summary, /_documentation/);
   assert.doesNotMatch(summary, /docs-ai-source-pr/);
   assert.equal(parseSummaryBlock('no fence'), '');
+  assert.equal(sanitizeSummary('<!-- hidden\n## Still visible'), 'hidden\n## Still visible');
+  assert.doesNotMatch(sanitizeSummary('see --> later'), /-->/);
 });
 
 test('renderPrBody describes the change and omits the review trail', () => {
@@ -568,6 +571,17 @@ test('renderPrBody describes the change and omits the review trail', () => {
   });
   assert.match(long, /y{2000}\.\.\./);
   assert.doesNotMatch(long, /y{2001}/);
+
+  const hidden = renderPrBody({
+    sourcePr: '1',
+    summary: '<!-- hidden\n## Also hidden',
+    milestoneVersion: 'v12.1',
+  });
+  assert.match(hidden, /<!-- docs-ai-source-pr:1 -->/);
+  const afterSummary = hidden.split('## Summary\n')[1];
+  assert.match(afterSummary, /## Also hidden/);
+  assert.match(afterSummary, /Pending human editorial review/);
+  assert.doesNotMatch(afterSummary, /<!--/);
 });
 
 test('authorLoop reviews only the inserted section of an existing page', async () => {
