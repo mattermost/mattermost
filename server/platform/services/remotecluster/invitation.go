@@ -38,12 +38,10 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 
 	rcSaved, err := rcs.server.GetStore().RemoteCluster().Save(rc)
 	if err != nil {
-		var appErr *model.AppError
-		if errors.As(err, &appErr) {
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
 		}
-		var conflictErr *store.ErrConflict
-		if errors.As(err, &conflictErr) {
+		if _, ok := errors.AsType[*store.ErrConflict](err); ok {
 			return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.save_not_unique.app_error", nil, "", http.StatusConflict).Wrap(err)
 		}
 		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

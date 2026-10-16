@@ -198,8 +198,7 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 
 	rc, err := rcs.AcceptInvitation(invite, name, displayname, args.UserId, url, "")
 	if err != nil {
-		var appErr *model.AppError
-		if errors.As(err, &appErr) {
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			msg := translatedAppErrMessage(a, args, "Failed to accept secure connection invitation", appErr, mlog.String("remote_id", invite.RemoteId))
 			return response(args.T("api.command_remote.accept_invitation.error", map[string]any{"Error": msg}))
 		}
