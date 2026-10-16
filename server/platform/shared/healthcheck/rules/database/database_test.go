@@ -92,7 +92,6 @@ func TestRegistered(t *testing.T) {
 		{"DB_POSTGRES_UNSUPPORTED", healthcheck.SeverityWarning, healthcheck.VolatilityStable, "Database.Version"},
 		{"DB_POOL_SATURATED", healthcheck.SeverityCritical, healthcheck.VolatilityThreshold, "SqlSettings.MaxOpenConns"},
 		{"DB_REPLICA_UNUSED", healthcheck.SeverityWarning, healthcheck.VolatilityProbe, "SqlSettings.DataSourceReplicas"},
-		{"DB_CONNECTION_IS_IP", healthcheck.SeverityInfo, healthcheck.VolatilityStable, ""},
 		{"DB_REPLICA_LAG_UNMONITORED", healthcheck.SeverityInfo, healthcheck.VolatilityStable, "SqlSettings.ReplicaLagSettings"},
 		{"DB_IDLE_EXCEEDS_OPEN", healthcheck.SeverityInfo, healthcheck.VolatilityStable, "SqlSettings.MaxIdleConns"},
 	}

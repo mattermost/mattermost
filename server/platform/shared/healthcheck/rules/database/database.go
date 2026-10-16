@@ -19,7 +19,6 @@ func init() {
 		dbPostgresUnsupported,
 		dbPoolSaturated,
 		dbReplicaUnused,
-		dbConnectionIsIP,
 		dbReplicaLagUnmonitored,
 		dbIdleExceedsOpen,
 	)
@@ -29,7 +28,6 @@ const (
 	databaseConsolePath = "/admin_console/environment/database"
 	databaseDocsURL     = "https://docs.mattermost.com/administration-guide/configure/environment-configuration-settings.html#database"
 
-	dataSourceSubject               = "SqlSettings.DataSource"
 	dataSourceReplicasSubject       = "SqlSettings.DataSourceReplicas"
 	dataSourceSearchReplicasSubject = "SqlSettings.DataSourceSearchReplicas"
 	maxOpenConnsSubject             = "SqlSettings.MaxOpenConns"
