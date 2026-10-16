@@ -473,6 +473,48 @@ describe('a translation run', () => {
     });
 });
 
+describe('describe.mjs', () => {
+    let repo;
+    let input;
+    before(() => {
+        repo = makeRepo();
+        seed(repo);
+        input = path.join(repo.root, '..', `${path.basename(repo.root)}-descriptions.json`);
+    });
+    after(() => {
+        fs.rmSync(repo.root, {recursive: true, force: true});
+        fs.rmSync(input, {force: true});
+    });
+    const describeWith = (body) => {
+        fs.writeFileSync(input, JSON.stringify(body));
+        return repo.run('describe.mjs', input);
+    };
+
+    test('refuses anything but filling an empty description, and then writes nothing', () => {
+        const before = repo.read('webapp/channels/src/i18n/en.json');
+        const r = describeWith({
+            webapp: {'app.plain': 'Button that closes the dialog', 'app.title': 'Other', 'app.none': 'x'},
+            server: {'api.error': 'Something failed'},
+        });
+        assert.equal(r.status, 1);
+        assert.match(r.stderr, /webapp:app\.title: already described/);
+        assert.match(r.stderr, /webapp:app\.none: not in/);
+        assert.match(r.stderr, /server:api\.error: already described/);
+        assert.equal(repo.read('webapp/channels/src/i18n/en.json'), before);
+    });
+
+    test('fills an empty description in place', () => {
+        const before = repo.read('webapp/channels/src/i18n/en.json');
+        assert.equal(describeWith({webapp: {'app.plain': 'OK'}}).status, 1);
+        const r = describeWith({webapp: {'app.plain': 'Button that closes the dialog'}});
+        assert.equal(r.status, 0, r.stderr);
+        const after = repo.read('webapp/channels/src/i18n/en.json');
+        assert.equal(JSON.parse(after)['app.plain'].description, 'Button that closes the dialog');
+        assert.deepEqual(Object.keys(JSON.parse(after)), Object.keys(JSON.parse(before)));
+        assert.equal(after.split('\n').length, before.split('\n').length);
+    });
+});
+
 describe('check_glossary.mjs', () => {
     let repo;
     before(() => {

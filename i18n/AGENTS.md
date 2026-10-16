@@ -67,8 +67,9 @@ the English is multiplied by the number of locales. Three things come first.
      once there is a question nobody re-derives.
 
    Where to write it: on the webapp, in the message descriptor in source, which
-   wins, or directly in `en.json`, which `npm run i18n-extract` keeps. On the
-   server, in `en.json`.
+   wins, or in `en.json`, which `npm run i18n-extract` keeps. On the server, in
+   `en.json`. `node i18n/scripts/describe.mjs` writes a batch into either
+   `en.json`, filling only empty descriptions.
 2. **The English is right.** Writing descriptions routinely turns up typos,
    wrong prepositions and ambiguous source strings. Fix them before
    translating, in a PR of their own: a translation run never changes the
@@ -115,6 +116,8 @@ English string:
 5. A term is a product vocabulary decision, not a translation decision. A run
    may add terms, and lists them in its PR for the reviewer to agree; it never
    changes or removes one. A correction to an existing term is a PR of its own.
+   A run's translations are checked against the glossary as of its base, so a
+   term it adds cannot exempt them from a rule.
 
 `node i18n/scripts/check_glossary.mjs` checks the files. If a term is genuinely
 one-off, appearing in a single string that will never recur, skip it. The
