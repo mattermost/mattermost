@@ -848,7 +848,7 @@ Width is a property of the dialog rather than a server setting, because your int
 
 Widths are named tiers rather than pixel values, so a dialog asks for a size rather than pinning itself to a number the client is then stuck with.
 
-Because a form returned from a [field refresh](#dynamic-field-refresh) or a [multi-step dialog](#multi-step-dialogs) replaces the contents of the dialog that is already open, returning a different `size` resizes that dialog in place. The replacement form's values win, so echo each field's submitted value back as its `default` — as the [grid refresh](#grid-layout) does — or a resize will clear what the user has typed.
+Because a form returned from a [field refresh](#dynamic-field-refresh) or a [multi-step dialog](#multi-step-dialogs) replaces the contents of the dialog that is already open, returning a different `size` resizes that dialog in place. The replacement form's values win, so echo each field's submitted value back as its `default` — as the [grid refresh](#grid-layout) does — or a resize may not preserve what the user has typed (an ordinary field is emptied; a `bool` falls back to `false`, a required `datetime` to the current time).
 
 An unrecognised `size` is reported in the server log and the dialog opens at the default width, so use only the three tiers above.
 
