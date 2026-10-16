@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "Gebruik HPNS-verbinding met uptime-SLA voor het verzenden van meldingen naar iOS-en Android-apps",
   "admin.email.mhpnsHelp": "Download de <linkIOS>Mattermost iOS-app</linkIOS> van iTunes. Download de <linkAndroid>Mattermost Android app</linkAndroid> van Google Play. Meer informatie over <linkHPNS>Mattermost Hosted Push Notification Service</linkHPNS>.",
   "admin.email.mtpns": "TPNS-verbinding gebruiken voor het verzenden van meldingen naar iOS-en Android-apps",
-  "admin.email.mtpnsHelp": "Download de <linkIOS>Mattermost iOS-app</linkIOS> van iTunes. Download de <linkAndroid>Mattermost Android app</linkAndroid> van Google Play. Meer informatie over <linkTPNS>Mattermost Hosted Push Notification Service</linkTPNS>.",
+  "admin.email.mtpnsHelp": "Download de <linkIOS>Mattermost iOS-app</linkIOS> van iTunes. Download de <linkAndroid>Mattermost Android app</linkAndroid> van Google Play. Meer informatie over <linkTPNS>Mattermost Test Push Notification Service</linkTPNS>.",
   "admin.email.pushOff": "Verstuur geen meldings-notificaties",
   "admin.email.pushOffHelp": "Zie <link>documentatie over push-berichten</link> om meer te weten te komen over installatieopties.",
   "admin.email.pushServerEx": "Bijv.: \"http://push-test.mattermost.com\"",

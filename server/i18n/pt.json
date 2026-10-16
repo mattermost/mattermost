@@ -14708,7 +14708,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Mude para https://push.mattermost.com (o Serviço de Notificações Push Alojado de produção, incluído no Enterprise) ou para um proxy push alojado por si."
+    "translation": "Mude para https://push.mattermost.com (o Hosted Push Notification Service de produção, incluído no Enterprise) ou para um proxy push alojado por si."
   },
   {
     "id": "health.rule.push_test_proxy.title",
