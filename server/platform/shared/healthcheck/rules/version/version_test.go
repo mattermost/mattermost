@@ -47,13 +47,13 @@ var stubTable = []model.ReleaseLifecycle{
 var stubRules = map[string]func(*healthcheck.Snapshot) []healthcheck.Result{
 	"VERSION_EOL":          evalVersionEOL(stubTable),
 	"VERSION_ESR_NEAR_EOL": evalVersionESRNearEOL(stubTable),
-	"VERSION_BEHIND_MAJOR": evalBehind(stubTable, behindMajorMessage, isBehindMajor),
-	"VERSION_BEHIND_MINOR": evalBehind(stubTable, behindMinorMessage, isBehindMinor),
+	"VERSION_BEHIND_ONE":   evalBehind(stubTable, behindOneMessage, isOneBehind),
+	"VERSION_BEHIND":       evalBehind(stubTable, behindMessage, isSeveralBehind),
 }
 
 const (
-	behindMajorMessage = "health.rule.version_behind_major.message"
-	behindMinorMessage = "health.rule.version_behind_minor.message"
+	behindOneMessage = "health.rule.version_behind_one.message"
+	behindMessage    = "health.rule.version_behind.message"
 )
 
 func newSnapshot(current, latest string) *healthcheck.Snapshot {
@@ -90,6 +90,21 @@ func allCodes(w want) map[string]want {
 func with(wants map[string]want, code string, w want) map[string]want {
 	wants[code] = w
 	return wants
+}
+
+func value(v float64) *float64 { return &v }
+
+func behindBy(version, latest string, n int) map[string]want {
+	code, messageID := "VERSION_BEHIND", behindMessage
+	if n == 1 {
+		code, messageID = "VERSION_BEHIND_ONE", behindOneMessage
+	}
+	return with(allCodes(resolved), code, want{
+		state:     healthcheck.StateFiring,
+		messageID: messageID,
+		details:   map[string]string{"version": version, "latest": latest},
+		value:     value(float64(n)),
+	})
 }
 
 type ruleCase struct {
@@ -133,8 +148,8 @@ func TestRulesAreRegistered(t *testing.T) {
 	}{
 		{"VERSION_EOL", healthcheck.SeverityCritical, healthcheck.VolatilityStable},
 		{"VERSION_ESR_NEAR_EOL", healthcheck.SeverityWarning, healthcheck.VolatilityStable},
-		{"VERSION_BEHIND_MAJOR", healthcheck.SeverityWarning, healthcheck.VolatilityFeed},
-		{"VERSION_BEHIND_MINOR", healthcheck.SeverityWarning, healthcheck.VolatilityFeed},
+		{"VERSION_BEHIND_ONE", healthcheck.SeverityInfo, healthcheck.VolatilityFeed},
+		{"VERSION_BEHIND", healthcheck.SeverityWarning, healthcheck.VolatilityFeed},
 	} {
 		rule, ok := registry.Get(tc.code)
 		require.True(t, ok, tc.code)
@@ -204,7 +219,7 @@ func TestEOLRules(t *testing.T) {
 			name:     "regular release the day before its EOL date",
 			snapshot: at(newSnapshot("11.9.0", "11.11.1"), reg119EOL.Add(-day)),
 			subject:  "11.9",
-			want:     with(allCodes(resolved), "VERSION_BEHIND_MINOR", want{state: healthcheck.StateFiring, messageID: behindMinorMessage, details: map[string]string{"version": "11.9.0", "latest": "11.11.1"}}),
+			want:     behindBy("11.9.0", "11.11.1", 2),
 		},
 		{
 			name:     "ESR past its EOL date",
@@ -248,7 +263,7 @@ func TestEOLRules(t *testing.T) {
 		},
 		{
 			name:     "supported regular release",
-			snapshot: newSnapshot("11.10.0", "11.11.1"),
+			snapshot: newSnapshot("11.10.0", "11.10.0"),
 			subject:  "11.10",
 			want:     allCodes(resolved),
 		},
@@ -263,8 +278,6 @@ func TestEOLRules(t *testing.T) {
 
 func TestESRNearEOL(t *testing.T) {
 	t.Parallel()
-
-	value := func(v float64) *float64 { return &v }
 
 	runCases(t, []ruleCase{
 		{
@@ -288,7 +301,7 @@ func TestESRNearEOL(t *testing.T) {
 			name:     "regular release 30 days before its EOL",
 			snapshot: at(newSnapshot("11.9.0", "12.0.0"), reg119EOL.Add(-30*day)),
 			subject:  "11.9",
-			want:     with(allCodes(resolved), "VERSION_BEHIND_MAJOR", want{state: healthcheck.StateFiring, messageID: behindMajorMessage, details: map[string]string{"version": "11.9.0", "latest": "12.0.0"}}),
+			want:     behindBy("11.9.0", "12.0.0", 3),
 		},
 		{
 			name:     "ESR on its EOL date is past it, not near it",
@@ -308,22 +321,46 @@ func TestBehindRules(t *testing.T) {
 
 	runCases(t, []ruleCase{
 		{
-			name:     "two minors behind",
-			snapshot: newSnapshot("11.9.2", "11.11.1"),
-			subject:  "11.9",
-			want:     with(allCodes(resolved), "VERSION_BEHIND_MINOR", want{state: healthcheck.StateFiring, messageID: behindMinorMessage, details: map[string]string{"version": "11.9.2", "latest": "11.11.1"}}),
-		},
-		{
-			name:     "one minor behind",
+			name:     "one release behind",
 			snapshot: newSnapshot("11.10.0", "11.11.1"),
 			subject:  "11.10",
-			want:     allCodes(resolved),
+			want:     behindBy("11.10.0", "11.11.1", 1),
 		},
 		{
-			name:     "one major behind",
+			name:     "two releases behind",
+			snapshot: newSnapshot("11.9.2", "11.11.1"),
+			subject:  "11.9",
+			want:     behindBy("11.9.2", "11.11.1", 2),
+		},
+		{
+			name:     "a new major counts as one release",
 			snapshot: newSnapshot("11.11.0", "12.0.0"),
 			subject:  "11.11",
-			want:     with(allCodes(resolved), "VERSION_BEHIND_MAJOR", want{state: healthcheck.StateFiring, messageID: behindMajorMessage, details: map[string]string{"version": "11.11.0", "latest": "12.0.0"}}),
+			want:     behindBy("11.11.0", "12.0.0", 1),
+		},
+		{
+			name:     "two releases behind across a major",
+			snapshot: newSnapshot("11.10.0", "12.0.0"),
+			subject:  "11.10",
+			want:     behindBy("11.10.0", "12.0.0", 2),
+		},
+		{
+			name:     "latest newer than the table in the same major",
+			snapshot: newSnapshot("12.0.0", "12.2.0"),
+			subject:  "12.0",
+			want:     behindBy("12.0.0", "12.2.0", 2),
+		},
+		{
+			name:     "latest in a major newer than the table",
+			snapshot: newSnapshot("11.11.0", "13.1.0"),
+			subject:  "11.11",
+			want:     behindBy("11.11.0", "13.1.0", 3),
+		},
+		{
+			name:     "up to date",
+			snapshot: newSnapshot("11.11.0", "11.11.2"),
+			subject:  "11.11",
+			want:     allCodes(resolved),
 		},
 		{
 			name:     "latest older than the running version",
@@ -342,8 +379,8 @@ func TestBehindRules(t *testing.T) {
 			snapshot: newSnapshot("11.9.2", ""),
 			subject:  "11.9",
 			want: with(with(allCodes(resolved),
-				"VERSION_BEHIND_MAJOR", unknown(reasonLatestUnknown)),
-				"VERSION_BEHIND_MINOR", unknown(reasonLatestUnknown)),
+				"VERSION_BEHIND_ONE", unknown(reasonLatestUnknown)),
+				"VERSION_BEHIND", unknown(reasonLatestUnknown)),
 		},
 		{
 			name:     "airgapped ESR",
@@ -366,8 +403,8 @@ func TestBehindRules(t *testing.T) {
 			snapshot: newSnapshot("11.9.2", "v11.11.1"),
 			subject:  "11.9",
 			want: with(with(allCodes(resolved),
-				"VERSION_BEHIND_MAJOR", unknown(reasonLatestUnknown)),
-				"VERSION_BEHIND_MINOR", unknown(reasonLatestUnknown)),
+				"VERSION_BEHIND_ONE", unknown(reasonLatestUnknown)),
+				"VERSION_BEHIND", unknown(reasonLatestUnknown)),
 		},
 	})
 }
@@ -424,7 +461,7 @@ func TestDatesComeFromCollectedAt(t *testing.T) {
 	evaluations := engine.Evaluate(s)
 	require.Len(t, evaluations, len(stubRules))
 	for _, evaluation := range evaluations {
-		if evaluation.Code == "VERSION_BEHIND_MAJOR" || evaluation.Code == "VERSION_BEHIND_MINOR" {
+		if evaluation.Code == "VERSION_BEHIND_ONE" || evaluation.Code == "VERSION_BEHIND" {
 			assert.Equal(t, healthcheck.StateUnknown, evaluation.Result.State, evaluation.Code)
 			continue
 		}

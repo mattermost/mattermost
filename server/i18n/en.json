@@ -14427,34 +14427,34 @@
     "description": "Health dashboard reason shown when a version check could not run because the server version is missing or cannot be parsed, so the check's status is unknown."
   },
   {
-    "id": "health.rule.version_behind_major.message",
-    "translation": "Running {{.version}}. Latest is {{.latest}}. Servers this far behind miss security fixes, performance improvements, and new diagnostic capabilities.",
-    "description": "Health dashboard finding detail when the server is at least one major version behind the latest release; {{.version}} is the running version and {{.latest}} the latest released version."
+    "id": "health.rule.version_behind.message",
+    "translation": "Running {{.version}}. Latest is {{.latest}}, two or more releases newer.",
+    "description": "Health dashboard finding detail when the server is two or more releases behind the latest release; {{.version}} is the running version and {{.latest}} the latest released version."
   },
   {
-    "id": "health.rule.version_behind_major.remediation",
-    "translation": "Plan an upgrade to the latest release, or move to an Extended Support Release for a slower upgrade cadence.",
-    "description": "Health dashboard fix-it step for a server a major version behind the latest release; 'Extended Support Release' is a Mattermost release type."
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Plan an upgrade to the latest release before support for this release line ends, or move to an Extended Support Release for a slower upgrade cadence.",
+    "description": "Health dashboard fix-it step for a server two or more releases behind the latest release; 'Extended Support Release' is a Mattermost release type."
   },
   {
-    "id": "health.rule.version_behind_major.title",
-    "translation": "A major version behind the latest release",
-    "description": "Health dashboard finding title when the server is at least one major version behind the latest Mattermost release."
+    "id": "health.rule.version_behind.title",
+    "translation": "Several releases behind the latest release",
+    "description": "Health dashboard finding title when the server is two or more releases behind the latest Mattermost release."
   },
   {
-    "id": "health.rule.version_behind_minor.message",
+    "id": "health.rule.version_behind_one.message",
     "translation": "Running {{.version}}. Latest is {{.latest}}.",
-    "description": "Health dashboard finding detail when the server is two or more minor versions behind the latest release in the same major version; {{.version}} is the running version and {{.latest}} the latest released version."
+    "description": "Health dashboard finding detail when the server is one release behind the latest release; {{.version}} is the running version and {{.latest}} the latest released version."
   },
   {
-    "id": "health.rule.version_behind_minor.remediation",
-    "translation": "Plan an upgrade to the latest release in the next quarter.",
-    "description": "Health dashboard fix-it step for a server several minor versions behind the latest release."
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Plan an upgrade to the latest release.",
+    "description": "Health dashboard fix-it step for a server one release behind the latest release."
   },
   {
-    "id": "health.rule.version_behind_minor.title",
-    "translation": "Several minor versions behind the latest release",
-    "description": "Health dashboard finding title when the server is two or more minor versions behind the latest Mattermost release."
+    "id": "health.rule.version_behind_one.title",
+    "translation": "A newer release is available",
+    "description": "Health dashboard finding title when the server is one release behind the latest Mattermost release."
   },
   {
     "id": "health.rule.version_eol.message",

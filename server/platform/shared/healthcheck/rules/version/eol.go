@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	healthcheck.Register(versionEOL, versionESRNearEOL, behindMajor, behindMinor)
+	healthcheck.Register(versionEOL, versionESRNearEOL, behindOne, behind)
 }
 
 const (
