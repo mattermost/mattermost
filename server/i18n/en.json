@@ -14552,6 +14552,101 @@
     "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; 'SiteURL' is a config setting name and should not be translated."
   },
   {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "Latest release unknown: it could not be fetched, or the packet does not record it.",
+    "description": "Health dashboard reason shown when a version check could not run because the latest Mattermost release could not be fetched from GitHub or is not recorded in the Support Packet being evaluated, so the check's status is unknown."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "This version is not in this build's release table. To evaluate a Support Packet from a newer server, use a newer mmctl.",
+    "description": "Health dashboard reason shown when a version check could not run because the server version is newer than the release lifecycle table compiled into this build, so the check's status is unknown. 'mmctl' is the Mattermost command line tool and should not be translated."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "Server version unknown or not recognized.",
+    "description": "Health dashboard reason shown when a version check could not run because the server version is missing or cannot be parsed, so the check's status is unknown."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "Running {{.version}}. Latest is {{.latest}}, two or more releases newer.",
+    "description": "Health dashboard finding detail when the server is two or more releases behind the latest release; {{.version}} is the running version and {{.latest}} the latest released version."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Plan an upgrade to the latest release before support for this release line ends, or move to an Extended Support Release for a slower upgrade cadence.",
+    "description": "Health dashboard fix-it step for a server two or more releases behind the latest release; 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Several releases behind the latest release",
+    "description": "Health dashboard finding title when the server is two or more releases behind the latest Mattermost release."
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "Running {{.version}}. Latest is {{.latest}}.",
+    "description": "Health dashboard finding detail when the server is one release behind the latest release; {{.version}} is the running version and {{.latest}} the latest released version."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Plan an upgrade to the latest release.",
+    "description": "Health dashboard fix-it step for a server one release behind the latest release."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "A newer release is available",
+    "description": "Health dashboard finding title when the server is one release behind the latest Mattermost release."
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Running Mattermost {{.version}}. Support for this release line ended on {{.eol_date}}. No security patches ship for this release line.",
+    "description": "Health dashboard finding detail when the server's Extended Support Release is past end-of-life and no newer Extended Support Release is still supported; {{.version}} is the running version and {{.eol_date}} the day support for its release line ended (YYYY-MM-DD). 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Running Mattermost {{.version}}, an older release line that is no longer supported. No security patches ship for this release line.",
+    "description": "Health dashboard finding detail when the server runs a release line older than every line in this build's release table, all of which had reached end-of-life; {{.version}} is the running version."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Running Mattermost {{.version}}, an older release line that is no longer supported. No security patches ship for this release line. The newest supported Extended Support Release is {{.target}}.",
+    "description": "Health dashboard finding detail when the server runs a release line older than every line in this build's release table; {{.version}} is the running version and {{.target}} the newest Extended Support Release still supported. 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Running Mattermost {{.version}}. Support for this release line ended on {{.eol_date}}. No security patches ship for this release line. Upgrade to the latest release.",
+    "description": "Health dashboard finding detail when the server runs a regular (non-Extended Support) release that is past end-of-life; {{.version}} is the running version and {{.eol_date}} the day support for its release line ended (YYYY-MM-DD)."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Running Mattermost {{.version}}. Support for this release line ended on {{.eol_date}}. No security patches ship for this release line. The newest supported Extended Support Release is {{.target}}.",
+    "description": "Health dashboard finding detail when the server's Extended Support Release is past end-of-life; {{.version}} is the running version, {{.eol_date}} the day support for its release line ended (YYYY-MM-DD), and {{.target}} the newest Extended Support Release still supported. 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.",
+    "description": "Health dashboard fix-it step for a server past end-of-life; the URL is the Mattermost server releases page. 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Mattermost version is past end-of-life",
+    "description": "Health dashboard finding title when the server's release line no longer receives security patches."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "Running {{.version}} on Extended Support Release {{.esr}}. Plan an upgrade before {{.eol_date}} to keep receiving security patches.",
+    "description": "Health dashboard finding detail when the server's Extended Support Release reaches end-of-life within 90 days; {{.version}} is the running version, {{.esr}} the release line, and {{.eol_date}} its end-of-life date (YYYY-MM-DD). 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Schedule an upgrade to the latest release or to the next Extended Support Release.",
+    "description": "Health dashboard fix-it step for an Extended Support Release nearing end-of-life. 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "Extended Support Release is nearing end-of-life",
+    "description": "Health dashboard finding title when the server's Extended Support Release reaches end-of-life within 90 days. 'Extended Support Release' is a Mattermost release type."
+  },
+  {
     "id": "humanize.list_join",
     "translation": "{{.OtherItems}} and {{.LastItem}}",
     "description": "Pattern for joining a list into a sentence; {{.OtherItems}} is all items except the last joined by commas, {{.LastItem}} is the final item (e.g. 'a, b and c')."
