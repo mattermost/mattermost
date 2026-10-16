@@ -4,9 +4,9 @@
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {DeliveryTrackingConfig} from '@mattermost/types/delivery_tracking';
 
-import {Label} from 'components/admin_console/boolean_setting';
 import ChannelMultiSelector from 'components/admin_console/content_flagging/delivery_tracking/channel_multiselector';
 import {
     AdminSection,
@@ -72,35 +72,33 @@ export default function DeliveryTrackingSection({value, onChange, hasError = fal
 
                         <div className='setting-content-wrapper'>
                             <div className='setting-content'>
-                                <Label isDisabled={false}>
-                                    <input
-                                        data-testid='deliveryTrackingEnable_true'
-                                        name='deliveryTrackingEnable'
-                                        type='radio'
-                                        value='true'
-                                        checked={value.Enable}
-                                        onChange={handleEnableChange}
-                                    />
+                                <Radio
+                                    data-testid='deliveryTrackingEnable_true'
+                                    id='deliveryTrackingEnable_true'
+                                    name='deliveryTrackingEnable'
+                                    value='true'
+                                    checked={value.Enable}
+                                    onChange={handleEnableChange}
+                                >
                                     <FormattedMessage
                                         id='admin.true'
                                         defaultMessage='True'
                                     />
-                                </Label>
+                                </Radio>
 
-                                <Label isDisabled={false}>
-                                    <input
-                                        data-testid='deliveryTrackingEnable_false'
-                                        name='deliveryTrackingEnable'
-                                        type='radio'
-                                        value='false'
-                                        checked={!value.Enable}
-                                        onChange={handleEnableChange}
-                                    />
+                                <Radio
+                                    data-testid='deliveryTrackingEnable_false'
+                                    id='deliveryTrackingEnable_false'
+                                    name='deliveryTrackingEnable'
+                                    value='false'
+                                    checked={!value.Enable}
+                                    onChange={handleEnableChange}
+                                >
                                     <FormattedMessage
                                         id='admin.false'
                                         defaultMessage='False'
                                     />
-                                </Label>
+                                </Radio>
                             </div>
 
                             <div className='helpText'>
@@ -123,35 +121,33 @@ export default function DeliveryTrackingSection({value, onChange, hasError = fal
 
                             <div className='setting-content-wrapper'>
                                 <div className='setting-content'>
-                                    <Label isDisabled={false}>
-                                        <input
-                                            data-testid='deliveryTrackingAllChannels_true'
-                                            name='deliveryTrackingAllChannels'
-                                            type='radio'
-                                            value='true'
-                                            checked={value.EnableForAllChannels}
-                                            onChange={handleAllChannelsChange}
-                                        />
+                                    <Radio
+                                        data-testid='deliveryTrackingAllChannels_true'
+                                        id='deliveryTrackingAllChannels_true'
+                                        name='deliveryTrackingAllChannels'
+                                        value='true'
+                                        checked={value.EnableForAllChannels}
+                                        onChange={handleAllChannelsChange}
+                                    >
                                         <FormattedMessage
                                             id='admin.dataSpillage.deliveryTracking.trackIn.allChannels'
                                             defaultMessage='All channels'
                                         />
-                                    </Label>
+                                    </Radio>
 
-                                    <Label isDisabled={false}>
-                                        <input
-                                            data-testid='deliveryTrackingAllChannels_false'
-                                            name='deliveryTrackingAllChannels'
-                                            type='radio'
-                                            value='false'
-                                            checked={!value.EnableForAllChannels}
-                                            onChange={handleAllChannelsChange}
-                                        />
+                                    <Radio
+                                        data-testid='deliveryTrackingAllChannels_false'
+                                        id='deliveryTrackingAllChannels_false'
+                                        name='deliveryTrackingAllChannels'
+                                        value='false'
+                                        checked={!value.EnableForAllChannels}
+                                        onChange={handleAllChannelsChange}
+                                    >
                                         <FormattedMessage
                                             id='admin.dataSpillage.deliveryTracking.trackIn.selectedChannels'
                                             defaultMessage='Selected channels'
                                         />
-                                    </Label>
+                                    </Radio>
                                 </div>
 
                                 <div className='helpText'>

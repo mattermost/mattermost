@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl, defineMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, Options} from 'react-select';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {UserNotifyProps} from '@mattermost/types/users';
 
 import SettingItemMax from 'components/setting_item_max';
@@ -117,22 +118,19 @@ function DesktopAndMobileNotificationSettings({
                         defaultMessage='Send notifications for:'
                     />
                 </legend>
-                {optionsOfSendNotifications.map((optionOfSendNotifications) => (
-                    <div
-                        key={optionOfSendNotifications.value}
-                        className='radio'
-                    >
-                        <label>
-                            <input
-                                type='radio'
-                                checked={desktopActivity === optionOfSendNotifications.value}
-                                value={optionOfSendNotifications.value}
-                                onChange={handleChangeForSendDesktopNotificationsRadio}
-                            />
+                <div className='settings-radio-group'>
+                    {optionsOfSendNotifications.map((optionOfSendNotifications) => (
+                        <Radio
+                            key={optionOfSendNotifications.value}
+                            name='desktopActivity'
+                            checked={desktopActivity === optionOfSendNotifications.value}
+                            value={optionOfSendNotifications.value}
+                            onChange={handleChangeForSendDesktopNotificationsRadio}
+                        >
                             {formatAsComponent(optionOfSendNotifications.label)}
-                        </label>
-                    </div>
-                ))}
+                        </Radio>
+                    ))}
+                </div>
             </fieldset>
         );
         maximizedSettingInputs.push(sendDesktopNotificationsSection);
