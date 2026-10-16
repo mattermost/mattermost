@@ -8,7 +8,7 @@ import scss from 'rollup-plugin-scss';
 
 import packagejson from './package.json';
 
-const externals = [
+const externalPackages = [
     ...Object.keys(packagejson.dependencies || {}),
     ...Object.keys(packagejson.peerDependencies || {}),
     'lodash/throttle',
@@ -20,6 +20,10 @@ const externals = [
     'mattermost-redux',
     'reselect',
 ];
+
+// Rollup string externals only match exact ids (or ids under a pattern ending in `/`).
+// Peer imports use subpaths (e.g. `@mattermost/compass-ui/components/icon`), so match those too.
+const isExternal = (id) => externalPackages.some((name) => id === name || id.startsWith(`${name}/`));
 
 export default [
     {
@@ -46,7 +50,7 @@ export default [
                 outputToFilesystem: true,
             }),
         ],
-        external: externals,
+        external: isExternal,
         watch: {
             clearScreen: false,
         },
