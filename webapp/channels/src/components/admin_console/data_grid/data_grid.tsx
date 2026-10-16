@@ -272,8 +272,6 @@ class DataGrid extends React.PureComponent<Props, State> {
                             onNext={nextPageFn}
                             disablePrevious={firstPage}
                             disableNext={lastPage}
-                            previousLabel='Previous page'
-                            nextLabel='Next page'
                             previousButtonClassName='ml-2 prev'
                             nextButtonClassName='next'
                         />

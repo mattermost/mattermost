@@ -28,12 +28,12 @@ export type PaginationButtonsProps = {
     isLoading?: boolean;
 
     /**
-     * Accessible name and tooltip for the previous button. Defaults to “Go to previous page”.
+     * Accessible name and tooltip for the previous button. Defaults to “Previous page”.
      */
     previousLabel?: string;
 
     /**
-     * Accessible name and tooltip for the next button. Defaults to “Go to next page”.
+     * Accessible name and tooltip for the next button. Defaults to “Next page”.
      */
     nextLabel?: string;
 
@@ -66,11 +66,11 @@ const PaginationButtons = ({
 
     const resolvedPreviousLabel = previousLabel ?? formatMessage({
         id: 'adminConsole.list.table.pagination.previous',
-        defaultMessage: 'Go to previous page',
+        defaultMessage: 'Previous page',
     });
     const resolvedNextLabel = nextLabel ?? formatMessage({
         id: 'adminConsole.list.table.pagination.next',
-        defaultMessage: 'Go to next page',
+        defaultMessage: 'Next page',
     });
 
     const buttons = (

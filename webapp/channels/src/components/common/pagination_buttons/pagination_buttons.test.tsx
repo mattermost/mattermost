@@ -19,8 +19,8 @@ describe('components/common/PaginationButtons', () => {
             />,
         );
 
-        const previous = screen.getByRole('button', {name: 'Go to previous page'});
-        const next = screen.getByRole('button', {name: 'Go to next page'});
+        const previous = screen.getByRole('button', {name: 'Previous page'});
+        const next = screen.getByRole('button', {name: 'Next page'});
 
         await userEvent.click(previous);
         await userEvent.click(next);
@@ -36,8 +36,8 @@ describe('components/common/PaginationButtons', () => {
             />,
         );
 
-        expect(screen.queryByRole('button', {name: 'Go to previous page'})).not.toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Go to next page'})).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Previous page'})).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Next page'})).toBeInTheDocument();
     });
 
     test('disables buttons when requested or loading', () => {
@@ -50,8 +50,8 @@ describe('components/common/PaginationButtons', () => {
             />,
         );
 
-        expect(screen.getByRole('button', {name: 'Go to previous page'})).toBeDisabled();
-        expect(screen.getByRole('button', {name: 'Go to next page'})).toBeDisabled();
+        expect(screen.getByRole('button', {name: 'Previous page'})).toBeDisabled();
+        expect(screen.getByRole('button', {name: 'Next page'})).toBeDisabled();
     });
 
     test('uses custom labels and optional class names', () => {

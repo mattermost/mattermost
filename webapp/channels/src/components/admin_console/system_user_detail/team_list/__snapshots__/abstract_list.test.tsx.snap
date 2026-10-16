@@ -132,7 +132,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         11 - 20 of 30
       </div>
       <button
-        aria-label="Go to previous page"
+        aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 prev"
         type="button"
       >
@@ -165,7 +165,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       </button>
       <button
         aria-describedby="_r_a_"
-        aria-label="Go to next page"
+        aria-label="Next page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 next"
         type="button"
       >
@@ -295,7 +295,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         1 - 10 of 30
       </div>
       <button
-        aria-label="Go to previous page"
+        aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 prev"
         disabled=""
         type="button"
@@ -328,7 +328,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         </span>
       </button>
       <button
-        aria-label="Go to next page"
+        aria-label="Next page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 next"
         type="button"
       >
@@ -418,7 +418,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         1 - 2 of 2
       </div>
       <button
-        aria-label="Go to previous page"
+        aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 prev"
         disabled=""
         type="button"
@@ -451,7 +451,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         </span>
       </button>
       <button
-        aria-label="Go to next page"
+        aria-label="Next page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 next"
         disabled=""
         type="button"

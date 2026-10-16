@@ -189,8 +189,6 @@ const BackstageList = (remainingProps: Props) => {
                         onNext={nextPageFn}
                         disablePrevious={isFirstPage}
                         disableNext={isLastPage}
-                        previousLabel={formatMessage({id: 'backstage_list.previousButton.ariaLabel', defaultMessage: 'Previous'})}
-                        nextLabel={formatMessage({id: 'backstage_list.nextButton.ariaLabel', defaultMessage: 'Next'})}
                         previousButtonClassName='ml-2 prev'
                         nextButtonClassName='next'
                     />

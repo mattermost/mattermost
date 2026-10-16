@@ -200,7 +200,7 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
         });
 
         // Click next page button to go to page 1
-        const nextButton = screen.getByRole('button', {name: 'Go to next page'});
+        const nextButton = screen.getByRole('button', {name: 'Next page'});
         await userEvent.click(nextButton);
 
         // Wait for loading to finish again after page change

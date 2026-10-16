@@ -120,7 +120,7 @@ exports[`admin_console/team_channel_settings/AbstractList should match snapshot,
         1 - 1 of 1
       </div>
       <button
-        aria-label="Go to previous page"
+        aria-label="Previous page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         disabled=""
         type="button"
@@ -153,7 +153,7 @@ exports[`admin_console/team_channel_settings/AbstractList should match snapshot,
         </span>
       </button>
       <button
-        aria-label="Go to next page"
+        aria-label="Next page"
         class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         data-testid="page-link-next"
         disabled=""

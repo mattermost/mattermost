@@ -202,8 +202,6 @@ class JobTable extends React.PureComponent<Props, State> {
                                 onNext={this.handleNextPage}
                                 disablePrevious={firstPage}
                                 disableNext={lastPage}
-                                previousLabel='Previous page'
-                                nextLabel='Next page'
                                 previousButtonClassName='ml-2 prev'
                                 nextButtonClassName='next'
                             />
