@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
 func runCommand(th *TestHelper, provider app.CommandProvider, userID, channelID, command string) string {
@@ -261,15 +262,49 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		code, _ := makeInvite(t, "https://remote.example.com")
 		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password wrong --invite "+code)
 
-		require.True(t, strings.HasPrefix(text, T("api.command_remote.decode_invitation.error", map[string]any{"Error": ""})), text)
-		require.Contains(t, text, T("api.remote_cluster.invite_decrypt_error"))
+		require.Equal(t, T("api.command_remote.decode_invitation.error", map[string]any{"Error": T("api.remote_cluster.invite_decrypt_error")}), text)
 	})
 
 	t.Run("malformed invite", func(t *testing.T) {
 		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite not*base64")
 
-		require.True(t, strings.HasPrefix(text, T("api.command_remote.decode_invitation.error", map[string]any{"Error": ""})), text)
-		require.Contains(t, text, T("api.remote_cluster.base64_decode_error"))
+		require.Equal(t, T("api.command_remote.decode_invitation.error", map[string]any{"Error": T("api.remote_cluster.base64_decode_error")}), text)
+	})
+
+	t.Run("invalid name replies with the translated validation error", func(t *testing.T) {
+		code, remoteID := makeInvite(t, "https://remote.example.com")
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name bad!name --password "+password+" --invite "+code)
+
+		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("model.cluster.is_valid.name.app_error")}), text)
+		_, appErr := th.App.GetRemoteCluster(remoteID, true)
+		require.NotNil(t, appErr, "no secure connection should be stored")
+	})
+
+	t.Run("existing connection replies with a translated conflict message instead of the database error", func(t *testing.T) {
+		// Accepting an invite for a connection that already exists under the same name
+		// violates the RemoteClusters primary key.
+		existing := seedRemoteCluster(t, th)
+		code, appErr := th.App.CreateRemoteClusterInvite(existing.RemoteId, "https://remote.example.com", model.NewId(), password)
+		require.Nil(t, appErr)
+
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name "+existing.Name+" --password "+password+" --invite "+code)
+
+		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.save_not_unique.app_error")}), text)
+		rc, appErr := th.App.GetRemoteCluster(existing.RemoteId, false)
+		require.Nil(t, appErr, "the existing connection must be left in place")
+		assert.Equal(t, existing.SiteURL, rc.SiteURL)
+	})
+
+	t.Run("unreachable remote site replies with the connection error", func(t *testing.T) {
+		ts := httptest.NewServer(http.NotFoundHandler())
+		ts.Close()
+		code, remoteID := makeInvite(t, ts.URL)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+
+		require.True(t, strings.HasPrefix(text, T("api.command_remote.accept_invitation.error", map[string]any{"Error": ""})), text)
+		require.Contains(t, text, ts.URL+"/"+remotecluster.ConfirmInviteURL, "the reply should name the address that could not be reached")
+		_, appErr := th.App.GetRemoteCluster(remoteID, false)
+		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
 	})
 
 	t.Run("site URL not set", func(t *testing.T) {
@@ -354,6 +389,65 @@ func TestRemoteProviderDoStatusNoConnections(t *testing.T) {
 
 	text := runCommand(th, &RemoteProvider{}, th.SystemAdminUser.Id, th.BasicChannel.Id, "/secure-connection status")
 	require.Equal(t, "** "+T("api.command_remote.remotes_not_found")+" **", text)
+}
+
+type failingGetAllRemoteClusterStore struct {
+	store.RemoteClusterStore
+	fail *atomic.Bool
+}
+
+func (s *failingGetAllRemoteClusterStore) GetAll(offset, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
+	if s.fail.Load() {
+		return nil, errors.New(`pq: column rc.displayname does not exist`)
+	}
+	return s.RemoteClusterStore.GetAll(offset, limit, filter)
+}
+
+// failingGetAllStoreWrapper fails RemoteCluster().GetAll while fail is set; all other
+// calls use the real store.
+type failingGetAllStoreWrapper struct {
+	store.Store
+	fail atomic.Bool
+}
+
+func (w *failingGetAllStoreWrapper) RemoteCluster() store.RemoteClusterStore {
+	return &failingGetAllRemoteClusterStore{RemoteClusterStore: w.Store.RemoteCluster(), fail: &w.fail}
+}
+
+func TestRemoteProviderDoStatusStoreFailure(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+
+	wrapper := &failingGetAllStoreWrapper{Store: dbStore}
+	th := setupTestHelper(wrapper, false, true, t, nil).initBasic(t)
+	th.addPermissionToRole(t, model.PermissionManageSecureConnections.Id, th.BasicUser.Roles)
+
+	userT := func(id string, args ...any) string {
+		switch id {
+		case "api.remote_cluster.get.app_error":
+			return "user-locale fetch error"
+		case "api.command_remote.fetch_status.error":
+			return "fetch failed: " + args[0].(map[string]any)["Error"].(string)
+		}
+		return id
+	}
+	args := &model.CommandArgs{
+		T:         userT,
+		UserId:    th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		ChannelId: th.BasicChannel.Id,
+		Command:   "/secure-connection status",
+	}
+
+	wrapper.fail.Store(true)
+	defer wrapper.fail.Store(false)
+	resp := (&RemoteProvider{}).DoCommand(th.App, th.Context, args, "")
+	require.NotNil(t, resp)
+	require.Equal(t, "fetch failed: user-locale fetch error", resp.Text)
 }
 
 func TestRemoteProviderGetAutoCompleteListItems(t *testing.T) {

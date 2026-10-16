@@ -1938,7 +1938,7 @@
   {
     "id": "api.command_remote.accept_invitation.error",
     "translation": "Could not accept invitation: {{.Error}}",
-    "description": "Error response from the /secure-connection slash command when accepting a server-to-server (shared channels) invitation fails; {{.Error}} is the raw error text."
+    "description": "Error response from the /secure-connection slash command when accepting a server-to-server (shared channels) invitation fails; {{.Error}} is a translated error message, a connection error, or the reason the remote server gave for rejecting the invitation."
   },
   {
     "id": "api.command_remote.add_remote.error",
@@ -4522,7 +4522,7 @@
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
     "translation": "Secure connection has already been added.",
-    "description": "API error shown to an admin when trying to add a secure connection (remote server link) that already exists."
+    "description": "API error shown to an admin when trying to add or accept an invitation for a secure connection (remote server link) that already exists."
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
