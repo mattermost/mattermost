@@ -70,20 +70,8 @@
             }
         }
 
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            margin: 4px 0;
+        .markdown__heading {
             color: var(--center-channel-color);
-            font-weight: 700;
-            line-height: 1.5;
-
-            &:first-child {
-                margin: 0 0 4px;
-            }
 
             + p:last-child:empty,
             + p:last-child:has(> br:only-child),
@@ -92,36 +80,6 @@
                 font-size: 0;
                 line-height: 0;
             }
-        }
-
-        h1,
-        h2,
-        h3 {
-            font-family: Metropolis, sans-serif;
-        }
-
-        h1 {
-            font-size: 28px;
-        }
-
-        h2 {
-            font-size: 25px;
-        }
-
-        h3 {
-            font-size: 22px;
-        }
-
-        h4 {
-            font-size: 19px;
-        }
-
-        h5 {
-            font-size: 15px;
-        }
-
-        h6 {
-            font-size: 14px;
         }
 
         strong {
@@ -136,153 +94,48 @@
             text-decoration: line-through;
         }
 
-        ul,
-        ol {
-            padding-left: 24px;
-            margin: 4px 0;
-
-            &:last-child {
-                margin-bottom: 0;
-            }
+        li ul {
+            padding: 0 0 0 20px;
+            margin: 0;
+            font-size: 1em;
         }
 
-        ul {
-            list-style-type: disc;
+        p + p {
+            margin: 0.5em 0 0;
         }
 
-        ol {
-            list-style-type: decimal;
+        ul + p,
+        ol + p,
+        p + ul,
+        p + ol {
+            margin-top: 0.6em;
         }
 
-        li {
-            margin: 2px 0;
-
-            p {
-                margin: 0;
-            }
+        li p {
+            margin: 0;
         }
 
-        code {
-            padding: 2px 5px;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-            border-radius: 3px;
-            background: rgba(var(--center-channel-color-rgb), 0.04);
-            color: var(--center-channel-color);
-            font-family: "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace;
-            font-size: 12px;
-        }
-
-        pre {
-            padding: 10px 12px;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-            border-radius: 4px;
-            margin: 6px 0;
-            background: rgba(var(--center-channel-color-rgb), 0.04);
+        pre.hljs {
+            padding: 8.5px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
+            border-radius: 0.25em;
+            margin: 5px 0;
+            font-size: 13px;
 
             code {
                 padding: 0;
-                border: none;
-                border-radius: 0;
                 background: transparent;
                 font-size: 13px;
-                line-height: 1.5;
                 white-space: pre-wrap;
-
-                .hljs-comment,
-                .hljs-quote {
-                    color: rgba(var(--center-channel-color-rgb), 0.5);
-                    font-style: italic;
-                }
-
-                .hljs-keyword,
-                .hljs-selector-tag,
-                .hljs-subst {
-                    color: #d73a49;
-                    font-weight: 600;
-                }
-
-                .hljs-literal,
-                .hljs-number,
-                .hljs-variable,
-                .hljs-template-variable,
-                .hljs-tag .hljs-attr {
-                    color: #005cc5;
-                }
-
-                .hljs-string,
-                .hljs-doctag {
-                    color: #032f62;
-                }
-
-                .hljs-title,
-                .hljs-section,
-                .hljs-selector-id {
-                    color: #6f42c1;
-                    font-weight: 600;
-                }
-
-                .hljs-type,
-                .hljs-class .hljs-title {
-                    color: #6f42c1;
-                }
-
-                .hljs-tag,
-                .hljs-name,
-                .hljs-attribute {
-                    color: #22863a;
-                }
-
-                .hljs-regexp,
-                .hljs-link {
-                    color: #032f62;
-                }
-
-                .hljs-symbol,
-                .hljs-bullet {
-                    color: #e36209;
-                }
-
-                .hljs-built_in,
-                .hljs-builtin-name {
-                    color: #005cc5;
-                }
-
-                .hljs-meta {
-                    color: rgba(var(--center-channel-color-rgb), 0.5);
-                    font-weight: 600;
-                }
-
-                .hljs-deletion {
-                    background: #ffeef0;
-                    color: #b31d28;
-                }
-
-                .hljs-addition {
-                    background: #f0fff4;
-                    color: #22863a;
-                }
-
-                .hljs-emphasis {
-                    font-style: italic;
-                }
-
-                .hljs-strong {
-                    font-weight: 600;
-                }
             }
         }
 
-        blockquote {
-            padding: 0 0 0 16px;
-            border-left: 4px solid rgba(var(--center-channel-color-rgb), 0.16);
-            margin: 6px 0;
-            color: rgba(var(--center-channel-color-rgb), 0.75);
-        }
-
         hr {
-            border: none;
-            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            margin: 12px 0;
+            height: 1px;
+            padding: 0;
+            border: 0 none;
+            margin: 15px 0 16px;
+            background-color: rgba(var(--center-channel-color-rgb), 0.24);
         }
 
         a {
@@ -295,28 +148,8 @@
             }
         }
 
-        table {
-            width: 100%;
-            margin: 8px 0;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            min-width: 80px;
-            padding: 6px 10px;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            text-align: left;
-            vertical-align: top;
-        }
-
-        th {
-            background: rgba(var(--center-channel-color-rgb), 0.04);
-            font-weight: 600;
-        }
-
-        td {
-            background: var(--center-channel-bg);
+        .markdown-inline-img {
+            max-width: 100%;
         }
 
         .selectedCell {

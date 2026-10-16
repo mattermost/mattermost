@@ -13,7 +13,7 @@ import type {
 import {getEmbedFromMetadata} from 'mattermost-redux/utils/post_utils';
 
 import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
-import {render, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import PostBodyAdditionalContent from './post_body_additional_content';
 import type {Props} from './post_body_additional_content';
@@ -117,7 +117,7 @@ describe('PostBodyAdditionalContent', () => {
         };
 
         test('should render correctly', () => {
-            const {container} = render(<PostBodyAdditionalContent {...imageBaseProps}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...imageBaseProps}/>);
 
             expect(container).toMatchSnapshot();
             expect(screen.getByTestId('post-image')).toBeInTheDocument();
@@ -132,7 +132,7 @@ describe('PostBodyAdditionalContent', () => {
                 },
             };
 
-            const {container} = render(<PostBodyAdditionalContent {...props}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...props}/>);
 
             expect(container).toMatchSnapshot();
         });
@@ -143,7 +143,7 @@ describe('PostBodyAdditionalContent', () => {
                 isEmbedVisible: false,
             };
 
-            render(<PostBodyAdditionalContent {...props}/>);
+            renderWithContext(<PostBodyAdditionalContent {...props}/>);
 
             expect(screen.queryByTestId('post-image')).not.toBeInTheDocument();
         });
@@ -168,7 +168,7 @@ describe('PostBodyAdditionalContent', () => {
         };
 
         test('should render correctly', () => {
-            const {container} = render(<PostBodyAdditionalContent {...messageAttachmentBaseProps}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...messageAttachmentBaseProps}/>);
 
             expect(container).toMatchSnapshot();
             expect(screen.getByTestId('message-attachment-list')).toBeInTheDocument();
@@ -180,7 +180,7 @@ describe('PostBodyAdditionalContent', () => {
                 isEmbedVisible: false,
             };
 
-            render(<PostBodyAdditionalContent {...props}/>);
+            renderWithContext(<PostBodyAdditionalContent {...props}/>);
 
             expect(screen.getByTestId('message-attachment-list')).toBeInTheDocument();
         });
@@ -204,7 +204,7 @@ describe('PostBodyAdditionalContent', () => {
         };
 
         test('should render correctly', () => {
-            const {container} = render(<PostBodyAdditionalContent {...ogBaseProps}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...ogBaseProps}/>);
 
             expect(screen.getByTestId('post-attachment-opengraph')).toBeInTheDocument();
             expect(container).toMatchSnapshot();
@@ -219,7 +219,7 @@ describe('PostBodyAdditionalContent', () => {
                 },
             };
 
-            const {container} = render(<PostBodyAdditionalContent {...props}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...props}/>);
 
             expect(container).toMatchSnapshot();
         });
@@ -230,7 +230,7 @@ describe('PostBodyAdditionalContent', () => {
                 isEmbedVisible: false,
             };
 
-            render(<PostBodyAdditionalContent {...props}/>);
+            renderWithContext(<PostBodyAdditionalContent {...props}/>);
 
             expect(screen.getByTestId('post-attachment-opengraph')).toBeInTheDocument();
         });
@@ -254,7 +254,7 @@ describe('PostBodyAdditionalContent', () => {
         };
 
         test('should render correctly', () => {
-            const {container} = render(<PostBodyAdditionalContent {...youtubeBaseProps}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...youtubeBaseProps}/>);
 
             expect(screen.getByTestId('youtube-video')).toBeInTheDocument();
             expect(container).toMatchSnapshot();
@@ -269,7 +269,7 @@ describe('PostBodyAdditionalContent', () => {
                 },
             };
 
-            const {container} = render(<PostBodyAdditionalContent {...props}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...props}/>);
 
             expect(container).toMatchSnapshot();
         });
@@ -280,7 +280,7 @@ describe('PostBodyAdditionalContent', () => {
                 isEmbedVisible: false,
             };
 
-            const {container} = render(<PostBodyAdditionalContent {...props}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...props}/>);
 
             expect(screen.queryByTestId('youtube-video')).not.toBeInTheDocument();
             expect(container).toMatchSnapshot();
@@ -320,7 +320,7 @@ describe('PostBodyAdditionalContent', () => {
                 ],
             };
 
-            const {container} = render(<PostBodyAdditionalContent {...props}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...props}/>);
             expect(screen.queryByTestId('embed-mp3')).not.toBeInTheDocument();
             expect(container).toMatchSnapshot();
         });
@@ -339,7 +339,7 @@ describe('PostBodyAdditionalContent', () => {
                 ],
             };
 
-            const {container} = render(<PostBodyAdditionalContent {...props}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...props}/>);
             expect(screen.getByTestId('embed-mp3')).toBeInTheDocument();
             expect(container.querySelector('button.post__embed-visibility')).toBeInTheDocument();
             expect(container).toMatchSnapshot();
@@ -359,7 +359,7 @@ describe('PostBodyAdditionalContent', () => {
                 ],
             };
 
-            const {container} = render(<PostBodyAdditionalContent {...props}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...props}/>);
             expect(screen.getByTestId('embed-mp3')).toBeInTheDocument();
             expect(container.querySelector('button.post__embed-visibility')).not.toBeInTheDocument();
             expect(container).toMatchSnapshot();
@@ -380,13 +380,16 @@ describe('PostBodyAdditionalContent', () => {
                 isEmbedVisible: false,
             };
 
-            const {container} = render(<PostBodyAdditionalContent {...props}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...props}/>);
             expect(screen.queryByTestId('embed-mp3')).not.toBeInTheDocument();
             expect(container).toMatchSnapshot();
         });
     });
 
-    test('should call toggleEmbedVisibility with post id', async () => {
+    test.each([
+        ['en', 'Toggle Embed Visibility'],
+        ['pt-BR', 'Alternar visibilidade do conteúdo incorporado'],
+    ])('should expose a localized embed toggle and toggle the post in %s', async (locale, label) => {
         const imageUrl = 'https://example.com/image.png';
         const props = {
             ...baseProps,
@@ -408,9 +411,12 @@ describe('PostBodyAdditionalContent', () => {
             },
         };
 
-        render(<PostBodyAdditionalContent {...props}/>);
+        renderWithContext(<PostBodyAdditionalContent {...props}/>, {}, {
+            locale,
+            intlMessages: {'accessibility.toggle_embed_visibility': label},
+        });
 
-        const toggleButton = screen.getByRole('button', {name: 'Toggle Embed Visibility'});
+        const toggleButton = screen.getByRole('button', {name: label});
         await userEvent.click(toggleButton);
 
         expect(baseProps.actions.toggleEmbedVisibility).toHaveBeenCalledTimes(1);
@@ -431,7 +437,7 @@ describe('PostBodyAdditionalContent', () => {
             },
         };
 
-        render(<PostBodyAdditionalContent {...props}/>);
+        renderWithContext(<PostBodyAdditionalContent {...props}/>);
 
         expect(getEmbedFromMetadata).toHaveBeenCalledWith(metadata);
     });
@@ -465,7 +471,7 @@ describe('PostBodyAdditionalContent', () => {
         };
 
         test('Render permalink preview', () => {
-            const {container} = render(<PostBodyAdditionalContent {...permalinkBaseProps}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...permalinkBaseProps}/>);
             expect(container).toMatchSnapshot();
         });
 
@@ -484,7 +490,7 @@ describe('PostBodyAdditionalContent', () => {
                 },
             };
 
-            const {container} = render(<PostBodyAdditionalContent {...props}/>);
+            const {container} = renderWithContext(<PostBodyAdditionalContent {...props}/>);
             expect(container).toMatchSnapshot();
         });
     });

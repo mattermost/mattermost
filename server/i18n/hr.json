@@ -3336,15 +3336,15 @@
     "translation": "Greška pri dohvaćanju pristupnog tokena iz baze podataka prije brisanja."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Registracija korisnika je isključena."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Poveznica za registraciju je istekla."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Čini se da poveznica za registraciju nije valjana."
   },
   {
@@ -3670,10 +3670,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
     "translation": "Nije moguće ažurirati objavu u ograničenom kanalu izravnih poruka."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Nije moguće pronaći postojeću objavu ili komentar za ažuriranje."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -4117,7 +4113,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Nije moguće ukloniti udaljeni server iz kanala"
+    "translation": "Nije moguće ukloniti udaljeni server iz kanala."
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -8820,11 +8816,11 @@
     "translation": "Brisanje objave trajne obavijesti nije uspjelo"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Nije moguće dohvatiti prioritet objave"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Nije moguće dohvatiti prioritet objave s kontekstom"
   },
   {
@@ -8856,7 +8852,7 @@
     "translation": "Došlo je do greške pri ažuriranju postavki."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Nije moguće raščlaniti verziju unaprijed zapakiranog dodatka."
   },
   {
@@ -11096,10 +11092,6 @@
     "translation": "Test LDAP veze nije uspio. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Greška: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Dohvaćanje CPA polja nije uspjelo"
-  },
-  {
     "id": "ent.ldap.create_fail",
     "translation": "Nije moguće stvoriti LDAP korisnika."
   },
@@ -11190,10 +11182,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Premašeno je ograničenje veličine. Pokušaj povećati postavku „Maksimalna veličina stranice”. Za više pojedinosti pogledaj https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Prazna vrijednost LDAP atributa"
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -11416,10 +11404,6 @@
     "translation": "SAML prijava nije uspjela jer odgovor pružatelja usluge identifikacije nije šifriran. Obrati se administratoru sustava."
   },
   {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Dohvaćanje CPA polja nije uspjelo"
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Od pružatelja usluge identifikacije primili smo prazan odgovor."
   },
@@ -11536,11 +11520,11 @@
     "translation": "Značajka {{.Feature}} nije dostupna uz trenutačnu licencu"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Nije moguće raščlaniti URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Nije moguće dohvatiti kanale."
   },
   {
@@ -14602,5 +14586,165 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Nije moguće pronaći korisnika {{.user}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NIJE PRONAĐENA**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "uklonjena"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` nije valjan `{{.Arg}}`"
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Funkcija Zdravlje sustava nije uključena."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Funkcija Zdravlje sustava zahtijeva Enterprise licencu."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Nije moguće premjestiti se na početak datoteke."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Nije moguće dohvatiti nalaz zdravlja sustava."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Nalaz zdravlja sustava nije pronađen."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Nije moguće dohvatiti nalaze zdravlja sustava."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Atribut se više ne sinkronizira iz ovog izvora, pa ga sinkronizacija ne može promijeniti."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Opcijama atributa koji se sinkronizira iz AD/LDAP-a ili SAML-a upravlja sinkronizacija i one se ne mogu dodavati, preimenovati ni uklanjati."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Sinkronizirani atribut ima nevaljane opcije."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Nevaljan izvor sinkronizacije svojstava."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Nevaljan ID korisnika za sinkronizaciju svojstava."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Nije moguće utvrditi koje se opcije sinkroniziranog atributa koriste."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Konfiguracija zapisivanja sadrži putanju datoteke zapisnika ili revizijskog zapisnika izvan korijenskog direktorija za zapisnike. Pojedinosti potraži u zapisnicima servera."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Vrijeme prikupljanja podataka nije poznato."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Odjeljak konfiguracije nije dostupan."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Dijagnostika servera nije dostupna."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Povijest zadataka nije dostupna."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Pojedinosti licence nisu dostupne."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Popis dodataka nije dostupan."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Pravilo je neočekivano zakazalo i nije se moglo izvršiti."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Statistika korištenja nije dostupna."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} koristi http://, pa se push obavijesti šalju nešifrirano."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} ima nevaljanu shemu URL-a. Korisnici mobilnih uređaja neće primati obavijesti."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Dodaj prefiks https:// vrijednosti PushNotificationServer i provjeri je li server dostupan s aplikacijskog čvora."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer ne koristi https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Svaki pokušaj slanja push obavijesti završit će greškom „unsupported protocol scheme”."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Postavi PushNotificationServer na https://push.mattermost.com ili na vlastiti push proxy."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Push obavijesti su uključene, ali PushNotificationServer je prazan"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com je testni Mattermost push proxy. Nema SLA, ima ograničenu propusnost i nije namijenjen produkcijskoj upotrebi. Isporuka mobilnih push obavijesti bit će nepouzdana za sve osim testiranja malog opsega."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Prijeđi na https://push.mattermost.com (produkcijsku uslugu Hosted Push Notification Service koja je uključena u Enterprise) ili na vlastiti push proxy."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer upućuje na push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL je potreban za URL-ove webhookova, OAuth povratne pozive, sadržaj mobilnih push obavijesti i poveznice u e-mailovima. Integracije ne rade dok je prazan."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Postavi SiteURL na javni HTTPS URL servera."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL je prazan"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL je {{.url}}. Kolačići sesije i tokeni za autentifikaciju prenose se nešifrirano."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Poslužuj Mattermost putem HTTPS-a i ažuriraj SiteURL na adresu s https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL koristi http:// (ne https://)"
   }
 ]
