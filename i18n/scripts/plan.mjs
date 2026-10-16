@@ -11,8 +11,9 @@
 // leaves --upstream. apply.mjs records it as the new baseline for every locale
 // it brings up to date.
 //
-// Exits 1, writing no worklists, when a worklist key has no description (they
-// are listed in <workdir>/undescribed.json) or when the gap is unusually large.
+// Exits 1, writing no plan or worklists, when a worklist key has no description
+// (they are listed in <workdir>/undescribed.json) or when the gap is unusually
+// large.
 import fs from 'fs';
 import path from 'path';
 import {parseArgs} from 'util';
@@ -92,8 +93,7 @@ const p = paths(workdir);
 fs.mkdirSync(workdir, {recursive: true});
 fs.rmSync(p.worklists, {recursive: true, force: true});
 fs.rmSync(p.undescribed, {force: true});
-
-writeJSON(p.plan, {version: PLAN_VERSION, root, upstream: baseArg ? null : upstream, ...plan, digest: digest(tree), maxRepairs});
+fs.rmSync(p.plan, {force: true});
 
 const strings = {webapp: {}, server: {}};
 for (const [surface, {locales}] of Object.entries(plan.surfaces)) {
@@ -129,6 +129,7 @@ if (plan.unusual.length && !acceptUnusual) {
     console.error(`\nunusual, so no worklists were written:\n  ${plan.unusual.join('\n  ')}\nfind out why before translating; --accept-unusual if it is expected`);
     process.exit(1);
 }
+writeJSON(p.plan, {version: PLAN_VERSION, root, upstream: baseArg ? null : upstream, ...plan, digest: digest(tree), maxRepairs});
 
 // Hints for each item, gathered from the locale's own catalog, so a translator
 // can match what the product already says without searching for it:
