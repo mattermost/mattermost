@@ -1282,7 +1282,7 @@
   "admin.elasticsearch.usernameDescription": "(선택) Elasticsearch 서버 인증을 위한 비밀번호입니다.",
   "admin.elasticsearch.usernameExample": "예시: \"elastic\"",
   "admin.elasticsearch.usernameTitle": "서버 사용자명:",
-  "admin.email.agreeHPNS": " 나는 Mattermost에서 호스트하는 푸쉬 알림 <linkTerms>서비스 약관</linkTerms> 및 <linkPrivacy>개인 정보 보호 정책</linkPrivacy>을 이해하고 동의합니다.",
+  "admin.email.agreeHPNS": " 나는 Mattermost Hosted Push Notification Service의 <linkTerms>서비스 약관</linkTerms> 및 <linkPrivacy>개인 정보 보호 정책</linkPrivacy>을 이해하고 동의합니다.",
   "admin.email.allowEmailSignInDescription": "활성화 시, Mattermost는 사용자들이 그들의 전자우편과 비밀번호로 로그인할 수 있게 합니다.",
   "admin.email.allowEmailSignInTitle": "전자우편으로 로그인하기: ",
   "admin.email.allowSignupDescription": "이 설정이 활성화되면, Mattermost는 전자우편 주소와 비밀번호로 계정을 만들 수 있게 됩니다. AD/LDAP, SAML 혹은 GitLab과 같은 통합 인증을 통해서만 가입할 수 있게 하려면 비활성화해야 합니다.",

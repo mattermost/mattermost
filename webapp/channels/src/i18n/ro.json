@@ -1282,7 +1282,7 @@
   "admin.elasticsearch.usernameDescription": "(Opțional) Numele de utilizator pentru a vă autentifica pe serverul Elasticsearch.",
   "admin.elasticsearch.usernameExample": "De exemplu: \"elastic\"",
   "admin.elasticsearch.usernameTitle": "Nume utilizator:",
-  "admin.email.agreeHPNS": " Am înțeleagă și să accepte Mattermost Găzduit Serviciu de Notificare Împinge <linkTerms>Condiții de utilizare</linkTerms> și <linkPrivacy>Politica de Confidențialitate</linkPrivacy>.",
+  "admin.email.agreeHPNS": " Am înțeles și accept <linkTerms>Condițiile de utilizare</linkTerms> și <linkPrivacy>Politica de confidențialitate</linkPrivacy> ale serviciului Mattermost Hosted Push Notification Service.",
   "admin.email.allowEmailSignInDescription": "Când este adevărat, Mattermost le permite utilizatorilor să se conecteze utilizând e-mailul și parola.",
   "admin.email.allowEmailSignInTitle": "Activați conectarea prin e-mail: ",
   "admin.email.allowSignupDescription": "Când este adevărat, Mattermost permite crearea de cont utilizând e-mail și parolă. Această valoare ar trebui să fie falsă numai atunci când doriți să limitați înscrierea la un singur serviciu de conectare, cum ar fi AD/LDAP, SAML sau GitLab.",

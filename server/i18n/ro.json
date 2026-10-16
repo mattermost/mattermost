@@ -14713,7 +14713,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Treceți la https://push.mattermost.com (Hosted Push Notification Service de producție, inclus în Enterprise) sau la un proxy push auto-găzduit."
+    "translation": "Treceți la https://push.mattermost.com (serviciul Hosted Push Notification Service de producție, inclus în Enterprise) sau la un proxy push auto-găzduit."
   },
   {
     "id": "health.rule.push_test_proxy.title",

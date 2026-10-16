@@ -1282,7 +1282,7 @@
   "admin.elasticsearch.usernameDescription": "(İsteğe bağlı) Elasticsearch sunucusunda kimlik doğrulaması için kullanılacak kullanıcı adı.",
   "admin.elasticsearch.usernameExample": "Örnek: \"elastic\"",
   "admin.elasticsearch.usernameTitle": "Sunucu kullanıcı adı:",
-  "admin.email.agreeHPNS": " Mattermost tarafından sunulan anında bildirim hizmetinin <linkTerms>hizmet koşullarını</linkTerms> ve <linkPrivacy>kişisel verilerin gizliliği ilkesini</linkPrivacy> okudum ve onaylıyorum.",
+  "admin.email.agreeHPNS": " Mattermost barındırılan anında bildirim hizmetinin <linkTerms>hizmet koşullarını</linkTerms> ve <linkPrivacy>kişisel verilerin gizliliği ilkesini</linkPrivacy> okudum ve onaylıyorum.",
   "admin.email.allowEmailSignInDescription": "Açıldığında, kullanıcılar e-posta adresi ve parola ile Mattermost oturumu açabilir.",
   "admin.email.allowEmailSignInTitle": "E-posta adresi ile oturum açılabilsin:",
   "admin.email.allowSignupDescription": "Açıldığında, kullanıcılar Mattermost üzerinde e-posta adresi ve parola kullanarak hesap açabilir. Hesap açma işlemlerini AD/LDAP, SAML ya da GitLab gibi bir tek oturum açma hizmeti ile sınırlamak istiyorsanız bu seçeneği kapatın.",
