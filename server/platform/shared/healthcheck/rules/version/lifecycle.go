@@ -99,26 +99,23 @@ func (a assessment) ended() bool {
 }
 
 // assess returns the subject for every result and, when the version cannot be placed, the
-// reason to report it as unknown. Dates come from CollectedAt so a packet read later reports
-// what was true when it was collected.
-func assess(table []model.ReleaseLifecycle, s *healthcheck.Snapshot) (a assessment, subject, reasonID string) {
+// reason to report it as unknown. Support is judged at now, not when the snapshot was
+// collected: an old packet reports whether its version is supported today.
+func assess(table []model.ReleaseLifecycle, s *healthcheck.Snapshot, now time.Time) (a assessment, subject, reasonID string) {
 	v, ok := parseLine(s.Version.Current)
 	if !ok {
 		return a, "", reasonVersionUnknown
 	}
 
 	running, belowFloor, ok := lookup(table, s.Version.Current)
-	switch {
-	case !ok:
+	if !ok {
 		return a, v.String(), reasonLineUnknown
-	case s.CollectedAt.IsZero():
-		return a, v.String(), healthcheck.ReasonCollectedAtUnknown
 	}
 
 	return assessment{
 		version:    v,
 		running:    running,
 		belowFloor: belowFloor,
-		pastEOL:    !belowFloor && !s.CollectedAt.Before(running.EOLDate),
+		pastEOL:    !belowFloor && !now.Before(running.EOLDate),
 	}, v.String(), ""
 }

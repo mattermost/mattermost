@@ -32,7 +32,7 @@ const (
 	pushSubject    = "EmailSettings.PushNotificationServer"
 	siteURLSubject = "ServiceSettings.SiteURL"
 
-	// The fixtures run 11.0, which had ended when they were collected.
+	// The fixtures run 11.0, which has ended.
 	versionSubject = "11.0"
 )
 

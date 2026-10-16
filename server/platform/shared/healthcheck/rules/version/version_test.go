@@ -21,7 +21,7 @@ func date(year int, month time.Month, d int) time.Time {
 }
 
 var (
-	collectedAt = date(2026, time.September, 25)
+	evaluatedAt = date(2026, time.September, 25)
 
 	reg106EOL  = date(2025, time.June, 15)
 	esr105EOL  = date(2026, time.March, 15)
@@ -44,11 +44,14 @@ var stubTable = []model.ReleaseLifecycle{
 	{MajorMinor: "10.5", EOLDate: esr105EOL, ESR: true},
 }
 
-var stubRules = map[string]func(*healthcheck.Snapshot) []healthcheck.Result{
-	"VERSION_EOL":          evalVersionEOL(stubTable),
-	"VERSION_ESR_NEAR_EOL": evalVersionESRNearEOL(stubTable),
-	"VERSION_BEHIND_ONE":   evalBehind(stubTable, behindOneMessage, isOneBehind),
-	"VERSION_BEHIND":       evalBehind(stubTable, behindMessage, isSeveralBehind),
+func stubRules(now time.Time) map[string]func(*healthcheck.Snapshot) []healthcheck.Result {
+	clock := func() time.Time { return now }
+	return map[string]func(*healthcheck.Snapshot) []healthcheck.Result{
+		"VERSION_EOL":          evalVersionEOL(stubTable, clock),
+		"VERSION_ESR_NEAR_EOL": evalVersionESRNearEOL(stubTable, clock),
+		"VERSION_BEHIND_ONE":   evalBehind(stubTable, clock, behindOneMessage, isOneBehind),
+		"VERSION_BEHIND":       evalBehind(stubTable, clock, behindMessage, isSeveralBehind),
+	}
 }
 
 const (
@@ -57,15 +60,7 @@ const (
 )
 
 func newSnapshot(current, latest string) *healthcheck.Snapshot {
-	return &healthcheck.Snapshot{
-		CollectedAt: collectedAt,
-		Version:     healthcheck.VersionInfo{Current: current, Latest: latest},
-	}
-}
-
-func at(s *healthcheck.Snapshot, collected time.Time) *healthcheck.Snapshot {
-	s.CollectedAt = collected
-	return s
+	return &healthcheck.Snapshot{Version: healthcheck.VersionInfo{Current: current, Latest: latest}}
 }
 
 type want struct {
@@ -81,7 +76,7 @@ func unknown(reasonID string) want { return want{state: healthcheck.StateUnknown
 
 func allCodes(w want) map[string]want {
 	wants := map[string]want{}
-	for code := range stubRules {
+	for code := range stubRules(evaluatedAt) {
 		wants[code] = w
 	}
 	return wants
@@ -110,8 +105,10 @@ func behindBy(version, latest string, n int) map[string]want {
 type ruleCase struct {
 	name     string
 	snapshot *healthcheck.Snapshot
-	subject  string
-	want     map[string]want
+	// now defaults to evaluatedAt.
+	now     time.Time
+	subject string
+	want    map[string]want
 }
 
 func runCases(t *testing.T, testCases []ruleCase) {
@@ -121,7 +118,11 @@ func runCases(t *testing.T, testCases []ruleCase) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			for code, eval := range stubRules {
+			now := tc.now
+			if now.IsZero() {
+				now = evaluatedAt
+			}
+			for code, eval := range stubRules(now) {
 				w, ok := tc.want[code]
 				require.True(t, ok, "no expectation for %s", code)
 
@@ -207,7 +208,19 @@ func TestEOLRules(t *testing.T) {
 		},
 		{
 			name:     "regular release on its EOL date",
-			snapshot: at(newSnapshot("11.9.0", "11.11.1"), reg119EOL),
+			snapshot: newSnapshot("11.9.0", "11.11.1"),
+			now:      reg119EOL,
+			subject:  "11.9",
+			want: with(allCodes(resolved), "VERSION_EOL", want{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.version_eol.message",
+				details:   map[string]string{"version": "11.9.0", "eol_date": "2026-10-15"},
+			}),
+		},
+		{
+			name:     "collected while supported, evaluated after its EOL date",
+			snapshot: &healthcheck.Snapshot{CollectedAt: reg119EOL.Add(-30 * day), Version: healthcheck.VersionInfo{Current: "11.9.0"}},
+			now:      reg119EOL.Add(day),
 			subject:  "11.9",
 			want: with(allCodes(resolved), "VERSION_EOL", want{
 				state:     healthcheck.StateFiring,
@@ -217,7 +230,8 @@ func TestEOLRules(t *testing.T) {
 		},
 		{
 			name:     "regular release the day before its EOL date",
-			snapshot: at(newSnapshot("11.9.0", "11.11.1"), reg119EOL.Add(-day)),
+			snapshot: newSnapshot("11.9.0", "11.11.1"),
+			now:      reg119EOL.Add(-day),
 			subject:  "11.9",
 			want:     behindBy("11.9.0", "11.11.1", 2),
 		},
@@ -243,7 +257,8 @@ func TestEOLRules(t *testing.T) {
 		},
 		{
 			name:     "below the floor with no supported ESR left",
-			snapshot: at(newSnapshot("9.11.0", ""), date(2028, time.January, 1)),
+			snapshot: newSnapshot("9.11.0", ""),
+			now:      date(2028, time.January, 1),
 			subject:  "9.11",
 			want: with(allCodes(resolved), "VERSION_EOL", want{
 				state:     healthcheck.StateFiring,
@@ -253,7 +268,8 @@ func TestEOLRules(t *testing.T) {
 		},
 		{
 			name:     "no supported ESR left to move to",
-			snapshot: at(newSnapshot("11.9.0", ""), date(2028, time.January, 1)),
+			snapshot: newSnapshot("11.9.0", ""),
+			now:      date(2028, time.January, 1),
 			subject:  "11.9",
 			want: with(allCodes(resolved), "VERSION_EOL", want{
 				state:     healthcheck.StateFiring,
@@ -282,7 +298,8 @@ func TestESRNearEOL(t *testing.T) {
 	runCases(t, []ruleCase{
 		{
 			name:     "ESR 89 days before EOL",
-			snapshot: at(newSnapshot("10.11.4", "12.0.0"), esr1011EOL.Add(-89*day)),
+			snapshot: newSnapshot("10.11.4", "12.0.0"),
+			now:      esr1011EOL.Add(-89 * day),
 			subject:  "10.11",
 			want: with(allCodes(resolved), "VERSION_ESR_NEAR_EOL", want{
 				state:     healthcheck.StateFiring,
@@ -293,19 +310,22 @@ func TestESRNearEOL(t *testing.T) {
 		},
 		{
 			name:     "ESR 91 days before EOL",
-			snapshot: at(newSnapshot("10.11.4", "12.0.0"), esr1011EOL.Add(-91*day)),
+			snapshot: newSnapshot("10.11.4", "12.0.0"),
+			now:      esr1011EOL.Add(-91 * day),
 			subject:  "10.11",
 			want:     allCodes(resolved),
 		},
 		{
 			name:     "regular release 30 days before its EOL",
-			snapshot: at(newSnapshot("11.9.0", "12.0.0"), reg119EOL.Add(-30*day)),
+			snapshot: newSnapshot("11.9.0", "12.0.0"),
+			now:      reg119EOL.Add(-30 * day),
 			subject:  "11.9",
 			want:     behindBy("11.9.0", "12.0.0", 3),
 		},
 		{
 			name:     "ESR on its EOL date is past it, not near it",
-			snapshot: at(newSnapshot("10.11.4", "12.0.0"), esr1011EOL),
+			snapshot: newSnapshot("10.11.4", "12.0.0"),
+			now:      esr1011EOL,
 			subject:  "10.11",
 			want: with(allCodes(resolved), "VERSION_EOL", want{
 				state:     healthcheck.StateFiring,
@@ -435,36 +455,5 @@ func TestUnknownVersion(t *testing.T) {
 			snapshot: newSnapshot("", "12.0.0"),
 			want:     allCodes(unknown(reasonVersionUnknown)),
 		},
-		{
-			name:     "collection time unknown",
-			snapshot: &healthcheck.Snapshot{Version: healthcheck.VersionInfo{Current: "10.4.2", Latest: "12.0.0"}},
-			subject:  "10.4",
-			want:     allCodes(unknown(healthcheck.ReasonCollectedAtUnknown)),
-		},
 	})
-}
-
-func TestDatesComeFromCollectedAt(t *testing.T) {
-	t.Parallel()
-
-	registry := healthcheck.NewRegistry()
-	for code, eval := range stubRules {
-		registry.Register(healthcheck.Rule{Code: code, Eval: eval})
-	}
-	engine := healthcheck.NewEngine(healthcheck.EngineOpts{
-		Registry: registry,
-		Now:      func() time.Time { return reg106EOL.Add(365 * day) },
-	})
-
-	s := at(newSnapshot("10.6.3", ""), reg106EOL.Add(-day))
-
-	evaluations := engine.Evaluate(s)
-	require.Len(t, evaluations, len(stubRules))
-	for _, evaluation := range evaluations {
-		if evaluation.Code == "VERSION_BEHIND_ONE" || evaluation.Code == "VERSION_BEHIND" {
-			assert.Equal(t, healthcheck.StateUnknown, evaluation.Result.State, evaluation.Code)
-			continue
-		}
-		assert.Equal(t, healthcheck.StateResolved, evaluation.Result.State, evaluation.Code)
-	}
 }

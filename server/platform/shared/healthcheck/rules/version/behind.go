@@ -4,6 +4,8 @@
 package version
 
 import (
+	"time"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
@@ -19,7 +21,7 @@ var behindOne = healthcheck.Rule{
 	},
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityFeed,
-	Eval:       evalBehind(model.ReleaseLifecycles(), healthcheck.TranslationId("health.rule.version_behind_one.message"), isOneBehind),
+	Eval:       evalBehind(model.ReleaseLifecycles(), time.Now, healthcheck.TranslationId("health.rule.version_behind_one.message"), isOneBehind),
 }
 
 var behind = healthcheck.Rule{
@@ -33,7 +35,7 @@ var behind = healthcheck.Rule{
 	},
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityFeed,
-	Eval:       evalBehind(model.ReleaseLifecycles(), healthcheck.TranslationId("health.rule.version_behind.message"), isSeveralBehind),
+	Eval:       evalBehind(model.ReleaseLifecycles(), time.Now, healthcheck.TranslationId("health.rule.version_behind.message"), isSeveralBehind),
 }
 
 func isOneBehind(n int) bool { return n == 1 }
@@ -76,9 +78,9 @@ func releasesBehind(table []model.ReleaseLifecycle, running, latest line) int {
 // evalBehind applies only to regular releases that are still supported, before reading the
 // feed: ESR customers are not expected to track the latest release, and an ended line gets an
 // EOL finding instead.
-func evalBehind(table []model.ReleaseLifecycle, messageID string, fires func(n int) bool) func(*healthcheck.Snapshot) []healthcheck.Result {
+func evalBehind(table []model.ReleaseLifecycle, now func() time.Time, messageID string, fires func(n int) bool) func(*healthcheck.Snapshot) []healthcheck.Result {
 	return func(s *healthcheck.Snapshot) []healthcheck.Result {
-		a, subject, reasonID := assess(table, s)
+		a, subject, reasonID := assess(table, s, now())
 		switch {
 		case reasonID != "":
 			return []healthcheck.Result{healthcheck.UnknownSubject(subject, reasonID)}

@@ -11,8 +11,7 @@ import (
 // ReleaseLifecycle classifies one release line.
 type ReleaseLifecycle struct {
 	MajorMinor string
-	// EOLDate is the day support for this line ends, for regular releases and ESRs alike.
-	// Patches shipped after it for customers who have not upgraded do not move it.
+	// EOLDate is the day support for this line ends.
 	EOLDate time.Time
 	ESR     bool
 }
@@ -26,7 +25,7 @@ func eolDate(year int, month time.Month, day int) time.Time {
 // added to versions.
 // Source: https://docs.mattermost.com/product-overview/mattermost-server-releases.html
 var releaseLifecycles = []ReleaseLifecycle{
-	{MajorMinor: "12.1", EOLDate: eolDate(2027, time.February, 15)}, // Forecast: not on the releases page yet.
+	{MajorMinor: "12.1", EOLDate: eolDate(2027, time.February, 15)},
 	{MajorMinor: "12.0", EOLDate: eolDate(2027, time.January, 15)},
 	{MajorMinor: "11.11", EOLDate: eolDate(2026, time.December, 15)},
 	{MajorMinor: "11.10", EOLDate: eolDate(2026, time.November, 15)},
