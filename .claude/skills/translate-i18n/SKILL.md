@@ -58,12 +58,22 @@ It stops, writing no plan, in two cases:
 ## 2. Descriptions
 
 A translator cannot render `Select` or `No recent session` without knowing
-where it appears. Fill every key in `undescribed.json` by spawning agents over
-chunks of about 100 keys. Instruct each to find the call site in source, and to
-write where the string appears, what each placeholder refers to, and whatever
+where it appears. Describe every key in `undescribed.json` by spawning agents
+over chunks of about 100 keys. Instruct each to find the call site in source, and
+to write where the string appears, what each placeholder refers to, and whatever
 disambiguates it: noun or verb, title or body, admin or end user. It must not
 restate the English. [`i18n/AGENTS.md`](../../../i18n/AGENTS.md#before-translating-the-english)
-has the rules and says which file each surface's description goes in.
+has the rules.
+
+Have each agent return the descriptions in the shape of `undescribed.json`, and
+write them all at once:
+
+```bash
+node i18n/scripts/describe.mjs /tmp/i18n-run/descriptions.json
+```
+
+It fills only empty descriptions, the one change a run may make to `en.json`,
+and writes nothing if any entry is refused. Do not edit `en.json` by hand.
 
 This step reliably finds defects in the English: hardcoded constants, wrong
 prepositions, typos. A run never changes the English. Record each defect for
@@ -82,7 +92,8 @@ produces one term per locale, each defensible, and nothing notices.
 A run adds terms and never edits existing ones. Check the files with
 `node i18n/scripts/check_glossary.mjs`, commit the additions on their own, and
 list each new term in the PR. Plan again afterwards, so the worklists carry the
-new terms.
+new terms. Validation and CI still judge the run by the glossary as of its
+base, so a term it adds cannot exempt its own translations from a check.
 
 ## 4. Translate: one agent per locale
 
