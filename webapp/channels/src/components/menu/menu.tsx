@@ -11,9 +11,12 @@ import React, {
     useCallback,
 } from 'react';
 import type {
+    ButtonHTMLAttributes,
+    ComponentType,
     ReactNode,
     MouseEvent,
     KeyboardEvent,
+    Ref,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -39,6 +42,11 @@ export const ELEMENT_ID_FOR_MENU_BACKDROP = 'backdropForMenuComponent';
 const MENU_OPEN_ANIMATION_DURATION = 150;
 export const MENU_CLOSE_ANIMATION_DURATION = 100;
 
+export type MenuButtonComponentProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+    ref: Ref<HTMLButtonElement>;
+    'data-testid'?: string;
+};
+
 type MenuButtonProps = {
     id: string;
     dataTestId?: string;
@@ -46,8 +54,8 @@ type MenuButtonProps = {
     'aria-describedby'?: string;
     disabled?: boolean;
     class?: string;
-    as?: 'button' | 'div';
-    children: ReactNode;
+    as?: 'button' | 'div' | ComponentType<MenuButtonComponentProps>;
+    children?: ReactNode;
 
     /**
      * Opt-in passthrough for callers that need to inspect or adjust the

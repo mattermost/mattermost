@@ -11,6 +11,8 @@ Synopsis
 
 Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.
 
+With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.
+
 ::
 
   mmctl health check [flags]
@@ -22,6 +24,7 @@ Examples
 
     health check
     health check --include-resolved --include-muted
+    health check --packet mm_support_packet.zip
 
 Options
 ~~~~~~~
@@ -31,6 +34,7 @@ Options
   -h, --help               help for check
       --include-muted      Include muted findings
       --include-resolved   Include resolved findings
+      --packet string      Path to a Support Packet zip to evaluate offline, without a server
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

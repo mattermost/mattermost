@@ -135,8 +135,10 @@ Opening a branch and PR needs a GitHub App (`DOCS_AI_APP_CLIENT_ID` /
 `DOCS_AI_APP_PRIVATE_KEY`). The default `GITHUB_TOKEN` cannot push under org policy, and
 PRs it opens would not re-trigger `docs-review.yml`. Soft-skip when unset.
 
-The milestone on the merged PR is mandatory: it is the only source of the
-`From Mattermost vX.Y` version anchor.
+When the merged PR has a milestone whose title contains `vMAJOR.MINOR`, that is the
+`From Mattermost vX.Y` version anchor. With no milestone, or a title that does not
+parse, the draft still opens and uses
+`From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT]` for a human to replace.
 
 `docs-writer-merged-pr.yml`'s sync job also needs `DOCS_AI_BOT_LOGIN` (the App's
 `{slug}[bot]` login). Label flips run only when the closed PR's head repo is this
@@ -168,4 +170,5 @@ unbounded monorepo diff out of the workflow's expression context.
 Model output is untrusted on the way back out. `clampResult()` strips HTML comment
 delimiters from every string before it reaches a comment — without that, a summary could
 forge the `docs-gap-state` block the next run reads. The writer aborts when it sees no
-`path=` blocks or when a milestone was set and a page lacks a version anchor.
+`path=` blocks or when a page lacks its version anchor (the milestone version, or the
+human-judgment phrase when no milestone version was supplied).

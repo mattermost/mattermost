@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -282,32 +283,30 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                         />
                     </label>
                     <div className='col-md-5 col-sm-8'>
-                        <label className='radio-inline'>
-                            <input
-                                type='radio'
+                        <div className='backstage-form__radio-group-inline'>
+                            <Radio
                                 value='true'
                                 name='is_trusted'
                                 checked={this.state.is_trusted}
                                 onChange={this.updateTrusted}
-                            />
-                            <FormattedMessage
-                                id='installed_oauth_apps.trusted.yes'
-                                defaultMessage='Yes'
-                            />
-                        </label>
-                        <label className='radio-inline'>
-                            <input
-                                type='radio'
+                            >
+                                <FormattedMessage
+                                    id='installed_oauth_apps.trusted.yes'
+                                    defaultMessage='Yes'
+                                />
+                            </Radio>
+                            <Radio
                                 value='false'
                                 name='is_trusted'
                                 checked={!this.state.is_trusted}
                                 onChange={this.updateTrusted}
-                            />
-                            <FormattedMessage
-                                id='installed_oauth_apps.trusted.no'
-                                defaultMessage='No'
-                            />
-                        </label>
+                            >
+                                <FormattedMessage
+                                    id='installed_oauth_apps.trusted.no'
+                                    defaultMessage='No'
+                                />
+                            </Radio>
+                        </div>
                         <div className='form__help'>
                             <FormattedMessage
                                 id='add_oauth_app.trusted.help'
@@ -332,34 +331,32 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                     />
                 </label>
                 <div className='col-md-5 col-sm-8'>
-                    <label className='radio-inline'>
-                        <input
-                            type='radio'
+                    <div className='backstage-form__radio-group-inline'>
+                        <Radio
                             value='true'
                             name='is_public'
                             checked={this.state.is_public}
                             onChange={this.updatePublic}
                             disabled={isEditing}
-                        />
-                        <FormattedMessage
-                            id='installed_oauth_apps.public.yes'
-                            defaultMessage='Yes'
-                        />
-                    </label>
-                    <label className='radio-inline'>
-                        <input
-                            type='radio'
+                        >
+                            <FormattedMessage
+                                id='installed_oauth_apps.public.yes'
+                                defaultMessage='Yes'
+                            />
+                        </Radio>
+                        <Radio
                             value='false'
                             name='is_public'
                             checked={!this.state.is_public}
                             onChange={this.updatePublic}
                             disabled={isEditing}
-                        />
-                        <FormattedMessage
-                            id='installed_oauth_apps.public.no'
-                            defaultMessage='No'
-                        />
-                    </label>
+                        >
+                            <FormattedMessage
+                                id='installed_oauth_apps.public.no'
+                                defaultMessage='No'
+                            />
+                        </Radio>
+                    </div>
                     <div className='form__help'>
                         <FormattedMessage
                             id='add_oauth_app.public.help'

@@ -32,10 +32,11 @@ var pushEmptyURL = healthcheck.Rule{
 		DocsURL:       pushDocsURL,
 		ConsolePath:   pushConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    pushSubject,
-	Eval:       evalPushEmptyURL,
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        pushSubject,
+	Eval:           evalPushEmptyURL,
 }
 
 var pushBadScheme = healthcheck.Rule{
@@ -48,10 +49,11 @@ var pushBadScheme = healthcheck.Rule{
 		DocsURL:       pushDocsURL,
 		ConsolePath:   pushConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    pushSubject,
-	Eval:       evalPushBadScheme,
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        pushSubject,
+	Eval:           evalPushBadScheme,
 }
 
 var pushTestProxy = healthcheck.Rule{
@@ -64,10 +66,11 @@ var pushTestProxy = healthcheck.Rule{
 		DocsURL:       pushDocsURL,
 		ConsolePath:   pushConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    pushSubject,
-	Eval:       evalPushTestProxy,
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        pushSubject,
+	Eval:           evalPushTestProxy,
 }
 
 // pushServer returns the configured push server, with enabled=false when push is off.

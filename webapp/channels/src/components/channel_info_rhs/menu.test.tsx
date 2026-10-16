@@ -121,6 +121,7 @@ describe('channel_info_rhs/menu', () => {
             <Menu
                 {...props}
             />,
+            {entities: {general: {config: {EnableFileAttachments: 'true', EnableFileSearch: 'true'}}}},
         );
 
         await act(async () => {
@@ -133,6 +134,36 @@ describe('channel_info_rhs/menu', () => {
 
         await userEvent.click(fileItem);
         expect(props.actions.showChannelFiles).toHaveBeenCalled();
+    });
+
+    test('should NOT display files when file search is disabled', async () => {
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+            {entities: {general: {config: {EnableFileAttachments: 'true', EnableFileSearch: 'false'}}}},
+        );
+
+        await act(async () => {
+            defaultProps.actions.getChannelStats();
+        });
+
+        expect(screen.queryByText('Files')).not.toBeInTheDocument();
+    });
+
+    test('should NOT display files when file attachments are disabled', async () => {
+        renderWithContext(
+            <Menu
+                {...defaultProps}
+            />,
+            {entities: {general: {config: {EnableFileAttachments: 'false', EnableFileSearch: 'true'}}}},
+        );
+
+        await act(async () => {
+            defaultProps.actions.getChannelStats();
+        });
+
+        expect(screen.queryByText('Files')).not.toBeInTheDocument();
     });
 
     test('should display the pinned messages', async () => {

@@ -155,6 +155,11 @@ test.describe('Post list initial scroll in unread channel', () => {
                 });
                 const permalink = await permalinkUrl(userClient, team.name, linkedPost.id);
 
+                // The server only builds permalink previews for links under its own SiteURL, which
+                // can differ from testConfig.internalBaseURL on a server shared with other specs.
+                const {ServiceSettings} = await adminClient.getConfig();
+                const permalink = `${ServiceSettings.SiteURL}/${team.name}/pl/${linkedPost.id}`;
+
                 for (let i = 0; i < 80; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
