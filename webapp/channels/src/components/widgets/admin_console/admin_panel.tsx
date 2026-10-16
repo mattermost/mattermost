@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminPanel as CompassAdminPanel} from '@mattermost/compass-ui/components/admin-panel';
 import classNames from 'classnames';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
+
+import {AdminPanel as CompassAdminPanel} from '@mattermost/compass-ui/components/admin-panel';
 
 import './admin_panel.scss';
 
