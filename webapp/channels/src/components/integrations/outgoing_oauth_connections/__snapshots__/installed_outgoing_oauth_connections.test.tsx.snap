@@ -93,7 +93,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
       >
         0 - 0 of 0
         <button
-          aria-label="Previous"
+          aria-label="Previous page"
           class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 ml-2 prev"
           disabled=""
           type="button"
@@ -126,7 +126,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
           </span>
         </button>
         <button
-          aria-label="Next"
+          aria-label="Next page"
           class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 next"
           disabled=""
           type="button"

@@ -352,7 +352,7 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
       >
         1 - 2 of 2
         <button
-          aria-label="Previous"
+          aria-label="Previous page"
           class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 ml-2 prev"
           disabled=""
           type="button"
@@ -385,7 +385,7 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
           </span>
         </button>
         <button
-          aria-label="Next"
+          aria-label="Next page"
           class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 next"
           disabled=""
           type="button"
