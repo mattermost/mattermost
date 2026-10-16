@@ -70,10 +70,10 @@ func TestVersionSkew(t *testing.T) {
 		{
 			name:     "one node behind",
 			snapshot: configSnapshot(clusterOn, liveNodes("10.5.0.1", "10.4.0.1", "10.5.0.1")...),
-			global:   firing(skewMessage, map[string]string{"versions": "10.4.0.1, 10.5.0.1"}),
+			global:   firing(skewMessage, map[string]string{"versions": "10.4.0, 10.5.0"}),
 			nodes: []want{
 				resolved,
-				firing(skewNodeMessage, map[string]string{"version": "10.4.0.1", "majority": "10.5.0.1"}),
+				firing(skewNodeMessage, map[string]string{"version": "10.4.0", "majority": "10.5.0"}),
 				resolved,
 			},
 		},
@@ -92,7 +92,7 @@ func TestVersionSkew(t *testing.T) {
 		{
 			name:     "two nodes on two versions have no majority",
 			snapshot: configSnapshot(clusterOn, liveNodes("10.5.0.1", "10.4.0.1")...),
-			global:   firing(skewMessage, map[string]string{"versions": "10.4.0.1, 10.5.0.1"}),
+			global:   firing(skewMessage, map[string]string{"versions": "10.4.0, 10.5.0"}),
 			nodes: []want{
 				{state: healthcheck.StateUnknown, messageID: skewNoMajorityMessage},
 				{state: healthcheck.StateUnknown, messageID: skewNoMajorityMessage},
@@ -158,24 +158,25 @@ func TestVersionSkewFingerprints(t *testing.T) {
 func TestVersionSkewLiveOfflineParity(t *testing.T) {
 	t.Parallel()
 
-	for _, versions := range [][]string{
-		{"11.1.0", "11.1.0", "11.1.0"},
-		{"11.1.0", "11.0.4", "11.1.0"},
-	} {
-		live := evaluateSkew(configSnapshot(haEnabled, liveNodes(versions...)...))
-		offline := evaluateSkew(configSnapshot(haEnabled, packetNodes(versions...)...))
-		assert.Equal(t, live, offline, versions)
+	testCases := []struct {
+		name   string
+		live   []string
+		packet []string
+	}{
+		{"all equal", []string{"11.1.0.100", "11.1.0.100", "11.1.0.100"}, []string{"11.1.0", "11.1.0", "11.1.0"}},
+		{"one node behind", []string{"11.1.0.100", "11.0.4.90", "11.1.0.100"}, []string{"11.1.0", "11.0.4", "11.1.0"}},
+		{"build numbers differ", []string{"11.1.0.100", "11.1.0.101", "11.1.0.100"}, []string{"11.1.0", "11.1.0", "11.1.0"}},
 	}
 
-	t.Run("a build-number-only skew is visible live only", func(t *testing.T) {
-		t.Parallel()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-		live := configSnapshot(haEnabled, liveNodes("11.1.0.100", "11.1.0.101", "11.1.0.100")...)
-		offline := configSnapshot(haEnabled, packetNodes("11.1.0", "11.1.0", "11.1.0")...)
-
-		assert.Equal(t, healthcheck.StateFiring, versionSkew.Eval(live)[0].State)
-		assert.Equal(t, healthcheck.StateResolved, versionSkew.Eval(offline)[0].State)
-	})
+			live := evaluateSkew(configSnapshot(haEnabled, liveNodes(tc.live...)...))
+			offline := evaluateSkew(configSnapshot(haEnabled, packetNodes(tc.packet...)...))
+			assert.Equal(t, live, offline)
+		})
+	}
 }
 
 // clusterTableWarns mirrors the System Console cluster table, which warns when any node's
@@ -197,7 +198,6 @@ func TestVersionSkewAgreesWithClusterTable(t *testing.T) {
 		{"11.1.0.100", "11.0.4.90", "11.1.0.100"},
 		{"11.0.4.90", "11.1.0.100", "11.1.0.100"},
 		{"11.1.0.100", "11.0.4.90"},
-		{"11.1.0.100", "11.1.0.101", "11.1.0.100"},
 	} {
 		nodes := liveNodes(versions...)
 		infos := make([]*model.ClusterInfo, 0, len(nodes))
@@ -208,6 +208,15 @@ func TestVersionSkewAgreesWithClusterTable(t *testing.T) {
 		skewed := versionSkew.Eval(configSnapshot(haEnabled, nodes...))[0].State == healthcheck.StateFiring
 		assert.Equal(t, clusterTableWarns(infos), skewed, versions)
 	}
+
+	t.Run("a build-number-only difference warns in the table only", func(t *testing.T) {
+		t.Parallel()
+
+		nodes := liveNodes("11.1.0.100", "11.1.0.101", "11.1.0.100")
+
+		assert.True(t, clusterTableWarns([]*model.ClusterInfo{nodes[0].ClusterInfo, nodes[1].ClusterInfo, nodes[2].ClusterInfo}))
+		assert.Equal(t, healthcheck.StateResolved, versionSkew.Eval(configSnapshot(haEnabled, nodes...))[0].State)
+	})
 
 	t.Run("a node known only to the database is unknown rather than skewed", func(t *testing.T) {
 		t.Parallel()

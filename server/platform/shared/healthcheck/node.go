@@ -3,7 +3,11 @@
 
 package healthcheck
 
-import "github.com/mattermost/mattermost/server/public/model"
+import (
+	"strings"
+
+	"github.com/mattermost/mattermost/server/public/model"
+)
 
 type NodeSnapshot struct {
 	Hostname    string
@@ -21,16 +25,28 @@ func (n *NodeSnapshot) Diag() (*model.SupportPacketDiagnostics, bool) {
 }
 
 // NodeVersion prefers cluster info so a live snapshot, where only the leader carries
-// diagnostics, reads every node's version from the same source.
+// diagnostics, reads every node's version from the same source. Gossip appends the build
+// number, which packets lack, so it is dropped to keep live and offline results equal.
 func (n *NodeSnapshot) NodeVersion() (string, bool) {
 	if n != nil && n.ClusterInfo != nil && n.ClusterInfo.Version != "" {
-		return n.ClusterInfo.Version, true
+		return releaseVersion(n.ClusterInfo.Version), true
 	}
 	if diag, ok := n.Diag(); ok && diag.Server.Version != "" && n.sectionOK(model.SectionServerSoftware) {
 		return diag.Server.Version, true
 	}
 
 	return "", false
+}
+
+// releaseVersion cuts a gossip version like 11.1.0.12345 down to 11.1.0. Build numbers can
+// contain dots, so it keeps the first three parts rather than trimming the last one.
+func releaseVersion(gossip string) string {
+	parts := strings.SplitN(gossip, ".", 4)
+	if len(parts) < 4 {
+		return gossip
+	}
+
+	return strings.Join(parts[:3], ".")
 }
 
 func (n *NodeSnapshot) SchemaVersion() (string, bool) {

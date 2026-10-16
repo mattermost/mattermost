@@ -58,18 +58,33 @@ func TestNodeVersion(t *testing.T) {
 	}
 
 	t.Run("live cluster answers from cluster info for every node", func(t *testing.T) {
-		leader := diagNode(&model.ClusterInfo{Hostname: "node-2", Version: "11.1.0.12345"}, "11.1.0")
+		leader := diagNode(&model.ClusterInfo{Hostname: "node-2", Version: "11.2.0.12345"}, "11.1.0")
 		leader.IsLeader = true
 		snapshot := NewSnapshot([]*NodeSnapshot{
-			{ClusterInfo: &model.ClusterInfo{Hostname: "node-1", Version: "11.1.0.12345"}},
+			{ClusterInfo: &model.ClusterInfo{Hostname: "node-1", Version: "11.2.0.12345"}},
 			leader,
-			{ClusterInfo: &model.ClusterInfo{Hostname: "node-3", Version: "11.1.0.12345"}},
+			{ClusterInfo: &model.ClusterInfo{Hostname: "node-3", Version: "11.2.0.12345"}},
 		})
 
 		for _, node := range snapshot.Nodes() {
 			version, ok := node.NodeVersion()
 			require.True(t, ok, node.ClusterInfo.Hostname)
-			assert.Equal(t, "11.1.0.12345", version, node.ClusterInfo.Hostname)
+			assert.Equal(t, "11.2.0", version, node.ClusterInfo.Hostname)
+		}
+	})
+
+	t.Run("cluster info drops the build number", func(t *testing.T) {
+		for gossip, expected := range map[string]string{
+			"11.1.0.12345":             "11.1.0",
+			"11.1.0.":                  "11.1.0",
+			"11.1.0.my.branch-1234567": "11.1.0",
+			"11.1.0":                   "11.1.0",
+		} {
+			node := &NodeSnapshot{ClusterInfo: &model.ClusterInfo{Version: gossip}}
+
+			version, ok := node.NodeVersion()
+			require.True(t, ok, gossip)
+			assert.Equal(t, expected, version, gossip)
 		}
 	})
 
