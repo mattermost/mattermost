@@ -1344,10 +1344,6 @@
     "translation": "No se puede actualizar un mensaje en un canal que ha sido eliminado."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "No pudimos encontrar el mensaje o comentario para actualizarlo."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Ya fue eliminado el id={{.PostId}}."
   },
@@ -6145,7 +6141,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "No se puede obtener los canales para el esquema suministrado."
+    "translation": "No se pueden obtener los equipos para el esquema suministrado."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -8597,7 +8593,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "No se pudo anular la invitación de remoto al canal"
+    "translation": "No se pudo anular la invitación del remoto al canal."
   },
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
@@ -14565,5 +14561,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys no válido: supera el límite de {{.MaxCount}} claves o {{.MaxLength}} bytes."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NO ENCONTRADA**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "eliminada"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` no es un `{{.Arg}}` válido"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Este campo está vinculado a una plantilla de Atributo Global y no se puede modificar mediante la API de Atributos de Usuario. Usa en su lugar la API de Atributos Globales."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "No se pudo crear el emoji. La imagen es demasiado grande para procesarla. Prueba con una de dimensiones más pequeñas o con menos fotogramas."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "La página Salud del sitio no está habilitada."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "La página Salud del sitio requiere una licencia Enterprise."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "No tienes permiso para enviar mensajes de autodestrucción al leer en este canal."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "No se pudo volver al inicio del archivo."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "No se pudo obtener el hallazgo de salud."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "No se encontró el hallazgo de salud."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "No se pudieron obtener los hallazgos de salud."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "El atributo ya no se sincroniza desde este origen, por lo que su sincronización no puede cambiarlo."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Las opciones de un atributo sincronizado desde AD/LDAP o SAML están gestionadas por la sincronización y no se pueden añadir, renombrar ni eliminar."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "El atributo sincronizado tiene opciones no válidas."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Origen de sincronización de propiedades no válido."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "ID de usuario no válido para la sincronización de propiedades."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "No se pudo determinar qué opciones del atributo sincronizado están en uso."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "La configuración de registro contiene una ruta de archivo de registro o de auditoría fuera del directorio raíz de registros. Consulta los registros del servidor para obtener más detalles."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Se desconoce la hora de recopilación."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Sección de configuración no disponible."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Diagnósticos del servidor no disponibles."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Historial de trabajos no disponible."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Detalles de la licencia no disponibles."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Lista de plugins no disponible."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "La regla falló de forma inesperada y no se pudo evaluar."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Estadísticas de uso no disponibles."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} usa http://, por lo que las notificaciones push se envían sin cifrar."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} tiene un esquema no válido. Los usuarios móviles no recibirán notificaciones."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Añade el prefijo https:// a PushNotificationServer y verifica que sea accesible desde el nodo de la aplicación."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer no usa https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Todos los intentos de envío push fallarán con «unsupported protocol scheme»."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Apunta PushNotificationServer a https://push.mattermost.com o a un proxy push autoalojado."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Las notificaciones push están habilitadas, pero PushNotificationServer está vacío"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com es el proxy push de prueba de Mattermost. No tiene SLA, su capacidad es limitada y no está pensado para uso en producción. La entrega de notificaciones push móviles no será fiable más allá de pruebas a pequeña escala."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Cambia a https://push.mattermost.com (el Hosted Push Notification Service de producción incluido con Enterprise) o a un proxy push autoalojado."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer apunta a push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL es necesario para las URL de los webhooks, las devoluciones de llamada de OAuth, el contenido de las notificaciones push móviles y los enlaces de los correos electrónicos. Las integraciones no funcionan mientras esté vacío."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Establece SiteURL en la URL HTTPS pública del servidor."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL está vacío"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL es {{.url}}. Las cookies de sesión y los tokens de autenticación viajan sin cifrar."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Sirve Mattermost mediante HTTPS y actualiza SiteURL a la dirección https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL usa http:// (no https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Los mensajes de autodestrucción al leer no se pueden enviar como mensajes programados recurrentes."
   }
 ]

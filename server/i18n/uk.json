@@ -1344,10 +1344,6 @@
     "translation": "Неможливо оновити допис у видаленому каналі."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Не вдалося знайти існуючий допис або коментар для оновлення."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Вже видалено id={{.PostId}}."
   },
@@ -5989,7 +5985,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Не вдалося отримати канали для наданої схеми."
+    "translation": "Не вдалося отримати команди для наданої схеми."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -7433,7 +7429,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Не вдалося скасувати запрошення віддаленого доступу до каналу"
+    "translation": "Не вдалося скасувати запрошення віддаленого сервера до каналу."
   },
   {
     "id": "api.shared_channel.get_shared_channel_remotes_error",
@@ -7445,7 +7441,7 @@
   },
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
-    "translation": "Не вдалося запросити віддалений доступ до каналу"
+    "translation": "Не вдалося запросити віддалений сервер до каналу."
   },
   {
     "id": "api.templates.cloud_welcome_email.mm_apps",
@@ -14583,5 +14579,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Недійсні mention_keys: перевищено обмеження в {{.MaxCount}} ключів або {{.MaxLength}} байтів."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**НЕ ЗНАЙДЕНО**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "видалено"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` не є дійсним значенням `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Це поле пов’язане з шаблоном глобального атрибута, і його не можна змінити через API атрибутів користувачів. Натомість використовуйте API глобальних атрибутів."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Не вдалося створити емодзі. Зображення завелике для обробки. Спробуйте зображення з меншими розмірами або меншою кількістю кадрів."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Сторінку «Працездатність сайту» не ввімкнено."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Для сторінки «Працездатність сайту» потрібна ліцензія Enterprise."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "У вас немає дозволу надсилати повідомлення, що зникають після прочитання, у цьому каналі."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Не вдалося перейти на початок файлу."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Не вдалося отримати результат перевірки працездатності."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Результат перевірки працездатності не знайдено."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Не вдалося отримати результати перевірки працездатності."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Атрибут більше не синхронізується з цього джерела, тому синхронізація не може його змінити."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Опціями атрибута, синхронізованого з AD/LDAP або SAML, керує синхронізація, тому їх не можна додавати, перейменовувати чи видаляти."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Синхронізований атрибут має недійсні опції."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Недійсне джерело синхронізації атрибутів."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Недійсний ідентифікатор користувача для синхронізації атрибутів."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Не вдалося визначити, які опції синхронізованого атрибута використовуються."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Конфігурація журналювання містить шлях до файлу журналу або аудиту поза кореневим каталогом журналювання. Подробиці дивіться в журналах сервера."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Час збору даних невідомий."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Розділ конфігурації недоступний."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Діагностика сервера недоступна."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Історія завдань недоступна."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Відомості про ліцензію недоступні."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Список плагінів недоступний."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Правило неочікувано завершилося збоєм, і його не вдалося виконати."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Статистика використання недоступна."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} використовує http://, тому push-сповіщення надсилаються відкритим текстом."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} має недійсну схему. Користувачі мобільних пристроїв не отримуватимуть сповіщень."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Додайте до PushNotificationServer префікс https:// і перевірте його доступність із вузла застосунку."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer не використовує https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Кожна спроба надіслати push-сповіщення завершиться помилкою «unsupported protocol scheme»."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Укажіть у PushNotificationServer https://push.mattermost.com або власний push-проксі."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Push-сповіщення ввімкнено, але PushNotificationServer порожній"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com — це тестовий push-проксі Mattermost. Він не має SLA, має обмежену пропускну здатність і не призначений для робочого використання. Доставка push-сповіщень на мобільні пристрої буде ненадійною для будь-чого, крім невеликого тестування."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Перейдіть на https://push.mattermost.com (робочий сервіс Hosted Push Notification Service, що входить до Enterprise) або на власний push-проксі."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer вказує на push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL потрібен для URL-адрес вебхуків, зворотних викликів OAuth, даних push-сповіщень для мобільних пристроїв і посилань в електронних листах. Поки він порожній, інтеграції не працюють."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Установіть для SiteURL публічну HTTPS-адресу сервера."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL порожній"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL має значення {{.url}}. Файли cookie сесії та токени автентифікації передаються відкритим текстом."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Обслуговуйте Mattermost через HTTPS і оновіть SiteURL на адресу з https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL використовує http:// (а не https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Повідомлення, що зникають після прочитання, не можна надсилати як повторювані заплановані дописи."
   }
 ]

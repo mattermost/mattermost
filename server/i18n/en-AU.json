@@ -3821,7 +3821,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme."
+    "translation": "Unable to get the teams for the provided scheme."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -6824,10 +6824,6 @@
     "translation": "Already deleted ID={{.PostId}}."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Unable to find the existing post or comment to update."
-  },
-  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Cannot update a post in a deleted channel."
   },
@@ -9527,7 +9523,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Could not uninvite remote to channel"
+    "translation": "Could not uninvite remote from channel."
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -14568,5 +14564,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Invalid mention_keys: exceeds the limit of {{.MaxCount}} keys or {{.MaxLength}} bytes."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NOT FOUND**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "removed"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` is not a valid `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "This field is linked to a Global Attribute template and cannot be modified through the User Attributes API. Use the Global Attributes API instead."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Unable to create emoji. The image is too large to process. Try using one with smaller dimensions or fewer frames."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "The health dashboard is not enabled."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "The health dashboard requires an Enterprise licence."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "You do not have permission to send burn-on-read messages in this channel."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Unable to seek to file start."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Unable to get health finding."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Health finding not found."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Unable to get health findings."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "The attribute is no longer synced from this source, so its sync cannot change it."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "The options of an attribute synced from AD/LDAP or SAML are managed by the sync and cannot be added, renamed or removed."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "The synced attribute has invalid options."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Invalid property sync source."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Invalid user ID for property sync."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Unable to determine which options of the synced attribute are in use."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "The logging configuration contains a log or audit file path outside the logging root directory. Check the server logs for details."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Collection time unknown."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Config section unavailable."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Server diagnostics unavailable."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Job history unavailable."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Licence details unavailable."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Plugin list unavailable."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "The rule failed unexpectedly and could not be evaluated."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Usage statistics unavailable."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} has an invalid scheme. Mobile users will not receive notifications."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Prefix PushNotificationServer with https:// and verify reachability from the app node."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer does not use https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Every push attempt will fail with 'unsupported protocol scheme'."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Point PushNotificationServer to https://push.mattermost.com or a self-hosted push proxy."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Push notifications enabled but PushNotificationServer is blank"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com is the Mattermost test push proxy. It has no SLA, limited throughput, and is not intended for production use. Mobile push delivery will be unreliable for anything beyond small-scale testing."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Switch to https://push.mattermost.com (the production Hosted Push Notification Service included with Enterprise) or to a self-hosted push proxy."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer points at push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL is required for webhook URLs, OAuth callbacks, mobile push payloads, and email links. Integrations are broken while it is empty."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Set SiteURL to the public HTTPS URL of the server."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL is empty"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL is {{.url}}. Session cookies and auth tokens travel over the network unencrypted."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Serve Mattermost over HTTPS and update SiteURL to the https:// address."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL uses http:// (not https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Burn-on-read messages cannot be sent as recurring scheduled posts."
   }
 ]

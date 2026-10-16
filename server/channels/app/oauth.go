@@ -731,14 +731,15 @@ func (a *App) RevokeAccessToken(rctx request.CTX, token string) *model.AppError 
 	return nil
 }
 
-func (a *App) CompleteOAuth(rctx request.CTX, service string, auth *OAuthAuthorization, props map[string]string) (*model.User, *model.AppError) {
+// CompleteOAuth finishes an OAuth/OIDC login or signup.
+func (a *App) CompleteOAuth(rctx request.CTX, service string, auth *OAuthAuthorization, props map[string]string) (user *model.User, userWasCreated bool, appErr *model.AppError) {
 	defer auth.UserInfo.Close()
 
 	// Read once: every branch parses the user info, and the attribute sync
 	// reads it again once the user is known.
 	userInfo, err := io.ReadAll(auth.UserInfo)
 	if err != nil {
-		return nil, model.NewAppError("CompleteOAuth", "api.user.login_by_oauth.parse.app_error",
+		return nil, false, model.NewAppError("CompleteOAuth", "api.user.login_by_oauth.parse.app_error",
 			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err)
 	}
 
@@ -748,22 +749,20 @@ func (a *App) CompleteOAuth(rctx request.CTX, service string, auth *OAuthAuthori
 	inviteToken := props["invite_token"]
 	inviteId := props["invite_id"]
 
-	var user *model.User
-	var appErr *model.AppError
 	switch action {
 	case model.OAuthActionSignup:
-		user, appErr = a.CreateOAuthUser(rctx, service, bytes.NewReader(userInfo), inviteToken, inviteId, auth.TokenUser)
+		user, userWasCreated, appErr = a.CreateOAuthUser(rctx, service, bytes.NewReader(userInfo), inviteToken, inviteId, auth.TokenUser)
 	case model.OAuthActionLogin:
-		user, appErr = a.LoginByOAuth(rctx, service, bytes.NewReader(userInfo), inviteToken, inviteId, auth.TokenUser)
+		user, userWasCreated, appErr = a.LoginByOAuth(rctx, service, bytes.NewReader(userInfo), inviteToken, inviteId, auth.TokenUser)
 	case model.OAuthActionEmailToSSO:
 		user, appErr = a.CompleteSwitchWithOAuth(rctx, service, bytes.NewReader(userInfo), props["email"], auth.TokenUser)
 	case model.OAuthActionSSOToEmail:
-		user, appErr = a.LoginByOAuth(rctx, service, bytes.NewReader(userInfo), inviteToken, inviteId, auth.TokenUser)
+		user, userWasCreated, appErr = a.LoginByOAuth(rctx, service, bytes.NewReader(userInfo), inviteToken, inviteId, auth.TokenUser)
 	default:
-		user, appErr = a.LoginByOAuth(rctx, service, bytes.NewReader(userInfo), inviteToken, inviteId, auth.TokenUser)
+		user, userWasCreated, appErr = a.LoginByOAuth(rctx, service, bytes.NewReader(userInfo), inviteToken, inviteId, auth.TokenUser)
 	}
 	if appErr != nil {
-		return nil, appErr
+		return nil, false, appErr
 	}
 
 	// A user switching from SSO to email sign-in is leaving the provider, so
@@ -772,7 +771,7 @@ func (a *App) CompleteOAuth(rctx request.CTX, service string, auth *OAuthAuthori
 		a.syncOAuthUserAttributes(rctx, service, user, userInfo, auth.IDToken)
 	}
 
-	return user, nil
+	return user, userWasCreated, nil
 }
 
 // oauthAuthorizationScope is the scope an authorization request through
@@ -803,65 +802,64 @@ func (a *App) getSSOProvider(service string) (einterfaces.OAuthProvider, *model.
 	return provider, nil
 }
 
-// TODO: merge conflict, needs teamID string
-func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (user *model.User, userWasCreated bool, err *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
-		return nil, e
+		return nil, false, e
 	}
 
 	buf := bytes.Buffer{}
-	if _, err := buf.ReadFrom(userData); err != nil {
-		return nil, model.NewAppError("LoginByOAuth2", "api.user.login_by_oauth.parse.app_error",
+	if _, readErr := buf.ReadFrom(userData); readErr != nil {
+		return nil, false, model.NewAppError("LoginByOAuth2", "api.user.login_by_oauth.parse.app_error",
 			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
-	settings, err := provider.GetSSOSettings(rctx, a.Config(), service)
-	if err != nil {
-		return nil, model.NewAppError("LoginByOAuth", "api.user.oauth.get_settings.app_error",
-			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err)
+	settings, err2 := provider.GetSSOSettings(rctx, a.Config(), service)
+	if err2 != nil {
+		return nil, false, model.NewAppError("LoginByOAuth", "api.user.oauth.get_settings.app_error",
+			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err2)
 	}
 
-	authUser, err := provider.GetUserFromJSON(rctx, bytes.NewReader(buf.Bytes()), tokenUser, settings)
-	if err != nil {
-		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
-			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err)
+	authUser, err2 := provider.GetUserFromJSON(rctx, bytes.NewReader(buf.Bytes()), tokenUser, settings)
+	if err2 != nil {
+		return nil, false, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
+			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err2)
 	}
 
 	if *authUser.AuthData == "" {
-		return nil, model.NewAppError("LoginByOAuth3", "api.user.login_by_oauth.parse.app_error",
+		return nil, false, model.NewAppError("LoginByOAuth3", "api.user.login_by_oauth.parse.app_error",
 			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
 	user, appErr := a.GetUserByAuth(new(*authUser.AuthData), service)
 	if appErr != nil {
 		if appErr.Id == MissingAuthAccountError {
-			user, appErr = a.CreateOAuthUser(rctx, service, bytes.NewReader(buf.Bytes()), inviteToken, inviteId, tokenUser)
+			user, userWasCreated, appErr = a.CreateOAuthUser(rctx, service, bytes.NewReader(buf.Bytes()), inviteToken, inviteId, tokenUser)
 		} else {
-			return nil, appErr
+			return nil, false, appErr
 		}
 	} else {
 		// OAuth doesn't run through CheckUserPreflightAuthenticationCriteria, so prevent bot login
 		// here manually. Technically, the auth data above will fail to match a bot in the first
 		// place, but explicit is always better.
 		if user.IsBot {
-			return nil, model.NewAppError("loginByOAuth", "api.user.login_by_oauth.bot_login_forbidden.app_error", nil, "", http.StatusForbidden)
+			return nil, false, model.NewAppError("loginByOAuth", "api.user.login_by_oauth.bot_login_forbidden.app_error", nil, "", http.StatusForbidden)
 		}
 
 		if appErr = a.UpdateOAuthUserAttrs(rctx, bytes.NewReader(buf.Bytes()), user, provider, service, tokenUser); appErr != nil {
-			return nil, appErr
+			return nil, false, appErr
 		}
 
-		if appErr = a.AddUserToTeamByInviteIfNeeded(rctx, user, inviteToken, inviteId); appErr != nil {
-			rctx.Logger().Warn("Failed to add user to team", mlog.Err(appErr))
+		if inviteErr := a.AddUserToTeamByInviteIfNeeded(rctx, user, inviteToken, inviteId); inviteErr != nil {
+			rctx.Logger().Warn("Failed to add user to team", mlog.Err(inviteErr))
 		}
 	}
 
 	if appErr != nil {
-		return nil, appErr
+		return nil, false, appErr
 	}
 
-	return user, nil
+	return user, userWasCreated, nil
 }
 
 // LoginByIntune authenticates a user using a Microsoft Entra ID access_token from MSAL

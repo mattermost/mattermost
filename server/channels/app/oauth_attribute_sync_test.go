@@ -206,7 +206,7 @@ func TestCompleteOAuthSyncsUserAttributes(t *testing.T) {
 	defer einterfaces.RegisterOAuthProvider(model.ServiceOpenid, previous)
 
 	complete := func(action string) *model.User {
-		completed, appErr := h.App.CompleteOAuth(h.Context, model.ServiceOpenid, &OAuthAuthorization{
+		completed, _, appErr := h.App.CompleteOAuth(h.Context, model.ServiceOpenid, &OAuthAuthorization{
 			UserInfo: io.NopCloser(bytes.NewReader(userInfo)),
 			IDToken:  "the-id-token",
 		}, map[string]string{"action": action})

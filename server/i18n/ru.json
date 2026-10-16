@@ -1344,10 +1344,6 @@
     "translation": "Нельзя обновить сообщение в удаленном канале."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Не удалось найти существующее сообщение или комментарий для обновления."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Уже удален id={{.PostId}}."
   },
@@ -6253,7 +6249,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Невозможно получить каналы для предоставленной схемы."
+    "translation": "Невозможно получить команды для предоставленной схемы."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -9529,11 +9525,11 @@
   },
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
-    "translation": "Не удалось пригласить удалённо на канал"
+    "translation": "Не удалось пригласить удалённый сервер в канал."
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Не удалось отменить приглашение дистанционного пользователя на канал"
+    "translation": "Не удалось отменить приглашение удалённого сервера в канал."
   },
   {
     "id": "api.file.zip_file_reader.app_error",
@@ -14262,19 +14258,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Не удалось заглушить результат проверки работоспособности."
+    "translation": "Не удалось скрыть замечание о состоянии сайта."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Результат проверки работоспособности не найден."
+    "translation": "Замечание о состоянии сайта не найдено."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Не удалось снять заглушение с результата проверки работоспособности."
+    "translation": "Не удалось вернуть замечание о состоянии сайта."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Результат проверки работоспособности не найден."
+    "translation": "Замечание о состоянии сайта не найдено."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
@@ -14583,5 +14579,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Неверное значение mention_keys: превышен предел в {{.MaxCount}} ключей или {{.MaxLength}} байт."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**НЕ НАЙДЕНО**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "удалено"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` — недопустимое значение для `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Это поле связано с шаблоном глобального атрибута, и его нельзя изменить через API атрибутов пользователя. Используйте вместо этого API глобальных атрибутов."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Не удалось создать эмодзи. Изображение слишком велико для обработки. Попробуйте изображение меньшего размера или с меньшим количеством кадров."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Функция «Состояние сайта» не включена."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Для функции «Состояние сайта» требуется лицензия Enterprise."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "У вас нет разрешения на отправку сообщений, сгорающих после прочтения, в этом канале."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Не удалось перейти к началу файла."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Не удалось получить замечание о состоянии сайта."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Замечание о состоянии сайта не найдено."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Не удалось получить замечания о состоянии сайта."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Атрибут больше не синхронизируется из этого источника, поэтому синхронизация не может его изменить."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Вариантами атрибута, синхронизируемого из AD/LDAP или SAML, управляет синхронизация: их нельзя добавлять, переименовывать или удалять."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "У синхронизируемого атрибута недопустимые варианты."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Недопустимый источник синхронизации свойств."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Недопустимый идентификатор пользователя для синхронизации свойств."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Не удалось определить, какие варианты синхронизируемого атрибута используются."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Конфигурация журналирования содержит путь к файлу журнала или аудита за пределами корневого каталога журналов. Подробности см. в журналах сервера."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Время сбора данных неизвестно."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Раздел конфигурации недоступен."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Диагностика сервера недоступна."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "История заданий недоступна."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Сведения о лицензии недоступны."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Список плагинов недоступен."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Правило неожиданно завершилось с ошибкой, и его не удалось проверить."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Статистика использования недоступна."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} использует http://, поэтому push-уведомления передаются в открытом виде."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "У PushNotificationServer {{.url}} недопустимая схема. Пользователи мобильных приложений не будут получать уведомления."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Добавьте к PushNotificationServer префикс https:// и проверьте его доступность с узла приложения."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer не использует https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Каждая попытка отправить push-уведомление будет завершаться ошибкой «unsupported protocol scheme»."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Укажите в PushNotificationServer https://push.mattermost.com или собственный push-прокси."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Push-уведомления включены, но PushNotificationServer не задан"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com — тестовый push-прокси Mattermost. У него нет SLA и ограничена пропускная способность, и он не предназначен для рабочей среды. Доставка push-уведомлений на мобильные устройства будет ненадёжной везде, кроме небольших тестов."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Перейдите на https://push.mattermost.com (рабочий сервис Hosted Push Notification Service, входящий в Enterprise) или на собственный push-прокси."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer указывает на push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL необходим для URL вебхуков, обратных вызовов OAuth, данных push-уведомлений для мобильных устройств и ссылок в письмах. Пока он не задан, интеграции не работают."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Укажите в SiteURL публичный HTTPS-адрес сервера."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL не задан"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL имеет значение {{.url}}. Сеансовые cookie и токены аутентификации передаются в открытом виде."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Настройте доступ к Mattermost по HTTPS и обновите SiteURL, указав адрес с https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL использует http:// (не https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Сообщения, сгорающие после прочтения, нельзя отправлять как повторяющиеся запланированные сообщения."
   }
 ]

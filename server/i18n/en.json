@@ -1155,6 +1155,21 @@
     "description": "API error when a user lacks permission to move a custom slash command to another team."
   },
   {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "A single quote near `{{.Near}}` is not closed before ` --`. Close it, or use double quotes if the value contains ` --`.",
+    "description": "Slash command error when a single quoted argument value reaches a flag before its closing quote. {{.Near}} is the nearest flag (such as --name) or the command action, never the value itself."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Unexpected text near `{{.Near}}`. Wrap a value that contains spaces in quotes, and use double quotes if the value also contains an apostrophe.",
+    "description": "Slash command error when a word is not the action, a flag or a flag's value, usually because a value with spaces was not quoted. {{.Near}} is the nearest flag (such as --name) or the command action, never the value itself."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "A quote near `{{.Near}}` is never closed.",
+    "description": "Slash command error when a quoted argument value has no closing quote. {{.Near}} is the nearest flag (such as --name) or the command action, never the value itself."
+  },
+  {
     "id": "api.command.team_mismatch.app_error",
     "translation": "Unable to update commands across teams.",
     "description": "API error when an update would move a slash command from one team to another, which is not allowed; 'commands' are slash commands."
@@ -1938,7 +1953,7 @@
   {
     "id": "api.command_remote.accept_invitation.error",
     "translation": "Could not accept invitation: {{.Error}}",
-    "description": "Error response from the /secure-connection slash command when accepting a server-to-server (shared channels) invitation fails; {{.Error}} is the raw error text."
+    "description": "Error response from the /secure-connection slash command when accepting a server-to-server (shared channels) invitation fails; {{.Error}} is a translated error message, a connection error, or the reason the remote server gave for rejecting the invitation."
   },
   {
     "id": "api.command_remote.add_remote.error",
@@ -4135,11 +4150,6 @@
     "description": "API error when editing a post is blocked in a direct message channel restricted by admin policy."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Unable to find the existing post or comment to update.",
-    "description": "API error when the message or comment targeted by an edit cannot be found."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Already deleted id={{.PostId}}.",
     "description": "Detail text attached to an edit-post permission error; {{.PostId}} is the ID of the post that was already deleted. Mostly developer-facing."
@@ -4527,7 +4537,7 @@
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
     "translation": "Secure connection has already been added.",
-    "description": "API error shown to an admin when trying to add a secure connection (remote server link) that already exists."
+    "description": "API error shown to an admin when trying to add or accept an invitation for a secure connection (remote server link) that already exists."
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
@@ -14319,7 +14329,7 @@
   {
     "id": "health.reason.collected_at_unknown",
     "translation": "Collection time unknown.",
-    "description": "Health dashboard reason shown when a health check could not run because the time its data was collected is unknown, so ages and durations cannot be measured, so the check's status is unknown."
+    "description": "Health dashboard reason shown when a health check could not run because the time its data was collected is unknown. Without it, ages and durations cannot be measured, so the check's status is unknown."
   },
   {
     "id": "health.reason.config_unavailable",
@@ -14423,18 +14433,113 @@
   },
   {
     "id": "health.rule.site_url_http.message",
-    "translation": "SiteURL is {{.url}}. Session cookies and auth tokens traverse cleartext.",
-    "description": "Health dashboard finding detail when the Site URL uses http://; {{.url}} is the configured Site URL, and 'traverse cleartext' means they travel over the network unencrypted."
+    "translation": "SiteURL is {{.url}}. Session cookies and auth tokens travel over the network unencrypted.",
+    "description": "Health dashboard finding detail when the Site URL uses http://; {{.url}} is the configured Site URL."
   },
   {
     "id": "health.rule.site_url_http.remediation",
-    "translation": "Serve via HTTPS and update SiteURL accordingly.",
+    "translation": "Serve Mattermost over HTTPS and update SiteURL to the https:// address.",
     "description": "Health dashboard fix-it step for a Site URL that uses http://; 'SiteURL' is a config setting name and should not be translated."
   },
   {
     "id": "health.rule.site_url_http.title",
-    "translation": "SiteURL uses http:// (not https)",
+    "translation": "SiteURL uses http:// (not https://)",
     "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; 'SiteURL' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "Latest release unknown: it could not be fetched, or the packet does not record it.",
+    "description": "Health dashboard reason shown when a version check could not run because the latest Mattermost release could not be fetched from GitHub or is not recorded in the Support Packet being evaluated, so the check's status is unknown."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "This version is not in this build's release table. To evaluate a Support Packet from a newer server, use a newer mmctl.",
+    "description": "Health dashboard reason shown when a version check could not run because the server version is newer than the release lifecycle table compiled into this build, so the check's status is unknown. 'mmctl' is the Mattermost command line tool and should not be translated."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "Server version unknown or not recognized.",
+    "description": "Health dashboard reason shown when a version check could not run because the server version is missing or cannot be parsed, so the check's status is unknown."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "Running {{.version}}. Latest is {{.latest}}, two or more releases newer.",
+    "description": "Health dashboard finding detail when the server is two or more releases behind the latest release; {{.version}} is the running version and {{.latest}} the latest released version."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Plan an upgrade to the latest release before support for this release line ends, or move to an Extended Support Release for a slower upgrade cadence.",
+    "description": "Health dashboard fix-it step for a server two or more releases behind the latest release; 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Several releases behind the latest release",
+    "description": "Health dashboard finding title when the server is two or more releases behind the latest Mattermost release."
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "Running {{.version}}. Latest is {{.latest}}.",
+    "description": "Health dashboard finding detail when the server is one release behind the latest release; {{.version}} is the running version and {{.latest}} the latest released version."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Plan an upgrade to the latest release.",
+    "description": "Health dashboard fix-it step for a server one release behind the latest release."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "A newer release is available",
+    "description": "Health dashboard finding title when the server is one release behind the latest Mattermost release."
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Running Mattermost {{.version}}. Support for this release line ended on {{.eol_date}}. No security patches ship for this release line.",
+    "description": "Health dashboard finding detail when the server's Extended Support Release is past end-of-life and no newer Extended Support Release is still supported; {{.version}} is the running version and {{.eol_date}} the day support for its release line ended (YYYY-MM-DD). 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Running Mattermost {{.version}}, an older release line that is no longer supported. No security patches ship for this release line.",
+    "description": "Health dashboard finding detail when the server runs a release line older than every line in this build's release table, all of which had reached end-of-life; {{.version}} is the running version."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Running Mattermost {{.version}}, an older release line that is no longer supported. No security patches ship for this release line. The newest supported Extended Support Release is {{.target}}.",
+    "description": "Health dashboard finding detail when the server runs a release line older than every line in this build's release table; {{.version}} is the running version and {{.target}} the newest Extended Support Release still supported. 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Running Mattermost {{.version}}. Support for this release line ended on {{.eol_date}}. No security patches ship for this release line. Upgrade to the latest release.",
+    "description": "Health dashboard finding detail when the server runs a regular (non-Extended Support) release that is past end-of-life; {{.version}} is the running version and {{.eol_date}} the day support for its release line ended (YYYY-MM-DD)."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Running Mattermost {{.version}}. Support for this release line ended on {{.eol_date}}. No security patches ship for this release line. The newest supported Extended Support Release is {{.target}}.",
+    "description": "Health dashboard finding detail when the server's Extended Support Release is past end-of-life; {{.version}} is the running version, {{.eol_date}} the day support for its release line ended (YYYY-MM-DD), and {{.target}} the newest Extended Support Release still supported. 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.",
+    "description": "Health dashboard fix-it step for a server past end-of-life; the URL is the Mattermost server releases page. 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Mattermost version is past end-of-life",
+    "description": "Health dashboard finding title when the server's release line no longer receives security patches."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "Running {{.version}} on Extended Support Release {{.esr}}. Plan an upgrade before {{.eol_date}} to keep receiving security patches.",
+    "description": "Health dashboard finding detail when the server's Extended Support Release reaches end-of-life within 90 days; {{.version}} is the running version, {{.esr}} the release line, and {{.eol_date}} its end-of-life date (YYYY-MM-DD). 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Schedule an upgrade to the latest release or to the next Extended Support Release.",
+    "description": "Health dashboard fix-it step for an Extended Support Release nearing end-of-life. 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "Extended Support Release is nearing end-of-life",
+    "description": "Health dashboard finding title when the server's Extended Support Release reaches end-of-life within 90 days. 'Extended Support Release' is a Mattermost release type."
   },
   {
     "id": "humanize.list_join",

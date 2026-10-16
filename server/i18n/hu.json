@@ -3725,7 +3725,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Nem sikerült lekérni a csatornákat a megadott sémához."
+    "translation": "Nem sikerült lekérni a csapatokat a megadott sémához."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -5358,10 +5358,6 @@
   {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Már törölt azonosító={{.PostId}}."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Nem található a létező bejegyzés vagy frissítendő hozzászólás."
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
@@ -9276,7 +9272,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Nem sikerült visszavonni a távoli szerver meghívását a csatornából"
+    "translation": "Nem sikerült visszavonni a távoli szerver meghívását a csatornából."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -14565,5 +14561,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Érvénytelen mention_keys: túllépi a korlátot ({{.MaxCount}} kulcs vagy {{.MaxLength}} bájt)."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NEM TALÁLHATÓ**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "eltávolítva"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}`: érvénytelen `{{.Arg}}` érték"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Ez a mező egy globális attribútumsablonhoz van kapcsolva, ezért nem módosítható a felhasználói attribútumok API-ján keresztül. Használja helyette a globális attribútumok API-ját."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Nem lehet emoji-t létrehozni. A kép túl nagy a feldolgozáshoz. Próbáljon kisebb méretű vagy kevesebb képkockából álló képet használni."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "A Rendszerállapot funkció nincs engedélyezve."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "A Rendszerállapot funkcióhoz Enterprise licenc szükséges."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "Nincs jogosultsága olvasás után megsemmisülő üzenetek küldésére ebben a csatornában."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Nem sikerült a fájl elejére ugrani."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Nem sikerült lekérni az állapot-ellenőrzési megállapítást."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Az állapot-ellenőrzési megállapítás nem található."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Nem sikerült lekérni az állapot-ellenőrzési megállapításokat."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Az attribútum már nem ebből a forrásból szinkronizálódik, ezért a szinkronizálás nem módosíthatja."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Az AD/LDAP-ból vagy SAML-ből szinkronizált attribútumok lehetőségeit a szinkronizálás kezeli, ezért ezek nem adhatók hozzá, nem nevezhetők át és nem távolíthatók el."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "A szinkronizált attribútum lehetőségei érvénytelenek."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Érvénytelen tulajdonság-szinkronizálási forrás."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Érvénytelen felhasználói azonosító a tulajdonság-szinkronizáláshoz."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Nem sikerült meghatározni, hogy a szinkronizált attribútum mely lehetőségei vannak használatban."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "A naplózási konfiguráció a naplózási gyökérkönyvtáron kívüli napló- vagy auditfájl-útvonalat tartalmaz. A részletekért ellenőrizze a szervernaplókat."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Az adatgyűjtés időpontja ismeretlen."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "A konfigurációs szakasz nem érhető el."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "A szerverdiagnosztika nem érhető el."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "A feladatelőzmények nem érhetők el."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "A licenc adatai nem érhetők el."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "A bővítménylista nem érhető el."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "A szabály futása váratlanul meghiúsult, ezért nem lehetett kiértékelni."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "A használati statisztikák nem érhetők el."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "A PushNotificationServer értéke: {{.url}}. Ez a http:// sémát használja, ezért a push értesítések titkosítatlanul kerülnek továbbításra."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "A PushNotificationServer értéke ({{.url}}) érvénytelen sémát használ. A mobilfelhasználók nem fognak értesítéseket kapni."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Lássa el a PushNotificationServer értékét https:// előtaggal, és ellenőrizze, hogy elérhető-e az alkalmazáscsomópontról."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "A PushNotificationServer nem a https:// sémát használja"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Minden push kísérlet „unsupported protocol scheme” hibával meghiúsul."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Állítsa a PushNotificationServer értékét a https://push.mattermost.com címre vagy egy saját üzemeltetésű push proxyra."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "A push értesítések engedélyezve vannak, de a PushNotificationServer üres"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "A push-test.mattermost.com a Mattermost teszt push proxyja. Nem tartozik hozzá SLA, korlátozott az átviteli kapacitása, és nem éles használatra készült. A mobil push értesítések kézbesítése a kis léptékű tesztelésen túl megbízhatatlan lesz."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Váltson a https://push.mattermost.com címre (az Enterprise részét képező éles Hosted Push Notification Service) vagy egy saját üzemeltetésű push proxyra."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "A PushNotificationServer a push-test.mattermost.com címre mutat"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "A SiteURL szükséges a webhook URL-ekhez, az OAuth visszahívásokhoz, a mobil push értesítések tartalmához és az e-mailekben lévő hivatkozásokhoz. Amíg üres, az integrációk nem működnek."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Állítsa a SiteURL értékét a szerver nyilvános HTTPS URL-jére."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "A ServiceSettings.SiteURL üres"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "A SiteURL értéke: {{.url}}. A munkamenet-sütik és a hitelesítési tokenek titkosítatlanul haladnak át a hálózaton."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Szolgálja ki a Mattermostot HTTPS-en keresztül, és frissítse a SiteURL értékét a https:// kezdetű címre."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "A SiteURL a http:// sémát használja (https:// helyett)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Az olvasás után megsemmisülő üzenetek nem küldhetők ismétlődő időzített bejegyzésként."
   }
 ]
