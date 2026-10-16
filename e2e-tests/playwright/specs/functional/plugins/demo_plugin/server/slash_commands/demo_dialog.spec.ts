@@ -3,22 +3,7 @@
 
 import {duration, expect, test} from '@mattermost/playwright-lib';
 
-import {logDemoPluginDiagnostics, recoverDemoPlugin, sendDemoSlashCommand} from '../../helpers';
-
-// DEBUG-ONLY (temporary): logs every response to the dialog submit API so CI output shows
-// whether the request ever got a response at all, and with what status/timing, instead of
-// only seeing the client-side symptom (dialog stays visible). See recoverDemoPlugin's doc
-// comment for background. Purely observational — does not alter control flow.
-function attachDialogSubmitResponseLogger(page: {
-    on: (event: 'response', handler: (response: unknown) => void) => void;
-}) {
-    page.on('response', (response: any) => {
-        if (typeof response?.url === 'function' && response.url().includes('/api/v4/actions/dialogs/submit')) {
-            // eslint-disable-next-line no-console
-            console.log(`[demo-plugin-diag] dialog submit response: status=${response.status()} url=${response.url()}`);
-        }
-    });
-}
+import {recoverDemoPlugin, sendDemoSlashCommand} from '../../helpers';
 
 test('should open /dialog and post submit confirmation on submit', async ({pw}) => {
     // The submit hook has been observed to stop responding for the rest of a CI worker's
@@ -34,7 +19,6 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
 
     // # Login
     const {channelsPage} = await pw.testBrowser.login(user);
-    attachDialogSubmitResponseLogger(channelsPage.page); // DEBUG-ONLY (temporary)
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
@@ -90,22 +74,18 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     // Submit is safe since the filled-in fields are retained). If plain retries don't clear
     // it, force a full plugin recovery cycle once and keep retrying — see
     // recoverDemoPlugin's doc comment for why that is the one action known to help.
-    await logDemoPluginDiagnostics(adminClient, 'submit-loop:attempt=0'); // DEBUG-ONLY (temporary)
     for (let attempt = 0; attempt < 12; attempt++) {
+        if (!(await dialog.isVisible())) {
+            break;
+        }
         if (attempt === 6) {
             await recoverDemoPlugin(adminClient);
-        }
-        // A previous submit may have succeeded after its wait timed out — don't click again.
-        if (attempt > 0 && !(await dialog.isVisible())) {
-            break;
         }
         await dialog.getByRole('button', {name: 'Submit'}).click();
         try {
             await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
             break;
         } catch (err) {
-            // eslint-disable-next-line no-console
-            console.log(`[demo-plugin-diag] submit-loop:attempt=${attempt} failed to close dialog`); // DEBUG-ONLY (temporary)
             if (attempt === 11) {
                 throw err;
             }
@@ -130,7 +110,6 @@ test('should post cancellation notification when /dialog is cancelled', async ({
 
     // # Login
     const {channelsPage} = await pw.testBrowser.login(user);
-    attachDialogSubmitResponseLogger(channelsPage.page); // DEBUG-ONLY (temporary)
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
@@ -168,20 +147,22 @@ test('should post cancellation notification when /dialog is cancelled', async ({
     const cancellationPost = channelsPage.centerView.container
         .locator('p')
         .filter({hasText: 'canceled an Interative Dialog'});
-    await logDemoPluginDiagnostics(adminClient, 'cancel-loop:attempt=0'); // DEBUG-ONLY (temporary)
+    const reopenDialog = () =>
+        sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/dialog');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
+
     for (let attempt = 0; attempt < 12; attempt++) {
-        if (attempt === 6) {
-            await recoverDemoPlugin(adminClient);
-            await sendDemoSlashCommand(channelsPage.page, async () => {
-                await channelsPage.centerView.postCreate.input.fill('/dialog');
-                await channelsPage.centerView.postCreate.sendMessage();
-            });
-            await expect(dialog).toBeVisible({timeout: duration.ten_sec});
-        }
-        if (await dialog.isVisible()) {
-            await dialog.getByRole('button', {name: 'Cancel'}).click();
-        }
         try {
+            if (attempt === 6) {
+                await recoverDemoPlugin(adminClient);
+                await reopenDialog();
+                await expect(dialog).toBeVisible({timeout: duration.ten_sec});
+            }
+            if (await dialog.isVisible()) {
+                await dialog.getByRole('button', {name: 'Cancel'}).click();
+            }
             await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
             // * Verify the cancellation post appears in the channel
             // Note: "Interative" is a typo in the demo plugin — not a test error
@@ -191,12 +172,14 @@ test('should post cancellation notification when /dialog is cancelled', async ({
             if (attempt === 11) {
                 throw err;
             }
-            // Reopen the dialog for the next attempt
-            await sendDemoSlashCommand(channelsPage.page, async () => {
-                await channelsPage.centerView.postCreate.input.fill('/dialog');
-                await channelsPage.centerView.postCreate.sendMessage();
-            });
-            await expect(dialog).toBeVisible({timeout: duration.ten_sec});
+            // Treat a failed reopen as a failed attempt so the loop can retry once the
+            // plugin recovers, instead of letting it abort the test.
+            try {
+                await reopenDialog();
+                await expect(dialog).toBeVisible({timeout: duration.ten_sec});
+            } catch {
+                // Reopen failed too — fall through and retry on the next attempt.
+            }
         }
     }
 });

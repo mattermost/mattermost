@@ -82,12 +82,11 @@ test('should open /dialog date and post submit confirmation after selecting date
     // retrying — see recoverDemoPlugin's doc comment for why that is the one action known
     // to help.
     for (let attempt = 0; attempt < 12; attempt++) {
+        if (!(await dialog.isVisible())) {
+            break;
+        }
         if (attempt === 6) {
             await recoverDemoPlugin(adminClient);
-        }
-        // A previous submit may have succeeded after its wait timed out — don't click again.
-        if (attempt > 0 && !(await dialog.isVisible())) {
-            break;
         }
         await dialog.getByRole('button', {name: 'Create Event'}).click();
         try {

@@ -57,7 +57,6 @@ export {
     listMattermostDataFiles,
     ensurePostgresSearch,
     ensureFeatureFlag,
-    permalinkUrl,
     runMmctl,
     ensureMmctl,
     upgradeServerImage,
@@ -153,6 +152,7 @@ export {
 export type {EnableAutotranslationOptions} from './autotranslation_helpers';
 export {
     hasAutotranslationLicense,
+    hasEnterpriseLicense,
     hasSharedChannelsLicense,
     hasCustomPermissionsSchemesLicense,
     licenseTier,

@@ -23,7 +23,7 @@ test('should install and enable demo plugin from URL', async ({pw}) => {
             Plugins: {
                 [demoPluginId]: {
                     username: 'demouser',
-                    channelname: 'demo',
+                    channelname: 'demo_plugin',
                     lastname: 'User',
                 },
             },
