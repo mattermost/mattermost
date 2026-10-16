@@ -1839,17 +1839,14 @@ func testPostStorePermDeleteLimitExceeded(t *testing.T, rctx request.CTX, ss sto
 	}, -1)
 	require.NoError(t, err)
 
-	// Saving posts one at a time is far too slow at this volume, so they are written in a
-	// single statement.
 	savePosts := func(t *testing.T, userID, rootID string, count int) {
 		t.Helper()
 
-		now := model.GetMillis()
-		_, err := s.GetMaster().Exec(`
-			INSERT INTO Posts (Id, CreateAt, UpdateAt, EditAt, DeleteAt, IsPinned, UserId, ChannelId, RootId, OriginalId, Message, Type, Props, Hashtags, Filenames, FileIds, HasReactions)
-			SELECT SUBSTR(MD5(RANDOM()::TEXT || g::TEXT), 1, 26), ?, ?, 0, 0, FALSE, ?, ?, ?, '', 'bulk post', '', '{}'::jsonb, '', '[]'::jsonb, '[]'::jsonb, FALSE
-			FROM GENERATE_SERIES(1, ?) g`,
-			now, now, userID, channel.Id, rootID, count)
+		posts := make([]*model.Post, count)
+		for i := range posts {
+			posts[i] = &model.Post{ChannelId: channel.Id, UserId: userID, RootId: rootID, Message: "bulk post"}
+		}
+		_, _, err := ss.Post().SaveMultiple(rctx, posts)
 		require.NoError(t, err)
 	}
 

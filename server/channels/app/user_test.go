@@ -1892,17 +1892,14 @@ func TestPermanentDeleteUserRemovesUserMetadata(t *testing.T) {
 	}
 }
 
-// insertPosts writes count posts by userID straight to the database, as saving them one at a
-// time is far too slow at the volumes needed to reach the per-run post limit.
 func insertPosts(t *testing.T, th *TestHelper, userID, channelID, rootID string, count int) {
 	t.Helper()
 
-	now := model.GetMillis()
-	_, err := th.SQLStore.GetMaster().Exec(`
-		INSERT INTO Posts (Id, CreateAt, UpdateAt, EditAt, DeleteAt, IsPinned, UserId, ChannelId, RootId, OriginalId, Message, Type, Props, Hashtags, Filenames, FileIds, HasReactions)
-		SELECT SUBSTR(MD5(RANDOM()::TEXT || g::TEXT), 1, 26), ?, ?, 0, 0, FALSE, ?, ?, ?, '', 'bulk post', '', '{}'::jsonb, '', '[]'::jsonb, '[]'::jsonb, FALSE
-		FROM GENERATE_SERIES(1, ?) g`,
-		now, now, userID, channelID, rootID, count)
+	posts := make([]*model.Post, count)
+	for i := range posts {
+		posts[i] = &model.Post{ChannelId: channelID, UserId: userID, RootId: rootID, Message: "bulk post"}
+	}
+	_, _, err := th.App.Srv().Store().Post().SaveMultiple(th.Context, posts)
 	require.NoError(t, err)
 }
 
@@ -1990,7 +1987,64 @@ func (f permanentDeleteFixture) requireFullyDeleted(t *testing.T, th *TestHelper
 	require.False(t, exists, "profile image was left in storage")
 }
 
-func TestPermanentDeleteUserCanBeResumedAfterAnyStep(t *testing.T) {
+// injectDeleteFailures adds a trigger to every table that makes the nth DELETE statement after
+// failNthDelete(n) fail, with n = 0 disabling it. deletesRun reports how many DELETE statements
+// have run since failNthDelete was last called.
+func injectDeleteFailures(t *testing.T, th *TestHelper) (failNthDelete func(n int), deletesRun func() int) {
+	t.Helper()
+
+	db := th.SQLStore.GetMaster()
+	_, err := db.Exec(`
+		CREATE SEQUENCE test_delete_count;
+		CREATE TABLE test_delete_fail_at (n bigint NOT NULL);
+		INSERT INTO test_delete_fail_at VALUES (0);
+		CREATE FUNCTION test_fail_nth_delete() RETURNS trigger LANGUAGE plpgsql AS $$
+		BEGIN
+			IF nextval('test_delete_count') = (SELECT n FROM test_delete_fail_at) THEN
+				RAISE EXCEPTION 'injected failure of DELETE on %', TG_TABLE_NAME;
+			END IF;
+			RETURN NULL;
+		END $$;
+		DO $$
+		DECLARE t regclass;
+		BEGIN
+			FOR t IN SELECT oid::regclass FROM pg_class
+				WHERE relkind = 'r' AND relnamespace = 'public'::regnamespace AND relname NOT IN ('db_migrations', 'test_delete_fail_at')
+			LOOP
+				EXECUTE format('CREATE TRIGGER test_fail_nth_delete BEFORE DELETE ON %s FOR EACH STATEMENT EXECUTE FUNCTION test_fail_nth_delete()', t);
+			END LOOP;
+		END $$;`)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, err := db.Exec(`
+			DROP FUNCTION test_fail_nth_delete CASCADE;
+			DROP TABLE test_delete_fail_at;
+			DROP SEQUENCE test_delete_count;`)
+		require.NoError(t, err)
+	})
+
+	failNthDelete = func(n int) {
+		_, err := db.Exec("UPDATE test_delete_fail_at SET n = ?", n)
+		require.NoError(t, err)
+		_, err = db.Exec("SELECT setval('test_delete_count', 1, false)")
+		require.NoError(t, err)
+	}
+	deletesRun = func() int {
+		var count struct {
+			LastValue int  `db:"last_value"`
+			IsCalled  bool `db:"is_called"`
+		}
+		require.NoError(t, db.Get(&count, "SELECT last_value, is_called FROM test_delete_count"))
+		if !count.IsCalled {
+			return 0
+		}
+		return count.LastValue
+	}
+
+	return failNthDelete, deletesRun
+}
+
+func TestPermanentDeleteUserCanBeResumedAfterAnyFailedDelete(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2000,25 +2054,36 @@ func TestPermanentDeleteUserCanBeResumedAfterAnyStep(t *testing.T) {
 	tos, err := ss.TermsOfService().Save(&model.TermsOfService{Text: "the terms", UserId: th.SystemAdminUser.Id})
 	require.NoError(t, err)
 
-	stepCount := len(th.App.permanentDeleteUserSteps(th.Context, &model.User{}))
-	for stop := range stepCount {
-		t.Run(fmt.Sprintf("stopped before step %d of %d", stop+1, stepCount), func(t *testing.T) {
+	failNthDelete, deletesRun := injectDeleteFailures(t, th)
+
+	n := 1
+	for ; ; n++ {
+		finished := false
+		t.Run(fmt.Sprintf("DELETE statement %d fails", n), func(t *testing.T) {
 			fixture := newPermanentDeleteFixture(t, th, otherRootPost, tos.Id)
 
-			// Leave the account the way an error at this step would.
-			_, appErr := th.App.UpdateActive(th.Context, fixture.user, false)
-			require.Nil(t, appErr)
-			for _, step := range th.App.permanentDeleteUserSteps(th.Context, fixture.user)[:stop] {
-				require.Nil(t, step())
+			failNthDelete(n)
+			appErr := th.App.PermanentDeleteUser(th.Context, fixture.user)
+			finished = deletesRun() < n
+			failNthDelete(0)
+
+			if appErr != nil {
+				require.ErrorContains(t, appErr, "injected failure")
+				user, getErr := th.App.GetUser(th.Context, fixture.user.Id)
+				require.Nil(t, getErr, "the user must still be found so the delete can be run again")
+
+				require.Nil(t, th.App.PermanentDeleteUser(th.Context, user))
 			}
-
-			user, appErr := th.App.GetUser(th.Context, fixture.user.Id)
-			require.Nil(t, appErr, "the user must still be found so the delete can be run again")
-
-			require.Nil(t, th.App.PermanentDeleteUser(th.Context, user))
 			fixture.requireFullyDeleted(t, th)
 		})
+		if t.Failed() {
+			return
+		}
+		if finished {
+			break
+		}
 	}
+	require.Greater(t, n, 1, "no DELETE statement was made to fail")
 }
 
 func TestPermanentDeleteUserFailureCanBeRetried(t *testing.T) {

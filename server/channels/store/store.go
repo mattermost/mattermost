@@ -14,10 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// MaxPostsPerUserPermanentDelete is the most posts PostStore.PermanentDeleteByUser deletes for a
-// user in a single call. Users with more posts are deleted over several calls.
-const MaxPostsPerUserPermanentDelete = 10000
-
 type StoreResult[T any] struct {
 	Data T
 
@@ -802,9 +798,6 @@ type FileInfoStore interface {
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postID string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
 	GetForUser(userID string) ([]*model.FileInfo, error)
-	// GetForPermanentDeleteByUser returns, from master and including soft-deleted files, up to
-	// limit of the files that permanently deleting the user would orphan: those the user created,
-	// those attached to the user's posts, and those attached to replies to the user's root posts.
 	GetForPermanentDeleteByUser(userID string, limit int) ([]*model.FileInfo, error)
 	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error)
 	InvalidateFileInfosForPostCache(postID string, deleted bool)
@@ -1534,7 +1527,6 @@ type RecapStore interface {
 	MarkRecapsAsViewed(userId string, statuses []string) ([]string, error)
 	DeleteRecap(id string) error
 	DeleteRecapChannels(recapId string) error
-	// PermanentDeleteByUser hard-deletes the user's recaps, including soft-deleted ones, and their channels.
 	PermanentDeleteByUser(userId string) error
 	SaveRecapChannel(recapChannel *model.RecapChannel) error
 	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
@@ -1564,7 +1556,6 @@ type ScheduledRecapStore interface {
 	Get(id string) (*model.ScheduledRecap, error)
 	Update(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error)
 	Delete(id string) error // Soft delete (sets DeleteAt)
-	// PermanentDeleteByUser hard-deletes all of the user's scheduled recaps, including soft-deleted ones.
 	PermanentDeleteByUser(userId string) error
 
 	// Query operations
