@@ -1237,14 +1237,12 @@
             flex-direction: column;
         }
 
+        // Keep Compass AdminPanel body padding (spacing-xxl); only stretch for height.
         [class*='admin-panel__body'] {
             display: flex;
             min-height: 0;
             flex: 1;
             flex-direction: column;
-
-            // DataGrid already provides its own search/table chrome; drop body padding.
-            padding: 0;
         }
     }
 
