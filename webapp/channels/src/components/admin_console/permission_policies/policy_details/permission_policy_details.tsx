@@ -33,17 +33,20 @@ import {getHistory} from 'utils/browser_history';
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import {
+    BOT_ROLE_KEY,
+    BOT_SCOPE_HIDDEN_NATIVE,
     BOT_SCOPE_PROP,
     getSyncedAttributeReferences,
     hasBalancedParens,
     isBotScopePolicy,
+    toServerRole,
     unwrapBotExpression,
     wrapBotExpression,
-} from '../../access_control/editors/bot_scope';
+} from '../../access_control/bot_scope';
 import CELEditor from '../../access_control/editors/cel_editor/editor';
 import {hasUsableAttributes, isNativeField, isSimpleExpression, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
 import TableEditor from '../../access_control/editors/table_editor/table_editor';
-import {AVAILABLE_ROLES, BOT_ROLE_KEY, roleMessages, toServerRole} from '../roles';
+import {AVAILABLE_ROLES, roleMessages} from '../roles';
 
 import './permission_policy_details.scss';
 
@@ -81,9 +84,6 @@ const syncedBotMessages = defineMessages({
         defaultMessage: '{attributes} {count, plural, one {is} other {are}} synced from LDAP or SAML, and bots can\'t hold synced values. This policy will deny every bot.',
     },
 });
-
-// Native built-ins every bot either lacks or shares, so they can't scope a bot policy.
-const BOT_SCOPE_HIDDEN_NATIVE: string[] = ['email', 'verified', 'isbot'];
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
     {

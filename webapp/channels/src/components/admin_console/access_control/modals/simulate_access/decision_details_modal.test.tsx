@@ -14,13 +14,14 @@ import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control'
 import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
+import DecisionDetailsModal from './decision_details_modal';
+
 import {
     SINGLE_RULE_BOT_WITHOUT_ATTRIBUTE,
     SINGLE_RULE_PERSON,
     TWO_RULE_FOLD_BOT_WITHOUT_ATTRIBUTE,
     TWO_RULE_FOLD_PERSON,
-} from './bot_scope_trace_test_fixtures';
-import DecisionDetailsModal from './decision_details_modal';
+} from '../../bot_scope/trace_test_fixtures';
 
 const ACTION = 'upload_file_attachment';
 const CLEARANCE = 'user.attributes.Clearance == "Secret"';

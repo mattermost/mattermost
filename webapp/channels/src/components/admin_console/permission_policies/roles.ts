@@ -4,9 +4,7 @@
 import {defineMessages} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
-import type {AccessControlPolicy} from '@mattermost/types/access_control';
-
-import {isBotScopePolicy} from '../access_control/editors/bot_scope';
+import {BOT_ROLE_KEY} from '../access_control/bot_scope';
 
 export interface RoleDefinition {
     value: string;
@@ -26,19 +24,9 @@ export const roleMessages = defineMessages({
     selectRole: {id: 'admin.permission_policies.role.select', defaultMessage: 'Select a role'},
 });
 
-export const BOT_ROLE_KEY = 'bot';
-
 export const AVAILABLE_ROLES: RoleDefinition[] = [
     {value: 'system_guest', label: roleMessages.guestLabel, description: roleMessages.guestDescription},
     {value: 'system_user', label: roleMessages.memberLabel, description: roleMessages.memberDescription},
     {value: 'system_admin', label: roleMessages.adminLabel, description: roleMessages.adminDescription},
     {value: BOT_ROLE_KEY, label: roleMessages.botLabel, description: roleMessages.botDescription},
 ];
-
-export function toServerRole(key: string): string {
-    return key === BOT_ROLE_KEY ? 'system_user' : key;
-}
-
-export function getPolicyRoleKey(policy: Pick<AccessControlPolicy, 'roles' | 'props'>): string | undefined {
-    return isBotScopePolicy(policy) ? BOT_ROLE_KEY : policy.roles?.[0];
-}

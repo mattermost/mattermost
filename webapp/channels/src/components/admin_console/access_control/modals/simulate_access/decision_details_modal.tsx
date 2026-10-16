@@ -25,8 +25,9 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import ProfilePicture from 'components/profile_picture';
 
-import {unwrapBotTrace} from './bot_scope_trace';
 import DecisionChip from './decision_chip';
+
+import {unwrapBotTrace} from '../../bot_scope/trace';
 
 import './decision_details_modal.scss';
 

@@ -16,7 +16,9 @@ import * as Menu from 'components/menu';
 
 import {getHistory} from 'utils/browser_history';
 
-import {AVAILABLE_ROLES, getPolicyRoleKey} from './roles';
+import {AVAILABLE_ROLES} from './roles';
+
+import {getPolicyRoleKey} from '../access_control/bot_scope';
 
 import '../access_control/policies.scss';
 

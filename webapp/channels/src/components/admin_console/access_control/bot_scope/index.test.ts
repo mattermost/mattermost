@@ -4,16 +4,20 @@
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
+import {findMatchingParen, referencedUserAttributeNames} from './lexer';
+
+import {isSimpleExpression} from '../editors/shared';
+
 import {
-    findMatchingParen,
+    BOT_ROLE_KEY,
+    getPolicyRoleKey,
     getSyncedAttributeReferences,
     hasBalancedParens,
     isBotScopePolicy,
-    referencedUserAttributeNames,
+    toServerRole,
     unwrapBotExpression,
     wrapBotExpression,
-} from './bot_scope';
-import {isSimpleExpression} from './shared';
+} from './index';
 
 const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']> = {}): UserPropertyField => ({
     id: `id-${name}`,
@@ -613,5 +617,55 @@ describe('getSyncedAttributeReferences', () => {
 
     it('works on a fixture with newlines', () => {
         expect(getSyncedAttributeReferences(fixture('d3 masking on GET').unwrapped, fields)).toEqual([clearance]);
+    });
+});
+
+describe('lexer: merged literal masking and paren scan', () => {
+    it.each([
+        ['a raw string', 'user.attributes.A == r"x" && user.attributes.B == "y"', ['A', 'B']],
+        ['a triple-quoted string', 'user.attributes.A == """x""" && user.attributes.B == "y"', ['A', 'B']],
+        ['an unterminated literal', 'user.attributes.A == "x\nuser.attributes.B == "y"', ['A', 'B']],
+        ['a backslash before a newline', 'user.attributes.A == "x\\\nuser.attributes.B == "y"', ['A', 'B']],
+    ])('keeps finding references after %s while failing closed on parens', (_label, input, expected) => {
+        expect(referencedUserAttributeNames(input)).toEqual(expected);
+        expect(hasBalancedParens(input)).toBe(false);
+    });
+
+    it('treats a bytes literal as an ordinary literal', () => {
+        const input = 'user.attributes.A == b"x" && user.attributes.B == "y"';
+        expect(referencedUserAttributeNames(input)).toEqual(['A', 'B']);
+        expect(hasBalancedParens(input)).toBe(true);
+    });
+
+    it('keeps the newline that ends a comment, so bracket access on the next line still matches', () => {
+        expect(referencedUserAttributeNames('user.attributes // c\n["B"] == "x"')).toEqual(['B']);
+    });
+
+    it('ignores parens after a fail-closed point', () => {
+        expect(findMatchingParen('r"x" && (a)', 8)).toBe(-1);
+    });
+});
+
+describe('toServerRole', () => {
+    it.each([
+        [BOT_ROLE_KEY, 'system_user'],
+        ['system_user', 'system_user'],
+        ['system_guest', 'system_guest'],
+        ['system_admin', 'system_admin'],
+        ['custom_role', 'custom_role'],
+    ])('toServerRole(%p) returns %p', (key, expected) => {
+        expect(toServerRole(key)).toBe(expected);
+    });
+});
+
+describe('getPolicyRoleKey', () => {
+    it.each([
+        ['an unflagged system_user policy', {roles: ['system_user']}, 'system_user'],
+        ['a flagged system_user policy', {roles: ['system_user'], props: {bot_scope: true}}, BOT_ROLE_KEY],
+        ['an unflagged system_user policy with a bot-prefixed rule', {roles: ['system_user'], rules: [{actions: [], expression: MASKED_RETURNED}]}, 'system_user'],
+        ['an unflagged policy whose first of several roles is system_user', {roles: ['system_user', 'system_admin']}, 'system_user'],
+        ['an unflagged policy with no roles', {roles: undefined}, undefined],
+    ])('getPolicyRoleKey for %s', (_, policy, expected) => {
+        expect(getPolicyRoleKey(policy as Pick<AccessControlPolicy, 'roles' | 'props'>)).toBe(expected);
     });
 });

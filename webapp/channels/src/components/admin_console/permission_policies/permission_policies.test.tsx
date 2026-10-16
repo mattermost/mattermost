@@ -10,7 +10,9 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {renderWithContext, screen, within} from 'tests/react_testing_utils';
 
 import PermissionPolicyList from './permission_policies';
-import {AVAILABLE_ROLES, BOT_ROLE_KEY, getPolicyRoleKey, roleMessages, toServerRole} from './roles';
+import {AVAILABLE_ROLES, roleMessages} from './roles';
+
+import {BOT_ROLE_KEY} from '../access_control/bot_scope';
 
 jest.mock('utils/browser_history', () => ({
     getHistory: () => ({
@@ -139,25 +141,5 @@ describe('components/admin_console/permission_policies/roles', () => {
             {value: 'system_admin', label: roleMessages.adminLabel, description: roleMessages.adminDescription},
             {value: BOT_ROLE_KEY, label: roleMessages.botLabel, description: roleMessages.botDescription},
         ]);
-    });
-
-    test.each([
-        [BOT_ROLE_KEY, 'system_user'],
-        ['system_user', 'system_user'],
-        ['system_guest', 'system_guest'],
-        ['system_admin', 'system_admin'],
-        ['custom_role', 'custom_role'],
-    ])('toServerRole(%p) returns %p', (key, expected) => {
-        expect(toServerRole(key)).toBe(expected);
-    });
-
-    test.each([
-        ['an unflagged system_user policy', {roles: ['system_user']}, 'system_user'],
-        ['a flagged system_user policy', {roles: ['system_user'], props: {bot_scope: true}}, BOT_ROLE_KEY],
-        ['an unflagged system_user policy with a bot-prefixed rule', {roles: ['system_user'], rules: [{actions: [], expression: SEARCH_BOT_EXPRESSION}]}, 'system_user'],
-        ['an unflagged policy whose first of several roles is system_user', {roles: ['system_user', 'system_admin']}, 'system_user'],
-        ['an unflagged policy with no roles', {roles: undefined}, undefined],
-    ])('getPolicyRoleKey for %s', (_, policy, expected) => {
-        expect(getPolicyRoleKey(policy as Pick<AccessControlPolicy, 'roles' | 'props'>)).toBe(expected);
     });
 });

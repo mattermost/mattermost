@@ -8,13 +8,13 @@ import type {
 } from '@mattermost/types/access_control';
 import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control';
 
-import {unwrapBotTrace, unwrapBotTraceTree} from './bot_scope_trace';
+import {unwrapBotTrace, unwrapBotTraceTree} from './trace';
 import {
     SINGLE_RULE_BOT_WITHOUT_ATTRIBUTE,
     SINGLE_RULE_PERSON,
     TWO_RULE_FOLD_BOT_WITHOUT_ATTRIBUTE,
     TWO_RULE_FOLD_PERSON,
-} from './bot_scope_trace_test_fixtures';
+} from './trace_test_fixtures';
 
 const CLEARANCE = 'user.attributes.Clearance == "Secret"';
 const A = 'user.attributes.A == "x"';
