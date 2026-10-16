@@ -3301,7 +3301,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Каналите за предоставената схема не могат да се получат."
+    "translation": "Екипите за предоставената схема не могат да се получат."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -9004,7 +9004,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Поканата на отдалечения сървър за канала не можа да бъде оттеглена"
+    "translation": "Поканата на отдалечения сървър за канала не можа да бъде оттеглена."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -14561,5 +14561,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Невалидни mention_keys: превишено е ограничението от {{.MaxCount}} ключа или {{.MaxLength}} байта."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**НЕ Е НАМЕРЕНА**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "е премахната"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` не е валидна стойност за `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Това поле е свързано с шаблон на глобален атрибут и не може да бъде променяно чрез API за потребителски атрибути. Вместо това използвайте API за глобални атрибути."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Емотиконът не може да бъде създаден. Изображението е твърде голямо за обработка. Опитайте с изображение с по-малки размери или по-малко кадри."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Страницата „Състояние на сайта“ не е активирана."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Страницата „Състояние на сайта“ изисква лиценз Enterprise."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "Нямате право да изпращате съобщения с изтриване след прочитане в този канал."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Неуспешно връщане в началото на файла."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Констатацията от проверката на състоянието не може да бъде получена."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Констатацията от проверката на състоянието не е намерена."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Констатациите от проверките на състоянието не могат да бъдат получени."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Атрибутът вече не се синхронизира от този източник, затова синхронизацията не може да го промени."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Опциите на атрибут, синхронизиран от AD/LDAP или SAML, се управляват от синхронизацията и не могат да бъдат добавяни, преименувани или премахвани."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Синхронизираният атрибут има невалидни опции."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Невалиден източник за синхронизация на свойства."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Невалиден ID на потребител за синхронизация на свойства."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Не може да се определи кои опции на синхронизирания атрибут се използват."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Конфигурацията за журналиране съдържа път до файл с дневник или одит извън основната директория за дневници. Проверете сървърните дневници за подробности."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Времето на събиране на данните е неизвестно."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Разделът от конфигурацията не е наличен."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Диагностиката на сървъра не е налична."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Историята на задачите не е налична."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Данните за лиценза не са налични."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Списъкът с приставки не е наличен."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Правилото се провали неочаквано и не можа да бъде оценено."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Статистиката за използването не е налична."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} използва http://, затова изскачащите известия се изпращат некриптирани."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} има невалидна схема. Мобилните потребители няма да получават известия."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Добавете https:// в началото на PushNotificationServer и проверете дали адресът е достъпен от сървъра на приложението."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer не използва https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Всеки опит за изпращане на изскачащо известие ще завършва с грешка „unsupported protocol scheme“."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Насочете PushNotificationServer към https://push.mattermost.com или към собствен прокси сървър за изскачащи известия."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Изскачащите известия са активирани, но PushNotificationServer е празен"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com е тестовият прокси сървър на Mattermost за изскачащи известия. Той няма SLA, има ограничена пропускателна способност и не е предназначен за производствена употреба. Доставката на изскачащи известия към мобилни устройства ще бъде ненадеждна за всичко извън тестване в малък мащаб."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Преминете към https://push.mattermost.com (производствената услуга Hosted Push Notification Service, включена в Enterprise) или към собствен прокси сървър за изскачащи известия."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer сочи към push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL е необходим за URL адресите на webhook, обратните извиквания на OAuth, съдържанието на мобилните изскачащи известия и връзките в имейлите. Интеграциите не работят, докато е празен."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Задайте за SiteURL публичния HTTPS URL адрес на сървъра."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL е празен"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL е {{.url}}. Бисквитките на сесиите и маркерите за удостоверяване се предават некриптирани."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Обслужвайте Mattermost през HTTPS и актуализирайте SiteURL с адреса с https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL използва http:// (не https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Съобщенията с изтриване след прочитане не могат да бъдат изпращани като повтарящи се планирани публикации."
   }
 ]

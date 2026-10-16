@@ -210,11 +210,11 @@ test.describe('User attributes sync — AD/LDAP settings page', () => {
             // * Input is disabled - cannot be typed into
             await expect(input).toBeDisabled();
 
-            // * Tooltip explains this is a management attribute (scoped to avoid matching other linked fields on the page)
+            // * Tooltip explains the field is linked to an attribute (scoped to avoid matching other linked fields on the page)
             await expect(
                 systemConsolePage.page
                     .getByTestId(`custom_profile_attribute-${linked.name}help-text`)
-                    .getByText('management attribute of type rank'),
+                    .getByText('linked to an attribute of type rank'),
             ).toBeVisible();
         } finally {
             await deleteLinkedFieldQuietly(adminClient, linked);
@@ -349,7 +349,7 @@ test.describe('User attributes sync — SAML settings page', () => {
             await expect(
                 page
                     .getByTestId(`custom_profile_attribute-${linked.name}help-text`)
-                    .getByText('management attribute of type rank'),
+                    .getByText('linked to an attribute of type rank'),
             ).toBeVisible();
         } finally {
             await deleteLinkedFieldQuietly(adminClient, linked);
