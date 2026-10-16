@@ -13,6 +13,11 @@ import './admin_panel.scss';
 
 type PanelText = MessageDescriptor | string;
 
+// Compass AdminPanelProps is a with-header | body-only union. Plain Omit on a
+// union only keeps keys common to both arms, which drops header chrome
+// (showBeta, expandable, iconLeft, …). Extract the with-header arm first.
+type CompassWithHeaderProps = Extract<CompassAdminPanelProps, {title: NonNullable<React.ReactNode>}>;
+
 type Props = {
     id?: string;
     className?: string;
@@ -29,7 +34,7 @@ type Props = {
     subtitleValues?: Record<string, unknown>;
     button?: React.ReactNode;
     children?: React.ReactNode;
-} & Omit<CompassAdminPanelProps, 'title' | 'subtitle' | 'headerActions' | 'children' | 'className'>;
+} & Omit<CompassWithHeaderProps, 'title' | 'subtitle' | 'headerActions' | 'children' | 'className' | 'id'>;
 
 function isMessageDescriptor(value: PanelText): value is MessageDescriptor {
     return typeof value === 'object' && value !== null && 'id' in value;

@@ -59,7 +59,9 @@ export default class Localization {
     async turnOnAutoTranslation() {
         const on = await this.isToggleOn();
         if (!on) {
-            const switchControl = this.autoTranslationSection.locator('label').filter({has: this.autoTranslationToggle});
+            const switchControl = this.autoTranslationSection
+                .locator('label')
+                .filter({has: this.autoTranslationToggle});
             if (await switchControl.count()) {
                 await switchControl.click();
             } else {
