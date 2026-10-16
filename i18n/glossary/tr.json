@@ -429,5 +429,24 @@
   "server": {
     "target": "sunucu",
     "note": "Beware: the Calls plugin also uses 'sunucu' for the call host; in core/server contexts 'sunucu' always means server."
+  },
+  "health dashboard": {
+    "target": "Site sağlığı",
+    "note": "Name of the System Console page; server errors call it 'Site sağlığı sayfası'. Consistent in existing translations."
+  },
+  "health finding": {
+    "target": "sağlık bulgusu",
+    "note": "Plural 'sağlık bulguları'. Shorten to 'bulgu' inside the page itself (e.g. 'Kritik bulgu yok'). One server string says 'sağlık denetimi bulgusu' — use 'sağlık bulgusu'."
+  },
+  "Agents plugin": {
+    "target": "Agents uygulama eki",
+    "note": "'Agents' is the product name and stays in English. Four webapp strings (admin.site.localization.*Agents*) translate it as 'Aracılar uygulama eki' — do not propagate. Accusative/genitive on 'eki': 'Agents uygulama ekinin', 'Agents uygulama ekinde'."
+  },
+  "Hosted Push Notification Service": {
+    "target": "barındırılan anında bildirim hizmeti",
+    "note": "With Mattermost: 'Mattermost barındırılan anında bildirim hizmeti'. admin.email.agreeHPNS paraphrases it as 'Mattermost tarafından sunulan anında bildirim hizmeti' and health.rule.push_test_proxy.remediation leaves it in English — use the target in both."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

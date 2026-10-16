@@ -430,5 +430,24 @@
   "server": {
     "target": "szerver",
     "note": "Majority in webapp/server; 'kiszolgáló' also widely used (especially mobile). Prefer 'szerver' for core product; keep consistency within a given surface."
+  },
+  "health dashboard": {
+    "target": "Rendszerállapot",
+    "note": "Page title and sidebar entry. In running text add a head noun: 'a Rendszerállapot funkció', 'a Rendszerállapot oldal'."
+  },
+  "health finding": {
+    "target": "állapot-ellenőrzési megállapítás",
+    "note": "Shorten to 'megállapítás' inside the health dashboard, where the context is clear."
+  },
+  "Agents plugin": {
+    "target": "Agents bővítmény",
+    "note": "Suffixes go on 'bővítmény': 'az Agents bővítményben'. With the brand: 'a Mattermost Agents bővítmény'."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Keep the English name; add 'szolgáltatás' when a suffix is needed ('a Hosted Push Notification Service szolgáltatásról'). HPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

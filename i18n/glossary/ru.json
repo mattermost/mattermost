@@ -445,5 +445,24 @@
   },
   "server": {
     "target": "сервер"
+  },
+  "health dashboard": {
+    "target": "Состояние сайта",
+    "note": "Name of the System Console page; quote it as a name in running text: «Состояние сайта» (e.g. 'функция «Состояние сайта»'). Consistent in existing translations."
+  },
+  "health finding": {
+    "target": "замечание о состоянии сайта",
+    "note": "Shorten to 'замечание' inside the page itself (e.g. 'Нет скрытых замечаний'). Consistent in existing translations."
+  },
+  "Agents plugin": {
+    "target": "плагин Agents",
+    "note": "Inflect 'плагин' only: 'плагина Agents', 'в плагине Agents'. 'Mattermost Agents plugin' = 'плагин Mattermost Agents'."
+  },
+  "Hosted Push Notification Service": {
+    "target": "служба push-уведомлений, размещённая Mattermost",
+    "note": "Inflect: 'службы push-уведомлений, размещённой Mattermost (HPNS)'. Includes Mattermost already, so 'Mattermost Hosted Push Notification Service' renders the same way. The server health remediation (health.rule.push_test_proxy.remediation) ships the English name; translate it. Never call it Mattermost's 'own' push service."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

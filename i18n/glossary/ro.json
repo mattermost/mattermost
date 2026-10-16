@@ -458,5 +458,24 @@
   "server": {
     "target": "server",
     "note": "Plural: 'servere'."
+  },
+  "health dashboard": {
+    "target": "Sănătatea site-ului",
+    "note": "Same as the page title ('Site health'); refer to it as pagina „Sănătatea site-ului”."
+  },
+  "health finding": {
+    "target": "constatare de sănătate",
+    "note": "Feminine: 'constatarea de sănătate', plural 'constatări de sănătate', genitive 'constatării'. Inside the dashboard plain 'constatare' is enough."
+  },
+  "Agents plugin": {
+    "target": "plugin Agents",
+    "note": "Articulated 'pluginul Agents', genitive 'pluginului Agents'. 'Agents' stays English."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Service name kept in English: 'serviciul Hosted Push Notification Service'. The terms-of-service checkbox ships the word-for-word 'Găzduit Serviciu de Notificare Împinge' ('împinge' is the verb 'to push'); do not follow it. The acronym HPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

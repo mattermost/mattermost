@@ -366,5 +366,21 @@
   },
   "server": {
     "target": "server"
+  },
+  "health dashboard": {
+    "target": "health dashboard",
+    "note": "The page itself is titled 'Site health'."
+  },
+  "health finding": {
+    "target": "health finding"
+  },
+  "Agents plugin": {
+    "target": "Agents plugin"
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service"
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }
