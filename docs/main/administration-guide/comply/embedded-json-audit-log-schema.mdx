@@ -632,7 +632,7 @@ Mattermost v12.0 introduces the `postDelivered` audit log event, which records e
 </tr>
 <tr>
 <td><code>completeSaml</code></td>
-<td>Completing SAML authentication</td>
+<td>Completing SAML authentication. <code>meta.user_created</code> is true when the login provisioned a new account via JIT.</td>
 </tr>
 <tr>
 <td><code>extendSessionExpiry</code></td>
@@ -859,7 +859,7 @@ Mattermost v12.0 introduces the `postDelivered` audit log event, which records e
 </tr>
 <tr>
 <td><code>completeOAuth</code></td>
-<td>Completing OAuth flow</td>
+<td>Completing OAuth/OIDC authentication. <code>meta.user_created</code> is true when the login provisioned a new account via JIT.</td>
 </tr>
 <tr>
 <td><code>createOAuthApp</code></td>
