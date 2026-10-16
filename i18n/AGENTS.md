@@ -205,6 +205,8 @@ The server's mirror `mmgotool i18n verify` string by string.
 - a server plural turned into a single string, which stops pluralizing
 - an empty value, or one with a U+FFFD replacement character or a control
   character
+- the English left as it is, when it has three or more lowercase words to
+  translate. A name is capitalized, so that is a sentence nobody translated.
 
 **Soft findings** are usually mistakes but sometimes exactly right. A run's
 answer lands only if it gives a reason in `acknowledge`, and the reasons go in
@@ -212,7 +214,7 @@ the PR for the reviewer. For any other PR, they are CI warnings.
 
 | Rule | Finding |
 |---|---|
-| `identical-to-english` | The translation is the English, and the English has words to translate: two or more in a Latin-script language, one in any other. Not checked for `en-AU`. |
+| `identical-to-english` | The translation is the English, and the English has words to translate: two or more in a Latin-script language, one in any other. With three or more lowercase words, it is an error instead. Not checked for `en-AU`. |
 | `english-words` | In a language not written in Latin script, the translation keeps lowercase words from the English. Names, quoted values and identifiers don't count. |
 | `do-not-translate` | The English uses a `doNotTranslate` name that the translation leaves out. |
 | `address` | The translation uses a pronoun `style.json` lists under `avoid` for its locale: `Sie` in German, `ты` in Russian. |

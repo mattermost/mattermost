@@ -504,6 +504,16 @@ describe('rules', () => {
         style: readStyle({read: () => JSON.stringify(realStyle)}, locale),
     }).map((f) => `${f.severity} ${f.rule}`);
 
+    test('English left as it is', () => {
+        assert.deepEqual(check('ru', 'With CEL you can define conditions', 'With CEL you can define conditions'), ['error identical-to-english']);
+        assert.deepEqual(check('pl', 'Confirm sending notifications to groups', 'Confirm sending notifications to groups'), ['error identical-to-english']);
+        assert.deepEqual(check('ru', 'Azure Blob Storage', 'Azure Blob Storage'), ['soft identical-to-english']);
+        assert.deepEqual(check('de', 'Save changes', 'Save changes'), ['soft identical-to-english']);
+        assert.deepEqual(check('de', 'Status', 'Status'), []);
+        assert.deepEqual(check('fr', '[on|off|status] [@username]', '[on|off|status] [@username]', 'server'), []);
+        assert.deepEqual(check('en-AU', 'Save your changes now', 'Save your changes now'), []);
+    });
+
     test('English words left in a non-Latin script', () => {
         assert.deepEqual(check('ru', '{count, plural, one {team} other {teams}}', '{count, plural, one {team} few {teams} many {teams} other {teams}}'), ['soft english-words']);
         assert.deepEqual(check('ru', 'Open the {name} webhook settings', 'Откройте настройки вебхука {name}'), []);
