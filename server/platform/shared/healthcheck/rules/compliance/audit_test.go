@@ -26,8 +26,16 @@ func auditSnapshot(fileEnabled bool, advanced string, users *int64) *healthcheck
 }
 
 func withAdvancedLogging(s *healthcheck.Snapshot, licensed bool) *healthcheck.Snapshot {
-	s.License = &model.License{Features: &model.Features{AdvancedLogging: new(licensed)}}
-	return s
+	diag := &model.SupportPacketDiagnostics{License: model.SupportPacketLicense{
+		Features: &model.Features{AdvancedLogging: new(licensed)},
+	}}
+	licensedSnapshot := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{{
+		Hostname:    "app-1",
+		IsLeader:    true,
+		Diagnostics: &model.NodeDiagnostics{Diagnostics: diag},
+	}})
+	licensedSnapshot.Config, licensedSnapshot.Stats, licensedSnapshot.Sections = s.Config, s.Stats, s.Sections
+	return licensedSnapshot
 }
 
 func auditTarget(levels ...string) string {
