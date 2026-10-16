@@ -473,7 +473,11 @@
   },
   "Hosted Push Notification Service": {
     "target": "Hosted Push Notification Service",
-    "note": "Service name kept in English: 'serviciul Hosted Push Notification Service'. The terms-of-service checkbox ships the word-for-word 'Găzduit Serviciu de Notificare Împinge' ('împinge' is the verb 'to push'); do not follow it. The acronym HPNS stays as is."
+    "note": "Service name kept in English: 'serviciul Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name kept in English: 'serviciul Test Push Notification Service'. The acronym TPNS stays as is."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

@@ -461,8 +461,12 @@
     "note": "Definite neuter form, matching 'plugin' (ett plugin): 'Agents-pluginet', 'i Agents-pluginet'. Existing strings mostly say 'Agents-pluginen' (common gender) — do not propagate."
   },
   "Hosted Push Notification Service": {
-    "target": "värdbaserad push-aviseringstjänst",
-    "note": "With Mattermost: 'Mattermosts värdbaserade push-aviseringstjänst'. Existing strings (admin.email.agreeHPNS, health.rule.push_test_proxy.remediation) leave the full name in English — translate it. 'push-avisering' is the established form in push contexts."
+    "target": "Hosted Push Notification Service",
+    "note": "Service name; keep in English. Where grammar needs a noun phrase, put 'tjänsten' (en tjänst) in front: 'för tjänsten Mattermost Hosted Push Notification Service', 'produktionstjänsten Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name; keep in English. Frame it like Hosted Push Notification Service, with 'tjänsten' in front where grammar needs it. The acronym TPNS stays as is."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

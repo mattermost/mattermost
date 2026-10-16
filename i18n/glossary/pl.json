@@ -470,7 +470,11 @@
   },
   "Hosted Push Notification Service": {
     "target": "Hosted Push Notification Service",
-    "note": "Service name kept in English; it does not decline, so carry the case on a Polish head noun: 'usługa Hosted Push Notification Service', 'usługę Hosted Push Notification Service'. The terms-of-service checkbox ships 'Hostowana Usługa Powiadomień Push Mattermost'; do not follow it. The acronym HPNS stays as is."
+    "note": "Service name kept in English; it does not decline, so carry the case on a Polish head noun: 'usługa Hosted Push Notification Service', 'usługę Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name kept in English; carry the case on a Polish head noun: 'usługa Test Push Notification Service', 'o usłudze Test Push Notification Service'. The acronym TPNS stays as is."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

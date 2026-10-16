@@ -486,7 +486,11 @@
   },
   "Hosted Push Notification Service": {
     "target": "Hosted Push Notification Service",
-    "note": "Keep the full English name; to inflect, follow it with '-palvelu' ('Hosted Push Notification Service -palvelun'). admin.email.agreeHPNS ships the truncated 'Hosted Push Notification -palvelu'; do not propagate it. HPNS stays as is ('HPNS:sta')."
+    "note": "To inflect, follow the full name with '-palvelu' ('Hosted Push Notification Service -palvelun'). HPNS inflects with a colon ('HPNS:sta')."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "To inflect, follow the full name with '-palvelu' ('Test Push Notification Service -palvelusta'). TPNS inflects with a colon ('TPNS:sta')."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

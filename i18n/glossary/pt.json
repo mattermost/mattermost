@@ -480,8 +480,12 @@
     "note": "Masculine: 'o plugin Agents', 'no plugin Agents'. 'Agents' stays English."
   },
   "Hosted Push Notification Service": {
-    "target": "Serviço de Notificações Push Alojado",
-    "note": "With the brand: 'Serviço de Notificações Push Alojado do Mattermost' (masculine). The terms-of-service checkbox ships 'Serviço de Notificação de Submissão Hospedado' and server health remediation text leaves the name in English; do not follow either. The acronym HPNS stays as is."
+    "target": "Hosted Push Notification Service",
+    "note": "Service name kept in English, masculine: 'o Hosted Push Notification Service', 'do Mattermost Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name kept in English, masculine: 'o Test Push Notification Service'. The acronym TPNS stays as is."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

@@ -413,8 +413,10 @@
     "note": "'Agents' is a product name and stays in English. The admin.site.localization.* strings ship 'エージェントプラグイン'; do not propagate it."
   },
   "Hosted Push Notification Service": {
-    "target": "Hosted Push Notification Service",
-    "note": "Keep the English name ('Mattermost Hosted Push Notification Service'). admin.email.agreeHPNS paraphrases it as 'Mattermostがホストするプッシュ通知サービス'; do not propagate it. HPNS stays as is."
+    "target": "Hosted Push Notification Service"
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service"
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

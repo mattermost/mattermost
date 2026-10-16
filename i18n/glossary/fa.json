@@ -451,7 +451,11 @@
   },
   "Hosted Push Notification Service": {
     "target": "Hosted Push Notification Service",
-    "note": "Keep the service name in English, introduced by 'سرویس'; HPNS stays as is. admin.email.agreeHPNS currently paraphrases it as 'خدمات اعلان فشار میزبانی Mattermost' — do not propagate."
+    "note": "Keep the service name in English, introduced by 'سرویس' (e.g. 'سرویس Mattermost Hosted Push Notification Service')."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Keep the service name in English, introduced by 'سرویس' (e.g. 'سرویس Mattermost Test Push Notification Service')."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

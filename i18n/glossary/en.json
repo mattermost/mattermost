@@ -1029,9 +1029,14 @@
     "doNotTranslate": false
   },
   "Hosted Push Notification Service": {
-    "definition": "Mattermost's production push notification service (push.mattermost.com), abbreviated HPNS. Render the full name one fixed way per locale; the acronym HPNS stays as is.",
+    "definition": "Name of Mattermost's production push notification service for licensed and Cloud servers, abbreviated HPNS. A service name: keep it in English and, where grammar needs it, describe it with a translated head noun around the name (e.g. 'the Mattermost Hosted Push Notification Service' as 'service Mattermost Hosted Push Notification Service'). The acronym HPNS stays as is.",
     "partOfSpeech": "noun",
-    "doNotTranslate": false
+    "doNotTranslate": true
+  },
+  "Test Push Notification Service": {
+    "definition": "Name of Mattermost's free push notification service for testing self-hosted servers, not for production, abbreviated TPNS. A service name: keep it in English, like Hosted Push Notification Service. The acronym TPNS stays as is.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
   },
   "PushNotificationServer": {
     "definition": "Configuration setting that holds the push proxy URL; admin-facing text quotes it verbatim.",

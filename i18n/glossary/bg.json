@@ -461,7 +461,11 @@
   },
   "Hosted Push Notification Service": {
     "target": "Hosted Push Notification Service",
-    "note": "Keep the service name in English, introduced by 'услугата' (e.g. 'услугата Mattermost Hosted Push Notification Service'); HPNS stays as is. admin.email.agreeHPNS currently paraphrases it as 'хостваната от Mattermost услуга за известия', which drops 'push' — do not propagate."
+    "note": "Keep the service name in English, introduced by 'услугата' (e.g. 'услугата Mattermost Hosted Push Notification Service'); HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Keep the service name in English, introduced by 'услугата' (e.g. 'услугата Mattermost Test Push Notification Service'); TPNS stays as is."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

@@ -443,8 +443,12 @@
     "note": "'Agents' is the product name and stays in English. Four webapp strings (admin.site.localization.*Agents*) translate it as 'Aracılar uygulama eki' — do not propagate. Accusative/genitive on 'eki': 'Agents uygulama ekinin', 'Agents uygulama ekinde'."
   },
   "Hosted Push Notification Service": {
-    "target": "barındırılan anında bildirim hizmeti",
-    "note": "With Mattermost: 'Mattermost barındırılan anında bildirim hizmeti'. admin.email.agreeHPNS paraphrases it as 'Mattermost tarafından sunulan anında bildirim hizmeti' and health.rule.push_test_proxy.remediation leaves it in English — use the target in both."
+    "target": "Hosted Push Notification Service",
+    "note": "Service name; keep in English. When a case suffix is needed, attach it to the head noun 'hizmeti' after the name rather than to the English word: 'Mattermost Hosted Push Notification Service hizmetinin'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name; keep in English. Inflect through 'hizmeti' after the name, like Hosted Push Notification Service. The acronym TPNS stays as is."
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"

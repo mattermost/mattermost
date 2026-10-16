@@ -447,6 +447,10 @@
     "target": "Hosted Push Notification Service",
     "note": "Keep the English name; add 'szolgáltatás' when a suffix is needed ('a Hosted Push Notification Service szolgáltatásról'). HPNS stays as is."
   },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Keep the English name; add 'szolgáltatás' when a suffix is needed ('a Test Push Notification Service szolgáltatásról'). TPNS stays as is."
+  },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
   }
