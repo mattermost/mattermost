@@ -55,11 +55,16 @@
     }
 }
 
+// Spacing to .top-wrapper comes from shared
+// .admin-console__content { gap: var(--spacing-xl) }. Drop the legacy
+// margin-bottom so banner + gap do not stack to 40px. Hide :empty so a
+// zero-height banner (common when seat/trial/renew cards return null)
+// is not a flex item that still consumes that gap above the cards.
 .admin-console__banner_section {
-    margin-bottom: 20px;
+    margin-bottom: 0;
 
     &:empty {
-        margin-bottom: 0px;
+        display: none;
     }
 
     .AlertBanner {
