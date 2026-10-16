@@ -1275,15 +1275,14 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
 
         const schemaSections = 'sections' in schema ? schema.sections : undefined;
         if ('settings' in schema && schema.settings && !schemaSections) {
-            // Same gap as section stacks so sibling AdminPanels (e.g. Languages +
-            // Auto Translation) are not flush against each other.
+            // Flat settings (e.g. Localization) that each self-render AdminPanel must
+            // be direct flex children of schema-sections. Wrapping them in
+            // SettingsGroup would collapse the gap to a single child.
             return (
                 <div className='admin-console__schema-sections'>
-                    <SettingsGroup container={false}>
-                        {header}
-                        {buildSettingsList(schema.settings)}
-                        {footer}
-                    </SettingsGroup>
+                    {header}
+                    {buildSettingsList(schema.settings)}
+                    {footer}
                 </div>
             );
         } else if (schemaSections) {
