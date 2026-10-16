@@ -664,9 +664,8 @@ describe('Messaging', () => {
         cy.postMessage(messageX);
 
         cy.getLastPostId().then((postId) => {
-            // # Search for the posted message
-            cy.uiGetSearchContainer().click();
-            cy.uiGetSearchBox().should('be.visible').type(messageX).type('{enter}');
+            // # Search for the posted message and wait for RHS results to finish loading
+            cy.uiSearchPosts(messageX);
 
             // * Wait for the search hit before interacting with its post menu
             cy.get(`#searchResult_${postId}`, {timeout: TIMEOUTS.TEN_SEC}).should('be.visible');
