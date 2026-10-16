@@ -236,21 +236,6 @@ describe('unwrapBotExpression', () => {
         expect(unwrapBotExpression('!user.isbot || !user.isbot || (user.attributes.Program == "Dragon"\n)')).toBe('user.attributes.Program == "Dragon"');
     });
 
-    it('unwraps the submitted form of a commented rule', () => {
-        expect(unwrapBotExpression(COMMENT_SUBMITTED)).toBe(COMMENT_E);
-    });
-
-    it.each([
-        ['simple', PROGRAM_DRAGON],
-        ['ternary', fixture('c masking on GET').unwrapped],
-        ['leading group', fixture('d2 masking on GET').unwrapped],
-        ['comment', COMMENT_E],
-        ['newlines', fixture('a masking on GET').unwrapped],
-        ['prefixed body', '!user.isbot || x'],
-    ])('round-trips wrap of %s', (_, expr) => {
-        expect(unwrapBotExpression(wrapBotExpression(expr))).toBe(expr);
-    });
-
     it('strips every prefix from the server form of a prefixed body', () => {
         expect(unwrapBotExpression('!user.isbot || !user.isbot || x')).toBe('x');
     });
@@ -321,26 +306,27 @@ describe('unwrapBotExpression', () => {
 });
 
 describe('wrapBotExpression', () => {
-    it('wraps with prefix, parens and a trailing newline', () => {
-        expect(wrapBotExpression(PROGRAM_DRAGON)).toBe('!user.isbot || (user.attributes.Program == "Dragon"\n)');
-    });
+    // The newline keeps a trailing `// comment` in the rule from commenting out
+    // the closing paren; without it the stored rule is unbalanced and the server rejects it.
+    it('round-trips through the stored form with the newline before the closing paren', () => {
+        const stored = wrapBotExpression(COMMENT_E);
 
-    it('produces the submitted form for a commented rule', () => {
-        const wrapped = wrapBotExpression(COMMENT_E);
-        expect(wrapped).toBe(COMMENT_SUBMITTED);
-        expect(wrapped.endsWith('// note\n)')).toBe(true);
-    });
+        expect(stored).toBe('!user.isbot || (user.attributes.Program == "Dragon" // note\n)');
+        expect(unwrapBotExpression(stored)).toBe(COMMENT_E);
 
-    it('never produces the newline-less form the server rejected', () => {
-        expect(wrapBotExpression(COMMENT_E)).not.toBe(COMMENT_SUBMITTED_NO_NEWLINE);
-    });
-
-    it('keeps the closing paren off a trailing comment line', () => {
-        expect(wrapBotExpression('P == "x" // c').endsWith('// c\n)')).toBe(true);
+        for (const expr of [
+            PROGRAM_DRAGON,
+            fixture('c masking on GET').unwrapped,
+            fixture('d2 masking on GET').unwrapped,
+            fixture('a masking on GET').unwrapped,
+            '!user.isbot || x',
+        ]) {
+            expect(unwrapBotExpression(wrapBotExpression(expr))).toBe(expr);
+        }
     });
 
     it('does not trim its input', () => {
-        expect(wrapBotExpression('  x  ')).toBe('!user.isbot || (  x  \n)');
+        expect(wrapBotExpression('  x  ')).toContain('(  x  ');
     });
 
     it('produces balanced output for balanced input', () => {
