@@ -176,13 +176,20 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         cy.get('#changeInterfaceLanguageLabel').should('be.visible').and('have.text', 'Change interface language');
 
         // # When space key is pressed on dropdown, it should expand and should collapse when esc key is pressed
-        cy.get('@inputEl').typeWithForce(' ');
-        cy.findByRole('listbox').should('have.class', 'react-select__menu-list').as('listBox');
+        // Menu is portaled to document.body (outside the aria-modal dialog), so query by class
+        // and assert role=listbox rather than findByRole (inaccessible outside the modal).
+        cy.get('@inputEl').focus().typeWithForce(' ');
+        cy.get('.react-select__menu-list').
+            should('be.visible').
+            and('have.attr', 'role', 'listbox').
+            and('have.class', 'react-select__menu-list').
+            as('listBox');
         cy.get('@inputEl').typeWithForce('{esc}');
         cy.get('@listBox').should('not.exist');
 
         // # Press down arrow twice and check aria label
-        cy.get('@inputEl').typeWithForce(' ');
+        cy.get('@inputEl').focus().typeWithForce(' ');
+        cy.get('.react-select__menu-list').should('be.visible');
         cy.get('@inputEl').typeWithForce('{downarrow}{downarrow}');
         cy.get('#displayLanguage').within(($el) => {
             cy.wrap($el).findByRole('log').should('have.attr', 'aria-live', 'assertive').as('ariaEl');
