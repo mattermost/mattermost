@@ -25,7 +25,7 @@ page closes nothing.
 
 | Path | Content |
 | --- | --- |
-| `docs/main/administration-guide/` | Configuration reference, admin console, upgrade notes, CLI, server management, support packet, audit events, compliance |
+| `docs/main/administration-guide/` | Configuration reference, admin console, CLI, server management, support packet, audit events, compliance |
 | `docs/main/deployment-guide/` | Installation, deployment, desktop and mobile distribution |
 | `docs/main/end-user-guide/` | User-facing features: messaging, channels, search, notifications, preferences |
 | `docs/main/integrations-guide/` | Webhooks, slash commands, plugins, bots, API usage |
@@ -44,6 +44,8 @@ an action:
   request and publish with the site. Note them in `impacts` as already handled if you
   like, but the action is never "edit the generated page" — fix the OpenAPI source.
 - `docs/main/agents/docs/**` is synced from another repository.
+- Changelogs, important upgrade notes, and the version archive are written by the
+  release team on release day. Never name them as a gap, action, or docs location.
 
 ## Code paths that imply documentation
 
@@ -53,7 +55,7 @@ an action:
 | `server/public/model/feature_flags.go` | A feature flag. **Not** a configuration setting; do not conflate them |
 | `server/public/model/audit_events.go` | An audit event — compliance content |
 | `server/public/model/support_packet.go` | Support packet contents — troubleshooting and support workflows |
-| `server/channels/db/migrations/` | A schema change — upgrade notes |
+| `server/channels/db/migrations/` | A schema change — admin-facing steps only if a workflow changes |
 | `server/channels/api4/` | A REST endpoint |
 | `server/public/model/websocket_message.go` | A WebSocket event |
 | `server/cmd/`, `server/public/plugin/` | mmctl commands, plugin API |

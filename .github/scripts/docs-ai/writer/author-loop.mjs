@@ -30,6 +30,7 @@ export const PREOPEN_REVIEW_NOTE = [
   'A blank line between a field label and its code fence, or between every sentence, is a spacing defect in added text. The blank line after a callout opening tag is required.',
   'Do not request exact error strings, bind addresses, firewall rules, port conflicts, or packaging variables. That is COMMENT at most, and only when the pull request evidence already states the behaviour.',
   'Do not request fixes to unchanged context lines.',
+  'Do not request changelog, important upgrade notes, or version-archive entries. The release team writes them on release day.',
 ].join('\n');
 
 const SUMMARY_RE = /`{3,}summary[ \t]*\n([\s\S]*?)\n`{3,}/;

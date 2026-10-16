@@ -49,6 +49,20 @@ test('deny list wins over allow prefixes', () => {
   assert.equal(isAllowedPath('../etc/passwd'), false);
 });
 
+test('release notes pages are never writable', () => {
+  for (const path of [
+    'docs/main/product-overview/mattermost-v12-changelog.mdx',
+    'docs/main/product-overview/desktop-app-changelog.mdx',
+    'docs/main/product-overview/version-archive.mdx',
+    'docs/main/administration-guide/upgrade/important-upgrade-notes.mdx',
+  ]) {
+    assert.equal(isAllowedPath(path), false, path);
+    assert.deepEqual(extractDocsPaths(`Update ${path}`), [], path);
+  }
+  assert.equal(isAllowedPath('docs/main/product-overview/release-policy.mdx'), true);
+  assert.equal(isAllowedPath('docs/main/administration-guide/upgrade/upgrading-mattermost-server.mdx'), true);
+});
+
 test('extractDocsPaths pulls exact content paths from prose', () => {
   const text =
     'Update docs/main/administration-guide/configure/x.mdx and docs/api/examples.mdx; ignore docs/site/foo.';

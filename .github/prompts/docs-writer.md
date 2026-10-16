@@ -61,8 +61,8 @@ document them in the order a reader meets them.
   `From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT]` — never guess a version.
 - Do not hand-author `docs/api/reference/**`, `docs/site/**`, `docs/styles/**`,
   `docs/vendor/**`, or `docs/main/agents/docs/**`.
-- Do not edit changelogs, important upgrade notes, or version-archive pages unless the
-  brief explicitly requires it.
+- Never edit changelogs, important upgrade notes, or version-archive pages. The release
+  team writes them on release day. Skip any brief action that asks for one.
 - Follow `conventions.md` for text you add: frontmatter, plan availability, callouts,
   links, MDX escaping, heading case, and voice. Do not restyle existing lines to match.
 
