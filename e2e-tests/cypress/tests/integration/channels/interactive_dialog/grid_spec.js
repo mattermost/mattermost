@@ -111,9 +111,13 @@ describe('Interactive Dialog - Grid layout', () => {
     });
 
     it('Row header column stays put while the rest of the row scrolls, and stays editable', () => {
-        // # Narrow the window so the grid is certain to overflow its container,
-        // which is the only condition under which sticky means anything
-        cy.viewport(700, 900);
+        // # Narrow the window until the grid genuinely overflows, which is the
+        // only condition under which being pinned means anything. This sample
+        // is four columns and squeezes down to about 500px, so it still fits
+        // inside the 600px tier on a desktop window; the window has to come
+        // below that floor for the row header to have anything to stay put
+        // against.
+        cy.viewport(500, 900);
         openGridDialog();
 
         // * The first cell of each row is a row header rather than an ordinary
@@ -298,11 +302,6 @@ describe('Interactive Dialog - Grid layout', () => {
             // ordinary refresh
             cy.get('.apps-form-grid tbody tr').first().find('td input').first().should('have.value', '7');
 
-            // * The grid does not fit at the narrow tier, so it scrolls
-            // sideways rather than squeezing the inputs
-            cy.get('.apps-form-grid__scroll').should(($scroll) => {
-                expect($scroll[0].scrollWidth).to.be.greaterThan($scroll[0].clientWidth);
-            });
         });
 
         closeAppsFormModal();
