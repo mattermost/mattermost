@@ -72,8 +72,8 @@ func TestDBNoSearchReplica(t *testing.T) {
 		want     want
 	}{
 		{"config absent", newSnapshot(nil, withStats(0, 2_000_000), nil), unknownConfigWant},
-		{"database search at 1M posts", newSnapshot(defaultConfig(), withStats(0, 1_000_000), nil), firingWant("health.rule.db_no_search_replica.message").withValue(1_000_000)},
-		{"database search below 1M posts", newSnapshot(defaultConfig(), withStats(0, 999_999), nil), resolvedWant.withValue(999_999)},
+		{"database search at 2M posts", newSnapshot(defaultConfig(), withStats(0, 2_000_000), nil), firingWant("health.rule.db_no_search_replica.message").withValue(2_000_000)},
+		{"database search below 2M posts", newSnapshot(defaultConfig(), withStats(0, 1_999_999), nil), resolvedWant.withValue(1_999_999)},
 		{"indexing without searching at 2M posts", newSnapshot(indexingOnly, withStats(0, 2_000_000), nil), firingWant("health.rule.db_no_search_replica.message").withValue(2_000_000)},
 		{"elasticsearch searching", newSnapshot(searching, withStats(0, 2_000_000), nil), resolvedWant},
 		{"search replica configured", newSnapshot(withSearchReplica, withStats(0, 2_000_000), nil), resolvedWant},
