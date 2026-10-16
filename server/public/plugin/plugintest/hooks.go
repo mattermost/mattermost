@@ -845,6 +845,11 @@ func (_m *Hooks) UserHasLoggedIn(c *plugin.Context, user *model.User) {
 	_m.Called(c, user)
 }
 
+// UserRolesHaveBeenUpdated provides a mock function with given fields: c, user, previousRoles
+func (_m *Hooks) UserRolesHaveBeenUpdated(c *plugin.Context, user *model.User, previousRoles string) {
+	_m.Called(c, user, previousRoles)
+}
+
 // UserWillLogIn provides a mock function with given fields: c, user
 func (_m *Hooks) UserWillLogIn(c *plugin.Context, user *model.User) string {
 	ret := _m.Called(c, user)
