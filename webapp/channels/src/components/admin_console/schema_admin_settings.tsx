@@ -1393,8 +1393,11 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 }
             });
 
+            // Stack sections with the same gap as admin-console__content. Without
+            // this, AdminSectionPanel siblings sit flush because Compass AdminPanel
+            // has no outer margin and this wrapper is a single flex child of content.
             return (
-                <div>
+                <div className='admin-console__schema-sections'>
                     {header}
                     {'settings' in schema && schema.settings && schema.settings.length > 0 && (
                         <SettingsGroup container={false}>

@@ -185,5 +185,9 @@ describe('AdminDefinition - ABAC audit logging toggle', () => {
         expect(container.querySelector('[data-testid="admin.accesscontrol.settings"].AdminPanel')).toBeInTheDocument();
         expect(container.querySelector('[data-testid="admin.accesscontrol.session_attributes"].AdminPanel')).toBeInTheDocument();
         expect(container.querySelectorAll('.AdminPanel.AdminSectionPanel')).toHaveLength(2);
+
+        const sectionStack = container.querySelector('.admin-console__schema-sections');
+        expect(sectionStack).toBeInTheDocument();
+        expect(sectionStack?.querySelectorAll(':scope > .AdminPanel.AdminSectionPanel')).toHaveLength(2);
     });
 });
