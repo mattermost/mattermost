@@ -181,139 +181,90 @@
         }
     }
 
-    ul.Accordion {
-        width: 872px;
-        margin-left: 4px;
+    .WorkspaceOptimizationDashboard__sections {
+        display: flex;
+        width: 100%;
+        max-width: 920px;
+        flex-direction: column;
+        margin-top: var(--spacing-xl);
+        gap: var(--spacing-l);
+    }
 
-        li.accordion-card {
-            overflow: hidden;
-            box-sizing: border-box;
-            border: var(--border-light);
-            border-radius: var(--radius-s);
-            margin-top: 16px;
-            background-color: var(--sys-center-channel-bg);
+    .WorkspaceOptimizationDashboard__section {
+        // Success / up-to-date sections: green leading pill like the former accordion.
+        &--success {
+            [class*='admin-panel-header__leading'] {
+                background-color: rgba(var(--sys-online-indicator-rgb), 0.16);
+                color: var(--sys-online-indicator);
+            }
+        }
 
-            &:has(.accordion-card-header[role="button"]){
-                &:hover {
-                    border: var(--border-dark);
-                    box-shadow: var(--elevation-2);
-                }
+        // Header-only (no recommendations): hide empty Compass body + divider.
+        &--header-only {
+            [class*='admin-panel-header--divided'] {
+                border-bottom-color: transparent;
             }
 
-            .accordion-card-header {
-                max-height: 92px;
+            [class*='admin-panel__body'] {
+                display: none;
                 padding: 0;
-                background-color: var(--sys-center-channel-bg);
+            }
+        }
 
-                &__icon {
-                    padding: 0;
-                    margin: 24px 0 24px 24px;
+        [class*='admin-panel-header__actions'] {
+            button[class*=' StyledChip'],
+            button[class^='StyledChip'] {
+                width: auto;
+                min-width: 120px;
+                height: 24px;
+                margin-right: 0;
+            }
+        }
 
-                    div {
-                        z-index: 1;
-                        display: flex;
-                        width: 44px;
-                        height: 44px;
-                        align-items: center;
-                        justify-content: center;
-                        border-radius: 50%;
-                        background-color: rgba(var(--sys-denim-center-channel-text-rgb), 0.16);
+        [class*='admin-panel__body'] {
+            .WorkspaceOptimizationDashboard__item {
+                padding: var(--spacing-l) 0;
 
-                        &.success {
-                            background-color: rgba(var(--sys-online-indicator-rgb), 0.16);
-
-                            svg {
-                                opacity: 1;
-                            }
-                        }
-
-                        svg {
-                            opacity: 0.73;
-                        }
-                    }
+                &:first-child {
+                    padding-top: 0;
                 }
 
-                &__body {
-                    padding: 0;
-                    margin: 27px 0 26px 16px;
-
-                    &__title {
-                        margin-bottom: 5px;
-                        color: #1c58d9;
-                        font-size: 14px;
-                        font-weight: 600;
-                        line-height: 14px;
-                    }
-
-                    &__description {
-                        color: #3d3c40;
-                        font-size: 14px;
-                        font-style: normal;
-                        font-weight: normal;
-                        line-height: 20px;
-                    }
+                &:last-child {
+                    padding-bottom: 0;
+                    border-bottom: none;
                 }
 
-                &__extraContent {
-                    display: flex;
-                    flex-direction: row;
-                    align-items: flex-end;
-                    margin-top: 34px;
-                    margin-left: auto;
-
-                    button[class*=' StyledChip'],
-                    button[class^='StyledChip'] {
-                        margin-right: 24px;
-                    }
+                h5 {
+                    display: inline-flex;
+                    align-items: center;
+                    margin-top: 0;
+                    margin-bottom: var(--spacing-xxs);
+                    font-weight: bold;
                 }
 
-                &__chevron {
-                    padding: 0;
-                    margin: 30px 30px 30px 0;
-                    font-size: 24px;
+                i {
+                    margin-left: calc(var(--spacing-xxs) * -1);
+                    font-size: 20px;
+
+                    &.warning {
+                        color: var(--sys-away-indicator);
+                    }
                 }
             }
 
-            .accordion-card-container {
-                &__content {
-                    padding: 16px 24px;
-                    border-top: 1px solid rgba(63, 67, 80, 0.06);
-                    background-color: rgb(255, 255, 255);
+            .ctaButtons {
+                display: flex;
+                justify-content: flex-start;
+                margin: var(--spacing-l) 0 0 0;
 
-                    div[class*=' AccordionItem'],
-                    div[class^='AccordionItem'] {
-                        padding: 16px 0;
-
-                        h5 {
-                            margin-top: 0;
-                            margin-bottom: 4px;
-                        }
-
-                        i {
-                            margin-left: -5px;
-                            font-size: 20px;
-
-                            &.warning {
-                                color: var(--sys-away-indicator);
-                            }
-                        }
-                    }
-                }
-
-                .ctaButtons {
-                    display: flex;
-                    justify-content: flex-start;
-                    margin: 15px 0 0 0;
-
-                    a,
-                    button {
-                        max-height: 32px;
-                        padding: 5px 20px !important;
-                        border-radius: 4px !important;
-                        margin-top: 0;
-                        margin-right: 10px;
-                        font-weight: 600;
-                    }
+                a,
+                button {
+                    max-height: 32px;
+                    padding: 5px 20px !important;
+                    border-radius: var(--radius-s) !important;
+                    margin-top: 0;
+                    margin-right: var(--spacing-s);
+                    font-weight: 600;
                 }
             }
         }

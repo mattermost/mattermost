@@ -100,4 +100,44 @@ describe('components/widgets/admin_console/AdminPanel', () => {
         expect(screen.getByText('Body only')).toBeInTheDocument();
         expect(panel?.querySelector('.AdminPanel__body')).toBeInTheDocument();
     });
+
+    test('should render plain string title and subtitle without MessageDescriptor', () => {
+        renderWithContext(
+            <AdminPanel
+                id='string-title-id'
+                title='Server updates'
+                subtitle='Your workspace is completely up to date!'
+            >
+                {'Body'}
+            </AdminPanel>,
+        );
+
+        expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('Server updates');
+        expect(screen.getByText('Your workspace is completely up to date!')).toBeInTheDocument();
+        expect(screen.getByText('Body')).toBeInTheDocument();
+    });
+
+    test('should support expandable collapse via Compass AdminPanel props', async () => {
+        renderWithContext(
+            <AdminPanel
+                {...defaultProps}
+                id='expandable-id'
+                expandable={true}
+                defaultExpandedState='collapsed'
+                expandLabel='Expand section'
+                collapseLabel='Collapse section'
+            >
+                {'Hidden until expanded'}
+            </AdminPanel>,
+        );
+
+        const panel = document.getElementById('expandable-id');
+        const collapse = panel?.querySelector('[class*="admin-panel__collapse"]');
+        expect(collapse).toHaveAttribute('aria-hidden', 'true');
+        expect(screen.getByText('Hidden until expanded')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Expand section'}));
+        expect(collapse).toHaveAttribute('aria-hidden', 'false');
+        expect(screen.getByRole('button', {name: 'Collapse section'})).toBeInTheDocument();
+    });
 });

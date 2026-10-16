@@ -10,6 +10,8 @@ import {AdminPanel as CompassAdminPanel} from '@mattermost/compass-ui/components
 
 import './admin_panel.scss';
 
+type PanelText = MessageDescriptor | string;
+
 type Props = {
     id?: string;
     className?: string;
@@ -19,17 +21,45 @@ type Props = {
      * chrome), the panel renders Compass AdminPanel body chrome without a header.
      * Compass AdminPanel itself always requires a title and always mounts
      * AdminPanelHeader — there is no hideHeader / headerless prop upstream.
+     *
+     * Prefer MessageDescriptor for i18n. Plain strings are allowed when the
+     * caller already formatted the copy (e.g. Workspace Optimization sections).
      */
-    title?: MessageDescriptor;
-    subtitle?: MessageDescriptor;
+    title?: PanelText;
+    subtitle?: PanelText;
     subtitleValues?: Record<string, unknown>;
     button?: React.ReactNode;
     children?: React.ReactNode;
 } & Omit<React.ComponentProps<typeof CompassAdminPanel>, 'title' | 'subtitle' | 'headerActions' | 'children' | 'className'>;
 
+function isMessageDescriptor(value: PanelText): value is MessageDescriptor {
+    return typeof value === 'object' && value !== null && 'id' in value;
+}
+
+function renderPanelText(
+    message: PanelText | undefined,
+    values?: Record<string, unknown>,
+): React.ReactNode | undefined {
+    if (message == null || message === '') {
+        return undefined;
+    }
+    if (typeof message === 'string') {
+        return message;
+    }
+    if (isMessageDescriptor(message)) {
+        return (
+            <FormattedMessage
+                {...message}
+                {...(values ? {values: values as React.ComponentProps<typeof FormattedMessage>['values']} : {})}
+            />
+        );
+    }
+    return undefined;
+}
+
 function hasCompassHeaderChrome(props: {
-    title?: MessageDescriptor;
-    subtitle?: MessageDescriptor;
+    title?: PanelText;
+    subtitle?: PanelText;
     button?: React.ReactNode;
     showBeta?: boolean;
     showEnterpriseLabel?: boolean;
@@ -81,26 +111,19 @@ const AdminPanel = ({
         );
     }
 
+    const titleNode = renderPanelText(title);
+
     return (
         <CompassAdminPanel
             id={id}
             className={classNames('AdminPanel', 'clearfix', className)}
-            title={title ? (
-                <FormattedMessage {...title}/>
-            ) : (
-                // Subtitle/actions without a title still need Compass's required
-                // title slot; AdminSectionPanel uses the same space fallback.
+            title={titleNode ?? (
                 <FormattedMessage
                     id='admin.panel.untitled'
                     defaultMessage=' '
                 />
             )}
-            subtitle={subtitle ? (
-                <FormattedMessage
-                    {...subtitle}
-                    {...(subtitleValues ? {values: subtitleValues as React.ComponentProps<typeof FormattedMessage>['values']} : {})}
-                />
-            ) : undefined}
+            subtitle={renderPanelText(subtitle, subtitleValues)}
             headerActions={button}
             {...rest}
         >
