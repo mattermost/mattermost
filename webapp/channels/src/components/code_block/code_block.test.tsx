@@ -8,12 +8,14 @@ import {act, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import CodeBlock from './code_block';
 
+// Waits for the work the code block queues, which runs in a task scheduled after the one a
+// setImmediate callback runs in.
 const actImmediate = () =>
     act(
         () =>
             new Promise<void>((resolve) => {
                 setImmediate(() => {
-                    resolve();
+                    setTimeout(resolve, 0);
                 });
             }),
     );
