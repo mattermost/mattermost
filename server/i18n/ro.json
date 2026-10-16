@@ -2709,7 +2709,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "Plugin-ul de configurare din fişierul config.json trebuie să fie actualizate manual atunci când se utilizează ReadOnlyConfig cu gruparea activat."
+    "translation": "Pluginul de configurare din fişierul config.json trebuie să fie actualizate manual atunci când se utilizează ReadOnlyConfig cu gruparea activat."
   },
   {
     "id": "app.plugin.config.app_error",
@@ -2721,7 +2721,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "S-a dezactivat plugin-uri. Verificați jurnalele pentru detalii."
+    "translation": "S-a dezactivat pluginuri. Verificați jurnalele pentru detalii."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -2737,7 +2737,7 @@
   },
   {
     "id": "app.plugin.get_plugins.app_error",
-    "translation": "Imposibilitatea de a obţine plugin-uri active."
+    "translation": "Imposibilitatea de a obţine pluginuri active."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -2745,19 +2745,19 @@
   },
   {
     "id": "app.plugin.install.app_error",
-    "translation": "Imposibilitatea de a instala plugin-ul."
+    "translation": "Imposibilitatea de a instala pluginul."
   },
   {
     "id": "app.plugin.install_id.app_error",
-    "translation": "Imposibilitatea de a instala plugin-ul. Un plug-in cu același ID este deja instalat."
+    "translation": "Imposibilitatea de a instala pluginul. Un plug-in cu același ID este deja instalat."
   },
   {
     "id": "app.plugin.install_id_failed_remove.app_error",
-    "translation": "Nu se poate instala plugin-ul. Un plugin cu același ID-ul este deja instalat și nu a fost eliminate."
+    "translation": "Nu se poate instala pluginul. Un plugin cu același ID-ul este deja instalat și nu a fost eliminate."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
-    "translation": "Plugin-ul ID-ul trebuie să fie cel puţin {{.Min}} caractere, cel {{.Max}} caractere şi meci {{.Regex}}."
+    "translation": "Pluginul ID-ul trebuie să fie cel puţin {{.Min}} caractere, cel {{.Max}} caractere şi meci {{.Regex}}."
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -2765,7 +2765,7 @@
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Incapabil să se mişte plugin-ul de la director temporar la destinaţia finală. Un alt plug-in pot fi utilizând acelaşi nume de director."
+    "translation": "Incapabil să se mişte pluginul de la director temporar la destinaţia finală. Un alt plug-in pot fi utilizând acelaşi nume de director."
   },
   {
     "id": "app.plugin.not_installed.app_error",
@@ -2777,7 +2777,7 @@
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
-    "translation": "S-a dezactivat plugin-uri şi/sau plugin-ul încărcat."
+    "translation": "S-a dezactivat pluginuri şi/sau pluginul încărcat."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3941,7 +3941,7 @@
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
-    "translation": "Invalid ID plugin-ul, trebuie să fie mai mult {{.Min}} şi un maxim {{.Max}} caractere."
+    "translation": "Invalid ID pluginul, trebuie să fie mai mult {{.Min}} şi un maxim {{.Max}} caractere."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -4657,7 +4657,7 @@
   },
   {
     "id": "app.plugin.store_bundle.app_error",
-    "translation": "Imposibil de stocat plugin-ul în depozitul de fișiere configurat."
+    "translation": "Imposibil de stocat pluginul în depozitul de fișiere configurat."
   },
   {
     "id": "app.plugin.signature_decode.app_error",
@@ -4677,7 +4677,7 @@
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Nu a reușit plugin-urile de pe piața Marshal."
+    "translation": "Nu a reușit pluginurile de pe piața Marshal."
   },
   {
     "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
@@ -9497,7 +9497,7 @@
   },
   {
     "id": "app.access_control.plugin.invalid_resource_type.app_error",
-    "translation": "Tipul de resursă nu este un tip de resursă valid pentru controlul accesului din plugin-uri."
+    "translation": "Tipul de resursă nu este un tip de resursă valid pentru controlul accesului din pluginuri."
   },
   {
     "id": "app.access_control.plugin.policy_not_found.app_error",
@@ -9505,7 +9505,7 @@
   },
   {
     "id": "app.access_control.plugin.resource_type_forbidden.app_error",
-    "translation": "Plugin-ul apelant nu deține acest tip de resursă."
+    "translation": "Pluginul apelant nu deține acest tip de resursă."
   },
   {
     "id": "app.access_control.plugin.type_conflict.app_error",
@@ -12737,7 +12737,7 @@
   },
   {
     "id": "model.access_policy.is_valid.plugin_type.app_error",
-    "translation": "Politică de control al accesului nevalidă: tipul nu este un tip de resursă valid pentru plugin-uri."
+    "translation": "Politică de control al accesului nevalidă: tipul nu este un tip de resursă valid pentru pluginuri."
   },
   {
     "id": "model.access_policy.is_valid.revision.app_error",

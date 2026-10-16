@@ -265,7 +265,7 @@
   },
   "plugin": {
     "target": "plugin",
-    "note": "Kept as loanword in webapp ('pluginul', 'pluginuri'). Articulate as 'plugin-ul' / plural 'plugin-uri' per current orthographic norms."
+    "note": "Kept as a loanword. Articulate without a hyphen, as the final letter is pronounced as written: 'pluginul', genitive 'pluginului', plural 'pluginuri', 'pluginurile', 'pluginurilor'. 'plugin-ul' / 'plugin-uri' is wrong; the hyphen is only for loanwords whose final letter is not pronounced as written ('site-ul')."
   },
   "bot": {
     "target": "bot",
