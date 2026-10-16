@@ -23,31 +23,44 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
       <div
         class="admin-console__content"
       >
-        <div
-          class="Card console expanded"
+        <section
+          aria-labelledby="_r_0_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="custom_policy_form"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Name and retention
-              </div>
-              <div
-                class="text-bottom"
-              >
-                Give your policy a name and configure retention settings.
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_0_"
+                    >
+                      Name and retention
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Give your policy a name and configure retention settings.
+                  </p>
+                </div>
               </div>
             </div>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_iwm08_25"
           >
             <div
               class="CustomPolicy__fields"
@@ -180,37 +193,55 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="Card console expanded"
+        </section>
+        <section
+          aria-labelledby="_r_1_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
+          id="custom_policy_teams"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Assigned teams
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_1_"
+                    >
+                      Assigned teams
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Add teams that will follow this retention policy.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_19tix_75"
               >
-                Add teams that will follow this retention policy.
+                <button
+                  class="btn btn-primary"
+                  data-testid="add-teams"
+                >
+                  Add teams
+                </button>
               </div>
             </div>
-            <button
-              class="btn btn-primary"
-            >
-              Add teams
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_iwm08_25"
           >
             <div
               class="PolicyTeamsList"
@@ -272,37 +303,55 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="Card console expanded"
+        </section>
+        <section
+          aria-labelledby="_r_2_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
+          id="custom_policy_channels"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Assigned channels
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_2_"
+                    >
+                      Assigned channels
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Add channels that will follow this retention policy.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_19tix_75"
               >
-                Add channels that will follow this retention policy.
+                <button
+                  class="btn btn-primary"
+                  data-testid="add-channels"
+                >
+                  Add channels
+                </button>
               </div>
             </div>
-            <button
-              class="btn btn-primary"
-            >
-              Add channels
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_iwm08_25"
           >
             <div
               class="PolicyChannelsList"
@@ -554,7 +603,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
     <div
@@ -605,31 +654,44 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
       <div
         class="admin-console__content"
       >
-        <div
-          class="Card console expanded"
+        <section
+          aria-labelledby="_r_3_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="custom_policy_form"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Name and retention
-              </div>
-              <div
-                class="text-bottom"
-              >
-                Give your policy a name and configure retention settings.
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_3_"
+                    >
+                      Name and retention
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Give your policy a name and configure retention settings.
+                  </p>
+                </div>
               </div>
             </div>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_iwm08_25"
           >
             <div
               class="CustomPolicy__fields"
@@ -757,37 +819,55 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="Card console expanded"
+        </section>
+        <section
+          aria-labelledby="_r_4_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
+          id="custom_policy_teams"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Assigned teams
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_4_"
+                    >
+                      Assigned teams
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Add teams that will follow this retention policy.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_19tix_75"
               >
-                Add teams that will follow this retention policy.
+                <button
+                  class="btn btn-primary"
+                  data-testid="add-teams"
+                >
+                  Add teams
+                </button>
               </div>
             </div>
-            <button
-              class="btn btn-primary"
-            >
-              Add teams
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_iwm08_25"
           >
             <div
               class="PolicyTeamsList"
@@ -859,37 +939,55 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="Card console expanded"
+        </section>
+        <section
+          aria-labelledby="_r_5_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
+          id="custom_policy_channels"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Assigned channels
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_5_"
+                    >
+                      Assigned channels
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Add channels that will follow this retention policy.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_19tix_75"
               >
-                Add channels that will follow this retention policy.
+                <button
+                  class="btn btn-primary"
+                  data-testid="add-channels"
+                >
+                  Add channels
+                </button>
               </div>
             </div>
-            <button
-              class="btn btn-primary"
-            >
-              Add channels
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_iwm08_25"
           >
             <div
               class="PolicyChannelsList"
@@ -1151,7 +1249,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
     <div
