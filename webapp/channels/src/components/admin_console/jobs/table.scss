@@ -27,6 +27,16 @@
     }
 }
 
+.JobTable.AdminPanel {
+    .job-table__table {
+        margin: 0;
+        padding: 0;
+        border: none;
+        background: transparent;
+        max-height: none;
+    }
+}
+
 .JobTable {
     .clickable {
         cursor: pointer;

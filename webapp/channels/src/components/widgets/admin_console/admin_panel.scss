@@ -4,6 +4,9 @@
 // Outer spacing comes from Compass AdminPanel body (`spacing-xxl`); strip
 // redundant padding/backgrounds from common first-level children.
 .AdminPanel {
+    // Allow header/row menus to escape the Compass panel shell.
+    overflow: visible;
+
     .AdminPanel__content {
         padding: 0;
     }
