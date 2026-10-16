@@ -142,7 +142,8 @@ input.AdminUserCard__picture-input[type='file'] {
     flex: 1 1 auto;
 
     // Match the header title stack: card padding + avatar + header gap.
-    padding: var(--spacing-xxl);
+    // No top padding — body sits flush under the header after the divider was removed.
+    padding: 0 var(--spacing-xxl) var(--spacing-xxl);
     padding-left: calc(var(--spacing-xxl) + var(--admin-user-card-avatar-size) + var(--admin-user-card-header-gap));
     background: var(--center-channel-bg);
 }
