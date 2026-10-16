@@ -115,6 +115,22 @@
     "defaultMessage": "Access History",
     "description": "Title of the Access History modal, which lists the user's login and security audit events."
   },
+  "accessibility.add_groups_to_channel": {
+    "defaultMessage": "Add groups to channel",
+    "description": "Screen-reader label for the round + button on each group row in the Add Groups to Channel modal; adds that group to the selection."
+  },
+  "accessibility.add_groups_to_team": {
+    "defaultMessage": "Add groups to team",
+    "description": "Screen-reader label for the round + button on each group row in the Add Groups to Team modal; adds that group to the selection."
+  },
+  "accessibility.add_user_to_invite": {
+    "defaultMessage": "Add user to invite",
+    "description": "Screen-reader label for the round + button on each user row in the Add People to Channel modal; adds that user to the list of people to invite."
+  },
+  "accessibility.add_users_to_team": {
+    "defaultMessage": "Add users to team",
+    "description": "Screen-reader label for the round + button on each user row in the Add Members to Team modal; adds that user to the selection."
+  },
   "accessibility.button.attachment": {
     "defaultMessage": "attachment",
     "description": "Accessibility label for the paperclip attachment button in the message input box; noun."
@@ -175,6 +191,14 @@
     "defaultMessage": "strike through",
     "description": "Accessibility label for the strikethrough formatting button in the message toolbar; lowercase by design."
   },
+  "accessibility.emoji_icon": {
+    "defaultMessage": "Emoji icon",
+    "description": "Screen-reader label for the smiley-face emoji icon shown on emoji picker, add-reaction and custom status buttons."
+  },
+  "accessibility.mobile_menu": {
+    "defaultMessage": "Mobile menu",
+    "description": "Screen-reader label for the slide-out main menu panel shown on mobile and narrow screens."
+  },
   "accessibility.sections.centerContent": {
     "defaultMessage": "message list main region",
     "description": "Accessible (screen reader) label for the main message list region of the app; not visible on screen."
@@ -203,6 +227,10 @@
     "defaultMessage": "message details complementary region",
     "description": "Accessibility label for the right-hand sidebar thread view region, announced by screen readers when focus enters it."
   },
+  "accessibility.select_channel": {
+    "defaultMessage": "Select channel",
+    "description": "Screen-reader label for the round + button on each channel row in the channel picker modal (used by data retention, access policies and group settings); adds that channel to the selection."
+  },
   "accessibility.sidebar.types.mention": {
     "defaultMessage": "mention",
     "description": "Screen-reader word appended after the mention count in a sidebar channel's aria-label (singular); part of a composed label."
@@ -226,6 +254,10 @@
   "accessibility.sidebar.types.urgent_mention": {
     "defaultMessage": "including an urgent mention",
     "description": "Screen-reader phrase appended to a sidebar channel's aria-label when one of its mentions is urgent priority; part of a composed label."
+  },
+  "accessibility.toggle_embed_visibility": {
+    "defaultMessage": "Toggle Embed Visibility",
+    "description": "Screen-reader label for the arrow button that expands or collapses a link preview, image or other embedded content below a message."
   },
   "activity_log_modal.android": {
     "defaultMessage": "Android",
@@ -2054,6 +2086,22 @@
   "admin.accesscontrol.user_properties.link.label": {
     "defaultMessage": "Attribute Management",
     "description": "Link text inserted into the attribute-based access control help text; links to the Attribute Management settings section."
+  },
+  "admin.accessibility.add_users_to_role": {
+    "defaultMessage": "Add users to role",
+    "description": "Accessible label for the multi-select used to add users to a system role in System Console."
+  },
+  "admin.accessibility.delete_orphaned_field": {
+    "defaultMessage": "Delete orphaned field",
+    "description": "Accessible label for the delete button on a user attribute whose owning plugin has been uninstalled."
+  },
+  "admin.accessibility.next_page": {
+    "defaultMessage": "Next page",
+    "description": "Accessible label for the next-page button in the reusable System Console data grid."
+  },
+  "admin.accessibility.previous_page": {
+    "defaultMessage": "Previous page",
+    "description": "Accessible label for the previous-page button in the reusable System Console data grid."
   },
   "admin.advance.cluster": {
     "defaultMessage": "High Availability",
@@ -23027,6 +23075,10 @@
     "defaultMessage": "Forward",
     "description": "Confirm button in the Forward Message modal; verb, sends the message to the selected channel."
   },
+  "forward_post_modal.channel_select.placeholder": {
+    "defaultMessage": "Select channel or people",
+    "description": "Placeholder of the destination search box in the Forward Message modal; the user types to find a channel or a person to send the message to."
+  },
   "forward_post_modal.comment.placeholder": {
     "defaultMessage": "Add a comment (optional)",
     "description": "Placeholder of the optional comment box in the Forward Message modal."
@@ -28467,6 +28519,10 @@
     "defaultMessage": "Save changes",
     "description": "Confirm button on the final step of the AI recap modal when editing an existing scheduled recap."
   },
+  "recaps.modal.searchChannels": {
+    "defaultMessage": "Search and select channels",
+    "description": "Placeholder of the channel search input in the create recap modal."
+  },
   "recaps.modal.selectChannels": {
     "defaultMessage": "Select the channels you want to include",
     "description": "Form label above the channel picker in the AI recap creation modal."
@@ -29334,6 +29390,10 @@
   "search_results.channel-files-header": {
     "defaultMessage": "Recent files",
     "description": "Heading above the list of a channel's recently shared files in the right-hand sidebar, next to a file-type filter menu."
+  },
+  "search_results.messages_or_files": {
+    "defaultMessage": "Messages or Files",
+    "description": "Screen-reader label for the tab list in the search results panel that switches between message results and file results."
   },
   "search_teams_selector.all_teams": {
     "defaultMessage": "All Teams",
@@ -31806,6 +31866,10 @@
   "update_outgoing_webhook.update": {
     "defaultMessage": "Update",
     "description": "Submit button label (verb) on the Edit Outgoing Webhook form and in its confirmation modal."
+  },
+  "update_outgoing_webhook.updating": {
+    "defaultMessage": "Updating...",
+    "description": "Loading status while saving edits to an outgoing webhook."
   },
   "upgrade_export_data_modal.desc": {
     "defaultMessage": "Export detailed data reports with ease and analyse user statistics conveniently. Upgrade to the Professional plan to gain access to data export.",
