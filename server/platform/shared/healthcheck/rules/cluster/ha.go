@@ -26,14 +26,14 @@ const (
 var clusterGossipUnencrypted = healthcheck.Rule{
 	Code:     "CLUSTER_GOSSIP_UNENCRYPTED",
 	Area:     model.AreaCluster,
-	Severity: healthcheck.SeverityWarning,
+	Severity: healthcheck.SeverityInfo,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.cluster_gossip_unencrypted.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.cluster_gossip_unencrypted.remediation"),
 		DocsURL:       haDocsURL,
 		ConsolePath:   haConsolePath,
 	},
-	Surface:    healthcheck.SurfaceInternal,
+	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "ClusterSettings.EnableGossipEncryption",
 	Eval:       evalClusterGossipUnencrypted,

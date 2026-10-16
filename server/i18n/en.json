@@ -14348,7 +14348,7 @@
   },
   {
     "id": "health.rule.cluster_gossip_unencrypted.remediation",
-    "translation": "Enable gossip encryption, then restart every node so the change takes effect.",
+    "translation": "Enable gossip encryption, then restart all nodes together in a maintenance window. Nodes with and without encryption cannot talk to each other, so a rolling restart splits the cluster until the last node restarts.",
     "description": "Health dashboard fix-it step for unencrypted cluster gossip; 'gossip' is the protocol cluster nodes use to talk to each other."
   },
   {
