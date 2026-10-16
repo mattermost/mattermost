@@ -128,13 +128,13 @@ type State = {
 };
 
 export class CustomThemeChooser extends React.PureComponent<Props, State> {
-    textareaRef: RefObject<HTMLTextAreaElement>;
-    sidebarStylesHeaderRef: RefObject<HTMLButtonElement>;
-    centerChannelStylesHeaderRef: RefObject<HTMLButtonElement>;
-    linkAndButtonStylesHeaderRef: RefObject<HTMLButtonElement>;
-    sidebarStylesRef: RefObject<HTMLDivElement>;
-    centerChannelStylesRef: RefObject<HTMLDivElement>;
-    linkAndButtonStylesRef: RefObject<HTMLDivElement>;
+    textareaRef: RefObject<HTMLTextAreaElement | null>;
+    sidebarStylesHeaderRef: RefObject<HTMLButtonElement | null>;
+    centerChannelStylesHeaderRef: RefObject<HTMLButtonElement | null>;
+    linkAndButtonStylesHeaderRef: RefObject<HTMLButtonElement | null>;
+    sidebarStylesRef: RefObject<HTMLDivElement | null>;
+    centerChannelStylesRef: RefObject<HTMLDivElement | null>;
+    linkAndButtonStylesRef: RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);

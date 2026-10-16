@@ -45,7 +45,7 @@ const holders = defineMessages({
         defaultMessage: 'Attempted to allow a new OAuth service access',
     },
     successfullOAuthAccess: {
-        id: 'audit_table.successfullOAuthAccess',
+        id: 'audit_table.successfulOAuthAccess',
         defaultMessage: 'Successfully gave a new OAuth service access',
     },
     failedOAuthAccess: {
@@ -57,7 +57,7 @@ const holders = defineMessages({
         defaultMessage: 'Attempted to get an OAuth access token',
     },
     successfullOAuthToken: {
-        id: 'audit_table.successfullOAuthToken',
+        id: 'audit_table.successfulOAuthToken',
         defaultMessage: 'Successfully added a new OAuth service',
     },
     oauthTokenFailed: {
@@ -73,7 +73,7 @@ const holders = defineMessages({
         defaultMessage: 'Successfully authenticated',
     },
     successfullLogin: {
-        id: 'audit_table.successfullLogin',
+        id: 'audit_table.successfulLogin',
         defaultMessage: 'Successfully logged in',
     },
     failedLogin: {
@@ -93,7 +93,7 @@ const holders = defineMessages({
         defaultMessage: 'Attempted to change password',
     },
     successfullPassword: {
-        id: 'audit_table.successfullPassword',
+        id: 'audit_table.successfulPassword',
         defaultMessage: 'Successfully changed password',
     },
     failedPassword: {
@@ -133,7 +133,7 @@ const holders = defineMessages({
         defaultMessage: 'Attempted to reset password',
     },
     successfullReset: {
-        id: 'audit_table.successfullReset',
+        id: 'audit_table.successfulReset',
         defaultMessage: 'Successfully reset password',
     },
     updateGlobalNotifications: {
@@ -145,7 +145,7 @@ const holders = defineMessages({
         defaultMessage: 'Attempted to create a webhook',
     },
     succcessfullWebhookCreate: {
-        id: 'audit_table.successfullWebhookCreate',
+        id: 'audit_table.successfulWebhookCreate',
         defaultMessage: 'Successfully created a webhook',
     },
     failedWebhookCreate: {
@@ -157,7 +157,7 @@ const holders = defineMessages({
         defaultMessage: 'Attempted to delete a webhook',
     },
     successfullWebhookDelete: {
-        id: 'audit_table.successfullWebhookDelete',
+        id: 'audit_table.successfulWebhookDelete',
         defaultMessage: 'Successfully deleted a webhook',
     },
     failedWebhookDelete: {
@@ -189,7 +189,7 @@ const holders = defineMessages({
         defaultMessage: 'Attempted to add new license',
     },
     successfullLicenseAdd: {
-        id: 'audit_table.successfullLicenseAdd',
+        id: 'audit_table.successfulLicenseAdd',
         defaultMessage: 'Successfully added new license',
     },
     failedExpiredLicenseAdd: {

@@ -340,7 +340,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 
 			marketplaceVersion, err := semver.StrictNewVersion(plugin.Manifest.Version)
 			if err != nil {
-				return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackged-plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+				return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackaged-plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
 			if prepackagedVersion.LessThan(marketplaceVersion) { // Always true if no prepackaged plugin was found
@@ -530,7 +530,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	// Activate the plugin if enabled.
 	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[manifest.Id]
 	if pluginState != nil && pluginState.Enable {
-		if hasOverride, enabled := ch.getPluginStateOverride(manifest.Id); hasOverride && !enabled {
+		if hasOverride, enabled := ch.getPluginStateOverride(manifest); hasOverride && !enabled {
 			return manifest, nil
 		}
 

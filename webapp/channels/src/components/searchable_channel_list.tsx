@@ -70,8 +70,8 @@ type State = {
 
 export class SearchableChannelList extends React.PureComponent<Props, State> {
     private nextTimeoutId: number | NodeJS.Timeout;
-    private filter: React.RefObject<HTMLInputElement>;
-    private channelListScroll: React.RefObject<HTMLDivElement>;
+    private filter: React.RefObject<HTMLInputElement | null>;
+    private channelListScroll: React.RefObject<HTMLDivElement | null>;
 
     static getDerivedStateFromProps(props: Props, state: State) {
         return {isSearch: props.isSearch, page: props.isSearch && !state.isSearch ? 0 : state.page};
@@ -946,7 +946,7 @@ const messages = defineMessages({
     },
     channelPurpose: {
         id: 'more_channels.channel_purpose',
-        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount} , Purpose: {channelPurpose}',
+        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
     },
     joiningButton: {
         id: 'joinChannel.joiningButton',

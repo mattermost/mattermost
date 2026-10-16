@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -361,6 +362,179 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 	require.NoError(t, sysErr)
 	require.NotNil(t, data)
 	require.Equal(t, "true", data.Value)
+}
+
+// clearCPAToGlobalAttributesMarker removes the System-key marker for the
+// CPA-to-Global-Attributes migration so the migration body actually executes
+// when called from a test, for the same reason clearCPABackfillMarker exists.
+func clearCPAToGlobalAttributesMarker(t *testing.T, th *TestHelper) {
+	t.Helper()
+	_, err := th.Store.System().PermanentDeleteByName(cpaToGlobalAttributesMigrationKey)
+	require.NoError(t, err, "failed to clear CPA-to-Global-Attributes marker for test isolation")
+}
+
+func TestCPAToGlobalAttributesMigration_UnlicensedSkipsAndRetriesOnceLicensed(t *testing.T) {
+	th := Setup(t)
+	clearCPAToGlobalAttributesMarker(t, th)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// Seed directly via the store: the server is unlicensed at this point, and
+	// LicenseCheckHook would reject a CreatePropertyField call to this group.
+	seeded, err := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "unlicensed_field",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+
+	err = th.Server.doSetupCPAToGlobalAttributesMigration(th.Context)
+	require.NoError(t, err)
+
+	_, sysErr := th.Store.System().GetByName(cpaToGlobalAttributesMigrationKey)
+	require.Error(t, sysErr, "marker must not be written when the server is unlicensed")
+
+	untouched, err := th.Store.PropertyField().Get(th.Context, group.ID, seeded.ID)
+	require.NoError(t, err)
+	assert.Nil(t, untouched.LinkedFieldID, "field must not be migrated while unlicensed")
+
+	// License the server and retry: the migration must now run to completion.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	err = th.Server.doSetupCPAToGlobalAttributesMigration(th.Context)
+	require.NoError(t, err)
+
+	data, sysErr := th.Store.System().GetByName(cpaToGlobalAttributesMigrationKey)
+	require.NoError(t, sysErr)
+	require.Equal(t, "true", data.Value)
+
+	migratedField, appErr := th.App.GetPropertyField(th.Context, group.ID, seeded.ID)
+	require.Nil(t, appErr)
+	require.NotNil(t, migratedField.LinkedFieldID, "field must be migrated once licensed")
+}
+
+func TestCPAToGlobalAttributesMigration_NoExistingFields(t *testing.T) {
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	clearCPAToGlobalAttributesMarker(t, th)
+
+	err := th.Server.doSetupCPAToGlobalAttributesMigration(th.Context)
+	require.NoError(t, err)
+
+	data, sysErr := th.Store.System().GetByName(cpaToGlobalAttributesMigrationKey)
+	require.NoError(t, sysErr)
+	require.NotNil(t, data)
+	require.Equal(t, "true", data.Value)
+}
+
+func TestCPAToGlobalAttributesMigration_MigratesFieldAndSetsMarker(t *testing.T) {
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	clearCPAToGlobalAttributesMarker(t, th)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	seeded, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "cost_center",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	err := th.Server.doSetupCPAToGlobalAttributesMigration(th.Context)
+	require.NoError(t, err)
+
+	updated, appErr := th.App.GetPropertyField(th.Context, group.ID, seeded.ID)
+	require.Nil(t, appErr)
+	require.NotNil(t, updated.LinkedFieldID)
+
+	template, appErr := th.App.GetPropertyField(th.Context, group.ID, *updated.LinkedFieldID)
+	require.Nil(t, appErr)
+	assert.Equal(t, model.PropertyFieldObjectTypeTemplate, template.ObjectType)
+	assert.Equal(t, true, template.Attrs[model.PropertyAttrsMigratedToGlobal])
+
+	data, sysErr := th.Store.System().GetByName(cpaToGlobalAttributesMigrationKey)
+	require.NoError(t, sysErr)
+	require.Equal(t, "true", data.Value)
+}
+
+// TestCPAToGlobalAttributesMigration_RerunClearsAlreadyLinkedFieldDuplicatedOptions
+// covers the actual remediation story for an install that already ran a
+// version of this migration that left an already-linked field's own option
+// rows in place (doubling every option it serves, since optionOwnerIDs unions
+// a linked field's own rows with its template's): clearing this same
+// migration's own existing marker and letting it run again must clean up that
+// field too, not just link anything still unlinked. No separate migration or
+// marker for it.
+func TestCPAToGlobalAttributesMigration_RerunClearsAlreadyLinkedFieldDuplicatedOptions(t *testing.T) {
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	clearCPAToGlobalAttributesMarker(t, th)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	sysadmin := model.PermissionLevelSysadmin
+	template, err := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:           group.ID,
+		Name:              "roles",
+		Type:              model.PropertyFieldTypeSelect,
+		ObjectType:        model.PropertyFieldObjectTypeTemplate,
+		TargetType:        string(model.PropertyFieldTargetLevelSystem),
+		PermissionField:   &sysadmin,
+		PermissionValues:  &sysadmin,
+		PermissionOptions: &sysadmin,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []map[string]any{{"name": "a"}, {"name": "b"}},
+		},
+	})
+	require.NoError(t, err)
+
+	// Simulates the pre-fix broken state: a field already linked to its
+	// template, still carrying the own option rows the old migration never
+	// cleared after linking.
+	linked, err := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       group.ID,
+		Name:          "roles_linked",
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []map[string]any{{"name": "a"}, {"name": "b"}},
+		},
+	})
+	require.NoError(t, err)
+
+	err = th.Server.doSetupCPAToGlobalAttributesMigration(th.Context)
+	require.NoError(t, err)
+
+	page, appErr := th.App.GetPropertyFieldOptions(th.Context, group.ID, linked.ID, 0, "", 100)
+	require.Nil(t, appErr)
+	names := make([]string, 0, len(page.Options))
+	for _, option := range page.Options {
+		names = append(names, option.Name)
+	}
+	assert.ElementsMatch(t, []string{"a", "b"}, names, "duplicated options must be cleared down to the template's own set")
+
+	data, sysErr := th.Store.System().GetByName(cpaToGlobalAttributesMigrationKey)
+	require.NoError(t, sysErr)
+	require.Equal(t, "true", data.Value)
+
+	// A second run must be a no-op (idempotent): the marker short-circuits it,
+	// and there is nothing left to clear even if it ran again.
+	err = th.Server.doSetupCPAToGlobalAttributesMigration(th.Context)
+	require.NoError(t, err)
+
+	pageAgain, appErr := th.App.GetPropertyFieldOptions(th.Context, group.ID, linked.ID, 0, "", 100)
+	require.Nil(t, appErr)
+	assert.Len(t, pageAgain.Options, 2)
 }
 
 var expectedOSPlatformOptions = []string{"macos", "windows", "linux", "ios", "android"}

@@ -27,9 +27,11 @@ test.describe('draft channel switch', () => {
         // * Destination composer must not inherit the origin draft
         expect(await channelsPage.centerView.postCreate.getInputValue()).toBe('');
 
-        // * Origin draft was persisted: the channel pencil is in the DOM
-        // (often CSS-hidden until hover) and the Drafts sidebar link appears
-        await expect(channelsPage.sidebarLeft.item('off-topic').getByTestId('draftIcon')).toHaveCount(1);
+        // * Origin draft was persisted: the channel pencil icon is visible
+        // (move the mouse off the sidebar first: the pencil is hidden while its row is hovered)
+        // and the Drafts sidebar link appears
+        await channelsPage.centerView.postCreate.input.hover();
+        await expect(channelsPage.sidebarLeft.draftIcon('off-topic')).toBeVisible();
         await channelsPage.sidebarLeft.draftsVisible();
 
         // # Send a different message from Town Square
@@ -141,7 +143,7 @@ test.describe('draft channel switch', () => {
 
             // * Origin draft was cleared by the submit, not left behind as /msg
             expect(await channelsPage.centerView.postCreate.getInputValue()).toBe('');
-            await expect(channelsPage.sidebarLeft.item('off-topic').getByTestId('draftIcon')).toHaveCount(0);
+            await expect(channelsPage.sidebarLeft.draftIcon('off-topic')).not.toBeAttached();
         },
     );
 

@@ -7,8 +7,19 @@ import {defineMessages} from 'react-intl';
 
 import {AccountOutlineIcon, MessageTextOutlineIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import type {FieldVisibility} from '@mattermost/types/properties';
+
+import type {ExternalSource} from './external_source';
+
+import type {ChannelResourceConfig} from '../applies_to/channels/types';
 
 export type ResourceObjectType = 'user' | 'channel' | 'post';
+
+// Mirrors CPA's attrs.managed value domain exactly (see user_properties_dot_menu.tsx) --
+// '' means member-editable, 'admin' means locked to System Administrator. Deliberately
+// not the richer PSAv2 PropertyPermissionLevel type: this writes the same value CPA already
+// writes, not a parallel permission mechanism.
+export type UserManagedValue = '' | 'admin';
 
 // Fixed Users -> Channels -> Posts order used everywhere a resource list is
 // rendered (the picker menu, and used to derive "available" options) -- not
@@ -29,7 +40,39 @@ export type AttributeAppliesToItemProps = {
     // lock tooltip convention on the parent page. Undefined (the `saving`
     // case) renders no tooltip, matching today's existing behavior.
     lockedTooltip?: ReactNode;
+
+    // Locks only Remove and explains why; the rest of the row follows `disabled`.
+    removeLockedTooltip?: ReactNode;
     onRemove: () => void;
+
+    // Users-only config. Optional so this shared prop type still fits
+    // AttributeAppliesToChannelItem/AttributeAppliesToPostItem, which don't have
+    // a config panel yet and simply don't destructure these -- Channels/Posts
+    // should define their own config shape once they need one, not inherit this one.
+    visibility?: FieldVisibility;
+    onVisibilityChange?: (visibility: FieldVisibility) => void;
+    managed?: UserManagedValue;
+    onManagedChange?: (managed: UserManagedValue) => void;
+
+    // The external system this attribute's values are synced from, when there
+    // is one. Undefined for attributes managed in Mattermost or by a plugin.
+    externalSource?: ExternalSource;
+
+    // Locks only "Who can set the value" at its stored value and explains why;
+    // Profile display keeps following `disabled`; Remove has its own lock.
+    whoCanSetLockedTooltip?: ReactNode;
+};
+
+// Channels is the one resource with settings of its own, so its row takes the
+// shared props plus the configuration it edits. The page owns that state: it is
+// what the linked channel field is built from at save time.
+export type AttributeAppliesToChannelItemProps = AttributeAppliesToItemProps & {
+    config: ChannelResourceConfig;
+    onConfigChange: (next: ChannelResourceConfig) => void;
+
+    // Whether the attribute is rank-typed, which is what makes the directional
+    // change policies meaningful.
+    ordered?: boolean;
 };
 
 // Shared between AttributeAppliesTo (which owns the button) and AttributeDetails

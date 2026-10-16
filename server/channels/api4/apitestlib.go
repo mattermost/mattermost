@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
+	"math/rand/v2"
 	"net"
 	"net/http"
 	"os"
@@ -168,7 +168,7 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 	require.NoError(tb, err, "failed to add writer target to test logger")
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
-	options = append(options, app.SetLogger(testLogger))
+	options = append(options, app.SetLogger(testLogger), app.DisableGlobalLogger())
 
 	s, err := app.NewServer(options...)
 	require.NoError(tb, err)
@@ -228,8 +228,8 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 	// Verify handling of the supported true/false values by randomizing on each run.
 	trueValues := []string{"1", "t", "T", "TRUE", "true", "True"}
 	falseValues := []string{"0", "f", "F", "FALSE", "false", "False"}
-	trueString := trueValues[rand.Intn(len(trueValues))]
-	falseString := falseValues[rand.Intn(len(falseValues))]
+	trueString := trueValues[rand.IntN(len(trueValues))]
+	falseString := falseValues[rand.IntN(len(falseValues))]
 	testLogger.Debug("Configured Client4 bool string values", mlog.String("true", trueString), mlog.String("false", falseString))
 	th.Client.SetBoolString(true, trueString)
 	th.Client.SetBoolString(false, falseString)

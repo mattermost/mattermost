@@ -98,8 +98,8 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
     private mounted = false;
     private scrollStopAction: DelayedAction;
     private scrollShortCircuit = 0;
-    listRef: RefObject<DynamicVirtualizedList>;
-    innerRef: RefObject<HTMLDivElement>;
+    listRef: RefObject<DynamicVirtualizedList | null>;
+    innerRef: RefObject<HTMLDivElement | null>;
     initRangeToRender: number[];
 
     constructor(props: Props) {

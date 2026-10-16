@@ -67,6 +67,19 @@ export interface WithTooltipProps {
     * Callback when the tooltip appears
    */
     onOpen?: () => void;
+
+    /**
+     * The trigger element for the tooltip.
+     * This element is cloned with a `ref` used for positioning, plus the interaction
+     * and accessibility props that open and describe the tooltip.
+     * Native elements (div, button, etc.) work automatically.
+     * A custom component must accept `ref` and forward it, along with the remaining
+     * props, to the DOM element it renders as the trigger.
+     * Class components do not work, because their `ref` resolves to the instance
+     * instead of a DOM element that can be measured.
+     * eg. <WithTooltip><span>{'Hello'}</span></WithTooltip> - works as is
+     * eg. <WithTooltip><MyCustomComponent/></WithTooltip> - "MyCustomComponent" MUST pass `ref` and props to its trigger element
+     */
     children: ReactElement<any>;
 
     forcedPlacement?: Placement;
@@ -154,13 +167,14 @@ export function WithTooltip({
         console.error('Children must be a valid React element for WithTooltip');
     }
 
-    const mergedRefs = useMergeRefs([setReference, (children as any)?.ref]);
+    // Since React 19, a child's ref is part of its props rather than being exposed as `element.ref`
+    const mergedRefs = useMergeRefs([setReference, children.props?.ref]);
 
     const trigger = cloneElement(
         children,
         getReferenceProps({
-            ref: mergedRefs,
             ...children.props,
+            ref: mergedRefs,
         }),
     );
 

@@ -62,7 +62,7 @@ type State = {
 const ABAC_MATCH_HARD_CAP = 1000;
 
 export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
-    selectedItemRef: React.RefObject<HTMLDivElement>;
+    selectedItemRef: React.RefObject<HTMLDivElement | null>;
 
     public constructor(props: Props) {
         super(props);
@@ -208,7 +208,7 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
                     <div className='more-modal__actions'>
                         <button
                             className='more-modal__actions--round'
-                            aria-label='Add users to team'
+                            aria-label={this.props.intl.formatMessage({id: 'accessibility.add_users_to_team', defaultMessage: 'Add users to team'})}
                         >
                             <i
                                 className='icon icon-plus'

@@ -4,7 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {CSSProperties, JSX} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
@@ -65,7 +66,7 @@ type Props = {
 
     className?: string;
     disabled?: boolean;
-};
+} & WrappedComponentProps;
 
 type State = {
     visibleColumns: Column[];
@@ -77,7 +78,7 @@ type State = {
 const MINIMUM_COLUMN_WIDTH = 100;
 
 class DataGrid extends React.PureComponent<Props, State> {
-    private ref: React.RefObject<HTMLDivElement>;
+    private ref: React.RefObject<HTMLDivElement | null>;
 
     static defaultProps = {
         term: '',
@@ -269,7 +270,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                             />
                         </span>
                         <button
-                            aria-label='Previous page'
+                            aria-label={this.props.intl.formatMessage({id: 'admin.accessibility.previous_page', defaultMessage: 'Previous page'})}
                             type='button'
                             className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
                             onClick={prevPageFn}
@@ -278,7 +279,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                             <PreviousIcon/>
                         </button>
                         <button
-                            aria-label='Next page'
+                            aria-label={this.props.intl.formatMessage({id: 'admin.accessibility.next_page', defaultMessage: 'Next page'})}
                             type='button'
                             className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
                             onClick={nextPageFn}
@@ -310,4 +311,4 @@ class DataGrid extends React.PureComponent<Props, State> {
     }
 }
 
-export default DataGrid;
+export default injectIntl(DataGrid);

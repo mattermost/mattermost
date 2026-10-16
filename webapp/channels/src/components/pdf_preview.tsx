@@ -43,7 +43,7 @@ const PDFPreview = memo(({
     const pdfPagesRendered = useRef<Record<number, boolean>>({});
     const container = useRef<HTMLDivElement>(null);
     const parentNode = useRef<HTMLElement | null>(null);
-    const pdfCanvasRef = useRef<{[key: string]: React.RefObject<HTMLCanvasElement>}>({});
+    const pdfCanvasRef = useRef<{[key: string]: React.RefObject<HTMLCanvasElement | null>}>({});
 
     const [pdfFromState, setPdfFromState] = useState<{
         pdf: PDFDocumentProxy | null;

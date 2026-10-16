@@ -55,8 +55,8 @@ type State = {
 };
 
 export default class SidebarCategory extends React.PureComponent<Props, State> {
-    categoryTitleRef: React.RefObject<HTMLButtonElement>;
-    newDropBoxRef: React.RefObject<HTMLDivElement>;
+    categoryTitleRef: React.RefObject<HTMLButtonElement | null>;
+    newDropBoxRef: React.RefObject<HTMLDivElement | null>;
 
     a11yKeyDownRegistered: boolean;
 

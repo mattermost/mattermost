@@ -29,6 +29,7 @@ func TestPropertyValueStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("SearchPropertyValues", func(t *testing.T) { testSearchPropertyValues(t, rctx, ss, s) })
 	t.Run("DeleteForField", func(t *testing.T) { testDeleteForField(t, rctx, ss) })
 	t.Run("DeleteForTarget", func(t *testing.T) { testDeleteForTarget(t, rctx, ss) })
+	t.Run("GetReferencedOptionIDs", func(t *testing.T) { testGetReferencedOptionIDs(t, rctx, ss) })
 }
 
 func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
@@ -97,7 +98,7 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testCreateManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
+func testCreateManyPropertyValues(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should return nil when given empty slice", func(t *testing.T) {
 		values, err := ss.PropertyValue().CreateMany([]*model.PropertyValue{})
 		require.NoError(t, err)
@@ -126,7 +127,7 @@ func testCreateManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorContains(t, err, "model.property_value.is_valid.app_error")
 
 		// Verify no values were created
-		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+		results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 			TargetIDs: []string{validValue.TargetID},
 			PerPage:   10,
 		})
@@ -248,7 +249,7 @@ func testCreateManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Zero(t, values)
 
 		// Verify the unique value was not created due to transaction rollback
-		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+		results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 			TargetIDs: []string{value3.TargetID},
 			PerPage:   10,
 		})
@@ -846,7 +847,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+func testUpsertPropertyValue(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail if the property value is not valid", func(t *testing.T) {
 		value := &model.PropertyValue{
 			TargetID:   "",
@@ -1000,7 +1001,7 @@ func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store, s SqlS
 		require.Equal(t, originalValue.UpdateAt, retrieved.UpdateAt)
 
 		// Verify the invalid value was not inserted
-		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+		results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 			TargetIDs: []string{invalidValue.TargetID},
 			PerPage:   10,
 		})
@@ -1215,7 +1216,7 @@ func testDeletePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+func testSearchPropertyValues(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	groupID := model.NewId()
 	targetID := model.NewId()
 	fieldID := model.NewId()
@@ -1408,7 +1409,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			results, err := ss.PropertyValue().SearchPropertyValues(tc.opts)
+			results, err := ss.PropertyValue().SearchPropertyValues(rctx, tc.opts)
 			if tc.expectedError {
 				require.Error(t, err)
 				return
@@ -1426,7 +1427,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 	t.Run("null columns, before createdBy and updatedBy migrations", func(t *testing.T) {
 		nullGroupID, _, _, nullValueID := insertPropertyValueWithNullColumns(t, ss, s)
 
-		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+		results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 			GroupID: nullGroupID,
 			PerPage: 10,
 		})
@@ -1481,7 +1482,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		t.Run("SinceUpdateAt filters correctly by UpdateAt", func(t *testing.T) {
 			// `>=` semantics: value1 is included at the boundary,
 			// plus value3 and the post-update value2.
-			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: value1.UpdateAt,
 				PerPage:       10,
@@ -1499,7 +1500,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		t.Run("SinceUpdateAt with boundary condition", func(t *testing.T) {
 			// `value3.UpdateAt - 1` keeps value3 in the window and value2's
 			// post-Update timestamp is even later, so both are returned.
-			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: value3.UpdateAt - 1,
 				PerPage:       10,
@@ -1517,7 +1518,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		t.Run("SinceUpdateAt at the most recent update returns just that row", func(t *testing.T) {
 			// `>=` semantics: querying at the highest UpdateAt in the
 			// group returns the row at exactly that timestamp.
-			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: updatedValue2.UpdateAt,
 				PerPage:       10,
@@ -1528,7 +1529,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		})
 
 		t.Run("SinceUpdateAt with very recent timestamp", func(t *testing.T) {
-			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: model.GetMillis(),
 				PerPage:       10,
@@ -1566,7 +1567,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			require.Equal(t, tieUpdateAt, updated[1].UpdateAt)
 			require.Equal(t, tieUpdateAt, updated[2].UpdateAt)
 
-			page1, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			page1, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 				GroupID:       tieGroup,
 				SinceUpdateAt: tieUpdateAt,
 				PerPage:       2,
@@ -1575,7 +1576,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			require.Len(t, page1, 2, "boundary row + one more must come back on the first page")
 
 			last := page1[len(page1)-1]
-			page2, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			page2, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 				GroupID:       tieGroup,
 				SinceUpdateAt: tieUpdateAt,
 				Cursor: model.PropertyValueSearchCursor{
@@ -1649,7 +1650,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		}
 
 		t.Run("orders by UpdateAt ASC, Id ASC", func(t *testing.T) {
-			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: value1.UpdateAt,
 				PerPage:       10,
@@ -1664,7 +1665,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		t.Run("auto-includes tombstones", func(t *testing.T) {
 			require.NoError(t, ss.PropertyValue().Delete("", value3.ID))
 
-			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: value1.UpdateAt,
 				PerPage:       10,
@@ -1685,7 +1686,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		t.Run("paginates with cursor UpdateAt", func(t *testing.T) {
 			// `>=` semantics: first page is value1 (the boundary row),
 			// cursored to value3, then value2.
-			first, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			first, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: value1.UpdateAt,
 				PerPage:       1,
@@ -1693,7 +1694,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			require.NoError(t, err)
 			require.Equal(t, []string{value1.ID}, idsOf(first))
 
-			second, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			second, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: value1.UpdateAt,
 				Cursor: model.PropertyValueSearchCursor{
@@ -1705,7 +1706,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			require.NoError(t, err)
 			require.Equal(t, []string{value3.ID}, idsOf(second))
 
-			third, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			third, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: value1.UpdateAt,
 				Cursor: model.PropertyValueSearchCursor{
@@ -1719,7 +1720,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		})
 
 		t.Run("directory mode rejects cursor_update_at", func(t *testing.T) {
-			_, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			_, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 				GroupID: groupID,
 				Cursor: model.PropertyValueSearchCursor{
 					PropertyValueID: value1.ID,
@@ -1731,7 +1732,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		})
 
 		t.Run("delta mode rejects cursor_create_at", func(t *testing.T) {
-			_, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			_, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: value1.UpdateAt,
 				Cursor: model.PropertyValueSearchCursor{
@@ -1795,7 +1796,7 @@ func testCreatePropertyValueWithArray(t *testing.T, _ request.CTX, ss store.Stor
 	})
 }
 
-func testDeleteForField(t *testing.T, _ request.CTX, ss store.Store) {
+func testDeleteForField(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should delete values with matching fieldID and groupID", func(t *testing.T) {
 		fieldID := model.NewId()
 		groupID := model.NewId()
@@ -1927,7 +1928,7 @@ func testDeleteForField(t *testing.T, _ request.CTX, ss store.Store) {
 			PerPage:        10,
 		}
 
-		values, err := ss.PropertyValue().SearchPropertyValues(opts)
+		values, err := ss.PropertyValue().SearchPropertyValues(rctx, opts)
 		require.NoError(t, err)
 
 		// Find our two values within the results
@@ -2132,5 +2133,79 @@ func testDeleteForTarget(t *testing.T, _ request.CTX, ss store.Store) {
 		nonDeletedTypeValue, err := ss.PropertyValue().Get("", value5.ID)
 		require.NoError(t, err)
 		require.NotNil(t, nonDeletedTypeValue)
+	})
+}
+
+func testGetReferencedOptionIDs(t *testing.T, _ request.CTX, ss store.Store) {
+	groupID := model.NewId()
+	fieldID := model.NewId()
+
+	create := func(t *testing.T, gID, fID string, raw string) *model.PropertyValue {
+		t.Helper()
+		value, err := ss.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			GroupID:    gID,
+			FieldID:    fID,
+			Value:      json.RawMessage(raw),
+		})
+		require.NoError(t, err)
+		return value
+	}
+
+	t.Run("should fail without field IDs or with an empty one", func(t *testing.T) {
+		for _, fieldIDs := range [][]string{nil, {fieldID, ""}} {
+			_, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, fieldIDs)
+			var invalidErr *store.ErrInvalidInput
+			require.ErrorAs(t, err, &invalidErr)
+		}
+	})
+
+	t.Run("should return an empty slice when no values exist", func(t *testing.T) {
+		ids, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, []string{model.NewId()})
+		require.NoError(t, err)
+		require.Empty(t, ids)
+		require.NotNil(t, ids)
+	})
+
+	otherFieldID := model.NewId()
+	optA, optB, optC, optD, optE := model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId()
+	create(t, groupID, fieldID, `["`+optA+`", "`+optB+`"]`)
+	create(t, groupID, fieldID, `["`+optB+`"]`)
+	scalar := create(t, groupID, fieldID, `"`+optC+`"`)
+	deleted := create(t, groupID, fieldID, `["`+optD+`"]`)
+	create(t, groupID, fieldID, `[]`)
+	create(t, groupID, fieldID, `""`)
+	create(t, groupID, fieldID, `null`)
+	create(t, groupID, fieldID, `{"nested": "`+optD+`"}`)
+	create(t, groupID, otherFieldID, `["`+optB+`", "`+optE+`"]`)
+	create(t, groupID, model.NewId(), `["`+optD+`"]`)
+	create(t, model.NewId(), fieldID, `["`+optD+`"]`)
+
+	require.NoError(t, ss.PropertyValue().Delete(groupID, deleted.ID))
+
+	t.Run("should return distinct option IDs from array and string values of the field only", func(t *testing.T) {
+		ids, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, []string{fieldID})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{optA, optB, optC}, ids)
+	})
+
+	t.Run("should combine the values of every field asked for", func(t *testing.T) {
+		ids, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, []string{fieldID, otherFieldID})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{optA, optB, optC, optE}, ids)
+	})
+
+	t.Run("should ignore soft-deleted values", func(t *testing.T) {
+		require.NoError(t, ss.PropertyValue().Delete(groupID, scalar.ID))
+		ids, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, []string{fieldID})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{optA, optB}, ids)
+	})
+
+	t.Run("should match across groups when the group ID is empty", func(t *testing.T) {
+		ids, err := ss.PropertyValue().GetReferencedOptionIDs("", []string{fieldID})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{optA, optB, optD}, ids)
 	})
 }

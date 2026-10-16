@@ -37,7 +37,7 @@ type State = {
 };
 
 export default class DeletePostModal extends React.PureComponent<Props, State> {
-    deletePostBtn: React.RefObject<HTMLButtonElement>;
+    deletePostBtn: React.RefObject<HTMLButtonElement | null>;
 
     constructor(props: Props) {
         super(props);

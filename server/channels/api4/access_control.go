@@ -125,12 +125,12 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 
 	// Channel-scope policies are always available, but a channel policy
 	// that carries a permission-rule action (upload_file_attachment,
-	// download_file_attachment) is gated behind the channel-level
-	// sub-flag — that's the toggle that exposes the Channel Settings →
-	// Permissions Policy tab on the frontend. Membership-only channel
-	// policies stay unaffected. Helper enforces the PermissionPolicies
-	// umbrella too, so a request slipping in with the sub-flag on but
-	// the umbrella off is also rejected here.
+	// download_file_attachment, create_burn_on_read_post) is gated behind
+	// the channel-level sub-flag — that's the toggle that exposes the
+	// Channel Settings → Permissions Policy tab on the frontend.
+	// Membership-only channel policies stay unaffected. Helper enforces the
+	// PermissionPolicies umbrella too, so a request slipping in with the
+	// sub-flag on but the umbrella off is also rejected here.
 	if policy.Type == model.AccessControlPolicyTypeChannel && policy.HasPermissionRuleAction() && !c.App.Config().FeatureFlags.IsChannelPermissionPoliciesEnabled() {
 		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.channel_permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
 		return
@@ -880,7 +880,9 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 }
 
-// updateActiveStatus updates the active status of a single access control policy.
+// updateActiveStatus toggles auto-adding members for a single access control
+// policy. The active query parameter is kept for compatibility; it maps onto the
+// membership rule's auto_add setting rather than the policy's active flag.
 //
 // Deprecated: This endpoint is deprecated and will be removed in a future release.
 // Use PUT /api/v4/access_control/policies/activate instead, which supports batch updates.
@@ -927,10 +929,10 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "active", activeBool)
 
 	// Wrap single update in slice to use the batch update method
-	updates := []model.AccessControlPolicyActiveUpdate{
-		{ID: policyID, Active: activeBool},
+	updates := []model.AccessControlPolicyAutoAddUpdate{
+		{ID: policyID, AutoAdd: autoAddModeForLegacyActive(activeBool)},
 	}
-	_, appErr := c.App.UpdateAccessControlPoliciesActive(c.AppContext, updates)
+	_, appErr := c.App.UpdateAccessControlPoliciesAutoAdd(c.AppContext, updates)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -952,6 +954,19 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// autoAddModeForLegacyActive maps the deprecated active flag onto an auto-add
+// mode. The flag only ever expressed on or off, so true becomes the always mode
+// and false becomes no mode at all.
+func autoAddModeForLegacyActive(active bool) string {
+	if !active {
+		return ""
+	}
+	return model.AccessControlAutoAddAlways
+}
+
+// setActiveStatus toggles auto-adding members for a batch of access control
+// policies. The request's active field is kept for compatibility; it maps onto
+// each membership rule's auto_add setting rather than the policy's active flag.
 func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	var list model.AccessControlPolicyActiveUpdateRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
@@ -994,12 +1009,23 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	policies, appErr := c.App.UpdateAccessControlPoliciesActive(c.AppContext, list.Entries)
+	updates := make([]model.AccessControlPolicyAutoAddUpdate, 0, len(list.Entries))
+	for _, entry := range list.Entries {
+		updates = append(updates, model.AccessControlPolicyAutoAddUpdate{ID: entry.ID, AutoAdd: autoAddModeForLegacyActive(entry.Active)})
+	}
+
+	policies, appErr := c.App.UpdateAccessControlPoliciesAutoAdd(c.AppContext, updates)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 	auditRec.Success()
+
+	// Clients on this endpoint still read auto-add off the active field, so
+	// mirror it in the response. The stored Active column is not written.
+	for _, p := range policies {
+		p.Active = p.AutoAddMembers()
+	}
 
 	if shouldRedactExpressions(c) {
 		for _, p := range policies {

@@ -9,6 +9,8 @@ import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {
     getMembershipRule,
     buildRulesWithMembership,
+    getAutoAddFromRules,
+    autoAddModeForToggle,
 } from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -130,7 +132,7 @@ function ChannelSettingsAccessRulesTab({
                 const result = await actions.getChannelPolicy(channel.id);
                 if (result.data) {
                     const existingExpression = getMembershipRule(result.data.rules)?.expression || '';
-                    const existingAutoSync = result.data.active || false;
+                    const existingAutoSync = getAutoAddFromRules(result.data.rules);
 
                     setExpression(existingExpression);
                     setOriginalExpression(existingExpression);
@@ -412,34 +414,23 @@ function ChannelSettingsAccessRulesTab({
                 return true;
             }
 
-            // Step 1: Build and save the policy object (without active field to avoid conflicts)
             const policy = {
                 id: channel.id,
                 name: channel.display_name,
                 type: 'channel',
-                active: false, // Always save as false initially, then update separately
                 revision: 1,
                 created_at: Date.now(),
-                rules: buildRulesWithMembership(existingRules, expression),
+                rules: buildRulesWithMembership(existingRules, expression, autoAddModeForToggle(autoSyncMembers)),
                 imports: systemPolicies.map((p) => p.id), // Include existing parent policies
             };
 
-            // Save the policy first
             const result = await actions.saveChannelPolicy(policy);
             if (result.error) {
                 throw new Error(result.error.message || 'Failed to save policy');
             }
 
-            // Step 2: Update the active status separately (like System Console does)
-            try {
-                await actions.updateAccessControlPoliciesActive([{id: channel.id, active: autoSyncMembers}]);
-            } catch (activeError) {
-                // Don't fail the entire save operation for this, but log it
-                // eslint-disable-next-line no-console
-                console.error('Failed to update policy active status:', activeError);
-            }
-
-            // Step 3: Create a job to immediately sync channel membership when rules exist
+            // Create a job to immediately sync channel membership when rules exist.
+            // This ensures both user removal (always) and addition (conditional) happen immediately
             // This ensures both user removal (always) and addition (conditional) happen immediately
             if (expression.trim()) {
                 try {

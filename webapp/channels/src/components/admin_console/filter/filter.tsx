@@ -58,8 +58,8 @@ type State = {
 };
 
 class Filter extends React.PureComponent<Props, State> {
-    private buttonRef: React.RefObject<HTMLButtonElement>;
-    private filterRef: React.RefObject<HTMLDivElement>;
+    private buttonRef: React.RefObject<HTMLButtonElement | null>;
+    private filterRef: React.RefObject<HTMLDivElement | null>;
 
     public constructor(props: Props) {
         super(props);

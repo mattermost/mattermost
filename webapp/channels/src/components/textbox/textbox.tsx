@@ -48,7 +48,7 @@ export type Props = {
     onFocus?: () => void;
     supportsCommands?: boolean;
     handlePostError?: (message: JSX.Element | null) => void;
-    onPaste?: (e: ClipboardEvent) => void;
+    onPaste?: (e: React.ClipboardEvent<TextboxElement>) => void;
     suggestionList?: React.ComponentProps<typeof SuggestionBox>['listComponent'];
     suggestionListPosition?: React.ComponentProps<typeof SuggestionList>['position'];
     alignWithTextbox?: boolean;
@@ -81,9 +81,9 @@ const HIDDEN = {visibility: 'hidden'} as const;
 
 export default class Textbox extends React.PureComponent<Props> {
     private readonly suggestionProviders: Provider[];
-    private readonly wrapper: React.RefObject<HTMLDivElement>;
-    private readonly message: React.RefObject<SuggestionBoxComponent>;
-    private readonly preview: React.RefObject<HTMLDivElement>;
+    private readonly wrapper: React.RefObject<HTMLDivElement | null>;
+    private readonly message: React.RefObject<SuggestionBoxComponent | null>;
+    private readonly preview: React.RefObject<HTMLDivElement | null>;
 
     static defaultProps = {
         supportsCommands: true,
@@ -314,8 +314,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     />
                 </div>
                 <SuggestionBox
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
                     ref={this.message}
                     id={this.props.id}
                     className={textboxClassName}

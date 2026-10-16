@@ -204,7 +204,6 @@ export const suitePluginIds = {
 };
 
 export const ActionTypes = keyMirror({
-    SET_PRODUCT_SWITCHER_OPEN: null,
     RECEIVED_FOCUSED_POST: null,
     SELECT_POST: null,
     HIGHLIGHT_REPLY: null,
@@ -280,12 +279,6 @@ export const ActionTypes = keyMirror({
     CLOSE_LHS: null,
     SET_LHS_SIZE: null,
     SELECT_STATIC_PAGE: null,
-
-    SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
-    SET_SHOW_PREVIEW_ON_CREATE_POST: null,
-    SET_SHOW_PREVIEW_ON_EDIT_CHANNEL_HEADER_MODAL: null,
-    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL: null,
-    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL: null,
 
     TOGGLE_RHS_MENU: null,
     OPEN_RHS_MENU: null,
@@ -501,8 +494,12 @@ export const ModalIdentifiers = {
     USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
     SESSION_ATTRIBUTE_DISABLE: 'session_attribute_disable',
     BOARD_ATTRIBUTE_FIELD_DELETE: 'board_attribute_field_delete',
+    CHANNEL_RESOURCE_REMOVE: 'channel_resource_remove',
     GLOBAL_ATTRIBUTE_FIELD_DELETE: 'global_attribute_field_delete',
+    GRAPH_NODE_DELETE: 'graph_node_delete',
+    GRAPH_GRANT_CONFIRM: 'graph_grant_confirm',
     GLOBAL_ATTRIBUTE_REMOVE_APPLIES_TO: 'global_attribute_remove_applies_to',
+
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
     RANKED_SCHEMA_MODAL: 'ranked_schema_modal',

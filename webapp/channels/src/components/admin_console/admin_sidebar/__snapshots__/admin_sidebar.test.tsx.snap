@@ -101,10 +101,10 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -270,10 +270,10 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -458,10 +458,10 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -513,10 +513,10 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -625,10 +625,10 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -915,10 +915,10 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -1196,10 +1196,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -1367,25 +1367,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -1456,10 +1437,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -1738,10 +1719,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -1816,10 +1797,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -1949,10 +1930,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -2087,10 +2068,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -2271,10 +2252,10 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -2326,10 +2307,10 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -2419,10 +2400,10 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -2512,10 +2493,10 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -2721,17 +2702,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         >
                           <li
                             class="sidebar-section"
-                            data-testid="system_attributes.system_properties"
+                            data-testid="system_attributes.global_attributes"
                           >
                             <a
                               class="sidebar-section-title"
-                              href="/admin_console/system_attributes/user_attributes"
-                              id="system_attributes/user_attributes"
+                              href="/admin_console/system_attributes/manage_attributes"
+                              id="system_attributes/manage_attributes"
                             >
                               <span
                                 class="sidebar-section-title__text"
                               >
-                                User Attributes
+                                Attribute Management
                               </span>
                             </a>
                             <ul
@@ -2787,10 +2768,10 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -3034,10 +3015,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -3205,25 +3186,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -3313,10 +3275,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -3599,10 +3561,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -3677,10 +3639,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -3810,10 +3772,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -3967,10 +3929,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -4151,10 +4113,10 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -4206,10 +4168,10 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -4299,10 +4261,10 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -4392,10 +4354,10 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -4601,17 +4563,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         >
                           <li
                             class="sidebar-section"
-                            data-testid="system_attributes.system_properties"
+                            data-testid="system_attributes.global_attributes"
                           >
                             <a
                               class="sidebar-section-title"
-                              href="/admin_console/system_attributes/user_attributes"
-                              id="system_attributes/user_attributes"
+                              href="/admin_console/system_attributes/manage_attributes"
+                              id="system_attributes/manage_attributes"
                             >
                               <span
                                 class="sidebar-section-title__text"
                               >
-                                User Attributes
+                                Attribute Management
                               </span>
                             </a>
                             <ul
@@ -4652,10 +4614,10 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -4899,10 +4861,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -5070,25 +5032,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -5178,10 +5121,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -5464,10 +5407,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -5542,10 +5485,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -5675,10 +5618,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -5832,10 +5775,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -6016,10 +5959,10 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -6071,10 +6014,10 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -6183,10 +6126,10 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -6473,10 +6416,10 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -6754,10 +6697,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -6925,25 +6868,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -7014,10 +6938,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -7315,10 +7239,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -7393,10 +7317,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -7526,10 +7450,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -7664,10 +7588,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -7848,10 +7772,10 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -7903,10 +7827,10 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -8015,10 +7939,10 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -8305,10 +8229,10 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -8586,10 +8510,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -8757,25 +8681,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -8846,10 +8751,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -9128,10 +9033,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -9206,10 +9111,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -9339,10 +9244,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -9477,10 +9382,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -9770,10 +9675,10 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -9825,10 +9730,10 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -9937,10 +9842,10 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -10227,10 +10132,10 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -10508,10 +10413,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -10679,25 +10584,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -10768,10 +10654,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -11050,10 +10936,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -11128,10 +11014,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -11261,10 +11147,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -11399,10 +11285,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -11583,10 +11469,10 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -11638,10 +11524,10 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -11750,10 +11636,10 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -12040,10 +11926,10 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -12321,10 +12207,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -12492,25 +12378,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -12581,10 +12448,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -12863,10 +12730,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -12941,10 +12808,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -13074,10 +12941,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -13212,10 +13079,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -13396,10 +13263,10 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -13451,10 +13318,10 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -13563,10 +13430,10 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -13823,10 +13690,10 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -14161,10 +14028,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -14317,25 +14184,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -14406,10 +14254,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -14613,10 +14461,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -14691,10 +14539,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -14824,10 +14672,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -14936,10 +14784,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -15120,10 +14968,10 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -15175,10 +15023,10 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -15287,10 +15135,10 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -15577,10 +15425,10 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -15858,10 +15706,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -16029,25 +15877,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -16118,10 +15947,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -16419,10 +16248,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -16497,10 +16326,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -16630,10 +16459,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
@@ -16768,10 +16597,10 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           >
                             <svg
                               fill="currentColor"
-                              height="16"
+                              height="14"
                               version="1.1"
                               viewBox="0 0 24 24"
-                              width="16"
+                              width="14"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <path

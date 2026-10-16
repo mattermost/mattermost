@@ -91,7 +91,7 @@ type State = {
 };
 export default class LicenseSettings extends React.PureComponent<Props, State> {
     private interval: ReturnType<typeof setInterval> | null;
-    private fileInputRef: React.RefObject<HTMLInputElement>;
+    private fileInputRef: React.RefObject<HTMLInputElement | null>;
     constructor(props: Props) {
         super(props);
 

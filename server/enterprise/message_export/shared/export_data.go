@@ -4,7 +4,8 @@
 package shared
 
 import (
-	"sort"
+	"cmp"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -418,18 +419,18 @@ func getJoinsAndLeaves(startTime int64, endTime int64, channelMembersHistory []*
 		joinEvents = append(joinEvents, v)
 	}
 
-	sort.Slice(joinEvents, func(i, j int) bool {
-		if joinEvents[i].JoinTime == joinEvents[j].JoinTime {
-			return joinEvents[i].UserEmail < joinEvents[j].UserEmail
+	slices.SortFunc(joinEvents, func(a, b JoinExport) int {
+		if a.JoinTime == b.JoinTime {
+			return cmp.Compare(a.UserEmail, b.UserEmail)
 		}
-		return joinEvents[i].JoinTime < joinEvents[j].JoinTime
+		return cmp.Compare(a.JoinTime, b.JoinTime)
 	})
 
-	sort.Slice(leaveEvents, func(i, j int) bool {
-		if leaveEvents[i].LeaveTime == leaveEvents[j].LeaveTime {
-			return leaveEvents[i].UserEmail < leaveEvents[j].UserEmail
+	slices.SortFunc(leaveEvents, func(a, b LeaveExport) int {
+		if a.LeaveTime == b.LeaveTime {
+			return cmp.Compare(a.UserEmail, b.UserEmail)
 		}
-		return leaveEvents[i].LeaveTime < leaveEvents[j].LeaveTime
+		return cmp.Compare(a.LeaveTime, b.LeaveTime)
 	})
 
 	return joinEvents, leaveEvents

@@ -94,7 +94,7 @@ const scrollMarginWithUnread = 55;
 
 export class SidebarList extends React.PureComponent<Props, State> {
     channelRefs: Map<string, HTMLLIElement>;
-    scrollbar: React.RefObject<HTMLDivElement>;
+    scrollbar: React.RefObject<HTMLDivElement | null>;
     animate: SpringSystem;
     scrollAnimation: Spring;
 

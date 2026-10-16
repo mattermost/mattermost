@@ -71,7 +71,7 @@ type MarketplaceItemState = {
 };
 
 export default class MarketplaceItem extends React.PureComponent <MarketplaceItemProps, MarketplaceItemState> {
-    descriptionRef: React.RefObject<HTMLParagraphElement>;
+    descriptionRef: React.RefObject<HTMLParagraphElement | null>;
 
     constructor(props: MarketplaceItemProps) {
         super(props);
