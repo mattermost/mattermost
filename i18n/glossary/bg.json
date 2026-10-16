@@ -446,5 +446,24 @@
   "server": {
     "target": "сървър",
     "note": "Established. Plural: сървъри."
+  },
+  "health dashboard": {
+    "target": "Състояние на сайта",
+    "note": "Name of the System Console page; matches its title and sidebar item. Refer to it as „Състояние на сайта“ (e.g. 'страницата „Състояние на сайта“'), not a literal 'табло за състоянието'."
+  },
+  "health finding": {
+    "target": "констатация",
+    "note": "Plural: констатации. Outside the Site health page, expand to 'констатация от проверката на състоянието'."
+  },
+  "Agents plugin": {
+    "target": "приставка Agents",
+    "note": "Definite: приставката Agents; with the full name: приставката Mattermost Agents."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Keep the service name in English, introduced by 'услугата' (e.g. 'услугата Mattermost Hosted Push Notification Service'); HPNS stays as is. admin.email.agreeHPNS currently paraphrases it as 'хостваната от Mattermost услуга за известия', which drops 'push' — do not propagate."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

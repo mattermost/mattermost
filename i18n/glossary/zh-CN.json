@@ -401,5 +401,24 @@
   },
   "server": {
     "target": "服务器"
+  },
+  "health dashboard": {
+    "target": "站点健康",
+    "note": "Name of the System Console page. Consistent in existing translations."
+  },
+  "health finding": {
+    "target": "健康检查结果",
+    "note": "Shorten to 检查结果 inside the page itself; measure word 个. Consistent in existing translations."
+  },
+  "Agents plugin": {
+    "target": "Agents 插件",
+    "note": "Consistent in existing translations."
+  },
+  "Hosted Push Notification Service": {
+    "target": "托管推送通知服务",
+    "note": "With Mattermost: 'Mattermost 托管推送通知服务'. Consistent in existing translations. Keep the acronym HPNS: admin.email.mhpns ships 'TPNS' (the test service) — do not propagate."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

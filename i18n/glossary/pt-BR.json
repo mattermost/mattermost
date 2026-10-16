@@ -424,5 +424,24 @@
   },
   "server": {
     "target": "servidor"
+  },
+  "health dashboard": {
+    "target": "painel de integridade do site",
+    "note": "Masculine: 'o painel de integridade do site'. The page and menu title is 'Integridade do site'."
+  },
+  "health finding": {
+    "target": "achado de integridade",
+    "note": "Masculine; plural 'achados de integridade'. Inside the dashboard plain 'achado' is enough."
+  },
+  "Agents plugin": {
+    "target": "plugin Agents",
+    "note": "Masculine: 'o plugin Agents', 'no plugin Agents'. 'Agents' stays English."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Service name kept in English, masculine: 'o Hosted Push Notification Service'. The terms-of-service checkbox ships 'Serviço de Notificações mantido pela Mattermost', which drops 'push' and breaks the sentence; do not follow it. The acronym HPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

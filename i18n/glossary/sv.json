@@ -447,5 +447,24 @@
   "server": {
     "target": "server",
     "note": "en server, servern, servrar."
+  },
+  "health dashboard": {
+    "target": "Systemhälsa",
+    "note": "Name of the System Console page; capitalize as a name. Consistent in existing translations."
+  },
+  "health finding": {
+    "target": "hälsoavvikelse",
+    "note": "en hälsoavvikelse, hälsoavvikelser. Shorten to 'avvikelse' inside the page itself (e.g. 'Inga kritiska avvikelser'). Consistent in existing translations."
+  },
+  "Agents plugin": {
+    "target": "Agents-pluginet",
+    "note": "Definite neuter form, matching 'plugin' (ett plugin): 'Agents-pluginet', 'i Agents-pluginet'. Existing strings mostly say 'Agents-pluginen' (common gender) — do not propagate."
+  },
+  "Hosted Push Notification Service": {
+    "target": "värdbaserad push-aviseringstjänst",
+    "note": "With Mattermost: 'Mattermosts värdbaserade push-aviseringstjänst'. Existing strings (admin.email.agreeHPNS, health.rule.push_test_proxy.remediation) leave the full name in English — translate it. 'push-avisering' is the established form in push contexts."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }
