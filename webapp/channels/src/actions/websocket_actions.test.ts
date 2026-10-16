@@ -8,7 +8,9 @@ import type {AnyAction} from 'redux';
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import {
+    ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
 } from '@mattermost/types/access_control';
@@ -1873,19 +1875,27 @@ describe('handlePermissionPolicyUpdatedEvent', () => {
         expect(testStore.getActions()).toContainEqual({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS_WITH_JITTER'});
     });
 
-    // Only channel_read_access hides or reveals a channel. The empty list is an auto-add toggle.
+    // Only channel_read_access hides or reveals a channel, and neither changes a loaded post.
     test.each([
-        [[ACCESS_CONTROL_ACTION_UPLOAD_FILE, ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]],
-        [[]],
-    ])('leaves the channel list alone when the change touched %j', (changed) => {
+        [ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS],
+        [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS],
+    ])('only clears render decisions when %s changed', (action) => {
         const testStore = configureStore(stateWith('visible-channel', ['visible-channel']));
 
-        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated(changed)));
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated([action])));
 
         const types = testStore.getActions().map((a) => a.type);
-        expect(types).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
-        expect(types).not.toContain('MOCK_RECONCILE_CHANNEL_READ_ACCESS_WITH_JITTER');
+        expect(types).toEqual([RenderPermissionTypes.CLEAR_RENDER_DECISIONS]);
         expect(reconcileChannelReadAccess).not.toHaveBeenCalled();
+    });
+
+    // An auto-add toggle changes no rule.
+    test('does nothing when the change touched no action', () => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel']));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated([])));
+
+        expect(testStore.getActions()).toEqual([]);
     });
 
     test('does nothing when permission policies are disabled', () => {
