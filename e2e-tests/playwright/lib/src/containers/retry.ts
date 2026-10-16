@@ -7,6 +7,9 @@ import {duration, wait} from '@/util';
 
 const DEFAULT_ATTEMPTS = 3;
 
+/** Thrown by a start attempt that retrying can't fix, so it fails at once with this message. */
+export class NonRetryableError extends Error {}
+
 // Wraps a container's build+start so transient failures (image pull/build over a flaky network,
 // occasional first-boot flakiness) get a bounded, backed-off retry instead of failing the whole
 // run — and so any failure, at any attempt, is unambiguous about which container/image caused it,
@@ -23,6 +26,9 @@ export async function startWithRetry<T>(
         try {
             return await start();
         } catch (error) {
+            if (error instanceof NonRetryableError) {
+                throw error;
+            }
             lastError = error;
             const message = error instanceof Error ? error.message : String(error);
             errorTestcontainers(`"${label}" failed on attempt ${attempt}/${attempts}: ${message}`);
