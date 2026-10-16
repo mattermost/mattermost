@@ -14478,18 +14478,18 @@
   },
   {
     "id": "health.rule.ratelimit_store_small.message",
-    "translation": "RateLimitSettings.MemoryStoreSize is {{.size}}. The rate limiter tracks at most this many clients; when it is full it drops the least recently seen one, whose request quota then starts over, so a small store weakens rate limiting.",
-    "description": "Health dashboard finding detail when the rate limiter's memory store is smaller than the default; {{.size}} is the configured size, and 'RateLimitSettings.MemoryStoreSize' is the config setting path and should not be translated."
+    "translation": "RateLimitSettings.MemoryStoreSize is {{.size}}, but there are {{.users}} registered users. The rate limiter tracks at most this many clients; when it is full it drops the least recently seen one, whose request quota then starts over, so a small store weakens rate limiting.",
+    "description": "Health dashboard finding detail when the rate limiter's memory store is smaller than the registered user count; {{.size}} is the configured size, {{.users}} is the registered user count, and 'RateLimitSettings.MemoryStoreSize' is the config setting path and should not be translated."
   },
   {
     "id": "health.rule.ratelimit_store_small.remediation",
-    "translation": "Raise RateLimitSettings.MemoryStoreSize to 10000 (the default) or higher.",
+    "translation": "Raise RateLimitSettings.MemoryStoreSize to at least the number of registered users.",
     "description": "Health dashboard fix-it step for a small rate limiter memory store; 'RateLimitSettings.MemoryStoreSize' is the config setting path and should not be translated."
   },
   {
     "id": "health.rule.ratelimit_store_small.title",
-    "translation": "Rate limiting memory store is smaller than the default",
-    "description": "Health dashboard finding title when RateLimitSettings.MemoryStoreSize is below its default of 10000."
+    "translation": "Rate limiting memory store is smaller than the user count",
+    "description": "Health dashboard finding title when RateLimitSettings.MemoryStoreSize is below the number of registered users."
   },
   {
     "id": "health.rule.site_url_empty.message",

@@ -86,7 +86,7 @@ func TestRegistered(t *testing.T) {
 		subject    string
 	}{
 		{rateLimitOffLarge, "RATELIMIT_OFF_LARGE", healthcheck.SeverityInfo, healthcheck.SurfaceInternal, healthcheck.VolatilityThreshold, "RateLimitSettings.Enable"},
-		{rateLimitStoreSmall, "RATELIMIT_STORE_SMALL", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "RateLimitSettings.MemoryStoreSize"},
+		{rateLimitStoreSmall, "RATELIMIT_STORE_SMALL", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "RateLimitSettings.MemoryStoreSize"},
 	}
 
 	registry := healthcheck.Builtin()

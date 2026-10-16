@@ -62,14 +62,16 @@ func TestRateLimitStoreSmall(t *testing.T) {
 		snapshot *healthcheck.Snapshot
 		want     want
 	}{
-		{"disabled with a small store", configSnapshot(rateLimit(false, 100)), resolved},
-		{"enabled with the default store", configSnapshot(rateLimit(true, 10_000)), resolved},
-		{"enabled just below the default", configSnapshot(rateLimit(true, 9_999)), firing(storeSmallMessage, map[string]string{"size": "9999"})},
-		{"enabled with a small store", configSnapshot(rateLimit(true, 100)), firing(storeSmallMessage, map[string]string{"size": "100"})},
-		{"store size unset", configSnapshot(func(cfg *model.Config) {
+		{"disabled with a small store", withUsers(configSnapshot(rateLimit(false, 100)), 1_000), resolved},
+		{"enabled without stats", configSnapshot(rateLimit(true, 100)), statsUnknown},
+		{"enabled with a store sized to the users", withUsers(configSnapshot(rateLimit(true, 300)), 300), resolved.withValue(300)},
+		{"enabled with a store larger than the users", withUsers(configSnapshot(rateLimit(true, 10_000)), 200), resolved.withValue(200)},
+		{"enabled with one user too many", withUsers(configSnapshot(rateLimit(true, 300)), 301), firing(storeSmallMessage, map[string]string{"size": "300", "users": "301"}).withValue(301)},
+		{"enabled with the default store and more users", withUsers(configSnapshot(rateLimit(true, 10_000)), 20_000), firing(storeSmallMessage, map[string]string{"size": "10000", "users": "20000"}).withValue(20_000)},
+		{"store size unset", withUsers(configSnapshot(func(cfg *model.Config) {
 			cfg.RateLimitSettings.Enable = new(true)
 			cfg.RateLimitSettings.MemoryStoreSize = nil
-		}), configUnknown},
+		}), 1_000), configUnknown},
 	}
 
 	for _, tc := range testCases {

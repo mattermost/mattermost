@@ -17,8 +17,7 @@ func init() {
 const (
 	rateLimitConsolePath = "/admin_console/environment/rate_limiting"
 
-	rateLimitLargeUsers   = 500
-	rateLimitMinStoreSize = 10_000
+	rateLimitLargeUsers = 500
 )
 
 var rateLimitOffLarge = healthcheck.Rule{
@@ -46,7 +45,7 @@ var rateLimitStoreSmall = healthcheck.Rule{
 		ConsolePath:   rateLimitConsolePath,
 	},
 	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
+	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    "RateLimitSettings.MemoryStoreSize",
 	Eval:       evalRateLimitStoreSmall,
 }
@@ -88,12 +87,20 @@ func evalRateLimitStoreSmall(s *healthcheck.Snapshot) []healthcheck.Result {
 	}
 
 	size, ok := s.ConfigInt(func(cfg *model.Config) *int { return cfg.RateLimitSettings.MemoryStoreSize })
+	if !ok {
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+	}
+
+	users, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.RegisteredUsers })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	case size < rateLimitMinStoreSize:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.ratelimit_store_small.message")).WithDetail("size", strconv.Itoa(size))}
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
+	case int64(size) < users:
+		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.ratelimit_store_small.message")).
+			WithDetail("size", strconv.Itoa(size)).
+			WithDetail("users", strconv.FormatInt(users, 10)).
+			WithValue(float64(users))}
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(users))}
 	}
 }
