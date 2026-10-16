@@ -37,7 +37,7 @@ const AdminPanel = ({
         subtitle={subtitle ? (
             <FormattedMessage
                 {...subtitle}
-                values={subtitleValues}
+                {...(subtitleValues ? {values: subtitleValues as React.ComponentProps<typeof FormattedMessage>['values']} : {})}
             />
         ) : undefined}
         headerActions={button}

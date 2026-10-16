@@ -17,7 +17,7 @@ import type {ServerError} from '@mattermost/types/errors';
 import {Client4} from 'mattermost-redux/client';
 import {isPostDeliveryTrackingEnabled} from 'mattermost-redux/selectors/entities/general';
 
-import BooleanSetting from 'components/admin_console/boolean_setting';
+import {Label} from 'components/admin_console/boolean_setting';
 import ContentFlaggingAdditionalSettingsSection
     from 'components/admin_console/content_flagging/additional_settings/additional_settings';
 import ContentFlaggingContentReviewers
@@ -28,6 +28,7 @@ import ContentFlaggingNotificationSettingsSection
     from 'components/admin_console/content_flagging/notificatin_settings/notification_settings';
 import SaveChangesPanel from 'components/admin_console/save_changes_panel';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import './content_flagging_settings.scss';
 
@@ -185,21 +186,47 @@ export default function ContentFlaggingSettings() {
 
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
-                    <div className='admin-console__setting-group'>
-                        <BooleanSetting
-                            id='EnableContentFlagging'
-                            label={
-                                <FormattedMessage
-                                    id='admin.data_spillage.enableTitle'
-                                    defaultMessage='Enable Data Spillage Handling'
-                                />
-                            }
-                            value={contentFlaggingSettings?.EnableContentFlagging || false}
-                            setByEnv={false}
-                            onChange={handleSettingsChange}
-                            helpText=''
-                        />
-                    </div>
+                    <AdminPanel
+                        id='enable_content_flagging'
+                        title={messages.enableTitle}
+                    >
+                        <div className='content-flagging-section-setting-wrapper'>
+                            <div className='content-flagging-section-setting'>
+                                <div className='setting-content'>
+                                    <Label isDisabled={false}>
+                                        <input
+                                            data-testid='EnableContentFlaggingtrue'
+                                            id='EnableContentFlaggingtrue'
+                                            type='radio'
+                                            value='true'
+                                            name='EnableContentFlagging'
+                                            checked={Boolean(contentFlaggingSettings?.EnableContentFlagging)}
+                                            onChange={() => handleSettingsChange('EnableContentFlagging', true)}
+                                        />
+                                        <FormattedMessage
+                                            id='admin.true'
+                                            defaultMessage='True'
+                                        />
+                                    </Label>
+                                    <Label isDisabled={false}>
+                                        <input
+                                            data-testid='EnableContentFlaggingfalse'
+                                            id='EnableContentFlaggingfalse'
+                                            type='radio'
+                                            value='false'
+                                            name='EnableContentFlagging'
+                                            checked={!contentFlaggingSettings?.EnableContentFlagging}
+                                            onChange={() => handleSettingsChange('EnableContentFlagging', false)}
+                                        />
+                                        <FormattedMessage
+                                            id='admin.false'
+                                            defaultMessage='False'
+                                        />
+                                    </Label>
+                                </div>
+                            </div>
+                        </div>
+                    </AdminPanel>
                     <ContentFlaggingContentReviewers
                         id='ReviewerSettings'
                         onChange={handleSettingsChange}
