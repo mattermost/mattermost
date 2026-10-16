@@ -6,7 +6,6 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
-import {PlusIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
@@ -25,13 +24,11 @@ import type {ValueType} from 'components/dropdown_input';
 import LoadingScreen from 'components/loading_screen';
 import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
 
 import {getHistory} from 'utils/browser_history';
 
 import {
-    AddLevelButton,
-    AddLevelButtonRow,
-    ClassificationLevelsSectionContent,
     InformationNoticeWrapper,
     PresetDropdownWrapper,
 } from './classification_markings_styled';
@@ -69,7 +66,7 @@ import type {ClassificationLevel} from './utils/presets';
 import {PENDING_LEVEL_PREFIX, PRESET_CUSTOM, PRESET_EMPTY, presets} from './utils/presets';
 
 import SaveChangesPanel from '../save_changes_panel';
-import {AdminSection, AdminWrapper, DangerText, SectionHeader, SectionHeading} from '../system_properties/controls';
+import {AdminWrapper, DangerText} from '../system_properties/controls';
 
 const MEMBERSHIP_POLICIES_URL = '/admin_console/system_attributes/membership_policies';
 
@@ -84,6 +81,7 @@ const msg = defineMessages({
     clearanceHelp: {id: 'admin.classification_markings.enforcement.clearance.help', defaultMessage: 'Creates a ranked "Classification clearance" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.'},
     levelsTitle: {id: 'admin.classification_markings.levels.title', defaultMessage: 'Classification levels'},
     levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Text and colors for different classification levels that will be used in the system'},
+    levelsAdd: {id: 'admin.classification_markings.levels.add', defaultMessage: 'Add level'},
     informationalNoticeTitle: {id: 'admin.classification_markings.notice.title', defaultMessage: 'Classification markings are informational only'},
     informationalNoticeBody: {id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'},
     globalBannerSectionTitle: {id: 'admin.classification_markings.global_banner.section_title', defaultMessage: 'Global Classification Indicators'},
@@ -824,37 +822,21 @@ export default function ClassificationMarkings({disabled}: Props) {
                 </form>
 
                 {enabled && (
-                    <AdminSection>
-                        <SectionHeader>
-                            <hgroup>
-                                <FormattedMessage
-                                    tagName={SectionHeading}
-                                    {...msg.levelsTitle}
-                                />
-                                <FormattedMessage {...msg.levelsDescription}/>
-                            </hgroup>
-                        </SectionHeader>
-                        <ClassificationLevelsSectionContent>
-                            <ClassificationLevelsTable
-                                levels={levels}
-                                updateLevel={updateLevel}
-                                deleteLevel={deleteLevel}
-                                onReorder={handleReorder}
-                                disabled={readOnly}
-                            />
-                            {!readOnly && (
-                                <AddLevelButtonRow>
-                                    <AddLevelButton onClick={addLevel}>
-                                        <PlusIcon size={14}/>
-                                        <FormattedMessage
-                                            id='admin.classification_markings.levels.add'
-                                            defaultMessage='Add level'
-                                        />
-                                    </AddLevelButton>
-                                </AddLevelButtonRow>
-                            )}
-                        </ClassificationLevelsSectionContent>
-                    </AdminSection>
+                    <AdminPanelWithButton
+                        id='classification_levels'
+                        title={msg.levelsTitle}
+                        subtitle={msg.levelsDescription}
+                        buttonText={readOnly ? undefined : msg.levelsAdd}
+                        onButtonClick={readOnly ? undefined : addLevel}
+                    >
+                        <ClassificationLevelsTable
+                            levels={levels}
+                            updateLevel={updateLevel}
+                            deleteLevel={deleteLevel}
+                            onReorder={handleReorder}
+                            disabled={readOnly}
+                        />
+                    </AdminPanelWithButton>
                 )}
 
                 {enabled && (

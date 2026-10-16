@@ -3,21 +3,12 @@
 
 import styled from 'styled-components';
 
-import {Button} from '@mattermost/shared/components/button';
-
-import {SectionContent} from '../system_properties/controls';
-
-export const GlobalBannerSectionContent = styled(SectionContent).attrs({
-    $compact: true,
-})`
-    &&& {
-        padding: 24px;
-    }
-`;
-
 export const GlobalBannerSectionSetting = styled.div`
     min-height: 36px;
-    margin-top: 24px;
+
+    & + & {
+        margin-top: 24px;
+    }
 `;
 
 export const LevelOptionLabel = styled.div`
@@ -75,29 +66,6 @@ export const PresetDropdownWrapper = styled.div`
             font-size: 16px;
             line-height: 16px;
         }
-    }
-`;
-
-export const ClassificationLevelsSectionContent = styled(SectionContent).attrs({
-    $compact: true,
-})`
-    &&& {
-        padding: 0;
-        padding-bottom: 16px;
-    }
-`;
-
-export const AddLevelButtonRow = styled.div`
-    margin-top: 16px;
-    margin-left: 16px;
-`;
-
-export const AddLevelButton = styled(Button).attrs({
-    type: 'button',
-    emphasis: 'tertiary',
-})`
-    && {
-        padding-inline: 16px;
     }
 `;
 
