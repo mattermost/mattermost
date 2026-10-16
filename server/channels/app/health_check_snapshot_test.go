@@ -10,6 +10,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -44,6 +45,10 @@ func TestBuildHealthSnapshotStandaloneLeaderDiagnostics(t *testing.T) {
 	for _, section := range model.AllNodeSections() {
 		assert.True(t, nodes[0].Has(section), "section %q", section)
 	}
+
+	hostname, err := os.Hostname()
+	require.NoError(t, err)
+	assert.Equal(t, hostname, nodes[0].Hostname)
 }
 
 // threeNodeCluster reports this node as id-2 of three.
@@ -218,6 +223,16 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	liveEvaluations := engine.Evaluate(live)
 	offlineEvaluations := engine.Evaluate(offline.Snapshot)
 
+	// Each collection samples the open file descriptor count separately.
+	for _, evaluations := range [][]healthcheck.Evaluation{liveEvaluations, offlineEvaluations} {
+		for i := range evaluations {
+			if evaluations[i].Code == "NODE_FD_EXHAUSTION" {
+				require.NotNil(t, evaluations[i].Result.Value)
+				evaluations[i].Result.Value = nil
+			}
+		}
+	}
+
 	require.NotEmpty(t, liveEvaluations)
 	assert.Equal(t, liveEvaluations, offlineEvaluations)
 
@@ -227,7 +242,7 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 			firing[evaluation.Code] = true
 		}
 	}
-	assert.Equal(t, map[string]bool{"PUSH_BAD_SCHEME": true, "SITE_URL_HTTP": true}, firing)
+	assert.Equal(t, map[string]bool{"METRICS_OFF": true, "PUSH_BAD_SCHEME": true, "SITE_URL_HTTP": true}, firing)
 }
 
 func TestClusterNodes(t *testing.T) {
