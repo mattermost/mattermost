@@ -67,6 +67,8 @@ func TestDBHAFailoverStormRisk(t *testing.T) {
 		{"pooler on ipv6 loopback", newSnapshot(clusterConfig(200, "postgres://****:****@[::1]:6432/mattermost"), nil, clusterDiag(new(3))), resolvedWant.withValue(600)},
 		{"pooler on a unix socket", newSnapshot(clusterConfig(200, "postgres://****:****@/mattermost?host=/var/run/pgbouncer"), nil, clusterDiag(new(3))), resolvedWant.withValue(600)},
 		{"remote ip host", newSnapshot(clusterConfig(200, "postgres://****:****@10.0.0.7:5432/mattermost"), nil, clusterDiag(new(3))), firing.withValue(600)},
+		{"direct host before a pooler", newSnapshot(clusterConfig(200, "postgres://****:****@db.example.com:5432,pgbouncer.internal:6432/mattermost"), nil, clusterDiag(new(3))), firing.withValue(600)},
+		{"direct host after a local pooler", newSnapshot(clusterConfig(200, "postgres://****:****@localhost:6432,db.example.com:5432/mattermost"), nil, clusterDiag(new(3))), firing.withValue(600)},
 		{"pooler only in the path", newSnapshot(clusterConfig(200, "postgres://****:****@db.example.com:5432/pooler"), nil, clusterDiag(new(3))), firing.withValue(600)},
 	}
 

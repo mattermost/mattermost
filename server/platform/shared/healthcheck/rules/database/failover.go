@@ -84,7 +84,8 @@ func evalDBHAFailoverStormRisk(s *healthcheck.Snapshot) []healthcheck.Result {
 	if !ok {
 		return unknownConfig()
 	}
-	if slices.ContainsFunc(hosts, isPoolerHost) {
+	// The driver tries hosts in order, so any direct host can take the full burst.
+	if !slices.ContainsFunc(hosts, func(host string) bool { return !isPoolerHost(host) }) {
 		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(burst))}
 	}
 
