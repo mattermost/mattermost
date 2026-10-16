@@ -247,7 +247,7 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div>
                     <span
                       class="field-label"
                     >
@@ -274,7 +274,7 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                         Email
                       </span>
                     </div>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
@@ -645,7 +645,7 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div>
                     <span
                       class="field-label"
                     >
@@ -672,7 +672,7 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                         Email
                       </span>
                     </div>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
@@ -1043,7 +1043,7 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div>
                     <span
                       class="field-label"
                     >
@@ -1070,7 +1070,7 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                         Email
                       </span>
                     </div>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
@@ -1441,7 +1441,7 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div>
                     <span
                       class="field-label"
                     >
@@ -1468,7 +1468,7 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                         Email
                       </span>
                     </div>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
@@ -1839,7 +1839,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div>
                     <span
                       class="field-label"
                     >
@@ -1866,7 +1866,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                         Email
                       </span>
                     </div>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
@@ -2243,7 +2243,7 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div>
                     <span
                       class="field-label"
                     >
@@ -2270,7 +2270,7 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                         Email
                       </span>
                     </div>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
@@ -2645,7 +2645,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div>
                     <span
                       class="field-label"
                     >
@@ -2672,7 +2672,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                         LDAP
                       </span>
                     </div>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
