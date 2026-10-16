@@ -18,9 +18,12 @@
         border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
     }
 
+    // Nested under Compass AdminPanel body (`spacing-xxl`). Drop legacy Card-era
+    // inset padding/background so the daily-time row sits at the same top edge
+    // as other System Console AdminPanel content.
     .help-text {
-        padding: 10px 16px;
-        background: rgba(var(--sys-center-channel-color-rgb), 0.04);
+        padding: 0;
+        background: transparent;
         color: var(--sys-center-channel-color);
     }
 
