@@ -88,8 +88,11 @@ export default class Logs extends React.PureComponent<Props, State> {
         this.reload();
     }
 
-    componentDidUpdate(prevProps: Props, prevState: State) {
-        if (this.state.isPlainLogs && (this.state.page !== prevState.page || !this.props.plainLogs?.length)) {
+    componentDidUpdate(_prevProps: Props, prevState: State) {
+        // Only refetch when the plain-text page changes. Format switches call
+        // reload() from onLogFormatToggle; do not key off empty plainLogs or
+        // every loading toggle will loop reload forever.
+        if (this.state.isPlainLogs && this.state.page !== prevState.page) {
             this.reload();
         }
     }
