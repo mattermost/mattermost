@@ -726,18 +726,10 @@
     opacity: 0.8;
 }
 
-.AdminChannelDetails_archiveContainer {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-m);
-    align-items: center;
-    margin-top: var(--spacing-xxl);
-    padding-top: var(--spacing-xl);
-    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-}
-
-.AdminChannelDetails_archiveContainer .channel-icon__archive,
-.AdminChannelDetails_archiveContainer .channel-icon__unarchive {
+// Archive/Unarchive actions live in Compass AdminPanelFooter; keep icon sizing
+// for any remaining channel-icon archive glyphs in this surface.
+.channel-icon__archive,
+.channel-icon__unarchive {
     width: 16px;
     height: 16px;
 }

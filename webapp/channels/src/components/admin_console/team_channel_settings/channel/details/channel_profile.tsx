@@ -4,6 +4,7 @@
 import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
+import {AdminPanelFooter} from '@mattermost/compass-ui/components/admin-panel-footer';
 import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -54,6 +55,22 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
             id='channel_profile'
             title={defineMessage({id: 'admin.channel_settings.channel_detail.profileTitle', defaultMessage: 'Channel Profile'})}
             subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.profileDescription', defaultMessage: 'Summary of the channel, including the channel name.'})}
+            footer={
+                <AdminPanelFooter
+                    leftActions={
+                        <Button
+                            type='button'
+                            emphasis='secondary'
+                            variant={isArchived ? undefined : 'destructive'}
+                            disabled={isDisabled}
+                            onClick={props.onToggleArchive}
+                        >
+                            {isArchived ? <i className='icon icon-archive-arrow-up-outline'/> : <i className='icon icon-archive-outline'/>}
+                            <FormattedMessage {...archiveBtn}/>
+                        </Button>
+                    }
+                />
+            }
         >
             <div className='AdminChannelDetails channel-desc-col'>
                 <div className='channel-name'>
@@ -77,18 +94,6 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
                     {team?.display_name}
                 </div>
                 {sharedBlock}
-                <div className='AdminChannelDetails_archiveContainer'>
-                    <Button
-                        type='button'
-                        emphasis='secondary'
-                        variant={isArchived ? undefined : 'destructive'}
-                        disabled={isDisabled}
-                        onClick={props.onToggleArchive}
-                    >
-                        {isArchived ? <i className='icon icon-archive-arrow-up-outline'/> : <i className='icon icon-archive-outline'/>}
-                        <FormattedMessage {...archiveBtn}/>
-                    </Button>
-                </div>
             </div>
         </AdminPanel>
     );
