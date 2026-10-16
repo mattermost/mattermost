@@ -9,9 +9,11 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -38,6 +40,16 @@ type linkMetadataCache struct {
 }
 
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
+
+const (
+	// maxEmojiNamesPerPost is the number of distinct emoji names a single post contributes to
+	// an emoji lookup. It matches the maximum the emoji-by-names API accepts for one request.
+	maxEmojiNamesPerPost = 200
+
+	// maxChannelMentionsPerPost is the number of distinct channel mentions resolved for a
+	// single post, each of which costs one channel lookup.
+	maxChannelMentionsPerPost = 200
+)
 
 func (s *Server) initPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
@@ -421,10 +433,17 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 		return post
 	}
 
+	// Each mention resolved costs a channel lookup, so a post contributes a fixed number of
+	// them. The names are sorted first so the set considered for a given post is stable.
+	channelNames := slices.Sorted(maps.Keys(mentionsMap))
+	if len(channelNames) > maxChannelMentionsPerPost {
+		channelNames = channelNames[:maxChannelMentionsPerPost]
+	}
+
 	sanitized := make(map[string]any)
 
-	for channelName, data := range mentionsMap {
-		dataMap, ok := data.(map[string]any)
+	for _, channelName := range channelNames {
+		dataMap, ok := mentionsMap[channelName].(map[string]any)
 		if !ok {
 			continue
 		}
@@ -808,7 +827,13 @@ func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction, mmBlock
 	for _, reaction := range reactions {
 		names = append(names, reaction.EmojiName)
 	}
-	return model.RemoveDuplicateStrings(names)
+
+	names = model.RemoveDuplicateStrings(names)
+	if len(names) > maxEmojiNamesPerPost {
+		names = names[:maxEmojiNamesPerPost]
+	}
+
+	return names
 }
 
 func (a *App) getCustomEmojisForPost(rctx request.CTX, post *model.Post, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
