@@ -24,7 +24,7 @@ func TestBuiltinRegistry(t *testing.T) {
 func TestBuiltinRulesOnCloud(t *testing.T) {
 	var cloud []string
 	for _, rule := range healthcheck.Builtin().Rules() {
-		if rule.AppliesTo(healthcheck.Deployment{IsCloud: true}) {
+		if rule.AppliesTo(true) {
 			cloud = append(cloud, rule.Code)
 		}
 	}

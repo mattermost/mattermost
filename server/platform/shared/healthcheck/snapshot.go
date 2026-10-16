@@ -14,20 +14,14 @@ type Snapshot struct {
 	CollectedAt time.Time
 
 	Config  *model.SupportPacketConfig
-	License *model.License
 	Stats   *model.SupportPacketStats
 	Jobs    *model.SupportPacketJobList
 	Plugins *model.SupportPacketPluginList
 
 	nodes []*NodeSnapshot
 
-	Deployment Deployment
-	Version    VersionInfo
-	Sections   map[model.WorkspaceSection]error
-}
-
-type Deployment struct {
-	IsCloud bool
+	Version  VersionInfo
+	Sections map[model.WorkspaceSection]error
 }
 
 type VersionInfo struct {
