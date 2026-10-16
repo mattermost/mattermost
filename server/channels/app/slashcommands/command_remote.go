@@ -78,7 +78,10 @@ func (rp *RemoteProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Co
 		return response(args.T("api.command_remote.permission_required", map[string]any{"Permission": "manage_secure_connections"}))
 	}
 
-	margs := parseNamedArgs(args.Command)
+	margs, err := parseNamedArgs(args.T, args.Command)
+	if err != nil {
+		return response(err.Error())
+	}
 	action, ok := margs[ActionKey]
 	if !ok {
 		return response(args.T("api.command_remote.missing_command", map[string]any{"Actions": AvailableRemoteActions}))

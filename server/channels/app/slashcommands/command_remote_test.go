@@ -576,14 +576,18 @@ func TestRemoteProviderDoRemove(t *testing.T) {
 		require.Equal(t, "Could not remove secure connection: We encountered an error deleting the secure connection.", output)
 	})
 
-	t.Run("rejects a missing, empty or malformed connectionID without deleting", func(t *testing.T) {
+	t.Run("rejects a missing, empty, malformed or misquoted connectionID without deleting", func(t *testing.T) {
 		for name, tc := range map[string]struct {
 			command string
 			reply   string
 		}{
-			"missing":   {"/secure-connection remove", "Missing or empty `connectionID`"},
-			"empty":     {"/secure-connection remove --connectionID", "Missing or empty `connectionID`"},
-			"malformed": {"/secure-connection remove --connectionID foo", "`foo` is not a valid `connectionID`"},
+			"missing":      {"/secure-connection remove", "Missing or empty `connectionID`"},
+			"empty":        {"/secure-connection remove --connectionID", "Missing or empty `connectionID`"},
+			"empty quotes": {`/secure-connection remove --connectionID ""`, "Missing or empty `connectionID`"},
+			"blank quotes": {`/secure-connection remove --connectionID " "`, "Missing or empty `connectionID`"},
+			"malformed":    {"/secure-connection remove --connectionID foo", "`foo` is not a valid `connectionID`"},
+			"stray word":   {"/secure-connection remove --connectionID foo bar", "Unexpected text near `--connectionID`. Wrap a value that contains spaces in quotes, and use double quotes if the value also contains an apostrophe."},
+			"open quote":   {`/secure-connection remove --connectionID "foo`, "A quote near `--connectionID` is never closed."},
 		} {
 			t.Run(name, func(t *testing.T) {
 				callsBefore := wrapper.deleteCalls.Load()
