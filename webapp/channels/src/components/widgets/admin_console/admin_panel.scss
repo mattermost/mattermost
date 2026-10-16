@@ -21,6 +21,21 @@ section.AdminPanel {
     }
 }
 
+// Temporary bodyless override until Compass AdminPanel omits the body slot
+// and header divider when there are no children (e.g. AdminPanelWithLink
+// banners like System Scheme).
+section.AdminPanel.AdminPanel--bodyless {
+    > [class*='admin-panel__body'],
+    > [class*='admin-panel__collapse'] {
+        display: none;
+    }
+
+    [class*='admin-panel-header--divided'],
+    [class*='admin-panel-header'] {
+        border-bottom-color: transparent;
+    }
+}
+
 // Headerless shell: Compass AdminPanel has no hideHeader API and always mounts
 // AdminPanelHeader when used. Mirror its surface + body padding when the webapp
 // wrapper omits title/subtitle/actions.

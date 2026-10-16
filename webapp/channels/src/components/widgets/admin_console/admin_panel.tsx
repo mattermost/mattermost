@@ -83,6 +83,15 @@ function hasCompassHeaderChrome(props: {
     );
 }
 
+/**
+ * Temporary until Compass AdminPanel ships native bodyless support: treat
+ * null/undefined/false/empty children as no body so we can hide the empty
+ * padded body slot and header divider via AdminPanel--bodyless CSS.
+ */
+function hasPanelBody(children: React.ReactNode): boolean {
+    return React.Children.toArray(children).length > 0;
+}
+
 const AdminPanel = ({
     subtitle,
     title,
@@ -113,12 +122,14 @@ const AdminPanel = ({
     }
 
     const titleNode = renderPanelText(title);
+    const bodyless = !hasPanelBody(children);
 
     return (
         <CompassAdminPanel
             id={id}
             className={classNames('AdminPanel', 'clearfix', className, {
                 'AdminPanel--expandable': expandable,
+                'AdminPanel--bodyless': bodyless,
             })}
             title={titleNode ?? (
                 <FormattedMessage
