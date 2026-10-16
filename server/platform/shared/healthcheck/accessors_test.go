@@ -91,49 +91,90 @@ func TestAccessorsReturnFalseWhenSectionAbsent(t *testing.T) {
 	require.False(t, ok)
 }
 
+func licensedSnapshot(license model.SupportPacketLicense) *Snapshot {
+	diag := &model.SupportPacketDiagnostics{License: license}
+	return NewSnapshot([]*NodeSnapshot{{
+		Hostname:    "app-1",
+		IsLeader:    true,
+		Diagnostics: &model.NodeDiagnostics{Diagnostics: diag},
+	}})
+}
+
+func TestLicense(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil snapshot", func(t *testing.T) {
+		var s *Snapshot
+		_, ok := s.License()
+		require.False(t, ok)
+		assert.False(t, s.IsCloud())
+	})
+
+	t.Run("no leader", func(t *testing.T) {
+		s := NewSnapshot([]*NodeSnapshot{{Hostname: "app-2"}})
+		_, ok := s.License()
+		require.False(t, ok)
+	})
+
+	t.Run("leader without diagnostics", func(t *testing.T) {
+		s := NewSnapshot([]*NodeSnapshot{{Hostname: "app-1", IsLeader: true}})
+		_, ok := s.License()
+		require.False(t, ok)
+	})
+
+	t.Run("license section failed", func(t *testing.T) {
+		s := licensedSnapshot(model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise, IsCloud: true})
+		s.nodes[0].Diagnostics.Errors = model.SectionErrors{model.SectionLicense: assert.AnError}
+		_, ok := s.License()
+		require.False(t, ok)
+		assert.False(t, s.IsCloud())
+	})
+
+	t.Run("leader license", func(t *testing.T) {
+		s := licensedSnapshot(model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise, IsCloud: true})
+		license, ok := s.License()
+		require.True(t, ok)
+		assert.Equal(t, model.LicenseShortSkuEnterprise, license.SkuShortName)
+		assert.True(t, s.IsCloud())
+	})
+}
+
 func TestLicenseFeature(t *testing.T) {
 	t.Parallel()
 
 	ldap := func(f *model.Features) *bool { return f.LDAP }
 
-	t.Run("nil snapshot", func(t *testing.T) {
-		var s *Snapshot
-		_, ok := s.LicenseFeature(ldap)
-		require.False(t, ok)
-	})
-
-	t.Run("nil license", func(t *testing.T) {
+	t.Run("no license", func(t *testing.T) {
 		_, ok := (&Snapshot{}).LicenseFeature(ldap)
 		require.False(t, ok)
 	})
 
-	t.Run("nil features", func(t *testing.T) {
-		s := &Snapshot{License: &model.License{}}
-		_, ok := s.LicenseFeature(ldap)
+	t.Run("features not in packet", func(t *testing.T) {
+		_, ok := licensedSnapshot(model.SupportPacketLicense{}).LicenseFeature(ldap)
 		require.False(t, ok)
 	})
 
 	t.Run("nil getter", func(t *testing.T) {
-		s := &Snapshot{License: &model.License{Features: &model.Features{}}}
+		s := licensedSnapshot(model.SupportPacketLicense{Features: &model.Features{}})
 		_, ok := s.LicenseFeature(nil)
 		require.False(t, ok)
 	})
 
 	t.Run("unset feature value", func(t *testing.T) {
-		s := &Snapshot{License: &model.License{Features: &model.Features{}}}
+		s := licensedSnapshot(model.SupportPacketLicense{Features: &model.Features{}})
 		_, ok := s.LicenseFeature(ldap)
 		require.False(t, ok)
 	})
 
 	t.Run("feature enabled", func(t *testing.T) {
-		s := &Snapshot{License: &model.License{Features: &model.Features{LDAP: model.NewPointer(true)}}}
+		s := licensedSnapshot(model.SupportPacketLicense{Features: &model.Features{LDAP: new(true)}})
 		value, ok := s.LicenseFeature(ldap)
 		require.True(t, ok)
 		require.True(t, value)
 	})
 
 	t.Run("feature disabled", func(t *testing.T) {
-		s := &Snapshot{License: &model.License{Features: &model.Features{LDAP: model.NewPointer(false)}}}
+		s := licensedSnapshot(model.SupportPacketLicense{Features: &model.Features{LDAP: new(false)}})
 		value, ok := s.LicenseFeature(ldap)
 		require.True(t, ok)
 		require.False(t, value)
