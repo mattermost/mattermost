@@ -329,7 +329,7 @@
   },
   {
     "id": "model.emoji.id.app_error",
-    "translation": "Ogiltig emoij-id."
+    "translation": "Ogiltig emoji-id."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -1457,7 +1457,7 @@
   },
   {
     "id": "model.reaction.is_valid.emoji_name.app_error",
-    "translation": "Ogiltigt emoijnamn."
+    "translation": "Ogiltigt emojinamn."
   },
   {
     "id": "model.reaction.is_valid.create_at.app_error",
@@ -3205,15 +3205,15 @@
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": "Namnfält är blankt eller saknas vid import av emoij."
+    "translation": "Namnfält är blankt eller saknas vid import av emoji."
   },
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
-    "translation": "Bildfält är blankt eller saknas vid import av emoij."
+    "translation": "Bildfält är blankt eller saknas vid import av emoji."
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
-    "translation": "Inget data vid import av emoij."
+    "translation": "Inget data vid import av emoji."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3445,7 +3445,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Fel vid inläsning av emoij-bildfilen. Emoij med namnet: \"{{.EmojiName}}\""
+    "translation": "Fel vid inläsning av emoji-bildfilen. Emoji med namnet: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
@@ -4641,39 +4641,39 @@
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": "Kunde inte kopiera Custom Emoij-bilder"
+    "translation": "Kunde inte kopiera Custom Emoji-bilder"
   },
   {
     "id": "app.emoji.get_list.internal_error",
-    "translation": "Kunde inte hämta emoijen."
+    "translation": "Kunde inte hämta emojin."
   },
   {
     "id": "app.emoji.get_by_name.no_result",
-    "translation": "Vi kunde inte hitta emoijen."
+    "translation": "Vi kunde inte hitta emojin."
   },
   {
     "id": "app.emoji.get_by_name.app_error",
-    "translation": "Kunde inte hämta emoijen."
+    "translation": "Kunde inte hämta emojin."
   },
   {
     "id": "app.emoji.get.no_result",
-    "translation": "Vi kunde inte hitta emoijen."
+    "translation": "Vi kunde inte hitta emojin."
   },
   {
     "id": "app.emoji.get.app_error",
-    "translation": "Kunde inte hämta emoij."
+    "translation": "Kunde inte hämta emoji."
   },
   {
     "id": "app.emoji.delete.no_results",
-    "translation": "Kunde inte hitta emoij att radera."
+    "translation": "Kunde inte hitta emoji att radera."
   },
   {
     "id": "app.emoji.delete.app_error",
-    "translation": "Kunde inte radera emoij."
+    "translation": "Kunde inte radera emoji."
   },
   {
     "id": "app.emoji.create.internal_error",
-    "translation": "Kunde inte spara emoij."
+    "translation": "Kunde inte spara emoji."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -7935,7 +7935,7 @@
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
-    "translation": "Misslyckades att uppdatera anpassad status. Lägg till emoij och/eller egen statustext."
+    "translation": "Misslyckades att uppdatera anpassad status. Lägg till emoji och/eller egen statustext."
   },
   {
     "id": "app.user.get_thread_count_for_user.app_error",
