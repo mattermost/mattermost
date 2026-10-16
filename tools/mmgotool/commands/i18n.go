@@ -853,9 +853,6 @@ func templateTokens(raw json.RawMessage) map[string]bool {
 	return out
 }
 
-// loadItems keys a locale catalog's entries by translation ID. The catalogs are
-// JSON arrays, so this is what lets a caller look an ID up in one catalog while
-// walking another.
 // duplicateIDs returns each id raw lists more than once, in first-seen order.
 func duplicateIDs(raw []byte) []string {
 	var list []Item
@@ -894,6 +891,9 @@ func firstNonCanonicalLine(raw []byte) int {
 	return line
 }
 
+// loadItems keys a locale catalog's entries by translation ID. The catalogs are
+// JSON arrays, so this is what lets a caller look an ID up in one catalog while
+// walking another.
 func loadItems(raw []byte) (map[string]Item, error) {
 	var list []Item
 	if err := json.Unmarshal(raw, &list); err != nil {
