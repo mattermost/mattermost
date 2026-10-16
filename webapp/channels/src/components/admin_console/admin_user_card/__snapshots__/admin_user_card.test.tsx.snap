@@ -23,7 +23,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
               aria-expanded="false"
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+              style="border-radius: 50%; width: 96px; height: 96px;"
               type="button"
             >
               <span
@@ -32,7 +32,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
               >
                 <img
                   alt="user profile image"
-                  class="Avatar Avatar-xxl"
+                  class="Avatar Avatar-xl-custom-DM"
                   loading="lazy"
                   src="/api/v4/users/1234/image"
                 />
@@ -100,7 +100,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
               aria-expanded="false"
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+              style="border-radius: 50%; width: 96px; height: 96px;"
               type="button"
             >
               <span
@@ -109,7 +109,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
               >
                 <img
                   alt="user profile image"
-                  class="Avatar Avatar-xxl"
+                  class="Avatar Avatar-xl-custom-DM"
                   loading="lazy"
                   src="/api/v4/users/1234/image"
                 />
@@ -170,7 +170,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
               aria-expanded="false"
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+              style="border-radius: 50%; width: 96px; height: 96px;"
               type="button"
             >
               <span
@@ -179,7 +179,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
               >
                 <img
                   alt="user profile image"
-                  class="Avatar Avatar-xxl"
+                  class="Avatar Avatar-xl-custom-DM"
                   loading="lazy"
                   src="/api/v4/users/1234/image"
                 />
@@ -240,7 +240,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
               aria-expanded="false"
               aria-haspopup="dialog"
               class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+              style="border-radius: 50%; width: 96px; height: 96px;"
               type="button"
             >
               <span
@@ -249,7 +249,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
               >
                 <img
                   alt="user profile image"
-                  class="Avatar Avatar-xxl"
+                  class="Avatar Avatar-xl-custom-DM"
                   loading="lazy"
                   src="/api/v4/users/1234/image"
                 />

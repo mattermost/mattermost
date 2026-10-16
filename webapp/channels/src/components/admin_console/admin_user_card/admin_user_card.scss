@@ -1,7 +1,7 @@
 .AdminUserCard {
-    // Keep in sync with ProfilePicture size="xxl" / Avatar-xxl (128px).
-    --admin-user-card-avatar-size: 128px;
-    --admin-user-card-header-gap: var(--spacing-m);
+    // Keep in sync with ProfilePicture size="xl-custom-DM" / Avatar (96px).
+    --admin-user-card-avatar-size: 96px;
+    --admin-user-card-header-gap: var(--spacing-xl);
 
     display: flex;
     width: 100%;

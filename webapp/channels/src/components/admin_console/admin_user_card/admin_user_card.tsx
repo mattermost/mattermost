@@ -53,7 +53,7 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
                         <div className='AdminUserCard__header-start'>
                             <ProfilePicture
                                 src=''
-                                size='xxl'
+                                size='xl-custom-DM'
                                 wrapperClass='admin-user-card'
                             />
                         </div>
@@ -89,7 +89,7 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
                         <div className='AdminUserCard__picture'>
                             <ProfilePicture
                                 src={Client4.getProfilePictureUrl(props.user.id, props.user.last_picture_update)}
-                                size='xxl'
+                                size='xl-custom-DM'
                                 wrapperClass='admin-user-card'
                                 userId={props.user.id}
                             />
