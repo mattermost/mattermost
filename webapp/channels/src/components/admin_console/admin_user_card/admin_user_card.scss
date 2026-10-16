@@ -1,4 +1,8 @@
 .AdminUserCard {
+    // Keep in sync with ProfilePicture size="xxl" / Avatar-xxl (128px).
+    --admin-user-card-avatar-size: 128px;
+    --admin-user-card-header-gap: var(--spacing-m);
+
     display: flex;
     width: 100%;
     max-width: 920px;
@@ -21,7 +25,6 @@
 
 .AdminUserCard__header {
     flex-shrink: 0;
-    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
 }
 
 .AdminUserCard__header-main {
@@ -39,7 +42,7 @@
     min-width: 0;
     flex: 1 1 auto;
     align-items: center;
-    gap: var(--spacing-m);
+    gap: var(--admin-user-card-header-gap);
 }
 
 .AdminUserCard__picture {
@@ -137,7 +140,10 @@ input.AdminUserCard__picture-input[type='file'] {
     box-sizing: border-box;
     width: 100%;
     flex: 1 1 auto;
+
+    // Match the header title stack: card padding + avatar + header gap.
     padding: var(--spacing-xxl);
+    padding-left: calc(var(--spacing-xxl) + var(--admin-user-card-avatar-size) + var(--admin-user-card-header-gap));
     background: var(--center-channel-bg);
 }
 
