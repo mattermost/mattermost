@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "プロキシのデバイス識別ヘッダーを信頼する",
   "admin.accesscontrol.user_properties.link.label": "属性管理",
   "admin.accessibility.add_users_to_role": "ユーザーをロールに追加する",
-  "admin.accessibility.delete_orphaned_field": "孤立したフィールドを削除する",
+  "admin.accessibility.delete_orphaned_field": "アンインストールされたプラグインの属性を削除する",
   "admin.accessibility.next_page": "次のページ",
   "admin.accessibility.previous_page": "前のページ",
   "admin.advance.cluster": "高可用",

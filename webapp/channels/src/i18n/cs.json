@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Důvěřovat hlavičce identity zařízení od proxy",
   "admin.accesscontrol.user_properties.link.label": "Správa atributů",
   "admin.accessibility.add_users_to_role": "Přidat uživatele do role",
-  "admin.accessibility.delete_orphaned_field": "Smazat osiřelé pole",
+  "admin.accessibility.delete_orphaned_field": "Smazat atribut odinstalovaného pluginu",
   "admin.accessibility.next_page": "Další stránka",
   "admin.accessibility.previous_page": "Předchozí stránka",
   "admin.advance.cluster": "Vysoká Dostupnost",

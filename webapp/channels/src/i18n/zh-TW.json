@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "信任 Proxy 裝置識別標頭",
   "admin.accesscontrol.user_properties.link.label": "屬性管理",
   "admin.accessibility.add_users_to_role": "新增使用者至角色",
-  "admin.accessibility.delete_orphaned_field": "刪除孤立欄位",
+  "admin.accessibility.delete_orphaned_field": "刪除已解除安裝擴充程式的屬性",
   "admin.accessibility.next_page": "下一頁",
   "admin.accessibility.previous_page": "上一頁",
   "admin.advance.cluster": "高可用性",

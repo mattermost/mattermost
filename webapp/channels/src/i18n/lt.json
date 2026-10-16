@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Pasitikėti tarpinio serverio įrenginio tapatybės antrašte",
   "admin.accesscontrol.user_properties.link.label": "Atributų tvarkymas",
   "admin.accessibility.add_users_to_role": "Pridėti naudotojus prie vaidmens",
-  "admin.accessibility.delete_orphaned_field": "Ištrinti pašalinto papildinio lauką",
+  "admin.accessibility.delete_orphaned_field": "Ištrinti pašalinto papildinio atributą",
   "admin.accessibility.next_page": "Kitas puslapis",
   "admin.accessibility.previous_page": "Ankstesnis puslapis",
   "admin.advance.cluster": "Aukštas prieinamumas",

@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "信任代理设备身份标头",
   "admin.accesscontrol.user_properties.link.label": "属性管理",
   "admin.accessibility.add_users_to_role": "添加用户到角色",
-  "admin.accessibility.delete_orphaned_field": "删除孤立字段",
+  "admin.accessibility.delete_orphaned_field": "删除已卸载插件的属性",
   "admin.accessibility.next_page": "下一页",
   "admin.accessibility.previous_page": "上一页",
   "admin.advance.cluster": "高可用性",

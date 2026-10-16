@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Vekil sunucu aygıt kimliği üst bilgisine güvenilsin",
   "admin.accesscontrol.user_properties.link.label": "Öznitelik yönetimi",
   "admin.accessibility.add_users_to_role": "Kullanıcıları role ekle",
-  "admin.accessibility.delete_orphaned_field": "Sahipsiz özniteliği sil",
+  "admin.accessibility.delete_orphaned_field": "Kaldırılmış uygulama ekinin özniteliğini sil",
   "admin.accessibility.next_page": "Sonraki sayfa",
   "admin.accessibility.previous_page": "Önceki sayfa",
   "admin.advance.cluster": "Yüksek erişilebilirlik",

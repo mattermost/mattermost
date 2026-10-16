@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Vjeruj zaglavlju identiteta uređaja iz proxyja",
   "admin.accesscontrol.user_properties.link.label": "Upravljanje atributima",
   "admin.accessibility.add_users_to_role": "Dodaj korisnike ulozi",
-  "admin.accessibility.delete_orphaned_field": "Izbriši polje bez vlasnika",
+  "admin.accessibility.delete_orphaned_field": "Izbriši atribut deinstaliranog dodatka",
   "admin.accessibility.next_page": "Sljedeća stranica",
   "admin.accessibility.previous_page": "Prethodna stranica",
   "admin.advance.cluster": "Visoka dostupnost",

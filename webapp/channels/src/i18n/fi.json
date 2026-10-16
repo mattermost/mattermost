@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Luota välityspalvelimen laiteidentiteettiotsakkeeseen",
   "admin.accesscontrol.user_properties.link.label": "Attribuuttien hallinta",
   "admin.accessibility.add_users_to_role": "Lisää käyttäjiä rooliin",
-  "admin.accessibility.delete_orphaned_field": "Poista orvoksi jäänyt kenttä",
+  "admin.accessibility.delete_orphaned_field": "Poista attribuutti (lisäosa ei enää asennettu)",
   "admin.accessibility.next_page": "Seuraava sivu",
   "admin.accessibility.previous_page": "Edellinen sivu",
   "admin.advance.cluster": "Korkea käytettävyys",

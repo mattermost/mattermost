@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Confiar no cabeçalho de identidade de dispositivo do proxy",
   "admin.accesscontrol.user_properties.link.label": "Gerenciamento de Atributos",
   "admin.accessibility.add_users_to_role": "Adicionar usuários à função",
-  "admin.accessibility.delete_orphaned_field": "Excluir campo órfão",
+  "admin.accessibility.delete_orphaned_field": "Excluir atributo de plugin desinstalado",
   "admin.accessibility.next_page": "Próxima página",
   "admin.accessibility.previous_page": "Página anterior",
   "admin.advance.cluster": "Alta Disponibilidade",

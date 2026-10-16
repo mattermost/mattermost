@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Apparaatidentiteitsheader van de proxy vertrouwen",
   "admin.accesscontrol.user_properties.link.label": "Attribuutbeheer",
   "admin.accessibility.add_users_to_role": "Gebruikers aan rol toevoegen",
-  "admin.accessibility.delete_orphaned_field": "Verweesd veld verwijderen",
+  "admin.accessibility.delete_orphaned_field": "Attribuut van gedeïnstalleerde plugin verwijderen",
   "admin.accessibility.next_page": "Volgende pagina",
   "admin.accessibility.previous_page": "Vorige pagina",
   "admin.advance.cluster": "Hoge Beschikbaarheid",

@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Tin cậy tiêu đề danh tính thiết bị từ proxy",
   "admin.accesscontrol.user_properties.link.label": "Quản lý thuộc tính",
   "admin.accessibility.add_users_to_role": "Thêm người dùng vào vai trò",
-  "admin.accessibility.delete_orphaned_field": "Xóa thuộc tính không còn được quản lý",
+  "admin.accessibility.delete_orphaned_field": "Xóa thuộc tính của plugin đã gỡ cài đặt",
   "admin.accessibility.next_page": "Trang tiếp theo",
   "admin.accessibility.previous_page": "Trang trước",
   "admin.advance.cluster": "Tính sẵn sàng cao",

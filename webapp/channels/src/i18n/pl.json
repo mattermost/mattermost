@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Ufaj nagłówkowi tożsamości urządzenia z proxy",
   "admin.accesscontrol.user_properties.link.label": "Zarządzanie atrybutami",
   "admin.accessibility.add_users_to_role": "Dodaj użytkowników do roli",
-  "admin.accessibility.delete_orphaned_field": "Usuń osierocone pole",
+  "admin.accessibility.delete_orphaned_field": "Usuń atrybut odinstalowanej wtyczki",
   "admin.accessibility.next_page": "Następna strona",
   "admin.accessibility.previous_page": "Poprzednia strona",
   "admin.advance.cluster": "Wysoka Dostępność",

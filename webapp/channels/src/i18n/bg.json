@@ -529,7 +529,7 @@
   "admin.accesscontrol.trustProxyDeviceIdentityHeader.title": "Доверяване на заглавката за самоличност на устройството от прокси сървъра",
   "admin.accesscontrol.user_properties.link.label": "Управление на атрибути",
   "admin.accessibility.add_users_to_role": "Добавяне на потребители към ролята",
-  "admin.accessibility.delete_orphaned_field": "Изтриване на осиротялото поле",
+  "admin.accessibility.delete_orphaned_field": "Изтриване на атрибута на деинсталирана приставка",
   "admin.accessibility.next_page": "Следваща страница",
   "admin.accessibility.previous_page": "Предишна страница",
   "admin.advance.cluster": "Висока достъпност",
