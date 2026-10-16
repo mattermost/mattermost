@@ -61,22 +61,34 @@
         }
 
         // Icons sit inside the control so every field shares one left edge.
+        // AtIcon/EmailIcon/etc. wrap <svg width="100%" height="100%"> in a span —
+        // size the span or the svg blows up to the column width.
         .field-control {
             position: relative;
             display: block;
             max-width: 320px;
 
+            > span:has(> svg),
             > svg {
                 position: absolute;
                 z-index: 1;
                 top: 50%;
                 left: 12px;
+                display: block;
                 width: 16px;
                 height: 16px;
                 margin: 0;
                 fill: rgba(var(--sys-color-sidebar-text-rgb), 0.6);
+                color: rgba(var(--sys-color-sidebar-text-rgb), 0.6);
                 pointer-events: none;
                 transform: translateY(-50%);
+
+                svg {
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    fill: currentColor;
+                }
             }
 
             input.form-control {
@@ -91,6 +103,7 @@
                 min-height: 36px;
                 gap: var(--spacing-s);
 
+                > span:has(> svg),
                 > svg {
                     position: static;
                     flex: 0 0 auto;
