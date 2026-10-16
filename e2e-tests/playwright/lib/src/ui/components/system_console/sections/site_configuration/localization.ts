@@ -29,7 +29,9 @@ export default class Localization {
         this.header = container.getByText('Localization', {exact: true});
         this.featureDiscoveryBlock = container.getByText('Remove language barriers with auto-translation');
         this.autoTranslationSection = container.getByTestId('autotranslation-section-header');
-        // Compass AdminPanel showSwitch renders role="switch" (not checkbox).
+        // Compass Switch keeps role="switch" on an opacity-0 input; click the
+        // wrapping label in turnOnAutoTranslation so the label does not
+        // intercept pointer events on the input.
         this.autoTranslationToggle = container.getByTestId('autotranslation-section-header').getByRole('switch');
         this.providerDropdown = container.getByTestId('Providerdropdown');
         this.mattermostAgentsInactiveNotice = container.getByText(
@@ -49,7 +51,7 @@ export default class Localization {
 
     async isToggleOn(): Promise<boolean> {
         const toggle = this.autoTranslationToggle;
-        await toggle.waitFor({state: 'visible'});
+        await toggle.waitFor({state: 'attached'});
         const ariaChecked = await toggle.getAttribute('aria-checked');
         return ariaChecked === 'true';
     }
@@ -57,7 +59,12 @@ export default class Localization {
     async turnOnAutoTranslation() {
         const on = await this.isToggleOn();
         if (!on) {
-            await this.autoTranslationToggle.click();
+            const switchControl = this.autoTranslationSection.locator('label').filter({has: this.autoTranslationToggle});
+            if (await switchControl.count()) {
+                await switchControl.click();
+            } else {
+                await this.autoTranslationToggle.click({force: true});
+            }
         }
     }
 
