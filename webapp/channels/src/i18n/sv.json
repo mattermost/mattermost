@@ -1290,7 +1290,7 @@
   "admin.email.allowUsernameSignInDescription": "När aktiverad kan användare som har sin e-postadress registrerad att logga in med användarnamn och lösenord. Denna inställning påverkar inte AD/LDAP-inloggning.",
   "admin.email.allowUsernameSignInTitle": "Aktivera inloggning med användarnamn: ",
   "admin.email.easHelp": "Läs mer om kompilering och distribution av din egen mobilapp från en <link>Enterprise App Store</link>.",
-  "admin.email.mhpns": "Använd HPNS-anslutning med senast SLA för att skicka aviseringar till iOS och Android appar",
+  "admin.email.mhpns": "Använd HPNS-anslutning med drifttids-SLA för att skicka aviseringar till iOS- och Android-appar",
   "admin.email.mhpnsHelp": "Ladda ner <linkIOS>Mattermost iOS app</linkIOS> från iTunes. Ladda ner <linkAndroid>Mattermost Android app</linkAndroid> från Google Play. Läs mer om <linkHPNS>HPNS</linkHPNS>.",
   "admin.email.mtpns": "Använd TPNS-anslutning för att skicka aviseringar till iOS och Android appar",
   "admin.email.mtpnsHelp": "Ladda ner <linkIOS>Mattermost iOS app</linkIOS> från iTunes. Ladda ner <linkAndroid>Mattermost Android app</linkAndroid> från Google Play. Läs mer om <linkTPNS>Mattermost Test Push Notification Service</linkTPNS>.",
