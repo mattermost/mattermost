@@ -225,6 +225,33 @@ func TestUserPreSave(t *testing.T) {
 	}
 }
 
+func TestUserPreSaveNormalizesPasswordToNFC(t *testing.T) {
+	var received string
+	hasher := stubHasherFunc(func(password string) (string, error) {
+		received = password
+		return "hashed_" + password, nil
+	})
+
+	// The same visual password "café", typed two different ways:
+	//   nfc: "é" as the single precomposed codepoint U+00E9.
+	//   nfd: "e" followed by the combining acute accent U+0301, which is
+	//        what some input methods/OSes (e.g. macOS/HFS+ for filenames)
+	//        produce for the same visual character.
+	nfc := "café"
+	nfd := "café"
+	require.NotEqual(t, nfc, nfd, "the two forms must differ at the byte level for this test to be meaningful")
+
+	user := User{Password: nfd}
+	err := user.PreSave(hasher)
+	require.Nil(t, err)
+
+	// PreSave must normalize to NFC before handing the password to the
+	// hasher, so the stored hash always corresponds to the same canonical
+	// form regardless of which Unicode composition the client sent.
+	assert.Equal(t, nfc, received, "hasher should receive the NFC-normalized password")
+	assert.Equal(t, "hashed_"+nfc, user.Password)
+}
+
 func TestUserPreSavePwdTooLong(t *testing.T) {
 	hasher := stubHasherFunc(func(password string) (string, error) {
 		return "", ErrPasswordTooLong
