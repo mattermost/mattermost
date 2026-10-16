@@ -1224,6 +1224,18 @@
             }
         }
 
+        .logs-panel__toolbar-actions {
+            display: flex;
+            flex-shrink: 0;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .plain-log-list__toolbar {
+            justify-content: flex-end;
+            margin-bottom: var(--spacing-m);
+        }
+
         // Stretch Compass collapse/body so LogTable can fill remaining height.
         > [class*='admin-panel__collapse'] {
             display: flex;

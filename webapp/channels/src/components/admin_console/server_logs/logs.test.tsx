@@ -60,10 +60,17 @@ describe('components/admin_console/server_logs/Logs', () => {
 
     test('should display the logs correctly after loading', () => {
         expect(container.querySelector('#server_logs.AdminPanel')).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: /Reload Logs/i})).toBeInTheDocument();
-        expect(screen.getByRole('link', {name: /Download Logs/i})).toBeInTheDocument();
+        expect(container.querySelector('.admin-panel-header__actions, [class*="admin-panel-header__actions"]')).not.toBeInTheDocument();
         expect(screen.getByRole('radiogroup', {name: /Log Format/i})).toBeInTheDocument();
         expect(container.querySelector('.LogTable .DataGrid')).toBeInTheDocument();
+
+        const toolbar = container.querySelector('.logs-panel__toolbar-actions');
+        expect(toolbar).toBeInTheDocument();
+        expect(toolbar).toContainElement(screen.getByRole('button', {name: /Show last/i}));
+        expect(toolbar).toContainElement(screen.getByRole('button', {name: /Reload Logs/i}));
+        expect(toolbar).toContainElement(screen.getByRole('link', {name: /Download Logs/i}));
+        expect(container.querySelector('.DataGrid_search')?.contains(toolbar)).toBe(true);
+
         expect(container).toMatchSnapshot();
     });
 

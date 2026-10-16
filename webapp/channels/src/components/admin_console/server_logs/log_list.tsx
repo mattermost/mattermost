@@ -23,6 +23,7 @@ type Props = {
     onFiltersChange: (filters: LogFilter) => void;
     onSearchChange: (term: string) => void;
     search: string;
+    toolbarActions?: React.ReactNode;
 };
 
 type State = {
@@ -281,18 +282,21 @@ export default class LogList extends React.PureComponent<Props, State> {
             minHeight: `${rows.length * 40}px`,
         };
 
-        const errorsButton: JSX.Element = (
-            <Button
-                emphasis='tertiary'
-                size='sm'
-                onClick={this.showErrors}
-            >
-                <FormattedMessage
-                    id='admin.logs.showErrors'
-                    defaultMessage='Show last {n} errors'
-                    values={{n: this.getErrorCount()}}
-                />
-            </Button>
+        const searchToolbarActions: JSX.Element = (
+            <div className='logs-panel__toolbar-actions'>
+                <Button
+                    emphasis='tertiary'
+                    size='sm'
+                    onClick={this.showErrors}
+                >
+                    <FormattedMessage
+                        id='admin.logs.showErrors'
+                        defaultMessage='Show last {n} errors'
+                        values={{n: this.getErrorCount()}}
+                    />
+                </Button>
+                {this.props.toolbarActions}
+            </div>
         );
 
         const filterOptions: FilterOptions = {
@@ -371,7 +375,7 @@ export default class LogList extends React.PureComponent<Props, State> {
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     filterProps={filterProps}
-                    extraComponent={errorsButton}
+                    extraComponent={searchToolbarActions}
                 />
                 <FullLogEventModal
                     log={this.state.modalLog}

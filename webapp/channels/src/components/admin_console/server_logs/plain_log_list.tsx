@@ -18,6 +18,7 @@ interface Props extends WrappedComponentProps {
     perPage: number;
     nextPage: () => void;
     previousPage: () => void;
+    toolbarActions?: React.ReactNode;
 }
 
 type State = {
@@ -143,6 +144,11 @@ class PlainLogList extends React.PureComponent<Props, State> {
         }
         return (
             <div className='plain-log-list'>
+                {this.props.toolbarActions && (
+                    <div className='logs-panel__toolbar-actions plain-log-list__toolbar'>
+                        {this.props.toolbarActions}
+                    </div>
+                )}
                 <div
                     tabIndex={-1}
                     ref={this.logPanel}

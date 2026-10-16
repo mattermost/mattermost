@@ -2,6 +2,12 @@
     overflow: hidden;
 
     .DataGrid {
+        .DataGrid_search {
+            // Reload/Download + errors need room beside search/Filters.
+            height: auto;
+            min-height: 48px;
+        }
+
         .DataGrid_row {
             min-height: 40px;
             padding-left: 16px;
@@ -14,6 +20,13 @@
             align-items: center;
             cursor: pointer;
         }
+    }
+
+    .logs-panel__toolbar-actions {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        gap: 8px;
     }
 
     .btn-inverted {

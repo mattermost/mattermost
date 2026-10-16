@@ -51,49 +51,6 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                   </p>
                 </div>
               </div>
-              <div
-                class="_admin-panel-header__actions_19tix_75"
-              >
-                <button
-                  class="btn btn-tertiary"
-                  type="button"
-                >
-                  <svg
-                    fill="currentColor"
-                    height="16"
-                    version="1.1"
-                    viewBox="0 0 24 24"
-                    width="16"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
-                    />
-                  </svg>
-                  Reload Logs
-                </button>
-                <a
-                  class="btn btn-tertiary"
-                  href="/api/v4/logs/download"
-                  location="download_logs"
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  <svg
-                    fill="currentColor"
-                    height="16"
-                    version="1.1"
-                    viewBox="0 0 24 24"
-                    width="16"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
-                    />
-                  </svg>
-                  Download Logs
-                </a>
-              </div>
             </div>
           </header>
           <div
@@ -284,11 +241,54 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                       </div>
                     </div>
                   </div>
-                  <button
-                    class="btn btn-tertiary btn-sm"
+                  <div
+                    class="logs-panel__toolbar-actions"
                   >
-                    Show last 0 errors
-                  </button>
+                    <button
+                      class="btn btn-tertiary btn-sm"
+                    >
+                      Show last 0 errors
+                    </button>
+                    <button
+                      class="btn btn-tertiary btn-sm"
+                      type="button"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="16"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="16"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
+                        />
+                      </svg>
+                      Reload Logs
+                    </button>
+                    <a
+                      class="btn btn-tertiary btn-sm"
+                      href="/api/v4/logs/download"
+                      location="download_logs"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="16"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="16"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+                        />
+                      </svg>
+                      Download Logs
+                    </a>
+                  </div>
                 </div>
                 <div
                   class="DataGrid_header"
