@@ -399,7 +399,13 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
         break;
       }
       groupFiles = revised.files;
-      if (revised.summary) groupSummary = revised.summary;
+      // Only a summary from this revision may describe these files.
+      groupSummary = revised.summary;
+      if (!groupSummary) {
+        console.error(
+          '[author-loop] accepted revision omitted the summary fence; clearing the draft summary',
+        );
+      }
     }
 
     if (groupSummary) summaries.push(groupSummary);

@@ -496,10 +496,15 @@ test('authorLoop keeps prior files when a revision drops the version anchor', as
       }
       return {text: fileBlock('Foo is available.'), usage: {}};
     }
-    return {text: fileBlock('From Mattermost v11.7, Foo is available.'), usage: {}};
+    return {
+      text: ['```summary', '- First draft of Foo.', '```', '', fileBlock('From Mattermost v11.7, Foo is available.')].join(
+        '\n',
+      ),
+      usage: {},
+    };
   };
 
-  const {files, trail} = await authorLoop({
+  const {files, trail, summary} = await authorLoop({
     brief: {summary: 's', actions: [], targetPaths: [path]},
     input: {milestoneVersion: 'v11.7', milestoneTitle: 'v11.7.0', prTitle: 'Add Foo'},
     completeFn,
@@ -509,7 +514,53 @@ test('authorLoop keeps prior files when a revision drops the version anchor', as
   assert.equal(sawCurrentDraft, true);
   assert.equal(files.length, 1);
   assert.match(files[0].content, /From Mattermost v11\.7/);
+  assert.match(summary, /First draft of Foo/);
   assert.ok(trail.openConcerns.some((c) => /Revision rejected/.test(c.summary)));
+});
+
+test('authorLoop clears the summary when the accepted revision has no summary fence', async () => {
+  const path = 'docs/main/administration-guide/configure/foo.mdx';
+  const fileBlock = (body) =>
+    ['````mdx path=' + path, '---', 'title: Foo', '---', '', body, '````'].join('\n');
+
+  let revised = false;
+  const completeFn = async ({userPrompt}) => {
+    const prompt = String(userPrompt || '');
+    if (prompt.includes('Which reviewers apply?')) {
+      return {text: '{"personas": ["system-admin"]}', usage: {}};
+    }
+    if (prompt.includes('Review the diff above')) {
+      const verdict = revised ? 'APPROVE' : 'REQUEST_CHANGES';
+      return {
+        text: JSON.stringify({
+          verdict,
+          summary: verdict === 'APPROVE' ? 'ok' : 'Document the route.',
+          feedback: verdict === 'APPROVE' ? [] : ['Document the route.'],
+        }),
+        usage: {},
+      };
+    }
+    if (prompt.includes('Revise the text this draft added')) {
+      revised = true;
+      return {text: fileBlock('From Mattermost v11.7, open /_documentation/.'), usage: {}};
+    }
+    return {
+      text: ['```summary', '- Describes the first draft only.', '```', '', fileBlock('From Mattermost v11.7, Foo is available.')].join(
+        '\n',
+      ),
+      usage: {},
+    };
+  };
+
+  const {files, summary} = await authorLoop({
+    brief: {summary: 's', actions: [], targetPaths: [path]},
+    input: {milestoneVersion: 'v11.7', milestoneTitle: 'v11.7.0', prTitle: 'Add Foo'},
+    completeFn,
+  });
+
+  assert.equal(revised, true);
+  assert.match(files[0].content, /_documentation/);
+  assert.equal(summary, '');
 });
 
 test('draftTitle uses the source subject and stays a single line', () => {
