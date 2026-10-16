@@ -108,10 +108,19 @@ func evalPushIDOnly(s *healthcheck.Snapshot) []healthcheck.Result {
 	}
 
 	contents, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.EmailSettings.PushNotificationContents })
+	if !ok {
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+	}
+	if contents != model.FullNotification {
+		return []healthcheck.Result{healthcheck.Resolved()}
+	}
+
+	// full is the server default, so only flag it when id_loaded is an option for this license.
+	idLoaded, ok := s.LicenseFeature(func(f *model.Features) *bool { return f.IDLoadedPushNotifications })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	case contents == model.FullNotification:
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
+	case idLoaded:
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_id_only.message"))}
 	default:
 		return []healthcheck.Result{healthcheck.Resolved()}

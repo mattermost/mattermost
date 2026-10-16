@@ -46,15 +46,31 @@ var (
 	configUnknownWant = messagingWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonConfigUnavailable}
 )
 
+func withLicenseFeatures(s *healthcheck.Snapshot, features *model.Features) *healthcheck.Snapshot {
+	diag := &model.SupportPacketDiagnostics{License: model.SupportPacketLicense{Features: features}}
+	licensed := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{{
+		Hostname:    "app-1",
+		IsLeader:    true,
+		Diagnostics: &model.NodeDiagnostics{Diagnostics: diag},
+	}})
+	licensed.Config, licensed.Sections = s.Config, s.Sections
+	return licensed
+}
+
 func TestPushIDOnly(t *testing.T) {
 	t.Parallel()
 
+	fullContents := configSnapshot(func(cfg *model.Config) {
+		cfg.EmailSettings.SendPushNotifications = new(true)
+		cfg.EmailSettings.PushNotificationContents = new(model.FullNotification)
+	})
 	snapshot := func(enabled bool, contents string) *healthcheck.Snapshot {
-		return configSnapshot(func(cfg *model.Config) {
+		return withLicenseFeatures(configSnapshot(func(cfg *model.Config) {
 			cfg.EmailSettings.SendPushNotifications = new(enabled)
 			cfg.EmailSettings.PushNotificationContents = new(contents)
-		})
+		}), &model.Features{IDLoadedPushNotifications: new(true)})
 	}
+	licenseUnknown := messagingWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonLicenseUnavailable}
 
 	testCases := []struct {
 		name     string
@@ -78,6 +94,13 @@ func TestPushIDOnly(t *testing.T) {
 		{name: "generic", snapshot: snapshot(true, model.GenericNotification), want: resolvedWant},
 		{name: "generic no channel", snapshot: snapshot(true, model.GenericNoChannelNotification), want: resolvedWant},
 		{name: "id loaded", snapshot: snapshot(true, model.IdLoadedNotification), want: resolvedWant},
+		{name: "full without license", snapshot: fullContents, want: licenseUnknown},
+		{name: "full with features not in packet", snapshot: withLicenseFeatures(fullContents, nil), want: licenseUnknown},
+		{
+			name:     "full without id_loaded feature",
+			snapshot: withLicenseFeatures(fullContents, &model.Features{IDLoadedPushNotifications: new(false)}),
+			want:     resolvedWant,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -91,11 +114,11 @@ func TestPushIDOnly(t *testing.T) {
 func TestPushIDOnlyAndPushServerCodesFireTogether(t *testing.T) {
 	t.Parallel()
 
-	snapshot := configSnapshot(func(cfg *model.Config) {
+	snapshot := withLicenseFeatures(configSnapshot(func(cfg *model.Config) {
 		cfg.EmailSettings.SendPushNotifications = new(true)
 		cfg.EmailSettings.PushNotificationServer = new("https://push-test.mattermost.com")
 		cfg.EmailSettings.PushNotificationContents = new(model.FullNotification)
-	})
+	}), &model.Features{IDLoadedPushNotifications: new(true)})
 
 	assert.Equal(t, healthcheck.StateFiring, evalPushIDOnly(snapshot)[0].State)
 	assert.Equal(t, healthcheck.StateFiring, evalPushTestProxy(snapshot)[0].State)

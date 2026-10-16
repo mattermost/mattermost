@@ -209,6 +209,9 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		// The live and packet collections each probe SMTP and could disagree.
 		cfg.EmailSettings.SendEmailNotifications = model.NewPointer(false)
 	})
+	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
+	license.Customer.Id = model.NewId()
+	th.App.Srv().SetLicense(license)
 
 	// Without it the permissions collector fails and the packet carries a warning.txt.
 	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
