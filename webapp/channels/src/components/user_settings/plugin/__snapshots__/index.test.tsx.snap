@@ -52,32 +52,64 @@ exports[`plugin tab all props are properly passed to the children 1`] = `
         class="pluginActionContainer"
       >
         <div
-          class="sectionNoticeContainer info"
+          class="_section-notice_1fkh6_2"
         >
           <div
-            class="sectionNoticeContent"
+            class="_section-notice__content_1fkh6_11"
           >
-            <i
-              class="icon sectionNoticeIcon icon-information-outline info"
-            />
+            <span
+              aria-hidden="true"
+              class="_section-notice__icon_1fkh6_18"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-20_1i355_46"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="24"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
             <div
-              class="sectionNoticeBody"
+              class="_section-notice__body_1fkh6_25"
             >
               <h4
-                class="sectionNoticeTitle"
+                class="_section-notice__title_1fkh6_34"
               >
                 actionTitle
               </h4>
-              <p>
-                actionText
-              </p>
               <div
-                class="sectionNoticeActions"
+                class="_section-notice__description_1fkh6_45"
+              >
+                <p>
+                  actionText
+                </p>
+              </div>
+              <div
+                class="_section-notice__actions_1fkh6_51"
               >
                 <button
-                  class="btn btn-primary btn-sm sectionNoticeButton"
+                  class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
+                  type="button"
                 >
-                  buttonText
+                  <span
+                    class="_button__label_aa8j5_31"
+                  >
+                    buttonText
+                  </span>
                 </button>
               </div>
             </div>
