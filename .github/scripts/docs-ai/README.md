@@ -112,8 +112,9 @@ When a PR **merges** still carrying `Docs/Needed`, `docs-writer-merged-pr.yml` r
 sticky comment's recommended actions, authors MDX with the matching `author` personas,
 pre-reviews in-loop, and opens `docs/pr-<n>` as a draft (authored by the Docs AI App).
 The draft title comes from the source PR title. The draft body says what the
-documentation change does. The pre-open review trail stays in `trail.json`, not the
-body. Closing that draft flips `Docs/Needed` → `Docs/Done` on the originating PR.
+documentation change does. The pre-open review trail stays in `trail.json`, uploaded
+as a workflow artifact, not the body. Closing that draft flips `Docs/Needed` →
+`Docs/Done` on the originating PR.
 
 Three constraints to preserve if you change the gap label logic:
 

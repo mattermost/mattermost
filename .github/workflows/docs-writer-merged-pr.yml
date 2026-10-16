@@ -310,6 +310,14 @@ jobs:
           URL=$(gh pr view "$BRANCH" --json url --jq .url)
           gh pr comment "$PR_NUMBER" --body "Draft documentation PR opened: ${URL}"
 
+      - name: Upload writer trail
+        if: always() && steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: docs-writer-trail-${{ steps.pr.outputs.pr_number }}
+          path: .docs-ai/writer/trail.json
+          if-no-files-found: ignore
+
   sync:
     name: Mark Docs/Done
     runs-on: ubuntu-24.04

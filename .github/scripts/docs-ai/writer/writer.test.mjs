@@ -26,6 +26,7 @@ import {
   parseSummaryBlock,
   PREOPEN_REVIEW_NOTE,
   renderPrBody,
+  requiredCapabilities,
   sanitizeSummary,
   authorLoop,
 } from './author-loop.mjs';
@@ -595,6 +596,17 @@ test('parseSummaryBlock reads the summary fence and drops forged markers', () =>
   assert.equal(parseSummaryBlock('no fence'), '');
   assert.equal(sanitizeSummary('<!-- hidden\n## Still visible'), 'hidden\n## Still visible');
   assert.doesNotMatch(sanitizeSummary('see --> later'), /-->/);
+});
+
+test('requiredCapabilities keeps a full clamped action list', () => {
+  assert.equal(requiredCapabilities({actions: []}), '');
+  const actions = Array.from({length: 12}, (_, i) => {
+    const tail = i === 11 ? 'Z' : 'a';
+    return `${'<'.repeat(399)}${tail}`;
+  });
+  const text = requiredCapabilities({actions});
+  assert.match(text, /Z/);
+  assert.doesNotMatch(text, /truncated/);
 });
 
 test('renderPrBody describes the change and omits the review trail', () => {

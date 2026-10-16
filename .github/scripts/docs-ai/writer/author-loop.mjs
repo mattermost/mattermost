@@ -250,10 +250,14 @@ async function selectReviewers({diff, completeFn}) {
   }
 }
 
-function requiredCapabilities(brief) {
+// clampResult allows 12 actions of 400 characters. Escaping `<`, `>`, and `&`
+// expands that list, so the cap has to hold the escaped text.
+const CAPABILITIES_MAX_CHARS = 25_000;
+
+export function requiredCapabilities(brief) {
   const actions = (brief?.actions ?? []).map((a) => String(a).trim()).filter(Boolean);
   if (actions.length === 0) return '';
-  return block('required-capabilities', actions.join('\n'), {maxChars: 4000});
+  return block('required-capabilities', actions.join('\n'), {maxChars: CAPABILITIES_MAX_CHARS});
 }
 
 async function reviewFiles({files, input, brief, completeFn}) {
