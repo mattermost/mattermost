@@ -22,8 +22,7 @@ import {join} from 'node:path';
 import {findStickyComment} from '../lib/github.mjs';
 import {MARKER} from '../gap/gap.mjs';
 import {REPO_ROOT as DEFAULT_ROOT} from '../lib/personas.mjs';
-import {authorLoop, renderPrBody} from './author-loop.mjs';
-import {draftTitle} from './draft-title.mjs';
+import {authorLoop, draftTitle, renderPrBody} from './author-loop.mjs';
 import {versionFromMilestone, writeFiles} from './files.mjs';
 import {briefFromGapResult, briefFromPrEvidence, parseGapBrief} from './gap-brief.mjs';
 

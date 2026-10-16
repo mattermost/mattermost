@@ -29,8 +29,8 @@ import {
   requiredCapabilities,
   sanitizeSummary,
   authorLoop,
+  draftTitle,
 } from './author-loop.mjs';
-import {draftTitle} from './draft-title.mjs';
 import {MARKER, buildComment, decide} from '../gap/gap.mjs';
 
 test('allowlist accepts hand-authored content roots', () => {
@@ -519,6 +519,78 @@ test('authorLoop keeps prior files when a revision drops the version anchor', as
   assert.ok(trail.openConcerns.some((c) => /Revision rejected/.test(c.summary)));
 });
 
+function existingPageFixture() {
+  const dir = mkdtempSync(join(tmpdir(), 'docs-writer-'));
+  const path = 'docs/main/administration-guide/configure/foo.mdx';
+  const original = ['---', 'title: Foo', '---', '', 'From Mattermost v11.7, Foo is available.'].join('\n');
+  mkdirSync(dirname(join(dir, path)), {recursive: true});
+  writeFileSync(join(dir, path), original);
+  const fileBlock = (content) => ['````mdx path=' + path, content, '````'].join('\n');
+  return {dir, path, original, fileBlock};
+}
+
+test('authorLoop keeps prior files when a revision reverts to the existing page', async () => {
+  const {dir, path, original, fileBlock} = existingPageFixture();
+  const draft = `${original}\n\nFrom Mattermost v11.7, Bar is available.`;
+
+  let authorCalls = 0;
+  const completeFn = async ({userPrompt}) => {
+    const prompt = String(userPrompt || '');
+    if (prompt.includes('Which reviewers apply?')) {
+      return {text: '{"personas": ["system-admin"]}', usage: {}};
+    }
+    if (prompt.includes('Review the diff above')) {
+      return {
+        text: JSON.stringify({verdict: 'REQUEST_CHANGES', summary: 'Drop Bar.', feedback: ['Drop Bar.']}),
+        usage: {},
+      };
+    }
+    authorCalls += 1;
+    if (prompt.includes('Revise the text this draft added')) {
+      return {text: fileBlock(original), usage: {}};
+    }
+    return {text: ['```summary', '- Adds Bar.', '```', '', fileBlock(draft)].join('\n'), usage: {}};
+  };
+
+  try {
+    const {files, trail, summary} = await authorLoop({
+      brief: {summary: 's', actions: [], targetPaths: [path]},
+      input: {milestoneVersion: 'v11.7', milestoneTitle: 'v11.7.0', prTitle: 'Add Bar', repoRoot: dir},
+      completeFn,
+    });
+
+    assert.equal(authorCalls, 2);
+    assert.equal(files[0].content, draft);
+    assert.match(summary, /Adds Bar/);
+    assert.ok(trail.openConcerns.some((c) => /identical to the existing files/.test(c.summary)));
+  } finally {
+    rmSync(dir, {recursive: true, force: true});
+  }
+});
+
+test('authorLoop fails when the first draft leaves the existing page unchanged', async () => {
+  const {dir, path, original, fileBlock} = existingPageFixture();
+  const completeFn = async ({userPrompt}) => {
+    if (String(userPrompt || '').includes('Which reviewers apply?')) {
+      return {text: '{"personas": []}', usage: {}};
+    }
+    return {text: fileBlock(original), usage: {}};
+  };
+
+  try {
+    await assert.rejects(
+      authorLoop({
+        brief: {summary: 's', actions: [], targetPaths: [path]},
+        input: {milestoneVersion: 'v11.7', milestoneTitle: 'v11.7.0', prTitle: 'Add Bar', repoRoot: dir},
+        completeFn,
+      }),
+      /identical to the existing files/,
+    );
+  } finally {
+    rmSync(dir, {recursive: true, force: true});
+  }
+});
+
 test('authorLoop clears the summary when the accepted revision has no summary fence', async () => {
   const path = 'docs/main/administration-guide/configure/foo.mdx';
   const fileBlock = (body) =>
@@ -579,7 +651,7 @@ test('draftTitle uses the source subject and stays a single line', () => {
   assert.ok(!long.includes('\n'));
 });
 
-test('parseSummaryBlock reads the summary fence and drops forged markers', () => {
+test('parseSummaryBlock reads the summary fence', () => {
   const text = [
     '```summary',
     '- Open /_documentation/ on a running server.',
@@ -592,8 +664,11 @@ test('parseSummaryBlock reads the summary fence and drops forged markers', () =>
   ].join('\n');
   const summary = parseSummaryBlock(text);
   assert.match(summary, /_documentation/);
-  assert.doesNotMatch(summary, /docs-ai-source-pr/);
+  assert.doesNotMatch(summary, /From Mattermost v12\.1/);
   assert.equal(parseSummaryBlock('no fence'), '');
+
+  const body = renderPrBody({sourcePr: '38957', summary, milestoneVersion: 'v12.1'});
+  assert.deepEqual([...body.matchAll(/<!--\s*docs-ai-source-pr:(\d+)\s*-->/g)].map((m) => m[1]), ['38957']);
   assert.equal(sanitizeSummary('<!-- hidden\n## Still visible'), 'hidden\n## Still visible');
   assert.doesNotMatch(sanitizeSummary('see --> later'), /-->/);
 });

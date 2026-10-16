@@ -39,18 +39,13 @@ const SUMMARY_RE = /`{3,}summary[ \t]*\n([\s\S]*?)\n`{3,}/;
  * start of a line is an HTML block through the end of the pull request body.
  */
 export function sanitizeSummary(summary) {
-  return String(summary || '')
-    .replace(/<!--\s*docs-ai-[\s\S]*?-->/g, '')
-    .replaceAll('<!--', '')
-    .replaceAll('-->', '')
-    .trim();
+  return String(summary || '').replaceAll('<!--', '').replaceAll('-->', '').trim();
 }
 
 /** Summary fence from an author response. Empty when the model omits it. */
 export function parseSummaryBlock(text) {
   const match = String(text || '').match(SUMMARY_RE);
-  if (!match) return '';
-  return sanitizeSummary(match[1]);
+  return match ? match[1].trim() : '';
 }
 
 const WRITER_MODEL = process.env.DOCS_AI_WRITER_MODEL || 'claude-sonnet-4-6';
@@ -260,13 +255,11 @@ export function requiredCapabilities(brief) {
   return block('required-capabilities', actions.join('\n'), {maxChars: CAPABILITIES_MAX_CHARS});
 }
 
-async function reviewFiles({files, input, brief, completeFn}) {
-  const originals = loadExistingPages(input.repoRoot, files.map((f) => f.path));
-  const diff = unifiedDiff(files, originals);
-  if (!diff.trim()) {
-    const paths = files.map((f) => f.path).join(', ');
-    throw new Error(`authored pages are identical to the existing files: ${paths}`);
-  }
+function draftDiff(files, input) {
+  return unifiedDiff(files, loadExistingPages(input.repoRoot, files.map((f) => f.path)));
+}
+
+async function reviewFiles({diff, input, brief, completeFn}) {
   const reviewers = await selectReviewers({diff, completeFn});
   const extra = requiredCapabilities(brief);
   const results = await Promise.all(
@@ -327,11 +320,16 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
     }
     assertVersionAnchors(groupFiles, {milestoneVersion: input.milestoneVersion});
     assertSafeMdx(groupFiles);
+    let groupDiff = draftDiff(groupFiles, input);
+    if (!groupDiff.trim()) {
+      const paths = groupFiles.map((f) => f.path).join(', ');
+      throw new Error(`authored pages are identical to the existing files: ${paths}`);
+    }
 
     let revision = 0;
     let lastResults = [];
     for (;;) {
-      const {results} = await reviewFiles({files: groupFiles, input, brief, completeFn});
+      const {results} = await reviewFiles({diff: groupDiff, input, brief, completeFn});
       lastResults = results;
       trail.iterations.push({
         author: group.personaId ?? 'neutral',
@@ -404,7 +402,19 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
         });
         break;
       }
+      const revisedDiff = draftDiff(revised.files, input);
+      if (!revisedDiff.trim()) {
+        // A revision that reverts to the existing page must not replace a complete prior pass.
+        console.error('[author-loop] revision is identical to the existing files; keeping prior files');
+        trail.openConcerns.push({
+          persona: group.personaId ?? 'neutral',
+          summary: 'Revision rejected: identical to the existing files',
+          feedback: [],
+        });
+        break;
+      }
       groupFiles = revised.files;
+      groupDiff = revisedDiff;
       // Only a summary from this revision may describe these files.
       groupSummary = revised.summary;
       if (!groupSummary) {
@@ -423,6 +433,20 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
   }
 
   return {files, trail, summary: summaries.join('\n\n').trim()};
+}
+
+const DRAFT_TITLE_PREFIX = 'docs: AI draft for ';
+const DRAFT_TITLE_MAX = 240;
+
+/** Single-line draft PR title from the source PR title, without a doubled "docs:". */
+export function draftTitle(sourceTitle) {
+  const subject =
+    String(sourceTitle ?? '')
+      .replace(/[\s\u0000-\u001f\u007f]+/g, ' ')
+      .trim()
+      .replace(/^docs:\s*/i, '') || 'documentation update';
+  const title = DRAFT_TITLE_PREFIX + subject;
+  return title.length > DRAFT_TITLE_MAX ? `${title.slice(0, DRAFT_TITLE_MAX - 3).trimEnd()}...` : title;
 }
 
 export function renderPrBody({sourcePr, summary, milestoneVersion}) {
