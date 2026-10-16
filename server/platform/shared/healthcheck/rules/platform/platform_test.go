@@ -81,11 +81,12 @@ func TestRegistered(t *testing.T) {
 		rule       healthcheck.Rule
 		code       string
 		severity   healthcheck.Severity
+		surface    healthcheck.Surface
 		volatility healthcheck.Volatility
 		subject    string
 	}{
-		{rateLimitOffLarge, "RATELIMIT_OFF_LARGE", healthcheck.SeverityWarning, healthcheck.VolatilityThreshold, "RateLimitSettings.Enable"},
-		{rateLimitStoreSmall, "RATELIMIT_STORE_SMALL", healthcheck.SeverityInfo, healthcheck.VolatilityStable, "RateLimitSettings.MemoryStoreSize"},
+		{rateLimitOffLarge, "RATELIMIT_OFF_LARGE", healthcheck.SeverityInfo, healthcheck.SurfaceInternal, healthcheck.VolatilityThreshold, "RateLimitSettings.Enable"},
+		{rateLimitStoreSmall, "RATELIMIT_STORE_SMALL", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "RateLimitSettings.MemoryStoreSize"},
 	}
 
 	registry := healthcheck.Builtin()
@@ -99,7 +100,7 @@ func TestRegistered(t *testing.T) {
 			for _, rule := range []healthcheck.Rule{tc.rule, registered} {
 				assert.Equal(t, tc.code, rule.Code)
 				assert.Equal(t, model.AreaPlatform, rule.Area)
-				assert.Equal(t, healthcheck.SurfaceProduct, rule.Surface)
+				assert.Equal(t, tc.surface, rule.Surface)
 				assert.Equal(t, tc.severity, rule.Severity)
 				assert.Equal(t, tc.volatility, rule.Volatility)
 				assert.Equal(t, tc.subject, rule.Subject)

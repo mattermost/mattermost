@@ -24,13 +24,13 @@ const (
 var rateLimitOffLarge = healthcheck.Rule{
 	Code:     "RATELIMIT_OFF_LARGE",
 	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
+	Severity: healthcheck.SeverityInfo,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.ratelimit_off_large.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.ratelimit_off_large.remediation"),
 		ConsolePath:   rateLimitConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
+	Surface:    healthcheck.SurfaceInternal,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    "RateLimitSettings.Enable",
 	Eval:       evalRateLimitOffLarge,
