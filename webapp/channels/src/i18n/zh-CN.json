@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "使用拥有在线时间 SLA 的 HPNS 连接发送通知到 iOS 和安卓应用",
   "admin.email.mhpnsHelp": "从 iTunes 下载 <linkIOS>Mattermost iOS 应用</linkIOS>。从 Google Play 下载 <linkAndroid>Mattermost Android 应用</linkAndroid>。了解更多关于 <linkHPNS>Mattermost 托管推送通知服务</linkHPNS> 的信息。",
   "admin.email.mtpns": "使用 TPNS 连接发送通知到 iOS 和安卓应用",
-  "admin.email.mtpnsHelp": "从 iTunes 下载 <linkIOS>Mattermost iOS 应用</linkIOS>。从 Google Play 下载 <linkAndroid>Mattermost Android 应用</linkAndroid>。了解更多关于 <linkHPNS>Mattermost 托管推送通知服务</linkHPNS>。",
+  "admin.email.mtpnsHelp": "从 iTunes 下载 <linkIOS>Mattermost iOS 应用</linkIOS>。从 Google Play 下载 <linkAndroid>Mattermost Android 应用</linkAndroid>。了解更多关于 <linkTPNS>Mattermost 托管推送通知服务</linkTPNS>。",
   "admin.email.pushOff": "不发送推送通知",
   "admin.email.pushOffHelp": "请查看<link>推送通知文档</link>以了解设置选项。",
   "admin.email.pushServerEx": "例如：“http://push-test.mattermost.com”",

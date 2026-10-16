@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "Použít HPNS připojení k odesílání notifikací do iOS/Android aplikací",
   "admin.email.mhpnsHelp": "Stáhnout <linkIOS>Mattermost iOS aplikaci</linkIOS> z App Storu. Stáhnout <linkAndroid>Mattermost Android aplikaci</linkAndroid> z Google Play. Zjistěte více o službě <linkHPNS>Mattermost Hosted Push Notification Service</linkHPNS>.",
   "admin.email.mtpns": "Použít TPNS připojení k odesílání notifikací do iOS/Android aplikací",
-  "admin.email.mtpnsHelp": "Stáhnout <linkIOS>Mattermost iOS aplikaci</linkIOS> z App Storu. Stáhnout <linkAndroid>Mattermost Android aplikaci</linkAndroid> z Google Play. Zjistěte víc o <linkHPNS>TPNS</linkHPNS>.",
+  "admin.email.mtpnsHelp": "Stáhnout <linkIOS>Mattermost iOS aplikaci</linkIOS> z App Storu. Stáhnout <linkAndroid>Mattermost Android aplikaci</linkAndroid> z Google Play. Zjistěte víc o <linkTPNS>TPNS</linkTPNS>.",
   "admin.email.pushOff": "Nezasílat push upozornění",
   "admin.email.pushOffHelp": "Další informace o možnostech nastavení naleznete v <link>dokumentaci k oznámení push na adrese </link>.",
   "admin.email.pushServerEx": "Př.: \"https://push-test.mattermost.com\"",

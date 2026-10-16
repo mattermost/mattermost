@@ -1293,7 +1293,7 @@
   "admin.email.mhpns": "HPNS 연결을 사용하여 SLA가동시간에 대한 정보를 iOS 및 Android 앱에 알림을 전송합니다",
   "admin.email.mhpnsHelp": "iTunes에서 <linkIOS>Mattermost iOS app</linkIOS> 을 다운로드하십시오. Google Play에서 <linkAndroid>Mattermost Android 앱</linkAndroid> 을 다운로드하십시오. <linkHPNS>HPNS</linkHPNS> 에 대해 자세히 알아보십시오.",
   "admin.email.mtpns": "TPNS 연결을 사용하여 iOS 및 Android 앱에 알림을 전송합니다",
-  "admin.email.mtpnsHelp": "iTunes에서 <linkIOS>Mattermost iOS app</linkIOS>을 다운로드하십시오. Google Play에서 <linkAndroid>Mattermost Android 앱</linkAndroid>을 다운로드하십시오. 자세한 내용은 <linkHPNS>TPNS</linkHPNS>를 참고하십시오.",
+  "admin.email.mtpnsHelp": "iTunes에서 <linkIOS>Mattermost iOS app</linkIOS>을 다운로드하십시오. Google Play에서 <linkAndroid>Mattermost Android 앱</linkAndroid>을 다운로드하십시오. 자세한 내용은 <linkTPNS>TPNS</linkTPNS>를 참고하십시오.",
   "admin.email.pushOff": "푸시 알림을 보내지 않습니다",
   "admin.email.pushOffHelp": "구성 옵션에 대한 자세한 내용은 <link>푸시 알림에 대한 설명서</link>를 참조하십시오.",
   "admin.email.pushServerEx": "예시: \"https://push-test.mattermost.com\"",
