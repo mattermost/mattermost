@@ -57,6 +57,7 @@
 .sectionNoticeActions {
     display: flex;
     flex-flow: wrap;
+    gap: var(--spacing-s, 8px);
 }
 
 .sectionNoticeClose {
