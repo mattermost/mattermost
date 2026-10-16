@@ -19,6 +19,16 @@ section.AdminPanel {
     &.AdminPanel--expandable {
         overflow: hidden;
     }
+
+    // Root overflow:visible lets menus escape the panel, but then Compass
+    // AdminPanelFooter's fill no longer clips to the panel's border-radius.
+    // Mirror the panel's bottom radii onto the footer so the background does
+    // not square off through the rounded corners (e.g. Archive Team/Channel).
+    > [class*='_admin-panel-footer_'] {
+        border-bottom-left-radius: var(--radius-m);
+        border-bottom-right-radius: var(--radius-m);
+        overflow: hidden;
+    }
 }
 
 .AdminPanel {
