@@ -89,7 +89,10 @@ const AppsFormGrid = ({field, label, renderCell, excludeName}: Props) => {
     // one row may share a name in a misconfigured grid and duplicate keys would
     // cost a row its cells.
     const columns = Array.from({length: columnCount}, (_, columnIndex) => {
-        const source = rowCells.find((cells) => cells[columnIndex])?.[columnIndex];
+        const present = rowCells.map((cells) => cells[columnIndex]).filter(Boolean);
+        const source = present[0];
+        const requiredCount = present.filter((cell) => cell.is_required).length;
+
         return {
             label: source ? (source.label || source.name) : '',
             key: (source ? source.name : 'column') + '-' + columnIndex,
@@ -98,7 +101,15 @@ const AppsFormGrid = ({field, label, renderCell, excludeName}: Props) => {
             // the cell's label, which is clipped here. The heading is the only
             // visible text a column has, so it carries the marker too —
             // otherwise a required cell looks optional until submission fails.
-            required: Boolean(source?.is_required),
+            //
+            // A heading speaks for the whole column, so it is only marked when
+            // every cell in the column is required. Rows that disagree are the
+            // same kind of malformed as a ragged row, and are handled the same
+            // way: laid out anyway, with the marker moved to the cells that
+            // actually carry it, rather than a heading that is wrong for some
+            // of them.
+            required: present.length > 0 && requiredCount === present.length,
+            mixedRequired: requiredCount > 0 && requiredCount < present.length,
         };
     });
 
@@ -132,6 +143,18 @@ const AppsFormGrid = ({field, label, renderCell, excludeName}: Props) => {
                                     const cell = rowCells[rowIndex][columnIndex];
                                     const content = cell ? renderCell(cell, rowIndex === 0 && columnIndex === 0) : null;
 
+                                    // Only in a column whose rows disagree: the heading
+                                    // carries no marker there, so this cell has to. It is
+                                    // hidden from assistive technology because the cell's
+                                    // own label already says the field is required, and is
+                                    // merely clipped rather than removed.
+                                    const marker = column.mixedRequired && cell?.is_required ? (
+                                        <span
+                                            aria-hidden='true'
+                                            className='error-text apps-form-grid__cell-required'
+                                        >{'*'}</span>
+                                    ) : null;
+
                                     // The first column is the row header, so it is a <th
                                     // scope='row'> rather than a <td>, but it holds a real
                                     // field and is styled like any other cell. The row's own
@@ -147,6 +170,7 @@ const AppsFormGrid = ({field, label, renderCell, excludeName}: Props) => {
                                                 className='apps-form-grid__cell apps-form-grid__row-header'
                                             >
                                                 {row.label && <span className='sr-only'>{row.label}</span>}
+                                                {marker}
                                                 {content}
                                             </th>
                                         );
@@ -157,6 +181,7 @@ const AppsFormGrid = ({field, label, renderCell, excludeName}: Props) => {
                                             key={row.name + '-' + column.key}
                                             className='apps-form-grid__cell'
                                         >
+                                            {marker}
                                             {content}
                                         </td>
                                     );

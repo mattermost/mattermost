@@ -56,6 +56,12 @@ describe('AppsFormGrid', () => {
             />,
         );
 
+    // required builds a cell that the form will not submit empty.
+    const requiredCell = (name: string, label?: string): AppField => ({
+        ...cell(name, label),
+        is_required: true,
+    });
+
     const twoByThree = () => container([
         row('r1', [cell('r1_order', 'Order #'), cell('r1_weight', 'Weight'), cell('r1_status', 'Status')]),
         row('r2', [cell('r2_order', 'Order #'), cell('r2_weight', 'Weight'), cell('r2_status', 'Status')]),
@@ -225,6 +231,75 @@ describe('AppsFormGrid', () => {
             expect(screen.getAllByRole('columnheader')).toHaveLength(2);
             expect(screen.getByTestId('r1_a')).toBeInTheDocument();
             expect(screen.getByTestId('r1_b')).toBeInTheDocument();
+        });
+    });
+
+    describe('required cells', () => {
+        it('marks the heading when every cell in the column is required', () => {
+            renderGrid(container([
+                row('r1', [cell('r1_order', 'Order #'), requiredCell('r1_weight', 'Weight')]),
+                row('r2', [cell('r2_order', 'Order #'), requiredCell('r2_weight', 'Weight')]),
+            ]));
+
+            // The per-cell label carries the marker too, but it is clipped, so
+            // the heading is the only place it can be seen.
+            expect(screen.getAllByRole('columnheader')[1]).toHaveTextContent('Weight *');
+            expect(screen.getAllByRole('columnheader')[0]).not.toHaveTextContent('*');
+        });
+
+        it('leaves the heading unmarked when no cell in the column is required', () => {
+            renderGrid(twoByThree());
+
+            screen.getAllByRole('columnheader').forEach((header) => {
+                expect(header).not.toHaveTextContent('*');
+            });
+            expect(document.querySelectorAll('.apps-form-grid__cell-required')).toHaveLength(0);
+        });
+
+        it('moves the marker onto the cells when rows disagree', () => {
+            renderGrid(container([
+                row('r1', [cell('r1_order', 'Order #'), cell('r1_weight', 'Weight')]),
+                row('r2', [cell('r2_order', 'Order #'), requiredCell('r2_weight', 'Weight')]),
+            ]));
+
+            // A heading speaks for the whole column, so marking it would be
+            // wrong for the first row.
+            expect(screen.getAllByRole('columnheader')[1]).not.toHaveTextContent('*');
+
+            // The one required cell says so itself instead, rather than looking
+            // optional until submission fails.
+            const markers = document.querySelectorAll('.apps-form-grid__cell-required');
+            expect(markers).toHaveLength(1);
+            expect(markers[0].closest('td')).toContainElement(screen.getByTestId('r2_weight'));
+
+            // The cell's own label already tells a screen reader it is
+            // required, so the marker is decoration.
+            expect(markers[0]).toHaveAttribute('aria-hidden', 'true');
+        });
+
+        it('marks a required row header cell when rows disagree there', () => {
+            renderGrid(container([
+                row('r1', [requiredCell('r1_order', 'Order #')]),
+                row('r2', [cell('r2_order', 'Order #')]),
+            ]));
+
+            expect(screen.getAllByRole('columnheader')[0]).not.toHaveTextContent('*');
+
+            const markers = document.querySelectorAll('.apps-form-grid__cell-required');
+            expect(markers).toHaveLength(1);
+            expect(markers[0].closest('th')).toContainElement(screen.getByTestId('r1_order'));
+        });
+
+        it('ignores a column position a short row never fills', () => {
+            // The second row has no cell in the last column, so it cannot
+            // disagree about it: the heading still speaks for the whole column.
+            renderGrid(container([
+                row('r1', [cell('r1_order', 'Order #'), requiredCell('r1_weight', 'Weight')]),
+                row('r2', [cell('r2_order', 'Order #')]),
+            ]));
+
+            expect(screen.getAllByRole('columnheader')[1]).toHaveTextContent('Weight *');
+            expect(document.querySelectorAll('.apps-form-grid__cell-required')).toHaveLength(0);
         });
     });
 

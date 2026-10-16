@@ -214,6 +214,18 @@
 .apps-form-grid__cell {
     min-width: 108px;
 
+    // Only drawn for a required cell in a column whose rows disagree about
+    // requiredness, where the column heading cannot carry the marker for all of
+    // them. It sits on its own line above the input so it does not shrink the
+    // control, and it is absent from a well-formed grid.
+    .apps-form-grid__cell-required {
+        display: block;
+        margin-bottom: 2px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1;
+    }
+
     // The column header carries the visible label, so the per-cell label is
     // hidden from sight but kept for assistive technology. Only a direct child
     // of .form-group is a field label: a checkbox's own text sits deeper.
