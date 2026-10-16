@@ -1,9 +1,11 @@
 @use 'utils/variables';
 
 // Legacy content helpers nested under the Compass-backed AdminPanel shell.
+// Outer spacing comes from Compass AdminPanel body (`spacing-xxl`); strip
+// redundant padding/backgrounds from common first-level children.
 .AdminPanel {
     .AdminPanel__content {
-        padding: 10px 20px 20px;
+        padding: 0;
     }
 
     .AdminPanel__table {
@@ -20,6 +22,34 @@
             &:first-child {
                 padding-left: 20px;
             }
+        }
+    }
+
+    .group-teams-and-channels--body,
+    .group-settings--body,
+    .channel-moderation--body,
+    .group-profile,
+    .DataGrid,
+    .groups-list,
+    .AbstractList,
+    .SystemRolePermissions {
+        padding: 0;
+    }
+
+    .DataGrid,
+    .SystemRolePermissions {
+        background: transparent;
+    }
+
+    .group-users {
+        .group-users--body,
+        .group-users--footer {
+            margin-right: 0;
+            margin-left: 0;
+        }
+
+        .group-users--footer {
+            margin-bottom: 0;
         }
     }
 }

@@ -55,41 +55,39 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
             title={defineMessage({id: 'admin.channel_settings.channel_detail.profileTitle', defaultMessage: 'Channel Profile'})}
             subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.profileDescription', defaultMessage: 'Summary of the channel, including the channel name.'})}
         >
-            <div className='group-teams-and-channels AdminChannelDetails'>
-                <div className='group-teams-and-channels--body channel-desc-col'>
-                    <div className='channel-name'>
-                        <b>
-                            <FormattedMessage
-                                id='admin.channelSettings.channelDetail.channelName'
-                                defaultMessage='Name'
-                            />
-                        </b>
-                        <br/>
-                        {channel.display_name}
-                    </div>
-                    <div className='channel-team'>
-                        <b>
-                            <FormattedMessage
-                                id='admin.channelSettings.channelDetail.channelTeam'
-                                defaultMessage='Team'
-                            />
-                        </b>
-                        <br/>
-                        {team?.display_name}
-                    </div>
-                    {sharedBlock}
-                    <div className='AdminChannelDetails_archiveContainer'>
-                        <Button
-                            type='button'
-                            emphasis='secondary'
-                            variant={isArchived ? undefined : 'destructive'}
-                            disabled={isDisabled}
-                            onClick={props.onToggleArchive}
-                        >
-                            {isArchived ? <i className='icon icon-archive-arrow-up-outline'/> : <i className='icon icon-archive-outline'/>}
-                            <FormattedMessage {...archiveBtn}/>
-                        </Button>
-                    </div>
+            <div className='AdminChannelDetails channel-desc-col'>
+                <div className='channel-name'>
+                    <b>
+                        <FormattedMessage
+                            id='admin.channelSettings.channelDetail.channelName'
+                            defaultMessage='Name'
+                        />
+                    </b>
+                    <br/>
+                    {channel.display_name}
+                </div>
+                <div className='channel-team'>
+                    <b>
+                        <FormattedMessage
+                            id='admin.channelSettings.channelDetail.channelTeam'
+                            defaultMessage='Team'
+                        />
+                    </b>
+                    <br/>
+                    {team?.display_name}
+                </div>
+                {sharedBlock}
+                <div className='AdminChannelDetails_archiveContainer'>
+                    <Button
+                        type='button'
+                        emphasis='secondary'
+                        variant={isArchived ? undefined : 'destructive'}
+                        disabled={isDisabled}
+                        onClick={props.onToggleArchive}
+                    >
+                        {isArchived ? <i className='icon icon-archive-arrow-up-outline'/> : <i className='icon icon-archive-outline'/>}
+                        <FormattedMessage {...archiveBtn}/>
+                    </Button>
                 </div>
             </div>
         </AdminPanel>

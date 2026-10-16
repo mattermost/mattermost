@@ -94,7 +94,10 @@
     }
 
     .admin-console__content {
+        display: flex;
         max-width: 920px;
+        flex-direction: column;
+        gap: var(--spacing-xl);
     }
 
     .admin-console__checkbox-list {
