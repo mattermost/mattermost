@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	seMocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
@@ -397,5 +398,64 @@ func TestServerInfo(t *testing.T) {
 			require.Contains(t, labels, key)
 			require.Equal(t, want, labels[key])
 		}
+	})
+}
+
+func TestIncrementAccessControlDecision(t *testing.T) {
+	newMetrics := func() *MetricsInterfaceImpl {
+		vec := prometheus.NewCounterVec(prometheus.CounterOpts{Name: "decisions_total"}, []string{"action", "decision"})
+		return &MetricsInterfaceImpl{
+			AccessControlDecisions:        vec,
+			accessControlDecisionCounters: newAccessControlDecisionCounters(vec),
+		}
+	}
+
+	read := func(t *testing.T, mi *MetricsInterfaceImpl, action, decision string) float64 {
+		t.Helper()
+		m := &prometheusModels.Metric{}
+		require.NoError(t, mi.AccessControlDecisions.WithLabelValues(action, decision).Write(m))
+		return m.Counter.GetValue()
+	}
+
+	t.Run("every known series is exported at 0 before any decision", func(t *testing.T) {
+		mi := newMetrics()
+
+		ch := make(chan prometheus.Metric, 100)
+		mi.AccessControlDecisions.Collect(ch)
+		close(ch)
+		require.Len(t, ch, len(accessControlDecisionActions)*len(accessControlDecisions))
+	})
+
+	t.Run("a known action is counted under its own label", func(t *testing.T) {
+		mi := newMetrics()
+
+		mi.IncrementAccessControlDecision(model.AccessControlPolicyActionChannelReadAccess, einterfaces.AccessControlDecisionAllow)
+		mi.IncrementAccessControlDecision(model.AccessControlPolicyActionChannelReadAccess, einterfaces.AccessControlDecisionDenyPermissionPolicy)
+		mi.IncrementAccessControlDecision(model.AccessControlPolicyActionChannelReadAccess, einterfaces.AccessControlDecisionDenyPermissionPolicy)
+
+		require.Equal(t, 1.0, read(t, mi, model.AccessControlPolicyActionChannelReadAccess, einterfaces.AccessControlDecisionAllow))
+		require.Equal(t, 2.0, read(t, mi, model.AccessControlPolicyActionChannelReadAccess, einterfaces.AccessControlDecisionDenyPermissionPolicy))
+		require.Equal(t, 0.0, read(t, mi, model.AccessControlPolicyActionChannelWriteAccess, einterfaces.AccessControlDecisionDenyPermissionPolicy))
+	})
+
+	t.Run("an unknown action is counted as other", func(t *testing.T) {
+		mi := newMetrics()
+
+		mi.IncrementAccessControlDecision("some_unknown_action", einterfaces.AccessControlDecisionError)
+
+		require.Equal(t, 1.0, read(t, mi, accessControlDecisionActionOther, einterfaces.AccessControlDecisionError))
+
+		ch := make(chan prometheus.Metric, 100)
+		mi.AccessControlDecisions.Collect(ch)
+		close(ch)
+		require.Len(t, ch, len(accessControlDecisionActions)*len(accessControlDecisions), "an unknown action must not add a series")
+	})
+
+	t.Run("an unlisted decision is still counted", func(t *testing.T) {
+		mi := newMetrics()
+
+		mi.IncrementAccessControlDecision(model.AccessControlPolicyActionMembership, "unlisted")
+
+		require.Equal(t, 1.0, read(t, mi, model.AccessControlPolicyActionMembership, "unlisted"))
 	})
 }

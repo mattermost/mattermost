@@ -43,6 +43,16 @@ var renderableABACActions = map[string]renderableActionConfig{
 		DefaultWhenInactive: true,
 		FailClosedOnError:   true,
 	},
+	model.AccessControlPolicyActionChannelWriteAccess: {
+		ResourceType:        model.AccessControlPolicyTypeChannel,
+		DefaultWhenInactive: true,
+		FailClosedOnError:   true,
+	},
+	model.AccessControlPolicyActionChannelManagementAccess: {
+		ResourceType:        model.AccessControlPolicyTypeChannel,
+		DefaultWhenInactive: true,
+		FailClosedOnError:   true,
+	},
 	model.AccessControlPolicyActionCreateBurnOnReadPost: {
 		ResourceType:        model.AccessControlPolicyTypeChannel,
 		DefaultWhenInactive: true,
@@ -119,6 +129,18 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 		channelID = req.Resource.ID
 	}
 
+	exempt := active && slices.ContainsFunc(candidates, isChannelAccessAction) && a.channelAccessExemptByID(rctx, req.Resource.ID)
+	managementExempt := active && slices.Contains(candidates, model.AccessControlPolicyActionChannelManagementAccess) &&
+		a.SessionHasPermissionTo(*rctx.Session(), model.PermissionManageSystem)
+	recordIfExempt := func(action string) bool {
+		if !(exempt && isChannelAccessAction(action)) &&
+			!(managementExempt && action == model.AccessControlPolicyActionChannelManagementAccess) {
+			return false
+		}
+		record(action, model.RenderPermissionDecision{Allowed: true, Evaluated: true})
+		return true
+	}
+
 	var subject *model.Subject
 	var subjectErr *model.AppError
 	for _, action := range candidates {
@@ -139,6 +161,10 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 				Allowed:   renderableABACActions[action].DefaultWhenInactive,
 				Evaluated: true,
 			})
+			continue
+		}
+
+		if recordIfExempt(action) {
 			continue
 		}
 
@@ -179,6 +205,14 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 	}
 
 	return resp, nil
+}
+
+func (a *App) channelAccessExemptByID(rctx request.CTX, channelID string) bool {
+	channel, appErr := a.GetChannel(rctx, channelID)
+	if appErr != nil {
+		return false
+	}
+	return channelAccessExempt(channel)
 }
 
 // renderDecisionOnError returns the conservative decision for an action whose

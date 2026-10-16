@@ -526,6 +526,29 @@ func (db allChannelMember) Process() (string, string) {
 	return db.ChannelId, strings.Join(roles, " ")
 }
 
+// memberRoles resolves the membership's roles the same way channelMemberWithSchemeRoles.ToModel
+// does, so the result matches what GetMember returns for the same row.
+func (db allChannelMember) memberRoles() store.ChannelMemberRoles {
+	rolesResult := getChannelRoles(
+		db.SchemeGuest.Valid && db.SchemeGuest.Bool,
+		db.SchemeUser.Valid && db.SchemeUser.Bool,
+		db.SchemeAdmin.Valid && db.SchemeAdmin.Bool,
+		db.TeamSchemeDefaultGuestRole.String,
+		db.TeamSchemeDefaultUserRole.String,
+		db.TeamSchemeDefaultAdminRole.String,
+		db.ChannelSchemeDefaultGuestRole.String,
+		db.ChannelSchemeDefaultUserRole.String,
+		db.ChannelSchemeDefaultAdminRole.String,
+		strings.Fields(db.Roles),
+	)
+	return store.ChannelMemberRoles{
+		Roles:       strings.Join(rolesResult.roles, " "),
+		SchemeGuest: rolesResult.schemeGuest,
+		SchemeUser:  rolesResult.schemeUser,
+		SchemeAdmin: rolesResult.schemeAdmin,
+	}
+}
+
 // publicChannel is a subset of the metadata corresponding to public channels only.
 type publicChannel struct {
 	Id          string `json:"id"`
@@ -2561,7 +2584,7 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId string, allowFromCache bool, includeDeleted bool) (_ map[string]string, err error) {
+func (s SqlChannelStore) allChannelMembersForUserQuery(userID string, includeDeleted bool) sq.SelectBuilder {
 	query := s.getQueryBuilder().
 		Select(`
 				ChannelMembers.ChannelId, ChannelMembers.Roles, ChannelMembers.SchemeGuest,
@@ -2578,11 +2601,26 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 		LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").
 		LeftJoin("Teams ON Channels.TeamId = Teams.Id").
 		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id").
-		Where(sq.Eq{"ChannelMembers.UserId": userId})
+		Where(sq.Eq{"ChannelMembers.UserId": userID})
 	if !includeDeleted {
 		query = query.Where(sq.Eq{"Channels.DeleteAt": 0})
 	}
-	queryString, args, err := query.ToSql()
+	return query
+}
+
+func scanAllChannelMember(rows rowScanner) (allChannelMember, error) {
+	var cm allChannelMember
+	err := rows.Scan(
+		&cm.ChannelId, &cm.Roles, &cm.SchemeGuest, &cm.SchemeUser,
+		&cm.SchemeAdmin, &cm.TeamSchemeDefaultGuestRole, &cm.TeamSchemeDefaultUserRole,
+		&cm.TeamSchemeDefaultAdminRole, &cm.ChannelSchemeDefaultGuestRole,
+		&cm.ChannelSchemeDefaultUserRole, &cm.ChannelSchemeDefaultAdminRole,
+	)
+	return cm, errors.Wrap(err, "unable to scan columns")
+}
+
+func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId string, allowFromCache bool, includeDeleted bool) (_ map[string]string, err error) {
+	queryString, args, err := s.allChannelMembersForUserQuery(userId, includeDeleted).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
@@ -2594,15 +2632,34 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 	defer deferClose(rows, &err)
 
 	scanner := func(rows rowScanner) (string, string, error) {
-		var cm allChannelMember
-		err = rows.Scan(
-			&cm.ChannelId, &cm.Roles, &cm.SchemeGuest, &cm.SchemeUser,
-			&cm.SchemeAdmin, &cm.TeamSchemeDefaultGuestRole, &cm.TeamSchemeDefaultUserRole,
-			&cm.TeamSchemeDefaultAdminRole, &cm.ChannelSchemeDefaultGuestRole,
-			&cm.ChannelSchemeDefaultUserRole, &cm.ChannelSchemeDefaultAdminRole,
-		)
+		cm, err := scanAllChannelMember(rows)
+		if err != nil {
+			return "", "", err
+		}
 		k, v := cm.Process()
-		return k, v, errors.Wrap(err, "unable to scan columns")
+		return k, v, nil
+	}
+	return scanRowsIntoMap(rows, scanner, nil)
+}
+
+func (s SqlChannelStore) GetAllChannelMemberRolesForUser(rctx request.CTX, userID string, allowFromCache bool) (_ map[string]store.ChannelMemberRoles, err error) {
+	queryString, args, err := s.allChannelMembersForUserQuery(userID, true).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_tosql")
+	}
+
+	rows, err := s.SqlStore.DBXFromContext(rctx.Context()).Query(queryString, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find ChannelMembers, TeamScheme and ChannelScheme data")
+	}
+	defer deferClose(rows, &err)
+
+	scanner := func(rows rowScanner) (string, store.ChannelMemberRoles, error) {
+		cm, err := scanAllChannelMember(rows)
+		if err != nil {
+			return "", store.ChannelMemberRoles{}, err
+		}
+		return cm.ChannelId, cm.memberRoles(), nil
 	}
 	return scanRowsIntoMap(rows, scanner, nil)
 }

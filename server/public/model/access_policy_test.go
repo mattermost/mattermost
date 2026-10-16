@@ -1956,6 +1956,112 @@ func TestChannelReadAccessAction(t *testing.T) {
 	})
 }
 
+// TestChannelWriteAndManagementAccessActions covers how channel_write_access and
+// channel_management_access validate. They share every rule: permission action,
+// channel-role requirement on v0.4, channel-resolving policy types only.
+func TestChannelWriteAndManagementAccessActions(t *testing.T) {
+	for _, action := range []string{
+		AccessControlPolicyActionChannelWriteAccess,
+		AccessControlPolicyActionChannelManagementAccess,
+	} {
+		t.Run(action, func(t *testing.T) {
+			t.Run("is a permission action", func(t *testing.T) {
+				require.True(t, IsPermissionAction(action))
+				require.True(t, allowedActionsV0_3[action])
+			})
+
+			t.Run("accepted on a v0.3 system permission policy with session attributes", func(t *testing.T) {
+				policy := &AccessControlPolicy{
+					ID:       NewId(),
+					Type:     AccessControlPolicyTypePermission,
+					Name:     "Managed devices only",
+					Revision: 0,
+					Version:  AccessControlPolicyVersionV0_3,
+					Roles:    []string{SystemUserRoleId},
+					Rules: []AccessControlPolicyRule{{
+						Actions:    []string{action},
+						Expression: `user.session.ip_address.inCIDR("10.0.0.0/8")`,
+					}},
+				}
+				require.Nil(t, policy.IsValid())
+			})
+
+			t.Run("accepted on a v0.4 channel policy with name and channel role", func(t *testing.T) {
+				policy := &AccessControlPolicy{
+					ID:       NewId(),
+					Type:     AccessControlPolicyTypeChannel,
+					Revision: 0,
+					Version:  AccessControlPolicyVersionV0_4,
+					Rules: []AccessControlPolicyRule{{
+						Name:       "Members only",
+						Role:       ChannelUserRoleId,
+						Actions:    []string{action},
+						Expression: `user.attributes.dept == "eng"`,
+					}},
+				}
+				require.Nil(t, policy.IsValid())
+			})
+
+			t.Run("v0.4 channel rule requires a channel-scoped role", func(t *testing.T) {
+				policy := &AccessControlPolicy{
+					ID:       NewId(),
+					Type:     AccessControlPolicyTypeChannel,
+					Revision: 0,
+					Version:  AccessControlPolicyVersionV0_4,
+					Rules: []AccessControlPolicyRule{{
+						Name:       "No role",
+						Actions:    []string{action},
+						Expression: "true",
+					}},
+				}
+				require.NotNil(t, policy.IsValid())
+			})
+
+			// Same reasoning as the read action: parent and team policies never resolve
+			// to a channel, and v0.3 is the version those types actually reach.
+			for _, policyType := range []string{AccessControlPolicyTypeParent, AccessControlPolicyTypeTeam} {
+				t.Run("rejected on a v0.3 "+policyType+" policy", func(t *testing.T) {
+					policy := &AccessControlPolicy{
+						ID:       NewId(),
+						Type:     policyType,
+						Name:     "Not a channel",
+						Revision: 0,
+						Version:  AccessControlPolicyVersionV0_3,
+						Rules: []AccessControlPolicyRule{{
+							Actions:    []string{action},
+							Expression: "true",
+						}},
+					}
+					err := policy.IsValid()
+					require.NotNil(t, err)
+					require.Equal(t, "model.access_policy.is_valid.actions."+action+"_type.app_error", err.Id)
+				})
+			}
+		})
+	}
+
+	t.Run("all channel-access actions and the file actions may share a rule", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_4,
+			Rules: []AccessControlPolicyRule{{
+				Name: "Everything at once",
+				Role: ChannelUserRoleId,
+				Actions: []string{
+					AccessControlPolicyActionChannelReadAccess,
+					AccessControlPolicyActionChannelWriteAccess,
+					AccessControlPolicyActionChannelManagementAccess,
+					AccessControlPolicyActionUploadFileAttachment,
+				},
+				Expression: "true",
+			}},
+		}
+		require.Nil(t, policy.IsValid())
+	})
+}
+
 // TestCreateBurnOnReadPostAction covers how create_burn_on_read_post validates.
 // It is a permission action, so a v0.4 channel policy needs a channel role and a
 // unique rule name for it. A v0.3 system permission policy needs neither — its

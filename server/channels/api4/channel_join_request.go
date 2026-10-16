@@ -59,6 +59,10 @@ func requestJoinChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelReadAccessByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateChannelJoinRequest, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
