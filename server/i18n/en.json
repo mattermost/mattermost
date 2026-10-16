@@ -6950,11 +6950,6 @@
     "description": "API error when an audit log request asks for more records per page than allowed; admin-facing."
   },
   {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "We encountered an error deleting the audits.",
-    "description": "Internal error when deleting a user's audit log entries fails during permanent account deletion."
-  },
-  {
     "id": "app.audit.save.saving.app_error",
     "translation": "We encountered an error saving the audit.",
     "description": "API error returned when the server fails to save an audit log record."
@@ -7453,11 +7448,6 @@
     "id": "app.channel.permanent_delete.app_error",
     "translation": "Unable to delete the channel.",
     "description": "API error returned when permanently deleting a channel from the database fails."
-  },
-  {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the channel member.",
-    "description": "Internal error when removing a user's channel memberships fails during permanent account deletion."
   },
   {
     "id": "app.channel.pinned_posts.app_error",
@@ -8496,11 +8486,6 @@
     "description": "API error returned when a plugin blocks saving a message draft; {{.Reason}} is the explanation supplied by the plugin."
   },
   {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete drafts for user.",
-    "description": "Internal error when deleting a user's message drafts fails during permanent account deletion."
-  },
-  {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Rate limiter is not set up.",
     "description": "Internal API error when the email invitation rate limiter component is not initialized; technical message."
@@ -8716,11 +8701,6 @@
     "description": "API error returned when a file record points to a path that no longer exists in file storage."
   },
   {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete attachments of the user.",
-    "description": "Internal error when deleting a user's file attachments fails during permanent account deletion."
-  },
-  {
     "id": "app.file_info.permanent_delete_for_post.app_error",
     "translation": "Failed to permanently delete file for post.",
     "description": "Internal API error when permanently deleting the file records of a post fails (used when purging flagged posts)."
@@ -8789,11 +8769,6 @@
     "id": "app.group.no_rows",
     "translation": "no matching group found",
     "description": "Lowercase error detail returned when a user group lookup finds no match; 'group' is a Mattermost user group."
-  },
-  {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group member with UserID \"{{.UserId}}\".",
-    "description": "Internal error when removing a user from user groups fails during permanent account deletion; {{.UserId}} is the user's ID."
   },
   {
     "id": "app.group.uniqueness_error",
@@ -10051,11 +10026,6 @@
     "description": "API error when listing all registered OAuth 2.0 applications fails; admin-facing."
   },
   {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Unable to remove the authorization code.",
-    "description": "Internal error when deleting a user's OAuth authorization codes fails during permanent account deletion."
-  },
-  {
     "id": "app.oauth.remove_access_data.app_error",
     "translation": "Unable to remove the access token.",
     "description": "Internal error when deleting an OAuth access token from the database fails."
@@ -10846,11 +10816,6 @@
     "description": "API error returned when permanently deleting all posts of a channel fails."
   },
   {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "Unable to select the posts to delete for the user.",
-    "description": "Internal error when selecting a user's posts for deletion fails during permanent account deletion."
-  },
-  {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Failed to permanently delete post.",
     "description": "Internal/admin error when permanently (hard) deleting a post from the database fails."
@@ -10984,11 +10949,6 @@
     "id": "app.preference.get_category.app_error",
     "translation": "We encountered an error while finding preferences.",
     "description": "API error returned when loading a category of user preferences (settings) fails."
-  },
-  {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "We encountered an error while deleting preferences.",
-    "description": "Internal error when deleting a user's preferences fails during permanent account deletion."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -11476,11 +11436,6 @@
     "description": "API error returned when loading the emoji reactions on a post fails."
   },
   {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete reactions for user.",
-    "description": "Internal error when deleting a user's emoji reactions fails during permanent account deletion."
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Unable to save reaction.",
     "description": "API error shown when saving an emoji reaction on a post fails."
@@ -11865,11 +11820,6 @@
       "other": "Failed to send {{.Count}} scheduled posts."
     },
     "description": "Header line of the bot's direct message notifying a user their scheduled posts failed to send; {{.Count}} is the number of failed posts, with singular/plural forms."
-  },
-  {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete scheduled posts for user.",
-    "description": "Internal error when deleting a user's scheduled posts fails during permanent account deletion."
   },
   {
     "id": "app.scheduled_post.private_channel",
@@ -12742,9 +12692,19 @@
     "description": "Internal error when permanently deleting a user account from the database fails; admin-facing."
   },
   {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Unable to delete user.",
-    "description": "API error wrapping an internal failure while permanently deleting a user account."
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "The account has been deactivated and partly deleted. Running the delete again is safe and will finish it.",
+    "description": "Admin-facing error returned when permanently deleting a user fails partway through, after the account was already deactivated."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "This pass deleted the maximum of {{.Max}} posts. The account has been deactivated and partly deleted. Run the delete again to continue.",
+    "description": "Admin-facing error returned when permanently deleting a user stops after removing the per-run post limit; the admin is told to run the same delete again. {{.Max}} is the number of posts deleted per run."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "Unable to finish deleting {{.Count}} users: {{.Usernames}}. Run the command again to continue.",
+    "description": "Admin-facing error returned by the delete-all-users command when some users could not be fully deleted. {{.Count}} is the number of users and {{.Usernames}} is a comma-separated list of their usernames."
   },
   {
     "id": "app.user.promote_guest.user_update.app_error",
@@ -13157,19 +13117,9 @@
     "description": "API error returned when deleting a channel's incoming webhooks fails (happens while deleting the channel)."
   },
   {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Unable to delete the webhook.",
-    "description": "Internal error when deleting a user's incoming webhooks fails during permanent account deletion; 'webhook' is an integration term."
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
     "translation": "Unable to delete the webhook.",
     "description": "API error returned when deleting a channel's outgoing webhooks fails (happens while deleting the channel)."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Unable to delete the webhook.",
-    "description": "Internal error when deleting a user's outgoing webhooks fails during permanent account deletion; 'webhook' is an integration term."
   },
   {
     "id": "app.webhooks.save_incoming.app_error",
