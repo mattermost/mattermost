@@ -235,7 +235,6 @@ export default class Logs extends React.PureComponent<Props, State> {
                             subtitle={messages.bannerDesc}
                             button={
                                 <>
-                                    {toggleLogFormat}
                                     <Button
                                         type='button'
                                         emphasis='tertiary'
@@ -255,6 +254,7 @@ export default class Logs extends React.PureComponent<Props, State> {
                                 </>
                             }
                         >
+                            {toggleLogFormat}
                             {list}
                         </AdminPanel>
                     </div>

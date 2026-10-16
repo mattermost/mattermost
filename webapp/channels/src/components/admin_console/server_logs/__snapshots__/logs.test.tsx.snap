@@ -54,37 +54,6 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
               <div
                 class="_admin-panel-header__actions_19tix_75"
               >
-                <div
-                  aria-labelledby="admin.logs.LogFormat.legend"
-                  class="logs-panel__log-format"
-                  id="admin.logs.LogFormat"
-                  role="radiogroup"
-                >
-                  <span
-                    id="admin.logs.LogFormat.legend"
-                  >
-                    Log Format:
-                  </span>
-                  <label>
-                    <input
-                      checked=""
-                      id="admin.logs.LogFormat.json"
-                      name="log-format"
-                      type="radio"
-                      value="json"
-                    />
-                    JSON
-                  </label>
-                  <label>
-                    <input
-                      id="admin.logs.LogFormat.plain"
-                      name="log-format"
-                      type="radio"
-                      value="plain"
-                    />
-                    Plain text
-                  </label>
-                </div>
                 <button
                   class="btn btn-tertiary"
                   type="button"
@@ -131,6 +100,37 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
             class="_admin-panel__body_iwm08_25"
           >
             <div
+              aria-labelledby="admin.logs.LogFormat.legend"
+              class="logs-panel__log-format"
+              id="admin.logs.LogFormat"
+              role="radiogroup"
+            >
+              <span
+                id="admin.logs.LogFormat.legend"
+              >
+                Log Format:
+              </span>
+              <label>
+                <input
+                  checked=""
+                  id="admin.logs.LogFormat.json"
+                  name="log-format"
+                  type="radio"
+                  value="json"
+                />
+                JSON
+              </label>
+              <label>
+                <input
+                  id="admin.logs.LogFormat.plain"
+                  name="log-format"
+                  type="radio"
+                  value="plain"
+                />
+                Plain text
+              </label>
+            </div>
+            <div
               class="LogTable"
             >
               <div
@@ -141,147 +141,151 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                   class="DataGrid_search"
                 >
                   <div
-                    class="DataGrid_searchBar"
+                    class="DataGrid_searchControls"
                   >
-                    <span
-                      aria-hidden="true"
-                      class="DataGrid_searchIcon"
-                    >
-                      <i
-                        class="fa fa-search"
-                        title="Search Icon"
-                      />
-                    </span>
-                    <input
-                      data-testid="searchInput"
-                      placeholder="Search"
-                      type="text"
-                      value=""
-                    />
-                    <i
-                      class="DataGrid_clearButton fa fa-times-circle hidden"
-                      data-testid="clear-search"
-                    />
-                  </div>
-                  <div
-                    class="Filter"
-                  >
-                    <button
-                      class="Filter_button"
-                      type="button"
-                    >
-                      <i
-                        class="Icon icon-filter-variant"
-                      />
-                      Filters
-                    </button>
                     <div
-                      class="Filter_content"
+                      class="DataGrid_searchBar"
                     >
-                      <div
-                        class="Filter_header"
+                      <span
+                        aria-hidden="true"
+                        class="DataGrid_searchIcon"
                       >
-                        <div
-                          class="Filter_title"
-                        >
-                          Filter by
-                        </div>
-                        <a
-                          class="Filter_reset"
-                        >
-                          Reset filters
-                        </a>
-                      </div>
-                      <hr />
-                      <div
-                        class="Filter_lists"
-                      >
-                        <div
-                          class="FilterList"
-                        >
-                          <div
-                            class="FilterList_name"
-                          >
-                            Levels
-                          </div>
-                          <div
-                            class="FilterList_item"
-                          >
-                            <div
-                              class="FilterList_checkbox"
-                            >
-                              <label>
-                                <input
-                                  checked=""
-                                  id="all"
-                                  name="all"
-                                  type="checkbox"
-                                />
-                                All levels
-                              </label>
-                            </div>
-                          </div>
-                          <div
-                            class="FilterList_item"
-                          >
-                            <div
-                              class="FilterList_checkbox"
-                            >
-                              <label>
-                                <input
-                                  id="error"
-                                  name="error"
-                                  type="checkbox"
-                                />
-                                Error
-                              </label>
-                            </div>
-                          </div>
-                          <div
-                            class="FilterList_item"
-                          >
-                            <div
-                              class="FilterList_checkbox"
-                            >
-                              <label>
-                                <input
-                                  id="info"
-                                  name="info"
-                                  type="checkbox"
-                                />
-                                Info
-                              </label>
-                            </div>
-                          </div>
-                          <div
-                            class="FilterList_item"
-                          >
-                            <div
-                              class="FilterList_checkbox"
-                            >
-                              <label>
-                                <input
-                                  id="debug"
-                                  name="debug"
-                                  type="checkbox"
-                                />
-                                Debug
-                              </label>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                        <i
+                          class="fa fa-search"
+                          title="Search Icon"
+                        />
+                      </span>
+                      <input
+                        data-testid="searchInput"
+                        placeholder="Search"
+                        type="text"
+                        value=""
+                      />
+                      <i
+                        class="DataGrid_clearButton fa fa-times-circle hidden"
+                        data-testid="clear-search"
+                      />
+                    </div>
+                    <div
+                      class="Filter"
+                    >
                       <button
-                        class="btn btn-primary btn-sm Filter_apply"
-                        disabled=""
+                        class="Filter_button"
                         type="button"
                       >
-                        Apply
+                        <i
+                          class="Icon icon-filter-variant"
+                        />
+                        Filters
                       </button>
+                      <div
+                        class="Filter_content"
+                      >
+                        <div
+                          class="Filter_header"
+                        >
+                          <div
+                            class="Filter_title"
+                          >
+                            Filter by
+                          </div>
+                          <a
+                            class="Filter_reset"
+                          >
+                            Reset filters
+                          </a>
+                        </div>
+                        <hr />
+                        <div
+                          class="Filter_lists"
+                        >
+                          <div
+                            class="FilterList"
+                          >
+                            <div
+                              class="FilterList_name"
+                            >
+                              Levels
+                            </div>
+                            <div
+                              class="FilterList_item"
+                            >
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label>
+                                  <input
+                                    checked=""
+                                    id="all"
+                                    name="all"
+                                    type="checkbox"
+                                  />
+                                  All levels
+                                </label>
+                              </div>
+                            </div>
+                            <div
+                              class="FilterList_item"
+                            >
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label>
+                                  <input
+                                    id="error"
+                                    name="error"
+                                    type="checkbox"
+                                  />
+                                  Error
+                                </label>
+                              </div>
+                            </div>
+                            <div
+                              class="FilterList_item"
+                            >
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label>
+                                  <input
+                                    id="info"
+                                    name="info"
+                                    type="checkbox"
+                                  />
+                                  Info
+                                </label>
+                              </div>
+                            </div>
+                            <div
+                              class="FilterList_item"
+                            >
+                              <div
+                                class="FilterList_checkbox"
+                              >
+                                <label>
+                                  <input
+                                    id="debug"
+                                    name="debug"
+                                    type="checkbox"
+                                  />
+                                  Debug
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          class="btn btn-primary btn-sm Filter_apply"
+                          disabled=""
+                          type="button"
+                        >
+                          Apply
+                        </button>
+                      </div>
                     </div>
                   </div>
                   <button
-                    class="btn btn-tertiary btn-sm ml-2"
+                    class="btn btn-tertiary btn-sm"
                   >
                     Show last 0 errors
                   </button>

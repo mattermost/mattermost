@@ -1204,10 +1204,12 @@
         flex: 1;
         flex-direction: column;
 
-        // Keep the log format radios aligned with header action buttons.
+        // Log format sits in the panel body under the subtitle, above the table.
         .logs-panel__log-format {
             display: flex;
+            flex-shrink: 0;
             align-items: center;
+            margin-bottom: var(--spacing-m);
             gap: 8px;
 
             label {
