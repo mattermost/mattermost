@@ -14,7 +14,7 @@ type Props = {
     id?: string;
     className?: string;
     title: MessageDescriptor;
-    subtitle: MessageDescriptor;
+    subtitle?: MessageDescriptor;
     subtitleValues?: Record<string, unknown>;
     button?: React.ReactNode;
     children?: React.ReactNode;
@@ -34,12 +34,12 @@ const AdminPanel = ({
         id={id}
         className={classNames('AdminPanel', 'clearfix', className)}
         title={<FormattedMessage {...title}/>}
-        subtitle={
+        subtitle={subtitle ? (
             <FormattedMessage
                 {...subtitle}
                 values={subtitleValues}
             />
-        }
+        ) : undefined}
         headerActions={button}
         {...rest}
     >
