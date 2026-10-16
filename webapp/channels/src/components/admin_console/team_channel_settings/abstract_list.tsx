@@ -6,15 +6,10 @@ import React from 'react';
 import type {JSX, MouseEvent} from 'react';
 import {FormattedMessage, injectIntl, type MessageDescriptor, type WrappedComponentProps} from 'react-intl';
 
-import {
-    ChevronLeftIcon,
-    ChevronRightIcon,
-} from '@mattermost/compass-icons/components';
-import {Icon} from '@mattermost/compass-ui/components/icon';
-import {IconButton} from '@mattermost/compass-ui/components/icon-button';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
+
+import PaginationButtons from 'components/common/pagination_buttons';
 
 import type {TeamWithMembership} from '../system_user_detail/team_list/types';
 
@@ -157,25 +152,13 @@ class AbstractList extends React.PureComponent<Props, State> {
                             }}
                         />
                     </div>
-                    <WithTooltip title={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.previous', defaultMessage: 'Go to previous page'})}>
-                        <IconButton
-                            size='small'
-                            icon={<Icon glyph={<ChevronLeftIcon/>}/>}
-                            onClick={this.previousPage}
-                            disabled={firstPage}
-                            aria-label={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.previous', defaultMessage: 'Go to previous page'})}
-                        />
-                    </WithTooltip>
-                    <WithTooltip title={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.next', defaultMessage: 'Go to next page'})}>
-                        <IconButton
-                            size='small'
-                            icon={<Icon glyph={<ChevronRightIcon/>}/>}
-                            onClick={this.nextPage}
-                            disabled={lastPage}
-                            data-testid='page-link-next'
-                            aria-label={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.next', defaultMessage: 'Go to next page'})}
-                        />
-                    </WithTooltip>
+                    <PaginationButtons
+                        onPrevious={this.previousPage}
+                        onNext={this.nextPage}
+                        disablePrevious={firstPage}
+                        disableNext={lastPage}
+                        nextButtonTestId='page-link-next'
+                    />
                 </div>}
             </div>
         );

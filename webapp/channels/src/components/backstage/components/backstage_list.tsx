@@ -6,15 +6,9 @@ import type {ChangeEvent, JSX, ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {
-    ChevronLeftIcon,
-    ChevronRightIcon,
-} from '@mattermost/compass-icons/components';
-import {Icon} from '@mattermost/compass-ui/components/icon';
-import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import PaginationButtons from 'components/common/pagination_buttons';
 import LoadingScreen from 'components/loading_screen';
 import SearchIcon from 'components/widgets/icons/fa_search_icon';
 
@@ -190,26 +184,16 @@ const BackstageList = (remainingProps: Props) => {
                             total,
                         }}
                     />
-                    <WithTooltip title={formatMessage({id: 'backstage_list.previousButton.ariaLabel', defaultMessage: 'Previous'})}>
-                        <IconButton
-                            size='small'
-                            className='ml-2 prev'
-                            icon={<Icon glyph={<ChevronLeftIcon/>}/>}
-                            onClick={previousPageFn}
-                            disabled={isFirstPage}
-                            aria-label={formatMessage({id: 'backstage_list.previousButton.ariaLabel', defaultMessage: 'Previous'})}
-                        />
-                    </WithTooltip>
-                    <WithTooltip title={formatMessage({id: 'backstage_list.nextButton.ariaLabel', defaultMessage: 'Next'})}>
-                        <IconButton
-                            size='small'
-                            className='next'
-                            icon={<Icon glyph={<ChevronRightIcon/>}/>}
-                            onClick={nextPageFn}
-                            disabled={isLastPage}
-                            aria-label={formatMessage({id: 'backstage_list.nextButton.ariaLabel', defaultMessage: 'Next'})}
-                        />
-                    </WithTooltip>
+                    <PaginationButtons
+                        onPrevious={previousPageFn}
+                        onNext={nextPageFn}
+                        disablePrevious={isFirstPage}
+                        disableNext={isLastPage}
+                        previousLabel={formatMessage({id: 'backstage_list.previousButton.ariaLabel', defaultMessage: 'Previous'})}
+                        nextLabel={formatMessage({id: 'backstage_list.nextButton.ariaLabel', defaultMessage: 'Next'})}
+                        previousButtonClassName='ml-2 prev'
+                        nextButtonClassName='next'
+                    />
                 </div>
             </div>
         </div>

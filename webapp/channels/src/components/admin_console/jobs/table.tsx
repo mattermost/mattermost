@@ -5,17 +5,12 @@ import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {
-    ChevronLeftIcon,
-    ChevronRightIcon,
-} from '@mattermost/compass-icons/components';
-import {Icon} from '@mattermost/compass-ui/components/icon';
-import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Job, JobType} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import PaginationButtons from 'components/common/pagination_buttons';
 
 import {JobTypes} from 'utils/constants';
 
@@ -202,26 +197,16 @@ class JobTable extends React.PureComponent<Props, State> {
                                     total: this.props.jobs.length,
                                 }}
                             />
-                            <WithTooltip title='Previous page'>
-                                <IconButton
-                                    size='small'
-                                    className='ml-2 prev'
-                                    icon={<Icon glyph={<ChevronLeftIcon/>}/>}
-                                    onClick={this.handlePrevPage}
-                                    disabled={firstPage}
-                                    aria-label='Previous page'
-                                />
-                            </WithTooltip>
-                            <WithTooltip title='Next page'>
-                                <IconButton
-                                    size='small'
-                                    className='next'
-                                    icon={<Icon glyph={<ChevronRightIcon/>}/>}
-                                    onClick={this.handleNextPage}
-                                    disabled={lastPage}
-                                    aria-label='Next page'
-                                />
-                            </WithTooltip>
+                            <PaginationButtons
+                                onPrevious={this.handlePrevPage}
+                                onNext={this.handleNextPage}
+                                disablePrevious={firstPage}
+                                disableNext={lastPage}
+                                previousLabel='Previous page'
+                                nextLabel='Next page'
+                                previousButtonClassName='ml-2 prev'
+                                nextButtonClassName='next'
+                            />
                         </div>
                     </div>
                 );
