@@ -6,6 +6,7 @@ package slashcommands
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -29,9 +30,8 @@ func response(message string) *model.CommandResponse {
 }
 
 // parseNamedArgs parses a command string into a map of arguments. It is assumed the
-// command string is of the form `<action> --arg1 value1 ...` Supports empty values,
-// and values wrapped in quotes may contain whitespace. A word that is not the action,
-// a flag or a flag's value is an error, so a value missing its quotes is not truncated.
+// command string is of the form `<action> --arg1 value1 ...` Supports empty values.
+// A stray word is an error rather than ignored, so an unquoted value is not truncated.
 // Arg names are limited to [0-9a-zA-Z_].
 func parseNamedArgs(T i18n.TranslateFunc, cmd string) (map[string]string, error) {
 	tokens, err := tokenizeCommand(T, cmd)
@@ -49,7 +49,7 @@ func parseNamedArgs(T i18n.TranslateFunc, cmd string) (map[string]string, error)
 	for i := range tokens {
 		if !tokens[i].isFlag() {
 			if i >= 2 && !tokens[i-1].isFlag() {
-				return nil, errors.New(T("api.command.named_args.unexpected_value", map[string]any{"Value": tokens[i].text}))
+				return nil, errors.New(T("api.command.named_args.unexpected_value", map[string]any{"Near": errorAnchor(tokens[:i], tokens[i].text)}))
 			}
 			continue
 		}
@@ -76,39 +76,63 @@ func (t commandToken) isFlag() bool {
 
 func (t commandToken) value() string {
 	if t.quoted {
-		return t.text
+		return strings.TrimSpace(t.text)
 	}
 	return trimSpaceAndQuotes(t.text)
 }
 
+// Errors name the nearest flag instead of echoing what was typed, which may be a password.
+func errorAnchor(preceding []commandToken, word string) string {
+	for _, tok := range slices.Backward(preceding) {
+		if tok.isFlag() {
+			return tok.text
+		}
+	}
+	if len(preceding) > 0 {
+		return preceding[len(preceding)-1].text
+	}
+	return word
+}
+
+type quoteStyle struct {
+	close rune
+	// A double quote is never an apostrophe, so it closes at the next matching quote.
+	double bool
+}
+
 // Mobile and macOS autocorrect replace straight quotes with curly ones.
-var closingQuotes = map[rune]rune{'"': '"', '\'': '\'', '“': '”', '‘': '’'}
+var quoteStyles = map[rune]quoteStyle{
+	'"':  {close: '"', double: true},
+	'“':  {close: '”', double: true},
+	'\'': {close: '\''},
+	'‘':  {close: '’'},
+}
 
 var (
 	errUnterminatedQuote  = errors.New("unterminated quote")
 	errFlagInSingleQuotes = errors.New("flag in single quoted value")
 )
 
-// tokenizeCommand splits cmd on whitespace, except inside a quoted value. A quote only opens
-// a value at the start of a word, so apostrophes such as O'Brien are kept. A double quoted
-// value ends at the next matching quote. See quotedToken for single quotes.
+// A quote only opens a value at the start of a word, so apostrophes such as O'Brien are kept.
 func tokenizeCommand(T i18n.TranslateFunc, cmd string) ([]commandToken, error) {
 	var tokens []commandToken
 	rest := strings.TrimLeftFunc(cmd, unicode.IsSpace)
 	for rest != "" {
 		var tok commandToken
-		if open, size := utf8.DecodeRuneInString(rest); closingQuotes[open] != 0 {
-			quoted, after, err := quotedToken(rest[size:], closingQuotes[open])
+		open, size := utf8.DecodeRuneInString(rest)
+		if style, ok := quoteStyles[open]; ok {
+			quoted, after, err := quotedToken(rest[size:], open, style)
 			if err != nil {
 				word, _ := nextWord(rest)
+				near := errorAnchor(tokens, word)
 				if errors.Is(err, errFlagInSingleQuotes) {
-					return nil, errors.New(T("api.command.named_args.single_quoted_flag", map[string]any{"Value": word}))
+					return nil, errors.New(T("api.command.named_args.single_quoted_flag", map[string]any{"Near": near}))
 				}
-				return nil, errors.New(T("api.command.named_args.unterminated_quote", map[string]any{"Value": word}))
+				return nil, errors.New(T("api.command.named_args.unterminated_quote", map[string]any{"Near": near}))
 			}
 			if next, _ := utf8.DecodeRuneInString(after); after != "" && !unicode.IsSpace(next) {
 				word, _ := nextWord(after)
-				return nil, errors.New(T("api.command.named_args.unexpected_value", map[string]any{"Value": word}))
+				return nil, errors.New(T("api.command.named_args.unexpected_value", map[string]any{"Near": errorAnchor(tokens, word)}))
 			}
 			tok, rest = quoted, after
 		} else {
@@ -128,19 +152,19 @@ func nextWord(s string) (string, string) {
 	return s[:end], s[end:]
 }
 
-// A single quote doubles as an apostrophe, so a single quoted value only ends at a matching
-// quote followed by whitespace or the end of input. It may not contain " --".
-func quotedToken(s string, closeQuote rune) (commandToken, string, error) {
-	if closeQuote == '"' || closeQuote == '”' {
-		end := strings.IndexRune(s, closeQuote)
-		if end < 0 || closeQuote == '”' && strings.ContainsRune(s[:end], '“') {
+// A single quote doubles as an apostrophe, so it only closes before whitespace or the end of input.
+func quotedToken(s string, open rune, style quoteStyle) (commandToken, string, error) {
+	if style.double {
+		end := strings.IndexRune(s, style.close)
+		if end < 0 || open != style.close && strings.ContainsRune(s[:end], open) {
 			return commandToken{}, "", errUnterminatedQuote
 		}
-		return commandToken{text: s[:end], quoted: true}, s[end+utf8.RuneLen(closeQuote):], nil
+		return commandToken{text: s[:end], quoted: true}, s[end+utf8.RuneLen(style.close):], nil
 	}
 	for i, r := range s {
-		after := s[i+utf8.RuneLen(r):]
-		if r == closeQuote {
+		_, size := utf8.DecodeRuneInString(s[i:])
+		after := s[i+size:]
+		if r == style.close {
 			if next, _ := utf8.DecodeRuneInString(after); after == "" || unicode.IsSpace(next) {
 				return commandToken{text: s[:i], quoted: true}, after, nil
 			}

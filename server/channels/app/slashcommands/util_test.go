@@ -46,6 +46,9 @@ func TestParseNamedArgs(t *testing.T) {
 		{"curly double quoted value containing a flag", "remote add --arg1 \u201cuse --arg2 here\u201d", map[string]string{ActionKey: "add", "arg1": "use --arg2 here"}},
 		{"curly double quotes", "remote add --arg1 \u201cmy remote\u201d --arg2 val2", map[string]string{ActionKey: "add", "arg1": "my remote", "arg2": "val2"}},
 		{"curly single quotes with curly apostrophe", "remote add --arg1 \u2018Bob\u2019s remote\u2019", map[string]string{ActionKey: "add", "arg1": "Bob\u2019s remote"}},
+		{"whitespace only quoted values", "remote add --arg1 \"  \" --arg2 ' '", map[string]string{ActionKey: "add", "arg1": "", "arg2": ""}},
+		{"quoted value padded with spaces", "remote add --arg1 \" my remote \"", map[string]string{ActionKey: "add", "arg1": "my remote"}},
+		{"invalid UTF-8 inside single quotes", "remote add --arg1 'a\xff b'", map[string]string{ActionKey: "add", "arg1": "a\xff b"}},
 	}
 
 	for _, tt := range data {
@@ -77,12 +80,37 @@ func TestParseNamedArgsErrors(t *testing.T) {
 		{"unterminated single quote at end", "remote add --arg1 'my remote", unterminatedQuote},
 		{"unterminated curly quote before curly quoted value", "remote add --arg1 \u201cfoo --arg2 \u201cBar Baz\u201d --arg3 val3", unterminatedQuote},
 		{"mismatched curly quotes", "remote add --arg1 \u201cmy remote\" --arg2 val2", unterminatedQuote},
+		{"unterminated single quote with invalid UTF-8", "remote add --arg1 'a\xff", unterminatedQuote},
 	}
 
 	for _, tt := range data {
 		m, err := parseNamedArgs(i18n.IdentityTfunc(), tt.s)
 		assert.Nil(t, m, tt.name)
 		assert.EqualError(t, err, tt.err, tt.name)
+	}
+}
+
+func TestParseNamedArgsErrorsDoNotEchoValues(t *testing.T) {
+	nearT := func(_ string, args ...any) string {
+		return args[0].(map[string]any)["Near"].(string)
+	}
+	data := []struct {
+		name string
+		s    string
+		near string
+	}{
+		{"unquoted value with spaces", "remote create --password s3cr3t pass", "--password"},
+		{"unterminated quote", "remote create --password \"s3cr3t pass", "--password"},
+		{"single quoted value containing a flag", "remote create --password 's3cr3t --name x'", "--password"},
+		{"text after closing quote", "remote create --password \"s3cr3t\"pass", "--password"},
+		{"quoted stray word after value", "remote create --password s3cr3t \"pass", "--password"},
+		{"word after action", "remote create extra --name x", "create"},
+		{"quote in action position", "remote \"create --name x", "remote"},
+	}
+
+	for _, tt := range data {
+		_, err := parseNamedArgs(nearT, tt.s)
+		assert.EqualError(t, err, tt.near, tt.name)
 	}
 }
 

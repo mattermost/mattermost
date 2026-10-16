@@ -584,9 +584,10 @@ func TestRemoteProviderDoRemove(t *testing.T) {
 			"missing":      {"/secure-connection remove", "Missing or empty `connectionID`"},
 			"empty":        {"/secure-connection remove --connectionID", "Missing or empty `connectionID`"},
 			"empty quotes": {`/secure-connection remove --connectionID ""`, "Missing or empty `connectionID`"},
+			"blank quotes": {`/secure-connection remove --connectionID " "`, "Missing or empty `connectionID`"},
 			"malformed":    {"/secure-connection remove --connectionID foo", "`foo` is not a valid `connectionID`"},
-			"stray word":   {"/secure-connection remove --connectionID foo bar", "Unexpected `bar`. Wrap a value that contains spaces in quotes, and use double quotes if the value also contains an apostrophe."},
-			"open quote":   {`/secure-connection remove --connectionID "foo`, "The quote at `\"foo` is never closed."},
+			"stray word":   {"/secure-connection remove --connectionID foo bar", "Unexpected text near `--connectionID`. Wrap a value that contains spaces in quotes, and use double quotes if the value also contains an apostrophe."},
+			"open quote":   {`/secure-connection remove --connectionID "foo`, "A quote near `--connectionID` is never closed."},
 		} {
 			t.Run(name, func(t *testing.T) {
 				callsBefore := wrapper.deleteCalls.Load()
