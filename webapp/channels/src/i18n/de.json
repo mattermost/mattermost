@@ -1282,7 +1282,7 @@
   "admin.elasticsearch.usernameDescription": "(Optional) Der Benutzername zur Authentifizierung am Elasticsearch-Server.",
   "admin.elasticsearch.usernameExample": "Z.B.: \"elastic\"",
   "admin.elasticsearch.usernameTitle": "Server-Benutzername:",
-  "admin.email.agreeHPNS": " Ich verstehe und akzeptiere die Mattermost Hosted Push Notifications Dienste <linkTerms>Nutzungsbedingungen</linkTerms> und <linkPrivacy>Datenschutzbedingungen</linkPrivacy>.",
+  "admin.email.agreeHPNS": " Ich verstehe und akzeptiere die <linkTerms>Nutzungsbedingungen</linkTerms> und <linkPrivacy>Datenschutzbedingungen</linkPrivacy> des Mattermost Hosted Push Notification Service.",
   "admin.email.allowEmailSignInDescription": "Wenn wahr, erlaubt Mattermost Benutzern sich mit E-Mail und Passwort anzumelden.",
   "admin.email.allowEmailSignInTitle": "Erlaube Login mit E-Mail:",
   "admin.email.allowSignupDescription": "Wenn wahr, erlaubt Mattermost Kontoregistrierung via E-Mail und Passwort. Dieser Wert sollte nur falsch sein, wenn du Anmeldungen auf SSO-Dienste wie AD/LDAP, SAML oder GitLab beschränken möchtest.",
