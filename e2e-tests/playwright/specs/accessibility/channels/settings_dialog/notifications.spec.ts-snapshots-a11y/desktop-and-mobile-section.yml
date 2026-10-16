@@ -1,5 +1,5 @@
 - heading "Desktop and mobile notifications" [level=4]
-- paragraph: Browser notification permission was denied
+- heading "Browser notification permission was denied" [level=4]
 - text: You're missing important message and call notifications from Mattermost. To start receiving notifications, please enable notifications for Mattermost in your browser settings.
 - button "How to enable notifications"
 - group "Send notifications for:":

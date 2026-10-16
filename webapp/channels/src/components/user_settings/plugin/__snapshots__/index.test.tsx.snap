@@ -52,14 +52,14 @@ exports[`plugin tab all props are properly passed to the children 1`] = `
         class="pluginActionContainer"
       >
         <div
-          class="_section-notice_853w8_2"
+          class="_section-notice_1fkh6_2"
         >
           <div
-            class="_section-notice__content_853w8_11"
+            class="_section-notice__content_1fkh6_11"
           >
             <span
               aria-hidden="true"
-              class="_section-notice__icon_853w8_18"
+              class="_section-notice__icon_1fkh6_18"
             >
               <div
                 aria-hidden="true"
@@ -84,29 +84,29 @@ exports[`plugin tab all props are properly passed to the children 1`] = `
               </div>
             </span>
             <div
-              class="_section-notice__body_853w8_25"
+              class="_section-notice__body_1fkh6_25"
             >
-              <p
-                class="_section-notice__title_853w8_34"
+              <h4
+                class="_section-notice__title_1fkh6_34"
               >
                 actionTitle
-              </p>
+              </h4>
               <div
-                class="_section-notice__description_853w8_41"
+                class="_section-notice__description_1fkh6_45"
               >
                 <p>
                   actionText
                 </p>
               </div>
               <div
-                class="_section-notice__actions_853w8_47"
+                class="_section-notice__actions_1fkh6_51"
               >
                 <button
-                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40"
+                  class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
                   type="button"
                 >
                   <span
-                    class="_button__label_doayp_24"
+                    class="_button__label_aa8j5_31"
                   >
                     buttonText
                   </span>

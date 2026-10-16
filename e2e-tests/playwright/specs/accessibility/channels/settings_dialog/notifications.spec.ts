@@ -122,7 +122,7 @@ test(
             - text: "\\"@${user.username}\\", \\"@channel\\", \\"@all\\", \\"@here\\""
             - heading "Keywords that get highlighted (without notifications)" [level=4]
             - button "Keywords that get highlighted (without notifications) Edit"
-            - paragraph: Troubleshooting notifications
+            - heading "Troubleshooting notifications" [level=4]
             - text: Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
             - button "Send a test notification"
             - button "Troubleshooting docs"
