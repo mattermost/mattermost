@@ -532,9 +532,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
                 // Field GET strips graph parents so a read-modify-write cannot
                 // flatten the hierarchy. The options route is what reports them.
-                const loadedOptions = field.type === 'graph' ?
-                    await pageAllAccessControlFieldOptions({id: field.id, object_type: field.object_type}) :
-                    optionsFromField(field);
+                const loadedOptions = field.type === 'graph' ? await pageAllAccessControlFieldOptions({id: field.id, object_type: field.object_type}) : optionsFromField(field);
                 if (cancelled) {
                     return;
                 }
@@ -572,9 +570,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 // A non-template field has no linked children: Applies-to is its
                 // own object type, so there is no other resource to add or remove.
                 setAppliesTo(
-                    field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE ?
-                        ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])) :
-                        ALL_RESOURCE_TYPES.filter((type) => type === field.object_type),
+                    field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE ? ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])) : ALL_RESOURCE_TYPES.filter((type) => type === field.object_type),
                 );
 
                 // Seed from a Users field if one exists, not from create-vs-edit:
@@ -1616,216 +1612,216 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         title={messages.definitionTitle}
                         subtitle={messages.definitionSubtitle}
                     >
-<div className='AttributeDetails__row'>
-                                <label
-                                    className='AttributeDetails__label'
-                                    htmlFor='input_display_name'
-                                >
-                                    <FormattedMessage {...messages.displayNameLabel}/>
-                                </label>
-                                <div className='AttributeDetails__fieldControl'>
-                                    <Input
-                                        name='display_name'
-                                        type='text'
-                                        useLegend={false}
-                                        placeholder={formatMessage(messages.displayNamePlaceholder)}
-                                        aria-label={formatMessage(messages.displayNameLabel)}
-                                        value={displayName}
-                                        onChange={handleDisplayNameChange}
-                                        autoFocus={true}
-                                        disabled={saving || effectiveDisabled}
-                                        maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
-                                        data-testid='attributeDisplayNameInput'
-                                    />
-                                    <div className='AttributeDetails__uniqueName'>
+                        <div className='AttributeDetails__row'>
+                            <label
+                                className='AttributeDetails__label'
+                                htmlFor='input_display_name'
+                            >
+                                <FormattedMessage {...messages.displayNameLabel}/>
+                            </label>
+                            <div className='AttributeDetails__fieldControl'>
+                                <Input
+                                    name='display_name'
+                                    type='text'
+                                    useLegend={false}
+                                    placeholder={formatMessage(messages.displayNamePlaceholder)}
+                                    aria-label={formatMessage(messages.displayNameLabel)}
+                                    value={displayName}
+                                    onChange={handleDisplayNameChange}
+                                    autoFocus={true}
+                                    disabled={saving || effectiveDisabled}
+                                    maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
+                                    data-testid='attributeDisplayNameInput'
+                                />
+                                <div className='AttributeDetails__uniqueName'>
+                                    <span
+                                        className='AttributeDetails__uniqueNameCaption'
+                                        aria-live='polite'
+                                        data-testid='attributeUniqueNameCaption'
+                                    >
                                         <span
-                                            className='AttributeDetails__uniqueNameCaption'
-                                            aria-live='polite'
-                                            data-testid='attributeUniqueNameCaption'
+                                            className='AttributeDetails__uniqueNamePrefix'
+                                            id='attribute-unique-name-prefix'
                                         >
-                                            <span
-                                                className='AttributeDetails__uniqueNamePrefix'
-                                                id='attribute-unique-name-prefix'
-                                            >
-                                                <FormattedMessage {...messages.uniqueNamePrefix}/>
-                                            </span>
-                                            {isEditingName ? (
-                                                <input
-                                                    type='text'
-                                                    className={classNames('AttributeDetails__uniqueNameInput', {
-                                                        'AttributeDetails__uniqueNameInput--error': Boolean(nameValidationError) || isServerNameError,
-                                                    })}
-                                                    value={manualName}
-                                                    onChange={handleNameChange}
-                                                    onKeyDown={handleNameKeyDown}
-                                                    onBlur={handleDoneClick}
-                                                    autoFocus={true}
-                                                    disabled={saving || effectiveDisabled || nameLocked}
-                                                    maxLength={CPA_FIELD_NAME_MAX_RUNES}
-                                                    aria-labelledby='attribute-unique-name-prefix'
-                                                    aria-describedby={nameDescribedBy}
-                                                    aria-invalid={Boolean(nameValidationError) || isServerNameError}
-                                                    data-testid='attributeNameInput'
-                                                />
-                                            ) : (
-                                                <span
-                                                    className={classNames({'AttributeDetails__uniqueNameValue--error': Boolean(nameValidationError) || isServerNameError})}
-                                                    aria-describedby={nameDescribedBy}
-                                                    data-testid='attributeUniqueNameValue'
-                                                >
-                                                    {isNameManuallyEdited ? manualName : (autoSlugDisplay ?? '—')}
-                                                </span>
-                                            )}
-                                            {(() => {
-                                                // Reason derived once, then looked up for both the aria-label
-                                                // and the tooltip below -- same priority reasoning as
-                                                // typeLockReason above, including preferring pluginOrphaned
-                                                // over plain "plugin" once the field is confirmed orphaned.
-                                                const nameLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'owned' | 'appliesTo'>(
-                                                    ['pluginOrphaned', isPluginOwned && isOrphaned],
-                                                    ['plugin', isPluginOwned],
-                                                    ['owned', isOwned],
-                                                    ['appliesTo', nameLockedByAppliesTo],
-                                                );
-                                                const nameEditLinkAriaLabel = nameLockReason ? formatMessage(NAME_LOCK_MESSAGES[nameLockReason].ariaLabel, {owners: ownersLabel}) : formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel);
-
-                                                const editLinkButton = (
-                                                    <button
-                                                        type='button'
-                                                        className='AttributeDetails__editLink'
-                                                        onClick={isEditingName ? handleDoneClick : handleEditClick}
-                                                        onMouseDown={(e) => {
-                                                            // Blur runs before click. Without this, Done would
-                                                            // commit on blur and the same click would re-open Edit.
-                                                            if (isEditingName) {
-                                                                e.preventDefault();
-                                                            }
-                                                        }}
-                                                        disabled={saving || effectiveDisabled || nameLocked}
-                                                        aria-disabled={isDoneBlocked || undefined}
-                                                        aria-describedby={isDoneBlocked ? 'attribute-unique-name-error' : undefined}
-                                                        aria-label={nameEditLinkAriaLabel}
-                                                        data-testid='attributeNameEditLink'
-                                                    >
-                                                        <FormattedMessage {...(isEditingName ? messages.doneLink : messages.editLink)}/>
-                                                    </button>
-                                                );
-
-                                                const nameLockTooltip = formatMessage(NAME_LOCK_MESSAGES[nameLockReason ?? 'appliesTo'].tooltip, {owners: ownersLabel});
-                                                return nameLocked ? (
-                                                    <WithTooltip title={nameLockTooltip}>
-                                                        <span
-                                                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled button inside is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
-                                                            tabIndex={0}
-                                                            data-testid='attributeNameEditLinkLockWrap'
-                                                        >
-                                                            {editLinkButton}
-                                                        </span>
-                                                    </WithTooltip>
-                                                ) : editLinkButton;
-                                            })()}
+                                            <FormattedMessage {...messages.uniqueNamePrefix}/>
                                         </span>
-                                        {nameValidationError && (
-                                            <div
-                                                id='attribute-unique-name-error'
-                                                className='AttributeDetails__uniqueNameError'
-                                                role='alert'
-                                                data-testid='attributeUniqueNameError'
-                                            >
-                                                {nameErrorMessage(nameValidationError, formatMessage)}
-                                            </div>
-                                        )}
-                                        {autoSlugCollapsedToEmpty && (
-                                            <div
-                                                id='attribute-unique-name-empty-warning'
-                                                className='AttributeDetails__uniqueNameError'
-                                                role='alert'
-                                                data-testid='attributeUniqueNameEmptyWarning'
-                                            >
-                                                <FormattedMessage {...messages.couldNotGenerateName}/>
-                                            </div>
-                                        )}
-                                        {nameConflict && (
-                                            <div
-                                                className='AttributeDetails__nameConflict'
-
-                                                // Polite, not an alert: this updates on every
-                                                // keystroke while the admin is still typing a name.
-                                                role='status'
-                                                data-testid='attributeNameConflictWarning'
-                                            >
-                                                <SectionNotice
-                                                    type={usersBlockedByNameConflict ? 'danger' : 'warning'}
-                                                    title={formatMessage(nameConflictMessages.detailsNotice)}
-                                                />
-                                            </div>
-                                        )}
-                                        <p className='AttributeDetails__helperText'>
-                                            <FormattedMessage {...messages.helperText}/>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className='AttributeDetails__row'>
-                                <span
-                                    className='AttributeDetails__label'
-                                    data-testid='attributeTypeLabel'
-                                >
-                                    <FormattedMessage {...messages.typeLabel}/>
-                                </span>
-                                <div className='AttributeDetails__fieldControl'>
-                                    {typeLocked ? (
-                                        <WithTooltip title={typeLockTooltip}>
+                                        {isEditingName ? (
+                                            <input
+                                                type='text'
+                                                className={classNames('AttributeDetails__uniqueNameInput', {
+                                                    'AttributeDetails__uniqueNameInput--error': Boolean(nameValidationError) || isServerNameError,
+                                                })}
+                                                value={manualName}
+                                                onChange={handleNameChange}
+                                                onKeyDown={handleNameKeyDown}
+                                                onBlur={handleDoneClick}
+                                                autoFocus={true}
+                                                disabled={saving || effectiveDisabled || nameLocked}
+                                                maxLength={CPA_FIELD_NAME_MAX_RUNES}
+                                                aria-labelledby='attribute-unique-name-prefix'
+                                                aria-describedby={nameDescribedBy}
+                                                aria-invalid={Boolean(nameValidationError) || isServerNameError}
+                                                data-testid='attributeNameInput'
+                                            />
+                                        ) : (
                                             <span
-                                                // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled Type menu button is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
-                                                tabIndex={0}
-                                                className='AttributeDetails__typeLockWrap'
-                                                data-testid='attributeTypeLockWrap'
+                                                className={classNames({'AttributeDetails__uniqueNameValue--error': Boolean(nameValidationError) || isServerNameError})}
+                                                aria-describedby={nameDescribedBy}
+                                                data-testid='attributeUniqueNameValue'
                                             >
-                                                {typeMenu}
+                                                {isNameManuallyEdited ? manualName : (autoSlugDisplay ?? '—')}
                                             </span>
-                                        </WithTooltip>
-                                    ) : typeMenu}
-                                </div>
-                            </div>
-                            <div className='AttributeDetails__row'>
-                                <span
-                                    className='AttributeDetails__label'
-                                    data-testid='attributeOptionsLabel'
-                                >
-                                    <FormattedMessage {...messages.optionsLabel}/>
-                                </span>
-                                <div className='AttributeDetails__fieldControl'>
-                                    {optionsEditor}
-                                    {isPluginOwned ? (
-                                        <AttributePluginSource
-                                            pluginId={sourcePluginId!}
-                                            isOrphaned={isOrphaned}
-                                            pluginInventoryLoaded={pluginInventoryLoaded}
-                                        />
-                                    ) : (
-                                        <>
-                                            {isOwned && (
-                                                <AttributeOwnersSource
-                                                    owners={owners}
-                                                    pluginInventoryLoaded={pluginInventoryLoaded}
-                                                />
-                                            )}
-                                            {showsExternalSource && fieldType !== 'graph' && (
-                                                <AttributeExternalSource
-                                                    ldapAttr={ldapAttr}
-                                                    samlAttr={samlAttr}
-                                                    fieldType={fieldType}
-                                                    onLink={handleLink}
-                                                    disabled={saving || effectiveDisabled}
-                                                    disableAdding={typeLockedByAppliesTo && !canSyncAttributeType(fieldType)}
-                                                />
-                                            )}
-                                        </>
+                                        )}
+                                        {(() => {
+                                            // Reason derived once, then looked up for both the aria-label
+                                            // and the tooltip below -- same priority reasoning as
+                                            // typeLockReason above, including preferring pluginOrphaned
+                                            // over plain "plugin" once the field is confirmed orphaned.
+                                            const nameLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'owned' | 'appliesTo'>(
+                                                ['pluginOrphaned', isPluginOwned && isOrphaned],
+                                                ['plugin', isPluginOwned],
+                                                ['owned', isOwned],
+                                                ['appliesTo', nameLockedByAppliesTo],
+                                            );
+                                            const nameEditLinkAriaLabel = nameLockReason ? formatMessage(NAME_LOCK_MESSAGES[nameLockReason].ariaLabel, {owners: ownersLabel}) : formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel);
+
+                                            const editLinkButton = (
+                                                <button
+                                                    type='button'
+                                                    className='AttributeDetails__editLink'
+                                                    onClick={isEditingName ? handleDoneClick : handleEditClick}
+                                                    onMouseDown={(e) => {
+                                                        // Blur runs before click. Without this, Done would
+                                                        // commit on blur and the same click would re-open Edit.
+                                                        if (isEditingName) {
+                                                            e.preventDefault();
+                                                        }
+                                                    }}
+                                                    disabled={saving || effectiveDisabled || nameLocked}
+                                                    aria-disabled={isDoneBlocked || undefined}
+                                                    aria-describedby={isDoneBlocked ? 'attribute-unique-name-error' : undefined}
+                                                    aria-label={nameEditLinkAriaLabel}
+                                                    data-testid='attributeNameEditLink'
+                                                >
+                                                    <FormattedMessage {...(isEditingName ? messages.doneLink : messages.editLink)}/>
+                                                </button>
+                                            );
+
+                                            const nameLockTooltip = formatMessage(NAME_LOCK_MESSAGES[nameLockReason ?? 'appliesTo'].tooltip, {owners: ownersLabel});
+                                            return nameLocked ? (
+                                                <WithTooltip title={nameLockTooltip}>
+                                                    <span
+                                                        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled button inside is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                                                        tabIndex={0}
+                                                        data-testid='attributeNameEditLinkLockWrap'
+                                                    >
+                                                        {editLinkButton}
+                                                    </span>
+                                                </WithTooltip>
+                                            ) : editLinkButton;
+                                        })()}
+                                    </span>
+                                    {nameValidationError && (
+                                        <div
+                                            id='attribute-unique-name-error'
+                                            className='AttributeDetails__uniqueNameError'
+                                            role='alert'
+                                            data-testid='attributeUniqueNameError'
+                                        >
+                                            {nameErrorMessage(nameValidationError, formatMessage)}
+                                        </div>
                                     )}
+                                    {autoSlugCollapsedToEmpty && (
+                                        <div
+                                            id='attribute-unique-name-empty-warning'
+                                            className='AttributeDetails__uniqueNameError'
+                                            role='alert'
+                                            data-testid='attributeUniqueNameEmptyWarning'
+                                        >
+                                            <FormattedMessage {...messages.couldNotGenerateName}/>
+                                        </div>
+                                    )}
+                                    {nameConflict && (
+                                        <div
+                                            className='AttributeDetails__nameConflict'
+
+                                            // Polite, not an alert: this updates on every
+                                            // keystroke while the admin is still typing a name.
+                                            role='status'
+                                            data-testid='attributeNameConflictWarning'
+                                        >
+                                            <SectionNotice
+                                                type={usersBlockedByNameConflict ? 'danger' : 'warning'}
+                                                title={formatMessage(nameConflictMessages.detailsNotice)}
+                                            />
+                                        </div>
+                                    )}
+                                    <p className='AttributeDetails__helperText'>
+                                        <FormattedMessage {...messages.helperText}/>
+                                    </p>
                                 </div>
                             </div>
-                        </AdminPanel>
+                        </div>
+                        <div className='AttributeDetails__row'>
+                            <span
+                                className='AttributeDetails__label'
+                                data-testid='attributeTypeLabel'
+                            >
+                                <FormattedMessage {...messages.typeLabel}/>
+                            </span>
+                            <div className='AttributeDetails__fieldControl'>
+                                {typeLocked ? (
+                                    <WithTooltip title={typeLockTooltip}>
+                                        <span
+                                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled Type menu button is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                                            tabIndex={0}
+                                            className='AttributeDetails__typeLockWrap'
+                                            data-testid='attributeTypeLockWrap'
+                                        >
+                                            {typeMenu}
+                                        </span>
+                                    </WithTooltip>
+                                ) : typeMenu}
+                            </div>
+                        </div>
+                        <div className='AttributeDetails__row'>
+                            <span
+                                className='AttributeDetails__label'
+                                data-testid='attributeOptionsLabel'
+                            >
+                                <FormattedMessage {...messages.optionsLabel}/>
+                            </span>
+                            <div className='AttributeDetails__fieldControl'>
+                                {optionsEditor}
+                                {isPluginOwned ? (
+                                    <AttributePluginSource
+                                        pluginId={sourcePluginId!}
+                                        isOrphaned={isOrphaned}
+                                        pluginInventoryLoaded={pluginInventoryLoaded}
+                                    />
+                                ) : (
+                                    <>
+                                        {isOwned && (
+                                            <AttributeOwnersSource
+                                                owners={owners}
+                                                pluginInventoryLoaded={pluginInventoryLoaded}
+                                            />
+                                        )}
+                                        {showsExternalSource && fieldType !== 'graph' && (
+                                            <AttributeExternalSource
+                                                ldapAttr={ldapAttr}
+                                                samlAttr={samlAttr}
+                                                fieldType={fieldType}
+                                                onLink={handleLink}
+                                                disabled={saving || effectiveDisabled}
+                                                disableAdding={typeLockedByAppliesTo && !canSyncAttributeType(fieldType)}
+                                            />
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </AdminPanel>
                     <AttributeAppliesTo
                         appliesTo={appliesTo}
                         allowedTypes={allowedResourceTypes}

@@ -1,34 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useCallback, useState } from "react";
-import { FormattedMessage, defineMessages } from "react-intl";
+import React, {useCallback, useState} from 'react';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {
     ContentFlaggingReviewerSetting,
     TeamReviewerSetting,
-} from "@mattermost/types/config";
+} from '@mattermost/types/config';
 
-import { Radio } from "@mattermost/compass-ui/components/radio";
+import CheckboxSetting from 'components/admin_console/checkbox_setting';
+import TeamReviewers from 'components/admin_console/content_flagging/content_reviewers/team_reviewers_section/team_reviewers_section';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
-import CheckboxSetting from "components/admin_console/checkbox_setting";
-import TeamReviewers from "components/admin_console/content_flagging/content_reviewers/team_reviewers_section/team_reviewers_section";
-import AdminPanel from "components/widgets/admin_console/admin_panel";
+import {UserSelector} from '../../content_flagging/user_multiselector/user_multiselector';
+import type {SystemConsoleCustomSettingChangeHandler} from '../../schema_admin_settings';
 
-import { UserSelector } from "../../content_flagging/user_multiselector/user_multiselector";
-import type { SystemConsoleCustomSettingChangeHandler } from "../../schema_admin_settings";
-
-import "../content_flagging_section_base.scss";
-import "./content_reviewers.scss";
+import '../content_flagging_section_base.scss';
+import './content_reviewers.scss';
 
 const messages = defineMessages({
     title: {
-        id: "admin.dataSpillage.reviewerSettings.title",
-        defaultMessage: "Content Reviewers",
+        id: 'admin.dataSpillage.reviewerSettings.title',
+        defaultMessage: 'Content Reviewers',
     },
     description: {
-        id: "admin.dataSpillage.reviewerSettings.description",
-        defaultMessage: "Define who should review content in your environment",
+        id: 'admin.dataSpillage.reviewerSettings.description',
+        defaultMessage: 'Define who should review content in your environment',
     },
 });
 
@@ -54,7 +53,7 @@ export default function ContentFlaggingContentReviewers({
         (event: React.ChangeEvent<HTMLInputElement>) => {
             const updatedSetting: ContentFlaggingReviewerSetting = {
                 ...reviewerSetting,
-                CommonReviewers: event.target.value === "true",
+                CommonReviewers: event.target.value === 'true',
             };
 
             setReviewerSetting(updatedSetting);
@@ -117,66 +116,66 @@ export default function ContentFlaggingContentReviewers({
 
     return (
         <AdminPanel
-            id="content_reviewers"
+            id='content_reviewers'
             title={messages.title}
             subtitle={messages.description}
         >
-            <div className="content-flagging-section-setting-wrapper">
+            <div className='content-flagging-section-setting-wrapper'>
                 {/* Same reviewers for all teams */}
-                <div className="content-flagging-section-setting">
-                    <div className="setting-title">
+                <div className='content-flagging-section-setting'>
+                    <div className='setting-title'>
                         <FormattedMessage
-                            id="admin.dataSpillage.reviewerSettings.sameReviewersForAllTeams"
-                            defaultMessage="Same reviewers for all teams:"
+                            id='admin.dataSpillage.reviewerSettings.sameReviewersForAllTeams'
+                            defaultMessage='Same reviewers for all teams:'
                         />
                     </div>
 
-                    <div className="setting-content">
+                    <div className='setting-content'>
                         <Radio
-                            data-testid="sameReviewersForAllTeams_true"
-                            id="sameReviewersForAllTeams_true"
-                            name="sameReviewersForAllTeams"
-                            value="true"
+                            data-testid='sameReviewersForAllTeams_true'
+                            id='sameReviewersForAllTeams_true'
+                            name='sameReviewersForAllTeams'
+                            value='true'
                             checked={reviewerSetting.CommonReviewers}
                             onChange={handleSameReviewersForAllTeamsChange}
                             disabled={disabled}
                         >
                             <FormattedMessage
-                                id="admin.true"
-                                defaultMessage="True"
+                                id='admin.true'
+                                defaultMessage='True'
                             />
                         </Radio>
 
                         <Radio
-                            data-testid="sameReviewersForAllTeams_false"
-                            id="sameReviewersForAllTeams_false"
-                            name="sameReviewersForAllTeams"
-                            value="false"
+                            data-testid='sameReviewersForAllTeams_false'
+                            id='sameReviewersForAllTeams_false'
+                            name='sameReviewersForAllTeams'
+                            value='false'
                             checked={!reviewerSetting.CommonReviewers}
                             onChange={handleSameReviewersForAllTeamsChange}
                             disabled={disabled}
                         >
                             <FormattedMessage
-                                id="admin.false"
-                                defaultMessage="False"
+                                id='admin.false'
+                                defaultMessage='False'
                             />
                         </Radio>
                     </div>
                 </div>
 
                 {reviewerSetting.CommonReviewers && (
-                    <div className="content-flagging-section-setting">
-                        <div className="setting-title">
+                    <div className='content-flagging-section-setting'>
+                        <div className='setting-title'>
                             <FormattedMessage
-                                id="admin.dataSpillage.reviewerSettings.commonReviewers"
-                                defaultMessage="Reviewers:"
+                                id='admin.dataSpillage.reviewerSettings.commonReviewers'
+                                defaultMessage='Reviewers:'
                             />
                         </div>
 
-                        <div className="setting-content">
+                        <div className='setting-content'>
                             <UserSelector
                                 isMulti={true}
-                                id="content_reviewers_common_reviewers"
+                                id='content_reviewers_common_reviewers'
                                 multiSelectInitialValue={
                                     reviewerSetting.CommonReviewerIds
                                 }
@@ -190,11 +189,11 @@ export default function ContentFlaggingContentReviewers({
                 )}
 
                 {!reviewerSetting.CommonReviewers && (
-                    <div className="content-flagging-section-setting teamSpecificReviewerSection">
-                        <div className="setting-title">
+                    <div className='content-flagging-section-setting teamSpecificReviewerSection'>
+                        <div className='setting-title'>
                             <FormattedMessage
-                                id="admin.dataSpillage.reviewerSettings.perTeamReviewers.title"
-                                defaultMessage="Configure data spillage handling per team"
+                                id='admin.dataSpillage.reviewerSettings.perTeamReviewers.title'
+                                defaultMessage='Configure data spillage handling per team'
                             />
                         </div>
 
@@ -208,22 +207,22 @@ export default function ContentFlaggingContentReviewers({
                     </div>
                 )}
 
-                <div className="content-flagging-section-setting">
-                    <div className="setting-title">
+                <div className='content-flagging-section-setting'>
+                    <div className='setting-title'>
                         <FormattedMessage
-                            id="admin.dataSpillage.reviewerSettings.additionalReviewers"
-                            defaultMessage="Additional reviewers"
+                            id='admin.dataSpillage.reviewerSettings.additionalReviewers'
+                            defaultMessage='Additional reviewers'
                         />
                     </div>
 
-                    <div className="setting-content-wrapper">
-                        <div className="setting-content">
+                    <div className='setting-content-wrapper'>
+                        <div className='setting-content'>
                             <CheckboxSetting
-                                id="notifyOnDismissal_reviewers"
+                                id='notifyOnDismissal_reviewers'
                                 label={
                                     <FormattedMessage
-                                        id="admin.dataSpillage.reviewerSettings.additionalReviewers.systemAdmins"
-                                        defaultMessage="System Administrators"
+                                        id='admin.dataSpillage.reviewerSettings.additionalReviewers.systemAdmins'
+                                        defaultMessage='System Administrators'
                                     />
                                 }
                                 defaultChecked={
@@ -235,11 +234,11 @@ export default function ContentFlaggingContentReviewers({
                             />
 
                             <CheckboxSetting
-                                id="notifyOnDismissal_author"
+                                id='notifyOnDismissal_author'
                                 label={
                                     <FormattedMessage
-                                        id="admin.dataSpillage.reviewerSettings.additionalReviewers.teamAdmins"
-                                        defaultMessage="Team Administrators"
+                                        id='admin.dataSpillage.reviewerSettings.additionalReviewers.teamAdmins'
+                                        defaultMessage='Team Administrators'
                                     />
                                 }
                                 defaultChecked={
@@ -251,10 +250,10 @@ export default function ContentFlaggingContentReviewers({
                             />
                         </div>
 
-                        <div className="helpText">
+                        <div className='helpText'>
                             <FormattedMessage
-                                id="admin.dataSpillage.reviewerSettings.additionalReviewers.helpText"
-                                defaultMessage="If enabled, system administrators will be sent quarantined posts for review from every team that they are a part of. Team administrators will only be sent quarantined posts for review from their respective teams."
+                                id='admin.dataSpillage.reviewerSettings.additionalReviewers.helpText'
+                                defaultMessage='If enabled, system administrators will be sent quarantined posts for review from every team that they are a part of. Team administrators will only be sent quarantined posts for review from their respective teams.'
                             />
                         </div>
                     </div>

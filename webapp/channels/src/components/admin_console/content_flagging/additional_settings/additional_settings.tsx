@@ -1,32 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { type ChangeEvent, useCallback, useMemo } from "react";
-import { FormattedMessage, defineMessages } from "react-intl";
-import type { OnChangeValue } from "react-select";
-import CreatableReactSelect from "react-select/creatable";
+import React, {type ChangeEvent, useCallback, useMemo} from 'react';
+import {FormattedMessage, defineMessages} from 'react-intl';
+import type {OnChangeValue} from 'react-select';
+import CreatableReactSelect from 'react-select/creatable';
 
-import type { ContentFlaggingAdditionalSettings } from "@mattermost/types/config";
+import {Radio} from '@mattermost/compass-ui/components/radio';
+import type {ContentFlaggingAdditionalSettings} from '@mattermost/types/config';
 
-import { Radio } from "@mattermost/compass-ui/components/radio";
+import type {SystemConsoleCustomSettingChangeHandler} from 'components/admin_console/schema_admin_settings';
+import {CreatableReactSelectInput} from 'components/user_settings/notifications/user_settings_notifications';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
-import type { SystemConsoleCustomSettingChangeHandler } from "components/admin_console/schema_admin_settings";
-import { CreatableReactSelectInput } from "components/user_settings/notifications/user_settings_notifications";
-import AdminPanel from "components/widgets/admin_console/admin_panel";
+import {ReasonOption} from './reason_option';
 
-import { ReasonOption } from "./reason_option";
-
-import "../content_flagging_section_base.scss";
-import "./additional_settings.scss";
+import '../content_flagging_section_base.scss';
+import './additional_settings.scss';
 
 const messages = defineMessages({
     title: {
-        id: "admin.dataSpillage.additionalSettings.title",
-        defaultMessage: "Additional Settings",
+        id: 'admin.dataSpillage.additionalSettings.title',
+        defaultMessage: 'Additional Settings',
     },
     description: {
-        id: "admin.dataSpillage.additionalSettings.description",
-        defaultMessage: "Configure how you want the quarantine to behave",
+        id: 'admin.dataSpillage.additionalSettings.description',
+        defaultMessage: 'Configure how you want the quarantine to behave',
     },
 });
 
@@ -49,7 +48,7 @@ export default function ContentFlaggingAdditionalSettingsSection({
         );
 
     const handleReasonsChange = useCallback(
-        (newValues: OnChangeValue<{ value: string }, true>) => {
+        (newValues: OnChangeValue<{value: string}, true>) => {
             const updatedSettings: ContentFlaggingAdditionalSettings = {
                 ...additionalSettings,
                 Reasons: newValues.map((v) => v.value),
@@ -64,7 +63,7 @@ export default function ContentFlaggingAdditionalSettingsSection({
         (e: ChangeEvent<HTMLInputElement>) => {
             const updatedSettings: ContentFlaggingAdditionalSettings = {
                 ...additionalSettings,
-                ReporterCommentRequired: e.target.value === "true",
+                ReporterCommentRequired: e.target.value === 'true',
             };
             setAdditionalSettings(updatedSettings);
             onChange(id, updatedSettings);
@@ -76,7 +75,7 @@ export default function ContentFlaggingAdditionalSettingsSection({
         (e: ChangeEvent<HTMLInputElement>) => {
             const updatedSettings: ContentFlaggingAdditionalSettings = {
                 ...additionalSettings,
-                ReviewerCommentRequired: e.target.value === "true",
+                ReviewerCommentRequired: e.target.value === 'true',
             };
             setAdditionalSettings(updatedSettings);
             onChange(id, updatedSettings);
@@ -88,7 +87,7 @@ export default function ContentFlaggingAdditionalSettingsSection({
         (e: ChangeEvent<HTMLInputElement>) => {
             const updatedSettings: ContentFlaggingAdditionalSettings = {
                 ...additionalSettings,
-                HideFlaggedContent: e.target.value === "true",
+                HideFlaggedContent: e.target.value === 'true',
             };
             setAdditionalSettings(updatedSettings);
             onChange(id, updatedSettings);
@@ -105,29 +104,29 @@ export default function ContentFlaggingAdditionalSettingsSection({
 
     return (
         <AdminPanel
-            id="additional_settings"
+            id='additional_settings'
             title={messages.title}
             subtitle={messages.description}
         >
-            <div className="content-flagging-section-setting-wrapper">
+            <div className='content-flagging-section-setting-wrapper'>
                 {/*Reasons for flagging*/}
-                <div className="content-flagging-section-setting">
-                    <div className="setting-title">
+                <div className='content-flagging-section-setting'>
+                    <div className='setting-title'>
                         <FormattedMessage
-                            id="admin.dataSpillage.additionalSettings.reasonsForFlagging"
-                            defaultMessage="Reasons for quarantine"
+                            id='admin.dataSpillage.additionalSettings.reasonsForFlagging'
+                            defaultMessage='Reasons for quarantine'
                         />
                     </div>
 
-                    <div className="setting-content">
+                    <div className='setting-content'>
                         <CreatableReactSelect
-                            className="contentFlaggingReasons"
-                            classNamePrefix="contentFlaggingReasons_"
-                            inputId="contentFlaggingReasons"
+                            className='contentFlaggingReasons'
+                            classNamePrefix='contentFlaggingReasons_'
+                            inputId='contentFlaggingReasons'
                             isClearable={false}
                             isMulti={true}
                             value={reasonOptions}
-                            placeholder={"Type and press Tab to add a reason"}
+                            placeholder={'Type and press Tab to add a reason'}
                             onChange={handleReasonsChange}
                             isDisabled={disabled}
                             components={{
@@ -142,35 +141,35 @@ export default function ContentFlaggingAdditionalSettingsSection({
                     </div>
                 </div>
 
-                <div className="content-flagging-section-setting">
-                    <div className="setting-title">
+                <div className='content-flagging-section-setting'>
+                    <div className='setting-title'>
                         <FormattedMessage
-                            id="admin.dataSpillage.additionalSettings.requireReporterComment"
-                            defaultMessage="Require reporters to add comment"
+                            id='admin.dataSpillage.additionalSettings.requireReporterComment'
+                            defaultMessage='Require reporters to add comment'
                         />
                     </div>
 
-                    <div className="setting-content">
+                    <div className='setting-content'>
                         <Radio
-                            data-testid="requireReporterComment_true"
-                            id="requireReporterComment_true"
-                            name="requireReporterComment"
-                            value="true"
+                            data-testid='requireReporterComment_true'
+                            id='requireReporterComment_true'
+                            name='requireReporterComment'
+                            value='true'
                             checked={additionalSettings.ReporterCommentRequired}
                             onChange={handleRequireReporterCommentChange}
                             disabled={disabled}
                         >
                             <FormattedMessage
-                                id="admin.true"
-                                defaultMessage="True"
+                                id='admin.true'
+                                defaultMessage='True'
                             />
                         </Radio>
 
                         <Radio
-                            data-testid="requireReporterComment_false"
-                            id="requireReporterComment_false"
-                            name="requireReporterComment"
-                            value="false"
+                            data-testid='requireReporterComment_false'
+                            id='requireReporterComment_false'
+                            name='requireReporterComment'
+                            value='false'
                             checked={
                                 !additionalSettings.ReporterCommentRequired
                             }
@@ -178,42 +177,42 @@ export default function ContentFlaggingAdditionalSettingsSection({
                             disabled={disabled}
                         >
                             <FormattedMessage
-                                id="admin.false"
-                                defaultMessage="False"
+                                id='admin.false'
+                                defaultMessage='False'
                             />
                         </Radio>
                     </div>
                 </div>
 
-                <div className="content-flagging-section-setting">
-                    <div className="setting-title">
+                <div className='content-flagging-section-setting'>
+                    <div className='setting-title'>
                         <FormattedMessage
-                            id="admin.dataSpillage.additionalSettings.requireReviewerComment"
-                            defaultMessage="Require reviewers to add comment"
+                            id='admin.dataSpillage.additionalSettings.requireReviewerComment'
+                            defaultMessage='Require reviewers to add comment'
                         />
                     </div>
 
-                    <div className="setting-content">
+                    <div className='setting-content'>
                         <Radio
-                            data-testid="requireReviewerComment_true"
-                            id="requireReviewerComment_true"
-                            name="requireReviewerComment"
-                            value="true"
+                            data-testid='requireReviewerComment_true'
+                            id='requireReviewerComment_true'
+                            name='requireReviewerComment'
+                            value='true'
                             checked={additionalSettings.ReviewerCommentRequired}
                             onChange={handleRequireReviewerCommentChange}
                             disabled={disabled}
                         >
                             <FormattedMessage
-                                id="admin.true"
-                                defaultMessage="True"
+                                id='admin.true'
+                                defaultMessage='True'
                             />
                         </Radio>
 
                         <Radio
-                            data-testid="requireReviewerComment_false"
-                            id="requireReviewerComment_false"
-                            name="requireReviewerComment"
-                            value="false"
+                            data-testid='requireReviewerComment_false'
+                            id='requireReviewerComment_false'
+                            name='requireReviewerComment'
+                            value='false'
                             checked={
                                 !additionalSettings.ReviewerCommentRequired
                             }
@@ -221,49 +220,49 @@ export default function ContentFlaggingAdditionalSettingsSection({
                             disabled={disabled}
                         >
                             <FormattedMessage
-                                id="admin.false"
-                                defaultMessage="False"
+                                id='admin.false'
+                                defaultMessage='False'
                             />
                         </Radio>
                     </div>
                 </div>
 
-                <div className="content-flagging-section-setting">
-                    <div className="setting-title">
+                <div className='content-flagging-section-setting'>
+                    <div className='setting-title'>
                         <FormattedMessage
-                            id="admin.dataSpillage.additionalSettings.hideFlaggedPosts"
-                            defaultMessage="Hide message from channel while it is being reviewed"
+                            id='admin.dataSpillage.additionalSettings.hideFlaggedPosts'
+                            defaultMessage='Hide message from channel while it is being reviewed'
                         />
                     </div>
 
-                    <div className="setting-content">
+                    <div className='setting-content'>
                         <Radio
-                            data-testid="hideFlaggedPosts_true"
-                            id="hideFlaggedPosts_true"
-                            name="hideFlaggedPosts"
-                            value="true"
+                            data-testid='hideFlaggedPosts_true'
+                            id='hideFlaggedPosts_true'
+                            name='hideFlaggedPosts'
+                            value='true'
                             checked={additionalSettings.HideFlaggedContent}
                             onChange={handleHideFlaggedPosts}
                             disabled={disabled}
                         >
                             <FormattedMessage
-                                id="admin.true"
-                                defaultMessage="True"
+                                id='admin.true'
+                                defaultMessage='True'
                             />
                         </Radio>
 
                         <Radio
-                            data-testid="setHideFlaggedPosts_false"
-                            id="setHideFlaggedPosts_false"
-                            name="hideFlaggedPosts"
-                            value="false"
+                            data-testid='setHideFlaggedPosts_false'
+                            id='setHideFlaggedPosts_false'
+                            name='hideFlaggedPosts'
+                            value='false'
                             checked={!additionalSettings.HideFlaggedContent}
                             onChange={handleHideFlaggedPosts}
                             disabled={disabled}
                         >
                             <FormattedMessage
-                                id="admin.false"
-                                defaultMessage="False"
+                                id='admin.false'
+                                defaultMessage='False'
                             />
                         </Radio>
                     </div>

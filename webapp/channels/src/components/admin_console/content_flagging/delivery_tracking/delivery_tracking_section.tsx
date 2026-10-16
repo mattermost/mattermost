@@ -1,26 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useCallback } from "react";
-import { FormattedMessage, defineMessages } from "react-intl";
+import React, {useCallback} from 'react';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
-import type { DeliveryTrackingConfig } from "@mattermost/types/delivery_tracking";
+import {Radio} from '@mattermost/compass-ui/components/radio';
+import type {DeliveryTrackingConfig} from '@mattermost/types/delivery_tracking';
 
-import { Radio } from "@mattermost/compass-ui/components/radio";
+import ChannelMultiSelector from 'components/admin_console/content_flagging/delivery_tracking/channel_multiselector';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
-import ChannelMultiSelector from "components/admin_console/content_flagging/delivery_tracking/channel_multiselector";
-import AdminPanel from "components/widgets/admin_console/admin_panel";
-
-import "../content_flagging_section_base.scss";
-import "./delivery_tracking_section.scss";
+import '../content_flagging_section_base.scss';
+import './delivery_tracking_section.scss';
 
 const messages = defineMessages({
     title: {
-        id: "admin.dataSpillage.deliveryTracking.title",
-        defaultMessage: "Post Delivery Audit Logging",
+        id: 'admin.dataSpillage.deliveryTracking.title',
+        defaultMessage: 'Post Delivery Audit Logging',
     },
     description: {
-        id: "admin.dataSpillage.deliveryTracking.description",
+        id: 'admin.dataSpillage.deliveryTracking.description',
         defaultMessage:
             "Record an audit log entry each time a message is delivered to a user, so you can determine who a quarantined message reached. Delivery records add storage and processing cost, so enable them only where they're needed.",
     },
@@ -42,7 +41,7 @@ export default function DeliveryTrackingSection({
 }: Props) {
     const handleEnableChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            onChange({ ...value, Enable: e.target.value === "true" });
+            onChange({...value, Enable: e.target.value === 'true'});
         },
         [value, onChange],
     );
@@ -51,7 +50,7 @@ export default function DeliveryTrackingSection({
         (e: React.ChangeEvent<HTMLInputElement>) => {
             onChange({
                 ...value,
-                EnableForAllChannels: e.target.value === "true",
+                EnableForAllChannels: e.target.value === 'true',
             });
         },
         [value, onChange],
@@ -59,109 +58,109 @@ export default function DeliveryTrackingSection({
 
     const handleChannelsChange = useCallback(
         (channelIds: string[]) => {
-            onChange({ ...value, ChannelIds: channelIds });
+            onChange({...value, ChannelIds: channelIds});
         },
         [value, onChange],
     );
 
     return (
         <AdminPanel
-            id="deliveryTrackingSection"
-            data-testid="deliveryTrackingSection"
+            id='deliveryTrackingSection'
+            data-testid='deliveryTrackingSection'
             title={messages.title}
             subtitle={messages.description}
             showBeta={true}
-            betaLabel="BETA"
+            betaLabel='BETA'
         >
-            <div className="content-flagging-section-setting-wrapper">
-                <div className="content-flagging-section-setting">
-                    <div className="setting-title">
+            <div className='content-flagging-section-setting-wrapper'>
+                <div className='content-flagging-section-setting'>
+                    <div className='setting-title'>
                         <FormattedMessage
-                            id="admin.dataSpillage.deliveryTracking.enable"
-                            defaultMessage="Enable post delivery audit logging"
+                            id='admin.dataSpillage.deliveryTracking.enable'
+                            defaultMessage='Enable post delivery audit logging'
                         />
                     </div>
 
-                    <div className="setting-content-wrapper">
-                        <div className="setting-content">
+                    <div className='setting-content-wrapper'>
+                        <div className='setting-content'>
                             <Radio
-                                data-testid="deliveryTrackingEnable_true"
-                                name="deliveryTrackingEnable"
-                                value="true"
+                                data-testid='deliveryTrackingEnable_true'
+                                name='deliveryTrackingEnable'
+                                value='true'
                                 checked={value.Enable}
                                 onChange={handleEnableChange}
                             >
                                 <FormattedMessage
-                                    id="admin.true"
-                                    defaultMessage="True"
+                                    id='admin.true'
+                                    defaultMessage='True'
                                 />
                             </Radio>
 
                             <Radio
-                                data-testid="deliveryTrackingEnable_false"
-                                name="deliveryTrackingEnable"
-                                value="false"
+                                data-testid='deliveryTrackingEnable_false'
+                                name='deliveryTrackingEnable'
+                                value='false'
                                 checked={!value.Enable}
                                 onChange={handleEnableChange}
                             >
                                 <FormattedMessage
-                                    id="admin.false"
-                                    defaultMessage="False"
+                                    id='admin.false'
+                                    defaultMessage='False'
                                 />
                             </Radio>
                         </div>
 
-                        <div className="helpText">
+                        <div className='helpText'>
                             <FormattedMessage
-                                id="admin.dataSpillage.deliveryTracking.enable.help"
-                                defaultMessage="When true, an audit log entry is recorded each time a message is delivered to a user. These records are written to the audit log only and are not surfaced anywhere in the Mattermost interface."
+                                id='admin.dataSpillage.deliveryTracking.enable.help'
+                                defaultMessage='When true, an audit log entry is recorded each time a message is delivered to a user. These records are written to the audit log only and are not surfaced anywhere in the Mattermost interface.'
                             />
                         </div>
                     </div>
                 </div>
 
                 {value.Enable && (
-                    <div className="content-flagging-section-setting">
-                        <div className="setting-title">
+                    <div className='content-flagging-section-setting'>
+                        <div className='setting-title'>
                             <FormattedMessage
-                                id="admin.dataSpillage.deliveryTracking.trackIn"
-                                defaultMessage="Record deliveries in"
+                                id='admin.dataSpillage.deliveryTracking.trackIn'
+                                defaultMessage='Record deliveries in'
                             />
                         </div>
 
-                        <div className="setting-content-wrapper">
-                            <div className="setting-content">
+                        <div className='setting-content-wrapper'>
+                            <div className='setting-content'>
                                 <Radio
-                                    data-testid="deliveryTrackingAllChannels_true"
-                                    name="deliveryTrackingAllChannels"
-                                    value="true"
+                                    data-testid='deliveryTrackingAllChannels_true'
+                                    name='deliveryTrackingAllChannels'
+                                    value='true'
                                     checked={value.EnableForAllChannels}
                                     onChange={handleAllChannelsChange}
                                 >
                                     <FormattedMessage
-                                        id="admin.dataSpillage.deliveryTracking.trackIn.allChannels"
-                                        defaultMessage="All channels"
+                                        id='admin.dataSpillage.deliveryTracking.trackIn.allChannels'
+                                        defaultMessage='All channels'
                                     />
                                 </Radio>
 
                                 <Radio
-                                    data-testid="deliveryTrackingAllChannels_false"
-                                    name="deliveryTrackingAllChannels"
-                                    value="false"
+                                    data-testid='deliveryTrackingAllChannels_false'
+                                    name='deliveryTrackingAllChannels'
+                                    value='false'
                                     checked={!value.EnableForAllChannels}
                                     onChange={handleAllChannelsChange}
                                 >
                                     <FormattedMessage
-                                        id="admin.dataSpillage.deliveryTracking.trackIn.selectedChannels"
-                                        defaultMessage="Selected channels"
+                                        id='admin.dataSpillage.deliveryTracking.trackIn.selectedChannels'
+                                        defaultMessage='Selected channels'
                                     />
                                 </Radio>
                             </div>
 
-                            <div className="helpText">
+                            <div className='helpText'>
                                 <FormattedMessage
-                                    id="admin.dataSpillage.deliveryTracking.trackIn.help"
-                                    defaultMessage="Recording deliveries in all channels is the most complete option, but also the most expensive. Limit it to the channels where data spillage matters to keep storage and performance in check."
+                                    id='admin.dataSpillage.deliveryTracking.trackIn.help'
+                                    defaultMessage='Recording deliveries in all channels is the most complete option, but also the most expensive. Limit it to the channels where data spillage matters to keep storage and performance in check.'
                                 />
                             </div>
                         </div>
@@ -169,18 +168,18 @@ export default function DeliveryTrackingSection({
                 )}
 
                 {value.Enable && !value.EnableForAllChannels && (
-                    <div className="content-flagging-section-setting">
-                        <div className="setting-title">
+                    <div className='content-flagging-section-setting'>
+                        <div className='setting-title'>
                             <FormattedMessage
-                                id="admin.dataSpillage.deliveryTracking.channels"
-                                defaultMessage="Channels to record deliveries in"
+                                id='admin.dataSpillage.deliveryTracking.channels'
+                                defaultMessage='Channels to record deliveries in'
                             />
                         </div>
 
-                        <div className="setting-content-wrapper">
-                            <div className="setting-content">
+                        <div className='setting-content-wrapper'>
+                            <div className='setting-content'>
                                 <ChannelMultiSelector
-                                    id="delivery_tracking_channels"
+                                    id='delivery_tracking_channels'
                                     channelIds={value.ChannelIds}
                                     onChange={handleChannelsChange}
                                     hasError={hasError}
@@ -188,17 +187,17 @@ export default function DeliveryTrackingSection({
                             </div>
 
                             {hasError ? (
-                                <div className="deliveryTracking-error">
+                                <div className='deliveryTracking-error'>
                                     <FormattedMessage
-                                        id="admin.dataSpillage.deliveryTracking.channels.required"
-                                        defaultMessage="Select at least one channel, or choose All channels."
+                                        id='admin.dataSpillage.deliveryTracking.channels.required'
+                                        defaultMessage='Select at least one channel, or choose All channels.'
                                     />
                                 </div>
                             ) : (
-                                <div className="helpText">
+                                <div className='helpText'>
                                     <FormattedMessage
-                                        id="admin.dataSpillage.deliveryTracking.channels.help"
-                                        defaultMessage="Deliveries are recorded only in these channels. Recording starts when you save and applies to messages sent from then on."
+                                        id='admin.dataSpillage.deliveryTracking.channels.help'
+                                        defaultMessage='Deliveries are recorded only in these channels. Recording starts when you save and applies to messages sent from then on.'
                                     />
                                 </div>
                             )}
