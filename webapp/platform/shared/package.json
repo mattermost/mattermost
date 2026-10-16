@@ -72,7 +72,7 @@
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
     "parcel": "^2.16.3",
-    "react": "^19.2.8",
+    "react": "^19.3.1",
     "stylelint": "^16.26.1",
     "stylelint-config-idiomatic-order": "^10.0.0",
     "stylelint-config-recommended": "^14.0.1",
