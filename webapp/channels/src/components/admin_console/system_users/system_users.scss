@@ -1,5 +1,16 @@
 @use 'utils/_mixins';
 
+// Match Compass AdminPanel chrome (surface, border, radius, elevation).
+// Scoped to SystemUsers so shared admin-console__container / __wrapper
+// layout chrome is unchanged for other System Console pages. Do not set
+// overflow:hidden — filter, column, duration, and row-action menus escape.
+.admin-console .SystemUsers .SystemUsers__panel {
+    background: var(--center-channel-bg);
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: var(--radius-m);
+    box-shadow: var(--elevation-1);
+}
+
 table.systemUsersTable {
     thead {
         tr {
