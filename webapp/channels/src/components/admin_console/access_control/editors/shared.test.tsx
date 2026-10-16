@@ -7,7 +7,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {TestButton, celPrefixForField, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, referencesResourceAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isFieldAdvertisedOperator, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
+import {TestButton, celPrefixForField, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, referencesResourceAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isFieldAdvertisedOperator, isNativeMethodOperator, isValidYoungerThanDaysValue, isMaskingFailureExpression, OperatorLabel} from './shared';
 
 const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']>, type: UserPropertyField['type'] = 'text'): UserPropertyField => ({
     id: `id-${name}`,
@@ -28,6 +28,20 @@ const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']>, typ
     delete_at: 0,
     created_by: '',
     updated_by: '',
+});
+
+describe('isMaskingFailureExpression', () => {
+    it.each([
+        ['false', true],
+        [' false\n', true],
+        ['user.attributes.Program == "Dragon"', false],
+        ['user.attributes.Program == "Dragon" || false', false],
+        ['', false],
+        ['true', false],
+        ['False', false],
+    ])('%j -> %s', (input, expected) => {
+        expect(isMaskingFailureExpression(input)).toBe(expected);
+    });
 });
 
 describe('TestButton', () => {

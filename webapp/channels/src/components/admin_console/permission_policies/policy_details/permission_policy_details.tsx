@@ -31,7 +31,7 @@ import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttribute
 import {getHistory} from 'utils/browser_history';
 
 import CELEditor from '../../access_control/editors/cel_editor/editor';
-import {hasUsableAttributes, isSimpleExpression, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
+import {hasUsableAttributes, isMaskingFailureExpression, isSimpleExpression, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
 import TableEditor from '../../access_control/editors/table_editor/table_editor';
 
 import './permission_policy_details.scss';
@@ -147,6 +147,7 @@ function PermissionPolicyDetails({
     const [pageLoaded, setPageLoaded] = useState(false);
     const [loadFailed, setLoadFailed] = useState(false);
     const [showTest, setShowTest] = useState(false);
+    const [hasFalseRule, setHasFalseRule] = useState(false);
 
     const {formatMessage} = useIntl();
     const abacActions = useChannelAccessControlActions();
@@ -222,6 +223,7 @@ function PermissionPolicyDetails({
                 setSelectedRole(result.data?.roles?.[0] || 'system_user');
                 setSelectedPermissions(getPermissionActions(result.data?.rules || []));
                 setEditorMode(isSimpleExpression(loadedExpression) ? 'table' : 'cel');
+                setHasFalseRule((result.data?.rules || []).some((rule: AccessControlPolicyRule) => isMaskingFailureExpression(rule.expression || '')));
             });
             await Promise.all([fieldsPromise, policyPromise]);
         } else {
@@ -454,6 +456,22 @@ function PermissionPolicyDetails({
                                                 getHistory().push('/admin_console/system_attributes/manage_attributes');
                                             },
                                         }}
+                                    />
+                                </div>
+                            )}
+
+                            {hasFalseRule && (
+                                <div className='admin-console__warning-notice'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={formatMessage({
+                                            id: 'admin.permission_policies.edit.notice.false_rule.title',
+                                            defaultMessage: 'This policy\'s rule couldn\'t be read',
+                                        })}
+                                        text={formatMessage({
+                                            id: 'admin.permission_policies.edit.notice.false_rule.text',
+                                            defaultMessage: 'The server returned `false` for this policy\'s rule. Saving it denies these permissions to everyone it applies to.',
+                                        })}
                                     />
                                 </div>
                             )}

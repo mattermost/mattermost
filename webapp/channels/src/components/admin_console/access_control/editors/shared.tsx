@@ -23,6 +23,11 @@ import './shared.scss';
 // Sentinel emitted by the server in masked CEL expressions for values the caller cannot see.
 export const MASKED_VALUE_TOKEN_LITERAL = '"--------"';
 
+// The server replaces a rule it cannot mask with `false` (fail closed) in API responses only.
+export function isMaskingFailureExpression(expr: string): boolean {
+    return expr.trim() === 'false';
+}
+
 // The accessed channel's attributes, the comparison target for a rule about the
 // requesting user (whose own attributes are USER_ATTRIBUTE_CEL_PREFIX, below).
 export const RESOURCE_ATTRIBUTES_PREFIX = 'resource.attributes.';
