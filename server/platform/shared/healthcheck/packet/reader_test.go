@@ -162,6 +162,12 @@ func TestReadSnapshotFields(t *testing.T) {
 	assert.Empty(t, s.Version.Latest)
 	assert.False(t, s.IsCloud())
 
+	seats, ok := s.LicenseSeats()
+	require.True(t, ok)
+	assert.Equal(t, 500, seats)
+	_, ok = s.LicenseExpiresAt()
+	assert.False(t, ok)
+
 	license, ok := s.License()
 	require.True(t, ok)
 	assert.Equal(t, model.LicenseShortSkuEnterprise, license.SkuShortName)
@@ -300,6 +306,49 @@ func TestReadCloud(t *testing.T) {
 		codes = append(codes, f.Code)
 	}
 	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY"}, codes)
+}
+
+func TestReadLicense(t *testing.T) {
+	t.Run("maps the license summary", func(t *testing.T) {
+		files := fixtureFiles(t, "standalone")
+		files[model.SupportPacketDiagnosticsFileName] = bytes.Replace(files[model.SupportPacketDiagnosticsFileName],
+			[]byte("  sku_short_name: enterprise\n"),
+			[]byte("  sku_short_name: enterprise\n  is_trial: true\n  expires_at: 1792058400000\n  is_seat_count_enforced: true\n  extra_users: 5\n"), 1)
+
+		license, ok := readFiles(t, files).Snapshot.License()
+		require.True(t, ok)
+		assert.Equal(t, 500, license.Users)
+		assert.Equal(t, model.LicenseShortSkuEnterprise, license.SkuShortName)
+		assert.True(t, license.IsTrial)
+		assert.Equal(t, int64(1792058400000), license.ExpiresAt)
+		assert.True(t, license.IsSeatCountEnforced)
+		assert.Equal(t, new(5), license.ExtraUsers)
+	})
+
+	t.Run("an older packet has no expiry but keeps its seats", func(t *testing.T) {
+		s := readFiles(t, fixtureFiles(t, "standalone")).Snapshot
+
+		license, ok := s.License()
+		require.True(t, ok)
+		assert.False(t, license.IsSeatCountEnforced)
+		assert.Nil(t, license.ExtraUsers)
+		_, ok = s.LicenseExpiresAt()
+		assert.False(t, ok)
+		seats, ok := s.LicenseSeats()
+		require.True(t, ok)
+		assert.Equal(t, 500, seats)
+	})
+
+	t.Run("the leader's summary is read", func(t *testing.T) {
+		s := readFiles(t, fixtureFiles(t, "ha")).Snapshot
+
+		license, ok := s.License()
+		require.True(t, ok)
+		assert.True(t, license.IsSeatCountEnforced)
+		expiresAt, ok := s.LicenseExpiresAt()
+		require.True(t, ok)
+		assert.Equal(t, time.Date(2026, time.October, 15, 10, 0, 0, 0, time.UTC), expiresAt)
+	})
 }
 
 func TestReadMissingStats(t *testing.T) {

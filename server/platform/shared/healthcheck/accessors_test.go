@@ -5,6 +5,7 @@ package healthcheck
 
 import (
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
@@ -136,6 +137,56 @@ func TestLicense(t *testing.T) {
 		require.True(t, ok)
 		assert.Equal(t, model.LicenseShortSkuEnterprise, license.SkuShortName)
 		assert.True(t, s.IsCloud())
+	})
+}
+
+func TestLicenseSeats(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		snapshot *Snapshot
+		wantOK   bool
+	}{
+		{name: "nil snapshot", snapshot: nil},
+		{name: "no license", snapshot: &Snapshot{}},
+		{name: "zero users", snapshot: licensedSnapshot(model.SupportPacketLicense{})},
+		{name: "500 users", snapshot: licensedSnapshot(model.SupportPacketLicense{Users: 500}), wantOK: true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			seats, ok := tc.snapshot.LicenseSeats()
+			require.Equal(t, tc.wantOK, ok)
+			if tc.wantOK {
+				assert.Equal(t, 500, seats)
+			} else {
+				assert.Zero(t, seats)
+			}
+		})
+	}
+}
+
+func TestLicenseExpiresAt(t *testing.T) {
+	t.Parallel()
+
+	t.Run("no license", func(t *testing.T) {
+		_, ok := (&Snapshot{}).LicenseExpiresAt()
+		require.False(t, ok)
+	})
+
+	t.Run("expiry not recorded", func(t *testing.T) {
+		_, ok := licensedSnapshot(model.SupportPacketLicense{}).LicenseExpiresAt()
+		require.False(t, ok)
+	})
+
+	t.Run("millisecond expiry", func(t *testing.T) {
+		want := time.Date(2026, time.October, 15, 10, 30, 0, 123_000_000, time.UTC)
+		expiresAt, ok := licensedSnapshot(model.SupportPacketLicense{ExpiresAt: want.UnixMilli()}).LicenseExpiresAt()
+		require.True(t, ok)
+		assert.Equal(t, want, expiresAt)
 	})
 }
 
