@@ -738,10 +738,11 @@ describe('ClassificationMarkings component', () => {
     test('should show informational notice when loaded', async () => {
         mockFieldsByObjectType({});
 
-        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+        const {container} = renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
         await screen.findByText('True');
 
+        expect(container.querySelector('#classification_markings_settings.AdminPanel')).toBeInTheDocument();
         expect(screen.getByRole('heading', {name: 'Classification markings are informational only'})).toBeInTheDocument();
         expect(
             screen.getByText('Markings are not tied to access control decisions at this time and are for display purposes only.'),
@@ -1077,9 +1078,12 @@ describe('GlobalClassificationIndicators section', () => {
         });
         mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
-        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+        const {container} = renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Global Classification Indicators');
 
+        expect(container.querySelector('#classification_markings_settings.AdminPanel')).toBeInTheDocument();
+        expect(container.querySelector('#classification_levels.AdminPanel')).toBeInTheDocument();
+        expect(container.querySelector('#global_classification_indicators.AdminPanel')).toBeInTheDocument();
         expect(screen.getByText('Configure the global classification banner')).toBeInTheDocument();
         expect(screen.getByText('Global Classification Banner')).toBeInTheDocument();
     });
