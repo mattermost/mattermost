@@ -1,0 +1,1 @@
+ALTER TABLE IR_Incident ADD COLUMN IF NOT EXISTS RetrospectiveReminderIntervalSeconds BIGINT NOT NULL DEFAULT 0;
