@@ -303,6 +303,12 @@
         }
     }
 
+    // Compass Checkbox defaults to width: 100%; shrink and align with control-label.
+    .backstage-form__checkbox {
+        width: auto;
+        padding-top: 7px;
+    }
+
     .form-control {
         background: variables.$white;
 

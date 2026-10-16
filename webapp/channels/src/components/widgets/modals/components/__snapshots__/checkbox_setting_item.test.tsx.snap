@@ -1,0 +1,72 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/widgets/modals/components/CheckboxSettingItem should render Compass Checkbox with space-replaced id, name, and checked state 1`] = `
+<div>
+  <div
+    class="mm-modal-generic-section-item"
+  >
+    <h4
+      class="mm-modal-generic-section-item__title"
+      data-testid="mm-modal-generic-section-item__title"
+    >
+      Setting title
+    </h4>
+    <div
+      class="mm-modal-generic-section-item__content"
+      data-testid="mm-modal-generic-section-item__content"
+    >
+      <div
+        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+      >
+        <label
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 mm-modal-generic-section-item__fieldset-checkbox"
+          for="enable-feature"
+        >
+          <input
+            checked=""
+            class="_checkbox__input_1rll8_22"
+            data-testid="enable-feature-checkbox"
+            id="enable-feature"
+            name="enable feature"
+            type="checkbox"
+          />
+          <span
+            class="_checkbox__box_1rll8_41"
+          >
+            <span
+              class="_checkbox__icon_1rll8_66"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+          </span>
+          <span
+            class="_checkbox__label_1rll8_117"
+          >
+            Enable feature
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+`;

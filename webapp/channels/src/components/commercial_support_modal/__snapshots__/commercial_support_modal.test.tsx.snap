@@ -27,22 +27,109 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
           </strong>
         </div>
         <div
-          class="CommercialSupportModal__option"
+          class="CommercialSupportModal__options"
         >
-          <input
-            checked=""
-            class="CommercialSupportModal__options__checkbox"
-            disabled=""
-            id="basic.server.logs"
-            name="basic.server.logs"
-            type="checkbox"
-          />
-          <label
-            class="CommercialSupportModal__options_checkbox_label"
-            for="basic.server.logs"
+          <div
+            class="CommercialSupportModal__option"
           >
-            Server Logs
-          </label>
+            <label
+              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+              for="basic.contents"
+            >
+              <input
+                checked=""
+                class="_checkbox__input_1rll8_22"
+                disabled=""
+                id="basic.contents"
+                name="basic.contents"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_1rll8_41"
+              >
+                <span
+                  class="_checkbox__icon_1rll8_66"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </span>
+              <span
+                class="_checkbox__label_1rll8_117"
+              >
+                Basic contents
+              </span>
+            </label>
+          </div>
+          <div
+            class="CommercialSupportModal__option"
+          >
+            <label
+              class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135"
+              for="basic.server.logs"
+            >
+              <input
+                checked=""
+                class="_checkbox__input_1rll8_22"
+                id="basic.server.logs"
+                name="basic.server.logs"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_1rll8_41"
+              >
+                <span
+                  class="_checkbox__icon_1rll8_66"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </span>
+              <span
+                class="_checkbox__label_1rll8_117"
+              >
+                Server Logs
+              </span>
+            </label>
+          </div>
         </div>
         <div
           class="CommercialSupportModal__download"

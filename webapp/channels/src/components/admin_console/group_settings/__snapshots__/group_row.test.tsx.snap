@@ -12,68 +12,51 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
       <div
         class="group-name"
       >
-        <div
-          class="group-check checked"
+        <label
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+          for="_r_3_"
         >
-          <svg
-            height="18px"
-            viewBox="0 0 18 18"
-            width="18px"
+          <input
+            checked=""
+            class="_checkbox__input_1rll8_22"
+            id="_r_3_"
+            type="checkbox"
+          />
+          <span
+            class="_checkbox__box_1rll8_41"
           >
-            <g
-              fill-rule="evenodd"
-              id="Developer-Export"
-              stroke="none"
-              stroke-width="1"
+            <span
+              class="_checkbox__icon_1rll8_66"
             >
-              <g
-                id="All-Team-Members"
-                transform="translate(-285.000000, -933.000000)"
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
               >
-                <g
-                  transform="translate(245.000000, 698.000000)"
+                <div
+                  class="_icon__glyph-area_1i355_9"
                 >
-                  <g
-                    id="Channel-Administrators"
-                    transform="translate(0.000000, 106.000000)"
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <g
-                      id="data-table/column-1"
-                      transform="translate(11.000000, 86.000000)"
-                    >
-                      <g
-                        id="row-checkbox---Public-Channels"
-                        transform="translate(12.000000, 35.000000)"
-                      >
-                        <g
-                          id="Stacked-Group"
-                          transform="translate(0.000000, 5.000000)"
-                        >
-                          <g
-                            id="data-table/1st/row-checkbox-label-base"
-                          >
-                            <g
-                              id="check-on-copy-11"
-                              transform="translate(14.000000, 0.000000)"
-                            >
-                              <path
-                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                id="checkbox---checked"
-                              />
-                            </g>
-                          </g>
-                        </g>
-                      </g>
-                    </g>
-                  </g>
-                </g>
-              </g>
-            </g>
-          </svg>
-        </div>
-        <span>
-          name
-        </span>
+                    <path
+                      d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+          </span>
+          <span
+            class="_checkbox__label_1rll8_117"
+          >
+            name
+          </span>
+        </label>
       </div>
       <div
         class="group-content"
@@ -112,12 +95,24 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
       <div
         class="group-name"
       >
-        <div
-          class="group-check "
-        />
-        <span>
-          name
-        </span>
+        <label
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+          for="_r_4_"
+        >
+          <input
+            class="_checkbox__input_1rll8_22"
+            id="_r_4_"
+            type="checkbox"
+          />
+          <span
+            class="_checkbox__box_1rll8_41"
+          />
+          <span
+            class="_checkbox__label_1rll8_117"
+          >
+            name
+          </span>
+        </label>
       </div>
       <div
         class="group-content"
@@ -163,12 +158,24 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
       <div
         class="group-name"
       >
-        <div
-          class="group-check "
-        />
-        <span>
-          name
-        </span>
+        <label
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+          for="_r_5_"
+        >
+          <input
+            class="_checkbox__input_1rll8_22"
+            id="_r_5_"
+            type="checkbox"
+          />
+          <span
+            class="_checkbox__box_1rll8_41"
+          />
+          <span
+            class="_checkbox__label_1rll8_117"
+          >
+            name
+          </span>
+        </label>
       </div>
       <div
         class="group-content"
@@ -207,12 +214,24 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
       <div
         class="group-name"
       >
-        <div
-          class="group-check "
-        />
-        <span>
-          name
-        </span>
+        <label
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+          for="_r_0_"
+        >
+          <input
+            class="_checkbox__input_1rll8_22"
+            id="_r_0_"
+            type="checkbox"
+          />
+          <span
+            class="_checkbox__box_1rll8_41"
+          />
+          <span
+            class="_checkbox__label_1rll8_117"
+          >
+            name
+          </span>
+        </label>
       </div>
       <div
         class="group-content"
@@ -258,12 +277,24 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
       <div
         class="group-name"
       >
-        <div
-          class="group-check "
-        />
-        <span>
-          name
-        </span>
+        <label
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+          for="_r_1_"
+        >
+          <input
+            class="_checkbox__input_1rll8_22"
+            id="_r_1_"
+            type="checkbox"
+          />
+          <span
+            class="_checkbox__box_1rll8_41"
+          />
+          <span
+            class="_checkbox__label_1rll8_117"
+          >
+            name
+          </span>
+        </label>
       </div>
       <div
         class="group-content"
@@ -309,12 +340,24 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
       <div
         class="group-name"
       >
-        <div
-          class="group-check "
-        />
-        <span>
-          name
-        </span>
+        <label
+          class="_checkbox_1rll8_10 _checkbox--size-medium_1rll8_135 group-check"
+          for="_r_2_"
+        >
+          <input
+            class="_checkbox__input_1rll8_22"
+            id="_r_2_"
+            type="checkbox"
+          />
+          <span
+            class="_checkbox__box_1rll8_41"
+          />
+          <span
+            class="_checkbox__label_1rll8_117"
+          >
+            name
+          </span>
+        </label>
       </div>
       <div
         class="group-content"
