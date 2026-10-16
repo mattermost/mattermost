@@ -7,6 +7,8 @@ import type {AxeResults} from 'axe-core';
 import {AxeBuilder} from '@axe-core/playwright';
 
 import {TestBrowser} from './browser_context';
+import {isUpgradePathProjectSelected} from './upgrade_env';
+import {readGlobalSetupFailure} from './global_setup_failure';
 import {
     ensureLicense,
     ensurePluginsLoaded,
@@ -37,6 +39,9 @@ import {
     ensureAzurite,
     ensureElasticsearch,
     ensureFeatureFlag,
+    ensureDefaultServerEnv,
+    ensureInternalSiteUrl,
+    ensurePhase2MigrationCompleted,
     ensureKeycloak,
     ensureKeycloakOpenId,
     ensureLocalFile,
@@ -50,6 +55,7 @@ import {
     generateKeycloakUser,
     generateLdapUser,
     getAdminClient,
+    getAdminClientHealing,
     getAIBridgeMock,
     initSetup,
     installAndEnablePlugin,
@@ -65,6 +71,9 @@ import {
     opensearchServerConfig,
     recapCompletion,
     resetAIBridgeMock,
+    resetConfig,
+    resetRoles,
+    restorePendingConfigPatches,
     rewriteCompletion,
     runMmctl,
     samlServerConfig,
@@ -98,12 +107,16 @@ export {expect} from '@playwright/test';
 export type ExtendedFixtures = {
     axe: AxeBuilderExtended;
     pw: PlaywrightExtended;
+    cleanServerEnv: void;
+    resetConfigAndRoles: void;
 };
 
 type AxeBuilderOptions = {
     disableColorContrast?: boolean;
     disableLinkInTextBlock?: boolean;
 };
+
+let lastSpecFile: string | undefined;
 
 export const test = base.extend<ExtendedFixtures>({
     axe: async ({}, use) => {
@@ -115,6 +128,41 @@ export const test = base.extend<ExtendedFixtures>({
         await use(pw);
         await pw.testBrowser.close();
     },
+    // Reset config and roles before every test. Role defaults are generated from current
+    // master and can reference permissions an upgrade-path from-image predates, so skip the
+    // role reset there -- those projects verify an unmodified upgrade, not role content.
+    // Once per spec file, so a spec only sees the server env it sets itself (ensureFeatureFlag(), ensureMinio(), ...).
+    cleanServerEnv: [
+        async ({}, use, testInfo) => {
+            if (testInfo.file !== lastSpecFile && !readGlobalSetupFailure()) {
+                lastSpecFile = testInfo.file;
+                await ensureDefaultServerEnv();
+            }
+            await use();
+        },
+        {auto: true},
+    ],
+    resetConfigAndRoles: [
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- listed so it runs before this fixture
+        async ({cleanServerEnv}, use) => {
+            // globalSetup() records here instead of throwing when it fails, so Playwright still
+            // attempts this spec's tests. Fail them loudly with the recorded reason rather than
+            // silently proceeding against a server that never got into a known-good state.
+            const globalSetupFailure = readGlobalSetupFailure();
+            if (globalSetupFailure) {
+                throw new Error(globalSetupFailure);
+            }
+
+            const {adminClient} = await getAdminClientHealing();
+            await resetConfig(adminClient);
+            if (!isUpgradePathProjectSelected()) {
+                await resetRoles(adminClient);
+            }
+            await use();
+            await restorePendingConfigPatches();
+        },
+        {auto: true},
+    ],
 });
 
 export class PlaywrightExtended {
@@ -137,6 +185,8 @@ export class PlaywrightExtended {
     // ./server
     readonly ensurePluginsLoaded;
     readonly getAdminClient;
+    readonly resetConfig;
+    readonly resetRoles;
     readonly initSetup;
     readonly enableAIBridgeTestMode;
     readonly configureAIBridgeMock;
@@ -165,6 +215,8 @@ export class PlaywrightExtended {
     readonly ensureOpenldap;
     readonly ensureOpensearch;
     readonly ensurePostgresSearch;
+    readonly ensureInternalSiteUrl;
+    readonly ensurePhase2MigrationCompleted;
     readonly ensureServerEnv;
     readonly ensureSiteUrl;
     readonly generateKeycloakUser;
@@ -253,6 +305,8 @@ export class PlaywrightExtended {
         this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
+        this.resetConfig = resetConfig;
+        this.resetRoles = resetRoles;
         this.enableAIBridgeTestMode = enableAIBridgeTestMode;
         this.configureAIBridgeMock = configureAIBridgeMock;
         this.getAIBridgeMock = getAIBridgeMock;
@@ -281,6 +335,8 @@ export class PlaywrightExtended {
         this.ensureOpenldap = ensureOpenldap;
         this.ensureOpensearch = ensureOpensearch;
         this.ensurePostgresSearch = ensurePostgresSearch;
+        this.ensureInternalSiteUrl = ensureInternalSiteUrl;
+        this.ensurePhase2MigrationCompleted = ensurePhase2MigrationCompleted;
         this.ensureServerEnv = ensureServerEnv;
         this.ensureSiteUrl = ensureSiteUrl;
         this.generateKeycloakUser = generateKeycloakUser;

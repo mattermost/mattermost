@@ -7,7 +7,6 @@ import {
     disableChannelAutotranslation,
     enableAutotranslationConfig,
     enableChannelAutotranslation,
-    ensureAutotranslationPermissions,
     getAdminClient,
     hasAutotranslationLicense,
     setMockSourceLanguage,
@@ -137,7 +136,7 @@ test(
             mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
-        await ensureAutotranslationPermissions(adminClient);
+        await pw.resetRoles();
 
         const channelName = `autotranslation-admin-${pw.random.id()}`;
         const created = await adminClient.createChannel({
@@ -194,7 +193,7 @@ test(
             mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
-        await ensureAutotranslationPermissions(adminClient);
+        await pw.resetRoles();
 
         const channelName = `autotranslation-system-msg-${pw.random.id()}`;
         const created = await adminClient.createChannel({
