@@ -649,14 +649,15 @@ export class FileUpload extends PureComponent<Props, State> {
             />
         );
 
-        // aria-disabled, not the disabled attribute: a disabled button emits no pointer or focus
-        // events, so WithTooltip could never show the tooltip explaining the denial — the whole
-        // reason the control stays visible. Every upload entry point checks disabledByPolicy.
+        // asChild + disabled: IconButton applies aria-disabled and the disabled class (not the
+        // native disabled attribute), so WithTooltip can still explain policy denial / show the
+        // shortcut. Every upload entry point also checks disabledByPolicy.
         const attachmentButton = (onActivate?: (e: MouseEvent<HTMLButtonElement | HTMLAnchorElement> | TouchEvent) => void) => (
             <WithTooltip title={uploadTooltip}>
                 <IconButton
-                    id='fileUploadButton'
+                    asChild={true}
                     size='small'
+                    disabled={dimmed}
                     icon={
                         <Icon
                             glyph={
@@ -668,10 +669,14 @@ export class FileUpload extends PureComponent<Props, State> {
                         />
                     }
                     aria-label={buttonAriaLabel}
-                    aria-disabled={disabledByPolicy}
-                    onClick={onActivate}
-                    onTouchEnd={onActivate}
-                />
+                >
+                    <button
+                        id='fileUploadButton'
+                        type='button'
+                        onClick={onActivate}
+                        onTouchEnd={onActivate}
+                    />
+                </IconButton>
             </WithTooltip>
         );
 
@@ -765,7 +770,7 @@ export class FileUpload extends PureComponent<Props, State> {
         }
 
         return (
-            <div className={dimmed ? ' style--none btn-file__disabled' : 'style--none'}>
+            <div className='style--none'>
                 {bodyAction}
             </div>
         );
