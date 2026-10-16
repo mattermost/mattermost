@@ -10,7 +10,6 @@ import {
 import {
     BOT_SCOPE_PREFIX,
     findMatchingParen,
-    isBotScopeExpression,
     unwrapBotExpression,
 } from '../../editors/bot_scope';
 
@@ -56,7 +55,7 @@ function splitTopLevelOr(expr: string): string[] | null {
 // nests the fold as `((r1') || (r2')) || (r3')`. Every segment must be Bot-scoped.
 function unwrapBotRules(expr: string): string[] | null {
     const inner = stripEnclosingParens(expr);
-    if (isBotScopeExpression(inner)) {
+    if (inner.startsWith(BOT_SCOPE_PREFIX)) {
         return [unwrapBotExpression(inner)];
     }
     if (inner.startsWith(MASKED_BOT_SCOPE_PREFIX)) {

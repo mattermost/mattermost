@@ -521,7 +521,7 @@ function CELEditor({
                         disabledTooltip={
 
                             // An explicit parent tooltip paired with
-                            // `testButtonDisabled` wins, matching TableEditor.
+                            // `testButtonDisabled` wins.
                             (testButtonDisabled && testButtonTooltip) ||
                             (hasMaskedRows ? intl.formatMessage({
                                 id: 'admin.access_control.cel_editor.masked_values_tooltip',

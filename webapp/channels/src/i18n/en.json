@@ -10479,10 +10479,6 @@
     "defaultMessage": "This expression isn't valid. Check parentheses and quotes. Details: {error}",
     "description": "Same as bot_expression_invalid, when the server's expression check reports an error; {error} is the first error message from the server."
   },
-  "admin.permission_policies.edit.error.bot_scope_lost": {
-    "defaultMessage": "The saved policy no longer applies only to bot accounts. Review the expression and save again.",
-    "description": "Inline error after saving a Bot accounts policy when the stored rule no longer starts with the bot-only condition."
-  },
   "admin.permission_policies.edit.error.delete": {
     "defaultMessage": "Error deleting policy: {error}",
     "description": "Error message on the permission policy edit page when deletion fails; {error} is the server error detail."
@@ -10518,10 +10514,6 @@
   "admin.permission_policies.edit.info_banner.title": {
     "defaultMessage": "The permissions defined in this policy override the {link} when its conditions are met",
     "description": "Info banner title on the permission policy edit page; {link} is replaced with the 'system permission schemes' link text."
-  },
-  "admin.permission_policies.edit.members_bot_hint": {
-    "defaultMessage": "This policy will be treated as a Bot accounts policy.",
-    "description": "Help text under the rule editor on a Members permission policy whose expression starts with the bot-only condition, so it will be saved as a Bot accounts policy."
   },
   "admin.permission_policies.edit.name_exists": {
     "defaultMessage": "A policy with this name already exists. Please choose a different name.",

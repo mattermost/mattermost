@@ -6,10 +6,12 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {isSimpleExpression} from './shared';
 
-// A Bot accounts policy is a system_user policy whose every rule is stored as
-// `!user.isbot || (<E>\n)`. The server re-serializes on read but keeps this
-// prefix first and verbatim for a well-formed `E`.
+// A Bot accounts policy is a system_user policy flagged with `props.bot_scope: true`
+// whose rule is stored as `!user.isbot || (<E>\n)`. The server re-serializes on read
+// but keeps this prefix first and verbatim for a well-formed `E`.
 export const BOT_SCOPE_PREFIX = '!user.isbot || ';
+
+export const BOT_SCOPE_PROP = 'bot_scope';
 
 type ParenScan = {
     pairs: Map<number, number>;
@@ -84,15 +86,8 @@ function scanParens(s: string): ParenScan {
     return {pairs, balanced: balanced && stack.length === 0};
 }
 
-export function isBotScopeExpression(expr: string): boolean {
-    return expr.startsWith(BOT_SCOPE_PREFIX);
-}
-
-export function isBotScopePolicy(policy: Pick<AccessControlPolicy, 'roles' | 'rules'>): boolean {
-    const rules = policy.rules ?? [];
-    return policy.roles?.[0] === 'system_user' &&
-        rules.length > 0 &&
-        rules.every((rule) => isBotScopeExpression(rule.expression ?? ''));
+export function isBotScopePolicy(policy: Pick<AccessControlPolicy, 'props'>): boolean {
+    return policy.props?.[BOT_SCOPE_PROP] === true;
 }
 
 export function findMatchingParen(s: string, openIdx: number): number {
@@ -111,7 +106,7 @@ export function hasBalancedParens(expr: string): boolean {
 }
 
 export function unwrapBotExpression(expr: string): string {
-    if (!isBotScopeExpression(expr)) {
+    if (!expr.startsWith(BOT_SCOPE_PREFIX)) {
         return expr;
     }
 

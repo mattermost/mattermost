@@ -33,10 +33,10 @@ import {getHistory} from 'utils/browser_history';
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import {
+    BOT_SCOPE_PROP,
     getSyncedAttributeReferences,
     getTableEditorValue,
     hasBalancedParens,
-    isBotScopeExpression,
     isBotScopePolicy,
     isMaskingFailureExpression,
     unwrapBotExpression,
@@ -70,10 +70,6 @@ const botScopeErrorMessages = defineMessages({
     checkFailed: {
         id: 'admin.permission_policies.edit.error.bot_expression_check_failed',
         defaultMessage: 'Couldn\'t validate the expression. Try again.',
-    },
-    scopeLost: {
-        id: 'admin.permission_policies.edit.error.bot_scope_lost',
-        defaultMessage: 'The saved policy no longer applies only to bot accounts. Review the expression and save again.',
     },
 });
 
@@ -173,7 +169,6 @@ function PermissionPolicyDetails({
     const [loadFailed, setLoadFailed] = useState(false);
     const [showTest, setShowTest] = useState(false);
     const [hasFalseRule, setHasFalseRule] = useState(false);
-    const [savedPolicyId, setSavedPolicyId] = useState<string | undefined>(undefined);
     const submittingRef = useRef(false);
     const expressionRef = useRef(expression);
     expressionRef.current = expression;
@@ -238,8 +233,6 @@ function PermissionPolicyDetails({
         () => (isBotScope ? getSyncedAttributeReferences(expression, userFields) : []),
         [isBotScope, expression, userFields],
     );
-
-    const showMembersBotHint = selectedRole === 'system_user' && isBotScopeExpression(expression.trim());
 
     useEffect(() => {
         loadPage().finally(() => setPageLoaded(true));
@@ -348,8 +341,7 @@ function PermissionPolicyDetails({
         submittingRef.current = true;
         setSaving(true);
         try {
-            const botScope = isBotScope;
-            if (botScope) {
+            if (isBotScope) {
                 const validationError = await validateBotScopeExpression(expression.trim());
                 if (validationError) {
                     setServerError(validationError);
@@ -359,11 +351,12 @@ function PermissionPolicyDetails({
             }
 
             const result = await actions.createPolicy({
-                id: policyId || savedPolicyId || '',
+                id: policyId || '',
                 name: policyName,
-                rules: buildRulesWithActions(expression, selectedPermissions, botScope),
+                rules: buildRulesWithActions(expression, selectedPermissions, isBotScope),
                 roles: [toServerRole(selectedRole)],
                 type: 'permission',
+                ...(isBotScope ? {props: {[BOT_SCOPE_PROP]: true}} : {}),
             });
 
             if (result.error) {
@@ -375,15 +368,6 @@ function PermissionPolicyDetails({
                 } else {
                     setServerError(result.error.message);
                 }
-                return;
-            }
-
-            const saved: AccessControlPolicy | undefined = result.data;
-            if (botScope && !(saved && isBotScopePolicy(saved))) {
-                if (saved?.id) {
-                    setSavedPolicyId(saved.id);
-                }
-                setServerError(formatMessage(botScopeErrorMessages.scopeLost));
                 return;
             }
 
@@ -844,14 +828,6 @@ function PermissionPolicyDetails({
                                             ) : undefined}
                                         />
                                     )}
-                                    {showMembersBotHint && (
-                                        <div className='help-text pp-members-bot-hint'>
-                                            <FormattedMessage
-                                                id='admin.permission_policies.edit.members_bot_hint'
-                                                defaultMessage='This policy will be treated as a Bot accounts policy.'
-                                            />
-                                        </div>
-                                    )}
                                 </Card.Body>
                             </Card>
 
@@ -1024,7 +1000,7 @@ function PermissionPolicyDetails({
                         <SimulateAccessModal
                             onExited={() => setShowTest(false)}
                             policy={{
-                                id: policyId || savedPolicyId || '',
+                                id: policyId || '',
                                 name: policyName,
                                 type: 'permission',
                                 roles: [toServerRole(selectedRole)],

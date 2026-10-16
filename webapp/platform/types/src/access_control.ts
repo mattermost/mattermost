@@ -3,6 +3,13 @@
 
 import type {ChannelWithTeamData} from './channels';
 import type {UserProfile} from './users';
+export type AccessControlPolicyProps = {
+    child_ids?: string[];
+    channel_count?: number;
+    team_count?: number;
+    [key: string]: unknown;
+};
+
 export type AccessControlPolicy = {
     id: string;
     name: string;
@@ -13,7 +20,7 @@ export type AccessControlPolicy = {
     active?: boolean;
     roles?: string[];
     imports?: string[];
-    props?: Record<string, unknown[]>;
+    props?: AccessControlPolicyProps;
     rules: AccessControlPolicyRule[];
     scope?: string;
     scope_id?: string;

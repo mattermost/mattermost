@@ -210,7 +210,7 @@ test.describe('Permission Policies - Bot accounts scope', () => {
 
     /**
      * @objective Verify a sysadmin can create a Bot accounts permission policy in the System Console,
-     * that it is stored as a bot-guarded system_user rule, listed as "Bot accounts", and reopens
+     * that it is stored as a bot-guarded system_user rule flagged with props.bot_scope, listed as "Bot accounts", and reopens
      * in the table editor with the guard hidden.
      *
      * @precondition
@@ -244,7 +244,7 @@ test.describe('Permission Policies - Bot accounts scope', () => {
             policyId = (await getPolicyIdByName(adminClient, policyName))!;
             expect(policyId).toBeTruthy();
 
-            // * Verify the stored policy is a system_user rule wrapped with the bot guard
+            // * Verify the stored policy is a system_user rule wrapped with the bot guard and flagged with props.bot_scope
             const stored = await adminClient.getAccessControlPolicy(policyId);
             expect(stored.name).toBe(policyName);
             expect(stored.roles).toEqual(['system_user']);
@@ -252,7 +252,7 @@ test.describe('Permission Policies - Bot accounts scope', () => {
             expect(stored.rules![0].expression.startsWith(WRAPPER_PREFIX)).toBe(true);
             expect(stored.rules![0].expression).toContain(typedRule);
             expect(stored.rules![0].actions).toEqual(['upload_file_attachment']);
-            expect((stored.props as Record<string, unknown> | undefined)?.bot ?? undefined).toBeUndefined();
+            expect(stored.props?.bot_scope).toBe(true);
 
             // * Verify the list shows the policy as Bot accounts, not Members
             await navigateToPermissionPoliciesPage(page);

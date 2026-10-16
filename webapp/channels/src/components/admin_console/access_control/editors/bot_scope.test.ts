@@ -9,7 +9,6 @@ import {
     getSyncedAttributeReferences,
     getTableEditorValue,
     hasBalancedParens,
-    isBotScopeExpression,
     isBotScopePolicy,
     isMaskingFailureExpression,
     referencedUserAttributeNames,
@@ -36,11 +35,6 @@ const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']> = {}
     delete_at: 0,
     created_by: '',
     updated_by: '',
-});
-
-const policy = (roles: string[] | undefined, expressions: string[]): Pick<AccessControlPolicy, 'roles' | 'rules'> => ({
-    roles,
-    rules: expressions.map((expression) => ({actions: ['upload_file_attachment'], expression})),
 });
 
 const SERIALIZER_CASES: Array<{name: string; returned: string; unwrapped: string}> = [
@@ -212,33 +206,6 @@ const MASKED_RETURNED = '!user.isbot || user.attributes.Level == "--------"';
 const MASKED_MIXED_RETURNED = '!user.isbot || user.attributes.Level == "--------" && user.attributes.Program == "Dragon"';
 const FIELD_DELETED_RETURNED = '!user.isbot || user.attributes.Temp == "--------"';
 
-describe('isBotScopeExpression', () => {
-    it.each(SERIALIZER_CASES)('$name is detected', ({returned}) => {
-        expect(isBotScopeExpression(returned)).toBe(true);
-    });
-
-    it('detects a prefix-kept breakout, so the pre-wrap guard is load-bearing', () => {
-        expect(isBotScopeExpression(BREAKOUT_OR_RETURNED)).toBe(true);
-    });
-
-    it('rejects a breakout that lost the prefix', () => {
-        expect(isBotScopeExpression(BREAKOUT_TERNARY_RETURNED)).toBe(false);
-    });
-
-    it.each([
-        ['masking failure', 'false'],
-        ['leading whitespace', ' !user.isbot || x'],
-        ['no spaces around ||', '!user.isbot||x'],
-        ['plain rule', PROGRAM_DRAGON],
-        ['empty', ''],
-        ['bare negation', '!user.isbot'],
-        ['prefix without trailing space', '!user.isbot ||'],
-        ['positive isbot', 'user.isbot || x'],
-    ])('rejects %s', (_, expr) => {
-        expect(isBotScopeExpression(expr)).toBe(false);
-    });
-});
-
 describe('unwrapBotExpression', () => {
     it.each(SERIALIZER_CASES)('$name unwraps exactly', ({returned, unwrapped}) => {
         expect(unwrapBotExpression(returned)).toBe(unwrapped);
@@ -315,6 +282,18 @@ describe('unwrapBotExpression', () => {
 
     it('returns empty input unchanged', () => {
         expect(unwrapBotExpression('')).toBe('');
+    });
+
+    it.each([
+        ['masking failure', 'false'],
+        ['leading whitespace', ' !user.isbot || x'],
+        ['no spaces around ||', '!user.isbot||x'],
+        ['bare negation', '!user.isbot'],
+        ['prefix without trailing space', '!user.isbot ||'],
+        ['positive isbot', 'user.isbot || x'],
+        ['a breakout that lost the prefix', BREAKOUT_TERNARY_RETURNED],
+    ])('returns %s unchanged', (_, expr) => {
+        expect(unwrapBotExpression(expr)).toBe(expr);
     });
 
     it('returns an empty string for a bare prefix', () => {
@@ -522,29 +501,43 @@ describe('isMaskingFailureExpression', () => {
 });
 
 describe('isBotScopePolicy', () => {
+    const withProps = (props?: AccessControlPolicy['props']): Pick<AccessControlPolicy, 'props'> => ({props});
+
+    it('is true when props.bot_scope is true', () => {
+        expect(isBotScopePolicy(withProps({bot_scope: true}))).toBe(true);
+    });
+
+    it('is true when props.bot_scope is true alongside other keys', () => {
+        expect(isBotScopePolicy(withProps({bot_scope: true, child_ids: ['c1'], channel_count: 1}))).toBe(true);
+    });
+
     it.each([
-        ['zero rules', policy(['system_user'], []), false],
-        ['all rules prefixed', policy(['system_user'], [SERIALIZER_CASES[0].returned, MASKED_RETURNED]), true],
-        ['single prefixed rule', policy(['system_user'], [MASKED_RETURNED]), true],
-        ['mixed rules', policy(['system_user'], [MASKED_RETURNED, PROGRAM_DRAGON]), false],
-        ['guest role', policy(['system_guest'], [MASKED_RETURNED]), false],
-        ['admin role', policy(['system_admin'], [MASKED_RETURNED]), false],
-        ['missing roles', policy(undefined, [MASKED_RETURNED]), false],
-        ['empty roles', policy([], [MASKED_RETURNED]), false],
-        ['system_user not first', policy(['system_guest', 'system_user'], [MASKED_RETURNED]), false],
-        ['masking failure replaced the prefix', policy(['system_user'], ['false']), false],
-        ['prefix-lost breakout', policy(['system_user'], [BREAKOUT_TERNARY_RETURNED]), false],
-    ])('%s', (_, input, expected) => {
-        expect(isBotScopePolicy(input)).toBe(expected);
+        ['props are missing', undefined],
+        ['props are empty', {}],
+        ['bot_scope is false', {bot_scope: false}],
+        ['bot_scope is the string "true"', {bot_scope: 'true'}],
+        ['bot_scope is 1', {bot_scope: 1}],
+        ['bot_scope is null', {bot_scope: null}],
+        ['only other keys are set', {bot: true, child_ids: []}],
+    ])('is false when %s', (_, props) => {
+        expect(isBotScopePolicy(withProps(props))).toBe(false);
     });
 
-    it('treats missing rules as not bot scoped', () => {
-        expect(isBotScopePolicy({roles: ['system_user'], rules: undefined as unknown as AccessControlPolicy['rules']})).toBe(false);
+    it('ignores a bot-prefixed system_user rule without the flag', () => {
+        const policy: Pick<AccessControlPolicy, 'props' | 'roles' | 'rules'> = {
+            roles: ['system_user'],
+            rules: [{actions: ['upload_file_attachment'], expression: MASKED_RETURNED}],
+        };
+        expect(isBotScopePolicy(policy)).toBe(false);
     });
 
-    it('treats a rule with a missing expression as not bot scoped', () => {
-        const rules = [{actions: ['upload_file_attachment']}] as unknown as AccessControlPolicy['rules'];
-        expect(isBotScopePolicy({roles: ['system_user'], rules})).toBe(false);
+    it('ignores the rule text when the flag is set', () => {
+        const policy: Pick<AccessControlPolicy, 'props' | 'roles' | 'rules'> = {
+            props: {bot_scope: true},
+            roles: ['system_user'],
+            rules: [{actions: ['upload_file_attachment'], expression: PROGRAM_DRAGON}],
+        };
+        expect(isBotScopePolicy(policy)).toBe(true);
     });
 });
 

@@ -39,6 +39,6 @@ export function toServerRole(key: string): string {
     return key === BOT_ROLE_KEY ? 'system_user' : key;
 }
 
-export function getPolicyRoleKey(policy: Pick<AccessControlPolicy, 'roles' | 'rules'>): string | undefined {
+export function getPolicyRoleKey(policy: Pick<AccessControlPolicy, 'roles' | 'props'>): string | undefined {
     return isBotScopePolicy(policy) ? BOT_ROLE_KEY : policy.roles?.[0];
 }
