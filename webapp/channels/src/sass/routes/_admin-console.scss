@@ -98,6 +98,12 @@
         max-width: 920px;
         flex-direction: column;
         gap: var(--spacing-xl);
+
+        // Parent gap owns spacing between siblings (banner → AdminPanel, etc.).
+        // Drop legacy banner vertical margins so they don't stack with the gap.
+        > .banner {
+            margin-block: 0;
+        }
     }
 
     .admin-console__checkbox-list {
