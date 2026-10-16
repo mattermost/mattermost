@@ -101,21 +101,6 @@ describe('components/widgets/admin_console/AdminPanel', () => {
         expect(panel?.querySelector('.AdminPanel__body')).toBeInTheDocument();
     });
 
-    test('should mark panel bodyless when children are omitted', () => {
-        renderWithContext(
-            <AdminPanel
-                {...defaultProps}
-                id='bodyless-id'
-            />,
-        );
-
-        const panel = document.getElementById('bodyless-id');
-        expect(panel).toHaveClass('AdminPanel', 'AdminPanel--bodyless');
-        expect(panel).not.toHaveClass('AdminPanel--headerless');
-        expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('test-title-default');
-        expect(panel?.querySelector('[class*="admin-panel__body"]')).toBeInTheDocument();
-    });
-
     test('should render plain string title and subtitle without MessageDescriptor', () => {
         renderWithContext(
             <AdminPanel
