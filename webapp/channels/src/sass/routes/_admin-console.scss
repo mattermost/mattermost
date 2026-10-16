@@ -1228,7 +1228,12 @@
             display: flex;
             flex-shrink: 0;
             align-items: center;
-            gap: 8px;
+            gap: var(--spacing-xs); // 8px
+
+            // Prefer flex gap over global `.btn + .btn { margin-left }`.
+            > .btn {
+                margin-left: 0;
+            }
         }
 
         .plain-log-list__toolbar {
