@@ -91,6 +91,7 @@ const AdminPanel = ({
     className = '',
     id,
     subtitleValues,
+    expandable,
     ...rest
 }: Props) => {
     // Compass AdminPanel always renders AdminPanelHeader and types `title` as
@@ -98,7 +99,7 @@ const AdminPanel = ({
     // (e.g. Classification Markings settings after enable moved out), omit
     // title/subtitle/actions and use a headerless shell that matches Compass
     // surface + body padding.
-    if (!hasCompassHeaderChrome({title, subtitle, button, ...rest})) {
+    if (!hasCompassHeaderChrome({title, subtitle, button, expandable, ...rest})) {
         return (
             <section
                 id={id}
@@ -116,7 +117,9 @@ const AdminPanel = ({
     return (
         <CompassAdminPanel
             id={id}
-            className={classNames('AdminPanel', 'clearfix', className)}
+            className={classNames('AdminPanel', 'clearfix', className, {
+                'AdminPanel--expandable': expandable,
+            })}
             title={titleNode ?? (
                 <FormattedMessage
                     id='admin.panel.untitled'
@@ -125,6 +128,7 @@ const AdminPanel = ({
             )}
             subtitle={renderPanelText(subtitle, subtitleValues)}
             headerActions={button}
+            expandable={expandable}
             {...rest}
         >
             {children}

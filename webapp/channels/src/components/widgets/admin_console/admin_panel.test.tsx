@@ -136,6 +136,11 @@ describe('components/widgets/admin_console/AdminPanel', () => {
         expect(collapse).toHaveAttribute('aria-hidden', 'true');
         expect(screen.getByText('Hidden until expanded')).toBeInTheDocument();
 
+        // Expandable panels opt into AdminPanel--expandable so SCSS restores
+        // Compass root overflow:hidden (menu escape uses overflow:visible only
+        // on non-expandable panels).
+        expect(panel).toHaveClass('AdminPanel--expandable');
+
         await userEvent.click(screen.getByRole('button', {name: 'Expand section'}));
         expect(collapse).toHaveAttribute('aria-hidden', 'false');
         expect(screen.getByRole('button', {name: 'Collapse section'})).toBeInTheDocument();

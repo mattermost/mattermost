@@ -4,7 +4,7 @@ exports[`components/widgets/admin_console/AdminPanelTogglable should match snaps
 <div>
   <section
     aria-labelledby="_r_0_"
-    class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelTogglable test-class-name"
+    class="_admin-panel_iwm08_2 AdminPanel AdminPanel--expandable clearfix AdminPanelTogglable test-class-name"
     id="test-id"
   >
     <header
@@ -97,7 +97,7 @@ exports[`components/widgets/admin_console/AdminPanelTogglable should match snaps
 <div>
   <section
     aria-labelledby="_r_1_"
-    class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelTogglable test-class-name closed"
+    class="_admin-panel_iwm08_2 AdminPanel AdminPanel--expandable clearfix AdminPanelTogglable test-class-name closed"
     id="test-id"
   >
     <header

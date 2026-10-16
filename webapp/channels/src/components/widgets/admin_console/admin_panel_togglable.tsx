@@ -38,6 +38,7 @@ const AdminPanelTogglable = ({
             id={id}
             className={classNames(
                 'AdminPanel',
+                'AdminPanel--expandable',
                 'clearfix',
                 'AdminPanelTogglable',
                 className,
