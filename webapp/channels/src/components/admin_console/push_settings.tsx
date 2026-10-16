@@ -239,7 +239,7 @@ export class PushSettings extends OLDAdminSettings<Props, State> {
             pushServerHelpText = (
                 <FormattedMessage
                     id='admin.email.mtpnsHelp'
-                    defaultMessage='Download <linkIOS>Mattermost iOS app</linkIOS> from iTunes. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkHPNS>Mattermost Hosted Push Notification Service</linkHPNS>.'
+                    defaultMessage='Download <linkIOS>Mattermost iOS app</linkIOS> from iTunes. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkTPNS>Mattermost Test Push Notification Service</linkTPNS>.'
                     values={{
                         linkIOS: (msg) => (
                             <ExternalLink
@@ -257,7 +257,7 @@ export class PushSettings extends OLDAdminSettings<Props, State> {
                                 {msg}
                             </ExternalLink>
                         ),
-                        linkHPNS: (msg) => (
+                        linkTPNS: (msg) => (
                             <ExternalLink
                                 href={DocLinks.SETUP_PUSH_NOTIFICATIONS}
                                 location='push_settings'
