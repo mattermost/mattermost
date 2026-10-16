@@ -199,9 +199,14 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
-		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost)
+		// RBAC only: a field definition is channel schema, so the channel's
+		// management rules govern it rather than its write rules.
+		hasPermission, _ := c.App.SessionHasPermissionToChannelRBACOnly(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost)
 		if !hasPermission {
 			c.SetPermissionError(model.PermissionCreatePost)
+			return
+		}
+		if !requireChannelManagementAccessByID(c, field.TargetID) {
 			return
 		}
 	case "team":
@@ -588,7 +593,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireFieldTargetChannelAccess(c, existingField) {
+	if !requireFieldTargetChannelManagementAccess(c, existingField) {
 		return
 	}
 
@@ -692,7 +697,7 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireFieldTargetChannelAccess(c, existingField) {
+	if !requireFieldTargetChannelManagementAccess(c, existingField) {
 		return
 	}
 
@@ -976,14 +981,8 @@ func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request,
 	}
 }
 
-func requireFieldTargetChannelAccess(c *Context, field *model.PropertyField) bool {
-	if field.TargetType != string(model.PropertyFieldTargetLevelChannel) || field.TargetID == "" {
-		return true
-	}
-
-	return requireChannelWriteAccessByID(c, field.TargetID)
-}
-
+// requireFieldTargetChannelManagementAccess gates a channel-scoped field definition and its
+// options on the channel's management rules: both are the channel's schema.
 func requireFieldTargetChannelManagementAccess(c *Context, field *model.PropertyField) bool {
 	if field.TargetType != string(model.PropertyFieldTargetLevelChannel) || field.TargetID == "" {
 		return true

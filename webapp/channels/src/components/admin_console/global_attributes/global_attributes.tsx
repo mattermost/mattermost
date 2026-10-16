@@ -29,7 +29,11 @@ export const searchableStrings = [
     messages.searchPlaceholder,
 ];
 
-const GlobalAttributes: React.FC = () => {
+type Props = {
+    disabled?: boolean;
+};
+
+const GlobalAttributes = ({disabled = false}: Props) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -59,6 +63,7 @@ const GlobalAttributes: React.FC = () => {
                 <Button
                     className='GlobalAttributes__newAttribute'
                     emphasis='primary'
+                    disabled={disabled}
                     onClick={() => {
                         getHistory().push(ATTRIBUTE_DETAILS_ROUTE);
                     }}
@@ -90,7 +95,10 @@ const GlobalAttributes: React.FC = () => {
                             data-testid='global-attributes-search'
                         />
                     </div>
-                    <GlobalAttributesTable searchQuery={searchQuery}/>
+                    <GlobalAttributesTable
+                        searchQuery={searchQuery}
+                        disabled={disabled}
+                    />
                 </div>
             </div>
         </div>

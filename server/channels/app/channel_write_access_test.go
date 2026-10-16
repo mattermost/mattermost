@@ -5,10 +5,12 @@ package app
 
 import (
 	"net/http"
+	"slices"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/require"
 )
@@ -30,6 +32,14 @@ func writeGoverned(mockACS *eMocks.AccessControlServiceInterface, governedByWrit
 // managementGoverned puts channel_management_access in play at the system level.
 func managementGoverned(mockACS *eMocks.AccessControlServiceInterface, governed bool) {
 	actionGoverned(mockACS, model.AccessControlPolicyActionChannelManagementAccess, governed)
+}
+
+// channelPolicyDeclares makes the channel's own policy govern exactly the given actions.
+func channelPolicyDeclares(mockACS *eMocks.AccessControlServiceInterface, channelID string, actions ...string) {
+	mockACS.On("ResourcePolicyGovernsAction", mock.Anything, channelID, mock.Anything).
+		Return(func(_ request.CTX, _ string, action string) bool {
+			return slices.Contains(actions, action)
+		}, nil)
 }
 
 // decidesPerAction answers the channel-access actions separately, so a test can
@@ -99,13 +109,7 @@ func TestChannelWriteAccessDecision(t *testing.T) {
 
 			channel := h.th.BasicChannel.DeepCopy()
 			channel.PolicyEnforced = true
-			mockACS.On("GetPolicy", mock.Anything, channel.Id).Return(&model.AccessControlPolicy{
-				ID:   channel.Id,
-				Type: model.AccessControlPolicyTypeChannel,
-				Rules: []model.AccessControlPolicyRule{{
-					Actions: []string{action},
-				}},
-			}, nil)
+			channelPolicyDeclares(mockACS, channel.Id, action)
 
 			require.True(t, h.th.App.EnforceChannelWriteAccess(h.rctx, h.th.BasicUser.Id, channel),
 				"PolicyEnforced alone must not wake the write gate, or another action's policy would block posting")
@@ -120,13 +124,7 @@ func TestChannelWriteAccessDecision(t *testing.T) {
 
 		channel := h.th.BasicChannel.DeepCopy()
 		channel.PolicyEnforced = true
-		mockACS.On("GetPolicy", mock.Anything, channel.Id).Return(&model.AccessControlPolicy{
-			ID:   channel.Id,
-			Type: model.AccessControlPolicyTypeChannel,
-			Rules: []model.AccessControlPolicyRule{{
-				Actions: []string{model.AccessControlPolicyActionChannelWriteAccess},
-			}},
-		}, nil)
+		channelPolicyDeclares(mockACS, channel.Id, model.AccessControlPolicyActionChannelWriteAccess)
 
 		require.False(t, h.th.App.EnforceChannelWriteAccess(h.rctx, h.th.BasicUser.Id, channel))
 	})
@@ -287,13 +285,7 @@ func TestChannelManagementAccessDecision(t *testing.T) {
 
 		channel := h.th.BasicChannel.DeepCopy()
 		channel.PolicyEnforced = true
-		mockACS.On("GetPolicy", mock.Anything, channel.Id).Return(&model.AccessControlPolicy{
-			ID:   channel.Id,
-			Type: model.AccessControlPolicyTypeChannel,
-			Rules: []model.AccessControlPolicyRule{{
-				Actions: []string{model.AccessControlPolicyActionChannelWriteAccess},
-			}},
-		}, nil)
+		channelPolicyDeclares(mockACS, channel.Id, model.AccessControlPolicyActionChannelWriteAccess)
 
 		require.True(t, h.th.App.EnforceChannelManagementAccess(h.rctx, h.th.BasicUser.Id, channel))
 	})
@@ -306,13 +298,7 @@ func TestChannelManagementAccessDecision(t *testing.T) {
 
 		channel := h.th.BasicChannel.DeepCopy()
 		channel.PolicyEnforced = true
-		mockACS.On("GetPolicy", mock.Anything, channel.Id).Return(&model.AccessControlPolicy{
-			ID:   channel.Id,
-			Type: model.AccessControlPolicyTypeChannel,
-			Rules: []model.AccessControlPolicyRule{{
-				Actions: []string{model.AccessControlPolicyActionChannelManagementAccess},
-			}},
-		}, nil)
+		channelPolicyDeclares(mockACS, channel.Id, model.AccessControlPolicyActionChannelManagementAccess)
 
 		require.False(t, h.th.App.EnforceChannelManagementAccess(h.rctx, h.th.BasicUser.Id, channel))
 	})

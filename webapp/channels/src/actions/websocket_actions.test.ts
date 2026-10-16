@@ -7,6 +7,11 @@ import type {AnyAction} from 'redux';
 
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
+import {
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
+    ACCESS_CONTROL_ACTION_UPLOAD_FILE,
+} from '@mattermost/types/access_control';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
@@ -28,7 +33,7 @@ import {getUser} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
 
-import {reconcileChannelReadAccess} from 'actions/channel_read_access';
+import {reconcileChannelReadAccess, reconcileChannelReadAccessWithJitter} from 'actions/channel_read_access';
 import {handleNewPost} from 'actions/post_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -116,9 +121,10 @@ jest.mock('mattermost-redux/actions/channels', () => ({
 }));
 
 // The reconciliation itself is covered by channel_read_access.test.ts; here only the
-// delegation matters, so it stands in as a single recognisable action.
+// delegation matters, so each entry point stands in as a single recognisable action.
 jest.mock('actions/channel_read_access', () => ({
     reconcileChannelReadAccess: jest.fn(() => ({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS'})),
+    reconcileChannelReadAccessWithJitter: jest.fn(() => ({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS_WITH_JITTER'})),
 }));
 
 jest.mock('actions/post_actions', () => ({
@@ -952,9 +958,10 @@ describe('reconnect', () => {
         expect(fetchMyCategories).toHaveBeenCalledWith('currentTeamId');
     });
 
-    test('should reconcile channel read access when socket reconnects', () => {
+    test('should reconcile channel read access without delay when socket reconnects', () => {
         reconnect();
         expect(reconcileChannelReadAccess).toHaveBeenCalled();
+        expect(reconcileChannelReadAccessWithJitter).not.toHaveBeenCalled();
     });
 
     test('should reload custom profile attribute fields on reconnect', () => {
@@ -1162,7 +1169,7 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
                 channelId: 'channel-ac-1',
             },
             {
-                type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS',
+                type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS_WITH_JITTER',
             },
         ]);
         expect(invalidateAccessControlAttributesCache).toHaveBeenCalledTimes(1);
@@ -1195,13 +1202,28 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
         expect(types).toEqual([ChannelTypes.RECEIVED_CHANNEL]);
     });
 
-    test('returns early when msg.data.channel is missing', () => {
-        const testStore = configureStore({});
+    test('does nothing without the channel when permission policies are disabled', () => {
+        const testStore = configureStore({entities: {general: {config: {FeatureFlagPermissionPolicies: 'false'}}}});
         const msg = wsMessage<WebSocketMessages.ChannelAccessControlUpdated>({data: {}});
 
         testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
 
         expect(testStore.getActions()).toEqual([]);
+        expect(invalidateAccessControlAttributesCache).not.toHaveBeenCalled();
+    });
+
+    test('only reconciles when the server left the channel out for a denied member', () => {
+        const testStore = configureStore(withPermissionPolicies({channels: {currentChannelId: 'channel-ac-1'}}));
+        const msg = wsMessage<WebSocketMessages.ChannelAccessControlUpdated>({
+            broadcast: {channel_id: 'channel-ac-1'},
+            data: {channel: ''},
+        });
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
+
+        // No channel record to store, and nothing to refetch from a channel the member
+        // can no longer read; the reconcile drops it.
+        expect(testStore.getActions()).toEqual([{type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS_WITH_JITTER'}]);
         expect(invalidateAccessControlAttributesCache).not.toHaveBeenCalled();
     });
 });
@@ -1817,10 +1839,14 @@ describe('handlePermissionPolicyUpdatedEvent', () => {
         };
     }
 
+    function policyUpdated(actions?: string[]) {
+        return wsMessage<WebSocketMessages.PermissionPolicyUpdated>({data: actions ? {actions} : {}});
+    }
+
     test('clears render decisions and resets every loaded channel in a single action', () => {
         const testStore = configureStore(stateWith('visible-channel', ['visible-channel', 'other-channel']));
 
-        testStore.dispatch(handlePermissionPolicyUpdatedEvent());
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated([ACCESS_CONTROL_ACTION_DOWNLOAD_FILE])));
 
         const actions = testStore.getActions();
         expect(actions.map((a) => a.type)).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
@@ -1830,10 +1856,42 @@ describe('handlePermissionPolicyUpdatedEvent', () => {
         expect(actions).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'visible-channel'});
     });
 
+    test('reconciles the channel list when channel_read_access changed', () => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel']));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated([ACCESS_CONTROL_ACTION_UPLOAD_FILE, ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS])));
+
+        expect(testStore.getActions()).toContainEqual({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS_WITH_JITTER'});
+    });
+
+    // An older server sends no list, and then any action may have changed.
+    test('reconciles the channel list when the event names no actions', () => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel']));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated()));
+
+        expect(testStore.getActions()).toContainEqual({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS_WITH_JITTER'});
+    });
+
+    // Only channel_read_access hides or reveals a channel. The empty list is an auto-add toggle.
+    test.each([
+        [[ACCESS_CONTROL_ACTION_UPLOAD_FILE, ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]],
+        [[]],
+    ])('leaves the channel list alone when the change touched %j', (changed) => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel']));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated(changed)));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
+        expect(types).not.toContain('MOCK_RECONCILE_CHANNEL_READ_ACCESS_WITH_JITTER');
+        expect(reconcileChannelReadAccess).not.toHaveBeenCalled();
+    });
+
     test('does nothing when permission policies are disabled', () => {
         const testStore = configureStore(stateWith('visible-channel', ['visible-channel'], false));
 
-        testStore.dispatch(handlePermissionPolicyUpdatedEvent());
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated([ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS])));
 
         expect(testStore.getActions()).toEqual([]);
     });

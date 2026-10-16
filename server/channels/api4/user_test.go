@@ -4128,10 +4128,13 @@ func TestGetUsersNotInChannelAbacMatchOnly(t *testing.T) {
 	).Return([]*model.User{user1}, int64(1), nil).Maybe()
 
 	// Reading the target channel is now gated on channel_read_access, and these
-	// channels carry a policy, so the PDP is consulted before the dispatcher is
-	// reached. That gate has its own coverage; answer it permissively here so a
-	// denial cannot be mistaken for the unfiltered branch.
+	// channels carry a policy, so the gate asks whether that policy declares the
+	// action before the dispatcher is reached. A membership-only policy does not.
+	// That gate has its own coverage; answer it permissively here so a denial
+	// cannot be mistaken for the unfiltered branch.
 	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).
+		Return(false, nil).Maybe()
+	mockACS.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, mock.Anything).
 		Return(false, nil).Maybe()
 	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 		Return(model.AccessDecision{Decision: true}, nil).Maybe()
@@ -8813,6 +8816,28 @@ func TestGetThreadsForUser(t *testing.T) {
 		uss, _, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 		require.NoError(t, err)
 		require.Len(t, uss.Threads, 0)
+	})
+
+	t.Run("responses are not cacheable", func(t *testing.T) {
+		client := th.Client
+
+		rpost, _, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+		require.NoError(t, err)
+		_, _, err = client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+		require.NoError(t, err)
+
+		defer func() {
+			err = th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
+			require.NoError(t, err)
+		}()
+
+		_, resp, err := client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{Unread: true})
+		require.NoError(t, err)
+		require.Equal(t, "no-store", resp.Header.Get("Cache-Control"))
+
+		_, resp, err = client.GetUserThread(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, false)
+		require.NoError(t, err)
+		require.Equal(t, "no-store", resp.Header.Get("Cache-Control"))
 	})
 
 	t.Run("no params, 1 thread", func(t *testing.T) {

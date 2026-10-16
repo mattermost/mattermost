@@ -29,7 +29,7 @@ func stripBookmarkFileInfoIfDenied(c *Context, channelID string, bookmarks []*mo
 		return bookmarks
 	}
 
-	if c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
+	if c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
 		return bookmarks
 	}
 
@@ -371,7 +371,12 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 	auditRec.Success()
 	c.LogAudit("")
 
-	bookmarks = stripBookmarkFileInfoIfDenied(c, c.Params.ChannelId, bookmarks)
+	// The response lists every bookmark in the channel, not just the one moved.
+	if sessionCanReadChannel(c, c.Params.ChannelId) {
+		bookmarks = stripBookmarkFileInfoIfDenied(c, c.Params.ChannelId, bookmarks)
+	} else {
+		bookmarks = []*model.ChannelBookmarkWithFileInfo{}
+	}
 
 	if err := json.NewEncoder(w).Encode(bookmarks); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))

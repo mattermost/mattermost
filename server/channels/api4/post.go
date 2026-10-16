@@ -331,7 +331,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if since > 0 {
 		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 	} else if afterPost != "" {
-		etag = c.App.GetPostsEtag(channel, c.AppContext.Session().UserId, collapsedThreads)
+		etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts After", w, r) {
 			return
@@ -339,7 +339,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		list, err = c.App.GetPostsAfterPost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else if beforePost != "" {
-		etag = c.App.GetPostsEtag(channel, c.AppContext.Session().UserId, collapsedThreads)
+		etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts Before", w, r) {
 			return
@@ -347,7 +347,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		list, err = c.App.GetPostsBeforePost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else {
-		etag = c.App.GetPostsEtag(channel, c.AppContext.Session().UserId, collapsedThreads)
+		etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
@@ -440,7 +440,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 
 	etag := ""
 	if len(postList.Order) == 0 {
-		etag = c.App.GetPostsEtag(channel, c.AppContext.Session().UserId, collapsedThreads)
+		etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
@@ -631,7 +631,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postEtag := c.App.AppendABACEtag(post.Etag(), c.AppContext.Session().UserId, post.ChannelId)
+	postEtag := c.App.AppendABACEtag(c.AppContext, post.Etag(), post.ChannelId)
 	if c.HandleEtag(postEtag, "Get Post", w, r) {
 		return
 	}
@@ -982,7 +982,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	threadEtag := c.App.AppendABACEtag(list.Etag(), c.AppContext.Session().UserId, post.ChannelId)
+	threadEtag := c.App.AppendABACEtag(c.AppContext, list.Etag(), post.ChannelId)
 	if c.HandleEtag(threadEtag, "Get Post Thread", w, r) {
 		return
 	}
@@ -1310,6 +1310,12 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddEventResultState(patchedPost)
 
+	// A patch that changes nothing still returns the whole post, with its reactions
+	// and files.
+	if !sessionCanReadChannel(c, patchedPost.ChannelId) {
+		patchedPost = postWithoutContent(patchedPost)
+	}
+
 	if err := patchedPost.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -1442,6 +1448,11 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
+	// Pinning changes what every member of the channel sees, like a reaction.
+	if !requireChannelWriteAccess(c, channel) {
+		return
+	}
+
 	patch := &model.PostPatch{}
 	patch.IsPinned = new(isPinned)
 
@@ -1497,6 +1508,17 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// An acknowledgement is shown to every member of the channel, like a reaction.
+	if !requireChannelWriteAccessByID(c, post.ChannelId) {
+		return
+	}
+
 	acknowledgement, appErr := c.App.SaveAcknowledgementForPost(c.AppContext, c.Params.PostId, c.Params.UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -1536,9 +1558,13 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, post.ChannelId) {
 		return
 	}
 
@@ -1661,7 +1687,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = filePostErr
 			return
 		}
-		if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, filePost.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, filePost.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 			c.Err = model.NewAppError("getFileInfosForPost", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
 			return
 		}

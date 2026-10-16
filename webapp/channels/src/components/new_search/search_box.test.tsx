@@ -24,6 +24,8 @@ describe('components/new_search/SearchBox', () => {
         myTeams: [{id: 'team1', name: 'team1', display_name: 'Team 1', description: ''}] as Team[],
     };
 
+    const fileSearchEnabledState = {entities: {general: {config: {EnableFileAttachments: 'true', EnableFileSearch: 'true'}}}};
+
     test('should have the focus on the input field', () => {
         renderWithContext(<SearchBox {...baseProps}/>);
         expect(screen.getByPlaceholderText('Search messages')).toBeInTheDocument();
@@ -37,13 +39,13 @@ describe('components/new_search/SearchBox', () => {
     });
 
     test('should have the focus on the input field after switching search type', async () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+        renderWithContext(<SearchBox {...baseProps}/>, fileSearchEnabledState);
         await userEvent.click(screen.getByText('Files'));
         expect(screen.getByPlaceholderText('Search files')).toHaveFocus();
     });
 
     test('should see files hints when i click on files', async () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+        renderWithContext(<SearchBox {...baseProps}/>, fileSearchEnabledState);
         expect(screen.getByText('From:')).toBeInTheDocument();
         expect(screen.queryByText('Ext:')).not.toBeInTheDocument();
         await userEvent.click(screen.getByText('Files'));
@@ -67,7 +69,7 @@ describe('components/new_search/SearchBox', () => {
     });
 
     test('should be able to select with the up and down arrows', async () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+        renderWithContext(<SearchBox {...baseProps}/>, fileSearchEnabledState);
         await userEvent.click(screen.getByText('Files'));
         await userEvent.type(screen.getByPlaceholderText('Search files'), 'ext:');
         expect(screen.getByText('Text file')).toHaveClass('selected');

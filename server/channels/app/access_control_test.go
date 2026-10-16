@@ -1126,8 +1126,7 @@ func TestChannelDeleteCleansUpAccessControlPolicy(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	// Wire up a mock ACS whose DeletePolicy writes through to the store, so the
-	// cleanup path exercised by DeleteChannel/PermanentDeleteChannel actually
-	// removes the row. Without this, cleanupChannelAccessControlPolicy is a
+	// cleanup path exercised by PermanentDeleteChannel actually removes the row. Without this, cleanupChannelAccessControlPolicy is a
 	// no-op when the enterprise service is not registered.
 	mockACS := &mocks.AccessControlServiceInterface{}
 	originalACS := th.App.Srv().ch.AccessControl
@@ -1160,34 +1159,35 @@ func TestChannelDeleteCleansUpAccessControlPolicy(t *testing.T) {
 		require.NotNil(t, saved)
 	}
 
-	t.Run("Archiving a channel deletes its channel-scope policy", func(t *testing.T) {
+	// An archived channel stays readable, so the read rules its policy carries must
+	// keep applying; deleting the row would open its history to everyone it denied.
+	t.Run("Archiving a channel keeps its channel-scope policy", func(t *testing.T) {
 		ch := th.CreatePrivateChannel(t, th.BasicTeam)
 		saveChildPolicy(t, ch.Id)
+		t.Cleanup(func() {
+			_ = th.App.PermanentDeleteChannel(th.Context, ch)
+		})
 
-		// Sanity: policy exists before archive.
-		fetched, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, ch.Id)
-		require.NoError(t, err)
-		require.NotNil(t, fetched)
-
-		// Reload via GetChannel without invalidating the cache. The channel
-		// was created before the policy was saved directly to the store, so
-		// the cached channel still reports PolicyEnforced=false. Cleanup must
-		// still remove the orphan policy — it no longer trusts the stale
-		// cached flag.
 		reloaded, appErr := th.App.GetChannel(th.Context, ch.Id)
 		require.Nil(t, appErr)
 
 		appErr = th.App.DeleteChannel(th.Context, reloaded, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		_, err = th.App.Srv().Store().AccessControlPolicy().Get(th.Context, ch.Id)
-		require.Error(t, err, "channel-scope policy should be removed when the channel is archived")
+		fetched, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, ch.Id)
+		require.NoError(t, err, "channel-scope policy should survive the channel being archived")
+		require.NotNil(t, fetched)
 	})
 
 	t.Run("Permanently deleting a channel deletes its channel-scope policy", func(t *testing.T) {
 		ch := th.CreatePrivateChannel(t, th.BasicTeam)
 		saveChildPolicy(t, ch.Id)
 
+		// Reload via GetChannel without invalidating the cache. The channel
+		// was created before the policy was saved directly to the store, so
+		// the cached channel still reports PolicyEnforced=false. Cleanup must
+		// still remove the orphan policy — it no longer trusts the stale
+		// cached flag.
 		reloaded, appErr := th.App.GetChannel(th.Context, ch.Id)
 		require.Nil(t, appErr)
 
@@ -1207,9 +1207,6 @@ func TestChannelDeleteCleansUpAccessControlPolicy(t *testing.T) {
 		reloaded, appErr := th.App.GetChannel(th.Context, ch.Id)
 		require.Nil(t, appErr)
 
-		// cleanupChannelAccessControlPolicy intentionally calls DeletePolicy
-		// unconditionally when acs is non-nil — DeletePolicy itself is
-		// expected to be a no-op when no matching row exists.
 		appErr = th.App.DeleteChannel(th.Context, reloaded, th.BasicUser.Id)
 		require.Nil(t, appErr)
 	})
@@ -1277,6 +1274,9 @@ func TestUpdateChannelBlocksTypeConversionWhenPolicyEnforced(t *testing.T) {
 	th.App.Srv().ch.AccessControl = mockACS
 	t.Cleanup(func() { th.App.Srv().ch.AccessControl = originalACS })
 	mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).Return((*model.AppError)(nil)).Maybe()
+	// Publishing channel_updated asks whether read access is governed for the channel.
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).Return(false, nil).Maybe()
+	mockACS.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, model.AccessControlPolicyActionChannelReadAccess).Return(false, nil).Maybe()
 
 	stampPolicy := func(t *testing.T, channelID string) {
 		t.Helper()
@@ -2386,12 +2386,12 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 	})
 }
 
-func TestHasPermissionToFileAction(t *testing.T) {
+func TestHasPermissionToChannelAction(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("should allow when access control service is nil", func(t *testing.T) {
 		th.App.Srv().ch.AccessControl = nil
-		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		result := th.App.HasPermissionToChannelAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 		assert.True(t, result)
 	})
 
@@ -2405,7 +2405,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 			cfg.FeatureFlags.PermissionPolicies = true
 		})
 
-		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		result := th.App.HasPermissionToChannelAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 		assert.True(t, result)
 	})
 
@@ -2419,7 +2419,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 			cfg.FeatureFlags.PermissionPolicies = false
 		})
 
-		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		result := th.App.HasPermissionToChannelAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 		assert.True(t, result)
 	})
 
@@ -2439,7 +2439,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 				req.Action == model.AccessControlPolicyActionDownloadFileAttachment
 		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
 
-		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		result := th.App.HasPermissionToChannelAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 		assert.False(t, result)
 	})
 
@@ -2456,7 +2456,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 		mockAccessControl.On("AccessEvaluation", mock.Anything, mock.Anything).
 			Return(model.AccessDecision{}, model.NewAppError("AccessEvaluation", "app.pdp.access_evaluation.app_error", nil, "", http.StatusInternalServerError))
 
-		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		result := th.App.HasPermissionToChannelAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 		assert.False(t, result)
 	})
 }
@@ -2662,6 +2662,12 @@ func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 		// the test on unexpected mock calls.
 		mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
 			Return((*model.AppError)(nil)).Maybe()
+		// Recommendations also pass through the channel_read_access filter, which
+		// nothing here governs.
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).
+			Return(false, (*model.AppError)(nil)).Maybe()
+		mockACS.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, mock.Anything).
+			Return(false, (*model.AppError)(nil)).Maybe()
 
 		// Three policy-enforced public channels covering allow / deny / eval-error,
 		// plus one bare public channel without a policy. The bare channel must
@@ -2722,6 +2728,71 @@ func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 		assert.NotContains(t, ids, bare.Id, "channel without a policy should never enter the candidate set")
 
 		mockACS.AssertExpectations(t)
+	})
+
+	// A policy can pair a membership rule the user meets with a read rule that denies
+	// them. Recommending that channel would show it to a user every other list hides it from.
+	t.Run("drops channels the read rules deny", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
+			Return((*model.AppError)(nil)).Maybe()
+
+		readable := th.CreateChannel(t, th.BasicTeam)
+		unreadable := th.CreateChannel(t, th.BasicTeam)
+		t.Cleanup(func() {
+			for _, ch := range []*model.Channel{readable, unreadable} {
+				_ = th.App.PermanentDeleteChannel(th.Context, ch)
+			}
+		})
+		for _, ch := range []*model.Channel{readable, unreadable} {
+			_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, &model.AccessControlPolicy{
+				ID:       ch.Id,
+				Type:     model.AccessControlPolicyTypeChannel,
+				Revision: 1,
+				Version:  model.AccessControlPolicyVersionV0_2,
+				Active:   true,
+				Rules: []model.AccessControlPolicyRule{
+					{Actions: []string{"membership"}, Expression: "true"},
+				},
+			})
+			require.NoError(t, err)
+			channelID := ch.Id
+			t.Cleanup(func() {
+				_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channelID)
+			})
+		}
+
+		// The user meets both membership rules. Only unreadable's policy declares a read
+		// rule, and it denies them.
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).
+			Return(false, (*model.AppError)(nil)).Maybe()
+		mockACS.On("ResourcePolicyGovernsAction", mock.Anything, readable.Id, model.AccessControlPolicyActionChannelReadAccess).
+			Return(false, (*model.AppError)(nil))
+		mockACS.On("ResourcePolicyGovernsAction", mock.Anything, unreadable.Id, model.AccessControlPolicyActionChannelReadAccess).
+			Return(true, (*model.AppError)(nil))
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionMembership
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionChannelReadAccess
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+		channels, appErr := th.App.GetRecommendedPublicChannelsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+
+		ids := make([]string, 0, len(channels))
+		for _, ch := range channels {
+			ids = append(ids, ch.Id)
+		}
+		assert.Contains(t, ids, readable.Id)
+		assert.NotContains(t, ids, unreadable.Id)
 	})
 }
 

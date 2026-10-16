@@ -172,6 +172,13 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		return nil, appErr
 	}
 
+	// The update event lists the actions the change touched, including any the save
+	// removes, so read the stored version before it is replaced. A new policy has none.
+	var previous *model.AccessControlPolicy
+	if policy.Type == model.AccessControlPolicyTypePermission && policy.ID != "" {
+		previous, _ = a.Srv().Store().AccessControlPolicy().Get(rctx, policy.ID)
+	}
+
 	policy, appErr = acs.SavePolicy(rctx, policy)
 	if appErr != nil {
 		return nil, appErr
@@ -186,7 +193,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
 		a.publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx, policy.ID)
 	case model.AccessControlPolicyTypePermission:
-		a.publishPermissionPolicyUpdate(rctx)
+		a.publishPermissionPolicyUpdate(rctx, policyRuleActions(previous, policy))
 	}
 
 	return policy, nil
@@ -638,7 +645,7 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		a.publishChannelPolicyEnforcedUpdatesForChannels(rctx, affectedChannelIDs)
 		a.publishTeamPolicyEnforcedUpdatesForTeams(rctx, affectedTeamIDs)
 	case policy.Type == model.AccessControlPolicyTypePermission:
-		a.publishPermissionPolicyUpdate(rctx)
+		a.publishPermissionPolicyUpdate(rctx, policyRuleActions(policy))
 	}
 
 	return nil
@@ -2063,7 +2070,8 @@ func (a *App) UpdateAccessControlPoliciesAutoAdd(rctx request.CTX, updates []mod
 		}
 	}
 	if permissionPolicyChanged {
-		a.publishPermissionPolicyUpdate(rctx)
+		// Auto-add only decides who joins a channel; no permission rule changed.
+		a.publishPermissionPolicyUpdate(rctx, []string{})
 	}
 
 	return policies, nil
@@ -2385,17 +2393,50 @@ func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID str
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelAccessControlUpdated, "", channel.Id, "", nil, "")
 	messageWs.Add("channel", string(channelJSON))
+	// Unlike other channel events this one has to reach members the channel's read rules
+	// deny, because it is how their client learns to drop the channel. They get it
+	// without the channel itself.
+	if a.ChannelAccessEnforcementActive() {
+		useChannelReadAccessRedactHook(messageWs, channel.Id)
+	}
 	a.Publish(messageWs)
 }
 
 // publishPermissionPolicyUpdate broadcasts a system-scoped permission policy change.
 // TypePermission policies are global, so no channel ID is included in the event.
-func (a *App) publishPermissionPolicyUpdate(rctx request.CTX) {
+//
+// actions lists the rule actions the change touched, so a client can skip work an action
+// it cares about isn't part of: every connected client gets this event, and refetching its
+// whole channel list is only needed when channel_read_access changed.
+func (a *App) publishPermissionPolicyUpdate(rctx request.CTX, actions []string) {
 	// Permission policies are system-scoped, so every channel's render-ETag epoch folds them in.
 	// Clear the whole epoch cache rather than a single channel key.
 	a.Srv().Store().AccessControlPolicy().ClearEtagCache()
+	if actions == nil {
+		// An empty list, not null: clients read a missing list as "anything may have changed".
+		actions = []string{}
+	}
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventPermissionPolicyUpdated, "", "", "", nil, "")
+	messageWs.Add("actions", actions)
 	a.Publish(messageWs)
+}
+
+// policyRuleActions returns the distinct actions the policies' rules declare.
+func policyRuleActions(policies ...*model.AccessControlPolicy) []string {
+	actions := []string{}
+	seen := map[string]struct{}{}
+	for _, policy := range policies {
+		for _, rule := range policy.EffectiveRules() {
+			for _, action := range rule.Actions {
+				if _, ok := seen[action]; ok {
+					continue
+				}
+				seen[action] = struct{}{}
+				actions = append(actions, action)
+			}
+		}
+	}
+	return actions
 }
 
 // publishTeamPolicyEnforcedUpdate reloads the team, hydrates its policy
@@ -2732,6 +2773,8 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string, channelID string) (*model.Subject, *model.AppError) {
 	a.refreshAttributeViewIfStale(rctx)
 
+	// Group is the cached lookup; GetPropertyGroup reads the store on every call,
+	// and subjects are built on hot paths such as websocket delivery.
 	group, err := a.Srv().propertyService.Group(model.AccessControlPropertyGroupName)
 	if err != nil {
 		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2857,13 +2900,21 @@ func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) 
 		return "", nil
 	}
 
+	return channelRoleForMember(rctx, userID, channelID, cm), nil
+}
+
+// channelRoleForMember maps a user's membership role fields in a channel to its
+// channel-scoped role, as GetSubjectChannelRole describes. It is shared with callers
+// that resolve many channels at once, so a batch resolves each exactly as a single
+// lookup would.
+func channelRoleForMember(rctx request.CTX, userID, channelID string, cm store.ChannelMemberRoles) string {
 	switch {
 	case cm.SchemeAdmin:
-		return model.ChannelAdminRoleId, nil
+		return model.ChannelAdminRoleId
 	case cm.SchemeGuest:
-		return model.ChannelGuestRoleId, nil
+		return model.ChannelGuestRoleId
 	case cm.SchemeUser:
-		return model.ChannelUserRoleId, nil
+		return model.ChannelUserRoleId
 	}
 
 	// Inspect the Roles tokens deterministically rather than returning
@@ -2886,13 +2937,13 @@ func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) 
 	// and `channel_guest` is the sole recognised token in the row.
 	tokens := strings.Fields(cm.Roles)
 	if slices.Contains(tokens, model.ChannelAdminRoleId) {
-		return model.ChannelAdminRoleId, nil
+		return model.ChannelAdminRoleId
 	}
 	if slices.Contains(tokens, model.ChannelUserRoleId) {
-		return model.ChannelUserRoleId, nil
+		return model.ChannelUserRoleId
 	}
 	if slices.Contains(tokens, model.ChannelGuestRoleId) {
-		return model.ChannelGuestRoleId, nil
+		return model.ChannelGuestRoleId
 	}
 
 	// ChannelMember row exists but neither the scheme flags nor the
@@ -2914,7 +2965,7 @@ func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) 
 		mlog.Bool("scheme_user", cm.SchemeUser),
 		mlog.Bool("scheme_guest", cm.SchemeGuest),
 	)
-	return "", nil
+	return ""
 }
 
 // ResolveSystemRole returns the highest-precedence base system role token

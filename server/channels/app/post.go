@@ -1283,7 +1283,11 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	}
 
 	a.setupBroadcastHookForAbacFiles(post, message)
-	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
+	// For some events the channel ID is not attached to the event directly so we need to get it from the post.
+	// Some of such events are channel_member_updated,user_removed, scheduled_post events, etc
+	if message.GetBroadcast().ChannelId == "" {
+		a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
+	}
 
 	a.Publish(message)
 	return nil
@@ -1569,18 +1573,18 @@ func degradedABACEtagEpoch() string {
 	return unknownABACEtagEpoch + "-" + strconv.FormatInt(time.Now().UnixNano(), 10)
 }
 
-// AppendABACEtag folds the policy and user-attribute epochs into a base ETag, so a policy or
-// attribute change misses the cache and SanitizePostListMetadataForUser runs instead of the
-// request 304ing onto differently-sanitized content. No-op when ABAC is inactive.
+// AppendABACEtag folds the policy, user-attribute, and session-attribute epochs into a base ETag,
+// so a change to any of them misses the cache and SanitizePostListMetadataForUser runs instead of
+// the request 304ing onto differently-sanitized content. No-op when ABAC is inactive.
 //
 // Pass "" for channelID when no channel is in scope; the policy epoch then covers only the
 // system-scoped permission policies.
-func (a *App) AppendABACEtag(base string, userID string, channelID string) string {
+func (a *App) AppendABACEtag(rctx request.CTX, base string, channelID string) string {
 	if !a.attributeBasedAccessControlEnabled() {
 		return base
 	}
 
-	rctx := request.EmptyContext(a.Log())
+	userID := rctx.Session().UserId
 
 	policyEpoch := degradedABACEtagEpoch()
 	if epoch, err := a.Srv().Store().AccessControlPolicy().GetEtagEpoch(rctx, channelID); err == nil {
@@ -1602,10 +1606,22 @@ func (a *App) AppendABACEtag(base string, userID string, channelID string) strin
 		}
 	}
 
-	return fmt.Sprintf("%s.%s.%s", base, policyEpoch, cpaEpoch)
+	sessionEpoch := unknownABACEtagEpoch
+	if sessionID := rctx.Session().Id; sessionID != "" {
+		sessionEpoch = degradedABACEtagEpoch()
+		if epoch, err := a.Srv().Store().SessionAttribute().GetEpoch(sessionID); err == nil {
+			sessionEpoch = epoch
+		} else {
+			a.Log().Warn("ABAC ETag: failed to get session attribute epoch; session component will be unknown",
+				mlog.String("session_id", sessionID),
+				mlog.Err(err))
+		}
+	}
+
+	return fmt.Sprintf("%s.%s.%s.%s", base, policyEpoch, cpaEpoch, sessionEpoch)
 }
 
-func (a *App) GetPostsEtag(channel *model.Channel, userID string, collapsedThreads bool) string {
+func (a *App) GetPostsEtag(rctx request.CTX, channel *model.Channel, collapsedThreads bool) string {
 	includeTranslations := false
 	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
 		if enabled, err := a.AutoTranslation().IsChannelEnabled(channel.Id); err == nil && enabled {
@@ -1613,7 +1629,7 @@ func (a *App) GetPostsEtag(channel *model.Channel, userID string, collapsedThrea
 		}
 	}
 	base := a.Srv().Store().Post().GetEtag(channel.Id, true, collapsedThreads, includeTranslations)
-	base = a.AppendABACEtag(base, userID, channel.Id)
+	base = a.AppendABACEtag(rctx, base, channel.Id)
 	return fmt.Sprintf("%v.%t", base, channel.DisableJoinLeaveMessages)
 }
 
@@ -2630,10 +2646,6 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		mlog.Int("rounds", putils.FetchUntilMaxRounds),
 	)
 
-	if appErr := a.filterSuppressedMembershipPosts(rctx, postSearchResults.PostList); appErr != nil {
-		return nil, false, appErr
-	}
-
 	return postSearchResults, allPostHaveMembership, nil
 }
 
@@ -2664,6 +2676,10 @@ func (a *App) searchPostsForUserPage(rctx request.CTX, finalParamsList []*model.
 	}
 
 	if appErr = a.filterBurnOnReadPosts(postSearchResults.PostList); appErr != nil {
+		return nil, 0, false, appErr
+	}
+
+	if appErr = a.filterSuppressedMembershipPosts(rctx, postSearchResults.PostList); appErr != nil {
 		return nil, 0, false, appErr
 	}
 
@@ -3135,11 +3151,6 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 		return nil, err, false
 	}
 
-	if !a.HasChannelReadAccess(rctx, session.UserId, channel) {
-		return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.channel_read_access.abac_denied.app_error", nil,
-			"userId="+session.UserId+", channelId="+channel.Id, http.StatusForbidden), false
-	}
-
 	ok, isMember := a.SessionHasPermissionToReadChannelRBACOnly(rctx, *session, channel)
 	if !ok {
 		if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
@@ -3149,6 +3160,14 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 		} else {
 			return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent}), false
 		}
+	}
+
+	// After RBAC, as in the other read gates: a session RBAC already refuses gets the
+	// generic error without a policy evaluation. Nothing above bypasses this check, so
+	// every allowed path, the public-channel fallback included, still meets it.
+	if !a.HasChannelReadAccess(rctx, session.UserId, channel) {
+		return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.channel_read_access.abac_denied.app_error", nil,
+			"userId="+session.UserId+", channelId="+channel.Id, http.StatusForbidden), false
 	}
 
 	return post, nil, isMember
@@ -3831,14 +3850,12 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	userMessage.Add("post", sanitizedPostJSON)
 	userMessage.GetBroadcast().ContainsSanitizedData = true
-	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, userMessage)
 	a.Publish(userMessage)
 
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	adminMessage.Add("post", string(postJSON))
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
-	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, adminMessage)
 	a.Publish(adminMessage)
 
 	a.Srv().Go(func() {
@@ -4418,6 +4435,8 @@ func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Pos
 		event.Add("recipients", []string{})
 	}
 
+	// Sent to one user without a channel, so the central read-access hook can't see it.
+	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, event)
 	a.Publish(event)
 
 	return nil
@@ -4442,6 +4461,8 @@ func (a *App) publishPostRevealedEventToUser(rctx request.CTX, post *model.Post,
 
 	event.Add("post", postJSON)
 
+	// Sent to one user without a channel, so the central read-access hook can't see it.
+	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, event)
 	a.Publish(event)
 
 	return nil

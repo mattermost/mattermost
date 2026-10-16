@@ -36,6 +36,8 @@ var renderableABACActions = map[string]renderableActionConfig{
 		DefaultWhenInactive: true,
 		FailClosedOnError:   true,
 	},
+	// Answered by its enforcement gate, which already allows while ABAC is inactive and
+	// fails closed on errors, so DefaultWhenInactive and FailClosedOnError only record that.
 	model.AccessControlPolicyActionChannelReadAccess: {
 		ResourceType:        model.AccessControlPolicyTypeChannel,
 		DefaultWhenInactive: true,
@@ -51,14 +53,21 @@ var renderableABACActions = map[string]renderableActionConfig{
 		DefaultWhenInactive: true,
 		FailClosedOnError:   true,
 	},
+	model.AccessControlPolicyActionCreateBurnOnReadPost: {
+		ResourceType:        model.AccessControlPolicyTypeChannel,
+		DefaultWhenInactive: true,
+		FailClosedOnError:   true,
+	},
 }
 
 // SearchAllowedActionsForCurrentUser computes non-authoritative, render-time ABAC
 // decisions for the current session user on a single resource. It mirrors the
 // enforcement path (BuildAccessControlSubjectForSession + AccessEvaluation with
 // the same Resource shape) so a render "allowed" can never disagree with what
-// enforcement would decide. Results MUST NOT be used to authorize an action; the
-// protected endpoints always re-evaluate the PDP live.
+// enforcement would decide. channel_read_access is answered by its enforcement
+// gate outright, since that gate decides more than the PDP does. Results MUST NOT
+// be used to authorize an action; the protected endpoints always re-evaluate the
+// PDP live.
 //
 // When req.Actions is nil/empty the function operates in discovery mode: it
 // evaluates all renderable actions registered for the resource type and returns
@@ -112,20 +121,16 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 		}
 	}
 
-	// No active policy — return per-action defaults.
 	acs := a.Srv().Channels().AccessControl
-	if acs == nil || !a.attributeBasedAccessControlEnabled() {
-		for _, action := range candidates {
-			record(action, model.RenderPermissionDecision{
-				Allowed:   renderableABACActions[action].DefaultWhenInactive,
-				Evaluated: true,
-			})
-		}
-		return resp, nil
+	active := acs != nil && a.attributeBasedAccessControlEnabled()
+
+	channelID := ""
+	if req.Resource.Type == model.AccessControlPolicyTypeChannel {
+		channelID = req.Resource.ID
 	}
 
-	exempt := slices.ContainsFunc(candidates, isChannelAccessAction) && a.channelAccessExemptByID(rctx, req.Resource.ID)
-	managementExempt := slices.Contains(candidates, model.AccessControlPolicyActionChannelManagementAccess) &&
+	exempt := active && slices.ContainsFunc(candidates, isChannelAccessAction) && a.channelAccessExemptByID(rctx, req.Resource.ID)
+	managementExempt := active && slices.Contains(candidates, model.AccessControlPolicyActionChannelManagementAccess) &&
 		a.SessionHasPermissionTo(*rctx.Session(), model.PermissionManageSystem)
 	recordIfExempt := func(action string) bool {
 		if !(exempt && isChannelAccessAction(action)) &&
@@ -136,27 +141,46 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 		return true
 	}
 
-	// All currently registered resource types are channel-scoped, so req.Resource.ID
-	// is always a channel ID here. If a non-channel resource type is ever added to
-	// renderableABACActions, this call must be updated to pass the correct channel ID.
-	subject, appErr := a.BuildAccessControlSubjectForSession(rctx, req.Resource.ID)
-	if appErr != nil {
-		rctx.Logger().Info("Failed to build ABAC subject for render-decision search",
-			mlog.String("resource_type", req.Resource.Type),
-			mlog.String("resource_id", req.Resource.ID),
-			mlog.Err(appErr),
-		)
-		for _, action := range candidates {
-			if recordIfExempt(action) {
-				continue
-			}
-			record(action, renderDecisionOnError(action))
-		}
-		return resp, nil
-	}
-
+	var subject *model.Subject
+	var subjectErr *model.AppError
 	for _, action := range candidates {
+		if action == model.AccessControlPolicyActionChannelReadAccess {
+			// Its enforcement gate also exempts DMs and GMs, requires Enterprise Advanced,
+			// and allows without evaluating when no policy governs the action, so a bare
+			// PDP call would disagree with enforcement on each of those.
+			record(action, model.RenderPermissionDecision{
+				Allowed:   a.HasChannelReadAccessByID(rctx, rctx.Session().UserId, req.Resource.ID),
+				Evaluated: true,
+			})
+			continue
+		}
+
+		// No active policy — the per-action default.
+		if !active {
+			record(action, model.RenderPermissionDecision{
+				Allowed:   renderableABACActions[action].DefaultWhenInactive,
+				Evaluated: true,
+			})
+			continue
+		}
+
 		if recordIfExempt(action) {
+			continue
+		}
+
+		// Built once, by the first action the PDP answers.
+		if subject == nil && subjectErr == nil {
+			subject, subjectErr = a.BuildAccessControlSubjectForSession(rctx, channelID)
+			if subjectErr != nil {
+				rctx.Logger().Info("Failed to build ABAC subject for render-decision search",
+					mlog.String("resource_type", req.Resource.Type),
+					mlog.String("resource_id", req.Resource.ID),
+					mlog.Err(subjectErr),
+				)
+			}
+		}
+		if subjectErr != nil {
+			record(action, renderDecisionOnError(action))
 			continue
 		}
 

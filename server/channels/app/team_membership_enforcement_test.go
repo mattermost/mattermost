@@ -48,10 +48,8 @@ func setupTeamABACPrereqsFlagOff(t *testing.T) *TestHelper {
 func setMockACS(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInterface {
 	t.Helper()
 	mockACS := &mocks.AccessControlServiceInterface{}
-	// Joining a team posts to its default channels, and publishing a channel event asks
-	// whether channel_read_access is governed. It isn't in these tests.
-	mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
-		Return(false, nil).Maybe()
+	// Joining a team posts to its default channels, which consults channel read access.
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(false, nil).Maybe()
 	th.App.Srv().ch.AccessControl = mockACS
 	t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
 	return mockACS

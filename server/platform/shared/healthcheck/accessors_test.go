@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -167,5 +168,52 @@ func TestPluginEnabled(t *testing.T) {
 	t.Run("unknown plugin", func(t *testing.T) {
 		_, ok := newSnapshot().PluginEnabled("com.unknown")
 		require.False(t, ok)
+	})
+}
+
+func TestStat(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil stats", func(t *testing.T) {
+		s := &Snapshot{}
+		_, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 {
+			return stats.Teams
+		})
+		require.False(t, ok)
+	})
+
+	t.Run("nil field", func(t *testing.T) {
+		s := &Snapshot{Stats: &model.SupportPacketStats{}}
+		_, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 {
+			return stats.Teams
+		})
+		require.False(t, ok)
+	})
+
+	t.Run("pointer to zero", func(t *testing.T) {
+		s := &Snapshot{
+			Stats: &model.SupportPacketStats{Teams: new(int64)},
+		}
+
+		value, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 {
+			return stats.Teams
+		})
+		require.True(t, ok)
+		require.Equal(t, int64(0), value)
+	})
+
+	t.Run("section error still returns populated field", func(t *testing.T) {
+		s := &Snapshot{
+			Stats: &model.SupportPacketStats{Teams: new(int64(9))},
+			Sections: map[model.WorkspaceSection]error{
+				model.SectionStats: assert.AnError,
+			},
+		}
+
+		value, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 {
+			return stats.Teams
+		})
+		require.True(t, ok)
+		require.Equal(t, int64(9), value)
 	})
 }

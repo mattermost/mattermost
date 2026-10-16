@@ -748,6 +748,11 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("")
 
+	// A patch that changes nothing still returns the whole channel.
+	if !sessionCanReadChannel(c, rchannel.Id) {
+		rchannel = channelWithoutContent(rchannel)
+	}
+
 	if err := json.NewEncoder(w).Encode(rchannel); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -1367,7 +1372,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pinnedEtag := c.App.AppendABACEtag(posts.Etag(), c.AppContext.Session().UserId, c.Params.ChannelId)
+	pinnedEtag := c.App.AppendABACEtag(c.AppContext, posts.Etag(), c.Params.ChannelId)
 	if c.HandleEtag(pinnedEtag, "Get Pinned Posts", w, r) {
 		return
 	}
@@ -1740,6 +1745,7 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		c.App.PrepareChannelReadAccess(c.AppContext, currentUserId, channels)
 		for _, ch := range channels {
 			// Evaluated for the session, not the queried user: a requester acting for
 			// someone else must not learn of a channel their own policy denies.

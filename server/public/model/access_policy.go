@@ -52,6 +52,7 @@ const (
 	AccessControlPolicyActionChannelReadAccess       = "channel_read_access"
 	AccessControlPolicyActionChannelWriteAccess      = "channel_write_access"
 	AccessControlPolicyActionChannelManagementAccess = "channel_management_access"
+	AccessControlPolicyActionCreateBurnOnReadPost    = "create_burn_on_read_post"
 
 	AccessControlPolicyScopeTeam = "team"
 
@@ -93,6 +94,7 @@ var allowedActionsV0_3 = map[string]bool{
 	AccessControlPolicyActionChannelReadAccess:       true,
 	AccessControlPolicyActionChannelWriteAccess:      true,
 	AccessControlPolicyActionChannelManagementAccess: true,
+	AccessControlPolicyActionCreateBurnOnReadPost:    true,
 }
 
 // allowedChannelRolesV0_4 is the set of channel-scoped roles that may appear
@@ -112,6 +114,7 @@ var allowedPermissionActionsV0_4 = map[string]bool{
 	AccessControlPolicyActionChannelReadAccess:       true,
 	AccessControlPolicyActionChannelWriteAccess:      true,
 	AccessControlPolicyActionChannelManagementAccess: true,
+	AccessControlPolicyActionCreateBurnOnReadPost:    true,
 }
 
 // IsPermissionAction reports whether the given action is a non-membership
@@ -181,21 +184,6 @@ func (p *AccessControlPolicy) HasPermissionRuleAction() bool {
 	}
 	for i := range p.Rules {
 		if slices.ContainsFunc(p.Rules[i].Actions, IsPermissionAction) {
-			return true
-		}
-	}
-	return false
-}
-
-// HasAction reports whether any rule on this policy carries the given action.
-// The write and management gates use it to decide whether a channel's own policy
-// governs their action. Safe to call on a nil policy.
-func (p *AccessControlPolicy) HasAction(action string) bool {
-	if p == nil {
-		return false
-	}
-	for i := range p.Rules {
-		if slices.Contains(p.Rules[i].Actions, action) {
 			return true
 		}
 	}

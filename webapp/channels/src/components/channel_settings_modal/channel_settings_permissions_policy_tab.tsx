@@ -14,6 +14,7 @@ import {
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+    ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_GUEST,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
@@ -152,6 +153,14 @@ const actionMessages = defineMessages({
         id: 'channel_settings.permissions_policy.action.channel_management_access.description',
         defaultMessage: "Allow users to change this channel's settings, bookmarks, members and access rules",
     },
+    createBorLabel: {
+        id: 'channel_settings.permissions_policy.action.create_bor',
+        defaultMessage: 'Create burn-on-read message',
+    },
+    createBorDescription: {
+        id: 'channel_settings.permissions_policy.action.create_bor.description',
+        defaultMessage: 'Allow users to send burn-on-read messages in this channel',
+    },
 });
 
 interface RoleDefinition {
@@ -178,6 +187,7 @@ const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
     {value: ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS, label: actionMessages.channelReadAccessLabel, description: actionMessages.channelReadAccessDescription},
     {value: ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS, label: actionMessages.channelWriteAccessLabel, description: actionMessages.channelWriteAccessDescription},
     {value: ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS, label: actionMessages.channelManagementAccessLabel, description: actionMessages.channelManagementAccessDescription},
+    {value: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, label: actionMessages.createBorLabel, description: actionMessages.createBorDescription},
 ];
 
 const ACTION_LABEL_IDS: Record<string, MessageDescriptor> = {
@@ -186,6 +196,7 @@ const ACTION_LABEL_IDS: Record<string, MessageDescriptor> = {
     [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: actionMessages.channelReadAccessLabel,
     [ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS]: actionMessages.channelWriteAccessLabel,
     [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]: actionMessages.channelManagementAccessLabel,
+    [ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ]: actionMessages.createBorLabel,
 };
 
 type EditableRule = {
@@ -816,22 +827,44 @@ function ChannelSettingsPermissionsPolicyTab({
         }
 
         return (
-            <PermissionRuleEditor
-                key={editingKey}
-                initial={initial}
-                isNew={isNew}
-                channelId={channel.id}
-                actions={actions}
-                userAttributes={mergedAttributes}
-                attributesLoaded={attributesLoaded}
-                enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
-                isSystemAdmin={isSystemAdmin}
-                error={formError}
-                onCancel={cancelEditor}
-                onCommit={commitDraft}
-                buildSimulationPolicy={buildSimulationPolicy}
-                policySimulationEnabled={policySimulationEnabled}
-            />
+            <>
+                <PermissionRuleEditor
+                    key={editingKey}
+                    initial={initial}
+                    isNew={isNew}
+                    channelId={channel.id}
+                    actions={actions}
+                    userAttributes={mergedAttributes}
+                    attributesLoaded={attributesLoaded}
+                    enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
+                    isSystemAdmin={isSystemAdmin}
+                    error={formError}
+                    onCancel={cancelEditor}
+                    onCommit={commitDraft}
+                    buildSimulationPolicy={buildSimulationPolicy}
+                    policySimulationEnabled={policySimulationEnabled}
+                />
+
+                {/* An open rule editor counts as unsaved changes, so the modal
+                  * refuses section switches while it is open. The list view's
+                  * panel is not rendered here, so bring up the same floating
+                  * footer the rest of the modal uses to report that refusal.
+                  * Its Save is disabled in this state — the rule itself is
+                  * committed from the editor's own button. */}
+                {showTabSwitchError && (
+                    <SaveChangesPanel
+                        handleSubmit={handleSaveChanges}
+                        handleCancel={cancelEditor}
+                        handleClose={handleClose}
+                        tabChangeError={true}
+                        state={SAVE_RESULT_ERROR}
+                        cancelButtonText={formatMessage({
+                            id: 'channel_settings.permissions_policy.editor.cancel',
+                            defaultMessage: 'Cancel',
+                        })}
+                    />
+                )}
+            </>
         );
     }
 

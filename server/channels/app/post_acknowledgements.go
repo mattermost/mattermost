@@ -245,7 +245,6 @@ func (a *App) sendAcknowledgementEvent(rctx request.CTX, event model.WebsocketEv
 		rctx.Logger().Warn("Failed to encode acknowledgement to JSON", mlog.Err(err))
 	}
 	message.Add("acknowledgement", string(acknowledgementJSON))
-	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
 	a.Publish(message)
 }
 

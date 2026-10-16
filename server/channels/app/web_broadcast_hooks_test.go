@@ -704,7 +704,7 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 		t.Helper()
 		mockSuite := &platform_mocks.SuiteIFace{}
 		mockSuite.On("HasPermissionToReadChannel", mock.Anything, userID, previewChannel).Return(true, true)
-		mockSuite.On("HasPermissionToFileAction", mock.Anything, userID, mock.AnythingOfType("string"), refChannelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
+		mockSuite.On("HasPermissionToChannelAction", mock.Anything, userID, mock.AnythingOfType("string"), refChannelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
 		mockSuite.On("MakeAuditRecord", mock.Anything, mock.Anything, mock.Anything).Return(&model.AuditRecord{})
 		mockSuite.On("LogAuditRec", mock.Anything, mock.Anything, mock.Anything).Return()
 		wc := &platform.WebConn{
@@ -717,7 +717,7 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 		return wc
 	}
 
-	// makeWebConnNoFileCheck builds a webConn whose mock does NOT expect HasPermissionToFileAction.
+	// makeWebConnNoFileCheck builds a webConn whose mock does NOT expect HasPermissionToChannelAction.
 	makeWebConnNoFileCheck := func(t *testing.T) *platform.WebConn {
 		t.Helper()
 		mockSuite := &platform_mocks.SuiteIFace{}
@@ -836,7 +836,7 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 	t.Run("no file stripping when embed has no files", func(t *testing.T) {
 		postJSON := makeOuterPostJSON(t)
 		msg := makeMessage(postJSON)
-		// Use webConn that does NOT expect HasPermissionToFileAction to be called.
+		// Use webConn that does NOT expect HasPermissionToChannelAction to be called.
 		wc := makeWebConnNoFileCheck(t)
 
 		previewPost := makeRefPost(model.StringArray{}, nil)
@@ -936,7 +936,7 @@ func TestAbacFilesBroadcastHook_Process(t *testing.T) {
 	makeWebConn := func(t *testing.T, userID string, allowed bool) *platform.WebConn {
 		t.Helper()
 		mockSuite := &platform_mocks.SuiteIFace{}
-		mockSuite.On("HasPermissionToFileAction", mock.Anything, userID, mock.AnythingOfType("string"), channelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
+		mockSuite.On("HasPermissionToChannelAction", mock.Anything, userID, mock.AnythingOfType("string"), channelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
 		wc := &platform.WebConn{
 			UserId:   userID,
 			Platform: &platform.PlatformService{},
@@ -1279,6 +1279,65 @@ func TestChannelReadAccessBroadcastHook_Process(t *testing.T) {
 	t.Run("a malformed arg is an error, not a silent delivery", func(t *testing.T) {
 		msg := makeMessage()
 		require.Error(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": 42}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+}
+
+func TestChannelReadAccessRedactBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &channelReadAccessRedactBroadcastHook{}
+
+	userID := model.NewId()
+	channelID := model.NewId()
+	channelJSON := `{"id":"` + channelID + `","display_name":"Secret plans"}`
+
+	makeMessage := func() *platform.HookedWebSocketEvent {
+		event := model.NewWebSocketEvent(model.WebsocketEventChannelAccessControlUpdated, "", channelID, "", nil, "")
+		event.Add("channel", channelJSON)
+		return platform.MakeHookedWebSocketEvent(event)
+	}
+
+	makeWebConn := func(t *testing.T, allowed bool, withSession bool) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasChannelReadAccessByID", mock.Anything, userID, channelID).Return(allowed).Maybe()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		if withSession {
+			wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		}
+		return wc
+	}
+
+	// The event must still arrive in every case: it is how a denied member's client
+	// learns to drop the channel.
+	t.Run("an allowed recipient gets the channel", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": channelID}))
+		assert.False(t, msg.Event().IsRejected())
+		assert.Equal(t, channelJSON, msg.Get("channel"))
+	})
+
+	t.Run("a denied recipient gets the event without the channel", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, false, true), map[string]any{"channel_id": channelID}))
+		assert.False(t, msg.Event().IsRejected())
+		assert.Equal(t, "", msg.Get("channel"))
+	})
+
+	t.Run("a connection with no session gets the event without the channel", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, false), map[string]any{"channel_id": channelID}))
+		assert.Equal(t, "", msg.Get("channel"))
+	})
+
+	t.Run("a malformed arg leaves the channel out", func(t *testing.T) {
+		msg := makeMessage()
+		require.Error(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": 42}))
+		assert.Equal(t, "", msg.Get("channel"))
 	})
 }
 
@@ -1335,7 +1394,7 @@ func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
 	makeWebConn := func(t *testing.T, allowed bool) *platform.WebConn {
 		t.Helper()
 		mockSuite := &platform_mocks.SuiteIFace{}
-		mockSuite.On("HasPermissionToFileAction", mock.Anything, userID, mock.AnythingOfType("string"), channelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
+		mockSuite.On("HasPermissionToChannelAction", mock.Anything, userID, mock.AnythingOfType("string"), channelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
 		wc := &platform.WebConn{
 			UserId:   userID,
 			Platform: &platform.PlatformService{},
