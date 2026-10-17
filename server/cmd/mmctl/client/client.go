@@ -109,6 +109,8 @@ type Client interface {
 	PatchConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
 	ReloadConfig(ctx context.Context) (*model.Response, error)
 	MigrateConfig(ctx context.Context, from, to string) (*model.Response, error)
+	GetConfigHistory(ctx context.Context, page, perPage int) ([]*model.ConfigHistoryEntry, *model.Response, error)
+	GetHistoricalConfig(ctx context.Context, configID string) (*model.Config, *model.Response, error)
 	SyncLdap(ctx context.Context) (*model.Response, error)
 	MigrateIdLdap(ctx context.Context, toAttribute string) (*model.Response, error)
 	GetUsers(ctx context.Context, page, perPage int, etag string) ([]*model.User, *model.Response, error)

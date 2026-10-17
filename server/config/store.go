@@ -20,6 +20,13 @@ var (
 	// ErrReadOnlyStore is returned when an attempt to modify a read-only
 	// configuration store is made.
 	ErrReadOnlyStore = errors.New("configuration store is read-only")
+
+	// ErrHistoryNotSupported is returned when the configuration history is requested
+	// from a backing store that does not keep one.
+	ErrHistoryNotSupported = errors.New("configuration history is only kept for configurations stored in the database")
+
+	// ErrHistoricalConfigNotFound is returned when no saved configuration has the requested id.
+	ErrHistoricalConfigNotFound = errors.New("saved configuration not found")
 )
 
 // Store is the higher level object that handles storing and retrieval of config data.
@@ -410,4 +417,38 @@ func (s *Store) CleanUp() error {
 	default:
 		return nil
 	}
+}
+
+// GetHistory returns the saved configurations, newest first, skipping the first offset.
+// Only a DatabaseStore backing store keeps a history.
+func (s *Store) GetHistory(offset, limit int) ([]*model.ConfigHistoryEntry, error) {
+	switch bs := s.backingStore.(type) {
+	case *DatabaseStore:
+		return bs.getHistory(offset, limit)
+	default:
+		return nil, ErrHistoryNotSupported
+	}
+}
+
+// GetHistoricalConfig returns the saved configuration with the given id, with defaults
+// applied but without environment overrides. Only a DatabaseStore backing store keeps a history.
+func (s *Store) GetHistoricalConfig(id string) (*model.Config, error) {
+	bs, ok := s.backingStore.(*DatabaseStore)
+	if !ok {
+		return nil, ErrHistoryNotSupported
+	}
+
+	configBytes, err := bs.getHistoricalConfig(id)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := &model.Config{}
+	if err := json.Unmarshal(configBytes, cfg); err != nil {
+		return nil, utils.HumanizeJSONError(err, configBytes)
+	}
+	// A configuration saved by an older server lacks the settings added since.
+	cfg.SetDefaults()
+
+	return cfg, nil
 }
