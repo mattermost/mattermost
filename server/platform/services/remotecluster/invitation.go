@@ -14,9 +14,9 @@ import (
 )
 
 // AcceptInvitation is called when accepting an invitation to connect with a remote cluster.
-// Failures to save the remote cluster are returned as *model.AppError; failures contacting the
-// remote and the remote's rejection reason are returned as plain errors.
-func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, error) {
+// Text supplied by the remote, such as its rejection reason, is only wrapped in the returned
+// error for logging and never becomes part of the user-facing message.
+func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, *model.AppError) {
 	// Generate new token for RemoteToken only if invite version is 2 or greater
 	var remoteToken string
 	if invite.Version >= 2 {
@@ -52,7 +52,7 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 	// confirm the invitation with the originating site
 	frame, err := makeConfirmFrame(rcSaved, siteURL)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	url := fmt.Sprintf("%s/%s", rcSaved.SiteURL, ConfirmInviteURL)
@@ -65,19 +65,23 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 	resp, err := rcs.sendFrameToRemote(PingTimeout, rc, frame, url)
 	if err != nil {
 		rcs.server.GetStore().RemoteCluster().Delete(rcSaved.RemoteId)
-		return nil, err
+		// sendFrameToRemote returns the body along with the error when the remote answered with a non-200 status.
+		if resp == nil {
+			return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": url}, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.rejected.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	var response Response
 	err = json.Unmarshal(resp, &response)
 	if err != nil {
 		rcs.server.GetStore().RemoteCluster().Delete(rcSaved.RemoteId)
-		return nil, fmt.Errorf("invalid response from remote server: %w", err)
+		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.invalid_response.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if !response.IsSuccess() {
 		rcs.server.GetStore().RemoteCluster().Delete(rcSaved.RemoteId)
-		return nil, errors.New(response.Err)
+		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.rejected.app_error", nil, "", http.StatusInternalServerError).Wrap(fmt.Errorf("remote reason: %q", response.Err))
 	}
 
 	// issue the first ping right away. The goroutine will exit when ping completes or PingTimeout exceeded.

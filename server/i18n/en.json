@@ -4465,6 +4465,21 @@
     "description": "API error when a user requests an AI-generated recap (channel activity summary) that belongs to another user."
   },
   {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "The remote site returned an invalid response.",
+    "description": "Error shown to an admin accepting a secure connection (remote Mattermost server) invitation when the remote site's reply cannot be read, e.g. a proxy returned an HTML page."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "The remote site rejected the invitation.",
+    "description": "Error shown to an admin accepting a secure connection (remote Mattermost server) invitation when the remote site refuses to confirm it. The remote's reason is logged, not shown."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "Could not reach the remote site at {{.URL}}.",
+    "description": "Error shown to an admin accepting a secure connection (remote Mattermost server) invitation when the remote site cannot be contacted. {{.URL}} is the address that was tried."
+  },
+  {
     "id": "api.remote_cluster.accept_invitation_error",
     "translation": "Could not accept the remote cluster invitation",
     "description": "API error when accepting an invitation to connect with another Mattermost server (remote cluster) fails."

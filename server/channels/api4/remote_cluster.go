@@ -505,10 +505,7 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 
 	rc, aErr := rcs.AcceptInvitation(invite, rcAcceptInvite.Name, rcAcceptInvite.DisplayName, c.AppContext.Session().UserId, url, rcAcceptInvite.DefaultTeamId)
 	if aErr != nil {
-		c.Err = model.NewAppError("remoteClusterAcceptInvite", "api.remote_cluster.accept_invitation_error", nil, "", http.StatusInternalServerError).Wrap(aErr)
-		if appErr, ok := aErr.(*model.AppError); ok {
-			c.Err = appErr
-		}
+		c.Err = aErr
 		return
 	}
 	rc.Sanitize()

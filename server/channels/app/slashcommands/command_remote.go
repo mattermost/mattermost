@@ -199,15 +199,10 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 		return response(args.T("api.command_remote.site_url_not_set"))
 	}
 
-	rc, err := rcs.AcceptInvitation(invite, name, displayname, args.UserId, url, "")
-	if err != nil {
-		var appErr *model.AppError
-		if errors.As(err, &appErr) {
-			msg := translatedAppErrMessage(a, args, "Failed to accept secure connection invitation", appErr, mlog.String("remote_id", invite.RemoteId))
-			return response(args.T("api.command_remote.accept_invitation.error", map[string]any{"Error": msg}))
-		}
-		a.Log().Warn("Failed to accept secure connection invitation", mlog.String("remote_id", invite.RemoteId), mlog.Err(err))
-		return response(args.T("api.command_remote.accept_invitation.error", map[string]any{"Error": err.Error()}))
+	rc, appErr := rcs.AcceptInvitation(invite, name, displayname, args.UserId, url, "")
+	if appErr != nil {
+		msg := translatedAppErrMessage(a, args, "Failed to accept secure connection invitation", appErr, mlog.String("remote_id", invite.RemoteId))
+		return response(args.T("api.command_remote.accept_invitation.error", map[string]any{"Error": msg}))
 	}
 
 	return response("##### " + args.T("api.command_remote.accept_invitation", map[string]any{"SiteURL": rc.GetSiteURL()}))
