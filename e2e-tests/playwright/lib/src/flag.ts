@@ -82,6 +82,9 @@ export async function skipIfNoLicense() {
     test.skip(license.IsLicensed === 'false', 'Skipping test - server not licensed');
 }
 
+// Kept on this release branch only for specs not covered by this cherry-pick (upstream #38981
+// removed it in favor of ensureFeatureFlag, which restarts the server with the flag genuinely
+// on instead of only skipping when it's off). See the cherry-pick PR description for details.
 export async function skipIfFeatureFlagNotSet(name: string, value: string | boolean) {
     const {adminClient} = await getAdminClient();
     const cfg = await adminClient.getConfig();
