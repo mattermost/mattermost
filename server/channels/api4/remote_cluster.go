@@ -425,6 +425,9 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, token, password)
 	if iErr != nil {
+		if _, delErr := c.App.DeleteRemoteCluster(rcSaved.RemoteId); delErr != nil {
+			c.Logger.Warn("Failed to delete remote cluster after invite creation failure", mlog.String("remote_id", rcSaved.RemoteId), mlog.Err(delErr))
+		}
 		c.Err = iErr
 		return
 	}

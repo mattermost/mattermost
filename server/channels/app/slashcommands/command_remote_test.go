@@ -784,4 +784,14 @@ func TestRemoteProviderDoCreateInviteFailure(t *testing.T) {
 	resp := (&RemoteProvider{}).DoCommand(th.App, th.Context, args, "")
 	require.NotNil(t, resp)
 	require.Equal(t, "invite failed: user-locale invite error", resp.Text)
+
+	active, appErr := th.App.GetAllRemoteClusters(0, 10, model.RemoteClusterQueryFilter{})
+	require.Nil(t, appErr)
+	require.Empty(t, active, "a failed invitation must not leave a secure connection behind")
+
+	all, appErr := th.App.GetAllRemoteClusters(0, 10, model.RemoteClusterQueryFilter{IncludeDeleted: true})
+	require.Nil(t, appErr)
+	require.Len(t, all, 1)
+	require.Equal(t, "remotename", all[0].Name)
+	require.NotZero(t, all[0].DeleteAt)
 }

@@ -152,6 +152,9 @@ func (rp *RemoteProvider) doCreate(a *app.App, args *model.CommandArgs, margs ma
 	// Display the encrypted invitation
 	inviteCode, err := a.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, password)
 	if err != nil {
+		if _, delErr := a.DeleteRemoteCluster(rcSaved.RemoteId); delErr != nil {
+			a.Log().Warn("Failed to delete secure connection after invitation failure", mlog.String("remote_id", rcSaved.RemoteId), mlog.Err(delErr))
+		}
 		msg := translatedAppErrMessage(a, args, "Failed to create secure connection invitation", err, mlog.String("remote_id", rcSaved.RemoteId))
 		return response(args.T("api.command_remote.encrypt_invitation.error", map[string]any{"Error": msg}))
 	}
