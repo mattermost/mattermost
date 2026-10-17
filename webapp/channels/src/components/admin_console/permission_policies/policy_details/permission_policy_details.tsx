@@ -38,8 +38,8 @@ import {SCOPE_COPY, type PolicyScope} from './scope_copy';
 import {
     BOT_ROLE_KEY,
     BOT_SCOPE_PROP,
+    getPolicyRoleKey,
     getSyncedAttributeReferences,
-    isBotScopePolicy,
     toServerRole,
     unwrapBotExpression,
     wrapBotExpression,
@@ -152,7 +152,7 @@ function PermissionPolicyDetails({
     // editor would fire a doomed parse on mount. fetchPolicy below is the only
     // source; it also sets the name, role and permissions seeded here.
     const [expression, setExpression] = useState('');
-    const [selectedRole, setSelectedRole] = useState(policy?.roles?.[0] || 'system_user');
+    const [selectedRole, setSelectedRole] = useState((policy && getPolicyRoleKey(policy)) || 'system_user');
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>(
         getPermissionActions(policy?.rules || []),
     );
@@ -244,12 +244,12 @@ function PermissionPolicyDetails({
                 }
                 const loaded: AccessControlPolicy | undefined = result.data;
                 const rules = loaded?.rules || [];
-                const botScope = loaded ? isBotScopePolicy(loaded) : false;
+                const roleKey = (loaded && getPolicyRoleKey(loaded)) || 'system_user';
                 const raw = rules[0]?.expression || '';
-                const inner = botScope ? unwrapBotExpression(raw) : raw;
+                const inner = roleKey === BOT_ROLE_KEY ? unwrapBotExpression(raw) : raw;
 
                 setPolicyName(loaded?.name || '');
-                setSelectedRole(botScope ? BOT_ROLE_KEY : loaded?.roles?.[0] || 'system_user');
+                setSelectedRole(roleKey);
                 setExpression(inner);
                 setSelectedPermissions(getPermissionActions(rules));
                 setEditorMode(isSimpleExpression(inner) ? 'table' : 'cel');

@@ -326,6 +326,20 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             expect(screen.getByText('Applies only to bot accounts')).toBeInTheDocument();
         });
 
+        test('seeds Bot accounts from a store-copy bot policy without waiting for fetchPolicy', async () => {
+            renderWithContext(
+                <PermissionPolicyDetails
+                    {...baseProps}
+                    policyId={undefined}
+                    policy={{id: 'policy1', name: 'Policy 1', type: 'permission', roles: ['system_user'], props: BOT_PROPS, rules: []}}
+                />,
+            );
+            await screen.findByTestId('table-editor');
+
+            expect(mockFetchPolicy).not.toHaveBeenCalled();
+            expect(selectorText()).toContain('Bot accounts');
+        });
+
         test('a wrapped && chain selects Bot accounts and opens the unwrapped rule in table mode', async () => {
             renderBotPolicy([BOT_A_RETURNED]);
 
