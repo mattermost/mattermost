@@ -124,6 +124,9 @@ on:
         required: false
       CWS_EXTRA_HTTP_HEADERS:
         required: false
+      ANTHROPIC_API_KEY:
+        description: "Optional; enables the second judge in E2E triage"
+        required: false
 
 # Callers must grant: contents: read, statuses: write, id-token: write
 permissions:
@@ -136,6 +139,12 @@ env:
 
 jobs:
   prepare-run:
+    # Commit statuses are SHA-scoped. Keep every publisher (including the
+    # aggregate snapshot) under this same lock; never discard queued publishers.
+    concurrency:
+      group: e2e-status-publish-${{ inputs.commit_sha }}
+      cancel-in-progress: false
+      queue: max
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -197,6 +206,18 @@ jobs:
         run: |
           echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
+
+      - name: ci/claim-status
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-status@49c7eea81939c09209cfcf2747e4dcaf699cf95a  # actions/e2e-status
+        with:
+          composite-identity: ${{ steps.composite-identity.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          operation: claim
+          state: pending
+          description: E2E tests queued or running
+          triage-status-context: e2e-test/triage
+          triage-lanes: e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise
 
   # Decide how the workers get their deps, and bridge the gap when they can't use
   # the cache. On a hit this job is a checkout and a metadata lookup, and the
@@ -297,6 +318,7 @@ jobs:
           cypress-sort-last: ${{ inputs.cypress_sort_last }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           commit-status-context: ${{ inputs.context_name }}
+          post-pending-commit-status: "false"
           image-tag: ${{ inputs.server_image_tag }}
           image-aliases: ${{ inputs.server_image_aliases }}
 
@@ -397,6 +419,12 @@ jobs:
           if-no-files-found: ignore
 
   report:
+    # Commit statuses are SHA-scoped. Keep every publisher (including the
+    # aggregate snapshot) under this same lock; never discard queued publishers.
+    concurrency:
+      group: e2e-status-publish-${{ inputs.commit_sha }}
+      cancel-in-progress: false
+      queue: max
     runs-on: ubuntu-24.04
     needs: [prepare-run, dispatch-begin, workers]
     if: always()
@@ -404,6 +432,8 @@ jobs:
       contents: read
       id-token: write
       statuses: write
+      # Triage reads the PR's changed files to tell a spec it edits from one it does not.
+      pull-requests: read
     outputs:
       commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
       webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
@@ -413,6 +443,7 @@ jobs:
         with:
           persist-credentials: false
       - name: ci/run-summary
+        if: always()
         id: summary
         continue-on-error: true
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@e2d5032cfa71a3ad11b0975b135cd221564f2787 # 2026-08-06
@@ -427,7 +458,85 @@ jobs:
           pr-number: ${{ inputs.pr_number }}
           ref-branch: ${{ inputs.ref_branch }}
           commit-status-context: ${{ inputs.context_name }}
+          update-commit-status: "false"
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: ci/publish-result
+        id: result
+        # The diagnostic summary runs even on cancellation. A cancelled lane
+        # must leave its current pending status (or a newer owner's result) alone.
+        if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' }}
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-status@49c7eea81939c09209cfcf2747e4dcaf699cf95a  # actions/e2e-status
+        with:
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          state: ${{ steps.summary.outcome == 'success' && 'success' || 'failure' }}
+          verify-reports: "true"
+          execution-success: ${{ needs.prepare-run.result == 'success' && needs.dispatch-begin.result == 'success' && needs.workers.result == 'success' }}
+          tsio-base-url: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' && 'https://staging-test-io.test.mattermost.com' || 'https://test-io.test.mattermost.com' }}
+          description: ${{ steps.summary.outputs.commit_status_description || 'E2E results unavailable or incomplete; re-run the failed jobs' }}
+          target-url: ${{ steps.summary.outputs.report_url }}
+          triage-status-context: e2e-test/triage
+          triage-lanes: e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise
+      # Answers from earlier runs on the same PR (the same commit on master), so a
+      # re-run does not pay for the same question twice. The file also keeps this
+      # lane's AI spend on the PR, for the per-PR budget (pr-budget-usd, $2 by
+      # default, split between the lanes). Restore and save are separate steps:
+      # the cache action saves only when the job succeeds, and a red run is the
+      # one most likely to be re-run.
+      - name: Restore triage answers
+        if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' && steps.result.outputs.state != 'success' }}
+        continue-on-error: true
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: e2e-triage-answers.json
+          key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number && format('pr{0}', fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number) || fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number && format('pr{0}', fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number) || fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-
+      - name: ci/e2e-triage
+        id: triage
+        # Runs on master as well as on PRs. On master the question changes from
+        # "is this the PR's fault" to "is master noisy or actually broken", and
+        # only intermittency clears a failure: a test that failed in the previous
+        # master run too is a streak, not a flake, and stays red. A master run has
+        # no PR to comment on, so the story lands in the job summary.
+        #
+        # Only a red run is worth triaging: the verdict can turn a red run green
+        # and never the other way round, so on a green one there is nothing for
+        # it to change.
+        if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' && steps.result.outputs.state != 'success' }}
+        continue-on-error: true
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@49c7eea81939c09209cfcf2747e4dcaf699cf95a # actions/e2e-triage
+        with:
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          # Only these two PR lanes share an aggregate. Other editions and
+          # trunk contexts use the action's default per-lane triage check.
+          triage-status-context: ${{ (inputs.context_name == 'e2e-test/playwright-full/enterprise' || inputs.context_name == 'e2e-test/cypress-full/enterprise') && 'e2e-test/triage' || '' }}
+          triage-lanes: ${{ (inputs.context_name == 'e2e-test/playwright-full/enterprise' || inputs.context_name == 'e2e-test/cypress-full/enterprise') && 'e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise' || '' }}
+          test-root: e2e-tests/cypress
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Infrastructure/report failures remain red; triage still supplies diagnostics.
+          mode: ${{ needs.prepare-run.result == 'success' && needs.dispatch-begin.result == 'success' && needs.workers.result == 'success' && steps.result.outputs.reports-complete == 'true' && (vars.E2E_TRIAGE_MODE || 'enforce') || 'report-only' }}
+          tsio-base-url: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' && 'https://staging-test-io.test.mattermost.com' || 'https://test-io.test.mattermost.com' }}
+          answers-cache: e2e-triage-answers.json
+      - name: Save triage answers
+        if: always() && steps.result.outputs.state != 'success' && hashFiles('e2e-triage-answers.json') != ''
+        continue-on-error: true
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: e2e-triage-answers.json
+          key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number && format('pr{0}', fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number) || fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: ci/refresh-lane-summary
+        if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' }}
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-status@49c7eea81939c09209cfcf2747e4dcaf699cf95a  # actions/e2e-status
+        with:
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          operation: refresh
+          triage-status-context: e2e-test/triage
+          triage-lanes: e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
@@ -437,6 +546,19 @@ jobs:
           curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
       - name: ci/assert-results
         env:
-          SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
+          EXECUTION_SUCCESS: ${{ needs.prepare-run.result == 'success' && needs.dispatch-begin.result == 'success' && needs.workers.result == 'success' }}
+          REPORTS_COMPLETE: ${{ steps.result.outputs.reports-complete }}
+          RAW_STATE: ${{ steps.result.outputs.state }}
+          TRIAGE_VERDICT: ${{ steps.triage.outputs.verdict }}
+          TRIAGE_OUTCOME: ${{ steps.triage.outcome }}
+          TRIAGE_PUBLISHED: ${{ steps.triage.outputs.published }}
+          TRIAGE_MODE: ${{ steps.triage.outputs.effective-mode }}
         run: |
-          [ "$SUMMARY_OUTCOME" = "success" ]
+          # Orchestration can pass before uploads fail. Neither its summary nor
+          # AI can clear missing reports or failed upstream execution.
+          [ "$EXECUTION_SUCCESS" = "true" ] && [ "$REPORTS_COMPLETE" = "true" ] || exit 1
+          if [ "$RAW_STATE" = "success" ]; then
+            exit 0
+          fi
+          [ "$TRIAGE_OUTCOME" = "success" ] && [ "$TRIAGE_PUBLISHED" = "true" ] &&
+            [ "$TRIAGE_MODE" = "enforce" ] && [ "$TRIAGE_VERDICT" = "SUCCESS" ]

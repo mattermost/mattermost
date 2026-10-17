@@ -12,12 +12,13 @@ on:
 permissions: {}
 
 jobs:
-  override-status:
+  resolve-pr:
     permissions:
       contents: read
       pull-requests: read
-      statuses: write
     runs-on: ubuntu-24.04
+    outputs:
+      head_sha: ${{ steps.pr-info.outputs.head_sha }}
     steps:
       - name: Validate inputs
         env:
@@ -38,10 +39,22 @@ jobs:
           HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
           echo "head_sha=$HEAD_SHA" >> $GITHUB_OUTPUT
 
+  override-status:
+    needs: resolve-pr
+    concurrency:
+      group: e2e-status-publish-${{ needs.resolve-pr.outputs.head_sha }}
+      cancel-in-progress: false
+      queue: max
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    runs-on: ubuntu-24.04
+    steps:
       - name: Override failed full test statuses
         env:
           GH_TOKEN: ${{ github.token }}
-          COMMIT_SHA: ${{ steps.pr-info.outputs.head_sha }}
+          COMMIT_SHA: ${{ needs.resolve-pr.outputs.head_sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           # Full suites + rolling-upgrade from-version contexts (smoke must still pass).
@@ -101,3 +114,16 @@ jobs:
 
             echo "  Updated to success"
           done
+
+      # Verification keeps the original run's URL/owner and never overrides
+      # pending. Refresh its factual projection while still holding the SHA lock.
+      - name: ci/refresh-verified-summary
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-status@49c7eea81939c09209cfcf2747e4dcaf699cf95a  # actions/e2e-status
+        with:
+          composite-identity: >-
+            {"repository":"${{ github.repository }}","commit_sha":"${{ needs.resolve-pr.outputs.head_sha }}","gh_run_id":"${{ github.run_id }}","gh_run_attempt":"${{ github.run_attempt }}"}
+          status-context: e2e-test/triage
+          github-token: ${{ github.token }}
+          operation: summarize
+          triage-status-context: e2e-test/triage
+          triage-lanes: e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise

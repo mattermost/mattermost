@@ -12,6 +12,10 @@ permissions: {}
 
 jobs:
   approve-e2e:
+    concurrency:
+      group: e2e-status-publish-${{ github.event.pull_request.head.sha }}
+      cancel-in-progress: false
+      queue: max
     permissions:
       contents: read
       pull-requests: read
@@ -118,6 +122,19 @@ jobs:
           echo "webhook_data<<EOF" >> $GITHUB_OUTPUT
           echo "$WEBHOOK_DATA" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+
+      # Verification keeps the original run's URL/owner and never overrides
+      # pending. Refresh its factual projection while still holding the SHA lock.
+      - name: ci/refresh-verified-summary
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-status@49c7eea81939c09209cfcf2747e4dcaf699cf95a  # actions/e2e-status
+        with:
+          composite-identity: >-
+            {"repository":"${{ github.repository }}","commit_sha":"${{ github.event.pull_request.head.sha }}","gh_run_id":"${{ github.run_id }}","gh_run_attempt":"${{ github.run_attempt }}"}
+          status-context: e2e-test/triage
+          github-token: ${{ github.token }}
+          operation: summarize
+          triage-status-context: e2e-test/triage
+          triage-lanes: e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise
 
       - name: ci/build-webhook-message
         if: env.REPORT_WEBHOOK_URL != '' && steps.override.outputs.overridden != ''

@@ -61,8 +61,18 @@ on:
         required: false
       CWS_EXTRA_HTTP_HEADERS:
         required: false
+      ANTHROPIC_API_KEY:
+        description: "Optional; enables the second judge in E2E triage"
+        required: false
 
 permissions: {}
+
+# Inputs have already been resolved by e2e-tests-ci. Manual dispatch from master
+# and automatic dispatch from a PR ref must share this lane's ownership boundary.
+# Do not cancel a running publisher between its ownership read and status write.
+concurrency:
+  group: e2e-lane-cypress-${{ inputs.pr_number && format('pr-{0}', inputs.pr_number) || format('sha-{0}', inputs.commit_sha) }}-${{ inputs.server_edition || 'enterprise' }}-${{ inputs.report_type || 'PR' }}
+  cancel-in-progress: false
 
 jobs:
   generate-build-variables:
@@ -153,6 +163,12 @@ jobs:
           esac
 
   skip:
+    # Commit statuses are SHA-scoped. Keep every publisher (including the
+    # aggregate snapshot) under this same lock; never discard queued publishers.
+    concurrency:
+      group: e2e-status-publish-${{ inputs.commit_sha }}
+      cancel-in-progress: false
+      queue: max
     needs:
       - generate-build-variables
     if: inputs.should_run == 'false'
@@ -162,19 +178,17 @@ jobs:
       statuses: write
     steps:
       - name: ci/post-skip-status
-        env:
-          COMMIT_SHA: ${{ inputs.commit_sha }}
-          CONTEXT_NAME: "e2e-test/cypress-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
-          GH_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-        run: |
-          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
-            -f state=success \
-            -f context="${CONTEXT_NAME}" \
-            -f description="No E2E-relevant changes - skipped" \
-            -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          echo "Posted success for ${CONTEXT_NAME}"
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-status@49c7eea81939c09209cfcf2747e4dcaf699cf95a  # actions/e2e-status
+        with:
+          composite-identity: >-
+            {"repository":"${{ github.repository }}","commit_sha":"${{ inputs.commit_sha }}","gh_run_id":"${{ github.run_id }}","gh_run_attempt":"${{ github.run_attempt }}"}
+          status-context: "e2e-test/cypress-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
+          github-token: ${{ github.token }}
+          operation: claim
+          state: success
+          description: No E2E-relevant changes - skipped
+          triage-status-context: e2e-test/triage
+          triage-lanes: e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise
 
   cypress-full:
     needs:
@@ -209,3 +223,4 @@ jobs:
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
       CWS_URL: ${{ secrets.CWS_URL }}
       CWS_EXTRA_HTTP_HEADERS: ${{ secrets.CWS_EXTRA_HTTP_HEADERS }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
