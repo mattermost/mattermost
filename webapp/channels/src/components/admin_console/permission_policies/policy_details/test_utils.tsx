@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import type {AccessControlPolicyProps} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
@@ -136,7 +137,7 @@ export const renderWithExpression = (expression: string) => {
     return renderWithContext(<PermissionPolicyDetails {...baseProps}/>);
 };
 
-export const renderWithPolicy = (policy: {roles?: string[]; expressions: string[]; props?: Record<string, unknown>}, initialState = {}) => {
+export const renderWithPolicy = (policy: {roles?: string[]; expressions: string[]; props?: AccessControlPolicyProps}, initialState = {}) => {
     mockFetchPolicy.mockResolvedValue({
         data: {
             id: 'policy1',

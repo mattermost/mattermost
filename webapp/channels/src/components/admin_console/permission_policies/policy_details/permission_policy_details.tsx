@@ -37,7 +37,6 @@ import {SCOPE_COPY, type PolicyScope} from './scope_copy';
 
 import {
     BOT_ROLE_KEY,
-    BOT_SCOPE_PROP,
     getPolicyRoleKey,
     getSyncedAttributeReferences,
     toServerRole,
@@ -340,7 +339,7 @@ function PermissionPolicyDetails({
                 rules: buildRulesWithActions(expression, selectedPermissions, isBotScope),
                 roles: [toServerRole(selectedRole)],
                 type: 'permission',
-                ...(isBotScope ? {props: {[BOT_SCOPE_PROP]: true}} : {}),
+                ...(isBotScope ? {props: {bot_scope: true}} : {}),
             });
 
             if (result.error) {

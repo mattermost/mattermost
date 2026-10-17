@@ -202,7 +202,7 @@ describe('isSimpleExpression on server-serialized bodies', () => {
 });
 
 describe('isBotScopePolicy', () => {
-    const withProps = (props?: AccessControlPolicy['props']): Pick<AccessControlPolicy, 'props'> => ({props});
+    const withProps = (props?: unknown) => ({props} as Pick<AccessControlPolicy, 'props'>);
 
     it('is true when props.bot_scope is true', () => {
         expect(isBotScopePolicy(withProps({bot_scope: true}))).toBe(true);

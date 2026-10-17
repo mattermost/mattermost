@@ -8,8 +8,6 @@ import {isWrappedInParens, referencedUserAttributeNames} from '../cel_lexer';
 
 export const BOT_ROLE_KEY = 'bot';
 
-export const BOT_SCOPE_PROP = 'bot_scope';
-
 // Native built-ins every bot either lacks or shares, so they can't scope a bot policy.
 export const BOT_SCOPE_HIDDEN_NATIVE: string[] = ['email', 'verified', 'isbot'];
 
@@ -19,7 +17,7 @@ export const BOT_SCOPE_HIDDEN_NATIVE: string[] = ['email', 'verified', 'isbot'];
 const BOT_SCOPE_PREFIX = '!user.isbot || ';
 
 export function isBotScopePolicy(policy: Pick<AccessControlPolicy, 'props'>): boolean {
-    return policy.props?.[BOT_SCOPE_PROP] === true;
+    return policy.props?.bot_scope === true;
 }
 
 export function toServerRole(key: string): string {

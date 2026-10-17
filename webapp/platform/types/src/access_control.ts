@@ -3,10 +3,12 @@
 
 import type {ChannelWithTeamData} from './channels';
 import type {UserProfile} from './users';
+
 export type AccessControlPolicyProps = {
     child_ids?: string[];
     channel_count?: number;
     team_count?: number;
+    bot_scope?: boolean;
     [key: string]: unknown;
 };
 
