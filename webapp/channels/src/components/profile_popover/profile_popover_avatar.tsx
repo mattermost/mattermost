@@ -26,6 +26,7 @@ const ProfilePopoverAvatar = ({
                 username={username}
                 url={urlSrc}
                 tabIndex={-1}
+                alt=''
             />
             <StatusIcon
                 className='status user-popover-status'
