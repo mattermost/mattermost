@@ -379,6 +379,28 @@ func (a *App) CreateRemoteClusterInvite(remoteId, siteURL, token, password strin
 	return base64.URLEncoding.EncodeToString(encrypted), nil
 }
 
+// CreateRemoteClusterWithInvite saves rc and returns it along with an encrypted invitation for it.
+// The invitation is built before saving so that a failure does not leave an orphaned remote cluster.
+func (a *App) CreateRemoteClusterWithInvite(rc *model.RemoteCluster, siteURL, password string) (*model.RemoteCluster, string, *model.AppError) {
+	if rc.RemoteId == "" {
+		rc.RemoteId = model.NewId()
+	}
+	if rc.Token == "" {
+		rc.Token = model.NewId()
+	}
+
+	inviteCode, appErr := a.CreateRemoteClusterInvite(rc.RemoteId, siteURL, rc.Token, password)
+	if appErr != nil {
+		return nil, "", appErr
+	}
+
+	rcSaved, appErr := a.AddRemoteCluster(rc)
+	if appErr != nil {
+		return nil, "", appErr
+	}
+	return rcSaved, inviteCode, nil
+}
+
 func (a *App) DecryptRemoteClusterInvite(inviteCode, password string) (*model.RemoteClusterInvite, *model.AppError) {
 	decoded, err := base64.URLEncoding.DecodeString(inviteCode)
 	if err != nil {

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -117,6 +118,61 @@ func TestAddRemoteCluster(t *testing.T) {
 		remoteCluster.RemoteId = model.NewId()
 		_, err = th.App.AddRemoteCluster(remoteCluster)
 		require.Nil(t, err, "Adding a duplicate remote cluster should work fine")
+	})
+}
+
+func TestCreateRemoteClusterWithInvite(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupRemoteCluster(t).InitBasic(t)
+	const siteURL = "http://localhost:8065"
+
+	newRemote := func() *model.RemoteCluster {
+		return &model.RemoteCluster{
+			Name:      "remote" + model.NewId(),
+			SiteURL:   model.SiteURLPending + model.NewId(),
+			CreatorId: th.BasicUser.Id,
+		}
+	}
+
+	t.Run("saves the remote cluster and returns an invite for it", func(t *testing.T) {
+		rcSaved, inviteCode, appErr := th.App.CreateRemoteClusterWithInvite(newRemote(), siteURL, "s3cret")
+		require.Nil(t, appErr)
+
+		stored, appErr := th.App.GetRemoteCluster(rcSaved.RemoteId, false)
+		require.Nil(t, appErr)
+
+		invite, appErr := th.App.DecryptRemoteClusterInvite(inviteCode, "s3cret")
+		require.Nil(t, appErr)
+		require.Equal(t, stored.RemoteId, invite.RemoteId)
+		require.Equal(t, stored.Token, invite.Token)
+		require.Equal(t, siteURL, invite.SiteURL)
+	})
+
+	t.Run("invite failure leaves no remote cluster behind", func(t *testing.T) {
+		rc := newRemote()
+		rcSaved, inviteCode, appErr := th.App.CreateRemoteClusterWithInvite(rc, "http://bad host", "s3cret")
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.remote_cluster.create_invite_error", appErr.Id)
+		require.Nil(t, rcSaved)
+		require.Empty(t, inviteCode)
+
+		_, appErr = th.App.GetRemoteCluster(rc.RemoteId, true)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("save failure returns the error and no invite", func(t *testing.T) {
+		rc := newRemote()
+		rc.Name = "bad!name"
+		rcSaved, inviteCode, appErr := th.App.CreateRemoteClusterWithInvite(rc, siteURL, "s3cret")
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.cluster.is_valid.name.app_error", appErr.Id)
+		require.Nil(t, rcSaved)
+		require.Empty(t, inviteCode)
+
+		_, appErr = th.App.GetRemoteCluster(rc.RemoteId, true)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
 }
 
