@@ -16098,8 +16098,8 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Invalid maximum channels per team for team settings. Must be a positive number.",
-    "description": "Config validation error shown to system admins for the maximum channels per team setting; must be a positive number."
+    "translation": "Invalid maximum channels per team for team settings. Must be 0 (unlimited) or a positive number.",
+    "description": "Config validation error shown to system admins for the maximum channels per team setting; must be 0, meaning no limit, or a positive number."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -16128,8 +16128,8 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Invalid maximum users per team for team settings. Must be a positive number.",
-    "description": "Config validation error shown to system admins for the maximum users per team setting; must be a positive number."
+    "translation": "Invalid maximum users per team for team settings. Must be 0 (unlimited) or a positive number.",
+    "description": "Config validation error shown to system admins for the maximum users per team setting; must be 0, meaning no limit, or a positive number."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",

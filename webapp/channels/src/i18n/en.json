@@ -16840,12 +16840,12 @@
     "description": "Help text for a System Console user management setting that locks profile fields for email/password accounts; 'Invite Users' is a permission name."
   },
   "admin.team.maxChannelsDescription": {
-    "defaultMessage": "Maximum total number of channels per team, including both active and archived channels.",
+    "defaultMessage": "Maximum total number of channels per team, including both active and archived channels. Set to 0 for no limit.",
     "description": "Admin console help text for the 'Max Channels Per Team' number setting."
   },
   "admin.team.maxChannelsExample": {
-    "defaultMessage": "E.g.: \"100\"",
-    "description": "Placeholder text in the 'Max Channels Per Team' number input showing an example value."
+    "defaultMessage": "E.g.: \"100\", or \"0\" for no limit",
+    "description": "Placeholder text in the 'Max Channels Per Team' number input showing an example value; 0 is a literal value meaning no limit."
   },
   "admin.team.maxChannelsTitle": {
     "defaultMessage": "Max Channels Per Team:",
@@ -16864,12 +16864,12 @@
     "description": "Field label on the Push Notification Server admin page for the mention/typing-indicator user limit; ends with a colon."
   },
   "admin.team.maxUsersDescription": {
-    "defaultMessage": "Maximum number of active users per team. Deactivated users are not counted toward this limit.",
+    "defaultMessage": "Maximum number of active users per team. Deactivated users are not counted toward this limit. Set to 0 for no limit.",
     "description": "Admin console help text for the 'Max Users Per Team' number setting."
   },
   "admin.team.maxUsersExample": {
-    "defaultMessage": "E.g.: \"25\"",
-    "description": "Placeholder text in the 'Max Users Per Team' number input showing an example value."
+    "defaultMessage": "E.g.: \"25\", or \"0\" for no limit",
+    "description": "Placeholder text in the 'Max Users Per Team' number input showing an example value; 0 is a literal value meaning no limit."
   },
   "admin.team.maxUsersTitle": {
     "defaultMessage": "Max Users Per Team:",

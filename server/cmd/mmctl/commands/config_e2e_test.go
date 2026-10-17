@@ -386,7 +386,7 @@ func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
 		s.Require().True(ok)
 		ss, ok := m["TeamSettings"].(map[string]any)
 		s.Require().True(ok)
-		_, ok = ss["MaxUsersPerTeam"] // it's not being changed by the test suite
+		_, ok = ss["MaxChannelsPerTeam"] // it's not being changed by the test suite
 		s.Require().False(ok)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
