@@ -4,6 +4,8 @@
 package notifications
 
 import (
+	"strconv"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
@@ -100,18 +102,36 @@ func evalMaxNotificationsPerChannel(s *healthcheck.Snapshot) []healthcheck.Resul
 	case !ok:
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
 	case limit > maxNotificationsPerChannelLimit:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.max_notifications_per_channel.message")).WithValue(float64(limit))}
+		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.max_notifications_per_channel.message")).WithDetail("limit", strconv.FormatInt(limit, 10)).WithValue(float64(limit))}
 	default:
 		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(limit))}
 	}
 }
 
+// smtpInUse mirrors the gate the Support Packet uses before probing SMTP.
+func smtpInUse(s *healthcheck.Snapshot) (inUse, ok bool) {
+	for _, get := range []func(*model.Config) *bool{
+		func(cfg *model.Config) *bool { return cfg.EmailSettings.SendEmailNotifications },
+		func(cfg *model.Config) *bool { return cfg.EmailSettings.RequireEmailVerification },
+		func(cfg *model.Config) *bool { return cfg.ServiceSettings.EnableEmailInvitations },
+	} {
+		enabled, ok := s.ConfigBool(get)
+		if !ok {
+			return false, false
+		}
+		if enabled {
+			return true, true
+		}
+	}
+	return false, true
+}
+
 func evalSMTPUnreachable(s *healthcheck.Snapshot) []healthcheck.Result {
-	enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.EmailSettings.SendEmailNotifications })
+	inUse, ok := smtpInUse(s)
 	if !ok {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
 	}
-	if !enabled {
+	if !inUse {
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
 

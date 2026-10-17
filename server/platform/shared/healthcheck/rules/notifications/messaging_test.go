@@ -154,7 +154,12 @@ func TestMaxNotificationsPerChannel(t *testing.T) {
 		{
 			name:     "above the limit",
 			snapshot: snapshot(5001),
-			want:     messagingWant{state: healthcheck.StateFiring, messageID: "health.rule.max_notifications_per_channel.message", value: new(float64(5001))},
+			want: messagingWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.max_notifications_per_channel.message",
+				value:     new(float64(5001)),
+				details:   map[string]string{"limit": "5001"},
+			},
 		},
 	}
 
@@ -173,6 +178,8 @@ func TestSMTPUnreachable(t *testing.T) {
 		s := healthcheck.NewSnapshot(nodes)
 		cfg := configSnapshot(func(cfg *model.Config) {
 			cfg.EmailSettings.SendEmailNotifications = new(enabled)
+			cfg.EmailSettings.RequireEmailVerification = new(false)
+			cfg.ServiceSettings.EnableEmailInvitations = new(false)
 		})
 		s.Config, s.Sections = cfg.Config, cfg.Sections
 		return s
@@ -194,6 +201,11 @@ func TestSMTPUnreachable(t *testing.T) {
 	probeErrored.Diagnostics.Errors = model.SectionErrors{model.SectionSMTPProbe: errors.New("probe timed out")}
 	follower := leaderWithEmail(model.StatusOk, "")
 	follower.IsLeader = false
+	probeFailedWant := messagingWant{
+		state:     healthcheck.StateFiring,
+		messageID: "health.rule.smtp_unreachable.message",
+		details:   map[string]string{"error": "dial tcp: connection refused"},
+	}
 
 	testCases := []struct {
 		name     string
@@ -204,14 +216,33 @@ func TestSMTPUnreachable(t *testing.T) {
 		{name: "email disabled with failed probe", snapshot: withNodes(false, probeFailed), want: resolvedWant},
 		{name: "email disabled without leader", snapshot: withNodes(false), want: resolvedWant},
 		{
-			name:     "fail",
-			snapshot: withNodes(true, probeFailed),
-			want: messagingWant{
-				state:     healthcheck.StateFiring,
-				messageID: "health.rule.smtp_unreachable.message",
-				details:   map[string]string{"error": "dial tcp: connection refused"},
-			},
+			name: "invitations enabled with notification emails off",
+			snapshot: func() *healthcheck.Snapshot {
+				s := withNodes(false, probeFailed)
+				s.Config.Config.ServiceSettings.EnableEmailInvitations = new(true)
+				return s
+			}(),
+			want: probeFailedWant,
 		},
+		{
+			name: "email verification required with notification emails off",
+			snapshot: func() *healthcheck.Snapshot {
+				s := withNodes(false, probeFailed)
+				s.Config.Config.EmailSettings.RequireEmailVerification = new(true)
+				return s
+			}(),
+			want: probeFailedWant,
+		},
+		{
+			name: "notification emails off and other settings unset",
+			snapshot: func() *healthcheck.Snapshot {
+				s := withNodes(false, probeFailed)
+				s.Config.Config.ServiceSettings.EnableEmailInvitations = nil
+				return s
+			}(),
+			want: configUnknownWant,
+		},
+		{name: "fail", snapshot: withNodes(true, probeFailed), want: probeFailedWant},
 		{name: "ok", snapshot: withNodes(true, leaderWithEmail(model.StatusOk, "")), want: resolvedWant},
 		{name: "disabled", snapshot: withNodes(true, leaderWithEmail(model.StatusDisabled, "")), want: resolvedWant},
 		{name: "empty status", snapshot: withNodes(true, leaderWithEmail("", "")), want: notCollected},

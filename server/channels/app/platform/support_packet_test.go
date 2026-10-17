@@ -904,13 +904,19 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, packet.Notifications.Push.Error)
 	})
 
-	t.Run("email notifications disabled", func(t *testing.T) {
+	t.Run("SMTP unused", func(t *testing.T) {
+		requireVerification := *th.Service.Config().EmailSettings.RequireEmailVerification
+		emailInvitations := *th.Service.Config().ServiceSettings.EnableEmailInvitations
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.SendEmailNotifications = new(false)
+			cfg.EmailSettings.RequireEmailVerification = new(false)
+			cfg.ServiceSettings.EnableEmailInvitations = new(false)
 		})
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
 				cfg.EmailSettings.SendEmailNotifications = new(true)
+				cfg.EmailSettings.RequireEmailVerification = new(requireVerification)
+				cfg.ServiceSettings.EnableEmailInvitations = new(emailInvitations)
 			})
 		})
 
@@ -992,6 +998,31 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
 				cfg.EmailSettings.SendEmailNotifications = new(true)
+				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
+				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
+				cfg.EmailSettings.SMTPServerTimeout = new(10)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.Notifications.Email.Status)
+		assert.NotEmpty(t, packet.Notifications.Email.Error)
+	})
+
+	t.Run("email invitations probe SMTP with notification emails off", func(t *testing.T) {
+		emailInvitations := *th.Service.Config().ServiceSettings.EnableEmailInvitations
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendEmailNotifications = new(false)
+			cfg.ServiceSettings.EnableEmailInvitations = new(true)
+			cfg.EmailSettings.SMTPServer = new("localhost")
+			cfg.EmailSettings.SMTPPort = new("1")
+			cfg.EmailSettings.SMTPServerTimeout = new(1)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendEmailNotifications = new(true)
+				cfg.ServiceSettings.EnableEmailInvitations = new(emailInvitations)
 				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
 				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
 				cfg.EmailSettings.SMTPServerTimeout = new(10)

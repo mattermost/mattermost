@@ -14378,18 +14378,18 @@
   },
   {
     "id": "health.rule.max_notifications_per_channel.message",
-    "translation": "@channel, @all and @here are allowed in channels with more than 5000 members. A single channel-wide mention there fans out thousands of notifications at once, which causes latency spikes.",
-    "description": "Health dashboard finding detail when the per-channel notification limit is above 5000; '@channel', '@all' and '@here' are Mattermost mentions and should not be translated."
+    "translation": "TeamSettings.MaxNotificationsPerChannel is {{.limit}}, so @channel, @all and @here still work in channels with thousands of members. A single channel-wide mention there fans out thousands of notifications at once, which causes latency spikes.",
+    "description": "Health dashboard finding detail when the per-channel notification limit is above 5000; {{.limit}} is the configured limit, 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and '@channel', '@all' and '@here' are Mattermost mentions, none should be translated."
   },
   {
     "id": "health.rule.max_notifications_per_channel.remediation",
-    "translation": "Lower TeamSettings.MaxNotificationsPerChannel to 5000 or less (the default is 1000). @channel, @all and @here are disabled in channels with more members than this limit, so check with the teams that use them in large channels first.",
+    "translation": "Lower TeamSettings.MaxNotificationsPerChannel to 5000 or less (the default is 1000). @channel, @all and @here are disabled once a channel reaches this many members, so check with the teams that use them in large channels first.",
     "description": "Health dashboard fix-it step for a high per-channel notification limit; 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and '@channel', '@all' and '@here' are Mattermost mentions, none should be translated."
   },
   {
     "id": "health.rule.max_notifications_per_channel.title",
     "translation": "Channel-wide mentions allowed in very large channels",
-    "description": "Health dashboard finding title when the per-channel notification limit is above 5000, so @channel, @all and @here work in channels with more than 5000 members; '@channel', '@all' and '@here' are Mattermost mentions and should not be translated."
+    "description": "Health dashboard finding title when the per-channel notification limit is above 5000, so @channel, @all and @here work in channels with thousands of members; '@channel', '@all' and '@here' are Mattermost mentions and should not be translated."
   },
   {
     "id": "health.rule.push_bad_scheme.message.http",
