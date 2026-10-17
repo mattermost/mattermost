@@ -398,7 +398,7 @@ const AdvancedTextEditor = ({
     const hasAIActionsMenu = (aiActionMenuItems?.length ?? 0) > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
 
-    usePendingQuote(draft, handleDraftChange, channelId, rootId, isInEditMode, isDisabled, textboxRef, wysiwygRef);
+    usePendingQuote(draft, handleDraftChange, channelId, rootId, isInEditMode, isDisabled, rewriteIsProcessing, textboxRef, wysiwygRef);
 
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
         draft,

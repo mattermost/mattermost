@@ -80,6 +80,13 @@ describe('getQuotableSelection', () => {
         expect(getQuotableSelection(selection)).toMatchObject({text: 'Diam sapien', isBackward: true});
     });
 
+    test('should detect a left to right selection that ends on an element containing its start', () => {
+        const message = document.getElementById('second')!.parentElement!;
+        const selection = select(textOf('second'), 5, message, message.childNodes.length);
+
+        expect(getQuotableSelection(selection)).toMatchObject({text: 'sapien pellentesque.', isBackward: false});
+    });
+
     test('should return text spanning several paragraphs of the same message', () => {
         const selection = select(textOf('first'), 19, textOf('second'), 4);
 

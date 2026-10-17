@@ -62,12 +62,12 @@ function selectsTextOutsideOf(range: Range, element: Element) {
 }
 
 function isSelectionBackward(selection: Selection) {
-    if (selection.anchorNode === selection.focusNode) {
-        return selection.focusOffset < selection.anchorOffset;
-    }
+    const range = document.createRange();
+    range.setStart(selection.anchorNode!, selection.anchorOffset);
+    range.setEnd(selection.focusNode!, selection.focusOffset);
 
-    const position = selection.anchorNode!.compareDocumentPosition(selection.focusNode!);
-    return Boolean(position & Node.DOCUMENT_POSITION_PRECEDING);
+    // Setting the end of a range before its start collapses the range onto the end.
+    return range.collapsed;
 }
 
 /**
