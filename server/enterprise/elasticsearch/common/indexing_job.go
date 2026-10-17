@@ -520,11 +520,15 @@ func (worker *IndexerWorker) IndexFilesBatch(logger mlog.LoggerIFace, progress I
 }
 
 func (worker *IndexerWorker) BulkIndexFiles(files []*model.FileForIndexing, progress IndexingProgress) (*model.FileInfo, *model.AppError) {
+	extractContent := *worker.jobServer.Config().FileSettings.ExtractContent
 	for _, file := range files {
 		indexName := *worker.jobServer.Config().ElasticsearchSettings.IndexPrefix + IndexBaseFiles
 
 		if file.ShouldIndex() {
 			searchFile := ESFileFromFileForIndexing(file)
+			if !extractContent {
+				searchFile.Content = ""
+			}
 
 			data, err := json.Marshal(searchFile)
 			if err != nil {
