@@ -27,10 +27,10 @@
 }
 
 .AdminUserCard__header {
-    overflow: hidden;
+    // Keep overflow visible so the avatar (and edit control) can hang below the
+    // header band via .AdminUserCard__header-start's negative margin.
+    overflow: visible;
     flex-shrink: 0;
-    border-top-left-radius: var(--radius-m);
-    border-top-right-radius: var(--radius-m);
 }
 
 .AdminUserCard__header-main {
@@ -44,6 +44,8 @@
     padding: var(--spacing-xxl);
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     background: rgba(var(--center-channel-color-rgb), 0.04);
+    border-top-left-radius: var(--radius-m);
+    border-top-right-radius: var(--radius-m);
     gap: var(--spacing-m);
 }
 
@@ -159,6 +161,12 @@ input.AdminUserCard__picture-input[type='file'] {
     padding: var(--spacing-xxl);
     padding-left: calc(var(--spacing-xxl) + var(--admin-user-card-avatar-size) + var(--admin-user-card-header-gap));
     background: var(--center-channel-bg);
+
+    // Narrow layouts stack under the avatar; drop the desktop offset so fields
+    // use the full card width with normal horizontal padding.
+    @media screen and (max-width: 768px) {
+        padding-left: var(--spacing-xxl);
+    }
 }
 
 .AdminUserCard__footer {

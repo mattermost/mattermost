@@ -122,16 +122,22 @@ const AdminPanel = ({
     }
 
     const titleNode = renderPanelText(title);
+    const subtitleNode = renderPanelText(subtitle, subtitleValues);
+
+    // Prefer a real title, then promote subtitle, then a meaningful fallback —
+    // never an empty heading (Compass requires a non-empty title for headed panels).
+    const headedTitle = titleNode ?? subtitleNode ?? (
+        <FormattedMessage
+            id='admin.panel.untitled'
+            defaultMessage='Settings'
+        />
+    );
+
     const headedProps = {
         id,
         className: classNameWithFlags,
-        title: titleNode ?? (
-            <FormattedMessage
-                id='admin.panel.untitled'
-                defaultMessage=' '
-            />
-        ),
-        subtitle: renderPanelText(subtitle, subtitleValues),
+        title: headedTitle,
+        subtitle: titleNode ? subtitleNode : undefined,
         headerActions: button,
         expandable,
         footer,

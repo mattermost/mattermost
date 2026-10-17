@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessages, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
@@ -11,6 +13,19 @@ import './log_list.scss';
 
 const NEXT_BUTTON_TIMEOUT = 500;
 
+const messages = defineMessages({
+    prevPage: {
+        id: 'admin.logs.prev',
+        defaultMessage: 'Previous',
+        description: 'Pagination button label on the plain-text server logs view; goes to the previous page of log lines.',
+    },
+    nextPage: {
+        id: 'admin.logs.next',
+        defaultMessage: 'Next',
+        description: 'Pagination button label on the plain-text server logs view; goes to the next page of log lines.',
+    },
+});
+
 type Props = {
     loading: boolean;
     logs: string[];
@@ -18,13 +33,13 @@ type Props = {
     perPage: number;
     nextPage: () => void;
     previousPage: () => void;
-};
+} & WrappedComponentProps;
 
 type State = {
     nextDisabled: boolean;
 };
 
-export default class PlainLogList extends React.PureComponent<Props, State> {
+class PlainLogList extends React.PureComponent<Props, State> {
     private logPanel: React.RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
@@ -123,7 +138,7 @@ export default class PlainLogList extends React.PureComponent<Props, State> {
                     data-testid='plain-log-list-footer'
                 >
                     <button
-                        aria-label='Previous page'
+                        aria-label={this.props.intl.formatMessage(messages.prevPage)}
                         type='button'
                         className={'btn btn-quaternary btn-icon btn-sm prev ' + (firstPage ? 'disabled' : '')}
                         onClick={this.previousPage}
@@ -132,7 +147,7 @@ export default class PlainLogList extends React.PureComponent<Props, State> {
                         <PreviousIcon/>
                     </button>
                     <button
-                        aria-label='Next page'
+                        aria-label={this.props.intl.formatMessage(messages.nextPage)}
                         type='button'
                         className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
                         onClick={this.nextPage}
@@ -145,3 +160,5 @@ export default class PlainLogList extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(PlainLogList);

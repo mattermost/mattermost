@@ -364,7 +364,6 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                             <div className='CustomPolicy__fields'>
                                 <Input
                                     name='policyName'
-                                    aria-label='Policy name'
                                     type='text'
                                     value={this.state.policyName}
                                     onChange={(e) => {
