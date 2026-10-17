@@ -14383,7 +14383,7 @@
   },
   {
     "id": "health.rule.es_live_batch_sync.remediation",
-    "translation": "Raise LiveIndexingBatchSize to between 10 and 20 (the default is 10), and tune within that range based on the observed post rate.",
+    "translation": "Raise LiveIndexingBatchSize to between 10 and 20, and tune within that range based on the observed post rate.",
     "description": "Health dashboard fix-it step when LiveIndexingBatchSize is 1; 'LiveIndexingBatchSize' is a config setting name and should not be translated."
   },
   {

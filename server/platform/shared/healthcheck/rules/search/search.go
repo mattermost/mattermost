@@ -185,7 +185,7 @@ var esVersionUnsupported = healthcheck.Rule{
 var esMissingICU = healthcheck.Rule{
 	Code:     "ES_MISSING_ICU",
 	Area:     model.AreaSearch,
-	Severity: healthcheck.SeverityWarning,
+	Severity: healthcheck.SeverityInfo,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.es_missing_icu.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.es_missing_icu.remediation"),
