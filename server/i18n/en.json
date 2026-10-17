@@ -2001,11 +2001,6 @@
     "description": "Autocomplete hint for the display name argument of the /secure-connection slash command."
   },
   {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Could not encrypt invitation: {{.Error}}",
-    "description": "Ephemeral error when the /secure-connection invite subcommand fails to encrypt the invitation; {{.Error}} is the underlying error text."
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Could not fetch secure connections: {{.Error}}",
     "description": "Ephemeral error when the /secure-connection status subcommand cannot fetch the list of connections; {{.Error}} is the underlying error text."

@@ -144,21 +144,13 @@ func (rp *RemoteProvider) doCreate(a *app.App, args *model.CommandArgs, margs ma
 		Name:        name,
 		DisplayName: displayname,
 		SiteURL:     model.SiteURLPending + model.NewId(), // require a unique siteurl
-		Token:       model.NewId(),
 		CreatorId:   args.UserId,
 	}
 
-	rcSaved, appErr := a.AddRemoteCluster(rc)
+	_, inviteCode, appErr := a.CreateRemoteClusterWithInvite(rc, url, password)
 	if appErr != nil {
 		msg := translatedAppErrMessage(a, args, "Failed to add secure connection", appErr, mlog.String("name", name))
 		return response(args.T("api.command_remote.add_remote.error", map[string]any{"Error": msg}))
-	}
-
-	// Display the encrypted invitation
-	inviteCode, err := a.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, password)
-	if err != nil {
-		msg := translatedAppErrMessage(a, args, "Failed to create secure connection invitation", err, mlog.String("remote_id", rcSaved.RemoteId))
-		return response(args.T("api.command_remote.encrypt_invitation.error", map[string]any{"Error": msg}))
 	}
 
 	return response("##### " + args.T("api.command_remote.invitation_created") + "\n" +
