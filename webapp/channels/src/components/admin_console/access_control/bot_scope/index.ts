@@ -4,9 +4,7 @@
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {findMatchingParen, referencedUserAttributeNames} from './lexer';
-
-export {hasBalancedParens} from './lexer';
+import {isWrappedInParens, referencedUserAttributeNames} from '../cel_lexer';
 
 export const BOT_ROLE_KEY = 'bot';
 
@@ -43,7 +41,7 @@ export function unwrapBotExpression(expr: string): string {
     }
     rest = rest.trim();
 
-    if (rest.startsWith('(') && findMatchingParen(rest, 0) === rest.length - 1) {
+    if (isWrappedInParens(rest)) {
         rest = rest.slice(1, -1).trim();
     }
     return rest;

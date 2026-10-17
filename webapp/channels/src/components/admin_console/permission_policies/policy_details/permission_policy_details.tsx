@@ -40,12 +40,12 @@ import {
     BOT_SCOPE_HIDDEN_NATIVE,
     BOT_SCOPE_PROP,
     getSyncedAttributeReferences,
-    hasBalancedParens,
     isBotScopePolicy,
     toServerRole,
     unwrapBotExpression,
     wrapBotExpression,
 } from '../../access_control/bot_scope';
+import {hasBalancedParens} from '../../access_control/cel_lexer';
 import {hasUsableAttributes, isNativeField, isSimpleExpression, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
 import {AVAILABLE_ROLES, roleMessages} from '../roles';
 

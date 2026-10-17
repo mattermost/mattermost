@@ -16,6 +16,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import Markdown from 'components/markdown';
 
+import {isWrappedInParens, splitOutsideLiterals} from '../cel_lexer';
 import TestResultsModal from '../modals/policy_test/test_modal';
 
 import './shared.scss';
@@ -401,68 +402,6 @@ const SIMPLE_CONDITION_PATTERNS: RegExp[] = [
 ];
 
 const MULTISELECT_GROUP_PART = new RegExp(String.raw`^${CEL_STRING}\s+in\s+user\.(?:attributes|session)\.\w+$`);
-
-const CEL_STRING_AT = new RegExp(CEL_STRING, 'y');
-
-// Index just past the string literal opening at `start`, or -1 if it is unterminated.
-function literalEnd(s: string, start: number): number {
-    CEL_STRING_AT.lastIndex = start;
-    return CEL_STRING_AT.test(s) ? CEL_STRING_AT.lastIndex : -1;
-}
-
-// An unterminated literal leaves the rest of the string as one part, which no matcher accepts.
-function splitOutsideLiterals(s: string, separator: string): string[] {
-    const parts: string[] = [];
-    let start = 0;
-    let i = 0;
-    while (i < s.length) {
-        if (s[i] === '"' || s[i] === "'") {
-            const end = literalEnd(s, i);
-            if (end === -1) {
-                break;
-            }
-            i = end;
-        } else if (s.startsWith(separator, i)) {
-            parts.push(s.slice(start, i));
-            i += separator.length;
-            start = i;
-        } else {
-            i++;
-        }
-    }
-    parts.push(s.slice(start));
-    return parts;
-}
-
-// True when the leading '(' closes at the last character, so `(a) || (b)` is not wrapped.
-function isWrappedInParens(s: string): boolean {
-    if (!s.startsWith('(') || !s.endsWith(')')) {
-        return false;
-    }
-    let depth = 0;
-    let i = 0;
-    while (i < s.length) {
-        const ch = s[i];
-        if (ch === '"' || ch === "'") {
-            const end = literalEnd(s, i);
-            if (end === -1) {
-                return false;
-            }
-            i = end;
-            continue;
-        }
-        if (ch === '(') {
-            depth++;
-        } else if (ch === ')') {
-            depth--;
-            if (depth === 0) {
-                return i === s.length - 1;
-            }
-        }
-        i++;
-    }
-    return false;
-}
 
 export function isSimpleCondition(s: string): boolean {
     const trimmed = s.trim();

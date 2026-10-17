@@ -676,6 +676,16 @@ describe('isSimpleExpression / isSimpleCondition with graph attributes', () => {
     });
 });
 
+describe('isSimpleExpression with comments', () => {
+    test('a separator inside a comment does not split the expression', () => {
+        expect(isSimpleExpression('user.attributes.A.startsWith("x") // c) && user.attributes.B == "y"')).toBe(false);
+    });
+
+    test('a quote inside a comment does not hide a later separator', () => {
+        expect(isSimpleExpression('user.attributes.A == "x" // it\'s\n&& user.attributes.B == "y"')).toBe(false);
+    });
+});
+
 describe('toCELEditorAttributes', () => {
     test('keeps native attributes (flagged) and drops unsafe CPA when user-managed is off', () => {
         const owned: UserPropertyField = {

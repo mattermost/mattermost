@@ -8,6 +8,9 @@ type CelScan = {
     // The input with // comments dropped and each literal replaced by "#<index>".
     code: string;
     literals: string[];
+
+    // Indices into the input of characters outside literals and comments.
+    codeIndices: number[];
 };
 
 // Skips '…' / "…" literals (honoring backslash escapes) and // comments.
@@ -18,6 +21,7 @@ function scanCel(s: string): CelScan {
     const pairs = new Map<number, number>();
     const stack: number[] = [];
     const literals: string[] = [];
+    const codeIndices: number[] = [];
     let code = '';
     let balanced = true;
     let i = 0;
@@ -62,10 +66,11 @@ function scanCel(s: string): CelScan {
             }
         }
         code += ch;
+        codeIndices.push(i);
         i++;
     }
 
-    return {pairs, balanced: balanced && stack.length === 0, code, literals};
+    return {pairs, balanced: balanced && stack.length === 0, code, literals, codeIndices};
 }
 
 export function findMatchingParen(s: string, openIdx: number): number {
@@ -79,8 +84,29 @@ export function findMatchingParen(s: string, openIdx: number): number {
     return scan.pairs.get(openIdx) ?? -1;
 }
 
+// True when the leading '(' closes at the last character, so `(a) || (b)` is not wrapped.
+export function isWrappedInParens(s: string): boolean {
+    return s.startsWith('(') && findMatchingParen(s, 0) === s.length - 1;
+}
+
 export function hasBalancedParens(expr: string): boolean {
     return scanCel(expr).balanced;
+}
+
+// Skips literals and comments but not parens: `(a || b) && c` splits on `||` too.
+export function splitOutsideLiterals(s: string, separator: string): string[] {
+    const {codeIndices} = scanCel(s);
+    const span = separator.length - 1;
+    const parts: string[] = [];
+    let start = 0;
+    codeIndices.forEach((i, k) => {
+        if (i >= start && s.startsWith(separator, i) && codeIndices[k + span] === i + span) {
+            parts.push(s.slice(start, i));
+            start = i + separator.length;
+        }
+    });
+    parts.push(s.slice(start));
+    return parts;
 }
 
 const USER_ATTRIBUTE_REFERENCE = /user\.attributes(?:\.(\w+)|\s*\[\s*"#(\d+)"\s*\])/g;
