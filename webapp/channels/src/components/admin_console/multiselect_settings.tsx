@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback, useMemo} from 'react';
-import type {OnChangeValue} from 'react-select';
-import ReactSelect from 'react-select';
+
+import {Combobox} from '@mattermost/compass-ui/components/combobox';
+import type {ComboboxOption} from '@mattermost/compass-ui/components/combobox';
 
 import FormError from 'components/form_error';
 
@@ -26,8 +27,6 @@ interface Props {
     noOptionsMessage?: React.ReactNode;
 }
 
-const getOptionLabel = ({text}: {text: string}) => text;
-
 const MultiSelectSetting: React.FC<Props> = ({
     id,
     values,
@@ -41,31 +40,18 @@ const MultiSelectSetting: React.FC<Props> = ({
 }) => {
     const [error, setError] = useState(false);
 
-    const handleChange = useCallback((newValue: OnChangeValue<Option, true>) => {
-        const updatedValues = newValue ? (newValue as Option[]).map((n) => {
-            return n.value;
-        }) : [];
+    const options: ComboboxOption[] = useMemo(() => {
+        return values.map((v) => ({
+            value: v.value,
+            label: v.text,
+        }));
+    }, [values]);
 
+    const handleChange = useCallback((newValue: string | string[] | null) => {
+        const updatedValues = Array.isArray(newValue) ? newValue : [];
         onChange(id, updatedValues);
         setError(false);
     }, [id, onChange]);
-
-    const valuesMap = useMemo(() => {
-        return values.reduce((map, v) => {
-            map[v.value] = v;
-            return map;
-        }, {} as Record<string, Option>);
-    }, [values]);
-
-    const calculatedValue = useMemo(() => {
-        return selected.reduce<Option[]>((result, item) => {
-            const found = valuesMap[item];
-            if (found) {
-                result.push(found);
-            }
-            return result;
-        }, []);
-    }, [selected, valuesMap]);
 
     return (
         <Setting
@@ -74,17 +60,14 @@ const MultiSelectSetting: React.FC<Props> = ({
             helpText={helpText}
             setByEnv={setByEnv}
         >
-            <ReactSelect
+            <Combobox
                 id={id}
-                isMulti={true}
-                getOptionLabel={getOptionLabel}
-                options={values}
-                delimiter={','}
-                isClearable={false}
-                isDisabled={disabled || setByEnv}
-                noOptionsMessage={() => noOptionsMessage}
+                multiple={true}
+                options={options}
+                value={selected}
                 onChange={handleChange}
-                value={calculatedValue}
+                disabled={disabled || setByEnv}
+                emptyMessage={noOptionsMessage}
             />
             <FormError error={error}/>
         </Setting>
