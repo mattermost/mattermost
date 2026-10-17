@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,6 +14,19 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+type testQuotedArgProvider struct{}
+
+func (testQuotedArgProvider) SplitQuotedArg(in string) (string, bool, bool) {
+	if in == "" || in[0] != '"' {
+		return in, false, false
+	}
+	end := strings.Index(in[1:], `"`)
+	if end < 0 {
+		return in, true, false
+	}
+	return in[end+2:], true, true
+}
 
 func TestParseStaticListArgument(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -100,41 +114,62 @@ func TestParseInputTextArgument(t *testing.T) {
 		Data:     &model.AutocompleteTextArg{Hint: "hint", Pattern: "pat"},
 	}
 
-	found, _, _, suggestion := parseInputTextArgument(argument, "", "")
+	found, _, _, suggestion := parseInputTextArgument(argument, "", "", nil)
 	assert.True(t, found)
 	assert.Equal(t, model.AutocompleteSuggestion{Complete: "", Suggestion: "", Hint: "hint", Description: "some_help"}, suggestion)
 
-	found, _, _, suggestion = parseInputTextArgument(argument, "", " ")
+	found, _, _, suggestion = parseInputTextArgument(argument, "", " ", nil)
 	assert.True(t, found)
 	assert.Equal(t, model.AutocompleteSuggestion{Complete: " ", Suggestion: "", Hint: "hint", Description: "some_help"}, suggestion)
 
-	found, _, _, suggestion = parseInputTextArgument(argument, "", "abc")
+	found, _, _, suggestion = parseInputTextArgument(argument, "", "abc", nil)
 	assert.True(t, found)
 	assert.Equal(t, model.AutocompleteSuggestion{Complete: "abc", Suggestion: "", Hint: "hint", Description: "some_help"}, suggestion)
 
-	found, _, _, suggestion = parseInputTextArgument(argument, "", "\"abc dfd df ")
+	found, _, _, suggestion = parseInputTextArgument(argument, "", "\"abc dfd df ", nil)
 	assert.True(t, found)
 	assert.Equal(t, model.AutocompleteSuggestion{Complete: "\"abc dfd df ", Suggestion: "", Hint: "hint", Description: "some_help"}, suggestion)
 
-	found, parsed, toBeParsed, _ := parseInputTextArgument(argument, "", "abc efg ")
+	found, parsed, toBeParsed, _ := parseInputTextArgument(argument, "", "abc efg ", nil)
 	assert.False(t, found)
 	assert.Equal(t, "abc ", parsed)
 	assert.Equal(t, "efg ", toBeParsed)
 
-	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "abc ")
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "abc ", nil)
 	assert.False(t, found)
 	assert.Equal(t, "abc ", parsed)
 	assert.Equal(t, "", toBeParsed)
 
-	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "\"abc def\" abc")
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "\"abc def\" abc", nil)
 	assert.False(t, found)
 	assert.Equal(t, "\"abc def\" ", parsed)
 	assert.Equal(t, "abc", toBeParsed)
 
-	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "\"abc def\"")
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "\"abc def\"", nil)
 	assert.False(t, found)
 	assert.Equal(t, "\"abc def\"", parsed)
 	assert.Equal(t, "", toBeParsed)
+
+	quotes := testQuotedArgProvider{}
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "cmd ", `"My Remote"`, quotes)
+	assert.False(t, found)
+	assert.Equal(t, `cmd "My Remote" `, parsed)
+	assert.Equal(t, "", toBeParsed)
+
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "cmd ", `"My Remote" `, quotes)
+	assert.False(t, found)
+	assert.Equal(t, `cmd "My Remote" `, parsed)
+	assert.Equal(t, "", toBeParsed)
+
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "cmd ", `"My Remote"   `, quotes)
+	assert.False(t, found)
+	assert.Equal(t, `cmd "My Remote"   `, parsed)
+	assert.Equal(t, "", toBeParsed)
+
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "cmd ", `"My Remote"   --pa`, quotes)
+	assert.False(t, found)
+	assert.Equal(t, `cmd "My Remote"   `, parsed)
+	assert.Equal(t, "--pa", toBeParsed)
 }
 
 func TestParseNamedArguments(t *testing.T) {
