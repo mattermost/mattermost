@@ -399,35 +399,27 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		rcWithTeamAndPassword.DisplayName = rcWithTeamAndPassword.Name
 	}
 
-	token := model.NewId()
 	rc := &model.RemoteCluster{
 		Name:          rcWithTeamAndPassword.Name,
 		DisplayName:   rcWithTeamAndPassword.DisplayName,
 		SiteURL:       model.SiteURLPending + model.NewId(),
 		DefaultTeamId: rcWithTeamAndPassword.DefaultTeamId,
-		Token:         token,
 		CreatorId:     c.AppContext.Session().UserId,
 	}
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "remotecluster", rc)
-
-	rcSaved, appErr := c.App.AddRemoteCluster(rc)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-	rcSaved.Sanitize()
 
 	password := rcWithTeamAndPassword.Password
 	if password == "" {
 		password = utils.SecureRandString(16)
 	}
 
-	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, token, password)
-	if iErr != nil {
-		c.Err = iErr
+	rcSaved, inviteCode, appErr := c.App.CreateRemoteClusterWithInvite(rc, url, password)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
+	rcSaved.Sanitize()
 
 	auditRec.Success()
 	auditRec.AddEventResultState(rcSaved)
