@@ -146,6 +146,14 @@ describe('SelectedValueChips', () => {
         expect(onRemove).toHaveBeenCalledWith('opt-air');
     });
 
+    test('form chips stay medium+dismissible so the stretch CSS can target the remove control', () => {
+        renderChips({selectedIds: ['opt-air']});
+        const chip = document.querySelector('.hierarchical-value-menu__chip');
+        expect(chip).toHaveClass('AttributeChip--medium');
+        expect(chip).toHaveClass('AttributeChip--dismissible');
+        expect(chip?.querySelector('.AttributeChip__remove')).not.toBeNull();
+    });
+
     test('Enter on the chip X removes the value', async () => {
         const onRemove = jest.fn();
         renderChips({selectedIds: ['opt-air'], onRemove});
