@@ -465,7 +465,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
 		CheckInternalErrorStatus(t, resp)
 		CheckErrorID(t, err, "api.remote_cluster.accept_invitation.rejected.app_error")
-		require.NotContains(t, err.Error(), "evil.example.com")
+		CheckErrorMessage(t, err, "The remote site rejected the invitation.")
 		require.Empty(t, rc)
 	})
 
