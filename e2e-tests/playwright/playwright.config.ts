@@ -7,7 +7,7 @@ import {
     assertUpgradeFromFreshStart,
     assertUpgradeToRequiresPriorFromRun,
     duration,
-    exportUpgradeProjectSelection,
+    exportUpgradePathProjectSelection,
     isUpgradeFromProjectSelected,
     isUpgradeToPhaseProjectSelected,
     logUpgradeFromServerImage,
@@ -25,7 +25,7 @@ if (isUpgradeToPhaseProjectSelected()) {
     logUpgradeToServerImage();
 }
 
-exportUpgradeProjectSelection();
+exportUpgradePathProjectSelection();
 
 const chromeUse = {
     browserName: 'chromium' as const,
