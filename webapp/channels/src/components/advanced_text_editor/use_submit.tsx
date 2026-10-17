@@ -72,6 +72,7 @@ const useSubmit = (
     skipCommands?: boolean,
     isInEditMode?: boolean,
     postId?: string,
+    draftRevision?: React.MutableRefObject<number>,
 ) => {
     const getGroupMentions = useGroups(channelId, draft.message);
 
@@ -150,6 +151,13 @@ const useSubmit = (
     }, [dispatch, postFileIds, postId]);
 
     const doSubmit = useCallback(async (submittingDraft: PostDraft = draft, schedulingInfo?: SchedulingInfo, createPostOptions?: CreatePostOptions) => {
+        // Snapshot the draft's revision before the submit request goes out. Submitting (especially a
+        // slash command, which awaits the server executing it) can take long enough that the user
+        // interacts with the draft again - e.g. navigating message history with ctrl/cmd+up/down -
+        // before this resolves. Only clearing the draft below when the revision is unchanged avoids
+        // clobbering that newer state with a stale "clear after submit".
+        const submissionRevision = draftRevision?.current;
+
         if (submittingDraft.uploadsInProgress.length > 0) {
             isDraftSubmitting.current = false;
             return;
@@ -211,15 +219,17 @@ const useSubmit = (
             }
 
             setServerError(null);
-            handleDraftChange({
-                message: '',
-                fileInfos: [],
-                uploadsInProgress: [],
-                createAt: 0,
-                updateAt: 0,
-                channelId,
-                rootId,
-            }, {instant: true});
+            if (!draftRevision || draftRevision.current === submissionRevision) {
+                handleDraftChange({
+                    message: '',
+                    fileInfos: [],
+                    uploadsInProgress: [],
+                    createAt: 0,
+                    updateAt: 0,
+                    channelId,
+                    rootId,
+                }, {instant: true});
+            }
         } catch (err: unknown) {
             if (isServerError(err)) {
                 if (isErrorInvalidSlashCommand(err)) {
@@ -265,6 +275,7 @@ const useSubmit = (
         rootId,
         showPostDeletedModal,
         handleDraftChange,
+        draftRevision,
         channelId,
         isInEditMode,
         handleFileChange,

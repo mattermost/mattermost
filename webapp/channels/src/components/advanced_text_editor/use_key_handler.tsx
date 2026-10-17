@@ -195,7 +195,18 @@ const useKeyHandler = (
 
         const upKeyOnly = !ctrlOrMetaKeyPressed && !e.altKey && !e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);
         const messageIsEmpty = draft.message.length === 0;
-        const allowHistoryNavigation = draft.message.length === 0 || draft.message === messageHistory[messageHistoryIndex.current];
+
+        // Submitting a message dispatches addMessageIntoHistory synchronously, so messageHistory
+        // (and the ref reset below) updates immediately, but the draft itself is only cleared once
+        // the submit action resolves - awaiting the server for slash commands in particular. Until
+        // then, draft.message still equals the message that was just appended to history while
+        // messageHistoryIndex.current already points past the end of it, so the two checks below
+        // never usually match and navigation can be silently blocked mid-submit. Treat a draft that
+        // still mirrors the most recently submitted message as in sync too, since it isn't unsaved
+        // text that a navigation would otherwise clobber.
+        const allowHistoryNavigation = draft.message.length === 0 ||
+            draft.message === messageHistory[messageHistoryIndex.current] ||
+            draft.message === messageHistory[messageHistory.length - 1];
 
         const caretPosition = (e.target as HTMLTextAreaElement).selectionStart;
         const caretIsWithinCodeBlock = caretPosition && isWithinCodeBlock(draft.message, caretPosition); // REVIEW
