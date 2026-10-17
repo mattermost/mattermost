@@ -26,8 +26,12 @@ jest.mock('mattermost-redux/actions/teams', () => ({
 
 jest.mock('components/admin_console/access_control/editors/table_editor/table_editor', () => {
     const MockReact = require('react');
-    return jest.fn(({onChange}: {onChange: (val: string) => void}) =>
+    return jest.fn(({onChange, onParseError}: {onChange: (val: string) => void; onParseError: (error: string) => void}) =>
         MockReact.createElement('div', {'data-testid': 'table-editor'},
+            MockReact.createElement('button', {
+                onClick: () => onParseError('unsupported expression'),
+                'data-testid': 'table-editor-parse-error',
+            }, 'Parse error'),
             MockReact.createElement('button', {
                 onClick: () => onChange('user.attributes.department in ["Engineering"]'),
                 'data-testid': 'table-editor-change',
@@ -704,5 +708,110 @@ describe('components/team_settings/TeamMembershipTab', () => {
             expect.objectContaining({value: maskedExpression}),
             undefined,
         );
+    });
+
+    describe('a saved rule the table cannot represent', () => {
+        const mockLoadedRule = (expression: string) => {
+            const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+            getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+                data: {
+                    policy: {
+                        id: 'team_id',
+                        rules: [{actions: ['membership'], expression, metadata: {auto_add: 'never'}}],
+                        imports: [],
+                    },
+                    enforced: true,
+                },
+            }));
+        };
+
+        it('locks the tab for a complex rule and shows it read-only', async () => {
+            const complexRule = 'user.attributes.department == "Engineering" || user.attributes.department == "Sales"';
+            mockLoadedRule(complexRule);
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+
+            expect(await screen.findByTestId('team-membership-locked-rules')).toBeInTheDocument();
+            expect(screen.getByRole('status')).toHaveTextContent('can only be edited in the System Console');
+            expect(screen.getByText(complexRule)).toBeInTheDocument();
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+            expect(screen.getByRole('checkbox', {name: /auto-add members/i})).toBeDisabled();
+        });
+
+        it('links a system admin to the team page in the System Console', async () => {
+            mockLoadedRule('user.attributes.department == "Engineering" || user.attributes.department == "Sales"');
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+
+            const link = await screen.findByRole('link', {name: 'System Console'});
+            expect(link).toHaveAttribute('href', `/admin_console/user_management/teams/${baseTeam.id}`);
+            expect(screen.getByRole('status')).not.toHaveTextContent('Contact a System Admin');
+        });
+
+        it('tells a team admin to contact a system admin', async () => {
+            mockLoadedRule('user.attributes.department == "Engineering" || user.attributes.department == "Sales"');
+            const teamAdminState = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    users: {
+                        currentUserId: 'user_id',
+                        profiles: {
+                            user_id: TestHelper.getUserMock({id: 'user_id', roles: 'system_user'}),
+                        },
+                    },
+                },
+            };
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, teamAdminState);
+
+            expect(await screen.findByRole('status')).toHaveTextContent('Contact a System Admin to change them.');
+            expect(screen.queryByRole('link', {name: 'System Console'})).not.toBeInTheDocument();
+        });
+
+        it('locks the tab when the table fails to parse the saved rule', async () => {
+            const rule = 'user.attributes.department in ["Engineering"]';
+            mockLoadedRule(rule);
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+
+            await userEvent.click(await screen.findByTestId('table-editor-parse-error'));
+
+            expect(screen.getByTestId('team-membership-locked-rules')).toBeInTheDocument();
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+            expect(screen.getByRole('checkbox', {name: /auto-add members/i})).toBeDisabled();
+        });
+
+        it('drops the parse lock when another team\'s rule loads', async () => {
+            mockLoadedRule('user.attributes.department in ["Engineering"]');
+
+            const {rerender} = renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+
+            await userEvent.click(await screen.findByTestId('table-editor-parse-error'));
+            expect(screen.getByTestId('team-membership-locked-rules')).toBeInTheDocument();
+
+            mockLoadedRule('user.attributes.department == "Sales"');
+            rerender(
+                <TeamMembershipTab
+                    {...baseProps}
+                    team={{...baseTeam, id: 'other_team_id'}}
+                />,
+            );
+
+            expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
+            expect(screen.queryByTestId('team-membership-locked-rules')).not.toBeInTheDocument();
+        });
+
+        it('keeps the inline parse error, without locking, for an edited rule', async () => {
+            mockLoadedRule('user.attributes.department in ["Sales"]');
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+
+            await userEvent.click(await screen.findByTestId('table-editor-change'));
+            await userEvent.click(screen.getByTestId('table-editor-parse-error'));
+
+            expect(screen.queryByTestId('team-membership-locked-rules')).not.toBeInTheDocument();
+            expect(screen.getByText('Invalid expression format')).toBeInTheDocument();
+        });
     });
 });
