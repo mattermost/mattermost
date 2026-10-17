@@ -4475,6 +4475,11 @@
     "description": "Error shown to an admin accepting a secure connection (remote Mattermost server) invitation when the remote site's reply cannot be read, e.g. a proxy returned an HTML page."
   },
   {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "The invitation contains an invalid site address: {{.URL}}",
+    "description": "Error shown to an admin accepting a secure connection (remote Mattermost server) invitation when the remote site address in the invitation is malformed and no request can be made. {{.URL}} is the address, with special characters percent-encoded."
+  },
+  {
     "id": "api.remote_cluster.accept_invitation.rejected.app_error",
     "translation": "The remote site rejected the invitation.",
     "description": "Error shown to an admin accepting a secure connection (remote Mattermost server) invitation when the remote site refuses to confirm it. The remote's reason is logged, not shown."

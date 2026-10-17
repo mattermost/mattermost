@@ -102,16 +102,20 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 
 // confirmInviteSendError maps a failed confirm_invite request to an AppError. resp is the body the remote
 // answered with alongside a non-200 status, if any; its AppError id picks a local translation and its message is only logged.
+// A body with a status code but no id still counts as a refusal, since hardened mode blanks the id of every 5xx.
 func (rcs *Service) confirmInviteSendError(remoteId string, url string, resp []byte, err error) *model.AppError {
 	if errors.Is(err, errRemoteUnreachable) {
 		return model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": markdownSafeURL(url)}, "", http.StatusBadGateway).Wrap(err)
+	}
+	if errors.Is(err, errInvalidRemoteURL) {
+		return model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.invalid_url.app_error", map[string]any{"URL": markdownSafeURL(url)}, "", http.StatusBadRequest).Wrap(err)
 	}
 	if resp == nil {
 		return model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	var remoteErr model.AppError
-	if jsonErr := json.Unmarshal(resp, &remoteErr); jsonErr != nil || remoteErr.Id == "" {
+	if jsonErr := json.Unmarshal(resp, &remoteErr); jsonErr != nil || (remoteErr.Id == "" && remoteErr.StatusCode == 0) {
 		return model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.invalid_response.app_error", nil, "", http.StatusBadGateway).Wrap(err)
 	}
 
