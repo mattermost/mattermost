@@ -21,6 +21,7 @@ describe('components/feature_discovery', () => {
             const getPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
+            const openTrialForm = jest.fn();
 
             renderWithContext(
                 <FeatureDiscovery
@@ -45,6 +46,7 @@ describe('components/feature_discovery', () => {
                     isSubscriptionLoaded={true}
                     isPaidSubscription={false}
                     isEnterpriseReady={true}
+                    openTrialForm={openTrialForm}
                     actions={{
                         getPrevTrialLicense,
                         getCloudSubscription,
@@ -58,6 +60,7 @@ describe('components/feature_discovery', () => {
 
             expect(screen.getByRole('button', {name: 'Start trial'})).toBeInTheDocument();
             await userEvent.click(screen.getByRole('button', {name: 'Start trial'}));
+            expect(openTrialForm).toHaveBeenCalled();
             await userEvent.click(screen.getByText('Mattermost Software Evaluation Agreement'));
 
             //cloud option
@@ -232,13 +235,20 @@ describe('components/feature_discovery', () => {
             expect(screen.queryByText('Foo')).toBeInTheDocument();
 
             // Should show Contact Sales button instead of Start Trial when Team Edition
-            expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
+            const contactSalesButton = screen.getByRole('button', {name: 'Contact sales'});
+            expect(contactSalesButton).toBeInTheDocument();
+            expect(contactSalesButton.className).toMatch(/size-medium/);
+            expect(contactSalesButton.className).not.toMatch(/size-large/);
             expect(screen.queryByRole('button', {name: 'Start trial'})).not.toBeInTheDocument();
 
             const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
             expect(featureLink).toBeInTheDocument();
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
+            expect(featureLink.tagName).toBe('A');
+            expect(featureLink.className).toMatch(/size-medium/);
+            expect(featureLink.className).not.toMatch(/size-large/);
+            expect(featureLink.closest('button')).toBeNull();
 
             expect(getPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
@@ -285,13 +295,20 @@ describe('components/feature_discovery', () => {
             expect(screen.queryByText('Foo')).toBeInTheDocument();
 
             // Should show Contact Sales button when previous trial license exists
-            expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
+            const contactSalesButton = screen.getByRole('button', {name: 'Contact sales'});
+            expect(contactSalesButton).toBeInTheDocument();
+            expect(contactSalesButton.className).toMatch(/size-medium/);
+            expect(contactSalesButton.className).not.toMatch(/size-large/);
             expect(screen.queryByRole('button', {name: 'Start trial'})).not.toBeInTheDocument();
 
             const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
             expect(featureLink).toBeInTheDocument();
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
+            expect(featureLink.tagName).toBe('A');
+            expect(featureLink.className).toMatch(/size-medium/);
+            expect(featureLink.className).not.toMatch(/size-large/);
+            expect(featureLink.closest('button')).toBeNull();
 
             expect(getPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
@@ -302,6 +319,7 @@ describe('components/feature_discovery', () => {
             const getPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
+            const openTrialForm = jest.fn();
 
             renderWithContext(
                 <FeatureDiscovery
@@ -326,6 +344,7 @@ describe('components/feature_discovery', () => {
                     isSubscriptionLoaded={true}
                     isPaidSubscription={false}
                     isEnterpriseReady={true}
+                    openTrialForm={openTrialForm}
                     actions={{
                         getPrevTrialLicense,
                         getCloudSubscription,
@@ -338,17 +357,93 @@ describe('components/feature_discovery', () => {
             expect(screen.queryByText('Foo')).toBeInTheDocument();
 
             // Should show Start Trial button when Enterprise Ready and no previous trial
-            expect(screen.getByRole('button', {name: 'Start trial'})).toBeInTheDocument();
+            const startTrialButton = screen.getByRole('button', {name: 'Start trial'});
+            expect(startTrialButton).toBeInTheDocument();
+            expect(startTrialButton).toHaveAttribute('id', 'start_trial_btn');
+            expect(startTrialButton.className).toMatch(/size-medium/);
             expect(screen.queryByRole('button', {name: 'Contact sales'})).not.toBeInTheDocument();
 
             const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
             expect(featureLink).toBeInTheDocument();
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
+            expect(featureLink.tagName).toBe('A');
+            expect(featureLink.closest('button')).toBeNull();
 
             expect(getPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
             expect(openModal).not.toHaveBeenCalled();
+        });
+
+        test('should not render SKU label when showSkuTag is omitted', () => {
+            renderWithContext(
+                <FeatureDiscovery
+                    featureName='test'
+                    minimumSKURequiredForFeature={LicenseSkus.Professional}
+                    title={{
+                        id: 'translation.test.title',
+                        defaultMessage: 'Foo',
+                    }}
+                    copy={{
+                        id: 'translation.test.copy',
+                        defaultMessage: 'Bar',
+                    }}
+                    learnMoreURL='https://test.mattermost.com/secondary/'
+                    featureDiscoveryImage={<GroupsSVG/>}
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    stats={{TOTAL_USERS: 20}}
+                    prevTrialLicense={{IsLicensed: 'false'}}
+                    isCloud={false}
+                    isCloudTrial={false}
+                    hadPrevCloudTrial={false}
+                    isSubscriptionLoaded={true}
+                    isPaidSubscription={false}
+                    isEnterpriseReady={true}
+                    actions={{
+                        getPrevTrialLicense: jest.fn(),
+                        getCloudSubscription: jest.fn(),
+                        openModal: jest.fn(),
+                    }}
+                />,
+            );
+
+            expect(screen.queryByText('PROFESSIONAL')).not.toBeInTheDocument();
+        });
+
+        test('should render SKU label when showSkuTag is true', () => {
+            renderWithContext(
+                <FeatureDiscovery
+                    featureName='test'
+                    minimumSKURequiredForFeature={LicenseSkus.Professional}
+                    showSkuTag={true}
+                    title={{
+                        id: 'translation.test.title',
+                        defaultMessage: 'Foo',
+                    }}
+                    copy={{
+                        id: 'translation.test.copy',
+                        defaultMessage: 'Bar',
+                    }}
+                    learnMoreURL='https://test.mattermost.com/secondary/'
+                    featureDiscoveryImage={<GroupsSVG/>}
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    stats={{TOTAL_USERS: 20}}
+                    prevTrialLicense={{IsLicensed: 'false'}}
+                    isCloud={false}
+                    isCloudTrial={false}
+                    hadPrevCloudTrial={false}
+                    isSubscriptionLoaded={true}
+                    isPaidSubscription={false}
+                    isEnterpriseReady={true}
+                    actions={{
+                        getPrevTrialLicense: jest.fn(),
+                        getCloudSubscription: jest.fn(),
+                        openModal: jest.fn(),
+                    }}
+                />,
+            );
+
+            expect(screen.getByText('PROFESSIONAL')).toBeInTheDocument();
         });
     });
 });
