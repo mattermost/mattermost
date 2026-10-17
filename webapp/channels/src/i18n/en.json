@@ -3148,7 +3148,7 @@
     "description": "Title of the toggle on the Channel Management panel that switches the channel between public and private."
   },
   "admin.channel_settings.channel_details.isPublicDescr": {
-    "defaultMessage": "Select Public for a channel any user can find and join. {br}Select Private to require channel invitations to join. {br}Use this switch to change this channel from public to private or from private to public.",
+    "defaultMessage": "Select Public for a channel any user can find and join. {br}Select Private to require channel invitations to join. {br}Use this control to change this channel from public to private or from private to public.",
     "description": "Description of the public/private toggle on the System Console channel configuration page; {br} placeholders insert line breaks."
   },
   "admin.channel_settings.channel_details.policy_enforced_title": {
