@@ -1927,6 +1927,24 @@ func TestGetPostActionClient(t *testing.T) {
 			requestURL: "http://localhost:8065/api?path=plugins/myplugin",
 			expectAuth: false,
 		},
+		{
+			name:       "prefix confusion pluginsevil does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/pluginsevil/steal",
+			expectAuth: false,
+		},
+		{
+			name:       "prefix confusion plugins-malicious does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/plugins-malicious/callback",
+			expectAuth: false,
+		},
+		{
+			name:       "exact /plugins path gets auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/plugins",
+			expectAuth: true,
+		},
 	}
 
 	for _, tc := range tests {
