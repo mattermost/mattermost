@@ -6,7 +6,7 @@ import {test as base} from '@playwright/test';
 import type {AxeResults} from 'axe-core';
 import {AxeBuilder} from '@axe-core/playwright';
 
-import {TestBrowser} from './browser_context';
+import {TestBrowser, patchGotoToUseBaseUrl} from './browser_context';
 import {isUpgradePathProjectSelected} from './upgrade_env';
 import {readGlobalSetupFailure} from './global_setup_failure';
 import {
@@ -52,6 +52,7 @@ import {
     enableUserMfa,
     ensureServerEnv,
     ensureSiteUrl,
+    requireSubpathServer,
     generateKeycloakUser,
     generateLdapUser,
     getAdminClient,
@@ -90,6 +91,7 @@ import {
     waitUntil,
     logFocusedElement,
 } from './test_action';
+import {testConfig} from './test_config';
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
 import {
@@ -120,6 +122,20 @@ type AxeBuilderOptions = {
 let lastSpecFile: string | undefined;
 
 export const test = base.extend<ExtendedFixtures>({
+    // Overrides the built-in baseURL fixture (normally frozen to testConfig.baseURL's value at
+    // config-load time, see test_config.ts) to read it fresh per test instead. Fixtures resolve at
+    // test-run time, after global setup has resolved/corrected testConfig.baseURL (testcontainers
+    // host, subpath mode, etc.), so this reflects whatever value is current, not a stale snapshot.
+    baseURL: async ({}, use) => {
+        await use(testConfig.baseURL);
+    },
+    // Every page (default fixture, or wrapped in a page object) goes through here, so goto() always
+    // resolves against the current testConfig.baseURL instead of Playwright's own frozen/path-dropping
+    // baseURL merge. See patchGotoToUseBaseUrl().
+    page: async ({page}, use) => {
+        patchGotoToUseBaseUrl(page);
+        await use(page);
+    },
     axe: async ({}, use) => {
         const ab = new AxeBuilderExtended();
         await use(ab);
@@ -220,6 +236,7 @@ export class PlaywrightExtended {
     readonly ensurePhase2MigrationCompleted;
     readonly ensureServerEnv;
     readonly ensureSiteUrl;
+    readonly requireSubpathServer;
     readonly generateKeycloakUser;
     readonly generateLdapUser;
     readonly keycloakSamlDescriptorUrl;
@@ -349,6 +366,7 @@ export class PlaywrightExtended {
         this.ensurePhase2MigrationCompleted = ensurePhase2MigrationCompleted;
         this.ensureServerEnv = ensureServerEnv;
         this.ensureSiteUrl = ensureSiteUrl;
+        this.requireSubpathServer = requireSubpathServer;
         this.generateKeycloakUser = generateKeycloakUser;
         this.generateLdapUser = generateLdapUser;
         this.keycloakSamlDescriptorUrl = keycloakSamlDescriptorUrl;

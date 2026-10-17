@@ -21,6 +21,7 @@ import {
     POSTGRES_PASSWORD,
     POSTGRES_PORT,
     POSTGRES_USER,
+    SUBPATH_DEFAULT,
     TESTCONTAINERS_LABELS,
 } from './constants';
 import {SERVER_ENV_BASELINE} from './env_baseline';
@@ -39,6 +40,9 @@ import {wait} from '@/util';
 export function resolveMattermostBootEnv(extraEnv: Record<string, string> = {}): Record<string, string> {
     return {
         ...SERVER_ENV_BASELINE,
+        // testConfig.subpathMode boots directly on the subpath; serverEnv/extraEnv can still
+        // override this explicitly.
+        ...(testConfig.subpathMode ? {MM_SERVICESETTINGS_SITEURL: `${testConfig.nginxUrl}${SUBPATH_DEFAULT}`} : {}),
         ...testConfig.serverEnv,
         ...extraEnv,
         ...structuralEnv(),
@@ -79,7 +83,11 @@ const EXIT_LOG_LINES = 40;
 // them call pw.ensurePhase2MigrationCompleted().
 // Fails at once, with the container's last log lines, if the server exits instead of waiting out the startup timeout.
 class ServerWaitStrategy implements WaitStrategy {
-    private readonly ping = Wait.forHttp('/api/v4/system/ping', MATTERMOST_PORT).forStatusCode(200);
+    // Subpath mode 302-redirects the bare path instead of returning 200.
+    private readonly ping = Wait.forHttp(
+        testConfig.subpathMode ? `${SUBPATH_DEFAULT}/api/v4/system/ping` : '/api/v4/system/ping',
+        MATTERMOST_PORT,
+    ).forStatusCode(200);
 
     withStartupTimeout(startupTimeoutMs: number): this {
         this.ping.withStartupTimeout(startupTimeoutMs);
