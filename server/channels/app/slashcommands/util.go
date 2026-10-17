@@ -144,6 +144,20 @@ func tokenizeCommand(T i18n.TranslateFunc, cmd string) ([]commandToken, error) {
 	return tokens, nil
 }
 
+// splitQuotedArg lets autocomplete end a quoted value where tokenizeCommand does.
+func splitQuotedArg(in string) (rest string, quoted, closed bool) {
+	open, size := utf8.DecodeRuneInString(in)
+	style, ok := quoteStyles[open]
+	if !ok {
+		return in, false, false
+	}
+	_, after, err := quotedToken(in[size:], open, style)
+	if err != nil {
+		return in, true, false
+	}
+	return after, true, true
+}
+
 func nextWord(s string) (string, string) {
 	end := strings.IndexFunc(s, unicode.IsSpace)
 	if end < 0 {

@@ -21,6 +21,15 @@ type AutocompleteDynamicArgProvider interface {
 	GetAutoCompleteListItems(rctx request.CTX, a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error)
 }
 
+// AutocompleteQuotedArgProvider is implemented by built-in commands whose parser accepts single and
+// curly quotes, so autocomplete ends a quoted text argument where the command does. Other commands,
+// including plugins that split on whitespace, only treat straight double quotes as grouping words.
+type AutocompleteQuotedArgProvider interface {
+	// SplitQuotedArg returns the input after the quoted value that in starts with. quoted is false
+	// if in does not start with a quote, and closed is false until the value's closing quote is typed.
+	SplitQuotedArg(in string) (rest string, quoted, closed bool)
+}
+
 // GetSuggestions returns suggestions for user input.
 func (a *App) GetSuggestions(rctx request.CTX, commandArgs *model.CommandArgs, commands []*model.Command, roleID string) []model.AutocompleteSuggestion {
 	slices.SortFunc(commands, func(a, b *model.Command) int {
@@ -160,7 +169,7 @@ func (a *App) parseArgument(rctx request.CTX, commandArgs *model.CommandArgs, ar
 	}
 
 	if arg.Type == model.AutocompleteArgTypeText {
-		found, changedParsed, changedToBeParsed, suggestion := parseInputTextArgument(arg, parsed, toBeParsed)
+		found, changedParsed, changedToBeParsed, suggestion := parseInputTextArgument(arg, parsed, toBeParsed, quotedArgProvider(parsed))
 		if found {
 			suggestions = append(suggestions, suggestion)
 			return true, changedParsed, changedToBeParsed, suggestions
@@ -207,13 +216,28 @@ func parseNamedArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (
 	return false, parsed + namedArg + " ", in[len(namedArg)+1:], model.AutocompleteSuggestion{}
 }
 
-func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestion model.AutocompleteSuggestion) {
+// quotedArgProvider returns the quote parser of the built-in command that parsed starts with, if it has one.
+func quotedArgProvider(parsed string) AutocompleteQuotedArgProvider {
+	trigger, _, _ := strings.Cut(parsed, " ")
+	provider, _ := GetCommandProvider(strings.ToLower(trigger)).(AutocompleteQuotedArgProvider)
+	return provider
+}
+
+func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed string, quotes AutocompleteQuotedArgProvider) (found bool, alreadyParsed string, yetToBeParsed string, suggestion model.AutocompleteSuggestion) {
 	in := strings.TrimPrefix(toBeParsed, " ")
 	a := arg.Data.(*model.AutocompleteTextArg)
 	if in == "" { //The user has not started typing the argument.
 		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 	}
-	if in[0] == '"' { //input with multiple words
+	if quotes != nil {
+		if rest, quoted, closed := quotes.SplitQuotedArg(in); quoted {
+			if !closed {
+				return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
+			}
+			rest = strings.TrimPrefix(rest, " ")
+			return false, parsed + in[:len(in)-len(rest)], rest, model.AutocompleteSuggestion{}
+		}
+	} else if in[0] == '"' { //input with multiple words
 		indexOfSecondQuote := strings.Index(in[1:], `"`)
 		if indexOfSecondQuote == -1 { //typing of the multiple word argument is not finished
 			return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}

@@ -100,38 +100,38 @@ func TestParseInputTextArgument(t *testing.T) {
 		Data:     &model.AutocompleteTextArg{Hint: "hint", Pattern: "pat"},
 	}
 
-	found, _, _, suggestion := parseInputTextArgument(argument, "", "")
+	found, _, _, suggestion := parseInputTextArgument(argument, "", "", nil)
 	assert.True(t, found)
 	assert.Equal(t, model.AutocompleteSuggestion{Complete: "", Suggestion: "", Hint: "hint", Description: "some_help"}, suggestion)
 
-	found, _, _, suggestion = parseInputTextArgument(argument, "", " ")
+	found, _, _, suggestion = parseInputTextArgument(argument, "", " ", nil)
 	assert.True(t, found)
 	assert.Equal(t, model.AutocompleteSuggestion{Complete: " ", Suggestion: "", Hint: "hint", Description: "some_help"}, suggestion)
 
-	found, _, _, suggestion = parseInputTextArgument(argument, "", "abc")
+	found, _, _, suggestion = parseInputTextArgument(argument, "", "abc", nil)
 	assert.True(t, found)
 	assert.Equal(t, model.AutocompleteSuggestion{Complete: "abc", Suggestion: "", Hint: "hint", Description: "some_help"}, suggestion)
 
-	found, _, _, suggestion = parseInputTextArgument(argument, "", "\"abc dfd df ")
+	found, _, _, suggestion = parseInputTextArgument(argument, "", "\"abc dfd df ", nil)
 	assert.True(t, found)
 	assert.Equal(t, model.AutocompleteSuggestion{Complete: "\"abc dfd df ", Suggestion: "", Hint: "hint", Description: "some_help"}, suggestion)
 
-	found, parsed, toBeParsed, _ := parseInputTextArgument(argument, "", "abc efg ")
+	found, parsed, toBeParsed, _ := parseInputTextArgument(argument, "", "abc efg ", nil)
 	assert.False(t, found)
 	assert.Equal(t, "abc ", parsed)
 	assert.Equal(t, "efg ", toBeParsed)
 
-	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "abc ")
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "abc ", nil)
 	assert.False(t, found)
 	assert.Equal(t, "abc ", parsed)
 	assert.Equal(t, "", toBeParsed)
 
-	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "\"abc def\" abc")
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "\"abc def\" abc", nil)
 	assert.False(t, found)
 	assert.Equal(t, "\"abc def\" ", parsed)
 	assert.Equal(t, "abc", toBeParsed)
 
-	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "\"abc def\"")
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "\"abc def\"", nil)
 	assert.False(t, found)
 	assert.Equal(t, "\"abc def\"", parsed)
 	assert.Equal(t, "", toBeParsed)

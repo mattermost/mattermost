@@ -19,6 +19,7 @@ type ShareProvider struct {
 
 // ensure ShareProvide implements AutocompleteDynamicArgProvider
 var _ app.AutocompleteDynamicArgProvider = (*ShareProvider)(nil)
+var _ app.AutocompleteQuotedArgProvider = (*ShareProvider)(nil)
 
 const (
 	CommandTriggerShare   = "share-channel"
@@ -60,6 +61,10 @@ func (sp *ShareProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 		DisplayName:      T("api.command_share.name"),
 		AutocompleteData: share,
 	}
+}
+
+func (sp *ShareProvider) SplitQuotedArg(in string) (string, bool, bool) {
+	return splitQuotedArg(in)
 }
 
 func (sp *ShareProvider) GetAutoCompleteListItems(rctx request.CTX, a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
