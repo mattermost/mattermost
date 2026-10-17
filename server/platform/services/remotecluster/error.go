@@ -10,6 +10,8 @@ import (
 
 var (
 	RemoteClusterAlreadyConfirmedError = errors.New("the remote cluster has already been confirmed")
+
+	errRemoteUnreachable = errors.New("remote unreachable")
 )
 
 type BufferFullError struct {

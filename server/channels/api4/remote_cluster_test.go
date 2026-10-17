@@ -462,11 +462,22 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		rcAcceptInvite.Invite = base64.URLEncoding.EncodeToString(rejectingEncrypted)
 		defer func() { rcAcceptInvite.Invite = encoded }()
 
+		// Developer mode keeps detailed_error in the response, so the test can check it.
+		enableDeveloper := *th.App.Config().ServiceSettings.EnableDeveloper
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = enableDeveloper })
+
 		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
-		CheckInternalErrorStatus(t, resp)
+		checkHTTPStatus(t, resp, http.StatusBadGateway)
 		CheckErrorID(t, err, "api.remote_cluster.accept_invitation.rejected.app_error")
 		CheckErrorMessage(t, err, "The remote site rejected the invitation.")
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		require.NotContains(t, appErr.DetailedError, "evil.example.com")
 		require.Empty(t, rc)
+
+		_, getErr := th.App.GetRemoteCluster(rejectingInvite.RemoteId, false)
+		require.NotNil(t, getErr, "the refused connection must not remain active")
 	})
 
 	t.Run("should fail with a conflict error if the connection already exists", func(t *testing.T) {

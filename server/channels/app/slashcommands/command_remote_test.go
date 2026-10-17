@@ -321,19 +321,44 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
 	})
 
-	t.Run("remote site answering with an error status replies with a translated invalid response error", func(t *testing.T) {
-		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusBadRequest)
-			_, _ = w.Write([]byte(`{"id":"api.context.invitation_expired.error","message":"Invitation has expired."}`))
-		}))
-		t.Cleanup(ts.Close)
-		code, remoteID := makeInvite(t, ts.URL)
+	t.Run("unreachable remote site with markdown in its address replies with the address escaped", func(t *testing.T) {
+		ts := httptest.NewServer(http.NotFoundHandler())
+		ts.Close()
+		code, remoteID := makeInvite(t, ts.URL+"/[click](https://evil.example.com)")
 		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
 
-		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.invalid_response.app_error")}), text)
+		escapedURL := ts.URL + "/%5Bclick%5D%28https://evil.example.com%29/" + remotecluster.ConfirmInviteURL
+		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": escapedURL})
+		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": unreachable}), text)
+		require.NotContains(t, text, "](")
 		_, appErr := th.App.GetRemoteCluster(remoteID, false)
 		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
 	})
+
+	for _, tc := range []struct {
+		name    string
+		status  int
+		body    string
+		errorID string
+	}{
+		{"expired invite", http.StatusBadRequest, `{"id":"api.context.invitation_expired.error","message":"[click](https://evil.example.com)"}`, "api.remote_cluster.accept_invitation.expired.app_error"},
+		{"remote error", http.StatusInternalServerError, `{"id":"api.command_remote.confirm_invitation.error","message":"[click](https://evil.example.com)"}`, "api.remote_cluster.accept_invitation.rejected.app_error"},
+		{"unreadable error body", http.StatusBadGateway, "<html><body>Bad Gateway</body></html>", "api.remote_cluster.accept_invitation.invalid_response.app_error"},
+	} {
+		t.Run("remote site answering with an error status: "+tc.name, func(t *testing.T) {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tc.status)
+				_, _ = w.Write([]byte(tc.body))
+			}))
+			t.Cleanup(ts.Close)
+			code, remoteID := makeInvite(t, ts.URL)
+			text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+
+			require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T(tc.errorID)}), text)
+			_, appErr := th.App.GetRemoteCluster(remoteID, false)
+			require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		})
+	}
 
 	t.Run("site URL not set", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "" })

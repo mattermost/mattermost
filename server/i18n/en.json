@@ -1953,7 +1953,7 @@
   {
     "id": "api.command_remote.accept_invitation.error",
     "translation": "Could not accept invitation: {{.Error}}",
-    "description": "Error response from the /secure-connection slash command when accepting a server-to-server (shared channels) invitation fails; {{.Error}} is a translated error message, a connection error, or the reason the remote server gave for rejecting the invitation."
+    "description": "Error response from the /secure-connection slash command when accepting a server-to-server (shared channels) invitation fails; {{.Error}} is a translated error message, e.g. that the remote site could not be reached, returned an invalid response, or rejected the invitation."
   },
   {
     "id": "api.command_remote.add_remote.error",
@@ -4463,6 +4463,11 @@
     "id": "api.recap.permission_denied",
     "translation": "You do not have permission to access this recap.",
     "description": "API error when a user requests an AI-generated recap (channel activity summary) that belongs to another user."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "The invitation has expired. Ask the remote site for a new invitation.",
+    "description": "Error shown to an admin accepting a secure connection (remote Mattermost server) invitation when the remote site reports that the invitation has expired."
   },
   {
     "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",

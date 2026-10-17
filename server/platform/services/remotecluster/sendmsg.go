@@ -160,7 +160,7 @@ func (rcs *Service) sendFrameToRemote(timeout time.Duration, rc *model.RemoteClu
 		}
 	}
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", errRemoteUnreachable, err)
 	}
 	defer resp.Body.Close()
 	body, err = io.ReadAll(resp.Body)
