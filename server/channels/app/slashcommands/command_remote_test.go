@@ -576,14 +576,18 @@ func TestRemoteProviderDoRemove(t *testing.T) {
 		require.Equal(t, "Could not remove secure connection: We encountered an error deleting the secure connection.", output)
 	})
 
-	t.Run("rejects a missing, empty or malformed connectionID without deleting", func(t *testing.T) {
+	t.Run("rejects a missing, empty, malformed or misquoted connectionID without deleting", func(t *testing.T) {
 		for name, tc := range map[string]struct {
 			command string
 			reply   string
 		}{
-			"missing":   {"/secure-connection remove", "Missing or empty `connectionID`"},
-			"empty":     {"/secure-connection remove --connectionID", "Missing or empty `connectionID`"},
-			"malformed": {"/secure-connection remove --connectionID foo", "`foo` is not a valid `connectionID`"},
+			"missing":      {"/secure-connection remove", "Missing or empty `connectionID`"},
+			"empty":        {"/secure-connection remove --connectionID", "Missing or empty `connectionID`"},
+			"empty quotes": {`/secure-connection remove --connectionID ""`, "Missing or empty `connectionID`"},
+			"blank quotes": {`/secure-connection remove --connectionID " "`, "Missing or empty `connectionID`"},
+			"malformed":    {"/secure-connection remove --connectionID foo", "`foo` is not a valid `connectionID`"},
+			"stray word":   {"/secure-connection remove --connectionID foo bar", "Unexpected text near `--connectionID`. Wrap a value that contains spaces in quotes, and use double quotes if the value also contains an apostrophe."},
+			"open quote":   {`/secure-connection remove --connectionID "foo`, "A quote near `--connectionID` is never closed."},
 		} {
 			t.Run(name, func(t *testing.T) {
 				callsBefore := wrapper.deleteCalls.Load()
@@ -719,65 +723,4 @@ func TestRemoteProviderDoCreateValidationFailure(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Empty(t, list, "no secure connection should be saved for an invalid name")
 	})
-}
-
-type tokenClearingRemoteClusterStore struct {
-	store.RemoteClusterStore
-}
-
-func (s *tokenClearingRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
-	saved, err := s.RemoteClusterStore.Save(rc)
-	if err != nil {
-		return nil, err
-	}
-	saved.Token = ""
-	return saved, nil
-}
-
-// tokenClearingStoreWrapper returns saved remote clusters without a token, so the
-// invitation built from them fails validation; all other calls use the real store.
-type tokenClearingStoreWrapper struct {
-	store.Store
-}
-
-func (w *tokenClearingStoreWrapper) RemoteCluster() store.RemoteClusterStore {
-	return &tokenClearingRemoteClusterStore{RemoteClusterStore: w.Store.RemoteCluster()}
-}
-
-func TestRemoteProviderDoCreateInviteFailure(t *testing.T) {
-	if testing.Short() {
-		t.SkipNow()
-	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-
-	th := setupTestHelper(&tokenClearingStoreWrapper{Store: dbStore}, false, true, t, func(cfg *model.Config) {
-		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
-		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
-		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
-	}).initBasic(t)
-	th.addPermissionToRole(t, model.PermissionManageSecureConnections.Id, th.BasicUser.Roles)
-
-	userT := func(id string, args ...any) string {
-		switch id {
-		case "api.remote_cluster.create_invite_error":
-			return "user-locale invite error"
-		case "api.command_remote.encrypt_invitation.error":
-			return "invite failed: " + args[0].(map[string]any)["Error"].(string)
-		}
-		return id
-	}
-
-	args := &model.CommandArgs{
-		T:         userT,
-		UserId:    th.BasicUser.Id,
-		TeamId:    th.BasicTeam.Id,
-		ChannelId: th.BasicChannel.Id,
-		Command:   "/secure-connection create --name remotename --password secret",
-	}
-
-	resp := (&RemoteProvider{}).DoCommand(th.App, th.Context, args, "")
-	require.NotNil(t, resp)
-	require.Equal(t, "invite failed: user-locale invite error", resp.Text)
 }

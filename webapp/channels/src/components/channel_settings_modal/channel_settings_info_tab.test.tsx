@@ -57,16 +57,6 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
     getRoles: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('selectors/views/textbox', () => ({
-    showPreviewOnChannelSettingsHeaderModal: jest.fn().mockReturnValue(false),
-    showPreviewOnChannelSettingsPurposeModal: jest.fn().mockReturnValue(false),
-}));
-
-jest.mock('actions/views/textbox', () => ({
-    setShowPreviewOnChannelSettingsHeaderModal: jest.fn(),
-    setShowPreviewOnChannelSettingsPurposeModal: jest.fn(),
-}));
-
 // Mock the isChannelAdmin function
 jest.mock('mattermost-redux/utils/user_utils', () => {
     const original = jest.requireActual('mattermost-redux/utils/user_utils');
@@ -512,6 +502,30 @@ describe('ChannelSettingsInfoTab', () => {
         // When not in readOnly mode, at least one preview toggle button should be present
         const previewButtons = screen.queryAllByTestId('mock-show-format');
         expect(previewButtons.length).toBeGreaterThan(0);
+    });
+
+    it('should toggle the purpose and header previews independently', async () => {
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        const [purposePreviewToggle, headerPreviewToggle] = screen.getAllByTestId('mock-show-format');
+        const purposeWrapper = screen.getByTestId('channel_settings_purpose_textbox').closest('.textarea-wrapper');
+        const headerWrapper = screen.getByTestId('channel_settings_header_textbox').closest('.textarea-wrapper');
+
+        expect(purposeWrapper).not.toHaveClass('textarea-wrapper-preview');
+        expect(headerWrapper).not.toHaveClass('textarea-wrapper-preview');
+
+        await userEvent.click(purposePreviewToggle);
+
+        expect(purposePreviewToggle).toHaveClass('active');
+        expect(purposeWrapper).toHaveClass('textarea-wrapper-preview');
+        expect(headerPreviewToggle).not.toHaveClass('active');
+        expect(headerWrapper).not.toHaveClass('textarea-wrapper-preview');
+
+        await userEvent.click(headerPreviewToggle);
+        await userEvent.click(purposePreviewToggle);
+
+        expect(purposeWrapper).not.toHaveClass('textarea-wrapper-preview');
+        expect(headerWrapper).toHaveClass('textarea-wrapper-preview');
     });
 
     it('should not allow channel type change when user lacks permissions', async () => {
