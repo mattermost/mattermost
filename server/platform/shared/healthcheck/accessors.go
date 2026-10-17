@@ -100,12 +100,34 @@ func (s *Snapshot) JobsFor(jobType string) ([]*model.Job, bool) {
 	}
 }
 
+// License reads the leader's diagnostics so live and packet snapshots see the same license fields.
+func (s *Snapshot) License() (*model.SupportPacketLicense, bool) {
+	leader, ok := s.Leader()
+	if !ok || !leader.sectionOK(model.SectionLicense) {
+		return nil, false
+	}
+
+	diag, ok := leader.Diag()
+	if !ok {
+		return nil, false
+	}
+
+	return &diag.License, true
+}
+
+// IsCloud is false when the license is unavailable.
+func (s *Snapshot) IsCloud() bool {
+	license, ok := s.License()
+	return ok && license.IsCloud
+}
+
 func (s *Snapshot) LicenseFeature(get func(*model.Features) *bool) (bool, bool) {
-	if get == nil || s == nil || s.License == nil || s.License.Features == nil {
+	license, ok := s.License()
+	if !ok || get == nil || license.Features == nil {
 		return false, false
 	}
 
-	value := get(s.License.Features)
+	value := get(license.Features)
 	if value == nil {
 		return false, false
 	}
