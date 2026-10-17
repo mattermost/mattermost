@@ -317,4 +317,39 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         const toggle = await screen.findByText('Switch to Simple Mode');
         expect(toggle.closest('button')).toBeEnabled();
     });
+
+    describe('unreadable-rule notice', () => {
+        const NOTICE_TITLE = 'This policy\'s rule couldn\'t be read';
+
+        test('shows the notice when the loaded rule is false', async () => {
+            renderWithExpression('false');
+
+            expect(await screen.findByText(NOTICE_TITLE)).toBeInTheDocument();
+            expect(screen.getByText(/denies these permissions to everyone it applies to/)).toBeInTheDocument();
+        });
+
+        test('shows the notice when a later rule is false', async () => {
+            mockFetchPolicy.mockResolvedValue({
+                data: {
+                    id: 'policy1',
+                    name: 'Policy 1',
+                    roles: ['system_user'],
+                    rules: [
+                        {actions: ['download_file_attachment'], expression: 'user.attributes.teams == "engineering"'},
+                        {actions: ['upload_file_attachment'], expression: 'false'},
+                    ],
+                },
+            });
+            renderWithContext(<PermissionPolicyDetails {...baseProps}/>);
+
+            expect(await screen.findByText(NOTICE_TITLE)).toBeInTheDocument();
+        });
+
+        test('shows no notice for a readable rule', async () => {
+            renderWithExpression('user.attributes.teams == "engineering"');
+
+            await screen.findByTestId('table-editor');
+            expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
+        });
+    });
 });

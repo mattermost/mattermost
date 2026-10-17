@@ -10511,6 +10511,14 @@
     "defaultMessage": "Configure user attributes",
     "description": "Button in the notice on the permission policy edit page that navigates to the user attributes configuration page."
   },
+  "admin.permission_policies.edit.notice.false_rule.text": {
+    "defaultMessage": "The server returned `false` for this policy's rule. Saving it denies these permissions to everyone it applies to.",
+    "description": "Warning text (markdown) explaining that the loaded rule is `false` and saving keeps denying the permissions; `false` in backticks is a code literal."
+  },
+  "admin.permission_policies.edit.notice.false_rule.title": {
+    "defaultMessage": "This policy's rule couldn't be read",
+    "description": "Warning title on the permission policy editor when a loaded rule is the literal `false` (the server could not read it)."
+  },
   "admin.permission_policies.edit.notice.text": {
     "defaultMessage": "You haven't configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server.",
     "description": "Body of the notice on the permission policy edit page shown when no user attributes are configured; explains attribute sources like LDAP or SAML."
