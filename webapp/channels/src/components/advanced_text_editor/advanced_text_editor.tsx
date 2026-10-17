@@ -88,6 +88,7 @@ import useBurnOnRead from './use_burn_on_read';
 import {useComposerPlaceholder} from './use_composer_placeholder';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
+import usePendingQuote from './use_pending_quote';
 import usePluginItems from './use_plugin_items';
 import usePriority from './use_priority';
 import useRewrite from './use_rewrite';
@@ -396,6 +397,8 @@ const AdvancedTextEditor = ({
     } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
     const hasAIActionsMenu = (aiActionMenuItems?.length ?? 0) > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
+
+    usePendingQuote(draft, handleDraftChange, channelId, rootId, isInEditMode, isDisabled, rewriteIsProcessing, textboxRef, wysiwygRef);
 
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
         draft,
