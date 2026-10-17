@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {findMatchingParen, hasBalancedParens, isWrappedInParens, referencedUserAttributeNames, splitOutsideLiterals} from './cel_lexer';
 import {
     BREAKOUT_OR_E,
     BREAKOUT_OR_RETURNED,
@@ -16,8 +17,7 @@ import {
     PROGRAM_DRAGON,
     SERIALIZER_CASES,
     fixture,
-} from './bot_scope/serializer_test_fixtures';
-import {findMatchingParen, hasBalancedParens, isWrappedInParens, referencedUserAttributeNames, splitOutsideLiterals} from './cel_lexer';
+} from './cel_serializer_test_fixtures';
 
 describe('hasBalancedParens', () => {
     it.each([

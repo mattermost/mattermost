@@ -9,6 +9,8 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import {TestButton, celPrefixForField, excludeHiddenNativeFields, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, referencesResourceAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isFieldAdvertisedOperator, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
 
+import {fixture} from '../cel_serializer_test_fixtures';
+
 const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']>, type: UserPropertyField['type'] = 'text'): UserPropertyField => ({
     id: `id-${name}`,
     name,
@@ -688,6 +690,30 @@ describe('isSimpleExpression / isSimpleCondition with graph attributes', () => {
 
     test('a hierarchy predicate on the resource side is not simple', () => {
         expect(isSimpleCondition('resource.attributes.programs.coversAll(["F-18 Program"])')).toBe(false);
+    });
+});
+
+describe('isSimpleExpression on server-serialized bodies', () => {
+    it.each([
+        'a masking on GET',
+        'a masking off GET',
+        'd1 masking on GET',
+        'd1 masking off GET',
+        'd2 masking on GET',
+        'd3 masking on GET',
+        'e masking on GET',
+        'e masking off GET',
+    ])('%s unwrapped is simple', (name) => {
+        expect(isSimpleExpression(fixture(name).unwrapped)).toBe(true);
+    });
+
+    it.each([
+        'b masking on GET',
+        'b masking off GET',
+        'c masking on GET',
+        'c masking off GET',
+    ])('%s unwrapped is not simple', (name) => {
+        expect(isSimpleExpression(fixture(name).unwrapped)).toBe(false);
     });
 });
 

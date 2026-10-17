@@ -4,6 +4,7 @@
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
+import {hasBalancedParens} from '../cel_lexer';
 import {
     BREAKOUT_OR_RETURNED,
     BREAKOUT_TERNARY_RETURNED,
@@ -15,10 +16,7 @@ import {
     PROGRAM_DRAGON,
     SERIALIZER_CASES,
     fixture,
-} from './serializer_test_fixtures';
-
-import {hasBalancedParens} from '../cel_lexer';
-import {isSimpleExpression} from '../editors/shared';
+} from '../cel_serializer_test_fixtures';
 
 import {
     BOT_ROLE_KEY,
@@ -174,30 +172,6 @@ describe('wrapBotExpression', () => {
     it('produces balanced output for balanced input', () => {
         expect(hasBalancedParens(wrapBotExpression(COMMENT_E))).toBe(true);
         expect(hasBalancedParens(wrapBotExpression(PROGRAM_DRAGON))).toBe(true);
-    });
-});
-
-describe('isSimpleExpression on server-serialized bodies', () => {
-    it.each([
-        'a masking on GET',
-        'a masking off GET',
-        'd1 masking on GET',
-        'd1 masking off GET',
-        'd2 masking on GET',
-        'd3 masking on GET',
-        'e masking on GET',
-        'e masking off GET',
-    ])('%s unwrapped is simple', (name) => {
-        expect(isSimpleExpression(fixture(name).unwrapped)).toBe(true);
-    });
-
-    it.each([
-        'b masking on GET',
-        'b masking off GET',
-        'c masking on GET',
-        'c masking off GET',
-    ])('%s unwrapped is not simple', (name) => {
-        expect(isSimpleExpression(fixture(name).unwrapped)).toBe(false);
     });
 });
 
