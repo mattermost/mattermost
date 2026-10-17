@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/base64"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -446,6 +447,25 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		rc, resp, err := th.Client.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
+		require.Empty(t, rc)
+	})
+
+	t.Run("should return a translated error without the remote's reason if the remote rejects the invite", func(t *testing.T) {
+		remote := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`{"status":"FAIL","err":"[click here](https://evil.example.com)"}`))
+		}))
+		defer remote.Close()
+
+		rejectingInvite := &model.RemoteClusterInvite{RemoteId: model.NewId(), SiteURL: remote.URL, Token: "token"}
+		rejectingEncrypted, err := rejectingInvite.Encrypt(rcAcceptInvite.Password)
+		require.NoError(t, err)
+		rcAcceptInvite.Invite = base64.URLEncoding.EncodeToString(rejectingEncrypted)
+		defer func() { rcAcceptInvite.Invite = encoded }()
+
+		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
+		CheckInternalErrorStatus(t, resp)
+		CheckErrorID(t, err, "api.remote_cluster.accept_invitation.rejected.app_error")
+		require.NotContains(t, err.Error(), "evil.example.com")
 		require.Empty(t, rc)
 	})
 

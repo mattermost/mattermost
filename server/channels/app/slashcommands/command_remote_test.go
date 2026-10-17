@@ -295,16 +295,44 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		assert.Equal(t, existing.SiteURL, rc.SiteURL)
 	})
 
-	t.Run("unreachable remote site replies with the connection error", func(t *testing.T) {
+	t.Run("unreachable remote site replies with a translated error naming the address", func(t *testing.T) {
 		ts := httptest.NewServer(http.NotFoundHandler())
 		ts.Close()
 		code, remoteID := makeInvite(t, ts.URL)
 		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
 
-		require.True(t, strings.HasPrefix(text, T("api.command_remote.accept_invitation.error", map[string]any{"Error": ""})), text)
-		require.Contains(t, text, ts.URL+"/"+remotecluster.ConfirmInviteURL, "the reply should name the address that could not be reached")
+		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": ts.URL + "/" + remotecluster.ConfirmInviteURL})
+		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": unreachable}), text)
 		_, appErr := th.App.GetRemoteCluster(remoteID, false)
 		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+	})
+
+	t.Run("remote site answering with a non-JSON page replies with a translated invalid response error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html")
+			_, _ = w.Write([]byte("<html><body>Proxy login required</body></html>"))
+		}))
+		t.Cleanup(ts.Close)
+		code, remoteID := makeInvite(t, ts.URL)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+
+		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.invalid_response.app_error")}), text)
+		_, appErr := th.App.GetRemoteCluster(remoteID, false)
+		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+	})
+
+	t.Run("remote site answering with an error status replies with a translated rejection", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(`{"id":"api.context.invitation_expired.error","message":"Invitation has expired."}`))
+		}))
+		t.Cleanup(ts.Close)
+		code, remoteID := makeInvite(t, ts.URL)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+
+		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.rejected.app_error")}), text)
+		_, appErr := th.App.GetRemoteCluster(remoteID, false)
+		require.NotNil(t, appErr, "the refused connection must not remain active")
 	})
 
 	t.Run("site URL not set", func(t *testing.T) {
@@ -320,12 +348,12 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		require.NotNil(t, appErr, "no secure connection should be stored")
 	})
 
-	t.Run("remote site rejects the invite", func(t *testing.T) {
-		ts, _ := newConfirmInviteServer(t, model.StatusFail, "invite rejected by remote")
+	t.Run("remote site rejects the invite with a translated reply that omits the remote's reason", func(t *testing.T) {
+		ts, _ := newConfirmInviteServer(t, model.StatusFail, "[click here](https://evil.example.com) to fix your connection")
 		code, remoteID := makeInvite(t, ts.URL)
 		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
 
-		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": "invite rejected by remote"}), text)
+		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.rejected.app_error")}), text)
 
 		_, appErr := th.App.GetRemoteCluster(remoteID, false)
 		require.NotNil(t, appErr, "the refused connection must not remain active")
