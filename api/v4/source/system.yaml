@@ -865,9 +865,10 @@
         - system
       summary: Get a saved configuration
       description: >
-        Get a configuration saved by the server, with the same settings left out
-        and sanitized as when getting the current configuration. To roll back to
-        it, submit it to `PUT /api/v4/config`.
+        Get a configuration saved by the server, as the server would load it now:
+        with defaults and environment variable overrides applied, and with the
+        same settings left out and sanitized as when getting the current
+        configuration. To roll back to it, submit it to `PUT /api/v4/config`.
 
 
         __Minimum server version__: 12.1

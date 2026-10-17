@@ -1293,14 +1293,14 @@ func TestDatabaseStoreHistory(t *testing.T) {
 		assert.Empty(t, page)
 	})
 
-	t.Run("applies defaults to a configuration saved by an older server", func(t *testing.T) {
+	t.Run("applies defaults and fixes to a configuration saved by an older server", func(t *testing.T) {
 		dbs, ok := ds.backingStore.(*DatabaseStore)
 		require.True(t, ok, "should be a DatabaseStore instance")
 
 		id := model.NewId()
 		_, err := dbs.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES (:id, :value, :create_at)", map[string]any{
 			"id":        id,
-			"value":     `{"ServiceSettings": {"SiteURL": "http://older.example.com"}}`,
+			"value":     `{"ServiceSettings": {"SiteURL": "http://older.example.com", "IdleTimeout": 0}}`,
 			"create_at": model.GetMillis(),
 		})
 		require.NoError(t, err)
@@ -1310,6 +1310,15 @@ func TestDatabaseStoreHistory(t *testing.T) {
 		assert.Equal(t, "http://older.example.com", *cfg.ServiceSettings.SiteURL)
 		require.NotNil(t, cfg.TeamSettings.SiteName)
 		assert.Equal(t, model.TeamSettingsDefaultSiteName, *cfg.TeamSettings.SiteName)
+		assert.Equal(t, model.ServiceSettingsDefaultIdleTimeout, *cfg.ServiceSettings.IdleTimeout)
+	})
+
+	t.Run("applies environment overrides", func(t *testing.T) {
+		t.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override.example.com")
+
+		cfg, err := ds.GetHistoricalConfig(entries[1].Id)
+		require.NoError(t, err)
+		assert.Equal(t, "http://override.example.com", *cfg.ServiceSettings.SiteURL)
 	})
 
 	t.Run("unknown configuration", func(t *testing.T) {

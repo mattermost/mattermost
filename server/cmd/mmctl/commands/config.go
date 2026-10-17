@@ -150,7 +150,7 @@ var ConfigRollbackCmd = &cobra.Command{
 	Short: "Roll back to a saved configuration",
 	Long: `Replaces the server configuration with a saved configuration from "config history". The configuration it replaces stays in the history.
 
-Without --local, sensitive values such as passwords, and settings that can't be changed through the API, keep their current values.`,
+Settings set through environment variables keep the values set there. Without --local, sensitive values such as passwords, and settings that can't be changed through the API, also keep their current values.`,
 	Example: "  config rollback hpgt7dw7si8odbc9gg938iqjhr",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(configRollbackCmdF),
@@ -685,6 +685,9 @@ type configRollbackResult struct {
 
 func configRollbackCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	configID := args[0]
+	if !model.IsValidId(configID) {
+		return fmt.Errorf("invalid configuration ID: %s", configID)
+	}
 
 	savedConfig, _, err := c.GetHistoricalConfig(context.TODO(), configID)
 	if err != nil {
@@ -732,6 +735,9 @@ func formatConfigChange(change *model.ConfigChange) string {
 }
 
 func formatConfigValue(value any) string {
+	if value == model.FakeSetting {
+		return "[redacted]"
+	}
 	b, err := json.Marshal(value)
 	if err != nil {
 		return fmt.Sprintf("%v", value)

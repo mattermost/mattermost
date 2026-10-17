@@ -510,6 +510,20 @@ func (s *MmctlE2ETestSuite) TestConfigHistoryCmd() {
 		s.Require().Error(err)
 		s.Require().Empty(printer.GetLines())
 	})
+
+	s.Run("Hide sensitive values", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "old-password" })
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "new-password" })
+
+		err := configHistoryCmdF(s.th.SystemAdminClient, newConfigHistoryCmd(2, true), nil)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Contains(printer.GetLines()[0], "EmailSettings.SMTPPassword: [redacted]")
+		s.Require().Contains(printer.GetLines()[1], `EmailSettings.SMTPPassword: "" -> [redacted]`)
+	})
 }
 
 func (s *MmctlE2ETestSuite) TestConfigHistoryCmdWithoutDatabaseStore() {
@@ -578,6 +592,14 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 		s.Require().Empty(printer.GetLines())
 	})
 
+	s.RunForSystemAdminAndLocal("Roll back to an invalid configuration ID", func(c client.Client) {
+		printer.Clean()
+
+		err := configRollbackCmdF(c, &cobra.Command{}, []string{"not-an-id"})
+		s.Require().EqualError(err, "invalid configuration ID: not-an-id")
+		s.Require().Empty(printer.GetLines())
+	})
+
 	s.Run("Roll back without permission", func() {
 		printer.Clean()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Old Site" })
@@ -588,5 +610,22 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 		s.Require().Error(err)
 		s.Require().Equal("New Site", *s.th.App.Config().TeamSettings.SiteName)
 		s.Require().Empty(printer.GetLines())
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestConfigRollbackCmdWithEnvironmentOverrides() {
+	s.T().Setenv("MM_SERVICESETTINGS_SITEURL", "http://localhost:8065")
+	s.SetupTestHelperWithDatabaseConfigStore()
+
+	s.RunForSystemAdminAndLocal("Roll back with the site URL set by an environment variable", func(c client.Client) {
+		printer.Clean()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Old Site" })
+		oldConfigID := s.latestConfigID()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "New Site" })
+
+		err := configRollbackCmdF(c, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		s.Require().Equal("Old Site", *s.th.App.Config().TeamSettings.SiteName)
+		s.Require().Equal("http://localhost:8065", *s.th.App.Config().ServiceSettings.SiteURL)
 	})
 }

@@ -430,8 +430,9 @@ func (s *Store) GetHistory(offset, limit int) ([]*model.ConfigHistoryEntry, erro
 	}
 }
 
-// GetHistoricalConfig returns the saved configuration with the given id, with defaults
-// applied but without environment overrides. Only a DatabaseStore backing store keeps a history.
+// GetHistoricalConfig returns the saved configuration with the given id, loaded as Load would
+// load it, so that it is the configuration the server would run with if it were active.
+// Only a DatabaseStore backing store keeps a history.
 func (s *Store) GetHistoricalConfig(id string) (*model.Config, error) {
 	bs, ok := s.backingStore.(*DatabaseStore)
 	if !ok {
@@ -447,8 +448,11 @@ func (s *Store) GetHistoricalConfig(id string) (*model.Config, error) {
 	if err := json.Unmarshal(configBytes, cfg); err != nil {
 		return nil, utils.HumanizeJSONError(err, configBytes)
 	}
-	// A configuration saved by an older server lacks the settings added since.
+	// A configuration saved by an older server lacks the settings added since, and may hold
+	// values this server rejects. Saved configurations never include environment overrides.
 	cfg.SetDefaults()
+	cfg = applyEnvironmentMap(cfg, GetEnvironment())
+	fixConfig(cfg)
 
 	return cfg, nil
 }

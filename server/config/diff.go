@@ -5,7 +5,9 @@ package config
 
 import (
 	"fmt"
+	"maps"
 	"reflect"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -161,12 +163,14 @@ func Diff(base, actual *model.Config) (ConfigDiffs, error) {
 
 // SanitizedDiff returns the differences between base and actual, with the values that
 // sanitize masks replaced. A setting whose change is entirely masked is still listed,
-// with model.FakeSetting on both sides. base and actual are not modified.
+// with model.FakeSetting on both sides. A change to a map, such as PluginSettings.Plugins,
+// is listed as a change to each key that changed. base and actual are not modified.
 func SanitizedDiff(base, actual *model.Config, sanitize func(*model.Config)) (ConfigDiffs, error) {
 	diffs, err := Diff(base, actual)
 	if err != nil || len(diffs) == 0 {
 		return diffs, err
 	}
+	diffs = expandMapDiffs(diffs)
 
 	sanitizedBase := base.Clone()
 	sanitize(sanitizedBase)
@@ -178,7 +182,7 @@ func SanitizedDiff(base, actual *model.Config, sanitize func(*model.Config)) (Co
 	}
 
 	visible := make(map[string]ConfigDiff, len(sanitizedDiffs))
-	for _, d := range sanitizedDiffs {
+	for _, d := range expandMapDiffs(sanitizedDiffs) {
 		visible[d.Path] = d
 	}
 
@@ -192,6 +196,56 @@ func SanitizedDiff(base, actual *model.Config, sanitize func(*model.Config)) (Co
 	}
 
 	return diffs, nil
+}
+
+// expandMapDiffs replaces each change to a map keyed by strings with a change to each of
+// its keys that changed, recursively.
+func expandMapDiffs(diffs ConfigDiffs) ConfigDiffs {
+	expanded := make(ConfigDiffs, 0, len(diffs))
+	for _, d := range diffs {
+		expanded = append(expanded, expandMapDiff(d)...)
+	}
+	return expanded
+}
+
+func expandMapDiff(d ConfigDiff) ConfigDiffs {
+	base := reflect.ValueOf(d.BaseVal)
+	actual := reflect.ValueOf(d.ActualVal)
+	if !isStringKeyedMap(base) || !isStringKeyedMap(actual) {
+		return ConfigDiffs{d}
+	}
+
+	keys := make(map[string]bool, base.Len()+actual.Len())
+	for _, k := range base.MapKeys() {
+		keys[k.String()] = true
+	}
+	for _, k := range actual.MapKeys() {
+		keys[k.String()] = true
+	}
+
+	var expanded ConfigDiffs
+	for _, key := range slices.Sorted(maps.Keys(keys)) {
+		baseVal := mapValue(base, key)
+		actualVal := mapValue(actual, key)
+		if reflect.DeepEqual(baseVal, actualVal) {
+			continue
+		}
+		expanded = append(expanded, expandMapDiff(ConfigDiff{Path: d.Path + "." + key, BaseVal: baseVal, ActualVal: actualVal})...)
+	}
+	return expanded
+}
+
+func isStringKeyedMap(v reflect.Value) bool {
+	return v.Kind() == reflect.Map && v.Type().Key().Kind() == reflect.String
+}
+
+// mapValue returns the value of key in m, or nil if m has no such key.
+func mapValue(m reflect.Value, key string) any {
+	v := m.MapIndex(reflect.ValueOf(key).Convert(m.Type().Key()))
+	if !v.IsValid() {
+		return nil
+	}
+	return v.Interface()
 }
 
 // ToConfigChanges converts the diffs to their API representation.
