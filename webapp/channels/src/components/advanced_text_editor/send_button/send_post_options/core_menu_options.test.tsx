@@ -61,20 +61,22 @@ describe('CoreMenuOptions Component', () => {
         jest.useRealTimers();
     });
 
-    function renderComponent(state = initialState, handleOnSelectOverride = handleOnSelect) {
+    function renderComponent(state = initialState, handleOnSelectOverride = handleOnSelect, isUsingRecipientTimezone = false) {
         renderWithContext(
             <WithTestMenuContext>
                 <CoreMenuOptions
                     handleOnSelect={handleOnSelectOverride}
                     channelId='channelId'
+                    isUsingRecipientTimezone={isUsingRecipientTimezone}
                 />
             </WithTestMenuContext>,
             state,
         );
     }
 
-    function setMockDate(weekday: number) {
-        const mockDate = DateTime.fromObject({weekday}, {zone: userCurrentTimezone}).toJSDate();
+    // Defaults to 10 AM, after the "Today at 9:00 AM" option is no longer offered
+    function setMockDate(weekday: number, hour = 10, zone = userCurrentTimezone) {
+        const mockDate = DateTime.fromObject({weekday, hour}, {zone}).toJSDate();
         jest.useFakeTimers();
         jest.setSystemTime(mockDate);
     }
@@ -104,6 +106,112 @@ describe('CoreMenuOptions Component', () => {
 
         expect(screen.getByText(/Monday at/)).toBeInTheDocument();
         expect(screen.queryByText(/Tomorrow at/)).not.toBeInTheDocument();
+    });
+
+    it('should render today and tomorrow options on a weekday before 9 AM', () => {
+        setMockDate(2, 8); // Tuesday 8 AM
+
+        renderComponent();
+
+        expect(screen.getByText(/Today at/)).toBeInTheDocument();
+        expect(screen.getByText(/Tomorrow at/)).toBeInTheDocument();
+        expect(screen.queryByText(/Monday at/)).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByText(/Today at/));
+
+        const expectedTimestamp = DateTime.now().
+            setZone(userCurrentTimezone).
+            set({hour: 9, minute: 0, second: 0, millisecond: 0}).
+            toMillis();
+
+        expect(handleOnSelect).toHaveBeenCalledWith(expect.anything(), expectedTimestamp);
+    });
+
+    it('should render today and Monday options on Friday before 9 AM', () => {
+        setMockDate(5, 8); // Friday 8 AM
+
+        renderComponent();
+
+        expect(screen.getByText(/Today at/)).toBeInTheDocument();
+        expect(screen.getByText(/Monday at/)).toBeInTheDocument();
+    });
+
+    it('should not render today option on weekends', () => {
+        setMockDate(6, 8); // Saturday 8 AM
+
+        renderComponent();
+
+        expect(screen.queryByText(/Today at/)).not.toBeInTheDocument();
+        expect(screen.getByText(/Monday at/)).toBeInTheDocument();
+    });
+
+    it('should pick times in the teammate timezone when using the recipient timezone', () => {
+        // Tuesday 10 AM in New York is 3 PM in London, so tomorrow is the first option for both
+        setMockDate(2);
+
+        mockedUseTimePostBoxIndicator.mockReturnValue({
+            ...defaultUseTimePostBoxIndicatorReturnValue,
+            isDM: true,
+            isSelfDM: false,
+            isBot: false,
+        });
+
+        renderComponent(initialState, handleOnSelect, true);
+
+        const tomorrowOption = screen.getByText(/Tomorrow at/);
+        expect(screen.getAllByText(/your time/).length).toBeGreaterThan(0);
+        expect(screen.queryByText(/John Doe/)).not.toBeInTheDocument();
+
+        fireEvent.click(tomorrowOption);
+
+        const expectedTimestamp = DateTime.now().
+            setZone(teammateTimezone.automaticTimezone).
+            plus({days: 1}).
+            set({hour: 9, minute: 0, second: 0, millisecond: 0}).
+            toMillis();
+
+        expect(handleOnSelect).toHaveBeenCalledWith(expect.anything(), expectedTimestamp);
+    });
+
+    it('should offer today in the teammate timezone when it is still before 9 AM there', () => {
+        // Tuesday 7 AM in London is 2 AM in New York
+        setMockDate(2, 7, teammateTimezone.automaticTimezone);
+
+        mockedUseTimePostBoxIndicator.mockReturnValue({
+            ...defaultUseTimePostBoxIndicatorReturnValue,
+            isDM: true,
+            isSelfDM: false,
+            isBot: false,
+        });
+
+        renderComponent(initialState, handleOnSelect, true);
+
+        fireEvent.click(screen.getByText(/Today at/));
+
+        const expectedTimestamp = DateTime.now().
+            setZone(teammateTimezone.automaticTimezone).
+            set({hour: 9, minute: 0, second: 0, millisecond: 0}).
+            toMillis();
+
+        expect(handleOnSelect).toHaveBeenCalledWith(expect.anything(), expectedTimestamp);
+    });
+
+    it('should ignore the recipient timezone outside of DMs', () => {
+        setMockDate(3); // Wednesday
+
+        renderComponent(initialState, handleOnSelect, true);
+
+        expect(screen.queryByText(/your time/)).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByText(/Tomorrow at/));
+
+        const expectedTimestamp = DateTime.now().
+            setZone(userCurrentTimezone).
+            plus({days: 1}).
+            set({hour: 9, minute: 0, second: 0, millisecond: 0}).
+            toMillis();
+
+        expect(handleOnSelect).toHaveBeenCalledWith(expect.anything(), expectedTimestamp);
     });
 
     it('should include trailing element when isDM true', () => {

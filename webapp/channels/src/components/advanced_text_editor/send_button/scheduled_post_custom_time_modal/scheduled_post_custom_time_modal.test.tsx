@@ -1,9 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DateTime} from 'luxon';
 import React from 'react';
 
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {scheduledPosts} from 'utils/constants';
 import type {RepeatDisabledReason} from 'utils/scheduled_post_repeat';
 
 import ScheduledPostCustomTimeModal from './scheduled_post_custom_time_modal';
@@ -131,5 +136,99 @@ describe('ScheduledPostCustomTimeModal', () => {
 
         await waitFor(() => expect(onConfirm).toHaveBeenCalled());
         expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({repeat_type: 'weekly'}));
+    });
+
+    describe('in a DM with a recipient in another timezone', () => {
+        const userTimezone = 'America/New_York';
+        const teammateTimezone = 'Asia/Tokyo'; // No DST, so the offset in the label is stable
+
+        function tomorrowAt9am(zone: string) {
+            return DateTime.now().setZone(zone).plus({days: 1}).set({hour: 9, minute: 0, second: 0, millisecond: 0}).toMillis();
+        }
+
+        function renderDMModal({useRecipientTimezone = false, initialRepeatWeekly = false} = {}) {
+            const timezone = (manualTimezone: string) => ({useAutomaticTimezone: 'false', automaticTimezone: '', manualTimezone});
+
+            return renderWithContext(
+                <ScheduledPostCustomTimeModal
+                    channelId='dm_channel_id'
+                    onExited={jest.fn()}
+                    onConfirm={onConfirm}
+                    initialRepeatWeekly={initialRepeatWeekly}
+                />,
+                {
+                    entities: {
+                        general: {
+                            config: {
+                                ScheduledPosts: 'true',
+                                FeatureFlagRecurringScheduledPosts: 'true',
+                            },
+                            license: {IsLicensed: 'true'},
+                        },
+                        channels: {
+                            channels: {
+                                dm_channel_id: {id: 'dm_channel_id', type: 'D', name: 'current_user_id__teammate_id'},
+                            },
+                        },
+                        users: {
+                            currentUserId: 'current_user_id',
+                            profiles: {
+                                current_user_id: {id: 'current_user_id', roles: '', timezone: timezone(userTimezone)},
+                                teammate_id: {id: 'teammate_id', username: 'teammate', roles: '', timezone: timezone(teammateTimezone)},
+                            },
+                        },
+                        preferences: {
+                            myPreferences: useRecipientTimezone ? {
+                                [getPreferenceKey(scheduledPosts.SCHEDULED_POSTS, scheduledPosts.USE_RECIPIENT_TIMEZONE)]: {
+                                    category: scheduledPosts.SCHEDULED_POSTS,
+                                    name: scheduledPosts.USE_RECIPIENT_TIMEZONE,
+                                    value: 'true',
+                                },
+                            } : {},
+                        },
+                    },
+                },
+            );
+        }
+
+        it('should offer to use the recipient timezone, unchecked by default', async () => {
+            renderDMModal();
+
+            expect(screen.getByLabelText('Use recipient’s timezone (UTC+09:00)')).not.toBeChecked();
+            expect(screen.getByText(/teammate’s time/)).toBeInTheDocument();
+
+            await userEvent.click(screen.getByText('Schedule'));
+
+            await waitFor(() => expect(onConfirm).toHaveBeenCalled());
+            expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({scheduled_at: tomorrowAt9am(userTimezone)}));
+        });
+
+        it('should pick the time in the recipient timezone when enabled', async () => {
+            renderDMModal({useRecipientTimezone: true, initialRepeatWeekly: true});
+
+            expect(screen.getByLabelText('Use recipient’s timezone (UTC+09:00)')).toBeChecked();
+            expect(screen.getByText(/your time/)).toBeInTheDocument();
+
+            await userEvent.click(screen.getByText('Schedule'));
+
+            await waitFor(() => expect(onConfirm).toHaveBeenCalled());
+            expect(onConfirm).toHaveBeenCalledWith({
+                scheduled_at: tomorrowAt9am(teammateTimezone),
+                repeat_type: 'weekly',
+                repeat_timezone: teammateTimezone,
+            });
+        });
+
+        it('should save the preference when toggling the recipient timezone', async () => {
+            renderDMModal();
+
+            await userEvent.click(screen.getByLabelText('Use recipient’s timezone (UTC+09:00)'));
+
+            expect(savePreferences).toHaveBeenCalledWith('current_user_id', [expect.objectContaining({
+                category: scheduledPosts.SCHEDULED_POSTS,
+                name: scheduledPosts.USE_RECIPIENT_TIMEZONE,
+                value: 'true',
+            })]);
+        });
     });
 });

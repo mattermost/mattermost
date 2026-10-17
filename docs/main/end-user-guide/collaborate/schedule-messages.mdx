@@ -14,7 +14,13 @@ There are times when you want to send a message, but you don’t want it sent im
 
 From Mattermost v10.3, you can schedule messages to send in the future. Compose a message, then select the right side of **Send** to schedule when the message will be sent. You can choose from a fixed time or set a custom time, and Mattermost displays both your local time and the recipient’s local time.
 
+Fixed times are 9:00 AM on the next suitable day, such as tomorrow or Monday. From Mattermost v12.0, you can also choose **Today at 9:00 AM** on weekdays before 9:00 AM.
+
 ![Compose a message and select the right side of the \*\*Send\*\* button to schedule when the message will be sent.](/images/schedule-a-message.png)
+
+From Mattermost v12.0, when you schedule a direct message to someone in a different timezone, you can select **Use recipient’s timezone** in the scheduling menu or in the **Choose a custom time** dialog. Fixed and custom times are then in the recipient’s timezone. For example, **Tomorrow at 9:00 AM** means 9:00 AM for the recipient, and Mattermost shows the matching time in your timezone. Mattermost remembers your choice for future scheduled messages.
+
+The **Use recipient’s timezone** option isn't available in direct messages with bots or with yourself, or when you and the recipient always share the same local time.
 
 </TabItem>
 <TabItem value="mobile" label="Mobile">
