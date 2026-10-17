@@ -69,7 +69,7 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 		if resp == nil {
 			return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": url}, "", http.StatusInternalServerError).Wrap(err)
 		}
-		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.rejected.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.invalid_response.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	var response Response

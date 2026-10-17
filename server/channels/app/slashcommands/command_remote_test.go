@@ -321,7 +321,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
 	})
 
-	t.Run("remote site answering with an error status replies with a translated rejection", func(t *testing.T) {
+	t.Run("remote site answering with an error status replies with a translated invalid response error", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			_, _ = w.Write([]byte(`{"id":"api.context.invitation_expired.error","message":"Invitation has expired."}`))
@@ -330,9 +330,9 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		code, remoteID := makeInvite(t, ts.URL)
 		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
 
-		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.rejected.app_error")}), text)
+		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.invalid_response.app_error")}), text)
 		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the refused connection must not remain active")
+		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
 	})
 
 	t.Run("site URL not set", func(t *testing.T) {
