@@ -172,6 +172,28 @@ export const getSearchButtons = createSelector(
 );
 
 /**
+ * Plugin search types that should be shown before, and selected over, the built-in keyword search types,
+ * ordered from highest to lowest priority.
+ */
+export const getPrimarySearchButtons = createSelector(
+    'getPrimarySearchButtons',
+    getSearchButtons,
+    (buttons) => buttons.
+        filter((button) => (button.priority ?? 0) > 0).
+        sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0)),
+);
+
+export const getSecondarySearchButtons = createSelector(
+    'getSecondarySearchButtons',
+    getSearchButtons,
+    (buttons) => buttons.filter((button) => (button.priority ?? 0) <= 0),
+);
+
+export const getDefaultSearchType = (state: GlobalState): string => {
+    return getPrimarySearchButtons(state)[0]?.pluginId ?? 'messages';
+};
+
+/**
  * Get a plugin's display name by its ID
  * Falls back to plugin ID if name is not available, then to 'unknown' if no plugin ID
  */
