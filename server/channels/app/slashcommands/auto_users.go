@@ -6,7 +6,10 @@ package slashcommands
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math/rand/v2"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -15,29 +18,55 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
+var (
+	realisticFirstNames = []string{
+		"James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda",
+		"William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica",
+		"Thomas", "Sarah", "Charles", "Karen", "Christopher", "Nancy", "Daniel", "Lisa",
+		"Matthew", "Betty", "Anthony", "Margaret", "Mark", "Sandra", "Donald", "Ashley",
+		"Steven", "Kimberly", "Paul", "Emily", "Andrew", "Donna", "Joshua", "Michelle",
+		"Kenneth", "Dorothy", "Kevin", "Carol", "Brian", "Amanda", "George", "Melissa",
+		"Timothy", "Deborah", "Ronald", "Stephanie", "Edward", "Rebecca", "Jason", "Sharon",
+		"Jeffrey", "Laura", "Ryan", "Cynthia", "Jacob", "Kathleen", "Gary", "Amy",
+		"Nicholas", "Angela", "Eric", "Shirley", "Jonathan", "Anna", "Stephen", "Brenda",
+	}
+	realisticLastNames = []string{
+		"Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis",
+		"Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas",
+		"Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White",
+		"Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson", "Walker", "Young",
+		"Allen", "King", "Wright", "Scott", "Torres", "Nguyen", "Hill", "Flores",
+		"Green", "Adams", "Nelson", "Baker", "Hall", "Rivera", "Campbell", "Mitchell",
+		"Carter", "Roberts", "Gomez", "Phillips", "Evans", "Turner", "Diaz", "Parker",
+		"Cruz", "Edwards", "Collins", "Reyes", "Stewart", "Morris", "Morales", "Murphy",
+	}
+)
+
 type AutoUserCreator struct {
-	app          *app.App
-	client       *model.Client4
-	team         *model.Team
-	EmailLength  utils.Range
-	EmailCharset string
-	NameLength   utils.Range
-	NameCharset  string
-	Fuzzy        bool
-	JoinTime     int64
+	app            *app.App
+	client         *model.Client4
+	team           *model.Team
+	EmailLength    utils.Range
+	EmailCharset   string
+	NameLength     utils.Range
+	NameCharset    string
+	Fuzzy          bool
+	RealisticNames bool
+	JoinTime       int64
 }
 
 func NewAutoUserCreator(a *app.App, client *model.Client4, team *model.Team) *AutoUserCreator {
 	return &AutoUserCreator{
-		app:          a,
-		client:       client,
-		team:         team,
-		EmailLength:  UserEmailLen,
-		EmailCharset: utils.LOWERCASE,
-		NameLength:   UserNameLen,
-		NameCharset:  utils.LOWERCASE,
-		Fuzzy:        false,
-		JoinTime:     0,
+		app:            a,
+		client:         client,
+		team:           team,
+		EmailLength:    UserEmailLen,
+		EmailCharset:   utils.LOWERCASE,
+		NameLength:     UserNameLen,
+		NameCharset:    utils.LOWERCASE,
+		Fuzzy:          false,
+		RealisticNames: false,
+		JoinTime:       0,
 	}
 }
 
@@ -81,22 +110,34 @@ func CreateBasicUser(rctx request.CTX, a *app.App, client *model.Client4) error 
 	return nil
 }
 
+func randomRealisticName() (firstName, lastName, username string) {
+	firstName = realisticFirstNames[rand.IntN(len(realisticFirstNames))]
+	lastName = realisticLastNames[rand.IntN(len(realisticLastNames))]
+	// Suffix keeps usernames unique while remaining human-readable.
+	username = fmt.Sprintf("%s.%s.%d", strings.ToLower(firstName), strings.ToLower(lastName), rand.IntN(100000))
+	return firstName, lastName, username
+}
+
 func (cfg *AutoUserCreator) createRandomUser(rctx request.CTX) (*model.User, error) {
-	var userEmail string
-	var userName string
-	if cfg.Fuzzy {
-		userEmail = "success+" + model.NewId() + "@simulator.amazonses.com"
-		userName = "a" + utils.FuzzName()
-	} else {
-		userEmail = "success+" + model.NewId() + "@simulator.amazonses.com"
-		userName = "a" + utils.RandomName(cfg.NameLength, cfg.NameCharset)
-	}
+	userEmail := "success+" + model.NewId() + "@simulator.amazonses.com"
 
 	user := &model.User{
 		Email:    userEmail,
-		Nickname: userName,
 		Password: UserPassword,
 		CreateAt: cfg.JoinTime,
+	}
+
+	switch {
+	case cfg.RealisticNames:
+		firstName, lastName, username := randomRealisticName()
+		user.FirstName = firstName
+		user.LastName = lastName
+		user.Username = username
+		user.Nickname = firstName + " " + lastName
+	case cfg.Fuzzy:
+		user.Nickname = "a" + utils.FuzzName()
+	default:
+		user.Nickname = "a" + utils.RandomName(cfg.NameLength, cfg.NameCharset)
 	}
 
 	ruser, appErr := cfg.app.CreateUserWithInviteId(rctx, user, cfg.team.InviteId, "")
