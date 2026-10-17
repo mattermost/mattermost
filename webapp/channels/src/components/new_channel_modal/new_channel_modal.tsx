@@ -550,6 +550,7 @@ const NewChannelModal = () => {
     if (isSubmitting) {
         confirmButtonText = (
             <LoadingSpinner
+                legacy={true}
                 text={formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'})}
             />
         );

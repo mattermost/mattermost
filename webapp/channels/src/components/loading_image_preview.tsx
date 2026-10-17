@@ -9,12 +9,16 @@ type Props = {
     loading?: React.ReactNode;
     progress?: number;
     containerClass?: string;
+
+    /** Light spinner for dark loading panels such as view-image__loading. */
+    inverted?: boolean;
 };
 
 const LoadingImagePreview: React.FC<Props> = ({
     loading,
     progress,
     containerClass = 'view-image__loading',
+    inverted = containerClass === 'view-image__loading',
 }: Props) => {
     let progressView: JSX.Element = (
         <span className='loader-percent'/>
@@ -31,7 +35,10 @@ const LoadingImagePreview: React.FC<Props> = ({
 
     return (
         <div className={containerClass}>
-            <LoadingSpinner/>
+            <LoadingSpinner
+                size='24'
+                inverted={inverted}
+            />
             {progressView}
         </div>
     );

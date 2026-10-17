@@ -64,4 +64,30 @@ describe('components/widgets/loadingLoadingSpinner', () => {
 
         expect(screen.getByTestId('loadingSpinner')).toBeVisible();
     });
+
+    test('renders the Compass spinner by default', () => {
+        renderWithContext(<LoadingSpinner/>);
+
+        expect(screen.getByRole('status', {name: 'Loading Icon'})).toHaveClass('spinner');
+        expect(screen.queryByTitle('Loading Icon')).not.toBeInTheDocument();
+    });
+
+    test('renders the Compass spinner at the given size', () => {
+        renderWithContext(<LoadingSpinner size='24'/>);
+
+        expect(screen.getByRole('status', {name: 'Loading Icon'})).toHaveStyle({width: '24px', height: '24px'});
+    });
+
+    test('renders the inverted Compass spinner', () => {
+        renderWithContext(<LoadingSpinner inverted={true}/>);
+
+        expect(screen.getByRole('status', {name: 'Loading Icon'}).className).toMatch(/spinner--inverted/);
+    });
+
+    test('renders the Font Awesome spinner when legacy', () => {
+        renderWithContext(<LoadingSpinner legacy={true}/>);
+
+        expect(screen.getByTitle('Loading Icon')).toHaveClass('fa fa-spinner fa-fw fa-pulse spinner');
+        expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
 });

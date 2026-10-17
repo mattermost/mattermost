@@ -158,18 +158,19 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
                   <div
                     class="loading__content"
                   >
-                    <p>
+                    <span
+                      class="LoadingSpinner with-text"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                      />
                       Loading
-                    </p>
-                    <div
-                      class="round round-1"
-                    />
-                    <div
-                      class="round round-2"
-                    />
-                    <div
-                      class="round round-3"
-                    />
+                    </span>
                   </div>
                 </div>
               </div>
@@ -344,18 +345,19 @@ exports[`admin_console/add_users_to_role_modal should exclude user 1`] = `
                   <div
                     class="loading__content"
                   >
-                    <p>
+                    <span
+                      class="LoadingSpinner with-text"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                      />
                       Loading
-                    </p>
-                    <div
-                      class="round round-1"
-                    />
-                    <div
-                      class="round round-2"
-                    />
-                    <div
-                      class="round round-3"
-                    />
+                    </span>
                   </div>
                 </div>
               </div>
@@ -530,18 +532,19 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
                   <div
                     class="loading__content"
                   >
-                    <p>
+                    <span
+                      class="LoadingSpinner with-text"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                      />
                       Loading
-                    </p>
-                    <div
-                      class="round round-1"
-                    />
-                    <div
-                      class="round round-2"
-                    />
-                    <div
-                      class="round round-3"
-                    />
+                    </span>
                   </div>
                 </div>
               </div>
@@ -716,18 +719,19 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
                   <div
                     class="loading__content"
                   >
-                    <p>
+                    <span
+                      class="LoadingSpinner with-text"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                      />
                       Loading
-                    </p>
-                    <div
-                      class="round round-1"
-                    />
-                    <div
-                      class="round round-2"
-                    />
-                    <div
-                      class="round round-3"
-                    />
+                    </span>
                   </div>
                 </div>
               </div>
@@ -902,18 +906,19 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
                   <div
                     class="loading__content"
                   >
-                    <p>
+                    <span
+                      class="LoadingSpinner with-text"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                      />
                       Loading
-                    </p>
-                    <div
-                      class="round round-1"
-                    />
-                    <div
-                      class="round round-2"
-                    />
-                    <div
-                      class="round round-3"
-                    />
+                    </span>
                   </div>
                 </div>
               </div>

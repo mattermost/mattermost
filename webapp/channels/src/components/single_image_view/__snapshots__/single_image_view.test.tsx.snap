@@ -51,8 +51,10 @@ exports[`components/SingleImageView permalink preview should render with permali
                         id="loadingSpinner"
                       >
                         <span
-                          class="fa fa-spinner fa-fw fa-pulse spinner"
-                          title="Loading Icon"
+                          aria-label="Loading Icon"
+                          class="_spinner_3elm7_10 spinner"
+                          role="status"
+                          style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
                         />
                       </span>
                       <span
@@ -171,8 +173,10 @@ exports[`components/SingleImageView should match snapshot 1`] = `
                         id="loadingSpinner"
                       >
                         <span
-                          class="fa fa-spinner fa-fw fa-pulse spinner"
-                          title="Loading Icon"
+                          aria-label="Loading Icon"
+                          class="_spinner_3elm7_10 spinner"
+                          role="status"
+                          style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
                         />
                       </span>
                       <span
@@ -372,8 +376,10 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
                         id="loadingSpinner"
                       >
                         <span
-                          class="fa fa-spinner fa-fw fa-pulse spinner"
-                          title="Loading Icon"
+                          aria-label="Loading Icon"
+                          class="_spinner_3elm7_10 spinner"
+                          role="status"
+                          style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
                         />
                       </span>
                       <span

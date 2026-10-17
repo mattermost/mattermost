@@ -1,6 +1,10 @@
 .LoadingSpinner {
     &.with-text {
+        display: inline-flex;
+        align-items: center;
+
         .spinner {
+            flex-shrink: 0;
             margin-right: 5px;
         }
     }

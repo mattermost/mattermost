@@ -6,14 +6,31 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
+import {Spinner} from '@mattermost/compass-ui/components/spinner';
+import type {SpinnerSize} from '@mattermost/compass-ui/components/spinner';
+
 import {formatAsComponent} from 'utils/i18n';
 
 type Props = {
     text?: React.ReactNode | MessageDescriptor;
     style?: React.CSSProperties;
+    size?: SpinnerSize;
+
+    /** Light spinner for dark backgrounds (uses Compass Spinner inverted). */
+    inverted?: boolean;
+
+    /** Renders the Font Awesome spinner. Used inside buttons until they move to the Compass Button. */
+    legacy?: boolean;
 };
-const LoadingSpinner = ({text, style}: Props) => {
+const LoadingSpinner = ({
+    text,
+    style,
+    size = '16',
+    inverted = false,
+    legacy = false,
+}: Props) => {
     const {formatMessage} = useIntl();
+    const ariaLabel = formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'});
 
     return (
         <span
@@ -22,10 +39,19 @@ const LoadingSpinner = ({text, style}: Props) => {
             style={style}
             data-testid='loadingSpinner'
         >
-            <span
-                className='fa fa-spinner fa-fw fa-pulse spinner'
-                title={formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'})}
-            />
+            {legacy ? (
+                <span
+                    className='fa fa-spinner fa-fw fa-pulse spinner'
+                    title={ariaLabel}
+                />
+            ) : (
+                <Spinner
+                    size={size}
+                    inverted={inverted}
+                    className='spinner'
+                    aria-label={ariaLabel}
+                />
+            )}
             {formatAsComponent(text)}
         </span>
     );

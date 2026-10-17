@@ -630,6 +630,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     fileUrl={fileUrl}
                                     scale={this.state.scale[this.state.imageIndex]}
                                     handleBgClose={this.handleBgClose}
+                                    invertedSpinner={true}
                                 />
                             </React.Suspense>
                         </div>

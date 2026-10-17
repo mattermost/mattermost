@@ -30,6 +30,9 @@ export type Props = {
     fileUrl: string;
     scale: number;
     handleBgClose: (e: React.MouseEvent<Element, MouseEvent>) => void;
+
+    /** Light spinner for dark loading panels such as the file preview modal. */
+    invertedSpinner?: boolean;
 };
 
 type Status = 'success' | 'loading' | 'fail';
@@ -39,6 +42,7 @@ const PDFPreview = memo(({
     fileUrl,
     scale,
     handleBgClose,
+    invertedSpinner = false,
 }: Props) => {
     const pdfPagesRendered = useRef<Record<number, boolean>>({});
     const container = useRef<HTMLDivElement>(null);
@@ -238,7 +242,7 @@ const PDFPreview = memo(({
                 ref={container}
                 className='view-image__loading'
             >
-                <LoadingSpinner/>
+                <LoadingSpinner inverted={invertedSpinner}/>
             </div>
         );
     }
