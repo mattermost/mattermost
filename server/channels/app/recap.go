@@ -426,6 +426,9 @@ func (a *App) fetchPostsForRecapWithFallback(rctx request.CTX, channelID string,
 	posts := make([]*model.Post, 0, len(postList.Posts))
 	for _, postID := range postList.Order {
 		if post, ok := postList.Posts[postID]; ok {
+			if post.DeleteAt != 0 {
+				continue
+			}
 			posts = append(posts, post)
 			if len(posts) >= limit {
 				break
