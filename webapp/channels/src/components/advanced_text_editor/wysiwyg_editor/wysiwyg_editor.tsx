@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Extensions} from '@tiptap/core';
+import type {Extensions, JSONContent} from '@tiptap/core';
 import {Extension} from '@tiptap/core';
 import {CodeBlockLowlight} from '@tiptap/extension-code-block-lowlight';
 import Link from '@tiptap/extension-link';
@@ -30,6 +30,7 @@ import {editLatestPost} from 'actions/views/create_comment';
 
 import {useDebounce} from 'hooks/useDebounce';
 import {useLatest} from 'hooks/useLatest';
+import {getQuoteParagraphs} from 'utils/quote';
 import {canHighlight} from 'utils/syntax_highlighting';
 
 import WysiwygImage from './wysiwyg_image';
@@ -152,6 +153,10 @@ const SERIALIZE_DEBOUNCE_MS = 100;
 export type WysiwygEditorHandle = {
     getEditor: () => Editor | null;
     insertText: (text: string) => void;
+
+    // Appends the text as a blockquote at the end of the document, followed by an
+    // empty paragraph that receives the caret.
+    appendQuote: (text: string) => void;
 
     // Parity with the legacy `Textbox` ref so focus/upload hooks can drive
     // either composer.
@@ -607,6 +612,37 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 const content = needsSpace ? ` ${text} ` : `${text} `;
                 ed.chain().focus().insertContent({type: 'text', text: content}).run();
             }
+        },
+        appendQuote: (text: string) => {
+            const ed = editorRef.current;
+            const paragraphs = getQuoteParagraphs(text);
+            if (!ed || ed.isDestroyed || readOnlyRef.current || !paragraphs.length) {
+                return;
+            }
+
+            const content: JSONContent[] = [
+                {
+                    type: 'blockquote',
+                    content: paragraphs.map((lines) => ({
+                        type: 'paragraph',
+                        content: lines.flatMap((line, i) => (i ? [{type: 'hardBreak'}, {type: 'text', text: line}] : [{type: 'text', text: line}])),
+                    })),
+                },
+                {type: 'paragraph'},
+
+                // The editor hides an empty last paragraph, so the reply goes in the one before it,
+                // matching what pressing Enter twice at the end of a quote produces.
+                {type: 'paragraph'},
+            ];
+
+            if (ed.isEmpty) {
+                ed.commands.setContent(content);
+            } else {
+                ed.commands.insertContentAt(ed.state.doc.content.size, content);
+            }
+
+            // Inside the second to last paragraph, which is followed by the hidden last one
+            ed.chain().focus().setTextSelection(ed.state.doc.content.size - 3).run();
         },
         focus: () => {
             const ed = editorRef.current;

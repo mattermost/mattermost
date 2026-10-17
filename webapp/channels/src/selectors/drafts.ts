@@ -145,3 +145,7 @@ export function makeGetDraft() {
 export function getDraftRemotes(state: GlobalState) {
     return state.views.drafts.remotes;
 }
+
+export function getPendingQuote(state: GlobalState) {
+    return state.views.drafts.pendingQuote;
+}
