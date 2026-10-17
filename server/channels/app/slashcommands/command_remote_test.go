@@ -785,3 +785,89 @@ func TestRemoteProviderDoCreateInviteFailure(t *testing.T) {
 	require.NotNil(t, resp)
 	require.Equal(t, "invite failed: user-locale invite error", resp.Text)
 }
+
+func TestRemoteProviderAutocompleteQuotedValues(t *testing.T) {
+	th := setup(t).initBasic(t)
+	T := i18n.GetUserTranslations("en")
+
+	commands, appErr := th.App.ListAutocompleteCommands(th.BasicTeam.Id, T)
+	require.Nil(t, appErr)
+
+	pluginCreate := model.NewAutocompleteData("create", "", "")
+	pluginCreate.AddNamedTextArgument("name", "", "", "", true)
+	pluginCreate.AddNamedTextArgument("displayname", "", "", "", false)
+	pluginCreate.AddNamedTextArgument("password", "", "", "", true)
+	pluginCmd := model.NewAutocompleteData("plugincmd", "", "")
+	pluginCmd.AddCommand(pluginCreate)
+	commands = append(commands, &model.Command{Trigger: "plugincmd", AutoComplete: true, AutocompleteData: pluginCmd})
+
+	suggest := func(input string) []model.AutocompleteSuggestion {
+		args := &model.CommandArgs{T: T, UserId: th.SystemAdminUser.Id, TeamId: th.BasicTeam.Id, Command: input}
+		return th.App.GetSuggestions(th.Context, args, commands, model.SystemAdminRoleId)
+	}
+
+	t.Run("a closed quoted value is followed by the next flag, matching execution", func(t *testing.T) {
+		for _, tt := range []struct {
+			name        string
+			displayname string
+			want        string
+		}{
+			{"straight double quotes", `"My Remote"`, "My Remote"},
+			{"single quotes with an apostrophe", `'Bob's Remote'`, "Bob's Remote"},
+			{"curly double quotes", "\u201cMy Remote\u201d", "My Remote"},
+			{"curly single quotes with a curly apostrophe", "\u2018Bob\u2019s Remote\u2019", "Bob\u2019s Remote"},
+			{"double quoted value containing a flag", `"use --password here"`, "use --password here"},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				input := "secure-connection create --name n --displayname " + tt.displayname + " "
+
+				assert.Equal(t, []model.AutocompleteSuggestion{{
+					Complete:    input + "--password ",
+					Suggestion:  "--password",
+					Description: T("api.command_remote.invite_password.help"),
+				}}, suggest(input))
+
+				margs, err := parseNamedArgs(T, "/"+input+"--password pw")
+				require.NoError(t, err)
+				assert.Equal(t, tt.want, margs["displayname"])
+			})
+		}
+	})
+
+	t.Run("the value hint stays up until the quote is closed", func(t *testing.T) {
+		for _, tt := range []struct {
+			name        string
+			displayname string
+		}{
+			{"single quote", "'My Rem"},
+			{"curly double quote", "\u201cMy Rem"},
+			{"apostrophe then space", "'Bob's Rem"},
+			{"flag inside single quotes", "'My --pa"},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				input := "secure-connection create --name n --displayname " + tt.displayname
+				assert.Equal(t, []model.AutocompleteSuggestion{{
+					Complete:    input,
+					Hint:        T("api.command_remote.displayname.hint"),
+					Description: T("api.command_remote.displayname.help"),
+				}}, suggest(input))
+			})
+		}
+	})
+
+	t.Run("the trigger is matched case-insensitively", func(t *testing.T) {
+		input := "Secure-Connection create --name n --displayname 'Bob's Remote' "
+		suggestions := suggest(input)
+		require.Len(t, suggestions, 1)
+		assert.Equal(t, "--password", suggestions[0].Suggestion)
+	})
+
+	t.Run("commands without their own quote parser still split single quoted values on whitespace", func(t *testing.T) {
+		suggestions := suggest(`plugincmd create --name n --displayname "My Remote" `)
+		require.Len(t, suggestions, 1)
+		assert.Equal(t, "--password", suggestions[0].Suggestion)
+
+		assert.Empty(t, suggest("plugincmd create --name n --displayname 'My Remote' "))
+		assert.Empty(t, suggest("plugincmd create --name n --displayname \u201cMy Remote\u201d "))
+	})
+}
