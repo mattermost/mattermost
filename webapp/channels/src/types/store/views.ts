@@ -105,6 +105,7 @@ export type ViewsState = {
         remotes: {
             [storageKey: string]: boolean;
         };
+        pendingQuote: PendingQuote | null;
     };
 
     rhs: RhsViewState;
@@ -237,3 +238,9 @@ export type ProductRailSection = 'channels' | 'boards';
 
 // A rail item that remembers where the user was: a section, Threads, or a product as `product:<id>`.
 export type ProductRailTab = ProductRailSection | 'threads' | `product:${string}`;
+
+export type PendingQuote = {
+    channelId: string;
+    rootId: string;
+    text: string;
+};
