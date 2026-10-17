@@ -149,6 +149,87 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 	})
 }
 
+// TestService_sendProfileImageToRemote_ResponseHandling exercises sendProfileImageToRemote against
+// a remote whose reply varies in size, shape and status. This call site makes no use of the reply
+// body, so the cases cover the status it reports and how much of a reply the remote gets to send
+// before the caller stops reading.
+func TestService_sendProfileImageToRemote_ResponseHandling(t *testing.T) {
+	rs := newResponseServer()
+	defer rs.Close()
+
+	rc := makeRemoteCluster("remote_test_profile_image_response", rs.URL, TestTopics)
+
+	user := &model.User{
+		Id:       model.NewId(),
+		RemoteId: new(rc.RemoteId),
+	}
+
+	mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, rs.URL, false))
+	mockServer.SetUser(user)
+
+	service, err := NewRemoteClusterService(mockServer, newMockApp(t, nil))
+	require.NoError(t, err)
+	service.disablePing = true
+
+	require.NoError(t, service.Start())
+	defer service.Shutdown()
+
+	task := sendProfileImageTask{
+		rc:       rc,
+		userID:   user.Id,
+		provider: testImageProvider{},
+	}
+
+	call := func(timeout time.Duration) error {
+		return service.sendProfileImageToRemote(timeout, task)
+	}
+
+	// The complete reply of a remote that stored the image.
+	reply := []byte(model.MapToJSON(map[string]string{model.STATUS: model.StatusOk}))
+
+	assertReplyCases(t, rs, call, []replyCase{
+		{
+			name:  "complete reply",
+			reply: replyBody{prefix: reply},
+		},
+		{
+			name:  "empty reply",
+			reply: replyBody{},
+		},
+		{
+			// The body is of no use to this call site, so its length does not change the outcome.
+			name:  "reply far longer than the caller reads",
+			reply: replyBody{prefix: reply, padLen: paddingBeyondRead},
+		},
+		{
+			name:    "error status with a complete reply",
+			reply:   replyBody{prefix: reply, status: http.StatusInternalServerError},
+			wantErr: true,
+			errText: "500",
+		},
+		{
+			name:    "error status with a reply far longer than the caller reads",
+			reply:   replyBody{prefix: reply, padLen: paddingBeyondRead, status: http.StatusInternalServerError},
+			wantErr: true,
+			errText: "500",
+		},
+	})
+
+	t.Run("connection is available to the calls that follow", func(t *testing.T) {
+		rs.setReply(replyBody{prefix: reply})
+		rs.takeConnectionCount()
+
+		for range 3 {
+			require.NoError(t, call(defaultCallTimeout))
+		}
+
+		assert.Equal(t, 1, rs.takeConnectionCount(),
+			"reading a complete reply to its end should leave the connection for the next call to reuse")
+	})
+
+	assertReplyBytesServedStaysBounded(t, rs, reply, call)
+}
+
 type testImageProvider struct {
 }
 
