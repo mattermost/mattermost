@@ -159,6 +159,54 @@ func Diff(base, actual *model.Config) (ConfigDiffs, error) {
 	return diff(baseVal, actualVal, "")
 }
 
+// SanitizedDiff returns the differences between base and actual, with the values that
+// sanitize masks replaced. A setting whose change is entirely masked is still listed,
+// with model.FakeSetting on both sides. base and actual are not modified.
+func SanitizedDiff(base, actual *model.Config, sanitize func(*model.Config)) (ConfigDiffs, error) {
+	diffs, err := Diff(base, actual)
+	if err != nil || len(diffs) == 0 {
+		return diffs, err
+	}
+
+	sanitizedBase := base.Clone()
+	sanitize(sanitizedBase)
+	sanitizedActual := actual.Clone()
+	sanitize(sanitizedActual)
+	sanitizedDiffs, err := Diff(sanitizedBase, sanitizedActual)
+	if err != nil {
+		return nil, err
+	}
+
+	visible := make(map[string]ConfigDiff, len(sanitizedDiffs))
+	for _, d := range sanitizedDiffs {
+		visible[d.Path] = d
+	}
+
+	for i, d := range diffs {
+		if v, ok := visible[d.Path]; ok {
+			diffs[i] = v
+			continue
+		}
+		diffs[i].BaseVal = model.FakeSetting
+		diffs[i].ActualVal = model.FakeSetting
+	}
+
+	return diffs, nil
+}
+
+// ToConfigChanges converts the diffs to their API representation.
+func (cd ConfigDiffs) ToConfigChanges() []*model.ConfigChange {
+	changes := make([]*model.ConfigChange, len(cd))
+	for i, d := range cd {
+		changes[i] = &model.ConfigChange{
+			Path:     d.Path,
+			OldValue: d.BaseVal,
+			NewValue: d.ActualVal,
+		}
+	}
+	return changes
+}
+
 func (cd ConfigDiffs) String() string {
 	return fmt.Sprintf("%+v", []ConfigDiff(cd))
 }

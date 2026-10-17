@@ -911,3 +911,53 @@ func TestDiff(t *testing.T) {
 		})
 	}
 }
+
+func TestSanitizedDiff(t *testing.T) {
+	sanitize := func(cfg *model.Config) { cfg.Sanitize(nil, nil) }
+
+	t.Run("no differences", func(t *testing.T) {
+		diffs, err := SanitizedDiff(defaultConfigGen(), defaultConfigGen(), sanitize)
+		require.NoError(t, err)
+		require.Empty(t, diffs)
+	})
+
+	t.Run("setting that isn't sensitive", func(t *testing.T) {
+		base := defaultConfigGen()
+		actual := defaultConfigGen()
+		*actual.ServiceSettings.SiteURL = "http://example.com"
+
+		diffs, err := SanitizedDiff(base, actual, sanitize)
+		require.NoError(t, err)
+		require.Equal(t, ConfigDiffs{
+			{Path: "ServiceSettings.SiteURL", BaseVal: "", ActualVal: "http://example.com"},
+		}, diffs)
+	})
+
+	t.Run("sensitive setting is listed with masked values", func(t *testing.T) {
+		base := defaultConfigGen()
+		*base.EmailSettings.SMTPPassword = "old-password"
+		actual := defaultConfigGen()
+		*actual.EmailSettings.SMTPPassword = "new-password"
+
+		diffs, err := SanitizedDiff(base, actual, sanitize)
+		require.NoError(t, err)
+		require.Equal(t, ConfigDiffs{
+			{Path: "EmailSettings.SMTPPassword", BaseVal: model.FakeSetting, ActualVal: model.FakeSetting},
+		}, diffs)
+
+		require.Equal(t, "old-password", *base.EmailSettings.SMTPPassword, "base should not be modified")
+		require.Equal(t, "new-password", *actual.EmailSettings.SMTPPassword, "actual should not be modified")
+	})
+
+	t.Run("partly masked setting keeps the visible change", func(t *testing.T) {
+		base := defaultConfigGen()
+		actual := defaultConfigGen()
+		actual.SqlSettings.DataSourceReplicas = []string{"postgres://replica"}
+
+		diffs, err := SanitizedDiff(base, actual, sanitize)
+		require.NoError(t, err)
+		require.Equal(t, ConfigDiffs{
+			{Path: "SqlSettings.DataSourceReplicas", BaseVal: []string{}, ActualVal: []string{model.FakeSetting}},
+		}, diffs)
+	})
+}

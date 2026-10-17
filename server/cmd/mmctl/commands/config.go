@@ -12,9 +12,12 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"text/template"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/config"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -129,6 +132,30 @@ var ConfigExportCmd = &cobra.Command{
 	RunE:    withClient(configExportCmdF),
 }
 
+var ConfigHistoryCmd = &cobra.Command{
+	Use:   "history",
+	Short: "List saved configurations",
+	Long: `Lists the configurations saved by the server, newest first, with the settings that changed in each one. The server keeps this history only when its configuration is stored in the database.
+
+Sensitive values are always hidden.`,
+	Example: `  config history
+  config history --detailed
+  config history --page 1 --per-page 20`,
+	Args: cobra.NoArgs,
+	RunE: withClient(configHistoryCmdF),
+}
+
+var ConfigRollbackCmd = &cobra.Command{
+	Use:   "rollback <config-id>",
+	Short: "Roll back to a saved configuration",
+	Long: `Replaces the server configuration with a saved configuration from "config history". The configuration it replaces stays in the history.
+
+Without --local, sensitive values such as passwords, and settings that can't be changed through the API, keep their current values.`,
+	Example: "  config rollback hpgt7dw7si8odbc9gg938iqjhr",
+	Args:    cobra.ExactArgs(1),
+	RunE:    withClient(configRollbackCmdF),
+}
+
 func init() {
 	ConfigResetCmd.Flags().Bool("confirm", false, "confirm you really want to reset all configuration settings to its default value")
 
@@ -139,6 +166,10 @@ func init() {
 
 	ConfigExportCmd.Flags().Bool("remove-masked", true, "remove masked values from the exported configuration")
 	ConfigExportCmd.Flags().Bool("remove-defaults", false, "remove default values from the exported configuration")
+
+	ConfigHistoryCmd.Flags().Int("page", 0, "Page number to fetch for the list of saved configurations")
+	ConfigHistoryCmd.Flags().Int("per-page", 10, "Number of saved configurations to be fetched")
+	ConfigHistoryCmd.Flags().Bool("detailed", false, "Show the old and new value of each changed setting")
 
 	ConfigCmd.AddCommand(
 		ConfigGetCmd,
@@ -151,6 +182,8 @@ func init() {
 		ConfigMigrateCmd,
 		ConfigSubpathCmd,
 		ConfigExportCmd,
+		ConfigHistoryCmd,
+		ConfigRollbackCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -615,4 +648,93 @@ func configExportCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.Print(config)
 
 	return nil
+}
+
+func configHistoryCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
+	page, _ := cmd.Flags().GetInt("page")
+	perPage, _ := cmd.Flags().GetInt("per-page")
+	detailed, _ := cmd.Flags().GetBool("detailed")
+
+	entries, _, err := c.GetConfigHistory(context.TODO(), page, perPage)
+	if err != nil {
+		return fmt.Errorf("failed to get the configuration history: %w", err)
+	}
+
+	tpl := template.Must(template.New("").Funcs(template.FuncMap{
+		"savedAt": formatSavedAt,
+		"change": func(change *model.ConfigChange) string {
+			if !detailed {
+				return change.Path
+			}
+			return formatConfigChange(change)
+		},
+	}).Parse(`{{.Id}}  {{savedAt .CreateAt}}{{if .Active}}  (active){{end}}{{range .Changes}}
+  {{change .}}{{end}}`))
+
+	for _, entry := range entries {
+		printer.PrintPreparedT(tpl, entry)
+	}
+
+	return nil
+}
+
+type configRollbackResult struct {
+	ConfigId string                `json:"config_id"`
+	Changes  []*model.ConfigChange `json:"changes"`
+}
+
+func configRollbackCmdF(c client.Client, _ *cobra.Command, args []string) error {
+	configID := args[0]
+
+	savedConfig, _, err := c.GetHistoricalConfig(context.TODO(), configID)
+	if err != nil {
+		return fmt.Errorf("failed to get saved configuration %s: %w", configID, err)
+	}
+
+	oldConfig, _, err := c.GetConfig(context.TODO())
+	if err != nil {
+		return fmt.Errorf("failed to get the current configuration: %w", err)
+	}
+
+	if _, _, err = c.UpdateConfig(context.TODO(), savedConfig); err != nil {
+		return fmt.Errorf("failed to roll back to saved configuration %s: %w", configID, err)
+	}
+
+	newConfig, _, err := c.GetConfig(context.TODO())
+	if err != nil {
+		return fmt.Errorf("rolled back to saved configuration %s, but failed to get the new configuration: %w", configID, err)
+	}
+
+	diffs, err := config.SanitizedDiff(oldConfig, newConfig, func(cfg *model.Config) { cfg.Sanitize(nil, nil) })
+	if err != nil {
+		return fmt.Errorf("rolled back to saved configuration %s, but failed to compare it with the previous configuration: %w", configID, err)
+	}
+
+	tpl := template.Must(template.New("").Funcs(template.FuncMap{
+		"change": formatConfigChange,
+	}).Parse(`{{if .Changes}}Rolled back to saved configuration {{.ConfigId}}. Changed settings:{{range .Changes}}
+  {{change .}}{{end}}{{else}}The configuration already matches saved configuration {{.ConfigId}}.{{end}}`))
+
+	printer.PrintPreparedT(tpl, &configRollbackResult{ConfigId: configID, Changes: diffs.ToConfigChanges()})
+
+	return nil
+}
+
+func formatSavedAt(millis int64) string {
+	return time.UnixMilli(millis).Format("2006-01-02 15:04:05 MST")
+}
+
+func formatConfigChange(change *model.ConfigChange) string {
+	if change.OldValue == model.FakeSetting && change.NewValue == model.FakeSetting {
+		return change.Path + ": [redacted]"
+	}
+	return fmt.Sprintf("%s: %s -> %s", change.Path, formatConfigValue(change.OldValue), formatConfigValue(change.NewValue))
+}
+
+func formatConfigValue(value any) string {
+	b, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Sprintf("%v", value)
+	}
+	return string(b)
 }

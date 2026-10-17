@@ -148,6 +148,8 @@ const (
 	AuditEventAutoSelectPushNotificationServer = "autoSelectPushNotificationServer" // automatically switch push notification server based on license entitlement
 	AuditEventConfigReload                     = "configReload"                     // reload server configuration
 	AuditEventGetConfig                        = "getConfig"                        // get current server configuration
+	AuditEventGetConfigHistory                 = "getConfigHistory"                 // list saved server configurations
+	AuditEventGetHistoricalConfig              = "getHistoricalConfig"              // get a saved server configuration
 	AuditEventLocalGetClientConfig             = "localGetClientConfig"             // get client configuration locally
 	AuditEventLocalGetConfig                   = "localGetConfig"                   // get server configuration locally
 	AuditEventLocalPatchConfig                 = "localPatchConfig"                 // update server configuration locally

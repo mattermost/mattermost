@@ -808,6 +808,99 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/config/history:
+    get:
+      tags:
+        - system
+      summary: Get configuration history
+      description: >
+        Get the configurations saved by the server, newest first. The server keeps
+        this history only when its configuration is stored in the database.
+
+        Each entry lists the settings that changed from the configuration saved
+        before it. Only settings the user may read are compared, cloud restricted
+        settings are left out on Cloud, and sensitive values are replaced by
+        asterisks.
+
+
+        __Minimum server version__: 12.1
+
+
+        ##### Permissions
+
+        Must have any of the `sysconsole_read_*` permissions.
+      operationId: GetConfigHistory
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of saved configurations per page.
+          schema:
+            type: integer
+            default: 60
+            maximum: 200
+      responses:
+        "200":
+          description: Configuration history retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConfigHistoryEntry"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/config/history/{config_id}":
+    get:
+      tags:
+        - system
+      summary: Get a saved configuration
+      description: >
+        Get a configuration saved by the server, with the same settings left out
+        and sanitized as when getting the current configuration. To roll back to
+        it, submit it to `PUT /api/v4/config`.
+
+
+        __Minimum server version__: 12.1
+
+
+        ##### Permissions
+
+        Must have any of the `sysconsole_read_*` permissions.
+      operationId: GetHistoricalConfig
+      parameters:
+        - name: config_id
+          in: path
+          description: ID of the saved configuration, from the configuration history
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Configuration retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Config"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/config/patch:
     put:
       tags:

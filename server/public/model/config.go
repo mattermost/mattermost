@@ -5778,6 +5778,24 @@ type GetConfigOptions struct {
 	RemoveDefaults bool
 }
 
+// ConfigHistoryEntry describes a configuration saved by a database-backed config store.
+type ConfigHistoryEntry struct {
+	Id       string `json:"id"`
+	CreateAt int64  `json:"create_at"`
+	Active   bool   `json:"active"`
+	// Changes lists the settings that differ from the configuration saved before this one.
+	// It is nil for the oldest saved configuration.
+	Changes []*ConfigChange `json:"changes"`
+}
+
+// ConfigChange describes a setting whose value differs between two configurations.
+// Sensitive values are replaced with FakeSetting.
+type ConfigChange struct {
+	Path     string `json:"path"`
+	OldValue any    `json:"old_value"`
+	NewValue any    `json:"new_value"`
+}
+
 // FilterConfig returns a map[string]any representation of the configuration.
 // Also, the function can filter the configuration by the options passed
 // in the argument. The options are used to remove the default values, the masked

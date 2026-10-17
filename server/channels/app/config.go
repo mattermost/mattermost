@@ -7,6 +7,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"encoding/json"
+	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -17,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
@@ -310,6 +312,36 @@ func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[st
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
 	return a.Srv().platform.SaveConfig(newCfg, sendConfigChangeClusterMessage)
+}
+
+// GetConfigHistory returns the saved configurations, newest first, skipping the first offset.
+func (a *App) GetConfigHistory(offset, limit int) ([]*model.ConfigHistoryEntry, *model.AppError) {
+	entries, err := a.Srv().platform.GetConfigHistory(offset, limit)
+	if err != nil {
+		return nil, configHistoryAppError("GetConfigHistory", err)
+	}
+	return entries, nil
+}
+
+// GetHistoricalConfig returns the saved configuration with the given id, unsanitized and
+// without environment overrides.
+func (a *App) GetHistoricalConfig(id string) (*model.Config, *model.AppError) {
+	cfg, err := a.Srv().platform.GetHistoricalConfig(id)
+	if err != nil {
+		return nil, configHistoryAppError("GetHistoricalConfig", err)
+	}
+	return cfg, nil
+}
+
+func configHistoryAppError(where string, err error) *model.AppError {
+	switch {
+	case errors.Is(err, config.ErrHistoryNotSupported):
+		return model.NewAppError(where, "app.config.history.not_supported.app_error", nil, "", http.StatusNotImplemented)
+	case errors.Is(err, config.ErrHistoricalConfigNotFound):
+		return model.NewAppError(where, "app.config.history.not_found.app_error", nil, "", http.StatusNotFound)
+	default:
+		return model.NewAppError(where, "app.config.history.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 }
 
 func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {
