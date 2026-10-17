@@ -140,8 +140,8 @@ function RuleEditorCard({
                         onParseError={() => onEditorModeChange('cel')}
                         enableUserManagedAttributes={enableUserManagedAttributes}
                         actions={abacActions}
-                        helpText={formatMessage(copy.tableHelp)}
-                        emptyStateText={formatMessage(copy.tableEmpty)}
+                        helpText={copy.tableHelp && formatMessage(copy.tableHelp)}
+                        emptyStateText={copy.tableEmpty && formatMessage(copy.tableEmpty)}
                         hiddenPickerAttributeNames={hiddenNativeNames}
                         {...testButtonProps}
                     />

@@ -202,16 +202,28 @@ describe('components/admin_console/permission_policies/policy_details/RuleEditor
 
     describe('copy per scope', () => {
         test.each([
-            ['user', 'User attribute requirements', 'Select attributes and values that users must have for this policy', 'Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (`&&`).', 'Select a user attribute and values to create a rule', 'Bot attribute requirements'],
-            ['bot', 'Bot attribute requirements', 'Select attributes and values that bots must have for this policy', 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).', 'Select a bot attribute and values to create a rule', 'User attribute requirements'],
-        ] as Array<[Props['scope'], string, string, string, string, string]>)('%s scope shows its title, subtitle, help and empty-state text', (scope, title, subtitle, help, empty, otherTitle) => {
+            ['user', 'User attribute requirements', 'Select attributes and values that users must have for this policy', 'Bot attribute requirements'],
+            ['bot', 'Bot attribute requirements', 'Select attributes and values that bots must have for this policy', 'User attribute requirements'],
+        ] as Array<[Props['scope'], string, string, string]>)('%s scope shows its title and subtitle', (scope, title, subtitle, otherTitle) => {
             renderCard({scope});
 
             expect(screen.getByText(title)).toBeInTheDocument();
             expect(screen.getByText(subtitle)).toBeInTheDocument();
             expect(screen.queryByText(otherTitle)).not.toBeInTheDocument();
-            expect(lastTableProps().helpText).toBe(help);
-            expect(lastTableProps().emptyStateText).toBe(empty);
+        });
+
+        test('bot scope gives the table editor bot help and empty-state text', () => {
+            renderCard({scope: 'bot'});
+
+            expect(lastTableProps().helpText).toBe('Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).');
+            expect(lastTableProps().emptyStateText).toBe('Select a bot attribute and values to create a rule');
+        });
+
+        test('user scope leaves the table editor on its default help and empty-state text', () => {
+            renderCard();
+
+            expect(lastTableProps().helpText).toBeUndefined();
+            expect(lastTableProps().emptyStateText).toBeUndefined();
         });
     });
 
