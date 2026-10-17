@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,6 +14,19 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+type testQuotedArgProvider struct{}
+
+func (testQuotedArgProvider) SplitQuotedArg(in string) (string, bool, bool) {
+	if in == "" || in[0] != '"' {
+		return in, false, false
+	}
+	end := strings.Index(in[1:], `"`)
+	if end < 0 {
+		return in, true, false
+	}
+	return in[end+2:], true, true
+}
 
 func TestParseStaticListArgument(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -135,6 +149,27 @@ func TestParseInputTextArgument(t *testing.T) {
 	assert.False(t, found)
 	assert.Equal(t, "\"abc def\"", parsed)
 	assert.Equal(t, "", toBeParsed)
+
+	quotes := testQuotedArgProvider{}
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "cmd ", `"My Remote"`, quotes)
+	assert.False(t, found)
+	assert.Equal(t, `cmd "My Remote" `, parsed)
+	assert.Equal(t, "", toBeParsed)
+
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "cmd ", `"My Remote" `, quotes)
+	assert.False(t, found)
+	assert.Equal(t, `cmd "My Remote" `, parsed)
+	assert.Equal(t, "", toBeParsed)
+
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "cmd ", `"My Remote"   `, quotes)
+	assert.False(t, found)
+	assert.Equal(t, `cmd "My Remote"   `, parsed)
+	assert.Equal(t, "", toBeParsed)
+
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "cmd ", `"My Remote"   --pa`, quotes)
+	assert.False(t, found)
+	assert.Equal(t, `cmd "My Remote"   `, parsed)
+	assert.Equal(t, "--pa", toBeParsed)
 }
 
 func TestParseNamedArguments(t *testing.T) {

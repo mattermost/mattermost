@@ -849,13 +849,40 @@ func TestRemoteProviderAutocompleteQuotedValues(t *testing.T) {
 			Hint:        T("api.command_remote.invite_password.hint"),
 			Description: T("api.command_remote.invite_password.help"),
 		}}, suggest(input))
+	})
 
-		input = pre + "'Bob's Remote'  "
+	t.Run("next-flag completion after a closed quote preserves separator whitespace", func(t *testing.T) {
+		pre := "secure-connection create --name n --displayname "
+		quoted := `"My Remote"`
+		passwordHelp := T("api.command_remote.invite_password.help")
+
+		for _, tt := range []struct {
+			name       string
+			afterQuote string
+		}{
+			{"no trailing space", ""},
+			{"one trailing space", " "},
+			{"multiple trailing spaces", "   "},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				input := pre + quoted + tt.afterQuote
+				sep := tt.afterQuote
+				if sep == "" {
+					sep = " "
+				}
+				assert.Equal(t, []model.AutocompleteSuggestion{{
+					Complete:    pre + quoted + sep + "--password ",
+					Suggestion:  "--password",
+					Description: passwordHelp,
+				}}, suggest(input))
+			})
+		}
+
 		assert.Equal(t, []model.AutocompleteSuggestion{{
-			Complete:    input + "--password ",
+			Complete:    pre + quoted + "   --password ",
 			Suggestion:  "--password",
-			Description: T("api.command_remote.invite_password.help"),
-		}}, suggest(input))
+			Description: passwordHelp,
+		}}, suggest(pre+quoted+"   --pa"))
 	})
 
 	t.Run("the value hint stays up until the quote is closed", func(t *testing.T) {
