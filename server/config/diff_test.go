@@ -962,14 +962,15 @@ func TestSanitizedDiff(t *testing.T) {
 	})
 
 	t.Run("map setting lists each key that changed", func(t *testing.T) {
-		manifests := []*model.Manifest{{
-			Id: "com.example.plugin",
-			SettingsSchema: &model.PluginSettingsSchema{Settings: []*model.PluginSetting{
-				{Key: "Greeting"},
-				{Key: "Color"},
-				{Key: "APIKey", Secret: true},
-			}},
+		settingsSchema := &model.PluginSettingsSchema{Settings: []*model.PluginSetting{
+			{Key: "Greeting"},
+			{Key: "Color"},
+			{Key: "APIKey", Secret: true},
 		}}
+		manifests := []*model.Manifest{
+			{Id: "com.example.plugin", SettingsSchema: settingsSchema},
+			{Id: "com.example.added", SettingsSchema: settingsSchema},
+		}
 		sanitizeWithManifests := func(cfg *model.Config) { cfg.Sanitize(manifests, nil) }
 
 		base := defaultConfigGen()
@@ -979,6 +980,7 @@ func TestSanitizedDiff(t *testing.T) {
 		actual := defaultConfigGen()
 		actual.PluginSettings.Plugins = map[string]map[string]any{
 			"com.example.plugin":      {"greeting": "hi", "color": "blue", "apikey": "new-key"},
+			"com.example.added":       {"greeting": "hello", "apikey": "key"},
 			"com.example.uninstalled": {"greeting": "hello"},
 		}
 		actual.PluginSettings.PluginStates["com.example.plugin"] = &model.PluginState{Enable: true}
@@ -986,10 +988,16 @@ func TestSanitizedDiff(t *testing.T) {
 		diffs, err := SanitizedDiff(base, actual, sanitizeWithManifests)
 		require.NoError(t, err)
 		require.Equal(t, ConfigDiffs{
+			{Path: "PluginSettings.Plugins.com.example.added.apikey", BaseVal: nil, ActualVal: model.FakeSetting},
+			{Path: "PluginSettings.Plugins.com.example.added.greeting", BaseVal: nil, ActualVal: "hello"},
 			{Path: "PluginSettings.Plugins.com.example.plugin.apikey", BaseVal: model.FakeSetting, ActualVal: model.FakeSetting},
 			{Path: "PluginSettings.Plugins.com.example.plugin.greeting", BaseVal: "hello", ActualVal: "hi"},
-			{Path: "PluginSettings.Plugins.com.example.uninstalled", BaseVal: model.FakeSetting, ActualVal: model.FakeSetting},
+			{Path: "PluginSettings.Plugins.com.example.uninstalled.greeting", BaseVal: model.FakeSetting, ActualVal: model.FakeSetting},
 			{Path: "PluginSettings.PluginStates.com.example.plugin", BaseVal: nil, ActualVal: &model.PluginState{Enable: true}},
 		}, diffs)
+
+		diffs, err = SanitizedDiff(actual, base, sanitizeWithManifests)
+		require.NoError(t, err)
+		require.Contains(t, diffs, ConfigDiff{Path: "PluginSettings.Plugins.com.example.added.greeting", BaseVal: "hello", ActualVal: nil})
 	})
 }

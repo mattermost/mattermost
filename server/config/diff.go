@@ -211,6 +211,13 @@ func expandMapDiffs(diffs ConfigDiffs) ConfigDiffs {
 func expandMapDiff(d ConfigDiff) ConfigDiffs {
 	base := reflect.ValueOf(d.BaseVal)
 	actual := reflect.ValueOf(d.ActualVal)
+	// A map added to or removed from another map has no value on the other side.
+	if !base.IsValid() && isStringKeyedMap(actual) {
+		base = reflect.Zero(actual.Type())
+	}
+	if !actual.IsValid() && isStringKeyedMap(base) {
+		actual = reflect.Zero(base.Type())
+	}
 	if !isStringKeyedMap(base) || !isStringKeyedMap(actual) {
 		return ConfigDiffs{d}
 	}

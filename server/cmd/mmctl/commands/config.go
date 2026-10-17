@@ -716,7 +716,7 @@ func configRollbackCmdF(c client.Client, _ *cobra.Command, args []string) error 
 	tpl := template.Must(template.New("").Funcs(template.FuncMap{
 		"change": formatConfigChange,
 	}).Parse(`{{if .Changes}}Rolled back to saved configuration {{.ConfigId}}. Changed settings:{{range .Changes}}
-  {{change .}}{{end}}{{else}}The configuration already matches saved configuration {{.ConfigId}}.{{end}}`))
+  {{change .}}{{end}}{{else}}Rolled back to saved configuration {{.ConfigId}}. No settings changed, but settings that keep their current values, such as sensitive values without --local, may still differ from it.{{end}}`))
 
 	printer.PrintPreparedT(tpl, &configRollbackResult{ConfigId: configID, Changes: diffs.ToConfigChanges()})
 

@@ -569,6 +569,19 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 		s.Require().Equal(&configRollbackResult{ConfigId: oldConfigID, Changes: []*model.ConfigChange{}}, printer.GetLines()[0])
 	})
 
+	s.Run("Say that kept settings may still differ when no settings changed", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "old-password" })
+		oldConfigID := s.latestConfigID()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "new-password" })
+
+		err := configRollbackCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		s.Require().Equal([]any{"Rolled back to saved configuration " + oldConfigID + ". No settings changed, but settings that keep their current values, such as sensitive values without --local, may still differ from it."}, printer.GetLines())
+	})
+
 	s.Run("Restore sensitive values in local mode", func() {
 		printer.Clean()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "old-password" })
