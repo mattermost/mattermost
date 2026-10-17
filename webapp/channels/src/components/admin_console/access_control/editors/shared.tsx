@@ -453,6 +453,15 @@ export function excludeSessionAttributes(fields: UserPropertyField[]): UserPrope
     return fields.filter((field) => !isSessionAttributeField(field));
 }
 
+// Only native fields are hidden, so a custom attribute sharing a name stays. Returns
+// the original array when nothing is hidden to preserve referential stability.
+export function excludeHiddenNativeFields(fields: UserPropertyField[], hiddenNames?: string[]): UserPropertyField[] {
+    if (!hiddenNames?.length) {
+        return fields;
+    }
+    return fields.filter((field) => !(isNativeField(field) && hiddenNames.includes(field.name)));
+}
+
 // CEL namespaces. CPA/user attributes are referenced as user.attributes.<name>;
 // session attributes as user.session.<name> (the server convention).
 export const USER_ATTRIBUTE_CEL_PREFIX = 'user.attributes.';

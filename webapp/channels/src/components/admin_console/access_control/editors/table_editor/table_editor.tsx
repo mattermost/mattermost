@@ -18,7 +18,7 @@ import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
-import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isGraphOperator, isRankOperator, isNativeMethodOperator, isFieldAdvertisedOperator, operatorSupportsChannelTarget, celPathFor, isNativeField, isNativeBooleanField, hasControlledAttributeValues, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, valuePlaceholderForOperator, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
+import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isGraphOperator, isRankOperator, isNativeMethodOperator, isFieldAdvertisedOperator, operatorSupportsChannelTarget, celPathFor, excludeHiddenNativeFields, isNativeField, isNativeBooleanField, hasControlledAttributeValues, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, valuePlaceholderForOperator, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
 
 import './table_editor.scss';
 
@@ -424,13 +424,10 @@ function TableEditor({
 
     // Attributes the picker may offer. Rows on a hidden attribute still resolve
     // against the full userFields (see fieldForRow).
-    const pickerFields = useMemo(() => {
-        if (!hiddenPickerAttributeNames?.length) {
-            return userFields;
-        }
-        const hidden = new Set(hiddenPickerAttributeNames);
-        return userFields.filter((f) => !(isNativeField(f) && hidden.has(f.name)));
-    }, [userFields, hiddenPickerAttributeNames]);
+    const pickerFields = useMemo(
+        () => excludeHiddenNativeFields(userFields, hiddenPickerAttributeNames),
+        [userFields, hiddenPickerAttributeNames],
+    );
 
     // The field definition behind a row. Resolved by name AND namespace: a CPA
     // and a session attribute can share a name, so object_type disambiguates.

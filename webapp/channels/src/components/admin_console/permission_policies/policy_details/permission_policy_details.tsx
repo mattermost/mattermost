@@ -37,7 +37,6 @@ import {SCOPE_COPY, type PolicyScope} from './scope_copy';
 
 import {
     BOT_ROLE_KEY,
-    BOT_SCOPE_HIDDEN_NATIVE,
     BOT_SCOPE_PROP,
     getSyncedAttributeReferences,
     isBotScopePolicy,
@@ -46,7 +45,7 @@ import {
     wrapBotExpression,
 } from '../../access_control/bot_scope';
 import {hasBalancedParens} from '../../access_control/cel_lexer';
-import {hasUsableAttributes, isNativeField, isSimpleExpression, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
+import {hasUsableAttributes, isSimpleExpression, mergeSessionAttributes} from '../../access_control/editors/shared';
 import {AVAILABLE_ROLES, roleMessages} from '../roles';
 
 import './permission_policy_details.scss';
@@ -211,11 +210,6 @@ function PermissionPolicyDetails({
         () => mergeSessionAttributes(autocompleteResult, sessionFields),
         [autocompleteResult, sessionFields],
     );
-
-    const celUserAttributes = useMemo(() => {
-        const fields = isBotScope ? userFields.filter((f) => !(isNativeField(f) && BOT_SCOPE_HIDDEN_NATIVE.includes(f.name))) : userFields;
-        return toCELEditorAttributes(mergeSessionAttributes(fields, sessionFields), accessControlSettings.EnableUserManagedAttributes);
-    }, [isBotScope, userFields, sessionFields, accessControlSettings.EnableUserManagedAttributes]);
 
     const syncedRefs = useMemo(
         () => (isBotScope ? getSyncedAttributeReferences(expression, userFields) : []),
@@ -617,7 +611,8 @@ function PermissionPolicyDetails({
                                 onEditorModeChange={setEditorMode}
                                 disabled={saving}
                                 noUsableAttributes={noUsableAttributes}
-                                celUserAttributes={celUserAttributes}
+                                userFields={userFields}
+                                sessionFields={sessionFields}
                                 resourceFields={resourceFields}
                                 mergedAttributes={mergedAttributes}
                                 enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}

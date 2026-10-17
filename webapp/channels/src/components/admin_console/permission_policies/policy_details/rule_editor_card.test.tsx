@@ -36,6 +36,26 @@ const LEGACY_TOOLTIP = 'Testing the rule alone isn\'t available for bot account 
 const SCOPES_AND_MODES: Array<[Props['scope'], Props['editorMode']]> = [['user', 'table'], ['user', 'cel'], ['bot', 'table'], ['bot', 'cel']];
 const MODES: Array<Props['editorMode']> = ['table', 'cel'];
 
+const field = (id: string, name: string, attrs: Partial<UserPropertyField['attrs']>, objectType = 'user'): UserPropertyField => ({
+    id,
+    name,
+    type: 'text',
+    group_id: 'custom_profile_attributes',
+    target_id: '',
+    target_type: 'system',
+    object_type: objectType,
+    attrs: {sort_order: 0, visibility: 'always', value_type: '', ...attrs},
+    create_at: 0,
+    update_at: 0,
+    delete_at: 0,
+    created_by: '',
+    updated_by: '',
+} as UserPropertyField);
+const NATIVE_FIELDS = ['email', 'verified', 'isbot', 'createat'].map((name) => field(`native_user_attribute_${name}`, name, {native: true}));
+const CPA_EMAIL = field('cpa-email', 'email', {managed: 'admin'});
+const LDAP_TEAMS = field('u-teams', 'teams', {ldap: 'memberOf'});
+const SESSION_NETWORK = field('s1', 'network_name', {enabled: true}, 'session');
+
 describe('components/admin_console/permission_policies/policy_details/RuleEditorCard', () => {
     const baseProps: Props = {
         scope: 'user',
@@ -45,7 +65,8 @@ describe('components/admin_console/permission_policies/policy_details/RuleEditor
         onEditorModeChange: jest.fn(),
         disabled: false,
         noUsableAttributes: false,
-        celUserAttributes: [],
+        userFields: [],
+        sessionFields: [],
         resourceFields: [],
         mergedAttributes: [],
         enableUserManagedAttributes: false,
@@ -158,12 +179,24 @@ describe('components/admin_console/permission_policies/policy_details/RuleEditor
             expect(lastTableProps().actions).toBe(baseProps.abacActions);
         });
 
-        test('passes the CEL editor its autocomplete attributes and channel fields', () => {
-            const celUserAttributes = [{attribute: 'teams', values: []}];
-            renderCard({editorMode: 'cel', celUserAttributes, resourceFields: [{id: 'c1', name: 'minClearance'} as UserPropertyField]});
+        test('passes the CEL editor its user, session and channel attributes', () => {
+            renderCard({editorMode: 'cel', userFields: [LDAP_TEAMS], sessionFields: [SESSION_NETWORK], resourceFields: [{id: 'c1', name: 'minClearance'} as UserPropertyField]});
 
-            expect(lastCELProps().userAttributes).toBe(celUserAttributes);
+            expect(lastCELProps().userAttributes).toEqual([
+                {attribute: 'teams', values: [], isNative: false, objectType: 'user'},
+                {attribute: 'network_name', values: [], isNative: false, objectType: 'session'},
+            ]);
             expect(lastCELProps().resourceAttributes).toEqual([{attribute: 'minClearance'}]);
+        });
+
+        test('drops user-managed attributes from CEL autocomplete unless enabled', () => {
+            const unmanaged = field('u-free', 'nickname', {});
+            const {unmount} = renderCard({editorMode: 'cel', userFields: [unmanaged]});
+            expect(lastCELProps().userAttributes).toEqual([]);
+            unmount();
+
+            renderCard({editorMode: 'cel', userFields: [unmanaged], enableUserManagedAttributes: true});
+            expect(lastCELProps().userAttributes.map((a) => a.attribute)).toEqual(['nickname']);
         });
     });
 
@@ -193,6 +226,18 @@ describe('components/admin_console/permission_policies/policy_details/RuleEditor
             renderCard();
 
             expect(lastTableProps().hiddenPickerAttributeNames).toBeUndefined();
+        });
+
+        test('Bot accounts drops the native built-ins from CEL autocomplete but keeps a custom email', () => {
+            renderCard({scope: 'bot', editorMode: 'cel', userFields: [...NATIVE_FIELDS, CPA_EMAIL]});
+
+            expect(lastCELProps().userAttributes.map((a) => [a.attribute, a.isNative])).toEqual([['createat', true], ['email', false]]);
+        });
+
+        test('Members keeps every built-in in CEL autocomplete', () => {
+            renderCard({editorMode: 'cel', userFields: NATIVE_FIELDS});
+
+            expect(lastCELProps().userAttributes.map((a) => a.attribute)).toEqual(['email', 'verified', 'isbot', 'createat']);
         });
 
         // TableEditor's picker memo is keyed on this array's reference.

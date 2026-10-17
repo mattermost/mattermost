@@ -7,7 +7,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {TestButton, celPrefixForField, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, referencesResourceAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isFieldAdvertisedOperator, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
+import {TestButton, celPrefixForField, excludeHiddenNativeFields, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, referencesResourceAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isFieldAdvertisedOperator, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
 
 const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']>, type: UserPropertyField['type'] = 'text'): UserPropertyField => ({
     id: `id-${name}`,
@@ -539,6 +539,21 @@ describe('excludeSessionAttributes', () => {
         ];
 
         expect(excludeSessionAttributes(fields)).toEqual([]);
+    });
+});
+
+describe('excludeHiddenNativeFields', () => {
+    const nativeEmail = makeField('email', {native: true});
+    const nativeCreateAt = makeField('createat', {native: true});
+    const customEmail = makeField('email', {managed: 'admin'});
+    const fields = [nativeEmail, nativeCreateAt, customEmail];
+
+    test('drops only native fields with a hidden name', () => {
+        expect(excludeHiddenNativeFields(fields, ['email', 'isbot'])).toEqual([nativeCreateAt, customEmail]);
+    });
+
+    test.each([undefined, []])('returns the same array when the hidden list is %p', (hidden) => {
+        expect(excludeHiddenNativeFields(fields, hidden)).toBe(fields);
     });
 });
 

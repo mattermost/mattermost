@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -13,7 +13,7 @@ import {SCOPE_COPY, type PolicyScope} from './scope_copy';
 
 import {BOT_SCOPE_HIDDEN_NATIVE} from '../../access_control/bot_scope';
 import CELEditor from '../../access_control/editors/cel_editor/editor';
-import {isSimpleExpression, type CELEditorAttribute} from '../../access_control/editors/shared';
+import {excludeHiddenNativeFields, isSimpleExpression, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
 import TableEditor, {type TableEditorProps} from '../../access_control/editors/table_editor/table_editor';
 
 export type EditorMode = 'cel' | 'table';
@@ -26,7 +26,8 @@ type Props = {
     onEditorModeChange: (mode: EditorMode) => void;
     disabled: boolean;
     noUsableAttributes: boolean;
-    celUserAttributes: CELEditorAttribute[];
+    userFields: UserPropertyField[];
+    sessionFields: UserPropertyField[];
     resourceFields: UserPropertyField[];
     mergedAttributes: UserPropertyField[];
     enableUserManagedAttributes: boolean;
@@ -45,7 +46,8 @@ function RuleEditorCard({
     onEditorModeChange,
     disabled,
     noUsableAttributes,
-    celUserAttributes,
+    userFields,
+    sessionFields,
     resourceFields,
     mergedAttributes,
     enableUserManagedAttributes,
@@ -54,6 +56,12 @@ function RuleEditorCard({
 }: Props) {
     const {formatMessage} = useIntl();
     const copy = SCOPE_COPY[scope];
+    const hiddenNativeNames = scope === 'bot' ? BOT_SCOPE_HIDDEN_NATIVE : undefined;
+
+    const celUserAttributes = useMemo(
+        () => toCELEditorAttributes(mergeSessionAttributes(excludeHiddenNativeFields(userFields, hiddenNativeNames), sessionFields), enableUserManagedAttributes),
+        [userFields, hiddenNativeNames, sessionFields, enableUserManagedAttributes],
+    );
     const editorDisabled = noUsableAttributes || disabled;
     const complexInCEL = editorMode === 'cel' && !isSimpleExpression(expression);
 
@@ -134,7 +142,7 @@ function RuleEditorCard({
                         actions={abacActions}
                         helpText={formatMessage(copy.tableHelp)}
                         emptyStateText={formatMessage(copy.tableEmpty)}
-                        hiddenPickerAttributeNames={scope === 'bot' ? BOT_SCOPE_HIDDEN_NATIVE : undefined}
+                        hiddenPickerAttributeNames={hiddenNativeNames}
                         {...testButtonProps}
                     />
                 )}
