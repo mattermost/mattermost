@@ -39,24 +39,28 @@
     #draft_tabs {
         grid-area: list;
 
-        .nav.nav-tabs {
-            .drafts_tab {
-                .badge {
-                    position: relative;
-                    top: -2px;
-                    display: inline-block;
-                    height: 14px;
-                    margin-left: 6px;
-                    background: rgba(var(--center-channel-color-rgb), 0.2);
-                    color: rgba(var(--center-channel-color-rgb), 0.75);
-                    font-size: 11px;
-                }
+        [role='tablist'] {
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            margin: 0;
+            padding-inline: 12px;
+        }
 
-                &.active {
-                    .badge {
-                        background: rgba(var(--button-bg-rgb), 0.08);
-                        color: var(--button-bg);
-                    }
+        .drafts_tab {
+            .badge {
+                position: relative;
+                top: -2px;
+                display: inline-block;
+                height: 14px;
+                margin-left: 6px;
+                background: rgba(var(--center-channel-color-rgb), 0.2);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                font-size: 11px;
+            }
+
+            &[aria-selected='true'] {
+                .badge {
+                    background: rgba(var(--button-bg-rgb), 0.08);
+                    color: var(--button-bg);
                 }
             }
         }
