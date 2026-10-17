@@ -66,7 +66,7 @@ To authorize your bot via RESTful API use `curl -i -H 'authorization: Bearer <Ac
 You can use the following CLI command to convert an existing user account to a bot:
 
 ```shell
-user convert user@example.com --bot
+mmctl user convert user@example.com --bot
 ```
 
 In addition to email, you can identify the user by its username or user ID.
@@ -112,7 +112,7 @@ For your webhook and slash command integrations, you cannot migrate them to use 
 
 For a concrete example, suppose you enable the [Mattermost GitHub plugin](https://github.com/mattermost/mattermost-plugin-github), which uses a `github` bot account, while an existing `github` user account was created for webhook integrations.
 
-Once the plugin is enabled, the plugin posts as the `github` account but without a `BOT` tag. An error message is logged to the server logs recommending the System Admin to convert the `github` user to a bot account by running `mattermost user convert <username> --bot` in the CLI.
+Once the plugin is enabled, the plugin posts as the `github` account but without a `BOT` tag. An error message is logged to the server logs recommending the System Admin to convert the `github` user to a bot account by running `mmctl user convert <username> --bot`.
 
 If the user is an existing user account you want to preserve, change its username and restart the Mattermost server, after which the plugin will create a bot account with the name `github`.
 
@@ -120,7 +120,7 @@ If the user is an existing user account you want to preserve, change its usernam
 
 Use the following CLI command to convert an existing user account to a bot:
 
-`user convert user@example.com --bot`
+`mmctl user convert user@example.com --bot`
 
 In addition to email, you may identify the user by its username or user ID.
 
