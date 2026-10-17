@@ -77,7 +77,7 @@ const GlobalAttributes = ({disabled = false}: Props) => {
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div
-                    className='admin-console__container'
+                    className='admin-console__container GlobalAttributes__panel'
                     data-testid='global_attributes'
                 >
                     <div className='GlobalAttributes__actions'>

@@ -309,11 +309,11 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 class="BooleanRadioGroup-gkBvtd joVEQU"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="tracetrue"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="tracetrue"
                     id="tracetrue"
                     name="trace"
@@ -321,26 +321,26 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="tracefalse"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="tracefalse"
                     id="tracefalse"
                     name="trace"
@@ -348,15 +348,15 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>
@@ -420,12 +420,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 class="BooleanRadioGroup-gkBvtd joVEQU"
               >
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="disableDatabaseSearchtrue"
                 >
                   <input
                     checked=""
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="disableDatabaseSearchtrue"
                     id="disableDatabaseSearchtrue"
                     name="disableDatabaseSearch"
@@ -433,25 +433,25 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                     value="true"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     True
                   </span>
                 </label>
                 <label
-                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
                   for="disableDatabaseSearchfalse"
                 >
                   <input
-                    class="_radio__input_1hdqa_14"
+                    class="_radio__input_h0rbb_17"
                     data-testid="disableDatabaseSearchfalse"
                     id="disableDatabaseSearchfalse"
                     name="disableDatabaseSearch"
@@ -459,15 +459,15 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                     value="false"
                   />
                   <span
-                    class="_radio__circle_1hdqa_33"
+                    class="_radio__circle_h0rbb_36"
                   >
                     <span
                       aria-hidden="true"
-                      class="_radio__dot_1hdqa_59"
+                      class="_radio__dot_h0rbb_62"
                     />
                   </span>
                   <span
-                    class="_radio__label_1hdqa_116"
+                    class="_radio__label_h0rbb_119"
                   >
                     False
                   </span>

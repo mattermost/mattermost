@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import styled from 'styled-components';
+import React, {useCallback, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';
+import type {AdminPanelExpandedState} from '@mattermost/compass-ui/components/admin-panel';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
-import Accordion from 'components/common/accordion/accordion';
-import type {AccordionItemType} from 'components/common/accordion/accordion';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import ChipsList from './chips_list';
 import type {ChipsInfoType} from './chips_list';
@@ -24,28 +24,82 @@ import type {Props} from '../admin_console';
 
 import './dashboard.scss';
 
-const AccordionItem = styled.div`
-    padding: 12px;
-    &:last-child {
-        border-bottom: none;
-    }
-    h5 {
-        display: inline-flex;
-        align-items: center;
-        font-weight: bold;
-    }
-`;
-
 const successIcon = (
-    <div className='success'>
-        <CheckIcon
-            size={20}
-            color={'var(--sys-online-indicator)'}
-        />
-    </div>
+    <Icon glyph={<CheckIcon/>}/>
 );
 
+type SectionPanelProps = {
+    id: string;
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+    items: React.ReactNode[];
+    chips: React.ReactNode;
+    expandLabel: string;
+    collapseLabel: string;
+};
+
+const WorkspaceOptimizationSectionPanel = ({
+    id,
+    title,
+    description,
+    icon,
+    items,
+    chips,
+    expandLabel,
+    collapseLabel,
+}: SectionPanelProps) => {
+    const hasItems = items.length > 0;
+    const [expandedState, setExpandedState] = useState<AdminPanelExpandedState>('collapsed');
+
+    // Compass only toggles via the header chevron. Match the former Accordion
+    // cards: clicking anywhere on the header opens/closes the section.
+    const handlePanelClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
+        if (!hasItems) {
+            return;
+        }
+
+        const target = event.target as HTMLElement | null;
+        const header = event.currentTarget.querySelector('header');
+        if (!target || !header?.contains(target)) {
+            return;
+        }
+
+        // Expand IconButton already calls onExpandedStateChange — avoid a double toggle.
+        if (target.closest('[aria-expanded]')) {
+            return;
+        }
+
+        setExpandedState((current) => (current === 'expanded' ? 'collapsed' : 'expanded'));
+    }, [hasItems]);
+
+    return (
+        <AdminPanel
+            id={id}
+            className={classNames('WorkspaceOptimizationDashboard__section', {
+                'WorkspaceOptimizationDashboard__section--success': !hasItems,
+                'WorkspaceOptimizationDashboard__section--header-only': !hasItems,
+                'WorkspaceOptimizationDashboard__section--expandable': hasItems,
+            })}
+            title={title}
+            subtitle={description}
+            iconLeft={true}
+            leadingIcon={hasItems ? icon : successIcon}
+            button={hasItems ? chips : undefined}
+            expandable={hasItems}
+            expandedState={hasItems ? expandedState : undefined}
+            onExpandedStateChange={hasItems ? setExpandedState : undefined}
+            expandLabel={expandLabel}
+            collapseLabel={collapseLabel}
+            onClick={handlePanelClick}
+        >
+            {hasItems ? items : undefined}
+        </AdminPanel>
+    );
+};
+
 const WorkspaceOptimizationDashboard = (props: Props) => {
+    const {formatMessage} = useIntl();
     const {data, loading} = useMetricsData(props.config);
 
     const overallScoreChips: ChipsInfoType = {
@@ -59,8 +113,16 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
         current: 0,
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const accordionItemsData: AccordionItemType[] | undefined = data && Object.entries(data).filter(([_, y]) => !y.hide).map(([accordionKey, accordionData]) => {
+    const expandLabel = formatMessage({
+        id: 'admin.panel.expand',
+        defaultMessage: 'Expand section',
+    });
+    const collapseLabel = formatMessage({
+        id: 'admin.panel.collapse',
+        defaultMessage: 'Collapse section',
+    });
+
+    const sectionPanels = data && Object.entries(data).filter(([, section]) => !section.hide).map(([accordionKey, accordionData]) => {
         const accordionDataChips: ChipsInfoType = {
             [ItemStatus.INFO]: 0,
             [ItemStatus.WARNING]: 0,
@@ -79,8 +141,9 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
             // chips will only be displayed for info aka Success, warning and error aka Problems
             if (item.status !== ItemStatus.OK && item.status !== ItemStatus.NONE) {
                 items.push((
-                    <AccordionItem
+                    <div
                         key={`${accordionKey}-item_${item.id}`}
+                        className='WorkspaceOptimizationDashboard__item'
                     >
                         <h5>
                             <i
@@ -99,7 +162,7 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
                             actionLink={item.configUrl}
                             actionText={item.configText}
                         />
-                    </AccordionItem>
+                    </div>
                 ));
 
                 accordionDataChips[item.status] += 1;
@@ -107,21 +170,27 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
             }
         });
         const {title, description, descriptionOk, icon} = accordionData;
-        return {
-            title,
-            description: items.length === 0 ? descriptionOk : description,
-            icon: items.length === 0 ? successIcon : icon,
-            items,
-            extraContent: (
-                <ChipsList
-                    chipsData={accordionDataChips}
-                    hideCountZeroChips={true}
-                />
-            ),
-        };
+        return (
+            <WorkspaceOptimizationSectionPanel
+                key={accordionKey}
+                id={`workspace-optimization-${accordionKey}`}
+                title={title}
+                description={items.length === 0 ? descriptionOk : description}
+                icon={icon}
+                items={items}
+                chips={(
+                    <ChipsList
+                        chipsData={accordionDataChips}
+                        hideCountZeroChips={true}
+                    />
+                )}
+                expandLabel={expandLabel}
+                collapseLabel={collapseLabel}
+            />
+        );
     });
 
-    return loading || !accordionItemsData ? <LoadingScreen/> : (
+    return loading || !sectionPanels ? <LoadingScreen/> : (
         <div className='WorkspaceOptimizationDashboard wrapper--fixed'>
             <AdminHeader>
                 <FormattedMessage
@@ -139,10 +208,9 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
                     }
                     chartValue={Math.floor((overallScore.current / overallScore.max) * 100)}
                 />
-                <Accordion
-                    accordionItemsData={accordionItemsData}
-                    expandMultiple={true}
-                />
+                <div className='WorkspaceOptimizationDashboard__sections'>
+                    {sectionPanels}
+                </div>
             </div>
         </div>
     );

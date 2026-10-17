@@ -4,6 +4,7 @@
 import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
+import {AdminPanelFooter} from '@mattermost/compass-ui/components/admin-panel-footer';
 import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -54,31 +55,9 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
             id='channel_profile'
             title={defineMessage({id: 'admin.channel_settings.channel_detail.profileTitle', defaultMessage: 'Channel Profile'})}
             subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.profileDescription', defaultMessage: 'Summary of the channel, including the channel name.'})}
-        >
-            <div className='group-teams-and-channels AdminChannelDetails'>
-                <div className='group-teams-and-channels--body channel-desc-col'>
-                    <div className='channel-name'>
-                        <b>
-                            <FormattedMessage
-                                id='admin.channelSettings.channelDetail.channelName'
-                                defaultMessage='Name'
-                            />
-                        </b>
-                        <br/>
-                        {channel.display_name}
-                    </div>
-                    <div className='channel-team'>
-                        <b>
-                            <FormattedMessage
-                                id='admin.channelSettings.channelDetail.channelTeam'
-                                defaultMessage='Team'
-                            />
-                        </b>
-                        <br/>
-                        {team?.display_name}
-                    </div>
-                    {sharedBlock}
-                    <div className='AdminChannelDetails_archiveContainer'>
+            footer={
+                <AdminPanelFooter
+                    leftActions={
                         <Button
                             type='button'
                             emphasis='secondary'
@@ -89,8 +68,32 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
                             {isArchived ? <i className='icon icon-archive-arrow-up-outline'/> : <i className='icon icon-archive-outline'/>}
                             <FormattedMessage {...archiveBtn}/>
                         </Button>
-                    </div>
+                    }
+                />
+            }
+        >
+            <div className='AdminChannelDetails channel-desc-col'>
+                <div className='channel-name'>
+                    <b>
+                        <FormattedMessage
+                            id='admin.channelSettings.channelDetail.channelName'
+                            defaultMessage='Name'
+                        />
+                    </b>
+                    <br/>
+                    {channel.display_name}
                 </div>
+                <div className='channel-team'>
+                    <b>
+                        <FormattedMessage
+                            id='admin.channelSettings.channelDetail.channelTeam'
+                            defaultMessage='Team'
+                        />
+                    </b>
+                    <br/>
+                    {team?.display_name}
+                </div>
+                {sharedBlock}
             </div>
         </AdminPanel>
     );

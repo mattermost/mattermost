@@ -169,43 +169,39 @@ export const TeamModes = ({allAllowedChecked, syncChecked, allowedDomains, allow
         title={defineMessage({id: 'admin.team_settings.team_detail.manageTitle', defaultMessage: 'Team Management'})}
         subtitle={defineMessage({id: 'admin.team_settings.team_detail.manageDescription', defaultMessage: 'Choose between inviting members manually or syncing members automatically from groups.'})}
     >
-        <div className='group-teams-and-channels'>
-            <div className='group-teams-and-channels--body'>
-                {isLicensedForLDAPGroups && !policyEnforced &&
-                    <SyncGroupsToggle
-                        allAllowedChecked={allAllowedChecked}
-                        allowedDomainsChecked={allowedDomainsChecked}
-                        allowedDomains={allowedDomains}
-                        syncChecked={syncChecked}
-                        onToggle={onToggle}
-                        isDisabled={isDisabled}
-                    />
-                }
-                <AllowAllToggle
-                    allAllowedChecked={allAllowedChecked}
-                    allowedDomainsChecked={allowedDomainsChecked}
-                    allowedDomains={allowedDomains}
-                    syncChecked={syncChecked}
-                    onToggle={onToggle}
-                    isDisabled={isDisabled}
-                />
-                {abacSupported &&
-                    <PolicyEnforceToggle
-                        syncChecked={syncChecked}
-                        policyEnforced={Boolean(policyEnforced)}
-                        policyEnforcedToggleAvailable={Boolean(policyEnforcedToggleAvailable)}
-                        onToggle={onPolicyEnforcedToggle}
-                        isDisabled={isDisabled}
-                    />
-                }
-                <AllowedDomainsToggle
-                    allAllowedChecked={allAllowedChecked}
-                    allowedDomainsChecked={allowedDomainsChecked}
-                    allowedDomains={allowedDomains}
-                    syncChecked={syncChecked}
-                    onToggle={onToggle}
-                    isDisabled={isDisabled}
-                />
-            </div>
-        </div>
+        {isLicensedForLDAPGroups && !policyEnforced &&
+            <SyncGroupsToggle
+                allAllowedChecked={allAllowedChecked}
+                allowedDomainsChecked={allowedDomainsChecked}
+                allowedDomains={allowedDomains}
+                syncChecked={syncChecked}
+                onToggle={onToggle}
+                isDisabled={isDisabled}
+            />
+        }
+        <AllowAllToggle
+            allAllowedChecked={allAllowedChecked}
+            allowedDomainsChecked={allowedDomainsChecked}
+            allowedDomains={allowedDomains}
+            syncChecked={syncChecked}
+            onToggle={onToggle}
+            isDisabled={isDisabled}
+        />
+        {abacSupported &&
+            <PolicyEnforceToggle
+                syncChecked={syncChecked}
+                policyEnforced={Boolean(policyEnforced)}
+                policyEnforcedToggleAvailable={Boolean(policyEnforcedToggleAvailable)}
+                onToggle={onPolicyEnforcedToggle}
+                isDisabled={isDisabled}
+            />
+        }
+        <AllowedDomainsToggle
+            allAllowedChecked={allAllowedChecked}
+            allowedDomainsChecked={allowedDomainsChecked}
+            allowedDomains={allowedDomains}
+            syncChecked={syncChecked}
+            onToggle={onToggle}
+            isDisabled={isDisabled}
+        />
     </AdminPanel>);

@@ -5,6 +5,7 @@ import debounce from 'lodash/debounce';
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {DownloadOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
 import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {
     LogFilter,
@@ -17,6 +18,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import LogList from './log_list';
 import PlainLogList from './plain_log_list';
@@ -57,6 +59,8 @@ const messages = defineMessages({
     logFormatTitle: {id: 'admin.logs.logFormatTitle', defaultMessage: 'Log Format:'},
     logFormatJson: {id: 'admin.logs.logFormatJson', defaultMessage: 'JSON'},
     logFormatPlain: {id: 'admin.logs.logFormatPlain', defaultMessage: 'Plain text'},
+    reload: {id: 'admin.logs.ReloadLogs', defaultMessage: 'Reload Logs'},
+    download: {id: 'admin.logs.DownloadLogs', defaultMessage: 'Download Logs'},
 });
 export const searchableStrings = [
     messages.title,
@@ -84,8 +88,11 @@ export default class Logs extends React.PureComponent<Props, State> {
         this.reload();
     }
 
-    componentDidUpdate(prevProps: Props, prevState: State) {
-        if (this.state.isPlainLogs && (this.state.page !== prevState.page || !this.props.plainLogs?.length)) {
+    componentDidUpdate(_prevProps: Props, prevState: State) {
+        // Only refetch when the plain-text page changes. Format switches call
+        // reload() from onLogFormatToggle; do not key off empty plainLogs or
+        // every loading toggle will loop reload forever.
+        if (this.state.isPlainLogs && this.state.page !== prevState.page) {
             this.reload();
         }
     }
@@ -117,7 +124,15 @@ export default class Logs extends React.PureComponent<Props, State> {
     };
 
     onLogFormatToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({isPlainLogs: event.target.value === 'plain'});
+        // Clear search and level filters so the LogList filter UI (which remounts
+        // without controlled selection) stays in sync with what reload() sends.
+        this.setState({
+            isPlainLogs: event.target.value === 'plain',
+            search: '',
+            logLevels: [],
+        }, () => {
+            this.reload();
+        });
     };
 
     onSearchChange = (search: string) => {
@@ -156,6 +171,49 @@ export default class Logs extends React.PureComponent<Props, State> {
         );
     };
 
+    renderLogFormat = () => {
+        // Server is plain-only: no format toggle.
+        if (this.props.isPlainLogs) {
+            return null;
+        }
+
+        return (
+            <div
+                className='logs-panel__log-format'
+                id='admin.logs.LogFormat'
+                role='radiogroup'
+                aria-labelledby='admin.logs.LogFormat.legend'
+            >
+                <span id='admin.logs.LogFormat.legend'>
+                    <FormattedMessage {...messages.logFormatTitle}/>
+                </span>
+
+                <label>
+                    <input
+                        type='radio'
+                        id='admin.logs.LogFormat.json'
+                        name='log-format'
+                        value='json'
+                        checked={!this.state.isPlainLogs}
+                        onChange={this.onLogFormatToggle}
+                    />
+                    <FormattedMessage {...messages.logFormatJson}/>
+                </label>
+                <label>
+                    <input
+                        type='radio'
+                        id='admin.logs.LogFormat.plain'
+                        name='log-format'
+                        value='plain'
+                        checked={this.state.isPlainLogs}
+                        onChange={this.onLogFormatToggle}
+                    />
+                    <FormattedMessage {...messages.logFormatPlain}/>
+                </label>
+            </div>
+        );
+    };
+
     render() {
         const list = this.state.isPlainLogs ? (
             <PlainLogList
@@ -176,47 +234,6 @@ export default class Logs extends React.PureComponent<Props, State> {
             />
         );
 
-        let toggleLogFormat;
-        if (!this.props.isPlainLogs) {
-            toggleLogFormat = (
-                <div
-                    className='banner-buttons__log-format'
-                    id='admin.logs.LogFormat'
-                    role='radiogroup'
-                    aria-labelledby='admin.logs.LogFormat.legend'
-                >
-                    <span
-                        id='admin.logs.LogFormat.legend'
-                    >
-                        <FormattedMessage {...messages.logFormatTitle}/>
-                    </span>
-
-                    <label>
-                        <input
-                            type='radio'
-                            id='admin.logs.LogFormat.json'
-                            name='log-format'
-                            value='json'
-                            checked={!this.state.isPlainLogs}
-                            onChange={this.onLogFormatToggle}
-                        />
-                        <FormattedMessage {...messages.logFormatJson}/>
-                    </label>
-                    <label>
-                        <input
-                            type='radio'
-                            id='admin.logs.LogFormat.plain'
-                            name='log-format'
-                            value='plain'
-                            checked={this.state.isPlainLogs}
-                            onChange={this.onLogFormatToggle}
-                        />
-                        <FormattedMessage {...messages.logFormatPlain}/>
-                    </label>
-                </div>
-            );
-        }
-
         return (
             <div className='wrapper--fixed'>
                 <AdminHeader>
@@ -224,37 +241,38 @@ export default class Logs extends React.PureComponent<Props, State> {
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-logs-content admin-console__content'>
-                        <div className='logs-banner'>
-                            <div className='banner'>
-                                <div className='banner__content'>
-                                    <FormattedMessage {...messages.bannerDesc}/>
+                        <AdminPanel
+                            id='server_logs'
+                            className='logs-panel'
+                            title={messages.title}
+                            subtitle={messages.bannerDesc}
+                        >
+                            <div className='logs-panel__toolbar'>
+                                <div className='logs-panel__toolbar-start'>
+                                    {this.renderLogFormat()}
+                                </div>
+                                <div className='logs-panel__toolbar-actions'>
+                                    <Button
+                                        type='button'
+                                        emphasis='tertiary'
+                                        size='sm'
+                                        onClick={this.reload}
+                                    >
+                                        <RefreshIcon size={16}/>
+                                        <FormattedMessage {...messages.reload}/>
+                                    </Button>
+                                    <ExternalLink
+                                        location='download_logs'
+                                        className={buttonClassNames({emphasis: 'tertiary', size: 'sm'})}
+                                        href={Client4.getUrl() + '/api/v4/logs/download'}
+                                    >
+                                        <DownloadOutlineIcon size={16}/>
+                                        <FormattedMessage {...messages.download}/>
+                                    </ExternalLink>
                                 </div>
                             </div>
-                            <div className='banner-buttons'>
-                                {toggleLogFormat}
-                                <Button
-                                    type='submit'
-                                    emphasis='primary'
-                                    onClick={this.reload}
-                                >
-                                    <FormattedMessage
-                                        id='admin.logs.ReloadLogs'
-                                        defaultMessage='Reload Logs'
-                                    />
-                                </Button>
-                                <ExternalLink
-                                    location='download_logs'
-                                    className={buttonClassNames({emphasis: 'primary'})}
-                                    href={Client4.getUrl() + '/api/v4/logs/download'}
-                                >
-                                    <FormattedMessage
-                                        id='admin.logs.DownloadLogs'
-                                        defaultMessage='Download Logs'
-                                    />
-                                </ExternalLink>
-                            </div>
-                        </div>
-                        {list}
+                            {list}
+                        </AdminPanel>
                     </div>
                 </div>
             </div>

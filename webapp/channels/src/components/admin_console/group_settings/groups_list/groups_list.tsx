@@ -469,7 +469,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         const lastPage = endCount === total;
         const firstPage = this.state.page === 0;
         return (
-            <div className='groups-list'>
+            <div className='groups-list groups-list-less-padding'>
                 <div className='groups-list--global-actions'>
                     <div className='group-list-search'>
                         <LocalizedPlaceholderInput

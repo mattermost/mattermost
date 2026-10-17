@@ -482,7 +482,7 @@ function SystemUsers(props: Props) {
 
     return (
         <div
-            className='wrapper--fixed'
+            className='wrapper--fixed SystemUsers'
             data-testid='systemUsersSection'
         >
             <AdminHeader>
@@ -497,7 +497,7 @@ function SystemUsers(props: Props) {
                 <RevokeSessionsButton/>
             </AdminHeader>
             <div className='admin-console__wrapper'>
-                <div className='admin-console__container ignore-marking'>
+                <div className='admin-console__container ignore-marking SystemUsers__panel'>
                     <div className='admin-console__filters-rows'>
                         <SystemUsersSearch
                             searchTerm={props.tablePropertySearchTerm}

@@ -281,11 +281,10 @@ export default class LogList extends React.PureComponent<Props, State> {
             minHeight: `${rows.length * 40}px`,
         };
 
-        const errorsButton: JSX.Element = (
+        const showErrorsButton: JSX.Element = (
             <Button
                 emphasis='tertiary'
                 size='sm'
-                className='ml-2'
                 onClick={this.showErrors}
             >
                 <FormattedMessage
@@ -372,7 +371,7 @@ export default class LogList extends React.PureComponent<Props, State> {
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     filterProps={filterProps}
-                    extraComponent={errorsButton}
+                    extraComponent={showErrorsButton}
                 />
                 <FullLogEventModal
                     log={this.state.modalLog}

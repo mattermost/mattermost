@@ -644,9 +644,11 @@
 }
 
 .group-profile-add-menu {
+    // Button now lives in Compass AdminPanel headerActions — no need to
+    // pull it up over a legacy body-header seam (that clipped under overflow).
     position: relative;
-    margin-top: -36px;
-    margin-left: 10px;
+    margin-top: 0;
+    margin-left: 0;
 
     .fa-caret-down {
         margin-left: 5px;
@@ -724,19 +726,11 @@
     opacity: 0.8;
 }
 
-.AdminChannelDetails_archiveContainer {
-    position: relative;
-    left: -22px;
-    display: block;
-    width: 920px;
-    padding-top: 20px;
-    padding-left: 20px;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
-}
-
-.AdminChannelDetails_archiveContainer .channel-icon__archive,
-.AdminChannelDetails_archiveContainer .channel-icon__unarchive {
+// Archive/Unarchive actions live in Compass AdminPanelFooter; keep icon sizing
+// for any remaining channel-icon archive glyphs in this surface.
+.channel-icon__archive,
+.channel-icon__unarchive {
     width: 16px;
     height: 16px;
 }
+

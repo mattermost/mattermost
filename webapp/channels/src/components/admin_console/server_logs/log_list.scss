@@ -1,7 +1,35 @@
+.plain-log-list__footer {
+    // Match DataGrid_footer pagination chrome (icons only; no count text).
+    display: flex;
+    height: auto;
+    flex-direction: row;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 8px;
+    border-top: solid 1px rgba(0, 0, 0, 0.1);
+    border-bottom: solid 1px rgba(0, 0, 0, 0.1);
+    background: var(--center-channel-bg, #fff);
+    gap: 0;
+
+    .btn + .btn {
+        margin-left: 0;
+    }
+
+    .btn.prev {
+        margin-right: 0;
+    }
+}
+
 .LogTable {
     overflow: hidden;
 
     .DataGrid {
+        .DataGrid_search {
+            height: auto;
+            min-height: 48px;
+        }
+
         .DataGrid_row {
             min-height: 40px;
             padding-left: 16px;

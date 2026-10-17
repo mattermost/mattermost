@@ -59,7 +59,41 @@ describe('components/admin_console/server_logs/Logs', () => {
     });
 
     test('should display the logs correctly after loading', () => {
+        expect(container.querySelector('#server_logs.AdminPanel')).toBeInTheDocument();
+        expect(container.querySelector('.admin-panel-header__actions, [class*="admin-panel-header__actions"]')).not.toBeInTheDocument();
+        expect(screen.getByRole('radiogroup', {name: /Log Format/i})).toBeInTheDocument();
+        expect(container.querySelector('.LogTable .DataGrid')).toBeInTheDocument();
+
+        const primaryToolbar = container.querySelector('.logs-panel__toolbar');
+        expect(primaryToolbar).toBeInTheDocument();
+        expect(primaryToolbar).toContainElement(screen.getByRole('radiogroup', {name: /Log Format/i}));
+        expect(primaryToolbar).toContainElement(screen.getByRole('button', {name: /Reload Logs/i}));
+        expect(primaryToolbar).toContainElement(screen.getByRole('link', {name: /Download Logs/i}));
+
+        expect(container.querySelector('.DataGrid_search')).toContainElement(
+            screen.getByRole('button', {name: /Show last/i}),
+        );
+
         expect(container).toMatchSnapshot();
+    });
+
+    test('should keep reload/download but hide JSON-only controls in plain text mode', async () => {
+        await userEvent.click(screen.getByRole('radio', {name: /Plain text/i}));
+
+        await waitFor(() => {
+            expect(screen.queryByTestId('searchInput')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /Show last/i})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /Filters/i})).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /Reload Logs/i})).toBeInTheDocument();
+            expect(screen.getByRole('link', {name: /Download Logs/i})).toBeInTheDocument();
+            expect(screen.getByRole('radiogroup', {name: /Log Format/i})).toBeInTheDocument();
+
+            // Icon-only DataGrid-style pagination (no "1 - X of Y" count).
+            expect(screen.queryByText(/^Next$/i)).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Previous'})).toBeDisabled();
+            expect(screen.getByRole('button', {name: 'Next'})).toBeDisabled();
+            expect(container.querySelector('[data-testid="plain-log-list-footer"]')).toBeInTheDocument();
+        });
     });
 
     test.each(['caller', 'msg', 'worker', 'job_id', 'whatever'])('should search input be performed on %s attribute',
