@@ -372,7 +372,10 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 
 	/* Email Notifications */
-	if model.SafeDereference(ps.Config().EmailSettings.SendEmailNotifications) {
+	// Invitations and verification emails go through SMTP even with notification emails off.
+	if model.SafeDereference(ps.Config().EmailSettings.SendEmailNotifications) ||
+		model.SafeDereference(ps.Config().EmailSettings.RequireEmailVerification) ||
+		model.SafeDereference(ps.Config().ServiceSettings.EnableEmailInvitations) {
 		emailSettings := ps.Config().EmailSettings
 		hostname := utils.GetHostnameFromSiteURL(model.SafeDereference(ps.Config().ServiceSettings.SiteURL))
 		mailCfg := &mail.SMTPConfig{

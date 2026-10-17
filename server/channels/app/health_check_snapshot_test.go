@@ -206,7 +206,12 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		cfg.ServiceSettings.SiteURL = model.NewPointer("http://chat.example.com")
 		cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
 		cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
+		// The live and packet collections each probe SMTP and could disagree.
+		cfg.EmailSettings.SendEmailNotifications = model.NewPointer(false)
 	})
+	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
+	license.Customer.Id = model.NewId()
+	th.App.Srv().SetLicense(license)
 
 	// Without it the permissions collector fails and the packet carries a warning.txt.
 	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
@@ -250,7 +255,7 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 			firing[evaluation.Code] = true
 		}
 	}
-	assert.Equal(t, map[string]bool{"PUSH_BAD_SCHEME": true, "SITE_URL_HTTP": true}, firing)
+	assert.Equal(t, map[string]bool{"PUSH_BAD_SCHEME": true, "PUSH_ID_ONLY": true, "SITE_URL_HTTP": true}, firing)
 }
 
 func TestClusterNodes(t *testing.T) {

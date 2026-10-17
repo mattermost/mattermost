@@ -14377,6 +14377,21 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel is {{.limit}}, so @channel, @all and @here still work in channels with thousands of members. A single channel-wide mention there fans out thousands of notifications at once, which causes latency spikes.",
+    "description": "Health dashboard finding detail when the per-channel notification limit is above 5000; {{.limit}} is the configured limit, 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and '@channel', '@all' and '@here' are Mattermost mentions, none should be translated."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "Lower TeamSettings.MaxNotificationsPerChannel to 5000 or less (the default is 1000). @channel, @all and @here are disabled once a channel reaches this many members, so check with the teams that use them in large channels first.",
+    "description": "Health dashboard fix-it step for a high per-channel notification limit; 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and '@channel', '@all' and '@here' are Mattermost mentions, none should be translated."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "Channel-wide mentions allowed in very large channels",
+    "description": "Health dashboard finding title when the per-channel notification limit is above 5000, so @channel, @all and @here work in channels with thousands of members; '@channel', '@all' and '@here' are Mattermost mentions and should not be translated."
+  },
+  {
     "id": "health.rule.push_bad_scheme.message.http",
     "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext.",
     "description": "Health dashboard finding detail when the push notification server URL starts with http:// instead of https://; {{.url}} is the configured URL. 'PushNotificationServer' is a config setting name and should not be translated."
@@ -14410,6 +14425,21 @@
     "id": "health.rule.push_empty_url.title",
     "translation": "Push notifications enabled but PushNotificationServer is blank",
     "description": "Health dashboard finding title when push notifications are turned on but the push notification server URL is empty; 'PushNotificationServer' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents is set to full, so the message text and sender are included in the push payload, which travels through the push proxy and the Apple and Google push services.",
+    "description": "Health dashboard finding detail when push notifications carry the full message text; 'PushNotificationContents' is a config setting name and 'full' is its value, neither should be translated."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "For maximum push privacy, set EmailSettings.PushNotificationContents to id_loaded. Only a message ID is sent, and the mobile app fetches the message content from the server. Mobile devices must then be able to reach the server when a notification arrives, so on servers only reachable through a VPN or internal network, notifications can't show message content. If full is a deliberate choice, mute this finding.",
+    "description": "Health dashboard fix-it step for push notifications that carry the full message text; 'EmailSettings.PushNotificationContents' is the config setting path and 'id_loaded' is its value, neither should be translated."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "Push notifications include the full message text",
+    "description": "Health dashboard finding title when push notification payloads contain the message text and sender."
   },
   {
     "id": "health.rule.push_test_proxy.message",
@@ -14455,6 +14485,21 @@
     "id": "health.rule.site_url_http.title",
     "translation": "SiteURL uses http:// (not https://)",
     "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; 'SiteURL' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "The connection test to the SMTP server failed: {{.error}}",
+    "description": "Health dashboard finding detail when the server could not connect to its SMTP server; {{.error}} is the error returned by the connection test and should not be translated."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "Email notifications, invitations and password reset emails may not be delivered. Check the SMTP server, port, connection security and credentials in the System Console, confirm the Mattermost server can reach the SMTP host, then use Test Connection to verify.",
+    "description": "Health dashboard fix-it step when the SMTP connection test failed; 'Test Connection' is the name of the button on the SMTP page of the System Console."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "SMTP server connection test failed",
+    "description": "Health dashboard finding title when the server could not connect to its SMTP server while email notifications are enabled."
   },
   {
     "id": "health.rule.version.unknown.latest",
