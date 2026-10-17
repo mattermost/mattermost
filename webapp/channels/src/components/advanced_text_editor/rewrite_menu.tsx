@@ -17,7 +17,7 @@ import {
     AutoFixIcon,
     SpellcheckIcon,
 } from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Agent} from '@mattermost/types/agents';
 
 import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
@@ -164,7 +164,7 @@ export default function RewriteMenu({
                             />
                             <Button
                                 emphasis='tertiary'
-                                size='xs'
+                                size='x-small'
                                 type='button'
                                 onClick={onCancelProcessing}
                             >
@@ -227,7 +227,7 @@ export default function RewriteMenu({
                 <div className='rewrite-menu-footer'>
                     <Button
                         emphasis='tertiary'
-                        size='xs'
+                        size='x-small'
                         type='button'
                         onClick={onUndoMessage}
                     >
@@ -239,7 +239,7 @@ export default function RewriteMenu({
                     </Button>
                     <Button
                         emphasis='quaternary'
-                        size='xs'
+                        size='x-small'
                         type='button'
                         onClick={onRegenerateMessage}
                     >
@@ -381,7 +381,7 @@ export function RewriteSubMenuHeader({
                     />
                     <Button
                         emphasis='tertiary'
-                        size='xs'
+                        size='x-small'
                         type='button'
                         onClick={onCancelProcessing}
                     >
@@ -429,7 +429,7 @@ export function RewriteSubMenuFooter({
         <div className='rewrite-menu-footer'>
             <Button
                 emphasis='tertiary'
-                size='xs'
+                size='x-small'
                 type='button'
                 onClick={onUndoMessage}
             >
@@ -441,7 +441,7 @@ export function RewriteSubMenuFooter({
             </Button>
             <Button
                 emphasis='quaternary'
-                size='xs'
+                size='x-small'
                 type='button'
                 onClick={onRegenerateMessage}
             >

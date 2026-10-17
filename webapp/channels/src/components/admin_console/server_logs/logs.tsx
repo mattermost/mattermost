@@ -5,7 +5,7 @@ import debounce from 'lodash/debounce';
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {Button, buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {
     LogFilter,
     LogLevels,
@@ -242,16 +242,20 @@ export default class Logs extends React.PureComponent<Props, State> {
                                         defaultMessage='Reload Logs'
                                     />
                                 </Button>
-                                <ExternalLink
-                                    location='download_logs'
-                                    className={buttonClassNames({emphasis: 'primary'})}
-                                    href={Client4.getUrl() + '/api/v4/logs/download'}
+                                <Button
+                                    asChild={true}
+                                    emphasis='primary'
                                 >
-                                    <FormattedMessage
-                                        id='admin.logs.DownloadLogs'
-                                        defaultMessage='Download Logs'
-                                    />
-                                </ExternalLink>
+                                    <ExternalLink
+                                        location='download_logs'
+                                        href={Client4.getUrl() + '/api/v4/logs/download'}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.logs.DownloadLogs'
+                                            defaultMessage='Download Logs'
+                                        />
+                                    </ExternalLink>
+                                </Button>
                             </div>
                         </div>
                         {list}

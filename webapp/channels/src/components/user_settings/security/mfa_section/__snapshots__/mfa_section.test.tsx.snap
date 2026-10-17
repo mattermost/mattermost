@@ -105,9 +105,14 @@ exports[`MfaSection rendering when section is expanded and MFA is active and enf
             class="pt-2"
           >
             <button
-              class="btn btn-primary a11y--active a11y--focused"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 a11y--active a11y--focused"
+              type="button"
             >
-              Reset MFA on Account
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Reset MFA on Account
+              </span>
             </button>
             <br />
           </div>
@@ -125,13 +130,22 @@ exports[`MfaSection rendering when section is expanded and MFA is active and enf
           <div
             role="alert"
           />
-          <button
-            class="btn btn-tertiary"
-            data-testid="cancelButton"
-            id="cancelSetting"
+          <div
+            class="setting-list-item__buttons"
           >
-            Cancel
-          </button>
+            <button
+              class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+              data-testid="cancelButton"
+              id="cancelSetting"
+              type="button"
+            >
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Cancel
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -164,9 +178,14 @@ exports[`MfaSection rendering when section is expanded and MFA is active but not
             class="pt-2"
           >
             <button
-              class="btn btn-primary a11y--active a11y--focused"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 a11y--active a11y--focused"
+              type="button"
             >
-              Remove MFA from Account
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Remove MFA from Account
+              </span>
             </button>
             <br />
           </div>
@@ -184,13 +203,22 @@ exports[`MfaSection rendering when section is expanded and MFA is active but not
           <div
             role="alert"
           />
-          <button
-            class="btn btn-tertiary"
-            data-testid="cancelButton"
-            id="cancelSetting"
+          <div
+            class="setting-list-item__buttons"
           >
-            Cancel
-          </button>
+            <button
+              class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+              data-testid="cancelButton"
+              id="cancelSetting"
+              type="button"
+            >
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Cancel
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -223,9 +251,14 @@ exports[`MfaSection rendering when section is expanded and MFA is not active 1`]
             class="pt-2"
           >
             <button
-              class="btn btn-primary a11y--active a11y--focused"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 a11y--active a11y--focused"
+              type="button"
             >
-              Add MFA to Account
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Add MFA to Account
+              </span>
             </button>
             <br />
           </div>
@@ -243,13 +276,22 @@ exports[`MfaSection rendering when section is expanded and MFA is not active 1`]
           <div
             role="alert"
           />
-          <button
-            class="btn btn-tertiary"
-            data-testid="cancelButton"
-            id="cancelSetting"
+          <div
+            class="setting-list-item__buttons"
           >
-            Cancel
-          </button>
+            <button
+              class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+              data-testid="cancelButton"
+              id="cancelSetting"
+              type="button"
+            >
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Cancel
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

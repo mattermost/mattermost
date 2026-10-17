@@ -6,7 +6,7 @@ import type {ChangeEvent, JSX} from 'react';
 import {defineMessage, FormattedMessage, type MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -678,15 +678,17 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 type='backstage'
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
-                            <Link
-                                className={buttonClassNames({emphasis: 'tertiary'})}
-                                to={'/' + this.props.team.name + '/integrations/commands'}
+                            <Button
+                                asChild={true}
+                                emphasis='tertiary'
                             >
-                                <FormattedMessage
-                                    id='add_command.cancel'
-                                    defaultMessage='Cancel'
-                                />
-                            </Link>
+                                <Link to={'/' + this.props.team.name + '/integrations/commands'}>
+                                    <FormattedMessage
+                                        id='add_command.cancel'
+                                        defaultMessage='Cancel'
+                                    />
+                                </Link>
+                            </Button>
                             <SpinnerButton
                                 type='submit'
                                 spinning={this.state.saving}

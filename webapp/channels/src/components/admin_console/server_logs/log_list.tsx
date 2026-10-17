@@ -5,7 +5,7 @@ import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {ArrowDownIcon, ArrowUpIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {LogFilter, LogLevelEnum, LogObject} from '@mattermost/types/admin';
 import type {ChannelSearchOpts} from '@mattermost/types/channels';
 
@@ -210,7 +210,7 @@ export default class LogList extends React.PureComponent<Props, State> {
                         <Button
                             type='submit'
                             emphasis='secondary'
-                            size='sm'
+                            size='small'
                         >
                             <FormattedMessage
                                 id='admin.logs.fullEvent'
@@ -284,7 +284,7 @@ export default class LogList extends React.PureComponent<Props, State> {
         const errorsButton: JSX.Element = (
             <Button
                 emphasis='tertiary'
-                size='sm'
+                size='small'
                 className='ml-2'
                 onClick={this.showErrors}
             >

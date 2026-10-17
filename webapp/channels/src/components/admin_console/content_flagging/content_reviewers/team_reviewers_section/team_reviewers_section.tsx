@@ -5,6 +5,7 @@ import React, {useCallback, useEffect, useMemo, useState, type JSX} from 'react'
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {TeamReviewerSetting} from '@mattermost/types/config';
 import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
 
@@ -196,16 +197,17 @@ export default function TeamReviewers({teamReviewersSetting, onChange, disabled}
 
     const disableAllBtn = useMemo(() => (
         <div className='TeamReviewers__disable-all'>
-            <button
+            <Button
                 data-testid='disableForAllTeamsButton'
-                className='btn btn-link icon-close'
+                emphasis='link'
+                className='icon-close'
                 aria-label={intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
                 disabled={disabled}
                 aria-disabled={disabled}
                 onClick={handleDisableForAllTeams}
             >
                 {intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
-            </button>
+            </Button>
         </div>
     ), [disabled, intl, handleDisableForAllTeams]);
 

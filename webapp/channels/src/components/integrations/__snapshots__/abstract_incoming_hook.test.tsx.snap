@@ -196,17 +196,25 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -411,17 +419,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -626,17 +642,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot w
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -850,17 +874,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             </label>
           </div>
           <a
-            class="btn btn-tertiary"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -1039,17 +1071,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -1228,17 +1268,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -1452,17 +1500,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             </label>
           </div>
           <a
-            class="btn btn-tertiary"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>

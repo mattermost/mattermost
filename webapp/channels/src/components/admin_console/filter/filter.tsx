@@ -5,7 +5,9 @@ import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {FilterVariantIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import FilterList from './filter_list';
 
@@ -190,20 +192,21 @@ class Filter extends React.PureComponent<Props, State> {
                 className='Filter'
                 ref={this.filterRef}
             >
-                <button
+                <Button
                     type='button'
-                    className={classNames('Filter_button', {Filter__active: this.state.show})}
+                    emphasis='tertiary'
+                    size='small'
+                    className='Filter_button'
                     onClick={this.togglePopover}
                     ref={this.buttonRef}
+                    leadingIcon={<Icon glyph={<FilterVariantIcon/>}/>}
                 >
-                    <i className='Icon icon-filter-variant'/>
-
                     <FormattedMessage
                         id='admin.filter.filters'
                         defaultMessage='Filters'
                     />
                     {filterCount > 0 && ` (${filterCount})`}
-                </button>
+                </Button>
 
                 <div
                     className={classNames('Filter_content', {Filter__show: this.state.show})}
@@ -236,7 +239,7 @@ class Filter extends React.PureComponent<Props, State> {
                     <Button
                         type='button'
                         emphasis='primary'
-                        size='sm'
+                        size='small'
                         className='Filter_apply'
                         disabled={!this.state.optionsModified}
                         onClick={this.onFilter}

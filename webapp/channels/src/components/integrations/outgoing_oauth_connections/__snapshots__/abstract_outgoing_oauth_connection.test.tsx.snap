@@ -135,11 +135,15 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               class="outgoing-oauth-connection-validate-button-container"
             >
               <button
-                class="btn btn-tertiary btn-sm"
+                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49"
                 id="validateConnection"
                 type="button"
               >
-                Validate Connection
+                <span
+                  class="_button__label_aa8j5_31"
+                >
+                  Validate Connection
+                </span>
               </button>
             </div>
           </div>
@@ -174,17 +178,25 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             href="/test/integrations/outgoing-oauth2-connections"
           >
-            Cancel
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
             id="saveConnection"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Footer
+            </span>
           </button>
           <div>
             renderExtra
@@ -342,11 +354,15 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               class="outgoing-oauth-connection-validate-button-container"
             >
               <button
-                class="btn btn-tertiary btn-sm"
+                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49"
                 id="validateConnection"
                 type="button"
               >
-                Validate Connection
+                <span
+                  class="_button__label_aa8j5_31"
+                >
+                  Validate Connection
+                </span>
               </button>
             </div>
           </div>
@@ -388,17 +404,25 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             </label>
           </div>
           <a
-            class="btn btn-tertiary"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             href="/test/integrations/outgoing-oauth2-connections"
           >
-            Cancel
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
             id="saveConnection"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Footer
+            </span>
           </button>
           <div>
             renderExtra

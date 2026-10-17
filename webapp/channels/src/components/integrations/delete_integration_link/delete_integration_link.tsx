@@ -51,7 +51,7 @@ export default function DeleteIntegrationLink(props: Props) {
             modalId: ModalId,
             dialogProps: {
                 confirmButtonText,
-                confirmButtonVariant: 'destructive',
+                destructive: true,
                 modalClass: 'integrations-backstage-modal',
                 message: (
                     <>

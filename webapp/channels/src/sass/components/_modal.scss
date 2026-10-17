@@ -168,7 +168,14 @@
         justify-content: end;
         padding: 24px 32px;
         border: none;
-        grid-row-gap: 8px;
+        gap: 8px;
+
+        // Bootstrap 3 clearfix pseudos become flex items and add extra gap.
+        &::before,
+        &::after {
+            display: none;
+            content: none;
+        }
 
         &.divider {
             border-top: var(--border-light);
@@ -185,10 +192,6 @@
             float: left;
             font-weight: bold;
             text-align: left;
-        }
-
-        & .btn + .btn {
-            margin-left: 8px;
         }
     }
 

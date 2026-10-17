@@ -349,10 +349,14 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     class="help-text"
                   >
                     <button
-                      class="btn btn-tertiary"
+                      class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                       type="button"
                     >
-                      Regenerate
+                      <span
+                        class="_button__label_aa8j5_31"
+                      >
+                        Regenerate
+                      </span>
                     </button>
                   </div>
                   <div
@@ -437,13 +441,15 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_aa8j5_31"
+        >
           Save
         </span>
       </button>
@@ -488,13 +494,15 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_aa8j5_31"
+        >
           Save
         </span>
       </button>
@@ -856,10 +864,14 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     class="help-text"
                   >
                     <button
-                      class="btn btn-tertiary"
+                      class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                       type="button"
                     >
-                      Regenerate
+                      <span
+                        class="_button__label_aa8j5_31"
+                      >
+                        Regenerate
+                      </span>
                     </button>
                   </div>
                   <div
@@ -944,13 +956,15 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_aa8j5_31"
+        >
           Save
         </span>
       </button>

@@ -83,7 +83,7 @@ const SectionNotice = ({
                             {linkButton &&
                                 <SectionNoticeButton
                                     button={linkButton}
-                                    buttonClass='btn-link'
+                                    emphasis='link'
                                 />
                             }
                         </div>

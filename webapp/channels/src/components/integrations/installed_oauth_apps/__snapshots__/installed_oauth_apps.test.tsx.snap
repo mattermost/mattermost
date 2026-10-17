@@ -12,18 +12,17 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
         OAuth 2.0 Applications
       </h1>
       <a
-        class="add-link"
+        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
         href="/test/integrations/oauth2-apps/add"
+        id="addOauthApp"
       >
-        <button
-          class="btn btn-primary"
-          id="addOauthApp"
-          type="button"
+        <span
+          class="_button__label_aa8j5_31"
         >
           <span>
             Add OAuth 2.0 Application
           </span>
-        </button>
+        </span>
       </a>
     </div>
     <div
@@ -357,18 +356,17 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot for Ap
         OAuth 2.0 Applications
       </h1>
       <a
-        class="add-link"
+        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
         href="/test/integrations/oauth2-apps/add"
+        id="addOauthApp"
       >
-        <button
-          class="btn btn-primary"
-          id="addOauthApp"
-          type="button"
+        <span
+          class="_button__label_aa8j5_31"
         >
           <span>
             Add OAuth 2.0 Application
           </span>
-        </button>
+        </span>
       </a>
     </div>
     <div

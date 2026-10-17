@@ -2,6 +2,10 @@
     flex-grow: 1;
 }
 
+.systemUsersFilterTrigger {
+    display: inline-flex;
+}
+
 .systemUsersFilterPopoverContainer {
     & > #header {
         padding: 20px 24px;

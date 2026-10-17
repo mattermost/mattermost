@@ -10,7 +10,7 @@ import {useParams} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
 import {ChevronLeftIcon} from '@mattermost/compass-icons/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 import {supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
@@ -1868,13 +1868,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     onClick={handleSave}
                     defaultMessage={<FormattedMessage {...messages.save}/>}
                 />
-                <BlockableLink
-                    className={buttonClassNames({emphasis: 'quaternary'})}
-                    to={LIST_ROUTE}
+                <Button
+                    asChild={true}
+                    emphasis='tertiary'
                     data-testid='attributeCancelLink'
                 >
-                    <FormattedMessage {...messages.cancel}/>
-                </BlockableLink>
+                    <BlockableLink to={LIST_ROUTE}>
+                        <FormattedMessage {...messages.cancel}/>
+                    </BlockableLink>
+                </Button>
                 {errorKind && (
                     <span
                         id='attribute-save-error'

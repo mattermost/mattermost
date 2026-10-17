@@ -156,6 +156,7 @@ describe('TourTip', () => {
 
         const optOut = await screen.findByRole('button', {name: 'Opt out of these tips.'});
 
-        expect(optOut).toHaveClass('btn', 'btn-link', 'btn-inverted');
+        expect(optOut.className).toMatch(/_button--emphasis-link_/);
+        expect(optOut.className).toMatch(/_button--appearance-inverted_/);
     });
 });

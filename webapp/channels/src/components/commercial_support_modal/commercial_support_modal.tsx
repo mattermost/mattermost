@@ -8,7 +8,9 @@ import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {extractFilenameFromContentDisposition} from '@mattermost/client';
-import {Button} from '@mattermost/shared/components/button';
+import {DownloadOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {SupportPacketContent} from '@mattermost/types/admin';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -16,7 +18,6 @@ import {Client4} from 'mattermost-redux/client';
 
 import AlertBanner from 'components/alert_banner';
 import ExternalLink from 'components/external_link';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import './commercial_support_modal.scss';
 
@@ -219,8 +220,9 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                 emphasis='primary'
                                 className='DownloadSupportPacket'
                                 onClick={this.downloadSupportPacket}
+                                loading={this.state.loading}
+                                leadingIcon={<Icon glyph={<DownloadOutlineIcon/>}/>}
                             >
-                                { this.state.loading ? <LoadingSpinner/> : <i className='icon icon-download-outline'/> }
                                 <FormattedMessage
                                     id='commercial_support.download_support_packet'
                                     defaultMessage='Download Support Packet'

@@ -6,7 +6,7 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
@@ -199,8 +199,8 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                     onClick={this.props.onButtonClick}
                     disabled={this.props.ctaDisabled}
                     emphasis='tertiary'
-                    size='xs'
-                    variant='inverted'
+                    size='x-small'
+                    appearance='inverted'
                 >
                     <FormattedMessage
                         {...this.props.modalButtonText}
@@ -213,8 +213,8 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                     onClick={this.props.onButtonClick}
                     disabled={this.props.ctaDisabled}
                     emphasis='tertiary'
-                    size='xs'
-                    variant='inverted'
+                    size='x-small'
+                    appearance='inverted'
                 >
                     {this.props.ctaText}
                 </Button>

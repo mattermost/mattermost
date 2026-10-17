@@ -5,7 +5,9 @@ import React, {useState, useEffect, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {JobType, JobTypeBase, Job} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -132,11 +134,9 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                     emphasis='primary'
                     onClick={handleCreateJob}
                     disabled={isSubmitting}
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
-                    <i className='icon icon-plus'/>
-                    <span>
-                        {renderButtonLabel()}
-                    </span>
+                    {renderButtonLabel()}
                 </Button>
             </div>
             {teamAbacEnabled && (

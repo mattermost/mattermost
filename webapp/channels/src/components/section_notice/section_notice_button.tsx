@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import {Button, type ButtonEmphasis} from '@mattermost/shared/components/button';
+import {Button, type ButtonEmphasis} from '@mattermost/compass-ui/components/button';
 
 import type {SectionNoticeButtonProp} from './types';
 
@@ -25,7 +25,7 @@ const SectionNoticeButton = ({
         <Button
             onClick={button.onClick}
             emphasis={emphasis}
-            size='sm'
+            size='small'
             className={classNames('sectionNoticeButton', buttonClass)}
             disabled={button.disabled}
         >

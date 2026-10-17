@@ -508,11 +508,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                   disabled=""
                   type="button"
                 >
-                  Test Connection
+                  <span
+                    class="_button__label_aa8j5_31"
+                  >
+                    Test Connection
+                  </span>
                 </button>
               </div>
               <div
@@ -544,11 +548,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   >
                     <div>
                       <button
-                        class="btn btn-tertiary"
+                        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                         disabled=""
                         type="button"
                       >
-                        Index Now
+                        <span
+                          class="_button__label_aa8j5_31"
+                        >
+                          Index Now
+                        </span>
                       </button>
                     </div>
                     <div
@@ -606,11 +614,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                   disabled=""
                   type="button"
                 >
-                  Rebuild Channels Index
+                  <span
+                    class="_button__label_aa8j5_31"
+                  >
+                    Rebuild Channels Index
+                  </span>
                 </button>
               </div>
               <div
@@ -639,11 +651,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                   disabled=""
                   type="button"
                 >
-                  Purge Indexes
+                  <span
+                    class="_button__label_aa8j5_31"
+                  >
+                    Purge Indexes
+                  </span>
                 </button>
               </div>
               <div
@@ -1011,13 +1027,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_aa8j5_31"
+          >
             Save
           </span>
         </button>
@@ -1527,10 +1545,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                   type="button"
                 >
-                  Test Connection
+                  <span
+                    class="_button__label_aa8j5_31"
+                  >
+                    Test Connection
+                  </span>
                 </button>
               </div>
               <div
@@ -1562,10 +1584,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                   >
                     <div>
                       <button
-                        class="btn btn-tertiary"
+                        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                         type="button"
                       >
-                        Index Now
+                        <span
+                          class="_button__label_aa8j5_31"
+                        >
+                          Index Now
+                        </span>
                       </button>
                     </div>
                     <div
@@ -1623,10 +1649,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                   type="button"
                 >
-                  Rebuild Channels Index
+                  <span
+                    class="_button__label_aa8j5_31"
+                  >
+                    Rebuild Channels Index
+                  </span>
                 </button>
               </div>
               <div
@@ -1655,10 +1685,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                   type="button"
                 >
-                  Purge Indexes
+                  <span
+                    class="_button__label_aa8j5_31"
+                  >
+                    Purge Indexes
+                  </span>
                 </button>
               </div>
               <div
@@ -2017,13 +2051,15 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_aa8j5_31"
+          >
             Save
           </span>
         </button>
@@ -2542,10 +2578,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                   type="button"
                 >
-                  Test Connection
+                  <span
+                    class="_button__label_aa8j5_31"
+                  >
+                    Test Connection
+                  </span>
                 </button>
               </div>
               <div
@@ -2577,10 +2617,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                   >
                     <div>
                       <button
-                        class="btn btn-tertiary"
+                        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                         type="button"
                       >
-                        Index Now
+                        <span
+                          class="_button__label_aa8j5_31"
+                        >
+                          Index Now
+                        </span>
                       </button>
                     </div>
                     <div
@@ -2638,10 +2682,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                   type="button"
                 >
-                  Rebuild Channels Index
+                  <span
+                    class="_button__label_aa8j5_31"
+                  >
+                    Rebuild Channels Index
+                  </span>
                 </button>
               </div>
               <div
@@ -2670,10 +2718,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
                   type="button"
                 >
-                  Purge Indexes
+                  <span
+                    class="_button__label_aa8j5_31"
+                  >
+                    Purge Indexes
+                  </span>
                 </button>
               </div>
               <div
@@ -3032,13 +3084,15 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_aa8j5_31"
+          >
             Save
           </span>
         </button>

@@ -16,21 +16,4 @@
         }
     }
 
-    .btn-inverted {
-        border: 2px solid var(--button-bg);
-        border-radius: 4px;
-        background: transparent;
-        color: var(--button-bg);
-        font-weight: bold;
-        line-height: 12px;
-    }
-
-    .btn-dangerous {
-        border: 2px solid var(--dnd-indicator);
-        border-radius: 4px;
-        background: transparent;
-        color: var(--dnd-indicator);
-        font-weight: bold;
-        line-height: 16px;
-    }
 }

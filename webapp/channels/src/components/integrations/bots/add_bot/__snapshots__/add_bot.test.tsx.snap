@@ -78,16 +78,23 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
                 src="test-file-stub"
               />
             </div>
-            <div
-              class="btn btn-primary btn-file"
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              type="button"
             >
-              Upload Image
-              <input
-                accept=".jpeg,.jpg,.png,.bmp"
-                class="btn-file__input"
-                type="file"
-              />
-            </div>
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Upload Image
+              </span>
+            </button>
           </div>
         </div>
         <div
@@ -321,17 +328,25 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             href="/DN/integrations/bots"
           >
-            Cancel
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
             id="saveBot"
             type="submit"
           >
-            Create Bot Account
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Create Bot Account
+            </span>
           </button>
         </div>
       </form>

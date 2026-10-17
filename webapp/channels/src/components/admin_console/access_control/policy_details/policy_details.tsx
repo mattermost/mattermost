@@ -5,8 +5,8 @@ import cloneDeep from 'lodash/cloneDeep';
 import React, {useState, useEffect, useMemo, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {getMembershipRule, buildRulesWithMembership, getAutoAddFromRules} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
@@ -871,7 +871,7 @@ function PolicyDetails({
                             defaultMessage='Delete Policy'
                         />
                     }
-                    confirmButtonVariant='destructive'
+                    destructive={true}
                     compassDesign={true}
                 >
                     <>
@@ -904,15 +904,17 @@ function PolicyDetails({
                         />
                     }
                 />
-                <BlockableLink
-                    className={buttonClassNames({emphasis: 'quaternary'})}
-                    to='/admin_console/system_attributes/membership_policies'
+                <Button
+                    asChild={true}
+                    emphasis='tertiary'
                 >
-                    <FormattedMessage
-                        id='admin.access_control.edit_policy.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </BlockableLink>
+                    <BlockableLink to='/admin_console/system_attributes/membership_policies'>
+                        <FormattedMessage
+                            id='admin.access_control.edit_policy.cancel'
+                            defaultMessage='Cancel'
+                        />
+                    </BlockableLink>
+                </Button>
                 {serverError && (
                     <span className='EditPolicy__error'>
                         <i className='icon icon-alert-outline'/>

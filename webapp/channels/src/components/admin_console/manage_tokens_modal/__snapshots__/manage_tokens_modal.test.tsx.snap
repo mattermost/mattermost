@@ -274,10 +274,14 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
                   class="manage-teams__team-actions"
                 >
                   <button
-                    class="btn btn-danger"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                     type="button"
                   >
-                    Delete
+                    <span
+                      class="_button__label_aa8j5_31"
+                    >
+                      Delete
+                    </span>
                   </button>
                 </div>
               </div>
@@ -316,10 +320,14 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
                   class="manage-teams__team-actions"
                 >
                   <button
-                    class="btn btn-danger"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                     type="button"
                   >
-                    Delete
+                    <span
+                      class="_button__label_aa8j5_31"
+                    >
+                      Delete
+                    </span>
                   </button>
                 </div>
               </div>

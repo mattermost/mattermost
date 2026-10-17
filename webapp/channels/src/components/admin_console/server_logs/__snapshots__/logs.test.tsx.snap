@@ -64,19 +64,27 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
               </label>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
               type="submit"
             >
-              Reload Logs
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Reload Logs
+              </span>
             </button>
             <a
-              class="btn btn-primary"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
               href="/api/v4/logs/download"
               location="download_logs"
               rel="noopener noreferrer"
               target="_blank"
             >
-              Download Logs
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Download Logs
+              </span>
             </a>
           </div>
         </div>
@@ -117,13 +125,40 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 class="Filter"
               >
                 <button
-                  class="Filter_button"
+                  class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 Filter_button"
                   type="button"
                 >
-                  <i
-                    class="Icon icon-filter-variant"
-                  />
-                  Filters
+                  <span
+                    aria-hidden="true"
+                    class="_button__icon-slot_aa8j5_35"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="14"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_aa8j5_31"
+                  >
+                    Filters
+                  </span>
                 </button>
                 <div
                   class="Filter_content"
@@ -222,18 +257,27 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                     </div>
                   </div>
                   <button
-                    class="btn btn-primary btn-sm Filter_apply"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49 Filter_apply"
                     disabled=""
                     type="button"
                   >
-                    Apply
+                    <span
+                      class="_button__label_aa8j5_31"
+                    >
+                      Apply
+                    </span>
                   </button>
                 </div>
               </div>
               <button
-                class="btn btn-tertiary btn-sm ml-2"
+                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 ml-2"
+                type="button"
               >
-                Show last 0 errors
+                <span
+                  class="_button__label_aa8j5_31"
+                >
+                  Show last 0 errors
+                </span>
               </button>
             </div>
             <div
@@ -352,10 +396,14 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                   style="flex-grow: 1; text-align: left;"
                 >
                   <button
-                    class="btn btn-secondary btn-sm"
+                    class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-small_aa8j5_49"
                     type="submit"
                   >
-                    Full Log event
+                    <span
+                      class="_button__label_aa8j5_31"
+                    >
+                      Full Log event
+                    </span>
                   </button>
                 </div>
               </div>
@@ -419,10 +467,14 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                   style="flex-grow: 1; text-align: left;"
                 >
                   <button
-                    class="btn btn-secondary btn-sm"
+                    class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-small_aa8j5_49"
                     type="submit"
                   >
-                    Full Log event
+                    <span
+                      class="_button__label_aa8j5_31"
+                    >
+                      Full Log event
+                    </span>
                   </button>
                 </div>
               </div>
@@ -486,10 +538,14 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                   style="flex-grow: 1; text-align: left;"
                 >
                   <button
-                    class="btn btn-secondary btn-sm"
+                    class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-small_aa8j5_49"
                     type="submit"
                   >
-                    Full Log event
+                    <span
+                      class="_button__label_aa8j5_31"
+                    >
+                      Full Log event
+                    </span>
                   </button>
                 </div>
               </div>

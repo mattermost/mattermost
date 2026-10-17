@@ -5,7 +5,7 @@ import React, {type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
-import {Button, buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AnalyticsState} from '@mattermost/types/admin';
 import type {CloudCustomer} from '@mattermost/types/cloud';
 import type {ClientLicense} from '@mattermost/types/config';
@@ -93,7 +93,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             <div className='purchase-card'>
                 <Button
                     emphasis='primary'
-                    size='lg'
+                    size='large'
                     data-testid='featureDiscovery_primaryCallToAction'
                     onClick={() => {
                         this.contactSalesFunc();
@@ -104,17 +104,22 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                         defaultMessage='Contact sales'
                     />
                 </Button>
-                <ExternalLink
-                    location='feature_discovery'
-                    className={buttonClassNames({emphasis: 'tertiary', size: 'lg'})}
-                    href={learnMoreURL}
+                <Button
+                    asChild={true}
+                    emphasis='tertiary'
+                    size='large'
                     data-testid='featureDiscovery_secondaryCallToAction'
                 >
-                    <FormattedMessage
-                        id='admin.ldap_feature_discovery.call_to_action.secondary'
-                        defaultMessage='Learn more'
-                    />
-                </ExternalLink>
+                    <ExternalLink
+                        location='feature_discovery'
+                        href={learnMoreURL}
+                    >
+                        <FormattedMessage
+                            id='admin.ldap_feature_discovery.call_to_action.secondary'
+                            defaultMessage='Learn more'
+                        />
+                    </ExternalLink>
+                </Button>
             </div>
         );
     };
@@ -150,17 +155,21 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         return (
             <>
                 {ctaPrimaryButton}
-                <ExternalLink
-                    location='feature_discovery'
-                    className={buttonClassNames({emphasis: 'secondary'})}
-                    href={learnMoreURL}
+                <Button
+                    asChild={true}
+                    emphasis='secondary'
                     data-testid='featureDiscovery_secondaryCallToAction'
                 >
-                    <FormattedMessage
-                        id='admin.ldap_feature_discovery.call_to_action.secondary'
-                        defaultMessage='Learn more'
-                    />
-                </ExternalLink>
+                    <ExternalLink
+                        location='feature_discovery'
+                        href={learnMoreURL}
+                    >
+                        <FormattedMessage
+                            id='admin.ldap_feature_discovery.call_to_action.secondary'
+                            defaultMessage='Learn more'
+                        />
+                    </ExternalLink>
+                </Button>
                 {gettingTrialError}
                 {(!this.props.isCloud) && (<p className='trial-legal-terms'>
 
