@@ -37,6 +37,41 @@ jest.mock('stores/redux_store', () => {
 
 describe('actions/global_actions', () => {
     describe('redirectUserToDefaultTeam', () => {
+        it.each([
+            {roles: 'system_admin', onboardingEnabled: true, setupComplete: true, expectedPath: '/select_team'},
+            {roles: 'system_admin', onboardingEnabled: true, setupComplete: false, expectedPath: '/preparing-workspace'},
+            {roles: 'system_admin', onboardingEnabled: false, setupComplete: true, expectedPath: '/select_team'},
+            {roles: 'system_user', onboardingEnabled: true, setupComplete: true, expectedPath: '/select_team'},
+        ])('should redirect a user without teams to $expectedPath (roles: $roles, onboarding: $onboardingEnabled, setup complete: $setupComplete)', async ({roles, onboardingEnabled, setupComplete, expectedPath}) => {
+            const store = mockStore({
+                entities: {
+                    general: {
+                        config: {
+                            DefaultClientLocale: 'en',
+                            EnableOnboardingFlow: String(onboardingEnabled),
+                        },
+                        firstAdminCompleteSetup: setupComplete,
+                    },
+                    teams: {
+                        teams: {},
+                        myMembers: {},
+                    },
+                    users: {
+                        currentUserId: 'user1',
+                        profiles: {
+                            user1: {id: 'user1', roles, create_at: 1},
+                        },
+                    },
+                },
+            });
+            getState.mockImplementation(store.getState);
+
+            // A reload after leaving the last team must not restart completed onboarding.
+            await redirectUserToDefaultTeam(new URLSearchParams('test=value'));
+
+            expect(getHistory().push).toHaveBeenCalledWith({pathname: expectedPath, search: 'test=value'});
+        });
+
         it('should redirect to /select_team when no team is available', async () => {
             const store = mockStore({
                 entities: {
