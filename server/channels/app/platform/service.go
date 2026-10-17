@@ -106,6 +106,9 @@ type PlatformService struct {
 	hubs     []*Hub
 	hashSeed maphash.Seed
 
+	// hubChannelIteration is EnableWebHubChannelIteration as read when the hubs started; changes take effect at the next restart.
+	hubChannelIteration bool
+
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
 	goroutineBuffered   chan struct{}
