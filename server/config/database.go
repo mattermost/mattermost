@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -46,6 +47,11 @@ type DatabaseStore struct {
 	driverName     string
 	dataSourceName string
 	db             *sqlx.DB
+
+	// lastChecksum is the SHA-256 (hex) of the active configuration row as of
+	// the last Load or persist through this store. Used to cheaply detect
+	// writes made by other nodes sharing the same configuration database.
+	lastChecksum atomic.Value
 }
 
 // NewDatabaseStore creates a new instance of a config store backed by the given database.
@@ -182,6 +188,7 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 
 	// compare checksums, it's more efficient rather than comparing entire config itself
 	if bytes.Equal(oldSum, sum[0:]) {
+		ds.lastChecksum.Store(hex.EncodeToString(sum[0:]))
 		return nil
 	}
 
@@ -216,25 +223,60 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to commit transaction")
 	}
 
+	ds.lastChecksum.Store(hex.EncodeToString(sum[0:]))
+
 	return nil
+}
+
+// activeChecksum returns the SHA-256 (hex) of the active configuration row, or
+// an empty string if no active configuration exists.
+func (ds *DatabaseStore) activeChecksum() (string, error) {
+	var sha sql.NullString
+	row := ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Active")
+	if err := row.Scan(&sha); err != nil && err != sql.ErrNoRows {
+		return "", errors.Wrap(err, "failed to query active configuration checksum")
+	}
+
+	// postgres returns blank-padded therefore we trim the space
+	return strings.TrimSpace(sha.String), nil
+}
+
+// hasChangedExternally returns true if the active configuration row no longer
+// matches the configuration last loaded or persisted through this store,
+// meaning another node (or a manual edit) changed it.
+func (ds *DatabaseStore) hasChangedExternally() (bool, error) {
+	activeSum, err := ds.activeChecksum()
+	if err != nil {
+		return false, err
+	}
+
+	lastSum, _ := ds.lastChecksum.Load().(string)
+
+	return activeSum != lastSum, nil
 }
 
 // Load updates the current configuration from the backing store.
 func (ds *DatabaseStore) Load() ([]byte, error) {
 	var configurationData []byte
+	var sha sql.NullString
 
-	row := ds.db.QueryRow("SELECT Value FROM Configurations WHERE Active")
-	if err := row.Scan(&configurationData); err != nil && err != sql.ErrNoRows {
+	row := ds.db.QueryRow("SELECT Value, SHA FROM Configurations WHERE Active")
+	if err := row.Scan(&configurationData, &sha); err != nil && err != sql.ErrNoRows {
 		return nil, errors.Wrap(err, "failed to query active configuration")
 	}
 
 	// Initialize from the default config if no active configuration could be found.
 	if len(configurationData) == 0 {
+		ds.lastChecksum.Store("")
+
 		configWithDB := model.Config{}
 		configWithDB.SqlSettings.DriverName = new(ds.driverName)
 		configWithDB.SqlSettings.DataSource = new(ds.dataSourceName)
 		return json.Marshal(configWithDB)
 	}
+
+	// postgres returns blank-padded therefore we trim the space
+	ds.lastChecksum.Store(strings.TrimSpace(sha.String))
 
 	return configurationData, nil
 }

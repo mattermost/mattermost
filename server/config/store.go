@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
 )
 
@@ -20,6 +21,23 @@ var (
 	// ErrReadOnlyStore is returned when an attempt to modify a read-only
 	// configuration store is made.
 	ErrReadOnlyStore = errors.New("configuration store is read-only")
+)
+
+// databaseStoreReconcileInterval is how often a database-backed store checks
+// the active configuration row for changes made by other nodes. The check is a
+// single-row indexed query, so it is cheap relative to the convergence it
+// guarantees when a cluster config-change notification is lost.
+const databaseStoreReconcileInterval = 30 * time.Second
+
+// Retry schedule for reading a cluster-pushed configuration change back from
+// the database. The sender persists a new active row before notifying peers,
+// so a read that still matches the last known checksum means the read landed
+// on a lagging replica (e.g. behind a load-balancing proxy) or the change was
+// already applied; a few short retries cover typical replication lag, and the
+// periodic reconciler covers anything longer.
+const (
+	clusterConfigReadRetries    = 5
+	clusterConfigReadRetryDelay = 500 * time.Millisecond
 )
 
 // Store is the higher level object that handles storing and retrieval of config data.
@@ -35,6 +53,10 @@ type Store struct {
 
 	readOnly   bool
 	readOnlyFF bool
+
+	reconcilerDone chan struct{}
+	reconcilerWg   sync.WaitGroup
+	reconcilerOnce sync.Once
 }
 
 // BackingStore defines the behaviour exposed by the underlying store
@@ -80,7 +102,102 @@ func NewStoreFromBacking(backingStore BackingStore, customDefaults *model.Config
 		return nil, errors.Wrap(err, "unable to load on store creation")
 	}
 
+	if databaseStore, ok := backingStore.(*DatabaseStore); ok && !readOnly {
+		store.startReconciler(databaseStore)
+	}
+
 	return store, nil
+}
+
+// startReconciler periodically compares the active configuration row against
+// the last configuration loaded or persisted through this store and reloads on
+// mismatch. Cluster peers normally learn about config changes through a
+// cluster message, but that delivery is best effort once the sender gives up;
+// this poll guarantees every node sharing a configuration database converges
+// on the latest configuration even if a notification is lost.
+func (s *Store) startReconciler(databaseStore *DatabaseStore) {
+	s.reconcilerDone = make(chan struct{})
+
+	s.reconcilerWg.Go(func() {
+		ticker := time.NewTicker(databaseStoreReconcileInterval)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-s.reconcilerDone:
+				return
+			case <-ticker.C:
+				s.reconcileFromDatabase(databaseStore)
+			}
+		}
+	})
+}
+
+// stopReconciler signals the reconciler goroutine to stop and waits for it to
+// exit. Safe to call multiple times and when no reconciler was started.
+func (s *Store) stopReconciler() {
+	s.reconcilerOnce.Do(func() {
+		if s.reconcilerDone != nil {
+			close(s.reconcilerDone)
+			s.reconcilerWg.Wait()
+		}
+	})
+}
+
+// reconcileFromDatabase reloads the configuration if the active configuration
+// row was changed by another writer. The reload never writes back to the
+// database: the other writer owns the active row, and normalization
+// differences (e.g. between server versions during a rolling upgrade) must not
+// cause nodes to rewrite each other's rows in a loop.
+func (s *Store) reconcileFromDatabase(databaseStore *DatabaseStore) {
+	changed, err := databaseStore.hasChangedExternally()
+	if err != nil {
+		mlog.Warn("Failed to check configuration store for external changes", mlog.Err(err))
+		return
+	}
+	if !changed {
+		return
+	}
+
+	mlog.Info("Configuration changed externally in the database, reloading")
+	if err := s.load(false); err != nil {
+		mlog.Error("Failed to reload configuration after external change", mlog.Err(err))
+	}
+}
+
+// ApplyClusterConfig applies a configuration received from another cluster
+// node. Database-backed stores re-read the shared database, which the sender
+// already updated, rather than persisting the pushed payload: concurrent
+// pushes can be applied out of order, and rewriting the active row could
+// reactivate a stale configuration. File-backed stores persist the payload
+// locally as usual, since each node owns its copy of the file.
+func (s *Store) ApplyClusterConfig(newCfg *model.Config) error {
+	databaseStore, ok := s.backingStore.(*DatabaseStore)
+	if !ok {
+		_, _, err := s.Set(newCfg)
+		return err
+	}
+
+	// The sender persisted a new active row before notifying, so a fresh read
+	// must expose a checksum we haven't seen. If it doesn't, either the read
+	// hit a lagging replica or the change was already applied locally; retry
+	// briefly and otherwise leave convergence to the reconciler.
+	for attempt := 0; ; attempt++ {
+		changed, err := databaseStore.hasChangedExternally()
+		if err != nil {
+			return err
+		}
+		if changed {
+			break
+		}
+		if attempt >= clusterConfigReadRetries {
+			mlog.Debug("Cluster config change not yet visible in the database; deferring to the reconciler")
+			return nil
+		}
+		time.Sleep(clusterConfigReadRetryDelay)
+	}
+
+	return s.load(false)
 }
 
 // NewStoreFromDSN creates and returns a new config store backed by either a database or file store
@@ -242,6 +359,13 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) 
 
 // Load updates the current configuration from the backing store, possibly initializing.
 func (s *Store) Load() error {
+	return s.load(true)
+}
+
+// load updates the current configuration from the backing store. When
+// persistOnChange is true, a changed or missing configuration is normalized
+// and written back to the backing store.
+func (s *Store) load(persistOnChange bool) error {
 	s.configLock.Lock()
 	defer s.configLock.Unlock()
 
@@ -315,9 +439,9 @@ func (s *Store) Load() error {
 		return errors.Wrap(err, "failed to compare configs")
 	}
 
-	// We write back to the backing store only if the store is not read-only
-	// and the config has either changed or is missing.
-	if !s.readOnly && (hasChanged || len(configBytes) == 0) {
+	// We write back to the backing store only if requested, the store is not
+	// read-only, and the config has either changed or is missing.
+	if persistOnChange && !s.readOnly && (hasChanged || len(configBytes) == 0) {
 		err := s.backingStore.Set(loadedCfgNoEnv)
 		if err != nil && !errors.Is(err, ErrReadOnlyConfiguration) {
 			return errors.Wrap(err, "failed to persist")
@@ -387,6 +511,10 @@ func (s *Store) String() string {
 
 // Close cleans up resources associated with the store.
 func (s *Store) Close() error {
+	// Wait for any in-flight reconcile before closing the backing store; the
+	// reconciler takes configLock itself, so this must happen before locking.
+	s.stopReconciler()
+
 	s.configLock.Lock()
 	defer s.configLock.Unlock()
 	return s.backingStore.Close()
