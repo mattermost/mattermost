@@ -1,0 +1,64 @@
+name: "Restore Playwright deps cache"
+description: >
+  The Actions-cache transport for the Playwright dependencies — node_modules, the
+  lib workspace's node_modules, and the chromium build — keyed on the Playwright
+  lockfile alone.
+
+  The payload is exactly what the lockfile determines, which is what keeps this
+  key stable: nothing built from our own source rides in it, so editing lib/src
+  or a platform type cannot invalidate ~275 MB of dependencies. Those build
+  outputs ship separately, via pack/unpack-playwright-build.
+
+  This is the fast path, taken whenever the key is warm. Read-only, as
+  e2e-ci-cache-warm-playwright-deps.yml is the only writer of the key, so PR and
+  merge runs never write to the Actions cache.
+
+  When the key is cold the template falls back to the artifact transport instead
+  — pack-playwright-deps into unpack-playwright-deps — which must land the same
+  payload in the same paths, so the two transports are interchangeable.
+
+inputs:
+  lookup-only:
+    description: "Probe whether the key exists without downloading the entry."
+    required: false
+    default: "false"
+  fail-on-cache-miss:
+    description: "Fail the step when the exact key is absent."
+    required: false
+    default: "false"
+
+outputs:
+  cache-hit:
+    description: "true on an exact-key hit"
+    value: ${{ steps.restore.outputs.cache-hit }}
+  key:
+    description: "The computed cache key"
+    value: ${{ steps.key.outputs.key }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: ci/compute-playwright-deps-key
+      id: key
+      shell: bash
+      run: echo "key=e2e-playwright-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}" >> "${GITHUB_OUTPUT}"
+    - name: ci/restore-playwright-deps
+      id: restore
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      # No restore-keys. The workers are the only consumer that downloads this
+      # entry, and they use it as-is with no install step to reconcile a
+      # near-miss, so an older node_modules would silently run the suite against
+      # the wrong dependencies. Exact key or nothing, with the artifact covering
+      # the nothing.
+      #
+      # A fuzzy match would not help the installers either: npm ci deletes
+      # node_modules before installing. Their warm start is ~/.npm, which
+      # restore-e2e-npm-cache does restore with restore-keys.
+      with:
+        path: |
+          e2e-tests/playwright/node_modules
+          e2e-tests/playwright/lib/node_modules
+          ~/.cache/ms-playwright
+        key: ${{ steps.key.outputs.key }}
+        lookup-only: ${{ inputs.lookup-only }}
+        fail-on-cache-miss: ${{ inputs.fail-on-cache-miss }}
