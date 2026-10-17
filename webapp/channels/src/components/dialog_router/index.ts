@@ -46,6 +46,7 @@ function mapStateToProps(state: GlobalState, ownProps: {triggerId?: string}) {
         notifyOnCancel: data.dialog.notify_on_cancel,
         state: data.dialog.state,
         sourceUrl: data.dialog.source_url,
+        size: data.dialog.size,
         emojiMap,
         hasUrl: Boolean(data.url),
         timezone: getCurrentTimezone(state) || undefined,

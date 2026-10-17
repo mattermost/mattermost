@@ -51,6 +51,7 @@ interface Props extends WrappedComponentProps {
 
     // Enhanced functionality
     sourceUrl?: string; // Optional URL for form refresh functionality
+    size?: AppForm['size']; // Width tier; undefined means the historical width
     conversionOptions?: Partial<ConversionOptions>;
     timezone?: string;
 
@@ -150,7 +151,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     };
 
     private convertToAppForm = (): {form?: AppForm; error?: string} => {
-        const {elements, title, introductionText, iconUrl, submitLabel, sourceUrl, state} = this.props;
+        const {elements, title, introductionText, iconUrl, submitLabel, sourceUrl, state, size} = this.props;
         this.currentDialogElements = flattenDialogElements(elements || []);
         const {form, errors} = convertDialogToAppForm(
             elements,
@@ -161,6 +162,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             sourceUrl || '',
             state || '',
             this.conversionContext,
+            size,
         );
 
         const {error} = this.handleValidationErrors(errors);

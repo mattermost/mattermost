@@ -8,6 +8,7 @@ const axios = require('axios');
 const ClientOAuth2 = require('client-oauth2');
 
 const webhookUtils = require('./utils/webhook_utils');
+const gridUtils = require('./utils/webhook_grid_utils');
 const postMessageAs = require('./tests/plugins/post_message_as');
 
 const port = 3000;
@@ -36,6 +37,8 @@ server.post('/dialog/field-refresh', onFieldRefreshDialogRequest);
 server.post('/dialog/multistep', onMultistepDialogRequest);
 server.post('/dialog/action_button_request', onActionButtonDialogRequest);
 server.post('/dialog/open_child', onOpenChildDialog);
+server.post('/dialog/grid', onGridDialogRequest);
+server.post('/dialog/grid_source', onGridDialogSource);
 server.post('/field_refresh_source', onFieldRefreshSource);
 server.post('/datetime_dialog_request', onDateTimeDialogRequest);
 server.post('/datetime_dialog_submit', onDateTimeDialogSubmit);
@@ -82,6 +85,8 @@ function ping(req, res) {
             'POST /dialog/multistep',
             'POST /dialog/action_button_request',
             'POST /dialog/open_child',
+            'POST /dialog/grid',
+            'POST /dialog/grid_source',
             'POST /field_refresh_source',
             'POST /datetime_dialog_request',
             'POST /datetime_dialog_submit',
@@ -671,6 +676,48 @@ async function onOpenChildDialog(req, res) {
 
     res.setHeader('Content-Type', 'application/json');
     return res.json({});
+}
+
+function onGridDialogRequest(req, res) {
+    return handleDialogOpen(req, res, gridUtils.getGridDialog, 'Grid dialog triggered via slash command!');
+}
+
+// onGridDialogSource is both the refresh target and the submit target for the
+// grid dialog. Because every cell is an ordinary element, there is no bespoke
+// grid payload to decode: cell values arrive in body.submission like any other
+// field, and errors go back in the ordinary errors map keyed by cell name.
+function onGridDialogSource(req, res) {
+    const {body} = req;
+
+    res.setHeader('Content-Type', 'application/json');
+
+    if (body.cancelled) {
+        return res.json({});
+    }
+
+    // The cell values round trip as ordinary fields, so folding them back onto
+    // the rows is all it takes to keep half-finished input on screen. The width
+    // selector folds back the same way, which is why a refresh for any other
+    // reason keeps the width the user picked.
+    let state = gridUtils.gridApplySubmission(gridUtils.gridDecodeState(body.state), body.submission);
+
+    if (body.type === 'refresh') {
+        if (body.submission && body.submission.selected_field === gridUtils.GRID_ADD_ROW_FIELD) {
+            state = gridUtils.gridAddRow(state);
+        }
+
+        return res.json({type: 'form', form: gridUtils.getGridForm(webhookBaseUrl, state)});
+    }
+
+    const errors = gridUtils.gridValidate(state);
+    if (Object.keys(errors).length > 0) {
+        // Returning only errors keeps the modal open with the user's values.
+        return res.json({errors});
+    }
+
+    const message = `Grid submitted: ${JSON.stringify(state.rows)}`;
+    sendSysadminResponse(message, body.channel_id);
+    return res.json({text: message});
 }
 
 function onFieldRefreshSource(req, res) {

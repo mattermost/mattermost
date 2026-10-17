@@ -4,7 +4,7 @@
 import {isAppSelectOption, type AppForm, type AppField, type AppFormValue, type AppSelectOption, type AppFormValues, type DateTimeConfig} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
-import {AppFieldTypes} from 'mattermost-redux/constants/apps';
+import {AppFieldLayouts, AppFieldTypes} from 'mattermost-redux/constants/apps';
 
 import {stringToMoment} from 'utils/date_utils';
 
@@ -22,6 +22,12 @@ export const DialogElementTypes = {
     CHECKBOX_MATRIX: 'checkbox_matrix',
     FILE: 'file',
     ACTION_BUTTON: 'action_button',
+} as const;
+
+// Collapsible subtypes (from legacy Interactive Dialog spec). An empty subtype
+// stacks, which is why there is no constant for it here.
+export const DialogCollapsibleSubTypes = {
+    GRID: 'grid',
 } as const;
 
 // Dialog element length limits (server-side validation constraints)
@@ -57,6 +63,7 @@ type ServerDialogResponse = {
     callback_id?: string;
     notify_on_cancel?: boolean;
     state?: string;
+    size?: AppForm['size'];
 };
 
 // Transformed dialog props structure
@@ -70,6 +77,7 @@ type TransformedDialogProps = {
     callbackId?: string;
     notifyOnCancel?: boolean;
     state?: string;
+    size?: AppForm['size'];
 };
 
 export type ConversionOptions = {
@@ -468,6 +476,7 @@ export function convertElement(element: DialogElement, options: ConversionOption
                 fields: childFields,
                 expanded: !element.collapsible_config?.collapsed,
                 bordered: !element.collapsible_config?.borderless,
+                layout: element.subtype === DialogCollapsibleSubTypes.GRID ? AppFieldLayouts.GRID : AppFieldLayouts.STACKED,
             },
         };
         return {field: collapsibleField, errors};
@@ -606,6 +615,7 @@ export function transformServerDialogToProps(serverDialog: ServerDialogResponse)
         callbackId: serverDialog.callback_id,
         notifyOnCancel: serverDialog.notify_on_cancel,
         state: serverDialog.state,
+        size: serverDialog.size,
     };
 }
 
@@ -621,6 +631,7 @@ export function convertDialogToAppForm(
     sourceUrl: string,
     dialogState: string,
     options: ConversionOptions,
+    size?: AppForm['size'],
 ): ConversionResult {
     const allErrors: ValidationError[] = [];
     const convertedFields: AppField[] = [];
@@ -679,6 +690,7 @@ export function convertDialogToAppForm(
             state: dialogState || undefined,
         },
         fields: convertedFields,
+        size,
     };
 
     // Set source if sourceUrl is provided or if any fields have refresh enabled
@@ -747,6 +759,7 @@ export function convertServerDialogResponseToAppForm(
         transformedDialog.sourceUrl || '',
         transformedDialog.state || '',
         options,
+        transformedDialog.size,
     );
 
     return {form, errors};

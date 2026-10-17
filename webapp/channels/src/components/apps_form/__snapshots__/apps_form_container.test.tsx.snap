@@ -21,7 +21,7 @@ exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
     tabindex="-1"
   >
     <div
-      class="a11y__modal about-modal modal-dialog"
+      class="a11y__modal about-modal apps-form-modal modal-dialog"
     >
       <div
         class="modal-content"

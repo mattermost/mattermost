@@ -3023,3 +3023,225 @@ func TestDialogElementIsValid_ActionButton(t *testing.T) {
 		assert.Contains(t, err.Error(), "invalid action_button URL")
 	})
 }
+
+func TestDialogSizeValidation(t *testing.T) {
+	getBaseDialog := func() Dialog {
+		return Dialog{
+			CallbackId: "callbackid",
+			Title:      "Some Title",
+			Elements: []DialogElement{
+				{
+					DisplayName: "Element Name",
+					Name:        "element_name",
+					Type:        "text",
+					Placeholder: "Enter a value",
+				},
+			},
+			SubmitLabel: "Submit",
+		}
+	}
+
+	t.Run("should accept an empty size, which is the width every dialog had before Size existed", func(t *testing.T) {
+		dialog := getBaseDialog()
+		dialog.Size = ""
+		assert.NoError(t, dialog.IsValid())
+	})
+
+	for _, size := range []string{DialogSizeSmall, DialogSizeMedium, DialogSizeLarge} {
+		t.Run("should accept size "+size, func(t *testing.T) {
+			dialog := getBaseDialog()
+			dialog.Size = size
+			assert.NoError(t, dialog.IsValid())
+		})
+	}
+
+	t.Run("should reject an unknown size", func(t *testing.T) {
+		dialog := getBaseDialog()
+		dialog.Size = "enormous"
+		assert.ErrorContains(t, dialog.IsValid(), `invalid dialog size "enormous"`)
+	})
+
+	t.Run("should reject a size differing only in case, so the tiers stay an exact set", func(t *testing.T) {
+		dialog := getBaseDialog()
+		dialog.Size = "Large"
+		assert.ErrorContains(t, dialog.IsValid(), `invalid dialog size "Large"`)
+	})
+
+	t.Run("should report a bad size alongside other validation failures", func(t *testing.T) {
+		dialog := getBaseDialog()
+		dialog.Size = "enormous"
+		dialog.Title = ""
+
+		err := dialog.IsValid()
+		assert.ErrorContains(t, err, "invalid dialog size")
+		assert.ErrorContains(t, err, "invalid dialog title")
+	})
+
+	t.Run("should omit size from JSON when unset, so an existing integration's payload is unchanged", func(t *testing.T) {
+		dialog := getBaseDialog()
+
+		b, err := json.Marshal(dialog)
+		require.NoError(t, err)
+		assert.NotContains(t, string(b), `"size"`)
+	})
+
+	t.Run("should round trip a size through JSON", func(t *testing.T) {
+		dialog := getBaseDialog()
+		dialog.Size = DialogSizeLarge
+
+		b, err := json.Marshal(dialog)
+		require.NoError(t, err)
+		assert.Contains(t, string(b), `"size":"large"`)
+
+		var decoded Dialog
+		require.NoError(t, json.Unmarshal(b, &decoded))
+		assert.Equal(t, DialogSizeLarge, decoded.Size)
+	})
+}
+
+func TestDialogCollapsibleSubTypeIsValid(t *testing.T) {
+	// A collapsible holding one leaf, with subtype left to the caller.
+	getCollapsible := func(subType string, childSubType string) DialogElement {
+		return DialogElement{
+			DisplayName: "Orders",
+			Name:        "order_grid",
+			Type:        "collapsible",
+			SubType:     subType,
+			Optional:    true,
+			CollapsibleConfig: &DialogElementCollapsibleConfig{
+				Elements: []DialogElement{
+					{
+						DisplayName: "Row",
+						Name:        "row_r1",
+						Type:        "collapsible",
+						SubType:     childSubType,
+						Optional:    true,
+						CollapsibleConfig: &DialogElementCollapsibleConfig{
+							Elements: []DialogElement{
+								{DisplayName: "Order #", Name: "cell_r1_order", Type: "text"},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+
+	for _, subType := range []string{"", DialogCollapsibleSubTypeGrid} {
+		t.Run("should accept collapsible subtype "+strconv.Quote(subType), func(t *testing.T) {
+			element := getCollapsible(subType, "")
+			assert.NoError(t, element.IsValid())
+		})
+	}
+
+	t.Run("should reject an unknown subtype on a collapsible", func(t *testing.T) {
+		element := getCollapsible("gird", "")
+		assert.ErrorContains(t, element.IsValid(), `invalid collapsible subtype "gird"`)
+	})
+
+	t.Run("should reject an unknown subtype on a nested collapsible", func(t *testing.T) {
+		// Nesting recurses into validateCollapsible directly rather than back
+		// through the type switch, so this is the path that would be missed if
+		// the check lived in isValid.
+		element := getCollapsible(DialogCollapsibleSubTypeGrid, "gird")
+		assert.ErrorContains(t, element.IsValid(), `invalid collapsible subtype "gird"`)
+	})
+
+	t.Run("should be case sensitive, matching how Size is validated", func(t *testing.T) {
+		element := getCollapsible("Grid", "")
+		assert.ErrorContains(t, element.IsValid(), `invalid collapsible subtype "Grid"`)
+	})
+}
+
+// The open-dialog path is where a bad size or a bad collapsible subtype
+// actually reaches the server, so it is worth pinning that OpenDialogRequest
+// surfaces both rather than only Dialog and DialogElement doing so in
+// isolation.
+//
+// What the caller does with that is a separate matter:
+// App.OpenInteractiveDialog logs the error and opens the dialog anyway, which
+// server/channels/app covers. Nothing here refuses a dialog over either field.
+func TestOpenDialogRequestIsValid_SizeAndGridSubType(t *testing.T) {
+	getBaseOpenDialogRequest := func() OpenDialogRequest {
+		return OpenDialogRequest{
+			TriggerId: "triggerId",
+			URL:       "http://localhost:8065",
+			Dialog: Dialog{
+				CallbackId: "callbackid",
+				Title:      "Order Queue",
+				Elements: []DialogElement{
+					{
+						DisplayName: "Orders",
+						Name:        "order_grid",
+						Type:        "collapsible",
+						SubType:     DialogCollapsibleSubTypeGrid,
+						Optional:    true,
+						CollapsibleConfig: &DialogElementCollapsibleConfig{
+							Elements: []DialogElement{
+								{
+									DisplayName: "SO-1042",
+									Name:        "row_r1",
+									Type:        "collapsible",
+									Optional:    true,
+									CollapsibleConfig: &DialogElementCollapsibleConfig{
+										Elements: []DialogElement{
+											{DisplayName: "Order #", Name: "cell_r1_order", Type: "text"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				SubmitLabel: "Submit orders",
+				Size:        DialogSizeLarge,
+			},
+		}
+	}
+
+	t.Run("should pass for a grid at a known width tier", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		assert.NoError(t, request.IsValid())
+	})
+
+	t.Run("should pass for a grid with no width tier set", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Size = ""
+		assert.NoError(t, request.IsValid())
+	})
+
+	t.Run("should surface an unknown size", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Size = "enormous"
+		assert.ErrorContains(t, request.IsValid(), `invalid dialog size "enormous"`)
+	})
+
+	t.Run("should surface an unknown collapsible subtype", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements[0].SubType = "gird"
+		assert.ErrorContains(t, request.IsValid(), `invalid collapsible subtype "gird"`)
+	})
+
+	t.Run("should surface both at once rather than stopping at the first", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Size = "Large"
+		request.Dialog.Elements[0].CollapsibleConfig.Elements[0].SubType = "Grid"
+
+		err := request.IsValid()
+		assert.ErrorContains(t, err, `invalid dialog size "Large"`)
+		assert.ErrorContains(t, err, `invalid collapsible subtype "Grid"`)
+	})
+
+	t.Run("should round trip a grid dialog through JSON", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+
+		b, err := json.Marshal(request)
+		require.NoError(t, err)
+
+		var decoded OpenDialogRequest
+		require.NoError(t, json.Unmarshal(b, &decoded))
+		assert.Equal(t, DialogSizeLarge, decoded.Dialog.Size)
+		assert.Equal(t, DialogCollapsibleSubTypeGrid, decoded.Dialog.Elements[0].SubType)
+		assert.NoError(t, decoded.IsValid())
+	})
+}
