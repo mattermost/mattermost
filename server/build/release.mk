@@ -202,6 +202,7 @@ package-prep: setup-go-work
 	sed -i'' -e 's|"SMTPServer": "localhost",|"SMTPServer": "",|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"SMTPPort": "2500",|"SMTPPort": "",|g' $(DIST_PATH)/config/config.json
 	chmod 600 $(DIST_PATH)/config/config.json
+	cp -L build/mattermost.service $(DIST_PATH)/config/mattermost.service
 
 	@# Package web app
 	mkdir -p $(DIST_PATH)/client

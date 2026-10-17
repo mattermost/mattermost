@@ -74,107 +74,88 @@ In an air-gapped environment, stage the tarball on your operator workstation, ve
 
 ## Step 4: Install Mattermost Server
 
-Extract the tarball, move it into place, and set ownership.
+Extract the tarball and move it into place:
 
 ```sh
 tar -xvzf mattermost*.gz
 sudo mv mattermost /opt
-sudo mkdir /opt/mattermost/data
-sudo useradd --system --user-group mattermost
-sudo chown -R mattermost:mattermost /opt/mattermost
-sudo chmod -R g+w /opt/mattermost
 ```
 
-<Note title="Custom paths and users">
+<Note title="Files, plugins, and the service user">
 
-If you use a path other than `/opt/mattermost` or a user/group name other than `mattermost`, use that name in every step that follows.
+On a new installation, `mattermost setup` creates the `mattermost` system user when it is missing. It stores files in `/var/lib/mattermost/data`, plugins in `/var/lib/mattermost/plugins` and `/var/lib/mattermost/client/plugins`, and logs in `/var/log/mattermost`. An existing installation keeps the paths it already uses. Pass `--uid` when this host must match a shared-storage uid. Setup does not change an existing user.
 
 </Note>
 
-Create the systemd unit file at `/etc/systemd/system/mattermost.service`:
+Copy the unit shipped with the tarball:
+
+```sh
+sudo cp /opt/mattermost/config/mattermost.service /etc/systemd/system/mattermost.service
+sudo systemctl daemon-reload
+```
 
 <Note>
 
-Earlier versions of this guide had you create the unit file under `/lib/systemd/system/`, which is reserved for unit files installed and owned by a package manager.
+Earlier versions of this guide had you write the unit file by hand, or place it under `/lib/systemd/system/`. `/lib/systemd/system/` is reserved for unit files installed by a package manager. The shipped unit loads `/etc/mattermost/mattermost.env`.
 
 </Note>
 
-```ini
-[Unit]
-Description=Mattermost
-After=network.target
-
-[Service]
-Type=notify
-ExecStart=/opt/mattermost/bin/mattermost
-TimeoutStartSec=3600
-KillMode=mixed
-Restart=always
-RestartSec=10
-WorkingDirectory=/opt/mattermost
-User=mattermost
-Group=mattermost
-LimitNOFILE=49152
-
-[Install]
-WantedBy=multi-user.target
-```
-
 <Note title="Local database">
 
-If PostgreSQL is on the same host, add to the `[Unit]` section so Mattermost won't start before the database is ready:
+If PostgreSQL is on the same host, add a drop-in so Mattermost won't start before the database is ready. Do not edit the unit copied from the tarball in place; `systemctl edit` keeps the change separate.
+
+```sh
+sudo systemctl edit mattermost
+```
 
 ```ini
+[Unit]
 After=postgresql.service
 BindsTo=postgresql.service
 ```
 
 </Note>
 
-Reload systemd:
-
-```sh
-sudo systemctl daemon-reload
-```
-
 ## Step 5: Configure and start the server
 
-Back up the default config before editing:
+Run setup as root. It writes `/etc/mattermost/mattermost.env` (mode `0600`) and points the unit at that file. By default the active configuration is stored in PostgreSQL. Setup does not enable or start the service.
 
 ```sh
-sudo cp /opt/mattermost/config/config.json /opt/mattermost/config/config.defaults.json
-```
-
-Edit `/opt/mattermost/config/config.json` and set:
-
-- `SqlSettings.DriverName`: `"postgres"`
-- `SqlSettings.DataSource`: `"postgres://mmuser:<mmuser-password>@<host>:5432/mattermost?sslmode=disable&connect_timeout=10"` — replace each placeholder.
-- `ServiceSettings.SiteURL`: the public URL of your deployment (e.g., `https://mattermost.example.com`).
-- (Recommended) [`SupportSettings.SupportEmail`](/administration-guide/configure/site-configuration-settings#support-email-address): the email address users contact for help.
-
-Start the server:
-
-```sh
-sudo systemctl start mattermost
+sudo /opt/mattermost/bin/mattermost setup
+sudo systemctl enable --now mattermost
 curl http://localhost:8065
 ```
 
-You should see the Mattermost HTML response. Enable on boot:
+You should see the Mattermost HTML response.
+
+On a new installation, setup asks for the PostgreSQL URL and the Site URL. A non-interactive install:
 
 ```sh
-sudo systemctl enable mattermost.service
+printf '%s\n' 'postgres://mmuser:<mmuser-password>@<host>:5432/mattermost?sslmode=disable' | sudo tee /root/mattermost-database.url >/dev/null
+sudo chmod 600 /root/mattermost-database.url
+sudo /opt/mattermost/bin/mattermost setup \
+  --database-url-file /root/mattermost-database.url \
+  --site-url 'https://mattermost.example.com' \
+  --non-interactive
 ```
+
+The URL file keeps the password out of the shell history and the process list. Remove it after setup. `--database-url -` reads one line from stdin instead.
+
+Pass `--config-store file` to keep configuration in a file. Setup then writes `/etc/mattermost/config.json` and sets `MM_CONFIG` to that path.
+
+Once the environment file is in place, Mattermost does not read `/opt/mattermost/config/config.json`. Change settings afterward in the System Console, with `mmctl`, or by editing `/etc/mattermost/config.json` when you chose file storage. Set [`SupportSettings.SupportEmail`](/administration-guide/configure/site-configuration-settings#support-email-address) to the address users contact for help.
+
+An existing server that already has configuration in PostgreSQL can be joined with the same command. Setup reports that this is an existing installation, checks connectivity, and writes this host's environment file. It adds a systemd drop-in only when the unit does not already load that file. It does not change the stored configuration or the Site URL. Do not run setup as part of a version upgrade.
 
 ## Step 6: Update the server
 
 Tarball installs are upgraded manually — there's no package manager to pull the new version. See [Upgrading Mattermost Server](/administration-guide/upgrade/upgrading-mattermost-server) for the step-by-step procedure. The summary:
 
 1. Stop the running server (`sudo systemctl stop mattermost`).
-2. Back up `config/`, `data/`, `plugins/`, and your PostgreSQL database.
+2. Back up the PostgreSQL database. Also back up `/var/lib/mattermost`, `/var/log/mattermost`, and `/etc/mattermost` when setup created them. Older installs keep `config/`, `data/`, and `plugins/` under `/opt/mattermost`.
 3. Download the new tarball.
-4. Extract over the install directory (preserving `config/`, `data/`, `plugins/`).
-5. Reset ownership and permissions.
-6. Start the server.
+4. Extract over the install directory, preserving any of those directories that still live under `/opt/mattermost`.
+5. Start the server.
 
 ## Remove Mattermost
 
@@ -183,13 +164,14 @@ Stop the server, back up data you need to keep, then remove the install:
 ```sh
 sudo systemctl stop mattermost
 sudo rm -rf /opt/mattermost
-sudo rm /lib/systemd/system/mattermost.service
+sudo rm -f /etc/systemd/system/mattermost.service
+sudo rm -rf /etc/systemd/system/mattermost.service.d
 sudo userdel mattermost
 ```
 
 <Important title="Back up before removing">
 
-`/opt/mattermost` contains `config/`, `logs/`, `plugins/`, `client/plugins/`, and `data/`. Back these up before running `rm -rf` if you may need to restore.
+An install that used `mattermost setup` keeps files in `/var/lib/mattermost`, logs in `/var/log/mattermost`, and configuration in `/etc/mattermost`. Back those up before deleting them. Older installs may still keep `config/`, `logs/`, `plugins/`, `client/plugins/`, and `data/` under `/opt/mattermost`.
 
 </Important>
 
