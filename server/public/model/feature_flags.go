@@ -186,6 +186,11 @@ type FeatureFlags struct {
 	// HealthDashboard replaces the Workspace Optimization dashboard with the rules-driven
 	// Health Dashboard. Off by default.
 	HealthDashboard bool
+
+	// EnableBrotliCompression negotiates Brotli compression for API responses with
+	// clients that advertise support for it, falling back to gzip otherwise. Requires
+	// WebserverMode to be "gzip".
+	EnableBrotliCompression bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -260,6 +265,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnforceLogPathRoot = false
 
 	f.HealthDashboard = false
+
+	f.EnableBrotliCompression = false
 }
 
 // isValid rejects feature flag combinations that are no longer supported.
