@@ -101,7 +101,7 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 }
 
 // confirmInviteSendError maps a failed confirm_invite request to an AppError. resp is the body the remote
-// answered with alongside a non-200 status, if any; only its AppError id is used, to pick a local translation.
+// answered with alongside a non-200 status, if any; its AppError id picks a local translation and its message is only logged.
 func (rcs *Service) confirmInviteSendError(remoteId string, url string, resp []byte, err error) *model.AppError {
 	if errors.Is(err, errRemoteUnreachable) {
 		return model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": markdownSafeURL(url)}, "", http.StatusBadGateway).Wrap(err)
@@ -115,7 +115,7 @@ func (rcs *Service) confirmInviteSendError(remoteId string, url string, resp []b
 		return model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.invalid_response.app_error", nil, "", http.StatusBadGateway).Wrap(err)
 	}
 
-	rcs.server.Log().Warn("Remote site refused the invitation", mlog.String("remote_id", remoteId), mlog.String("remote_error_id", remoteErr.Id), mlog.Err(err))
+	rcs.server.Log().Warn("Remote site refused the invitation", mlog.String("remote_id", remoteId), mlog.String("remote_error_id", remoteErr.Id), mlog.String("reason", remoteErr.Message), mlog.Err(err))
 	if remoteErr.Id == remoteInvitationExpiredErrorId {
 		return model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.expired.app_error", nil, "", http.StatusBadGateway).Wrap(err)
 	}
