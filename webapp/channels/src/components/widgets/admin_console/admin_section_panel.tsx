@@ -49,11 +49,17 @@ const AdminSectionPanel: React.FC<Props> = ({
         );
     }
 
+    const titleDescriptor = title ? asMessageDescriptor(title) : undefined;
+    const descriptionDescriptor = description ? asMessageDescriptor(description) : undefined;
+
     return (
         <AdminPanel
             className={classNames('AdminSectionPanel')}
-            title={title ? asMessageDescriptor(title) : {id: 'admin.section_panel.untitled', defaultMessage: ' '}}
-            subtitle={description ? asMessageDescriptor(description) : undefined}
+            title={titleDescriptor ?? descriptionDescriptor ?? {
+                id: 'admin.section_panel.untitled',
+                defaultMessage: 'Settings',
+            }}
+            subtitle={titleDescriptor ? descriptionDescriptor : undefined}
             button={licenseSku ? <LicenseSkuBadge sku={licenseSku}/> : undefined}
             data-testid={dataTestId}
         >

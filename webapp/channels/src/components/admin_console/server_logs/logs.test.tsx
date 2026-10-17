@@ -90,8 +90,8 @@ describe('components/admin_console/server_logs/Logs', () => {
 
             // Icon-only DataGrid-style pagination (no "1 - X of Y" count).
             expect(screen.queryByText(/^Next$/i)).not.toBeInTheDocument();
-            expect(screen.getByRole('button', {name: 'Previous page'})).toBeDisabled();
-            expect(screen.getByRole('button', {name: 'Next page'})).toBeDisabled();
+            expect(screen.getByRole('button', {name: 'Previous'})).toBeDisabled();
+            expect(screen.getByRole('button', {name: 'Next'})).toBeDisabled();
             expect(container.querySelector('[data-testid="plain-log-list-footer"]')).toBeInTheDocument();
         });
     });

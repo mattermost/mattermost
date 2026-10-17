@@ -124,7 +124,13 @@ export default class Logs extends React.PureComponent<Props, State> {
     };
 
     onLogFormatToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({isPlainLogs: event.target.value === 'plain', search: ''}, () => {
+        // Clear search and level filters so the LogList filter UI (which remounts
+        // without controlled selection) stays in sync with what reload() sends.
+        this.setState({
+            isPlainLogs: event.target.value === 'plain',
+            search: '',
+            logLevels: [],
+        }, () => {
             this.reload();
         });
     };

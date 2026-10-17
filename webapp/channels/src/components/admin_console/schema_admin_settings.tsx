@@ -1275,14 +1275,35 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
 
         const schemaSections = 'sections' in schema ? schema.sections : undefined;
         if ('settings' in schema && schema.settings && !schemaSections) {
-            // Flat settings (e.g. Localization) that each self-render AdminPanel must
-            // be direct flex children of schema-sections. Wrapping them in
-            // SettingsGroup would collapse the gap to a single child.
+            const settingsList = buildSettingsList(schema.settings);
+
+            // Custom settings without showTitle (e.g. Localization Languages /
+            // Auto-translation) each render their own AdminPanel and must be
+            // direct flex children so schema-sections gap separates panels.
+            // Ordinary flat settings stay in SettingsGroup so the gap is between
+            // groups, not every individual control.
+            const visibleSettings = schema.settings.filter((setting) => !this.isHidden(setting));
+            const settingsSelfRenderPanels = visibleSettings.length > 0 && visibleSettings.every(
+                (setting) => setting.type === Constants.SettingsTypes.TYPE_CUSTOM && !setting.showTitle,
+            );
+
+            if (settingsSelfRenderPanels) {
+                return (
+                    <div className='admin-console__schema-sections'>
+                        {header}
+                        {settingsList}
+                        {footer}
+                    </div>
+                );
+            }
+
             return (
                 <div className='admin-console__schema-sections'>
-                    {header}
-                    {buildSettingsList(schema.settings)}
-                    {footer}
+                    <SettingsGroup container={false}>
+                        {header}
+                        {settingsList}
+                        {footer}
+                    </SettingsGroup>
                 </div>
             );
         } else if (schemaSections) {

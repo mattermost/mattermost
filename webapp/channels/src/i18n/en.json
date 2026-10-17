@@ -9783,9 +9783,17 @@
     "defaultMessage": "Log Format:",
     "description": "Label for the log format toggle (JSON vs. plain text) on the Server Logs page; ends with a colon."
   },
+  "admin.logs.next": {
+    "defaultMessage": "Next",
+    "description": "Pagination button label on the plain-text server logs view; goes to the next page of log lines."
+  },
   "admin.logs.options": {
     "defaultMessage": "Options",
     "description": "Column header in the Server Logs table for the per-row actions column."
+  },
+  "admin.logs.prev": {
+    "defaultMessage": "Previous",
+    "description": "Pagination button label on the plain-text server logs view; goes to the previous page of log lines."
   },
   "admin.logs.ReloadLogs": {
     "defaultMessage": "Reload Logs",
@@ -10388,7 +10396,7 @@
     "description": "Accessible label for the control that expands a collapsed System Console admin settings panel."
   },
   "admin.panel.untitled": {
-    "defaultMessage": " ",
+    "defaultMessage": "Settings",
     "description": ""
   },
   "admin.password.enableForgotLink.description": {
