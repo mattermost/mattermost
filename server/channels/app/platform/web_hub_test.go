@@ -395,13 +395,13 @@ func TestHubConnIndex(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("ForChannel", func(t *testing.T) {
-			require.Len(t, connIndex.byChannelID, 1)
+			require.Len(t, connIndex.byChannelKey, 1)
 			ids := make([]string, 0)
-			for c := range connIndex.ForChannel(th.BasicChannel.Id) {
+			for c := range forChannel(connIndex, th.BasicChannel.Id) {
 				ids = append(ids, c.GetConnectionID())
 			}
 			require.ElementsMatch(t, []string{wc1ID, wc2ID, wc3ID}, ids)
-			require.Len(t, slices.Collect(connIndex.ForChannel("notexist")), 0)
+			require.Len(t, slices.Collect(forChannel(connIndex, "notexist")), 0)
 		})
 
 		ch := th.CreateChannel(t, th.BasicTeam)
@@ -416,15 +416,15 @@ func TestHubConnIndex(t *testing.T) {
 
 		t.Run("InvalidateCMCacheForUser", func(t *testing.T) {
 			require.NoError(t, connIndex.InvalidateCMCacheForUser(th.BasicUser2.Id))
-			require.Len(t, connIndex.byChannelID, 2)
-			require.Len(t, slices.Collect(connIndex.ForChannel(th.BasicChannel.Id)), 3)
-			require.Len(t, slices.Collect(connIndex.ForChannel(ch.Id)), 2)
+			require.Len(t, connIndex.byChannelKey, 2)
+			require.Len(t, slices.Collect(forChannel(connIndex, th.BasicChannel.Id)), 3)
+			require.Len(t, slices.Collect(forChannel(connIndex, ch.Id)), 2)
 		})
 
 		t.Run("Remove", func(t *testing.T) {
 			connIndex.Remove(wc3)
-			require.Len(t, connIndex.byChannelID, 2)
-			require.Len(t, slices.Collect(connIndex.ForChannel(th.BasicChannel.Id)), 2)
+			require.Len(t, connIndex.byChannelKey, 2)
+			require.Len(t, slices.Collect(forChannel(connIndex, th.BasicChannel.Id)), 2)
 		})
 	})
 }
@@ -602,9 +602,9 @@ func TestHubIsRegistered(t *testing.T) {
 	defer wc2.Close()
 	defer wc3.Close()
 
-	assert.True(t, th.Service.SessionIsRegistered(*wc1.session.Load()))
-	assert.True(t, th.Service.SessionIsRegistered(*wc2.session.Load()))
-	assert.True(t, th.Service.SessionIsRegistered(*wc3.session.Load()))
+	assert.True(t, th.Service.SessionIsRegistered(*wc1.GetSession()))
+	assert.True(t, th.Service.SessionIsRegistered(*wc2.GetSession()))
+	assert.True(t, th.Service.SessionIsRegistered(*wc3.GetSession()))
 
 	session4, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser2.Id,
@@ -772,7 +772,7 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 	require.NoError(b, connIndex.Add(wc3))
 
 	for b.Loop() {
-		globalIter = connIndex.ForChannel(th.BasicChannel.Id)
+		globalIter = forChannel(connIndex, th.BasicChannel.Id)
 	}
 }
 
@@ -952,4 +952,44 @@ func TestClusterBroadcastHooks(t *testing.T) {
 		assert.IsType(t, map[string]any{}, received.GetBroadcast().BroadcastHookArgs[0]["user"])
 		assert.IsType(t, []any{}, received.GetBroadcast().BroadcastHookArgs[0]["array"])
 	})
+}
+
+func TestConnSet(t *testing.T) {
+	conns := make([]*WebConn, connSetSmallMax+2)
+	for i := range conns {
+		conns[i] = &WebConn{}
+	}
+
+	t.Run("stays a slice up to the limit, then becomes a map", func(t *testing.T) {
+		var s connSet
+		for _, wc := range conns[:connSetSmallMax] {
+			s.add(wc)
+		}
+		s.add(conns[0])
+		require.Nil(t, s.large)
+		require.Equal(t, connSetSmallMax, s.len(), "adding a member twice keeps one")
+		s.add(conns[connSetSmallMax])
+		require.Nil(t, s.small)
+		require.Equal(t, connSetSmallMax+1, s.len())
+		require.ElementsMatch(t, conns[:connSetSmallMax+1], slices.Collect(s.all()))
+	})
+
+	t.Run("removing the visited member while iterating visits every member once", func(t *testing.T) {
+		var s connSet
+		for _, wc := range conns[:10] {
+			s.add(wc)
+		}
+		var visited []*WebConn
+		for wc := range s.all() {
+			visited = append(visited, wc)
+			s.remove(wc)
+		}
+		require.ElementsMatch(t, conns[:10], visited)
+		require.Zero(t, s.len())
+	})
+}
+
+// forChannel returns the connections for channelID, decoding it as the hub does.
+func forChannel(connIndex *hubConnectionIndex, channelID string) iter.Seq[*WebConn] {
+	return connIndex.ForChannel(channelID, decodeChannelID(channelID))
 }
