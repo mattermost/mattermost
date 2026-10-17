@@ -28,6 +28,7 @@ const usePendingQuote = (
     rootId: string,
     isInEditMode: boolean,
     isDisabled: boolean,
+    isBusy: boolean,
     textboxRef: React.RefObject<TextboxClass | null>,
     wysiwygRef: React.RefObject<WysiwygEditorHandle | null>,
 ) => {
@@ -39,8 +40,14 @@ const usePendingQuote = (
             return;
         }
 
+        // Keep the quote until the message box is done with what it's doing, such as rewriting the draft.
+        if (isBusy) {
+            return;
+        }
+
         dispatch(clearPendingQuote());
 
+        // The message box can't be used, such as in a read-only channel, so drop the quote.
         if (isDisabled) {
             return;
         }
@@ -66,9 +73,10 @@ const usePendingQuote = (
             }
         });
 
-        // Only react to new quotes. The draft and its handlers are read at that moment.
+        // Only react to new quotes and to the message box becoming available. The draft and its
+        // handlers are read at that moment.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pendingQuote]);
+    }, [pendingQuote, isBusy]);
 };
 
 export default usePendingQuote;
