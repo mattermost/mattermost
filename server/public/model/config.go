@@ -3646,7 +3646,7 @@ type PluginSettings struct {
 	SignaturePublicKeyFiles     []string                  `access:"plugins,write_restrictable,cloud_restrictable"`
 }
 
-func (s *PluginSettings) SetDefaults(ls LogSettings) {
+func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
 	if s.Enable == nil {
 		s.Enable = new(true)
 	}
@@ -3697,6 +3697,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates[PluginIdAI] == nil {
 		// Enable the AI plugin by default
 		s.PluginStates[PluginIdAI] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates[PluginIdMetrics] == nil && ms.Enable != nil && *ms.Enable {
+		// Left unset otherwise, so the plugin gets enabled once performance monitoring is turned on
+		s.PluginStates[PluginIdMetrics] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -4387,7 +4392,8 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.CacheSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
-	o.PluginSettings.SetDefaults(o.LogSettings)
+	o.LogSettings.SetDefaults()
+	o.PluginSettings.SetDefaults(o.LogSettings, o.MetricsSettings)
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
@@ -4398,7 +4404,6 @@ func (o *Config) SetDefaults() {
 	o.DataRetentionSettings.SetDefaults()
 	o.MobileEphemeralModeSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
-	o.LogSettings.SetDefaults()
 	o.ExperimentalAuditSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
