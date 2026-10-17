@@ -1,0 +1,64 @@
+# Path prefix → Playwright spec mapping for AMQA scoped automation.
+# Extend incrementally; cap 20 specs per PR in spec_mapper.py.
+
+mappings:
+  - prefix: webapp/channels/src/components/post/
+    specs:
+      - e2e-tests/playwright/specs/functional/channels/threads/threads_list.spec.ts
+  - prefix: webapp/channels/src/components/admin_console/
+    specs:
+      - e2e-tests/playwright/specs/functional/system_console/permissions/team_access.spec.ts
+      - e2e-tests/playwright/specs/functional/system_console/site_configuration/classification_markings.spec.ts
+  - prefix: webapp/channels/src/components/recaps_link/
+    specs:
+      - e2e-tests/playwright/specs/functional/channels/search/find_channels.spec.ts
+  - prefix: webapp/channels/src/components/team_settings/
+    specs:
+      - e2e-tests/playwright/specs/functional/channels/team_settings/team_settings_info.spec.ts
+  - prefix: webapp/channels/src/components/emoji_picker/
+    specs:
+      - e2e-tests/playwright/specs/functional/channels/emoji_picker/emoji_picker.spec.ts
+  - prefix: webapp/channels/src/components/unreads_filter/
+    specs:
+      - e2e-tests/playwright/specs/functional/channels/unreads_filter/unreads_filter.spec.ts
+  - prefix: server/channels/app/team.go
+    specs:
+      - e2e-tests/playwright/specs/functional/system_console/abac/teams/team_integration.spec.ts
+  - prefix: server/channels/app/channel.go
+    specs:
+      - e2e-tests/playwright/specs/functional/channels/search/find_channels.spec.ts
+  - prefix: server/channels/store/sqlstore/thread_store.go
+    specs:
+      - e2e-tests/playwright/specs/functional/channels/threads/threads_list.spec.ts
+  - prefix: server/channels/api4/user.go
+    specs:
+      - e2e-tests/playwright/specs/functional/system_console/system_users/search.spec.ts
+  - prefix: server/channels/api4/team.go
+    specs:
+      - e2e-tests/playwright/specs/functional/system_console/abac/teams/team_integration.spec.ts
+  - prefix: server/public/model/config.go
+    specs:
+      - e2e-tests/playwright/specs/functional/system_console/permissions/team_access.spec.ts
+  - prefix: webapp/channels/src/components/file_attachment/
+    specs:
+      - e2e-tests/playwright/specs/functional/channels/file_attachments/edit_file_attachment.spec.ts
+  - prefix: webapp/channels/src/components/mentions/
+    specs:
+      - e2e-tests/playwright/specs/functional/channels/mentions/multiple_mentions.spec.ts
+  - prefix: server/channels/db/migrations/
+    specs:
+      - e2e-tests/playwright/specs/functional/channels/search/find_channels.spec.ts
+
+tag_specs:
+  abac:
+    - e2e-tests/playwright/specs/functional/system_console/abac/teams/team_integration.spec.ts
+  classification:
+    - e2e-tests/playwright/specs/functional/system_console/site_configuration/classification_markings.spec.ts
+  admin:
+    - e2e-tests/playwright/specs/functional/system_console/permissions/team_access.spec.ts
+  thread:
+    - e2e-tests/playwright/specs/functional/channels/threads/threads_list.spec.ts
+
+sev1_smoke:
+  - e2e-tests/playwright/specs/functional/channels/search/find_channels.spec.ts
+  - e2e-tests/playwright/specs/functional/system_console/permissions/team_access.spec.ts
