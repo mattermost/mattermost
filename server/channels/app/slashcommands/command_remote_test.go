@@ -834,6 +834,30 @@ func TestRemoteProviderAutocompleteQuotedValues(t *testing.T) {
 		}
 	})
 
+	t.Run("the input after a closed quoted value is parsed as the next argument", func(t *testing.T) {
+		pre := "secure-connection create --name n --displayname "
+
+		assert.Equal(t, []model.AutocompleteSuggestion{{
+			Complete:    pre + "'Bob's Remote' --password ",
+			Suggestion:  "--password",
+			Description: T("api.command_remote.invite_password.help"),
+		}}, suggest(pre+"'Bob's Remote' --pass"))
+
+		input := pre + "'Bob's Remote' --password "
+		assert.Equal(t, []model.AutocompleteSuggestion{{
+			Complete:    input,
+			Hint:        T("api.command_remote.invite_password.hint"),
+			Description: T("api.command_remote.invite_password.help"),
+		}}, suggest(input))
+
+		input = pre + "'Bob's Remote'  "
+		assert.Equal(t, []model.AutocompleteSuggestion{{
+			Complete:    input + "--password ",
+			Suggestion:  "--password",
+			Description: T("api.command_remote.invite_password.help"),
+		}}, suggest(input))
+	})
+
 	t.Run("the value hint stays up until the quote is closed", func(t *testing.T) {
 		for _, tt := range []struct {
 			name        string
@@ -843,6 +867,8 @@ func TestRemoteProviderAutocompleteQuotedValues(t *testing.T) {
 			{"curly double quote", "\u201cMy Rem"},
 			{"apostrophe then space", "'Bob's Rem"},
 			{"flag inside single quotes", "'My --pa"},
+			{"curly double quote opened again before it closes", "\u201cMy \u201cRemote\u201d "},
+			{"extra space before the quote", " 'My Rem"},
 		} {
 			t.Run(tt.name, func(t *testing.T) {
 				input := "secure-connection create --name n --displayname " + tt.displayname
@@ -869,5 +895,6 @@ func TestRemoteProviderAutocompleteQuotedValues(t *testing.T) {
 
 		assert.Empty(t, suggest("plugincmd create --name n --displayname 'My Remote' "))
 		assert.Empty(t, suggest("plugincmd create --name n --displayname \u201cMy Remote\u201d "))
+		assert.Empty(t, suggest("rename 'My Ch"))
 	})
 }
