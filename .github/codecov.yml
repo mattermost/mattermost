@@ -1,10 +1,12 @@
 codecov:
   require_ci_to_pass: false
-  # Wait for all coverage uploads (4 server shards + 1 webapp) before
+  # Wait for all coverage uploads (server test group shards + 1 webapp) before
   # computing status. Without this, Codecov may report partial coverage
   # from the first shard to finish, showing a misleading drop on the PR.
+  # Server shard count comes from server/scripts/test-groups.js; CI fails
+  # (check-codecov) if these numbers drift from it.
   notify:
-    after_n_builds: 5
+    after_n_builds: 11
 
 coverage:
   status:
@@ -32,7 +34,7 @@ coverage:
 
 flags:
   server:
-    after_n_builds: 4 # 4 server test shards
+    after_n_builds: 10 # server test group shards (server/scripts/test-groups.js)
   webapp:
     after_n_builds: 1 # 1 merged webapp upload
 
