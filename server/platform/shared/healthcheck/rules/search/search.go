@@ -20,6 +20,7 @@ func init() {
 	healthcheck.Register(
 		esLocalhostURL,
 		esServerError,
+		searchUnavailable,
 		scaleESRequired,
 		scaleESRecommended,
 		esLiveBatchSync,
@@ -83,6 +84,22 @@ var esServerError = healthcheck.Rule{
 	Volatility: healthcheck.VolatilityProbe,
 	Subject:    connectionURLSubject,
 	Eval:       evalESServerError,
+}
+
+var searchUnavailable = healthcheck.Rule{
+	Code:     "SEARCH_UNAVAILABLE",
+	Area:     model.AreaSearch,
+	Severity: healthcheck.SeverityCritical,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.search_unavailable.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.search_unavailable.remediation"),
+		DocsURL:       searchDocsURL,
+		ConsolePath:   searchConsolePath,
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityStable,
+	Subject:    "SqlSettings.DisableDatabaseSearch",
+	Eval:       evalSearchUnavailable,
 }
 
 var scaleESRequired = healthcheck.Rule{
@@ -219,6 +236,10 @@ func whenIndexing(eval func(*healthcheck.Snapshot) []healthcheck.Result) func(*h
 	}
 }
 
+func databaseSearchDisabled(s *healthcheck.Snapshot) (bool, bool) {
+	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.SqlSettings.DisableDatabaseSearch })
+}
+
 func connectionURL(s *healthcheck.Snapshot) (string, bool) {
 	return s.ConfigString(func(cfg *model.Config) *string { return cfg.ElasticsearchSettings.ConnectionURL })
 }
@@ -291,12 +312,41 @@ func evalESServerError(s *healthcheck.Snapshot) []healthcheck.Result {
 
 	switch diag.ElasticSearch.Status {
 	case model.StatusFail:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.es_server_error.message")).WithDetail("error", maskURLCredentials(diag.ElasticSearch.Error))}
+		return []healthcheck.Result{healthcheck.Firing(esServerErrorMessage(s)).WithDetail("error", maskURLCredentials(diag.ElasticSearch.Error))}
 	case model.StatusOk, model.StatusDisabled:
 		return resolved()
 	default:
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
 	}
+}
+
+// esServerErrorMessage says search is fully down when there is no database fallback.
+func esServerErrorMessage(s *healthcheck.Snapshot) string {
+	if dbDisabled, ok := databaseSearchDisabled(s); ok && dbDisabled {
+		return healthcheck.TranslationId("health.rule.es_server_error.message.no_fallback")
+	}
+	return healthcheck.TranslationId("health.rule.es_server_error.message")
+}
+
+// evalSearchUnavailable fires when neither the database nor Elasticsearch serves search.
+func evalSearchUnavailable(s *healthcheck.Snapshot) []healthcheck.Result {
+	dbDisabled, ok := databaseSearchDisabled(s)
+	if !ok {
+		return unknownConfig()
+	}
+	if !dbDisabled {
+		return resolved()
+	}
+
+	searching, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ElasticsearchSettings.EnableSearching })
+	if !ok {
+		return unknownConfig()
+	}
+	if searching {
+		return resolved()
+	}
+
+	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.search_unavailable.message"))}
 }
 
 // evalScale fires when the post count is in (lower, upper] while search runs against the database.

@@ -332,6 +332,7 @@ func healthTestPacketFiles() map[string]string {
 		model.SupportPacketStatsFileName:       "posts: 1000\n",
 		model.SupportPacketConfigFileName: `{
     "ServiceSettings": {"SiteURL": "https://chat.example.com"},
+    "SqlSettings": {"DisableDatabaseSearch": false},
     "ElasticsearchSettings": {"EnableIndexing": false, "EnableSearching": false},
     "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"}
 }`,

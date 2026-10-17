@@ -76,7 +76,7 @@ func assertResult(t *testing.T, rule healthcheck.Rule, s *healthcheck.Snapshot, 
 func TestConfigAbsentIsUnknown(t *testing.T) {
 	t.Parallel()
 
-	configRules := []healthcheck.Rule{esLocalhostURL, scaleESRequired, scaleESRecommended, esLiveBatchSync, esLiveBatchTooHigh, esVersionUnsupported, esMissingICU, esSkipTLSVerify}
+	configRules := []healthcheck.Rule{esLocalhostURL, searchUnavailable, scaleESRequired, scaleESRecommended, esLiveBatchSync, esLiveBatchTooHigh, esVersionUnsupported, esMissingICU, esSkipTLSVerify}
 	failed := searchSnapshot(nil, nil, nil)
 	failed.Sections[model.SectionConfig] = errors.New("boom")
 
@@ -153,6 +153,16 @@ func TestESServerError(t *testing.T) {
 
 	failed := esDiag(model.StatusFail, "", "")
 	failed.ElasticSearch.Error = `Get "https://admin:hunter2@search.example.com:9200/": dial tcp: connection refused`
+	firing := func(messageID string) searchWant {
+		return searchWant{
+			state:     healthcheck.StateFiring,
+			messageID: messageID,
+			details:   map[string]string{"error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
+		}
+	}
+
+	dbSearchDisabled := searchSnapshot(func(cfg *model.Config) { cfg.SqlSettings.DisableDatabaseSearch = new(true) }, failed, nil)
+	dbSearchAbsent := searchSnapshot(func(cfg *model.Config) { cfg.SqlSettings.DisableDatabaseSearch = nil }, failed, nil)
 
 	sectionFailed := searchSnapshot(nil, esDiag(model.StatusFail, "", ""), nil)
 	leader, ok := sectionFailed.Leader()
@@ -166,15 +176,9 @@ func TestESServerError(t *testing.T) {
 	}{
 		{name: "disabled", snapshot: searchSnapshot(nil, esDiag(model.StatusDisabled, "", ""), nil), want: resolvedWant},
 		{name: "ok", snapshot: searchSnapshot(nil, esDiag(model.StatusOk, "", ""), nil), want: resolvedWant},
-		{
-			name:     "fail masks credentials",
-			snapshot: searchSnapshot(nil, failed, nil),
-			want: searchWant{
-				state:     healthcheck.StateFiring,
-				messageID: "health.rule.es_server_error.message",
-				details:   map[string]string{"error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
-			},
-		},
+		{name: "fail masks credentials", snapshot: searchSnapshot(nil, failed, nil), want: firing("health.rule.es_server_error.message")},
+		{name: "fail without database fallback", snapshot: dbSearchDisabled, want: firing("health.rule.es_server_error.message.no_fallback")},
+		{name: "fail with database search setting absent", snapshot: dbSearchAbsent, want: firing("health.rule.es_server_error.message")},
 		{name: "empty status", snapshot: searchSnapshot(nil, esDiag("", "", ""), nil), want: unknownDiagWant},
 		{name: "leader without diagnostics", snapshot: searchSnapshot(nil, nil, nil), want: unknownDiagWant},
 		{name: "no leader", snapshot: &healthcheck.Snapshot{}, want: unknownDiagWant},
@@ -185,6 +189,38 @@ func TestESServerError(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assertResult(t, esServerError, tc.snapshot, tc.want)
+		})
+	}
+}
+
+func TestSearchUnavailable(t *testing.T) {
+	t.Parallel()
+
+	firing := searchWant{state: healthcheck.StateFiring, messageID: "health.rule.search_unavailable.message"}
+
+	testCases := []struct {
+		name       string
+		dbDisabled *bool
+		searching  *bool
+		want       searchWant
+	}{
+		{name: "database search on, elasticsearch off", dbDisabled: new(false), searching: new(false), want: resolvedWant},
+		{name: "database search on, elasticsearch on", dbDisabled: new(false), searching: new(true), want: resolvedWant},
+		{name: "database search off, elasticsearch on", dbDisabled: new(true), searching: new(true), want: resolvedWant},
+		{name: "database search off, elasticsearch off", dbDisabled: new(true), searching: new(false), want: firing},
+		{name: "database search setting absent", dbDisabled: nil, searching: new(false), want: unknownConfigWant},
+		{name: "elasticsearch setting absent", dbDisabled: new(true), searching: nil, want: unknownConfigWant},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			s := searchSnapshot(func(cfg *model.Config) {
+				cfg.SqlSettings.DisableDatabaseSearch = tc.dbDisabled
+				cfg.ElasticsearchSettings.EnableSearching = tc.searching
+			}, nil, nil)
+			assertResult(t, searchUnavailable, s, tc.want)
 		})
 	}
 }

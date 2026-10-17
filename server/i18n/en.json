@@ -14447,6 +14447,11 @@
     "description": "Health dashboard finding detail when the search engine connection test failed; {{.error}} is the error the server reported, with URL credentials masked."
   },
   {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "The connection test to the search engine failed and database search is disabled, so search returns no results: {{.error}}",
+    "description": "Health dashboard finding detail when the search engine connection test failed and SqlSettings.DisableDatabaseSearch is on; {{.error}} is the error the server reported, with URL credentials masked."
+  },
+  {
     "id": "health.rule.es_server_error.remediation",
     "translation": "Verify ElasticsearchSettings.ConnectionURL reachability, TLS, and credentials. Check the search cluster health (GET /_cluster/health).",
     "description": "Health dashboard fix-it step for a failed search engine connection test; 'ElasticsearchSettings.ConnectionURL' is a config setting name and 'GET /_cluster/health' is a literal API call, neither should be translated."
@@ -14575,6 +14580,21 @@
     "id": "health.rule.scale_es_required.title",
     "translation": "Elasticsearch is required above 5,000,000 posts",
     "description": "Health dashboard finding title when a workspace with more than 5,000,000 posts searches the database instead of Elasticsearch or OpenSearch."
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "Database search is disabled and Elasticsearch searching is off. Searches return no results.",
+    "description": "Health dashboard finding detail when neither the database nor Elasticsearch or OpenSearch serves search."
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "Set SqlSettings.DisableDatabaseSearch to false in config.json (or MM_SQLSETTINGS_DISABLEDATABASESEARCH=false), or enable searching with Elasticsearch or OpenSearch.",
+    "description": "Health dashboard fix-it step when search is fully disabled; 'SqlSettings.DisableDatabaseSearch', 'config.json' and 'MM_SQLSETTINGS_DISABLEDATABASESEARCH=false' are literal names and should not be translated."
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "Search is disabled",
+    "description": "Health dashboard finding title when database search is disabled and Elasticsearch or OpenSearch searching is off."
   },
   {
     "id": "health.rule.site_url_empty.message",

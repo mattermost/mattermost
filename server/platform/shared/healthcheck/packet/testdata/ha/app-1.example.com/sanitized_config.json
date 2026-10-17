@@ -15,7 +15,8 @@
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 10,
-        "MaxOpenConns": 100
+        "MaxOpenConns": 100,
+        "DisableDatabaseSearch": false
     },
     "EmailSettings": {
         "SendEmailNotifications": true,
