@@ -103,7 +103,7 @@ func seatsUsed(s *healthcheck.Snapshot) (used int64, reasonID string) {
 	if !ok {
 		return 0, healthcheck.ReasonStatsUnavailable
 	}
-	if license, ok := s.License(); ok && license.SkuShortName == model.LicenseShortSkuMattermostEntry {
+	if license, licensed := s.License(); licensed && license.SkuShortName == model.LicenseShortSkuMattermostEntry {
 		return active, ""
 	}
 
