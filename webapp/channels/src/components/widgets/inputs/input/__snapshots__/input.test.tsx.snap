@@ -19,6 +19,7 @@ exports[`components/widgets/inputs/Input should match snapshot 1`] = `
         class="Input_wrapper"
       >
         <input
+          aria-invalid="true"
           class="Input form-control medium"
           id="input_"
         />
