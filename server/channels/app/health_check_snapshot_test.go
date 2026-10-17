@@ -10,6 +10,8 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"slices"
+	"strconv"
 	"testing"
 	"time"
 
@@ -181,7 +183,7 @@ func TestBuildHealthSnapshotLatestVersionTimeout(t *testing.T) {
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).InitBasic(t)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.SiteURL = model.NewPointer("http://chat.example.com")
 		cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
@@ -196,19 +198,37 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		require.NoError(t, deleteErr)
 	})
 
+	license := model.NewTestLicense()
+	license.Id = model.NewId()
+	license.Customer.Id = model.NewId()
+	// Half a day past a whole day count keeps both snapshots, taken moments apart, on the same count.
+	license.ExpiresAt = time.Now().Add(10*24*time.Hour + 12*time.Hour).UnixMilli()
+	license.IsTrial = true
+	license.IsSeatCountEnforced = true
+	license.ExtraUsers = model.NewPointer(5)
+	license.Features.Users = model.NewPointer(1_000_000)
+	require.True(t, th.App.Srv().SetLicense(license))
+	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+
 	err = th.App.clearLatestVersionCache()
 	require.NoError(t, err)
 
 	live, err := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
 	require.NoError(t, err)
 
-	var zipped bytes.Buffer
 	var noCPUProfile time.Duration
 	files := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{CPUProfileDuration: &noCPUProfile})
-	require.NoError(t, th.App.WriteZipFile(&zipped, files))
-	offline, err := packet.Read(bytes.NewReader(zipped.Bytes()), int64(zipped.Len()))
-	require.NoError(t, err)
-	assert.Empty(t, offline.Warnings)
+	readPacket := func(t *testing.T, files []model.FileData) *packet.Packet {
+		t.Helper()
+
+		var zipped bytes.Buffer
+		require.NoError(t, th.App.WriteZipFile(&zipped, files))
+		p, readErr := packet.Read(bytes.NewReader(zipped.Bytes()), int64(zipped.Len()))
+		require.NoError(t, readErr)
+		assert.Empty(t, p.Warnings)
+		return p
+	}
+	offline := readPacket(t, files)
 
 	evaluatedAt := time.Now()
 	engine := healthcheck.NewEngine(healthcheck.EngineOpts{
@@ -216,18 +236,56 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		Now:      func() time.Time { return evaluatedAt },
 	})
 	liveEvaluations := engine.Evaluate(live)
-	offlineEvaluations := engine.Evaluate(offline.Snapshot)
 
 	require.NotEmpty(t, liveEvaluations)
-	assert.Equal(t, liveEvaluations, offlineEvaluations)
+	assert.Equal(t, liveEvaluations, engine.Evaluate(offline.Snapshot))
 
-	firing := map[string]bool{}
+	states := map[string]healthcheck.State{}
 	for _, evaluation := range liveEvaluations {
-		if evaluation.Result.State == healthcheck.StateFiring {
-			firing[evaluation.Code] = true
-		}
+		states[evaluation.Code] = evaluation.Result.State
 	}
-	assert.Equal(t, map[string]bool{"PUSH_BAD_SCHEME": true, "SITE_URL_HTTP": true}, firing)
+	for code, want := range map[string]healthcheck.State{
+		"PUSH_BAD_SCHEME":       healthcheck.StateFiring,
+		"SITE_URL_HTTP":         healthcheck.StateFiring,
+		"LICENSE_EXPIRED":       healthcheck.StateResolved,
+		"LICENSE_EXPIRING":      healthcheck.StateFiring,
+		"LICENSE_TRIAL":         healthcheck.StateFiring,
+		"SEATS_OVER_DEPLOYED":   healthcheck.StateResolved,
+		"SEATS_LIMIT_REACHED":   healthcheck.StateResolved,
+		"SEATS_NEAR_CAPACITY":   healthcheck.StateResolved,
+		"SEATS_LOW_UTILIZATION": healthcheck.StateFiring,
+	} {
+		assert.Equal(t, want, states[code], code)
+	}
+	for _, code := range []string{"SEATS_LOW_ENGAGEMENT", "WORKFLOW_USAGE_CHAT_ONLY", "WORKFLOW_USAGE_LIGHT"} {
+		assert.NotEqual(t, healthcheck.StateUnknown, states[code], code)
+	}
+
+	t.Run("a packet without the license expiry differs only in the codes that need it", func(t *testing.T) {
+		olderFiles := slices.Clone(files)
+		stripped := false
+		for i, file := range olderFiles {
+			if file.Filename == model.SupportPacketDiagnosticsFileName {
+				expiresAt := []byte("  expires_at: " + strconv.FormatInt(license.ExpiresAt, 10) + "\n")
+				require.Contains(t, string(file.Body), string(expiresAt))
+				olderFiles[i].Body = bytes.Replace(file.Body, expiresAt, nil, 1)
+				stripped = true
+			}
+		}
+		require.True(t, stripped)
+
+		needsExpiry := []string{"LICENSE_EXPIRED", "LICENSE_EXPIRING", "SEATS_LIMIT_REACHED"}
+		olderEvaluations := engine.Evaluate(readPacket(t, olderFiles).Snapshot)
+		require.Len(t, olderEvaluations, len(liveEvaluations))
+		for i, evaluation := range olderEvaluations {
+			if slices.Contains(needsExpiry, evaluation.Code) {
+				assert.Equal(t, healthcheck.StateUnknown, evaluation.Result.State, evaluation.Code)
+				assert.Equal(t, healthcheck.ReasonLicenseUnavailable, evaluation.Result.MessageID, evaluation.Code)
+			} else {
+				assert.Equal(t, liveEvaluations[i], evaluation, evaluation.Code)
+			}
+		}
+	})
 }
 
 func TestClusterNodes(t *testing.T) {
