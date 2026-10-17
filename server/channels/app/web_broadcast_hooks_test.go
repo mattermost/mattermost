@@ -30,28 +30,28 @@ func TestAddMentionsHook_Process(t *testing.T) {
 	t.Run("should add a mentions entry for the current user", func(t *testing.T) {
 		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
 
-		require.Nil(t, msg.Event().GetData()["mentions"])
+		require.Nil(t, msg.Get("mentions"))
 
 		err := hook.Process(msg, webConn, map[string]any{
 			"mentions": model.StringArray{userID},
 		})
 		require.NoError(t, err)
 
-		assert.Equal(t, `["`+userID+`"]`, msg.Event().GetData()["mentions"])
-		assert.Nil(t, msg.Event().GetData()["followers"])
+		assert.Equal(t, `["`+userID+`"]`, msg.Get("mentions"))
+		assert.Nil(t, msg.Get("followers"))
 	})
 
 	t.Run("should not add a mentions entry for another user", func(t *testing.T) {
 		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
 
-		require.Nil(t, msg.Event().GetData()["mentions"])
+		require.Nil(t, msg.Get("mentions"))
 
 		err := hook.Process(msg, webConn, map[string]any{
 			"mentions": model.StringArray{otherUserID},
 		})
 		require.NoError(t, err)
 
-		assert.Nil(t, msg.Event().GetData()["mentions"])
+		assert.Nil(t, msg.Get("mentions"))
 	})
 }
 
@@ -69,27 +69,27 @@ func TestAddFollowersHook_Process(t *testing.T) {
 	t.Run("should add a followers entry for the current user", func(t *testing.T) {
 		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
 
-		require.Nil(t, msg.Event().GetData()["followers"])
+		require.Nil(t, msg.Get("followers"))
 
 		err := hook.Process(msg, webConn, map[string]any{
 			"followers": model.StringArray{userID},
 		})
 		require.NoError(t, err)
 
-		assert.Equal(t, `["`+userID+`"]`, msg.Event().GetData()["followers"])
+		assert.Equal(t, `["`+userID+`"]`, msg.Get("followers"))
 	})
 
 	t.Run("should not add a followers entry for another user", func(t *testing.T) {
 		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
 
-		require.Nil(t, msg.Event().GetData()["followers"])
+		require.Nil(t, msg.Get("followers"))
 
 		err := hook.Process(msg, webConn, map[string]any{
 			"followers": model.StringArray{otherUserID},
 		})
 		require.NoError(t, err)
 
-		assert.Nil(t, msg.Event().GetData()["followers"])
+		assert.Nil(t, msg.Get("followers"))
 	})
 }
 
@@ -115,7 +115,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		assert.True(t, msg.Event().GetData()["should_ack"].(bool))
+		assert.True(t, msg.Get("should_ack").(bool))
 	})
 
 	t.Run("should not ack if user is not in the list of users to notify", func(t *testing.T) {
@@ -128,7 +128,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		assert.Nil(t, msg.Event().GetData()["should_ack"])
+		assert.Nil(t, msg.Get("should_ack"))
 	})
 
 	t.Run("should not ack if you are the user who posted", func(t *testing.T) {
@@ -141,7 +141,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		assert.Nil(t, msg.Event().GetData()["should_ack"])
+		assert.Nil(t, msg.Get("should_ack"))
 	})
 
 	t.Run("should ack if the channel is a DM", func(t *testing.T) {
@@ -154,7 +154,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		assert.True(t, msg.Event().GetData()["should_ack"].(bool))
+		assert.True(t, msg.Get("should_ack").(bool))
 	})
 
 	t.Run("should not ack if posted ack is false", func(t *testing.T) {
@@ -173,7 +173,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		assert.Nil(t, msg.Event().GetData()["should_ack"])
+		assert.Nil(t, msg.Get("should_ack"))
 	})
 
 	t.Run("should not ack if connection is not active", func(t *testing.T) {
@@ -192,7 +192,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		assert.Nil(t, msg.Event().GetData()["should_ack"])
+		assert.Nil(t, msg.Get("should_ack"))
 	})
 }
 
@@ -209,10 +209,8 @@ func TestAddMentionsAndAddFollowersHooks(t *testing.T) {
 
 	msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
 
-	originalData := msg.Event().GetData()
-
-	require.Nil(t, originalData["mentions"])
-	require.Nil(t, originalData["followers"])
+	require.Nil(t, msg.Get("mentions"))
+	require.Nil(t, msg.Get("followers"))
 
 	err := addMentionsHook.Process(msg, webConn, map[string]any{
 		"mentions": model.StringArray{userID},
@@ -225,8 +223,8 @@ func TestAddMentionsAndAddFollowersHooks(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("should be able to add both mentions and followers to a single event", func(t *testing.T) {
-		assert.Equal(t, `["`+userID+`"]`, msg.Event().GetData()["followers"])
-		assert.Equal(t, `["`+userID+`"]`, msg.Event().GetData()["mentions"])
+		assert.Equal(t, `["`+userID+`"]`, msg.Get("followers"))
+		assert.Equal(t, `["`+userID+`"]`, msg.Get("mentions"))
 	})
 }
 
@@ -1331,7 +1329,7 @@ func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
 
 		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmark"))
 		require.NoError(t, err)
-		require.False(t, msg.Event().IsRejected())
+		require.False(t, msg.IsRejected())
 
 		raw, _ := msg.Get("bookmark").(string)
 		assert.NotContains(t, raw, "mini_preview")
@@ -1346,7 +1344,7 @@ func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
 
 		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmarks"))
 		require.NoError(t, err)
-		require.False(t, msg.Event().IsRejected())
+		require.False(t, msg.IsRejected())
 
 		raw, _ := msg.Get("bookmarks").(string)
 		assert.NotContains(t, raw, "mini_preview")
@@ -1367,7 +1365,7 @@ func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
 
 		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmarks"))
 		require.NoError(t, err)
-		require.False(t, msg.Event().IsRejected())
+		require.False(t, msg.IsRejected())
 
 		raw, _ := msg.Get("bookmarks").(string)
 		assert.NotContains(t, raw, "mini_preview")
@@ -1387,7 +1385,7 @@ func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
 
 		err := hook.Process(msg, makeWebConn(t, true), makeArgs("bookmark"))
 		require.NoError(t, err)
-		require.False(t, msg.Event().IsRejected())
+		require.False(t, msg.IsRejected())
 
 		after, _ := msg.Get("bookmark").(string)
 		assert.Equal(t, before, after)
@@ -1406,7 +1404,7 @@ func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
 
 		err := hook.Process(msg, wc, makeArgs("bookmark"))
 		require.NoError(t, err)
-		require.False(t, msg.Event().IsRejected())
+		require.False(t, msg.IsRejected())
 
 		raw, _ := msg.Get("bookmark").(string)
 		assert.NotContains(t, raw, "mini_preview")
@@ -1420,7 +1418,7 @@ func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
 
 		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmark"))
 		require.NoError(t, err)
-		assert.True(t, msg.Event().IsRejected(), "event must be rejected when the payload cannot be sanitised")
+		assert.True(t, msg.IsRejected(), "event must be rejected when the payload cannot be sanitised")
 	})
 
 	t.Run("denied user: missing payload field rejects the event", func(t *testing.T) {
@@ -1429,7 +1427,7 @@ func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
 
 		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmark"))
 		require.NoError(t, err)
-		assert.True(t, msg.Event().IsRejected())
+		assert.True(t, msg.IsRejected())
 	})
 
 	t.Run("missing channel_id arg: returns error", func(t *testing.T) {
