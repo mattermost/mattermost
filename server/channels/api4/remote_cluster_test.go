@@ -7,9 +7,11 @@ import (
 	"context"
 	"encoding/base64"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/require"
 )
 
@@ -356,6 +358,71 @@ func TestCreateRemoteCluster(t *testing.T) {
 		require.Equal(t, rc.Token, rci.Token)
 		require.Equal(t, th.App.GetSiteURL(), rci.SiteURL)
 	})
+}
+
+const unsavedRemoteIDSuffix = "-unsaved"
+
+// remoteIDSuffixingRemoteClusterStore returns saved remote clusters with an invalid RemoteId,
+// so the invitation built from them fails validation, and maps that id back on Delete.
+type remoteIDSuffixingRemoteClusterStore struct {
+	store.RemoteClusterStore
+}
+
+func (s *remoteIDSuffixingRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
+	saved, err := s.RemoteClusterStore.Save(rc)
+	if err != nil {
+		return nil, err
+	}
+	saved.RemoteId += unsavedRemoteIDSuffix
+	return saved, nil
+}
+
+func (s *remoteIDSuffixingRemoteClusterStore) Delete(remoteID string) (bool, error) {
+	return s.RemoteClusterStore.Delete(strings.TrimSuffix(remoteID, unsavedRemoteIDSuffix))
+}
+
+type remoteIDSuffixingStoreWrapper struct {
+	store.Store
+}
+
+func (w *remoteIDSuffixingStoreWrapper) RemoteCluster() store.RemoteClusterStore {
+	return &remoteIDSuffixingRemoteClusterStore{RemoteClusterStore: w.Store.RemoteCluster()}
+}
+
+func TestCreateRemoteClusterInviteFailure(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+
+	dbStore, dbSettings, searchEngine := setupStores(t)
+	th := setupTestHelper(t, &remoteIDSuffixingStoreWrapper{Store: dbStore}, dbSettings, searchEngine, false, true, func(cfg *model.Config) {
+		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
+		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	}, nil)
+	th.InitLogin(t)
+	th.InitBasic(t)
+
+	rcWithInvite, resp, err := th.SystemAdminClient.CreateRemoteCluster(context.Background(), &model.RemoteClusterWithPassword{
+		RemoteCluster: &model.RemoteCluster{
+			Name:          "remotecluster",
+			DefaultTeamId: th.BasicTeam.Id,
+		},
+		Password: model.NewTestPassword(),
+	})
+	CheckInternalErrorStatus(t, resp)
+	CheckErrorID(t, err, "api.remote_cluster.create_invite_error")
+	require.Nil(t, rcWithInvite)
+
+	active, appErr := th.App.GetAllRemoteClusters(0, 10, model.RemoteClusterQueryFilter{})
+	require.Nil(t, appErr)
+	require.Empty(t, active, "a failed invite must not leave a remote cluster behind")
+
+	all, appErr := th.App.GetAllRemoteClusters(0, 10, model.RemoteClusterQueryFilter{IncludeDeleted: true})
+	require.Nil(t, appErr)
+	require.Len(t, all, 1)
+	require.Equal(t, "remotecluster", all[0].Name)
+	require.NotZero(t, all[0].DeleteAt)
 }
 
 func TestRemoteClusterAcceptinvite(t *testing.T) {
