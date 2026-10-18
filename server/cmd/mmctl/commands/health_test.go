@@ -328,7 +328,7 @@ const healthTestPacketGeneratedAt = 1790330400000
 func healthTestPacketFiles() map[string]string {
 	return map[string]string{
 		model.PacketMetadataFileName:           "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
-		model.SupportPacketDiagnosticsFileName: "version: 2\nserver:\n  os: linux\n  hostname: mm.example.com\n  open_file_descriptors: 120\n  max_file_descriptors: 65536\n  version: 11.0.4\nfile_store:\n  file_status: OK\n",
+		model.SupportPacketDiagnosticsFileName: "version: 2\nlicense:\n  sku_short_name: enterprise\n  features:\n    metrics: true\nserver:\n  os: linux\n  hostname: mm.example.com\n  open_file_descriptors: 120\n  max_file_descriptors: 65536\n  version: 11.0.4\nfile_store:\n  file_status: OK\n",
 		model.SupportPacketStatsFileName:       "registered_users: 100\n",
 		model.SupportPacketConfigFileName: `{
     "ServiceSettings": {"SiteURL": "https://chat.example.com", "ListenAddress": ":8065"},

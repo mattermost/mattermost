@@ -98,6 +98,14 @@ func evalLogFileOff(s *healthcheck.Snapshot) []healthcheck.Result {
 }
 
 func evalMetricsOff(s *healthcheck.Snapshot) []healthcheck.Result {
+	licensed, ok := s.LicenseFeature(func(f *model.Features) *bool { return f.Metrics })
+	if !ok {
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
+	}
+	if !licensed {
+		return []healthcheck.Result{healthcheck.Resolved()}
+	}
+
 	enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.MetricsSettings.Enable })
 	switch {
 	case !ok:

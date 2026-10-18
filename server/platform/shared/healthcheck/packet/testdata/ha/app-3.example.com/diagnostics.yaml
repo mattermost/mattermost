@@ -3,6 +3,8 @@ license:
   company: Example Corp
   users: 500
   sku_short_name: enterprise
+  features:
+    metrics: true
 server:
   # Machine
   os: linux
