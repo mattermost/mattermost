@@ -38,7 +38,7 @@ func evalAuditLogOff(s *healthcheck.Snapshot) []healthcheck.Result {
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
 
-	if _, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ExperimentalAuditSettings.FileEnabled }); !ok {
+	if _, ok = s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ExperimentalAuditSettings.FileEnabled }); !ok {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
 	}
 	if config.IsAuditLoggingActive(s.Config.Config.ExperimentalAuditSettings, allowAdvancedLogging(s)) {
