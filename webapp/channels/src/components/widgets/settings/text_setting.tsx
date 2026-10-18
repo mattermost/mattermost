@@ -3,6 +3,9 @@
 
 import React from 'react';
 import type {ChangeEvent, ReactNode} from 'react';
+import type {MessageDescriptor} from 'react-intl';
+
+import Input from 'components/widgets/inputs/input/input';
 
 import Setting from './setting';
 
@@ -29,6 +32,35 @@ export type Props = {
     multiple?: boolean;
 };
 
+/**
+ * Extract a floating-label string/descriptor from TextSetting's ReactNode label.
+ * Supports plain strings and FormattedMessage-shaped elements. Complex nodes
+ * (e.g. apps form labels with required markers) return undefined so the
+ * Setting column label is kept instead.
+ */
+function toFloatingLabel(label: ReactNode): string | MessageDescriptor | undefined {
+    if (typeof label === 'string') {
+        return label;
+    }
+    if (typeof label === 'number') {
+        return String(label);
+    }
+    if (!React.isValidElement(label)) {
+        return undefined;
+    }
+
+    const props = label.props as Partial<MessageDescriptor> & {values?: Record<string, React.ReactNode>};
+    if (typeof props.id === 'string' && props.defaultMessage !== undefined) {
+        return {
+            id: props.id,
+            defaultMessage: props.defaultMessage,
+            values: props.values,
+        };
+    }
+
+    return undefined;
+}
+
 function TextSetting(props: Props) {
     const {labelClassName = '', inputClassName = '', maxLength = -1, resizable = true, type = 'text'} = props;
 
@@ -46,22 +78,36 @@ function TextSetting(props: Props) {
         }
     }
 
+    const useCompassField = type === 'text' || type === 'textarea';
+    const floatingLabel = useCompassField ? toFloatingLabel(props.label) : undefined;
+
+    // Avoid duplicating the Setting column label when Compass owns the floating label.
+    const settingLabel = floatingLabel !== undefined ? undefined : props.label;
+
     let input = null;
-    if (type === 'textarea') {
+    if (useCompassField) {
+        // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
+        const testId = `${props.id}input`;
+        const inputValue = Array.isArray(props.value) ? props.value.join(',') : props.value;
+        const resolvedMaxLength = maxLength >= 0 ? maxLength : undefined;
+
         input = (
-            <textarea
+            <Input
                 id={props.id}
-                data-testid={`${props.id}input`} // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
-                className='form-control'
-                autoFocus={props.autoFocus}
-                dir='auto'
-                rows={5}
+                name={props.id}
+                data-testid={testId}
+                type={type}
+                value={inputValue}
+                label={floatingLabel}
                 placeholder={props.placeholder}
-                style={resizable === false ? {resize: 'none'} : undefined}
-                value={props.value}
-                maxLength={maxLength}
-                onChange={handleChange}
+                maxLength={resolvedMaxLength}
                 disabled={props.disabled}
+                autoFocus={props.autoFocus}
+                onChange={handleChange}
+                rows={type === 'textarea' ? 5 : undefined}
+                useLegend={floatingLabel !== undefined}
+                dir='auto'
+                style={type === 'textarea' && resizable === false ? {resize: 'none'} : undefined}
             />
         );
     } else {
@@ -88,7 +134,7 @@ function TextSetting(props: Props) {
 
     return (
         <Setting
-            label={props.label}
+            label={settingLabel}
             labelClassName={labelClassName}
             inputClassName={inputClassName}
             helpText={props.helpText}

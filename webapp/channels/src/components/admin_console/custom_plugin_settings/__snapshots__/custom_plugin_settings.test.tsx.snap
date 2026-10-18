@@ -56,25 +56,41 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 class="form-group"
                 data-testid="settinga"
               >
-                <label
-                  class="control-label col-sm-4"
-                  data-testid="settingalabel"
-                  for="settinga"
-                >
-                  Setting One
-                </label>
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="settingainput"
-                    id="settinga"
-                    maxlength="-1"
-                    placeholder="e.g. some setting"
-                    type="text"
-                    value="setting_default"
-                  />
+                  <div
+                    class="Input_container"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <label
+                          class="_text-input__label_3inqk_53"
+                          for="settinga"
+                        >
+                          Setting One
+                        </label>
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="settingainput"
+                            dir="auto"
+                            id="settinga"
+                            name="settinga"
+                            placeholder="e.g. some setting"
+                            type="text"
+                            value="setting_default"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="settingahelp-text"
@@ -224,11 +240,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 >
                   <label
                     class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_b_"
+                    for="_r_d_"
                   >
                     <input
                       class="_radio__input_h0rbb_17"
-                      id="_r_b_"
+                      id="_r_d_"
                       name="settingd"
                       type="radio"
                       value="option1"
@@ -253,12 +269,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   </label>
                   <label
                     class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_c_"
+                    for="_r_e_"
                   >
                     <input
                       checked=""
                       class="_radio__input_h0rbb_17"
-                      id="_r_c_"
+                      id="_r_e_"
                       name="settingd"
                       type="radio"
                       value="option2"
@@ -283,11 +299,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   </label>
                   <label
                     class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_d_"
+                    for="_r_f_"
                   >
                     <input
                       class="_radio__input_h0rbb_17"
-                      id="_r_d_"
+                      id="_r_f_"
                       name="settingd"
                       type="radio"
                       value="option3"
@@ -563,25 +579,41 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 class="form-group"
                 data-testid="PluginSettings.Plugins.testplugin.settinga"
               >
-                <label
-                  class="control-label col-sm-4"
-                  data-testid="PluginSettings.Plugins.testplugin.settingalabel"
-                  for="PluginSettings.Plugins.testplugin.settinga"
-                >
-                  Setting One
-                </label>
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="PluginSettings.Plugins.testplugin.settingainput"
-                    id="PluginSettings.Plugins.testplugin.settinga"
-                    maxlength="-1"
-                    placeholder="e.g. some setting"
-                    type="text"
-                    value="fsdsdg"
-                  />
+                  <div
+                    class="Input_container"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <label
+                          class="_text-input__label_3inqk_53"
+                          for="PluginSettings.Plugins.testplugin.settinga"
+                        >
+                          Setting One
+                        </label>
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="PluginSettings.Plugins.testplugin.settingainput"
+                            dir="auto"
+                            id="PluginSettings.Plugins.testplugin.settinga"
+                            name="PluginSettings.Plugins.testplugin.settinga"
+                            placeholder="e.g. some setting"
+                            type="text"
+                            value="fsdsdg"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="PluginSettings.Plugins.testplugin.settingahelp-text"
@@ -731,12 +763,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 >
                   <label
                     class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_2_"
+                    for="_r_3_"
                   >
                     <input
                       checked=""
                       class="_radio__input_h0rbb_17"
-                      id="_r_2_"
+                      id="_r_3_"
                       name="PluginSettings.Plugins.testplugin.settingd"
                       type="radio"
                       value="option1"
@@ -761,11 +793,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   </label>
                   <label
                     class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_3_"
+                    for="_r_4_"
                   >
                     <input
                       class="_radio__input_h0rbb_17"
-                      id="_r_3_"
+                      id="_r_4_"
                       name="PluginSettings.Plugins.testplugin.settingd"
                       type="radio"
                       value="option2"
@@ -790,11 +822,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   </label>
                   <label
                     class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_4_"
+                    for="_r_5_"
                   >
                     <input
                       class="_radio__input_h0rbb_17"
-                      id="_r_4_"
+                      id="_r_5_"
                       name="PluginSettings.Plugins.testplugin.settingd"
                       type="radio"
                       value="option3"

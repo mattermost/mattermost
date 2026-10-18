@@ -139,25 +139,41 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
             class="form-group"
             data-testid="ClusterName"
           >
-            <label
-              class="control-label col-sm-4"
-              data-testid="ClusterNamelabel"
-              for="ClusterName"
-            >
-              Cluster Name:
-            </label>
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="ClusterNameinput"
-                id="ClusterName"
-                maxlength="-1"
-                placeholder="E.g.: \\"Production\\" or \\"Staging\\""
-                type="text"
-                value="test"
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="ClusterName"
+                    >
+                      Cluster Name:
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="ClusterNameinput"
+                        dir="auto"
+                        id="ClusterName"
+                        name="ClusterName"
+                        placeholder="E.g.: \\"Production\\" or \\"Staging\\""
+                        type="text"
+                        value="test"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="ClusterNamehelp-text"
@@ -170,25 +186,41 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
             class="form-group"
             data-testid="OverrideHostname"
           >
-            <label
-              class="control-label col-sm-4"
-              data-testid="OverrideHostnamelabel"
-              for="OverrideHostname"
-            >
-              Override Hostname:
-            </label>
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="OverrideHostnameinput"
-                id="OverrideHostname"
-                maxlength="-1"
-                placeholder="E.g.: \\"app-server-01\\""
-                type="text"
-                value=""
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="OverrideHostname"
+                    >
+                      Override Hostname:
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="OverrideHostnameinput"
+                        dir="auto"
+                        id="OverrideHostname"
+                        name="OverrideHostname"
+                        placeholder="E.g.: \\"app-server-01\\""
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="OverrideHostnamehelp-text"
@@ -435,25 +467,41 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
             class="form-group"
             data-testid="GossipPort"
           >
-            <label
-              class="control-label col-sm-4"
-              data-testid="GossipPortlabel"
-              for="GossipPort"
-            >
-              Gossip Port:
-            </label>
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="GossipPortinput"
-                id="GossipPort"
-                maxlength="-1"
-                placeholder="E.g.: \\"8074\\""
-                type="text"
-                value="8074"
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="GossipPort"
+                    >
+                      Gossip Port:
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="GossipPortinput"
+                        dir="auto"
+                        id="GossipPort"
+                        name="GossipPort"
+                        placeholder="E.g.: \\"8074\\""
+                        type="text"
+                        value="8074"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="GossipPorthelp-text"
@@ -626,25 +674,41 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
             class="form-group"
             data-testid="ClusterName"
           >
-            <label
-              class="control-label col-sm-4"
-              data-testid="ClusterNamelabel"
-              for="ClusterName"
-            >
-              Cluster Name:
-            </label>
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="ClusterNameinput"
-                id="ClusterName"
-                maxlength="-1"
-                placeholder="E.g.: \\"Production\\" or \\"Staging\\""
-                type="text"
-                value="test"
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="ClusterName"
+                    >
+                      Cluster Name:
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="ClusterNameinput"
+                        dir="auto"
+                        id="ClusterName"
+                        name="ClusterName"
+                        placeholder="E.g.: \\"Production\\" or \\"Staging\\""
+                        type="text"
+                        value="test"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="ClusterNamehelp-text"
@@ -657,25 +721,41 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
             class="form-group"
             data-testid="OverrideHostname"
           >
-            <label
-              class="control-label col-sm-4"
-              data-testid="OverrideHostnamelabel"
-              for="OverrideHostname"
-            >
-              Override Hostname:
-            </label>
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="OverrideHostnameinput"
-                id="OverrideHostname"
-                maxlength="-1"
-                placeholder="E.g.: \\"app-server-01\\""
-                type="text"
-                value=""
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="OverrideHostname"
+                    >
+                      Override Hostname:
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="OverrideHostnameinput"
+                        dir="auto"
+                        id="OverrideHostname"
+                        name="OverrideHostname"
+                        placeholder="E.g.: \\"app-server-01\\""
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="OverrideHostnamehelp-text"
@@ -922,25 +1002,41 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
             class="form-group"
             data-testid="GossipPort"
           >
-            <label
-              class="control-label col-sm-4"
-              data-testid="GossipPortlabel"
-              for="GossipPort"
-            >
-              Gossip Port:
-            </label>
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="GossipPortinput"
-                id="GossipPort"
-                maxlength="-1"
-                placeholder="E.g.: \\"8074\\""
-                type="text"
-                value="8074"
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="GossipPort"
+                    >
+                      Gossip Port:
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="GossipPortinput"
+                        dir="auto"
+                        id="GossipPort"
+                        name="GossipPort"
+                        placeholder="E.g.: \\"8074\\""
+                        type="text"
+                        value="8074"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="GossipPorthelp-text"
@@ -1113,25 +1209,41 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
             class="form-group"
             data-testid="ClusterName"
           >
-            <label
-              class="control-label col-sm-4"
-              data-testid="ClusterNamelabel"
-              for="ClusterName"
-            >
-              Cluster Name:
-            </label>
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="ClusterNameinput"
-                id="ClusterName"
-                maxlength="-1"
-                placeholder="E.g.: \\"Production\\" or \\"Staging\\""
-                type="text"
-                value="test"
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="ClusterName"
+                    >
+                      Cluster Name:
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="ClusterNameinput"
+                        dir="auto"
+                        id="ClusterName"
+                        name="ClusterName"
+                        placeholder="E.g.: \\"Production\\" or \\"Staging\\""
+                        type="text"
+                        value="test"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="ClusterNamehelp-text"
@@ -1144,25 +1256,41 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
             class="form-group"
             data-testid="OverrideHostname"
           >
-            <label
-              class="control-label col-sm-4"
-              data-testid="OverrideHostnamelabel"
-              for="OverrideHostname"
-            >
-              Override Hostname:
-            </label>
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="OverrideHostnameinput"
-                id="OverrideHostname"
-                maxlength="-1"
-                placeholder="E.g.: \\"app-server-01\\""
-                type="text"
-                value=""
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="OverrideHostname"
+                    >
+                      Override Hostname:
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="OverrideHostnameinput"
+                        dir="auto"
+                        id="OverrideHostname"
+                        name="OverrideHostname"
+                        placeholder="E.g.: \\"app-server-01\\""
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="OverrideHostnamehelp-text"
@@ -1409,25 +1537,41 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
             class="form-group"
             data-testid="GossipPort"
           >
-            <label
-              class="control-label col-sm-4"
-              data-testid="GossipPortlabel"
-              for="GossipPort"
-            >
-              Gossip Port:
-            </label>
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="GossipPortinput"
-                id="GossipPort"
-                maxlength="-1"
-                placeholder="E.g.: \\"8074\\""
-                type="text"
-                value="8074"
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="GossipPort"
+                    >
+                      Gossip Port:
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="GossipPortinput"
+                        dir="auto"
+                        id="GossipPort"
+                        name="GossipPort"
+                        placeholder="E.g.: \\"8074\\""
+                        type="text"
+                        value="8074"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="GossipPorthelp-text"
@@ -1600,25 +1744,41 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
             class="form-group"
             data-testid="ClusterName"
           >
-            <label
-              class="control-label col-sm-4"
-              data-testid="ClusterNamelabel"
-              for="ClusterName"
-            >
-              Cluster Name:
-            </label>
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="ClusterNameinput"
-                id="ClusterName"
-                maxlength="-1"
-                placeholder="E.g.: \\"Production\\" or \\"Staging\\""
-                type="text"
-                value="test"
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="ClusterName"
+                    >
+                      Cluster Name:
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="ClusterNameinput"
+                        dir="auto"
+                        id="ClusterName"
+                        name="ClusterName"
+                        placeholder="E.g.: \\"Production\\" or \\"Staging\\""
+                        type="text"
+                        value="test"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="ClusterNamehelp-text"
@@ -1631,25 +1791,41 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
             class="form-group"
             data-testid="OverrideHostname"
           >
-            <label
-              class="control-label col-sm-4"
-              data-testid="OverrideHostnamelabel"
-              for="OverrideHostname"
-            >
-              Override Hostname:
-            </label>
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="OverrideHostnameinput"
-                id="OverrideHostname"
-                maxlength="-1"
-                placeholder="E.g.: \\"app-server-01\\""
-                type="text"
-                value=""
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="OverrideHostname"
+                    >
+                      Override Hostname:
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="OverrideHostnameinput"
+                        dir="auto"
+                        id="OverrideHostname"
+                        name="OverrideHostname"
+                        placeholder="E.g.: \\"app-server-01\\""
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="OverrideHostnamehelp-text"
@@ -1896,25 +2072,41 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
             class="form-group"
             data-testid="GossipPort"
           >
-            <label
-              class="control-label col-sm-4"
-              data-testid="GossipPortlabel"
-              for="GossipPort"
-            >
-              Gossip Port:
-            </label>
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="GossipPortinput"
-                id="GossipPort"
-                maxlength="-1"
-                placeholder="E.g.: \\"8074\\""
-                type="text"
-                value="8074"
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="GossipPort"
+                    >
+                      Gossip Port:
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="GossipPortinput"
+                        dir="auto"
+                        id="GossipPort"
+                        name="GossipPort"
+                        placeholder="E.g.: \\"8074\\""
+                        type="text"
+                        value="8074"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="GossipPorthelp-text"
