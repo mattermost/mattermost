@@ -7188,12 +7188,12 @@
     "description": "Button label on the System Console group configuration page that opens a menu to link the group to a team or channel."
   },
   "admin.group_settings.group_details.group_mention.name": {
-    "defaultMessage": "Group Mention:",
-    "description": "Field label (with colon) for the group's @mention name input on the group configuration page."
+    "defaultMessage": "Group Mention",
+    "description": "Floating field label for the group's @mention name input on the group configuration page."
   },
   "admin.group_settings.group_details.group_profile.name": {
-    "defaultMessage": "Name:",
-    "description": "Field label (with colon) for the group's display name on the group configuration page; the field is read-only."
+    "defaultMessage": "Name",
+    "description": "Floating field label for the group's display name on the group configuration page; the field is read-only."
   },
   "admin.group_settings.group_details.group_teams_and_channels_row.privateChannel": {
     "defaultMessage": "Channel (Private)",

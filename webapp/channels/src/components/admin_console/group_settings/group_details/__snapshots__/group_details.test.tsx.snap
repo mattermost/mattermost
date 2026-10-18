@@ -53,31 +53,38 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
             </div>
           </div>
           <div
-            class="group-profile form-horizontal"
+            class="group-profile"
             id="groupDisplayName"
           >
             <div
-              class="group-profile-field form-group mb-0"
+              class="Input_container disabled"
             >
-              <label
-                class="control-label col-sm-4"
-                for="groupDisplayNameInput"
-              >
-                Name:
-              </label>
               <div
-                class="col-sm-8"
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
               >
                 <div
-                  class="icon-over-input"
-                />
-                <input
-                  class="form-control group-at-mention-input"
-                  disabled=""
-                  id="groupDisplayNameInput"
-                  type="text"
-                  value="Group"
-                />
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <label
+                    class="_text-input__label_3inqk_53"
+                    for="groupDisplayNameInput"
+                  >
+                    Name
+                  </label>
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      disabled=""
+                      id="groupDisplayNameInput"
+                      name="groupDisplayName"
+                      type="text"
+                      value="Group"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -464,31 +471,38 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
             </div>
           </div>
           <div
-            class="group-profile form-horizontal"
+            class="group-profile"
             id="groupDisplayName"
           >
             <div
-              class="group-profile-field form-group mb-0"
+              class="Input_container disabled"
             >
-              <label
-                class="control-label col-sm-4"
-                for="groupDisplayNameInput"
-              >
-                Name:
-              </label>
               <div
-                class="col-sm-8"
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
               >
                 <div
-                  class="icon-over-input"
-                />
-                <input
-                  class="form-control group-at-mention-input"
-                  disabled=""
-                  id="groupDisplayNameInput"
-                  type="text"
-                  value="Group"
-                />
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <label
+                    class="_text-input__label_3inqk_53"
+                    for="groupDisplayNameInput"
+                  >
+                    Name
+                  </label>
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      disabled=""
+                      id="groupDisplayNameInput"
+                      name="groupDisplayName"
+                      type="text"
+                      value="Group"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -873,31 +887,38 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
             </div>
           </div>
           <div
-            class="group-profile form-horizontal"
+            class="group-profile"
             id="groupDisplayName"
           >
             <div
-              class="group-profile-field form-group mb-0"
+              class="Input_container disabled"
             >
-              <label
-                class="control-label col-sm-4"
-                for="groupDisplayNameInput"
-              >
-                Name:
-              </label>
               <div
-                class="col-sm-8"
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
               >
                 <div
-                  class="icon-over-input"
-                />
-                <input
-                  class="form-control group-at-mention-input"
-                  disabled=""
-                  id="groupDisplayNameInput"
-                  type="text"
-                  value="Group"
-                />
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <label
+                    class="_text-input__label_3inqk_53"
+                    for="groupDisplayNameInput"
+                  >
+                    Name
+                  </label>
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      disabled=""
+                      id="groupDisplayNameInput"
+                      name="groupDisplayName"
+                      type="text"
+                      value="Group"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1282,31 +1303,38 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
             </div>
           </div>
           <div
-            class="group-profile form-horizontal"
+            class="group-profile"
             id="groupDisplayName"
           >
             <div
-              class="group-profile-field form-group mb-0"
+              class="Input_container disabled"
             >
-              <label
-                class="control-label col-sm-4"
-                for="groupDisplayNameInput"
-              >
-                Name:
-              </label>
               <div
-                class="col-sm-8"
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
               >
                 <div
-                  class="icon-over-input"
-                />
-                <input
-                  class="form-control group-at-mention-input"
-                  disabled=""
-                  id="groupDisplayNameInput"
-                  type="text"
-                  value="Group"
-                />
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <label
+                    class="_text-input__label_3inqk_53"
+                    for="groupDisplayNameInput"
+                  >
+                    Name
+                  </label>
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      disabled=""
+                      id="groupDisplayNameInput"
+                      name="groupDisplayName"
+                      type="text"
+                      value="Group"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

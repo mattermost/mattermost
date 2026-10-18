@@ -23,7 +23,8 @@ describe('components/admin_console/group_settings/group_details/GroupProfileAndS
         expect(screen.getByText('Enable Group Mentions')).toBeInTheDocument();
 
         // Group Mention field should not be visible when toggle is off
-        expect(screen.queryByText('Group Mention:')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Group Mention')).not.toBeInTheDocument();
+        expect(screen.getByLabelText('Name')).toBeDisabled();
     });
 
     test('should match snapshot, with toggle on', () => {
@@ -40,10 +41,13 @@ describe('components/admin_console/group_settings/group_details/GroupProfileAndS
         expect(container).toMatchSnapshot();
 
         // Group Mention field should be visible when toggle is on
-        expect(screen.getByText('Group Mention:')).toBeInTheDocument();
+        expect(screen.getByLabelText('Group Mention')).toBeInTheDocument();
+        expect(screen.getByLabelText('Name')).toBeDisabled();
 
         // Both inputs should be present (displayname and mentionname)
         const inputs = screen.getAllByDisplayValue('GroupProfileAndSettings');
         expect(inputs).toHaveLength(2);
+        expect(screen.getByLabelText('Name')).toHaveAttribute('id', 'groupDisplayNameInput');
+        expect(screen.getByLabelText('Group Mention')).toHaveAttribute('id', 'groupMentionInput');
     });
 });

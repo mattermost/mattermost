@@ -20,6 +20,8 @@
         display: flex;
         background: variables.$white;
 
+        // Host layout only; chrome/icon/clear come from Compass SearchInput.
+        // Filter caret is a sibling control — not part of the search field.
         .group-list-search {
             position: relative;
             display: flex;
@@ -34,9 +36,10 @@
             }
 
             .group-filter-action {
-                display: flex;
+                display: inline-flex;
                 flex-shrink: 0;
                 align-items: center;
+                justify-content: center;
                 padding: 8px;
                 border: none;
                 background: transparent;
@@ -327,10 +330,6 @@
 #groupMention {
     .group-profile {
         padding-top: 0;
-    }
-
-    .group-at-mention-input {
-        padding-left: 26px;
     }
 }
 
@@ -711,13 +710,6 @@
 
 .group-users--header-padded {
     padding-left: 24px;
-}
-
-.icon-over-input {
-    position: absolute;
-    padding-top: 9px;
-    padding-left: 12px;
-    opacity: 0.8;
 }
 
 .AdminChannelDetails_archiveContainer {
