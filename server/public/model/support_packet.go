@@ -115,7 +115,9 @@ type SupportPacketDiagnostics struct {
 	Cluster struct {
 		ID            string `yaml:"id"`
 		NumberOfNodes *int   `yaml:"number_of_nodes,omitempty"`
-		IsLeader      bool   `yaml:"is_leader,omitempty"`
+		// NumberOfConnectedNodes leaves out nodes that are registered in the database but not in the gossip cluster.
+		NumberOfConnectedNodes *int `yaml:"number_of_connected_nodes,omitempty"`
+		IsLeader               bool `yaml:"is_leader,omitempty"`
 	} `yaml:"cluster"`
 
 	Notifications struct {

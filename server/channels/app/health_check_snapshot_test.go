@@ -10,6 +10,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -44,6 +45,10 @@ func TestBuildHealthSnapshotStandaloneLeaderDiagnostics(t *testing.T) {
 	for _, section := range model.AllNodeSections() {
 		assert.True(t, nodes[0].Has(section), "section %q", section)
 	}
+
+	hostname, err := os.Hostname()
+	require.NoError(t, err)
+	assert.Equal(t, hostname, nodes[0].Hostname)
 }
 
 // threeNodeCluster reports this node as id-2 of three.
