@@ -7,7 +7,6 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import type {MemberInviteProfile} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import InputError from 'components/input_error';
 import Input from 'components/widgets/inputs/input/input';
 
 import {Constants, ValidationErrors} from 'utils/constants';
@@ -52,7 +51,6 @@ function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
     const {formatMessage} = useIntl();
     const [usernameError, setUsernameError] = useState<string | undefined>();
     const emailKey = email.toLowerCase();
-    const usernameErrorId = `error_preset-username-${emailKey}`;
 
     const updateField = (field: 'username' | 'first_name' | 'last_name') => (event: React.ChangeEvent<HTMLInputElement>) => {
         if (field === 'username') {
@@ -82,8 +80,7 @@ function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
                     value={profile.first_name}
                     onChange={updateField('first_name')}
                     maxLength={Constants.MAX_FIRSTNAME_LENGTH}
-                    placeholder={formatMessage({id: 'invite_modal.preset_profile.first_name', defaultMessage: 'First name'})}
-                    aria-label={formatMessage({id: 'invite_modal.preset_profile.first_name', defaultMessage: 'First name'})}
+                    label={formatMessage({id: 'invite_modal.preset_profile.first_name', defaultMessage: 'First name'})}
                 />
                 <Input
                     name={`preset-last-name-${emailKey}`}
@@ -91,8 +88,7 @@ function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
                     value={profile.last_name}
                     onChange={updateField('last_name')}
                     maxLength={Constants.MAX_LASTNAME_LENGTH}
-                    placeholder={formatMessage({id: 'invite_modal.preset_profile.last_name', defaultMessage: 'Last name'})}
-                    aria-label={formatMessage({id: 'invite_modal.preset_profile.last_name', defaultMessage: 'Last name'})}
+                    label={formatMessage({id: 'invite_modal.preset_profile.last_name', defaultMessage: 'Last name'})}
                 />
                 <Input
                     name={`preset-username-${emailKey}`}
@@ -102,21 +98,11 @@ function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
                     onBlur={handleUsernameBlur}
                     maxLength={Constants.MAX_USERNAME_LENGTH}
                     autoCapitalize='off'
-                    placeholder={formatMessage({id: 'invite_modal.preset_profile.username', defaultMessage: 'Username'})}
-                    aria-label={formatMessage({id: 'invite_modal.preset_profile.username', defaultMessage: 'Username'})}
+                    label={formatMessage({id: 'invite_modal.preset_profile.username', defaultMessage: 'Username'})}
                     hasError={Boolean(usernameError)}
-                    aria-describedby={usernameError ? usernameErrorId : undefined}
+                    customMessage={usernameError ? {type: 'error', value: usernameError} : null}
                 />
             </div>
-            {usernameError && (
-                <div
-                    id={usernameErrorId}
-                    className='MemberProfileInputs__error'
-                    role='alert'
-                >
-                    <InputError message={usernameError}/>
-                </div>
-            )}
         </div>
     );
 }
