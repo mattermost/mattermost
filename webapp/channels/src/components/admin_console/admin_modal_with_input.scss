@@ -6,14 +6,22 @@
 
 .ResetPasswordModal,
 .ResetEmailModal {
-    // Compass field focus rings (outer 1px box-shadow) must not be clipped by
-    // Bootstrap's .modal-content { overflow: hidden } or .modal-body scroll.
-    // GenericModal also sets overflow-visible when bodyOverflowVisible is passed;
-    // keep this as a scoped fallback for the dialog class on these modals.
+    // Compass TextInput focus uses an outer 1px box-shadow on the control.
+    // Bootstrap / modal scrollports clip that ring unless every ancestor in
+    // the dialog chrome allows overflow. bodyOverflowVisible on GenericModal
+    // covers .modal-body; keep these as a scoped fallback for admin modals.
     .modal-content,
     .GenericModal__wrapper,
-    .modal-body {
+    .modal-body,
+    .GenericModal__body {
         overflow: visible;
+    }
+
+    .GenericModal__body.padding {
+        // Room above/below the field so the outer focus ring is not flush
+        // against the header or footer edge.
+        padding-top: 12px;
+        padding-bottom: 8px;
     }
 
     &__body {
@@ -25,6 +33,10 @@
     // Compass TextInput owns field chrome. Neutralize GenericModal .form-control
     // borders/backgrounds that can still land on the adapter input.
     .Input_container {
+        // Keep the 1px focus ring inside this box if a parent still clips.
+        padding: 1px;
+        margin: -1px;
+
         .Input.form-control,
         .form-control,
         input.form-control,
