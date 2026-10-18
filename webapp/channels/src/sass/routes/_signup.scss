@@ -40,7 +40,10 @@ body {
     max-width: 400px;
     flex: 1;
     flex-direction: column;
-    padding: 40px 0 0;
+
+    // Horizontal padding keeps Compass field focus rings (outer 1px box-shadow)
+    // from being clipped by overflow: hidden. Vertical padding unchanged.
+    padding: 40px 2px 0;
     margin: 0 auto;
 
     .medium-center {
