@@ -14378,12 +14378,17 @@
   },
   {
     "id": "health.rule.license_expired.message",
-    "translation": "The license expired on {{.expires_at}}.",
+    "translation": "The license expired on {{.expires_at}}. The server removes an expired license 10 days after it expires, and Enterprise features stop working.",
     "description": "Health dashboard finding detail when the license has expired; {{.expires_at}} is the expiry date (YYYY-MM-DD)."
   },
   {
+    "id": "health.rule.license_expired.message.entry",
+    "translation": "The license expired on {{.expires_at}}.",
+    "description": "Health dashboard finding detail when a Mattermost Entry license has expired; {{.expires_at}} is the expiry date (YYYY-MM-DD). 'Mattermost Entry' is a product name and should not be translated."
+  },
+  {
     "id": "health.rule.license_expired.remediation",
-    "translation": "Renew the license and upload it in System Console > About > Edition and License. The server removes an expired license 10 days after it expires, and Enterprise features stop working.",
+    "translation": "Renew the license and upload it in System Console > About > Edition and License.",
     "description": "Health dashboard fix-it step for an expired license; 'System Console > About > Edition and License' is the path to the license page in the admin UI."
   },
   {
@@ -14523,7 +14528,7 @@
   },
   {
     "id": "health.rule.seats_near_capacity.message",
-    "translation": "{{.used}} active users against {{.seats}} licensed seats ({{.percent}}%).",
+    "translation": "{{.used}} users count toward {{.seats}} licensed seats ({{.percent}}%).",
     "description": "Health dashboard finding detail when licensed seats are nearly full; {{.used}} is the number of users taking a seat, {{.seats}} the licensed seats and {{.percent}} the ratio as a percentage."
   },
   {
@@ -14534,11 +14539,11 @@
   {
     "id": "health.rule.seats_near_capacity.title",
     "translation": "Licensed seats are nearly full",
-    "description": "Health dashboard finding title when 90% to 100% of the licensed seats are taken by active users."
+    "description": "Health dashboard finding title when users take 90% to 100% of the licensed seats."
   },
   {
     "id": "health.rule.seats_over_deployed.message",
-    "translation": "{{.used}} active users against {{.seats}} licensed seats ({{.percent}}%).",
+    "translation": "{{.used}} users count toward {{.seats}} licensed seats ({{.percent}}%).",
     "description": "Health dashboard finding detail when more users take a seat than the license covers; {{.used}} is the number of users taking a seat, {{.seats}} the licensed seats and {{.percent}} the ratio as a percentage."
   },
   {
@@ -14548,8 +14553,8 @@
   },
   {
     "id": "health.rule.seats_over_deployed.title",
-    "translation": "More active users than licensed seats",
-    "description": "Health dashboard finding title when the number of active users exceeds the licensed seat count."
+    "translation": "More users than licensed seats",
+    "description": "Health dashboard finding title when more users take a seat than the license covers."
   },
   {
     "id": "health.rule.site_url_empty.message",

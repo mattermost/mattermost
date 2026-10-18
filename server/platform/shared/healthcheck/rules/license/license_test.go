@@ -214,6 +214,12 @@ func TestExpiryRules(t *testing.T) {
 		assert.Equal(t, "health.rule.license_expired.message", expired.MessageID)
 		assert.Equal(t, "2026-09-22", expired.Details["expires_at"])
 
+		entry := expiringIn(-3 * day)
+		licenseOf(entry).SkuShortName = model.LicenseShortSkuMattermostEntry
+		entryExpired := evalLicenseExpired(entry)[0]
+		assert.Equal(t, "health.rule.license_expired.message.entry", entryExpired.MessageID)
+		assert.Equal(t, "2026-09-22", entryExpired.Details["expires_at"])
+
 		expiring := evalLicenseExpiring(expiringIn(20 * day))[0]
 		assert.Equal(t, "health.rule.license_expiring.message", expiring.MessageID)
 		assert.Equal(t, "2026-10-15", expiring.Details["expires_at"])
