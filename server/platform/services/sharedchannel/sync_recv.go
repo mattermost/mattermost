@@ -717,15 +717,14 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 	}
 	isActive := existingReaction != nil && existingReaction.DeleteAt == 0
 
-	// The sender sends each reaction's current state, which may be re-sent, so apply it idempotently
-	// instead of toggling. Keeping the remote's ID on deleted rows stops the removal echoing back.
+	// The sender sends each reaction's current state and may re-send it.
+	// Keeping the remote's ID on deleted rows stops the removal echoing back.
 	reaction.RemoteId = new(rc.RemoteId)
 
 	if reaction.DeleteAt == 0 {
 		if isActive {
 			return existingReaction, nil
 		}
-		// this is not checked for delete since deletion can be done by admins on the remote
 		user, err := scs.server.GetStore().User().Get(rctx, reaction.UserId)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching user for reaction sync: %w", err)
