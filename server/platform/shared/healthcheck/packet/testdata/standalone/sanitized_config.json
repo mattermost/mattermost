@@ -18,6 +18,7 @@
         "MaxOpenConns": 100,
         "Trace": false,
         "QueryTimeout": 30,
+        "DisableDatabaseSearch": false,
         "ReplicaLagSettings": []
     },
     "EmailSettings": {

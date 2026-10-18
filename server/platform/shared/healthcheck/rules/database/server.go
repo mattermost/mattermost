@@ -78,7 +78,7 @@ func evalDBPostgresUnsupported(s *healthcheck.Snapshot) []healthcheck.Result {
 		return unknownDiagnostics()
 	}
 	// Packets from servers that predate the Postgres-only requirement can report MySQL.
-	if diag.Database.Type != nil && *diag.Database.Type != model.DatabaseDriverPostgres {
+	if diag.Database.Type == nil || *diag.Database.Type != model.DatabaseDriverPostgres {
 		return unknownDiagnostics()
 	}
 

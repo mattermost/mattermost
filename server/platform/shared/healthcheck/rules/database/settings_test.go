@@ -66,6 +66,12 @@ func TestDBNoSearchReplica(t *testing.T) {
 	searchingUnset := defaultConfig()
 	searchingUnset.ElasticsearchSettings.EnableSearching = nil
 
+	dbSearchDisabled := defaultConfig()
+	dbSearchDisabled.SqlSettings.DisableDatabaseSearch = new(true)
+
+	dbSearchUnset := defaultConfig()
+	dbSearchUnset.SqlSettings.DisableDatabaseSearch = nil
+
 	testCases := []struct {
 		name     string
 		snapshot *healthcheck.Snapshot
@@ -78,6 +84,8 @@ func TestDBNoSearchReplica(t *testing.T) {
 		{"elasticsearch searching", newSnapshot(searching, withStats(0, 2_000_000), nil), resolvedWant},
 		{"search replica configured", newSnapshot(withSearchReplica, withStats(0, 2_000_000), nil), resolvedWant},
 		{"searching unreadable", newSnapshot(searchingUnset, withStats(0, 2_000_000), nil), unknownConfigWant},
+		{"database search disabled", newSnapshot(dbSearchDisabled, withStats(0, 2_000_000), nil), resolvedWant},
+		{"database search setting unreadable", newSnapshot(dbSearchUnset, withStats(0, 2_000_000), nil), unknownConfigWant},
 		{"stats absent", newSnapshot(defaultConfig(), nil, nil), unknownStatsWant},
 		{"stats absent while searching", newSnapshot(searching, nil, nil), resolvedWant},
 	}

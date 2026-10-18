@@ -14,14 +14,13 @@ import (
 )
 
 func versionDiag(version *string) *model.SupportPacketDiagnostics {
-	diag := &model.SupportPacketDiagnostics{}
-	diag.Database.Version = version
-	return diag
+	return typedVersionDiag(new(model.DatabaseDriverPostgres), version)
 }
 
-func typedVersionDiag(dbType, version string) *model.SupportPacketDiagnostics {
-	diag := versionDiag(&version)
-	diag.Database.Type = &dbType
+func typedVersionDiag(dbType, version *string) *model.SupportPacketDiagnostics {
+	diag := &model.SupportPacketDiagnostics{}
+	diag.Database.Type = dbType
+	diag.Database.Version = version
 	return diag
 }
 
@@ -55,8 +54,8 @@ func TestDBPostgresUnsupported(t *testing.T) {
 		{"16", newSnapshot(defaultConfig(), nil, versionDiag(new("16"))), resolvedWant},
 		{"garbage", newSnapshot(defaultConfig(), nil, versionDiag(new("garbage"))), unknownDiagWant},
 		{"empty", newSnapshot(defaultConfig(), nil, versionDiag(new(""))), unknownDiagWant},
-		{"postgres type", newSnapshot(defaultConfig(), nil, typedVersionDiag(model.DatabaseDriverPostgres, "14.9")), firing},
-		{"mysql type", newSnapshot(defaultConfig(), nil, typedVersionDiag("mysql", "8.0.36")), unknownDiagWant},
+		{"type not collected", newSnapshot(defaultConfig(), nil, typedVersionDiag(nil, new("14.9"))), unknownDiagWant},
+		{"mysql type", newSnapshot(defaultConfig(), nil, typedVersionDiag(new("mysql"), new("8.0.36"))), unknownDiagWant},
 	}
 
 	for _, tc := range testCases {

@@ -153,6 +153,14 @@ func evalDBNoSearchReplica(s *healthcheck.Snapshot) []healthcheck.Result {
 		return resolved()
 	}
 
+	disabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.SqlSettings.DisableDatabaseSearch })
+	if !ok {
+		return unknownConfig()
+	}
+	if disabled {
+		return resolved()
+	}
+
 	posts, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.Posts })
 	if !ok {
 		return unknownStats()
