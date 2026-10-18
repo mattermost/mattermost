@@ -42,7 +42,7 @@ var complianceNoDir = healthcheck.Rule{
 var retentionTightBatches = healthcheck.Rule{
 	Code:     "RETENTION_TIGHT_BATCHES",
 	Area:     model.AreaCompliance,
-	Severity: healthcheck.SeverityWarning,
+	Severity: healthcheck.SeverityInfo,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.retention_tight_batches.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.retention_tight_batches.remediation"),
@@ -57,7 +57,7 @@ var retentionTightBatches = healthcheck.Rule{
 var exportGRTimeoutLow = healthcheck.Rule{
 	Code:     "EXPORT_GR_TIMEOUT_LOW",
 	Area:     model.AreaCompliance,
-	Severity: healthcheck.SeverityWarning,
+	Severity: healthcheck.SeverityInfo,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.export_gr_timeout_low.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.export_gr_timeout_low.remediation"),

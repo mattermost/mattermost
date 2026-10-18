@@ -5,6 +5,7 @@ package compliance
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 
@@ -19,15 +20,21 @@ func audit(fileEnabled bool, advanced string) func(cfg *model.Config) {
 	}
 }
 
-func leaderWithAdvancedLogging(licensed bool) *healthcheck.NodeSnapshot {
-	diag := &model.SupportPacketDiagnostics{License: model.SupportPacketLicense{
-		Features: &model.Features{AdvancedLogging: new(licensed)},
-	}}
+// licensedLeader returns a leader whose license has features only when advancedLogging is non-nil, like packets from older servers.
+func licensedLeader(sku string, advancedLogging *bool) *healthcheck.NodeSnapshot {
+	license := model.SupportPacketLicense{SkuShortName: sku}
+	if advancedLogging != nil {
+		license.Features = &model.Features{AdvancedLogging: advancedLogging}
+	}
 	return &healthcheck.NodeSnapshot{
 		Hostname:    "app-1",
 		IsLeader:    true,
-		Diagnostics: &model.NodeDiagnostics{Diagnostics: diag},
+		Diagnostics: &model.NodeDiagnostics{Diagnostics: &model.SupportPacketDiagnostics{License: license}},
 	}
+}
+
+func enterprise(mutate func(*model.Config)) *healthcheck.Snapshot {
+	return configSnapshot(mutate, licensedLeader(model.LicenseShortSkuEnterprise, nil))
 }
 
 func auditTarget(levels ...string) string {
@@ -41,21 +48,30 @@ func TestAuditLogOff(t *testing.T) {
 	off := func(users string) want {
 		return firing("health.rule.audit_log_off.message", map[string]string{"users": users})
 	}
+	licenseUnknown := want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonLicenseUnavailable}
+
+	configFailed := enterprise(nil)
+	configFailed.Sections[model.SectionConfig] = errors.New("boom")
 
 	testCases := []struct {
 		name     string
 		snapshot *healthcheck.Snapshot
 		want     want
 	}{
-		{"file enabled with stats absent", configSnapshot(audit(true, "")), resolved},
-		{"advanced audit-api target with many users", withUsers(configSnapshot(audit(false, apiTarget)), 50000), resolved},
-		{"advanced audit-api target with advanced logging licensed", withUsers(configSnapshot(audit(false, apiTarget), leaderWithAdvancedLogging(true)), 50000), resolved},
-		{"advanced audit-api target without advanced logging license", withUsers(configSnapshot(audit(false, apiTarget), leaderWithAdvancedLogging(false)), 5001), off("5001").withValue(5001)},
-		{"advanced audit-delivery only counts as inactive", withUsers(configSnapshot(audit(false, auditTarget(`{"id": 104, "name": "audit-delivery"}`))), 5001), off("5001").withValue(5001)},
-		{"inactive with stats absent", configSnapshot(audit(false, "")), statsUnknown},
-		{"inactive at the threshold", withUsers(configSnapshot(audit(false, "")), 5000), resolved.withValue(5000)},
-		{"inactive above the threshold", withUsers(configSnapshot(audit(false, "")), 5001), off("5001").withValue(5001)},
-		{"file enabled absent", configSnapshot(func(cfg *model.Config) { cfg.ExperimentalAuditSettings.FileEnabled = nil }), configUnknown},
+		{"license unavailable", withUsers(configSnapshot(audit(false, "")), 50000), licenseUnknown},
+		{"unlicensed", withUsers(configSnapshot(audit(false, ""), licensedLeader("", nil)), 50000), resolved},
+		{"professional", withUsers(configSnapshot(audit(false, ""), licensedLeader(model.LicenseShortSkuProfessional, nil)), 50000), resolved},
+		{"enterprise advanced", withUsers(configSnapshot(audit(false, ""), licensedLeader(model.LicenseShortSkuEnterpriseAdvanced, nil)), 5001), off("5001").withValue(5001)},
+		{"file enabled with stats absent", enterprise(audit(true, "")), resolved},
+		{"advanced audit-api target with license features unknown", withUsers(enterprise(audit(false, apiTarget)), 50000), resolved},
+		{"advanced audit-api target with advanced logging licensed", withUsers(configSnapshot(audit(false, apiTarget), licensedLeader(model.LicenseShortSkuEnterprise, new(true))), 50000), resolved},
+		{"advanced audit-api target without advanced logging license", withUsers(configSnapshot(audit(false, apiTarget), licensedLeader(model.LicenseShortSkuEnterprise, new(false))), 5001), off("5001").withValue(5001)},
+		{"advanced audit-delivery only counts as inactive", withUsers(enterprise(audit(false, auditTarget(`{"id": 104, "name": "audit-delivery"}`))), 5001), off("5001").withValue(5001)},
+		{"inactive with stats absent", enterprise(audit(false, "")), statsUnknown},
+		{"inactive at the threshold", withUsers(enterprise(audit(false, "")), 5000), resolved.withValue(5000)},
+		{"inactive above the threshold", withUsers(enterprise(audit(false, "")), 5001), off("5001").withValue(5001)},
+		{"file enabled absent", enterprise(func(cfg *model.Config) { cfg.ExperimentalAuditSettings.FileEnabled = nil }), configUnknown},
+		{"config section failed", configFailed, configUnknown},
 	}
 
 	for _, tc := range testCases {

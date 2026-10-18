@@ -16,7 +16,7 @@ const auditLogOffMinUsers = 5000
 var auditLogOff = healthcheck.Rule{
 	Code:     "AUDIT_LOG_OFF",
 	Area:     model.AreaCompliance,
-	Severity: healthcheck.SeverityWarning,
+	Severity: healthcheck.SeverityInfo,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.audit_log_off.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.audit_log_off.remediation"),
@@ -29,6 +29,15 @@ var auditLogOff = healthcheck.Rule{
 }
 
 func evalAuditLogOff(s *healthcheck.Snapshot) []healthcheck.Result {
+	license, ok := s.License()
+	if !ok {
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
+	}
+	// Matches the System Console, which hides the Audit Logging page below Enterprise.
+	if model.LicenseToLicenseTier[license.SkuShortName] < model.EnterpriseTier {
+		return []healthcheck.Result{healthcheck.Resolved()}
+	}
+
 	if _, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ExperimentalAuditSettings.FileEnabled }); !ok {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
 	}

@@ -72,7 +72,7 @@ func TestRulesConfigUnavailable(t *testing.T) {
 	failed := configSnapshot(func(*model.Config) {})
 	failed.Sections[model.SectionConfig] = errors.New("boom")
 
-	for _, rule := range []healthcheck.Rule{complianceNoDir, auditLogOff, retentionTightBatches, exportGRTimeoutLow} {
+	for _, rule := range []healthcheck.Rule{complianceNoDir, retentionTightBatches, exportGRTimeoutLow} {
 		t.Run(rule.Code, func(t *testing.T) {
 			t.Parallel()
 
