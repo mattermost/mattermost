@@ -294,7 +294,8 @@ export const GenericModal: React.FC<Props> = ({
                 'a11y__modal GenericModal',
                 {
                     GenericModal__compassDesign: compassDesign,
-                    'modal--overflow': bodyOverflowVisible,
+                    // Must match `.modal-overflow` in generic_modal.scss (not BEM `modal--overflow`).
+                    'modal-overflow': bodyOverflowVisible,
                 },
                 className,
             )}

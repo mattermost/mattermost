@@ -618,18 +618,19 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             if (this.props.user.auth_service === '') {
                 inputs.push(
-                    <div key='currentEmailSetting'>
-                        <div className='form-group'>
-                            <span className='as-bs-label col-sm-5 control-label'>
-                                <FormattedMessage
-                                    id='user.settings.general.currentEmail'
-                                    defaultMessage='Current Email'
-                                />
-                            </span>
-                            <div className='col-sm-7'>
-                                <span className='as-bs-label control-label word-break--all text-left'>{this.state.originalEmail}</span>
-                            </div>
-                        </div>
+                    <div
+                        key='currentEmailSetting'
+                        className='form-group'
+                    >
+                        <Input
+                            id='currentEmail'
+                            name='currentEmail'
+                            type='email'
+                            value={this.state.originalEmail}
+                            label={defineMessage({id: 'user.settings.general.currentEmail', defaultMessage: 'Current Email'})}
+                            disabled={true}
+                            readOnly={true}
+                        />
                     </div>,
                 );
 

@@ -196,7 +196,6 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}
                 placeholder={props.placeholder}
                 limit={Constants.MAX_CHANNELNAME_LENGTH}
-                showCharacterCount={true}
 
                 // Only pass minLength after the user has interacted with the field
                 minLength={hasInteracted ? Constants.MIN_CHANNELNAME_LENGTH : undefined}
