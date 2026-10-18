@@ -36,8 +36,6 @@ const (
 	versionSubject = "11.0"
 
 	complianceDirSubject      = "ComplianceSettings.Directory"
-	auditSubject              = "ExperimentalAuditSettings.FileEnabled"
-	retentionSubject          = "DataRetentionSettings.TimeBetweenBatchesMilliseconds"
 	globalRelayTimeoutSubject = "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout"
 )
 

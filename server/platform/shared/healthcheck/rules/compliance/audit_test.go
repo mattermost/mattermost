@@ -10,32 +10,24 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-func auditSnapshot(fileEnabled bool, advanced string, users *int64) *healthcheck.Snapshot {
-	s := configSnapshot(func(cfg *model.Config) {
+func audit(fileEnabled bool, advanced string) func(cfg *model.Config) {
+	return func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = new(fileEnabled)
 		cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage(advanced)
-	})
-	if users != nil {
-		s.Stats = &model.SupportPacketStats{RegisteredUsers: users}
 	}
-	return s
 }
 
-func withAdvancedLogging(s *healthcheck.Snapshot, licensed bool) *healthcheck.Snapshot {
+func leaderWithAdvancedLogging(licensed bool) *healthcheck.NodeSnapshot {
 	diag := &model.SupportPacketDiagnostics{License: model.SupportPacketLicense{
 		Features: &model.Features{AdvancedLogging: new(licensed)},
 	}}
-	licensedSnapshot := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{{
+	return &healthcheck.NodeSnapshot{
 		Hostname:    "app-1",
 		IsLeader:    true,
 		Diagnostics: &model.NodeDiagnostics{Diagnostics: diag},
-	}})
-	licensedSnapshot.Config, licensedSnapshot.Stats, licensedSnapshot.Sections = s.Config, s.Stats, s.Sections
-	return licensedSnapshot
+	}
 }
 
 func auditTarget(levels ...string) string {
@@ -45,85 +37,31 @@ func auditTarget(levels ...string) string {
 func TestAuditLogOff(t *testing.T) {
 	t.Parallel()
 
-	firing := "health.rule.audit_log_off.message"
+	apiTarget := auditTarget(`{"id": 100, "name": "audit-api"}`)
+	off := func(users string) want {
+		return firing("health.rule.audit_log_off.message", map[string]string{"users": users})
+	}
 
 	testCases := []struct {
-		name      string
-		snapshot  *healthcheck.Snapshot
-		state     healthcheck.State
-		messageID string
-		value     *float64
-		users     string
+		name     string
+		snapshot *healthcheck.Snapshot
+		want     want
 	}{
-		{
-			name:     "file enabled with stats absent",
-			snapshot: auditSnapshot(true, "", nil),
-			state:    healthcheck.StateResolved,
-		},
-		{
-			name:     "advanced audit-api target with many users",
-			snapshot: auditSnapshot(false, auditTarget(`{"id": 100, "name": "audit-api"}`), new(int64(50000))),
-			state:    healthcheck.StateResolved,
-		},
-		{
-			name:     "advanced audit-api target with advanced logging licensed",
-			snapshot: withAdvancedLogging(auditSnapshot(false, auditTarget(`{"id": 100, "name": "audit-api"}`), new(int64(50000))), true),
-			state:    healthcheck.StateResolved,
-		},
-		{
-			name:      "advanced audit-api target without advanced logging license",
-			snapshot:  withAdvancedLogging(auditSnapshot(false, auditTarget(`{"id": 100, "name": "audit-api"}`), new(int64(5001))), false),
-			state:     healthcheck.StateFiring,
-			messageID: firing,
-			value:     new(5001.0),
-			users:     "5001",
-		},
-		{
-			name:      "advanced audit-delivery only counts as inactive",
-			snapshot:  auditSnapshot(false, auditTarget(`{"id": 104, "name": "audit-delivery"}`), new(int64(5001))),
-			state:     healthcheck.StateFiring,
-			messageID: firing,
-			value:     new(5001.0),
-			users:     "5001",
-		},
-		{
-			name:      "inactive with stats absent",
-			snapshot:  auditSnapshot(false, "", nil),
-			state:     healthcheck.StateUnknown,
-			messageID: healthcheck.ReasonStatsUnavailable,
-		},
-		{
-			name:     "inactive at the threshold",
-			snapshot: auditSnapshot(false, "", new(int64(5000))),
-			state:    healthcheck.StateResolved,
-			value:    new(5000.0),
-		},
-		{
-			name:      "inactive above the threshold",
-			snapshot:  auditSnapshot(false, "", new(int64(5001))),
-			state:     healthcheck.StateFiring,
-			messageID: firing,
-			value:     new(5001.0),
-			users:     "5001",
-		},
-		{
-			name:      "file enabled absent",
-			snapshot:  configSnapshot(func(cfg *model.Config) { cfg.ExperimentalAuditSettings.FileEnabled = nil }),
-			state:     healthcheck.StateUnknown,
-			messageID: healthcheck.ReasonConfigUnavailable,
-		},
+		{"file enabled with stats absent", configSnapshot(audit(true, "")), resolved},
+		{"advanced audit-api target with many users", withUsers(configSnapshot(audit(false, apiTarget)), 50000), resolved},
+		{"advanced audit-api target with advanced logging licensed", withUsers(configSnapshot(audit(false, apiTarget), leaderWithAdvancedLogging(true)), 50000), resolved},
+		{"advanced audit-api target without advanced logging license", withUsers(configSnapshot(audit(false, apiTarget), leaderWithAdvancedLogging(false)), 5001), off("5001").withValue(5001)},
+		{"advanced audit-delivery only counts as inactive", withUsers(configSnapshot(audit(false, auditTarget(`{"id": 104, "name": "audit-delivery"}`))), 5001), off("5001").withValue(5001)},
+		{"inactive with stats absent", configSnapshot(audit(false, "")), statsUnknown},
+		{"inactive at the threshold", withUsers(configSnapshot(audit(false, "")), 5000), resolved.withValue(5000)},
+		{"inactive above the threshold", withUsers(configSnapshot(audit(false, "")), 5001), off("5001").withValue(5001)},
+		{"file enabled absent", configSnapshot(func(cfg *model.Config) { cfg.ExperimentalAuditSettings.FileEnabled = nil }), configUnknown},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-
-			results := evalAuditLogOff(tc.snapshot)
-			require.Len(t, results, 1)
-			assert.Equal(t, tc.state, results[0].State)
-			assert.Equal(t, tc.messageID, results[0].MessageID)
-			assert.Equal(t, tc.value, results[0].Value)
-			assert.Equal(t, tc.users, results[0].Details["users"])
+			assertResult(t, tc.want, evalAuditLogOff(tc.snapshot))
 		})
 	}
 }
