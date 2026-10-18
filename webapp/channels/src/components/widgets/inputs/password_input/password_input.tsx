@@ -3,7 +3,8 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {ChangeEventHandler, FocusEventHandler} from 'react';
+import type {ChangeEventHandler, FocusEventHandler, ReactNode} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
 import type {FieldMessageTone} from '@mattermost/compass-ui/components/field-message';
@@ -11,6 +12,7 @@ import {PasswordInput as CompassPasswordInput} from '@mattermost/compass-ui/comp
 import type {PasswordInputSize} from '@mattermost/compass-ui/components/password-input';
 
 import {ItemStatus} from 'utils/constants';
+import {formatAsString} from 'utils/i18n';
 
 import {SIZE} from '../input/input';
 
@@ -21,11 +23,15 @@ type PasswordInputProps = {
     onBlur?: FocusEventHandler<HTMLInputElement>;
     onFocus?: FocusEventHandler<HTMLInputElement>;
     hasError?: boolean;
-    info?: string;
-    error?: string;
+    info?: ReactNode;
+    error?: ReactNode;
     createMode?: boolean;
     disabled?: boolean;
     inputSize?: SIZE;
+    id?: string;
+    name?: string;
+    label?: string | MessageDescriptor;
+    autoFocus?: boolean;
 };
 
 const INPUT_SIZE_MAP: Record<SIZE, PasswordInputSize> = {
@@ -50,6 +56,10 @@ const PasswordInput = React.forwardRef((
         createMode,
         disabled,
         inputSize = SIZE.MEDIUM,
+        id,
+        name = 'password-input',
+        label: labelProp,
+        autoFocus,
         ...otherProps
     }: PasswordInputProps,
     ref?: React.Ref<HTMLInputElement>,
@@ -64,15 +74,17 @@ const PasswordInput = React.forwardRef((
         messageTone = ItemStatus.INFO as FieldMessageTone;
     }
 
-    const label = createMode ?
+    const defaultLabel = createMode ?
         formatMessage({id: 'widget.passwordInput.createPassword', defaultMessage: 'Choose a Password'}) :
         formatMessage({id: 'widget.passwordInput.password', defaultMessage: 'Password'});
+    const label = labelProp ? formatAsString(formatMessage, labelProp) : defaultLabel;
 
     return (
         <CompassPasswordInput
             ref={ref}
+            id={id}
             className={classNames('password-input', className)}
-            name='password-input'
+            name={name}
             size={INPUT_SIZE_MAP[inputSize]}
             value={value}
             onChange={onChange}
@@ -83,6 +95,7 @@ const PasswordInput = React.forwardRef((
             message={message}
             messageTone={message ? messageTone : undefined}
             disabled={disabled}
+            autoFocus={autoFocus}
             showPasswordLabel={formatMessage({
                 id: 'widget.passwordInput.showPassword',
                 defaultMessage: 'Show password',
@@ -91,7 +104,7 @@ const PasswordInput = React.forwardRef((
                 id: 'widget.passwordInput.hidePassword',
                 defaultMessage: 'Hide password',
             })}
-            revealButtonProps={{id: 'password_toggle'}}
+            revealButtonProps={{id: `${name}_toggle`}}
             {...otherProps}
         />
     );

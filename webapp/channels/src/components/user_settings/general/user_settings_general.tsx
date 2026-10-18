@@ -634,110 +634,80 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 );
 
                 inputs.push(
-                    <div key='emailSetting'>
-                        <div className='form-group'>
-                            <label
-                                className='col-sm-5 control-label'
-                                htmlFor='primaryEmail'
-                            >
-                                <FormattedMessage
-                                    id='user.settings.general.newEmail'
-                                    defaultMessage='New Email'
-                                />
-                            </label>
-                            <div className='col-sm-7'>
-                                <Input
-                                    autoFocus={true}
-                                    id='primaryEmail'
-                                    name='primaryEmail'
-                                    type='email'
-                                    onChange={this.updateEmail}
-                                    maxLength={Constants.MAX_EMAIL_LENGTH}
-                                    value={this.state.email}
-                                    aria-label={formatMessage({id: 'user.settings.general.newEmail', defaultMessage: 'New Email'})}
-                                    validate={(value) => {
-                                        if (value === '' || !isEmail(value as string)) {
-                                            return {
-                                                type: 'error',
-                                                value: formatMessage(holders.validEmail),
-                                            };
-                                        }
-                                        return undefined;
-                                    }}
-                                />
-                            </div>
-                        </div>
+                    <div
+                        key='emailSetting'
+                        className='form-group'
+                    >
+                        <Input
+                            autoFocus={true}
+                            id='primaryEmail'
+                            name='primaryEmail'
+                            type='email'
+                            onChange={this.updateEmail}
+                            maxLength={Constants.MAX_EMAIL_LENGTH}
+                            value={this.state.email}
+                            label={defineMessage({id: 'user.settings.general.newEmail', defaultMessage: 'New Email'})}
+                            validate={(value) => {
+                                if (value === '' || !isEmail(value as string)) {
+                                    return {
+                                        type: 'error',
+                                        value: formatMessage(holders.validEmail),
+                                    };
+                                }
+                                return undefined;
+                            }}
+                        />
                     </div>,
                 );
 
                 inputs.push(
-                    <div key='confirmEmailSetting'>
-                        <div className='form-group'>
-                            <label
-                                className='col-sm-5 control-label'
-                                htmlFor='confirmEmail'
-                            >
-                                <FormattedMessage
-                                    id='user.settings.general.confirmEmail'
-                                    defaultMessage='Confirm Email'
-                                />
-                            </label>
-                            <div className='col-sm-7'>
-                                <Input
-                                    id='confirmEmail'
-                                    name='confirmEmail'
-                                    type='email'
-                                    onChange={this.updateConfirmEmail}
-                                    maxLength={Constants.MAX_EMAIL_LENGTH}
-                                    value={this.state.confirmEmail}
-                                    aria-label={formatMessage({id: 'user.settings.general.confirmEmail', defaultMessage: 'Confirm Email'})}
-                                    validate={(value) => {
-                                        if (this.state.email !== value) {
-                                            return {
-                                                type: 'error',
-                                                value: formatMessage(holders.emailMatch),
-                                            };
-                                        }
-                                        return undefined;
-                                    }}
-                                />
-                            </div>
-                        </div>
+                    <div
+                        key='confirmEmailSetting'
+                        className='form-group'
+                    >
+                        <Input
+                            id='confirmEmail'
+                            name='confirmEmail'
+                            type='email'
+                            onChange={this.updateConfirmEmail}
+                            maxLength={Constants.MAX_EMAIL_LENGTH}
+                            value={this.state.confirmEmail}
+                            label={defineMessage({id: 'user.settings.general.confirmEmail', defaultMessage: 'Confirm Email'})}
+                            validate={(value) => {
+                                if (this.state.email !== value) {
+                                    return {
+                                        type: 'error',
+                                        value: formatMessage(holders.emailMatch),
+                                    };
+                                }
+                                return undefined;
+                            }}
+                        />
                     </div>,
                 );
 
                 inputs.push(
-                    <div key='currentPassword'>
-                        <div className='form-group'>
-                            <label
-                                className='col-sm-5 control-label'
-                                htmlFor='currentPassword'
-                            >
-                                <FormattedMessage
-                                    id='user.settings.general.currentPassword'
-                                    defaultMessage='Current Password'
-                                />
-                            </label>
-                            <div className='col-sm-7'>
-                                <Input
-                                    id='currentPassword'
-                                    name='currentPassword'
-                                    type='password'
-                                    onChange={this.updateCurrentPassword}
-                                    value={this.state.currentPassword}
-                                    aria-label={formatMessage({id: 'user.settings.general.currentPassword', defaultMessage: 'Current Password'})}
-                                    validate={(value) => {
-                                        if (value === '') {
-                                            return {
-                                                type: 'error',
-                                                value: formatMessage(holders.emptyPassword),
-                                            };
-                                        }
-                                        return undefined;
-                                    }}
-                                />
-                            </div>
-                        </div>
+                    <div
+                        key='currentPassword'
+                        className='form-group'
+                    >
+                        <Input
+                            id='currentPassword'
+                            name='currentPassword'
+                            type='password'
+                            onChange={this.updateCurrentPassword}
+                            value={this.state.currentPassword}
+                            label={defineMessage({id: 'user.settings.general.currentPassword', defaultMessage: 'Current Password'})}
+                            validate={(value) => {
+                                if (value === '') {
+                                    return {
+                                        type: 'error',
+                                        value: formatMessage(holders.emptyPassword),
+                                    };
+                                }
+                                return undefined;
+                            }}
+                        />
                         {helpText}
                     </div>,
                 );
@@ -1003,29 +973,18 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         key='firstNameSetting'
                         className='form-group'
                     >
-                        <label
-                            className='col-sm-5 control-label'
-                            htmlFor='firstName'
-                        >
-                            <FormattedMessage
-                                id='user.settings.general.firstName'
-                                defaultMessage='First Name'
-                            />
-                        </label>
-                        <div className='col-sm-7'>
-                            <Input
-                                id='firstName'
-                                name='firstName'
-                                autoFocus={true}
-                                type='text'
-                                onChange={this.updateFirstName}
-                                disabled={firstNameLocked}
-                                maxLength={Constants.MAX_FIRSTNAME_LENGTH}
-                                value={this.state.firstName}
-                                onFocus={Utils.moveCursorToEnd}
-                                aria-label={formatMessage({id: 'user.settings.general.firstName', defaultMessage: 'First Name'})}
-                            />
-                        </div>
+                        <Input
+                            id='firstName'
+                            name='firstName'
+                            autoFocus={true}
+                            type='text'
+                            onChange={this.updateFirstName}
+                            disabled={firstNameLocked}
+                            maxLength={Constants.MAX_FIRSTNAME_LENGTH}
+                            value={this.state.firstName}
+                            onFocus={Utils.moveCursorToEnd}
+                            label={defineMessage({id: 'user.settings.general.firstName', defaultMessage: 'First Name'})}
+                        />
                     </div>,
                 );
 
@@ -1034,27 +993,16 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         key='lastNameSetting'
                         className='form-group'
                     >
-                        <label
-                            className='col-sm-5 control-label'
-                            htmlFor='lastName'
-                        >
-                            <FormattedMessage
-                                id='user.settings.general.lastName'
-                                defaultMessage='Last Name'
-                            />
-                        </label>
-                        <div className='col-sm-7'>
-                            <Input
-                                id='lastName'
-                                name='lastName'
-                                type='text'
-                                onChange={this.updateLastName}
-                                disabled={lastNameLocked}
-                                maxLength={Constants.MAX_LASTNAME_LENGTH}
-                                value={this.state.lastName}
-                                aria-label={formatMessage({id: 'user.settings.general.lastName', defaultMessage: 'Last Name'})}
-                            />
-                        </div>
+                        <Input
+                            id='lastName'
+                            name='lastName'
+                            type='text'
+                            onChange={this.updateLastName}
+                            disabled={lastNameLocked}
+                            maxLength={Constants.MAX_LASTNAME_LENGTH}
+                            value={this.state.lastName}
+                            label={defineMessage({id: 'user.settings.general.lastName', defaultMessage: 'Last Name'})}
+                        />
                     </div>,
                 );
 
@@ -1166,35 +1114,22 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             } else if (this.isFieldLockedByAdmin('nickname')) {
                 extraInfo = this.createFieldManagedByAdminMessage();
             } else {
-                let nicknameLabel: JSX.Element | string = (
-                    <FormattedMessage
-                        id='user.settings.general.nickname'
-                        defaultMessage='Nickname'
-                    />
-                );
-                if (this.props.isMobileView) {
-                    nicknameLabel = '';
-                }
-
                 inputs.push(
                     <div
                         key='nicknameSetting'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>{nicknameLabel}</label>
-                        <div className='col-sm-7'>
-                            <Input
-                                id='nickname'
-                                name='nickname'
-                                autoFocus={true}
-                                type='text'
-                                onChange={this.updateNickname}
-                                value={this.state.nickname}
-                                maxLength={Constants.MAX_NICKNAME_LENGTH}
-                                autoCapitalize='off'
-                                aria-label={formatMessage({id: 'user.settings.general.nickname', defaultMessage: 'Nickname'})}
-                            />
-                        </div>
+                        <Input
+                            id='nickname'
+                            name='nickname'
+                            autoFocus={true}
+                            type='text'
+                            onChange={this.updateNickname}
+                            value={this.state.nickname}
+                            maxLength={Constants.MAX_NICKNAME_LENGTH}
+                            autoCapitalize='off'
+                            label={holders.nickname}
+                        />
                     </div>,
                 );
 
@@ -1269,52 +1204,39 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             if (this.isFieldLockedByAdmin('username')) {
                 extraInfo = this.createFieldManagedByAdminMessage();
             } else if (this.props.user.auth_service === '') {
-                let usernameLabel: JSX.Element | string = (
-                    <FormattedMessage
-                        id='user.settings.general.username'
-                        defaultMessage='Username'
-                    />
-                );
-                if (this.props.isMobileView) {
-                    usernameLabel = '';
-                }
-
                 inputs.push(
                     <div
                         key='usernameSetting'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>{usernameLabel}</label>
-                        <div className='col-sm-7'>
-                            <Input
-                                id='username'
-                                name='username'
-                                autoFocus={true}
-                                maxLength={Constants.MAX_USERNAME_LENGTH}
-                                type='text'
-                                onChange={this.updateUsername}
-                                value={this.state.username}
-                                autoCapitalize='off'
-                                onFocus={Utils.moveCursorToEnd}
-                                aria-label={formatMessage({id: 'user.settings.general.username', defaultMessage: 'Username'})}
-                                validate={(value) => {
-                                    const usernameError = Utils.isValidUsername(value as string);
-                                    if (usernameError) {
-                                        if (usernameError.id === ValidationErrors.RESERVED_NAME) {
-                                            return {
-                                                type: 'error',
-                                                value: formatMessage(holders.usernameReserved),
-                                            };
-                                        }
+                        <Input
+                            id='username'
+                            name='username'
+                            autoFocus={true}
+                            maxLength={Constants.MAX_USERNAME_LENGTH}
+                            type='text'
+                            onChange={this.updateUsername}
+                            value={this.state.username}
+                            autoCapitalize='off'
+                            onFocus={Utils.moveCursorToEnd}
+                            label={holders.username}
+                            validate={(value) => {
+                                const usernameError = Utils.isValidUsername(value as string);
+                                if (usernameError) {
+                                    if (usernameError.id === ValidationErrors.RESERVED_NAME) {
                                         return {
                                             type: 'error',
-                                            value: formatMessage(holders.usernameRestrictions, {min: Constants.MIN_USERNAME_LENGTH, max: Constants.MAX_USERNAME_LENGTH}),
+                                            value: formatMessage(holders.usernameReserved),
                                         };
                                     }
-                                    return undefined;
-                                }}
-                            />
-                        </div>
+                                    return {
+                                        type: 'error',
+                                        value: formatMessage(holders.usernameRestrictions, {min: Constants.MIN_USERNAME_LENGTH, max: Constants.MAX_USERNAME_LENGTH}),
+                                    };
+                                }
+                                return undefined;
+                            }}
+                        />
                     </div>,
                 );
 
@@ -1388,36 +1310,23 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             } else if (this.isFieldLockedByAdmin('position')) {
                 extraInfo = this.createFieldManagedByAdminMessage();
             } else {
-                let positionLabel: JSX.Element | string = (
-                    <FormattedMessage
-                        id='user.settings.general.position'
-                        defaultMessage='Position'
-                    />
-                );
-                if (this.props.isMobileView) {
-                    positionLabel = '';
-                }
-
                 inputs.push(
                     <div
                         key='positionSetting'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>{positionLabel}</label>
-                        <div className='col-sm-7'>
-                            <Input
-                                id='position'
-                                name='position'
-                                autoFocus={true}
-                                type='text'
-                                onChange={this.updatePosition}
-                                value={this.state.position}
-                                maxLength={Constants.MAX_POSITION_LENGTH}
-                                autoCapitalize='off'
-                                onFocus={Utils.moveCursorToEnd}
-                                aria-label={formatMessage({id: 'user.settings.general.position', defaultMessage: 'Position'})}
-                            />
-                        </div>
+                        <Input
+                            id='position'
+                            name='position'
+                            autoFocus={true}
+                            type='text'
+                            onChange={this.updatePosition}
+                            value={this.state.position}
+                            maxLength={Constants.MAX_POSITION_LENGTH}
+                            autoCapitalize='off'
+                            onFocus={Utils.moveCursorToEnd}
+                            label={holders.position}
+                        />
                     </div>,
                 );
 
@@ -1656,13 +1565,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
                 // Only render inputs if the field is editable by the user
                 if (!isReadOnly) {
-                    let attributeLabel: JSX.Element | string = (
-                        getUserPropertyFieldLabel(attribute)
-                    );
-                    if (this.props.isMobileView) {
-                        attributeLabel = '';
-                    }
-
                     if (valueRefersToOptions(attribute)) {
                         const attribOptions: PropertyFieldOption[] = (attribute.attrs!.options as PropertyFieldOption[]) ?? [];
                         const opts = attribOptions.map((o) => {
@@ -1697,22 +1599,19 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 key={sectionName}
                                 className='form-group'
                             >
-                                <label className='col-sm-5 control-label'>{attributeLabel}</label>
-                                <div className='col-sm-7'>
-                                    <Input
-                                        id={sectionName}
-                                        name={sectionName}
-                                        autoFocus={true}
-                                        type={inputType}
-                                        onChange={this.updateAttribute}
-                                        value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as string}
-                                        maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
-                                        autoCapitalize='off'
-                                        onFocus={Utils.moveCursorToEnd}
-                                        aria-label={getUserPropertyFieldLabel(attribute)}
-                                        validate={validate}
-                                    />
-                                </div>
+                                <Input
+                                    id={sectionName}
+                                    name={sectionName}
+                                    autoFocus={true}
+                                    type={inputType}
+                                    onChange={this.updateAttribute}
+                                    value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as string}
+                                    maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                                    autoCapitalize='off'
+                                    onFocus={Utils.moveCursorToEnd}
+                                    label={getUserPropertyFieldLabel(attribute)}
+                                    validate={validate}
+                                />
                             </div>,
                         );
                     }
