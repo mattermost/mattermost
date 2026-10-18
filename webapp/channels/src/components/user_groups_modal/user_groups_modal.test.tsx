@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {Group} from '@mattermost/types/groups';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import UserGroupsModal from './user_groups_modal';
 
@@ -134,5 +134,47 @@ describe('component/user_groups_modal', () => {
         expect(baseElement).toMatchSnapshot();
 
         console.error = originalError;
+    });
+
+    test('User Groups modal search uses Compass SearchInput at medium size', () => {
+        // Modal content portals to document.body; use baseElement, not container.
+        const {baseElement} = renderWithContext(
+            <UserGroupsModal
+                {...baseProps}
+            />,
+            initialState as any,
+            {useMockedStore: true},
+        );
+
+        expect(screen.getByTestId('searchInput')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Search Groups')).toBeInTheDocument();
+        expect(baseElement.querySelector('[class*="_search-input"]')).not.toBeNull();
+        expect(baseElement.querySelector('[class*="_search-input--size-medium"]')).not.toBeNull();
+        expect(baseElement.querySelector('[class*="_text-input"]')).toBeNull();
+    });
+
+    test('clicking the clear icon clears the search term', async () => {
+        const setModalSearchTerm = jest.fn();
+        renderWithContext(
+            <UserGroupsModal
+                {...baseProps}
+                searchTerm='engineering'
+                actions={{
+                    ...baseProps.actions,
+                    setModalSearchTerm,
+                }}
+            />,
+            initialState as any,
+            {useMockedStore: true},
+        );
+
+        const searchInput = screen.getByTestId('searchInput');
+        expect(searchInput).toHaveValue('engineering');
+
+        const clearButton = screen.getByTestId('clear-search');
+        expect(clearButton).toHaveAttribute('tabindex', '0');
+        await userEvent.click(clearButton);
+
+        expect(setModalSearchTerm).toHaveBeenCalledWith('');
     });
 });
