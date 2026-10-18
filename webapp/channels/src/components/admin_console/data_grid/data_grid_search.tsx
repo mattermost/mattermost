@@ -50,7 +50,7 @@ const DataGridSearch = ({
         <div className='DataGrid_search'>
             <div className='DataGrid_searchBar'>
                 <SearchInput
-                    size='small'
+                    size='medium'
                     placeholder={formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
                     onChange={handleSearch}
                     onClear={resetSearch}

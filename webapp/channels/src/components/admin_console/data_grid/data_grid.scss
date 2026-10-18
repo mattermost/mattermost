@@ -10,7 +10,9 @@
 
     .DataGrid_search {
         display: flex;
-        min-height: 48px;
+
+        // Medium SearchInput is ~40px; keep room for vertical padding without clipping.
+        min-height: 56px;
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
@@ -19,7 +21,7 @@
         background: variables.$white;
         font-weight: bold;
 
-        // Host layout only; chrome/icon/clear come from Compass SearchInput.
+        // Host layout only; chrome/icon/clear/placeholder come from Compass SearchInput.
         .DataGrid_searchBar {
             width: 300px;
             margin-left: 8px;

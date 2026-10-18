@@ -84,6 +84,22 @@ $positions: 't'top,
     box-shadow: none;
 }
 
+// Host `_inputs.scss` sets ::placeholder opacity: 0.5 globally. Compass already
+// encodes placeholder strength in color (rgba(..., 0.64)); keep opacity at 1 so
+// those tokens are not halved (DataGrid / admin SearchInput looked washed out).
+#root [class*="_search-input__input"]::placeholder,
+#root [class*="_text-input__input"]::placeholder,
+#root [class*="_text-area__input"]::placeholder,
+#root [class*="_password-input__input"]::placeholder,
+#root [class*="_combobox__control"]::placeholder,
+.a11y__modal [class*="_search-input__input"]::placeholder,
+.a11y__modal [class*="_text-input__input"]::placeholder,
+.a11y__modal [class*="_text-area__input"]::placeholder,
+.a11y__modal [class*="_password-input__input"]::placeholder,
+.a11y__modal [class*="_combobox__control"]::placeholder {
+    opacity: 1;
+}
+
 .pos-relative {
     position: relative;
 }
