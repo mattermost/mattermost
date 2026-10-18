@@ -1,17 +1,20 @@
-.app__body .modal .GenericModal.channel-bookmarks-create-modal .modal-body .form-control {
-    height: 40px;
-    border: unset;
-}
-
 .channel-bookmarks-create-modal {
     .linkInput {
-        margin-bottom: 3rem;
+        // Keep gap before Title; messages paint into this space so wrapped
+        // error copy does not push the rest of the modal down while typing.
+        position: relative;
+        margin-bottom: 3.5rem;
         color: rgba(var(--center-channel-color-rgb), 0.72);
 
-        // Reserve one field-message line under the Compass control so realtime
-        // validation (info ↔ error) does not jump the Title field below.
         > .Input {
-            min-height: calc(var(--text-input-control-height, 40px) + var(--spacing-xs, 8px) + 20px);
+            position: relative;
+
+            [class*='_text-input__footer'] {
+                position: absolute;
+                top: calc(var(--text-input-control-height, 40px) + var(--spacing-xs, 8px));
+                right: 0;
+                left: 0;
+            }
         }
     }
 
