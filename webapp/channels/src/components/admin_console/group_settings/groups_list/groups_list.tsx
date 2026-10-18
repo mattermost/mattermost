@@ -3,19 +3,18 @@
 
 import classNames from 'classnames';
 import React, {type JSX} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 import {Button} from '@mattermost/shared/components/button';
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import GroupRow from 'components/admin_console/group_settings/group_row';
-import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-import SearchIcon from 'components/widgets/icons/search_icon';
 
 import {Constants} from 'utils/constants';
 
@@ -31,6 +30,29 @@ type Props = {
         unlink: (key: string) => Promise<ActionResult>;
     };
 };
+
+type GroupsListSearchProps = {
+    value: string;
+    onChange: (value: string) => void;
+    onClear: () => void;
+    onKeyUp: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+};
+
+function GroupsListSearch({value, onChange, onClear, onKeyUp}: GroupsListSearchProps) {
+    const {formatMessage} = useIntl();
+
+    return (
+        <SearchInput
+            size='small'
+            className='group-list-search__input'
+            placeholder={formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
+            onKeyUp={onKeyUp}
+            onChange={(e) => onChange(e.target.value)}
+            onClear={onClear}
+            value={value}
+        />
+    );
+}
 
 type FilterOption = {
     is_configured?: boolean;
@@ -472,20 +494,11 @@ export default class GroupsList extends React.PureComponent<Props, State> {
             <div className='groups-list'>
                 <div className='groups-list--global-actions'>
                     <div className='group-list-search'>
-                        <LocalizedPlaceholderInput
-                            type='text'
-                            placeholder={defineMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
-                            onKeyUp={(e: any) => this.handleGroupSearchKeyUp(e)}
-                            onChange={(e) => this.setState({searchString: e.target.value})}
+                        <GroupsListSearch
                             value={this.state.searchString}
-                        />
-                        <SearchIcon
-                            className='search__icon'
-                            aria-hidden='true'
-                        />
-                        <i
-                            className={'fa fa-times-circle group-filter-action ' + (this.state.searchString.length ? '' : 'hidden')}
-                            onClick={() => this.resetFiltersAndSearch()}
+                            onChange={(searchString) => this.setState({searchString})}
+                            onClear={() => this.resetFiltersAndSearch()}
+                            onKeyUp={(e) => this.handleGroupSearchKeyUp(e)}
                         />
                         <i
                             className={'fa fa-caret-down group-filter-action ' + (this.state.showFilters ? 'hidden' : '')}

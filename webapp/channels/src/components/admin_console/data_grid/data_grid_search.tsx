@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, memo, type JSX} from 'react';
-import {defineMessage} from 'react-intl';
+import {useIntl} from 'react-intl';
+
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 
 import Filter from 'components/admin_console/filter/filter';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
-import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
-import FaSearchIcon from 'components/widgets/icons/fa_search_icon';
 
 import './data_grid.scss';
 
@@ -31,10 +31,10 @@ const DataGridSearch = ({
     onSearch,
     disabled,
 }: Props) => {
-    const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const term = e.target.value;
+    const {formatMessage} = useIntl();
 
-        onSearch(term);
+    const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        onSearch(e.target.value);
     }, [onSearch]);
 
     const resetSearch = useCallback(() => {
@@ -49,25 +49,15 @@ const DataGridSearch = ({
     return (
         <div className='DataGrid_search'>
             <div className='DataGrid_searchBar'>
-                <span
-                    className='DataGrid_searchIcon'
-                    aria-hidden='true'
-                >
-                    <FaSearchIcon/>
-                </span>
-
-                <LocalizedPlaceholderInput
-                    type='text'
-                    placeholder={defineMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
+                <SearchInput
+                    size='small'
+                    placeholder={formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
                     onChange={handleSearch}
+                    onClear={resetSearch}
                     value={termFromProps}
                     data-testid='searchInput'
+                    clearButtonProps={{'data-testid': 'clear-search'}}
                     disabled={disabled}
-                />
-                <i
-                    className={'DataGrid_clearButton fa fa-times-circle ' + (termFromProps.length ? '' : 'hidden')}
-                    onClick={resetSearch}
-                    data-testid='clear-search'
                 />
             </div>
 

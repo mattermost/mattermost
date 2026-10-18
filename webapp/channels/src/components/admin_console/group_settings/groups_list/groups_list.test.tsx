@@ -591,8 +591,8 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         await userEvent.type(searchInput, 'foo');
         expect(searchInput).toHaveValue('foo');
 
-        // Click the clear icon
-        await userEvent.click(document.querySelector('i.fa-times-circle')!);
+        // Click Compass SearchInput clear control
+        await userEvent.click(screen.getByRole('button', {name: 'Clear search'}));
 
         expect(searchInput).toHaveValue('');
     });

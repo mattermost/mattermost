@@ -24,28 +24,23 @@
         .group-list-search {
             position: relative;
             display: flex;
-            max-width: 280px;
-            height: 30px;
+            max-width: 320px;
             flex-grow: 1;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: 15px;
+            align-items: center;
+            gap: 4px;
             margin-top: 2px;
-            stroke: variables.$dark-gray;
 
-            input {
-                width: 100%;
-                border: 0;
-                margin-right: 15px;
-                margin-left: 25px;
-                font-size: 0.95em;
-            }
-
-            input:focus {
-                outline: none;
+            .group-list-search__input {
+                flex: 1 1 auto;
+                min-width: 0;
             }
 
             .group-filter-action {
-                padding: 8px 10px 0 0;
+                display: flex;
+                flex-shrink: 0;
+                align-items: center;
+                padding: 8px;
+                cursor: pointer;
 
                 &.hidden {
                     visibility: hidden;
