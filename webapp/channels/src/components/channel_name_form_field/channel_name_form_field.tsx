@@ -197,7 +197,6 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 placeholder={props.placeholder}
                 inputSize={SIZE.MEDIUM}
                 limit={Constants.MAX_CHANNELNAME_LENGTH}
-                showCharacterCount={true}
 
                 // Only pass minLength after the user has interacted with the field
                 minLength={hasInteracted ? Constants.MIN_CHANNELNAME_LENGTH : undefined}

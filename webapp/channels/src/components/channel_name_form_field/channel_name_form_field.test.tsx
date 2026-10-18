@@ -246,13 +246,17 @@ describe('ChannelNameFormField - display name validation', () => {
 });
 
 describe('ChannelNameFormField - Compass field chrome', () => {
-    test('should show medium-size character count against channel name max length', () => {
-        // "Test Channel" is 12 characters; MAX_CHANNELNAME_LENGTH is 64
+    test('should not show a character count under the channel name field', () => {
+        // "Test Channel" is 12 characters; MAX_CHANNELNAME_LENGTH is 64.
+        // limit still applies for validation; without showCharacterCount the
+        // "current / max" counter stays hidden.
         renderWithContext(
             <ChannelNameFormField {...baseProps}/>,
             makeState('false'),
         );
 
-        expect(screen.getByText('12 / 64')).toBeInTheDocument();
+        expect(screen.getByRole('textbox', {name: 'Channel name'})).toBeInTheDocument();
+        expect(screen.queryByText('12 / 64')).not.toBeInTheDocument();
+        expect(screen.queryByText(/\/ 64/)).not.toBeInTheDocument();
     });
 });
