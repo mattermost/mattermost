@@ -53,7 +53,7 @@ function GroupsListSearch({value, onChange, onClear, onKeyUp}: GroupsListSearchP
             data-testid='searchInput'
             clearButtonProps={{
                 'data-testid': 'clear-search',
-                tabIndex: -1,
+                tabIndex: 0,
             }}
         />
     );

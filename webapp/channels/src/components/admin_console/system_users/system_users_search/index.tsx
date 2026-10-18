@@ -49,6 +49,7 @@ export function SystemUsersSearch(props: Props) {
                 onChange={handleChange}
                 onClear={handleClear}
                 value={inputValue}
+                clearButtonProps={{tabIndex: 0}}
             />
         </div>
     );

@@ -27,6 +27,7 @@ const SearchBar = ({className, terms, onInput}: Props) => {
                     id: 'channel_members_rhs.search_bar.aria.cancel_search_button',
                     defaultMessage: 'cancel members search',
                 })}
+                clearButtonProps={{tabIndex: 0}}
                 placeholder={formatMessage({
                     id: 'channel_members_rhs.search_bar.placeholder',
                     defaultMessage: 'Search members',

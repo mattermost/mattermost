@@ -56,7 +56,7 @@ const DataGridSearch = ({
                     onClear={resetSearch}
                     value={termFromProps}
                     data-testid='searchInput'
-                    clearButtonProps={{'data-testid': 'clear-search'}}
+                    clearButtonProps={{'data-testid': 'clear-search', tabIndex: 0}}
                     disabled={disabled}
                 />
             </div>

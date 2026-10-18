@@ -570,6 +570,28 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('LDAP group list search uses Compass SearchInput', async () => {
+        const {container} = renderWithContext(
+            <GroupsList
+                groups={[]}
+                total={0}
+                actions={{
+                    getLdapGroups: jest.fn().mockReturnValue(Promise.resolve()),
+                    link: jest.fn(),
+                    unlink: jest.fn(),
+                }}
+            />,
+        );
+        await waitFor(() => {
+            expect(screen.getByText('No groups found')).toBeInTheDocument();
+        });
+
+        expect(screen.getByTestId('searchInput')).toBeInTheDocument();
+        expect(container.querySelector('[class*="_search-input"]')).not.toBeNull();
+        expect(container.querySelector('[class*="_search-input--size-medium"]')).not.toBeNull();
+        expect(screen.getByRole('button', {name: 'Open group filters'})).toBeInTheDocument();
+    });
+
     test('clicking the clear icon clears searchString', async () => {
         renderWithContext(
             <GroupsList
@@ -591,8 +613,11 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         await userEvent.type(searchInput, 'foo');
         expect(searchInput).toHaveValue('foo');
 
+        const clearButton = screen.getByTestId('clear-search');
+        expect(clearButton).toHaveAttribute('tabindex', '0');
+
         // Click Compass SearchInput clear control
-        await userEvent.click(screen.getByRole('button', {name: 'Clear search'}));
+        await userEvent.click(clearButton);
 
         expect(searchInput).toHaveValue('');
     });
