@@ -368,6 +368,8 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Empty(t, d.Cluster.ID)
 		require.NotNil(t, d.Cluster.NumberOfNodes)
 		assert.Equal(t, 1, *d.Cluster.NumberOfNodes)
+		require.NotNil(t, d.Cluster.NumberOfConnectedNodes)
+		assert.Equal(t, 1, *d.Cluster.NumberOfConnectedNodes)
 		assert.False(t, d.Cluster.IsLeader)
 
 		/* LDAP */
@@ -389,6 +391,29 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.Google.Status)
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.Office365.Status)
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.OpenID.Status)
+	})
+
+	t.Run("database-only nodes count as nodes but not as connected", func(t *testing.T) {
+		cluster := emocks.NewClusterInterface(t)
+		cluster.On("SendClusterMessage", mock.Anything).Return().Maybe()
+		cluster.On("GetClusterId").Return("cluster-id")
+		cluster.On("IsLeader").Return(true)
+		cluster.On("GetClusterInfos").Return([]*model.ClusterInfo{
+			{Id: "a", Hostname: "app-1", IPAddress: "10.0.0.1"},
+			{Id: "b", Hostname: "app-2", IPAddress: "10.0.0.2"},
+			{Id: "c", Hostname: "app-3"},
+		}, nil)
+		originalCluster := th.Service.clusterIFace
+		t.Cleanup(func() {
+			th.Service.clusterIFace = originalCluster
+		})
+		th.Service.clusterIFace = cluster
+
+		d := getDiagnostics(t)
+		require.NotNil(t, d.Cluster.NumberOfNodes)
+		assert.Equal(t, 3, *d.Cluster.NumberOfNodes)
+		require.NotNil(t, d.Cluster.NumberOfConnectedNodes)
+		assert.Equal(t, 2, *d.Cluster.NumberOfConnectedNodes)
 	})
 
 	t.Run("only the cluster leader writes is_leader", func(t *testing.T) {
@@ -1354,6 +1379,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 			model.SectionCluster: {"error while getting cluster infos"},
 		})
 		assert.Nil(t, d.Cluster.NumberOfNodes)
+		assert.Nil(t, d.Cluster.NumberOfConnectedNodes)
 	})
 
 	t.Run("LDAP vendor info fails", func(t *testing.T) {
@@ -1644,6 +1670,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Websocket.Connections = 77
 	diagnostics.Cluster.ID = "cluster-id"
 	diagnostics.Cluster.NumberOfNodes = new(3)
+	diagnostics.Cluster.NumberOfConnectedNodes = new(2)
 	diagnostics.Notifications.Email.Status = model.StatusOk
 	diagnostics.Notifications.Push.Status = model.StatusFail
 	diagnostics.Notifications.Push.Error = "proxy timeout"
