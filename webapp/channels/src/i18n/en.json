@@ -34383,9 +34383,17 @@
     "defaultMessage": "Choose a Password",
     "description": "Floating label for the password input when a user is creating a new password (e.g. sign-up)."
   },
+  "widget.passwordInput.hidePassword": {
+    "defaultMessage": "Hide password",
+    "description": ""
+  },
   "widget.passwordInput.password": {
     "defaultMessage": "Password",
     "description": "Floating label for the password input on login and similar forms."
+  },
+  "widget.passwordInput.showPassword": {
+    "defaultMessage": "Show password",
+    "description": ""
   },
   "widgets.channels_input.empty": {
     "defaultMessage": "No channels found",

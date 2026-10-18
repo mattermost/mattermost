@@ -65,27 +65,30 @@ Object {
               class="Input_container"
             >
               <div
-                class="Input_fieldset name_input"
-                data-testid="input-wrapper"
+                class="_text-input_3inqk_2 _text-input--size-large_3inqk_185 Input name_input"
               >
-                <label
-                  class="Input_legend"
-                  for="input_name"
-                >
-                                          
-                </label>
                 <div
-                  class="Input_wrapper"
+                  class="_text-input__wrapper_3inqk_31"
                 >
-                  <input
-                    aria-label="Name"
-                    class="Input form-control large"
-                    id="input_name"
-                    name="name"
-                    placeholder="Name"
-                    type="text"
-                    value=""
-                  />
+                  <label
+                    class="_text-input__label_3inqk_53"
+                    for="input_name"
+                  >
+                    Name
+                  </label>
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="input_name"
+                      name="name"
+                      placeholder="Name"
+                      type="text"
+                      value=""
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -93,73 +96,104 @@ Object {
               class="Input_container"
             >
               <div
-                class="Input_fieldset email_input Input_fieldset___error Input_fieldset___legend"
-                data-testid="input-wrapper"
+                class="_text-input_3inqk_2 _text-input--size-large_3inqk_185 _text-input--invalid_3inqk_227 _text-input--label-floated_3inqk_73 Input email_input"
               >
-                <label
-                  class="Input_legend Input_legend___focus"
-                  for="input_email"
-                >
-                                          
-                  Business Email
-                </label>
                 <div
-                  class="Input_wrapper"
+                  class="_text-input__wrapper_3inqk_31"
                 >
-                  <input
-                    aria-describedby="error_email"
-                    aria-invalid="true"
-                    aria-label="Business Email"
-                    class="Input form-control large Input__focus"
-                    id="input_email"
-                    name="email"
-                    placeholder="Business Email"
-                    type="text"
-                    value="test@mattermost.com"
-                  />
+                  <label
+                    class="_text-input__label_3inqk_53"
+                    for="input_email"
+                  >
+                    Business Email
+                  </label>
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      aria-describedby="input_email-message"
+                      aria-invalid="true"
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="input_email"
+                      name="email"
+                      placeholder="Business Email"
+                      type="text"
+                      value="test@mattermost.com"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div
-                class="Input___customMessage Input___error"
-                id="error_email"
-                role="alert"
-              >
-                <i
-                  aria-hidden="true"
-                  aria-label=""
-                  class="icon error icon-alert-circle-outline"
-                  role="img"
-                />
-                <span>
-                  Please enter a valid business email address.
-                </span>
+                <div
+                  class="_text-input__footer_3inqk_124"
+                >
+                  <div
+                    class="_field-message_10eh8_2 _field-message--tone-error_10eh8_21 _text-input__footer-message_3inqk_130"
+                    id="input_email-message"
+                    role="alert"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_field-message__icon_10eh8_7"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="14"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2 M12,20c-4.4,0-8-3.6-8-8s3.6-8,8-8s8,3.6,8,8S16.4,20,12,20z M12.501,13h-1l-0.5-6h2L12.501,13z M13,16c0,0.552-0.448,1-1,1s-1-0.448-1-1s0.448-1,1-1S13,15.448,13,16z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </span>
+                    <span
+                      class="_field-message__text_10eh8_14"
+                    >
+                      Please enter a valid business email address.
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
             <div
               class="Input_container"
             >
               <div
-                class="Input_fieldset company_name_input"
-                data-testid="input-wrapper"
+                class="_text-input_3inqk_2 _text-input--size-large_3inqk_185 Input company_name_input"
               >
-                <label
-                  class="Input_legend"
-                  for="input_company_name"
-                >
-                                          
-                </label>
                 <div
-                  class="Input_wrapper"
+                  class="_text-input__wrapper_3inqk_31"
                 >
-                  <input
-                    aria-label="Company Name"
-                    class="Input form-control large"
-                    id="input_company_name"
-                    name="company_name"
-                    placeholder="Company Name"
-                    type="text"
-                    value=""
-                  />
+                  <label
+                    class="_text-input__label_3inqk_53"
+                    for="input_company_name"
+                  >
+                    Company Name
+                  </label>
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="input_company_name"
+                      name="company_name"
+                      placeholder="Company Name"
+                      type="text"
+                      value=""
+                    />
+                  </div>
                 </div>
               </div>
             </div>

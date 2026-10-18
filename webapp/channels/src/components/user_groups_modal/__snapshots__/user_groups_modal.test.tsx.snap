@@ -89,30 +89,36 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
                   class="Input_container"
                 >
                   <div
-                    class="Input_fieldset user-group-search-input"
-                    data-testid="input-wrapper"
+                    class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--has-leading-icon_3inqk_209 Input user-group-search-input"
                   >
-                    <label
-                      class="Input_legend"
-                      for="input_"
-                    >
-                                              
-                    </label>
                     <div
-                      class="Input_wrapper"
+                      class="_text-input__wrapper_3inqk_31"
                     >
-                      <i
-                        class="icon icon-magnify"
-                      />
-                      <input
-                        aria-label="Search Groups"
-                        class="Input form-control medium"
-                        data-testid="searchInput"
-                        id="input_"
-                        placeholder="Search Groups"
-                        type="text"
-                        value=""
-                      />
+                      <label
+                        class="_text-input__label_3inqk_53"
+                        for="input_"
+                      >
+                        Search Groups
+                      </label>
+                      <div
+                        class="_text-input__inner_3inqk_80"
+                      >
+                        <span
+                          class="_text-input__leading-icon_3inqk_111"
+                        >
+                          <i
+                            class="icon icon-magnify"
+                          />
+                        </span>
+                        <input
+                          class="_text-input__input_3inqk_42"
+                          data-testid="searchInput"
+                          id="input_"
+                          placeholder="Search Groups"
+                          type="text"
+                          value=""
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -360,30 +366,36 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
                   class="Input_container"
                 >
                   <div
-                    class="Input_fieldset user-group-search-input"
-                    data-testid="input-wrapper"
+                    class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--has-leading-icon_3inqk_209 Input user-group-search-input"
                   >
-                    <label
-                      class="Input_legend"
-                      for="input_"
-                    >
-                                              
-                    </label>
                     <div
-                      class="Input_wrapper"
+                      class="_text-input__wrapper_3inqk_31"
                     >
-                      <i
-                        class="icon icon-magnify"
-                      />
-                      <input
-                        aria-label="Search Groups"
-                        class="Input form-control medium"
-                        data-testid="searchInput"
-                        id="input_"
-                        placeholder="Search Groups"
-                        type="text"
-                        value=""
-                      />
+                      <label
+                        class="_text-input__label_3inqk_53"
+                        for="input_"
+                      >
+                        Search Groups
+                      </label>
+                      <div
+                        class="_text-input__inner_3inqk_80"
+                      >
+                        <span
+                          class="_text-input__leading-icon_3inqk_111"
+                        >
+                          <i
+                            class="icon icon-magnify"
+                          />
+                        </span>
+                        <input
+                          class="_text-input__input_3inqk_42"
+                          data-testid="searchInput"
+                          id="input_"
+                          placeholder="Search Groups"
+                          type="text"
+                          value=""
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
