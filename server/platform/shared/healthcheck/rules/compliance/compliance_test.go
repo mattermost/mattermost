@@ -6,6 +6,7 @@ package compliance
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
@@ -125,6 +126,7 @@ func TestComplianceNoDir(t *testing.T) {
 func TestRetentionTightBatches(t *testing.T) {
 	t.Parallel()
 
+	collectedAt := time.Date(2026, time.October, 1, 12, 0, 0, 0, time.UTC)
 	tight := func(value string) want {
 		return firing("health.rule.retention_tight_batches.message", map[string]string{"value": value})
 	}
@@ -135,40 +137,55 @@ func TestRetentionTightBatches(t *testing.T) {
 			cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds = new(pause)
 		}
 	}
+	// withJobs adds data retention runs created the given durations before collection.
+	withJobs := func(s *healthcheck.Snapshot, ages ...time.Duration) *healthcheck.Snapshot {
+		s.CollectedAt = collectedAt
+		s.Jobs = &model.SupportPacketJobList{}
+		for _, age := range ages {
+			s.Jobs.DataRetentionJobs = append(s.Jobs.DataRetentionJobs, &model.Job{CreateAt: collectedAt.Add(-age).UnixMilli()})
+		}
+		s.Sections[model.SectionJobs] = nil
+		return s
+	}
 
 	testCases := []struct {
-		name   string
-		update func(cfg *model.Config)
-		want   want
+		name     string
+		snapshot *healthcheck.Snapshot
+		want     want
 	}{
-		{name: "message deletion with no pause", update: retention(true, false, 0), want: tight("0")},
-		{name: "file deletion just below the minimum", update: retention(false, true, 99), want: tight("99")},
-		{name: "default pause", update: retention(true, true, 100), want: resolved},
-		{name: "deletion off with tight batches", update: retention(false, false, 10), want: resolved},
+		{"message deletion with no pause", configSnapshot(retention(true, false, 0)), tight("0")},
+		{"file deletion just below the minimum", configSnapshot(retention(false, true, 99)), tight("99")},
+		{"default pause", configSnapshot(retention(true, true, 100)), resolved},
+		{"custom policy run with tight batches", withJobs(configSnapshot(retention(false, false, 10)), time.Hour), tight("10")},
+		{"custom policy run at the window edge", withJobs(configSnapshot(retention(false, false, 10)), retentionJobWindow), tight("10")},
+		{"only stale runs with tight batches", withJobs(configSnapshot(retention(false, false, 10)), retentionJobWindow+time.Minute), resolved},
+		{"deletion off without runs", withJobs(configSnapshot(retention(false, false, 10))), resolved},
+		{"deletion off with jobs absent", configSnapshot(retention(false, false, 10)), want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonJobsUnavailable}},
 		{
-			name:   "message deletion absent",
-			update: func(cfg *model.Config) { cfg.DataRetentionSettings.EnableMessageDeletion = nil },
-			want:   configUnknown,
+			"deletion off with collection time unknown",
+			func() *healthcheck.Snapshot {
+				s := withJobs(configSnapshot(retention(false, false, 10)), time.Hour)
+				s.CollectedAt = time.Time{}
+				return s
+			}(),
+			want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonCollectedAtUnknown},
 		},
+		{"message deletion absent", configSnapshot(func(cfg *model.Config) { cfg.DataRetentionSettings.EnableMessageDeletion = nil }), configUnknown},
+		{"file deletion absent", configSnapshot(func(cfg *model.Config) { cfg.DataRetentionSettings.EnableFileDeletion = nil }), configUnknown},
 		{
-			name:   "file deletion absent",
-			update: func(cfg *model.Config) { cfg.DataRetentionSettings.EnableFileDeletion = nil },
-			want:   configUnknown,
-		},
-		{
-			name: "pause absent",
-			update: func(cfg *model.Config) {
+			"pause absent",
+			configSnapshot(func(cfg *model.Config) {
 				retention(true, false, 0)(cfg)
 				cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds = nil
-			},
-			want: configUnknown,
+			}),
+			configUnknown,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assertResult(t, tc.want, retentionTightBatches.Eval(configSnapshot(tc.update)))
+			assertResult(t, tc.want, retentionTightBatches.Eval(tc.snapshot))
 		})
 	}
 }

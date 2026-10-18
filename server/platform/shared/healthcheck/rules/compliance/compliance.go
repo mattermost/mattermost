@@ -5,6 +5,7 @@ package compliance
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
@@ -17,6 +18,9 @@ func init() {
 const (
 	minTimeBetweenBatchesMilliseconds = model.DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds
 	minGlobalRelaySMTPTimeoutSeconds  = 30
+
+	// The job is scheduled daily; the window tolerates one missed run.
+	retentionJobWindow = 48 * time.Hour
 )
 
 var complianceNoDir = healthcheck.Rule{
@@ -86,22 +90,42 @@ func evalComplianceNoDir(s *healthcheck.Snapshot) []healthcheck.Result {
 	}
 }
 
-// retentionEnabled reports whether the global retention policy runs the deletion job.
-func retentionEnabled(s *healthcheck.Snapshot) (enabled, ok bool) {
+// retentionRuns reports whether the deletion job runs; custom policies run it with the global policy off, which only job history shows.
+func retentionRuns(s *healthcheck.Snapshot) (runs bool, unknownReason string) {
 	messages, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.DataRetentionSettings.EnableMessageDeletion })
-	if !ok || messages {
-		return messages, ok
+	if !ok {
+		return false, healthcheck.ReasonConfigUnavailable
+	}
+	files, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.DataRetentionSettings.EnableFileDeletion })
+	if !ok {
+		return false, healthcheck.ReasonConfigUnavailable
+	}
+	if messages || files {
+		return true, ""
 	}
 
-	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.DataRetentionSettings.EnableFileDeletion })
+	jobs, ok := s.JobsFor(model.JobTypeDataRetention)
+	if !ok {
+		return false, healthcheck.ReasonJobsUnavailable
+	}
+	if s.CollectedAt.IsZero() {
+		return false, healthcheck.ReasonCollectedAtUnknown
+	}
+	for _, job := range jobs {
+		if job != nil && s.CollectedAt.Sub(time.UnixMilli(job.CreateAt)) <= retentionJobWindow {
+			return true, ""
+		}
+	}
+
+	return false, ""
 }
 
 func evalRetentionTightBatches(s *healthcheck.Snapshot) []healthcheck.Result {
-	enabled, ok := retentionEnabled(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+	runs, reason := retentionRuns(s)
+	if reason != "" {
+		return []healthcheck.Result{healthcheck.Unknown(reason)}
 	}
-	if !enabled {
+	if !runs {
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
 
