@@ -575,7 +575,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
 
         expect(screen.getByTestId('searchInput')).toBeInTheDocument();
         expect(container.querySelector('[class*="_search-input"]')).not.toBeNull();
-        expect(container.querySelector('[class*="_search-input--size-medium"]')).not.toBeNull();
+        expect(container.querySelector('[class*="_search-input--size-small"]')).not.toBeNull();
         expect(screen.getByRole('button', {name: 'Open group filters'})).toBeInTheDocument();
     });
 

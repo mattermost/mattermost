@@ -20,43 +20,32 @@
         display: flex;
         background: variables.$white;
 
-        // Fixed-width host: SearchInput + filter caret. Filter panel overlays
-        // absolutely so opening it cannot grow this row (was expanding past 320px).
+        // Fixed-width host: SearchInput + separate filter caret (gap, not
+        // segmented). Filter panel overlays absolutely so opening it cannot
+        // grow this row (was expanding past 320px).
         .group-list-search {
             position: relative;
             display: flex;
             width: 320px;
             max-width: 320px;
             flex: 0 0 320px;
-            align-items: stretch;
+            align-items: center;
+            gap: 4px;
 
             .group-list-search__input {
                 flex: 1 1 auto;
                 min-width: 0;
-                width: auto;
-
-                // Room for the absolutely positioned filter caret + divider.
-                [class*='search-input__inner'] {
-                    padding-right: 40px;
-                }
             }
 
             .group-filter-action {
-                position: absolute;
-                z-index: 2;
-                top: 0;
-                right: 0;
-                bottom: 0;
                 display: inline-flex;
                 flex-shrink: 0;
                 align-items: center;
                 justify-content: center;
-                width: 36px;
-                padding: 0;
+                padding: 8px;
                 border: none;
-                border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
                 background: transparent;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: inherit;
                 cursor: pointer;
 
                 &.hidden {

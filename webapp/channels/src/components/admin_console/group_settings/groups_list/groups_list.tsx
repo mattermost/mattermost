@@ -43,7 +43,7 @@ function GroupsListSearch({value, onChange, onClear, onKeyUp}: GroupsListSearchP
 
     return (
         <SearchInput
-            size='medium'
+            size='small'
             className='group-list-search__input'
             placeholder={formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
             onKeyUp={onKeyUp}

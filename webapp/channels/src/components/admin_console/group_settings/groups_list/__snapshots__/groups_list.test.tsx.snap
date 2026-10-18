@@ -12,7 +12,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-search"
       >
         <div
-          class="_search-input_1h7hr_2 _search-input--size-medium_1h7hr_116 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
+          class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
         >
           <div
             class="_search-input__wrapper_1h7hr_8"
@@ -26,17 +26,17 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-16_1i355_38"
+                  class="_icon_1i355_2 _icon--size-12_1i355_30"
                 >
                   <div
                     class="_icon__glyph-area_1i355_9"
                   >
                     <svg
                       fill="currentColor"
-                      height="18"
+                      height="14"
                       version="1.1"
                       viewBox="0 0 24 24"
-                      width="18"
+                      width="14"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
@@ -113,7 +113,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-search"
       >
         <div
-          class="_search-input_1h7hr_2 _search-input--size-medium_1h7hr_116 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
+          class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
         >
           <div
             class="_search-input__wrapper_1h7hr_8"
@@ -127,17 +127,17 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-16_1i355_38"
+                  class="_icon_1i355_2 _icon--size-12_1i355_30"
                 >
                   <div
                     class="_icon__glyph-area_1i355_9"
                   >
                     <svg
                       fill="currentColor"
-                      height="18"
+                      height="14"
                       version="1.1"
                       viewBox="0 0 24 24"
-                      width="18"
+                      width="14"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
@@ -262,7 +262,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-search"
       >
         <div
-          class="_search-input_1h7hr_2 _search-input--size-medium_1h7hr_116 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
+          class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
         >
           <div
             class="_search-input__wrapper_1h7hr_8"
@@ -276,17 +276,17 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-16_1i355_38"
+                  class="_icon_1i355_2 _icon--size-12_1i355_30"
                 >
                   <div
                     class="_icon__glyph-area_1i355_9"
                   >
                     <svg
                       fill="currentColor"
-                      height="18"
+                      height="14"
                       version="1.1"
                       viewBox="0 0 24 24"
-                      width="18"
+                      width="14"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
@@ -603,7 +603,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-search"
       >
         <div
-          class="_search-input_1h7hr_2 _search-input--size-medium_1h7hr_116 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
+          class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
         >
           <div
             class="_search-input__wrapper_1h7hr_8"
@@ -617,17 +617,17 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-16_1i355_38"
+                  class="_icon_1i355_2 _icon--size-12_1i355_30"
                 >
                   <div
                     class="_icon__glyph-area_1i355_9"
                   >
                     <svg
                       fill="currentColor"
-                      height="18"
+                      height="14"
                       version="1.1"
                       viewBox="0 0 24 24"
-                      width="18"
+                      width="14"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
@@ -888,7 +888,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-search"
       >
         <div
-          class="_search-input_1h7hr_2 _search-input--size-medium_1h7hr_116 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
+          class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
         >
           <div
             class="_search-input__wrapper_1h7hr_8"
@@ -902,17 +902,17 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-16_1i355_38"
+                  class="_icon_1i355_2 _icon--size-12_1i355_30"
                 >
                   <div
                     class="_icon__glyph-area_1i355_9"
                   >
                     <svg
                       fill="currentColor"
-                      height="18"
+                      height="14"
                       version="1.1"
                       viewBox="0 0 24 24"
-                      width="18"
+                      width="14"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
@@ -1173,7 +1173,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-search"
       >
         <div
-          class="_search-input_1h7hr_2 _search-input--size-medium_1h7hr_116 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
+          class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
         >
           <div
             class="_search-input__wrapper_1h7hr_8"
@@ -1187,17 +1187,17 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-16_1i355_38"
+                  class="_icon_1i355_2 _icon--size-12_1i355_30"
                 >
                   <div
                     class="_icon__glyph-area_1i355_9"
                   >
                     <svg
                       fill="currentColor"
-                      height="18"
+                      height="14"
                       version="1.1"
                       viewBox="0 0 24 24"
-                      width="18"
+                      width="14"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
@@ -1448,7 +1448,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-search"
       >
         <div
-          class="_search-input_1h7hr_2 _search-input--size-medium_1h7hr_116 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
+          class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
         >
           <div
             class="_search-input__wrapper_1h7hr_8"
@@ -1462,17 +1462,17 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-16_1i355_38"
+                  class="_icon_1i355_2 _icon--size-12_1i355_30"
                 >
                   <div
                     class="_icon__glyph-area_1i355_9"
                   >
                     <svg
                       fill="currentColor"
-                      height="18"
+                      height="14"
                       version="1.1"
                       viewBox="0 0 24 24"
-                      width="18"
+                      width="14"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
@@ -1995,7 +1995,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-search"
       >
         <div
-          class="_search-input_1h7hr_2 _search-input--size-medium_1h7hr_116 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
+          class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
         >
           <div
             class="_search-input__wrapper_1h7hr_8"
@@ -2009,17 +2009,17 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-16_1i355_38"
+                  class="_icon_1i355_2 _icon--size-12_1i355_30"
                 >
                   <div
                     class="_icon__glyph-area_1i355_9"
                   >
                     <svg
                       fill="currentColor"
-                      height="18"
+                      height="14"
                       version="1.1"
                       viewBox="0 0 24 24"
-                      width="18"
+                      width="14"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
@@ -2541,7 +2541,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-search"
       >
         <div
-          class="_search-input_1h7hr_2 _search-input--size-medium_1h7hr_116 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
+          class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
         >
           <div
             class="_search-input__wrapper_1h7hr_8"
@@ -2555,17 +2555,17 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-16_1i355_38"
+                  class="_icon_1i355_2 _icon--size-12_1i355_30"
                 >
                   <div
                     class="_icon__glyph-area_1i355_9"
                   >
                     <svg
                       fill="currentColor"
-                      height="18"
+                      height="14"
                       version="1.1"
                       viewBox="0 0 24 24"
-                      width="18"
+                      width="14"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
@@ -2814,7 +2814,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-search"
       >
         <div
-          class="_search-input_1h7hr_2 _search-input--size-medium_1h7hr_116 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
+          class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
         >
           <div
             class="_search-input__wrapper_1h7hr_8"
@@ -2828,17 +2828,17 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-16_1i355_38"
+                  class="_icon_1i355_2 _icon--size-12_1i355_30"
                 >
                   <div
                     class="_icon__glyph-area_1i355_9"
                   >
                     <svg
                       fill="currentColor"
-                      height="18"
+                      height="14"
                       version="1.1"
                       viewBox="0 0 24 24"
-                      width="18"
+                      width="14"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
@@ -2913,7 +2913,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-search"
       >
         <div
-          class="_search-input_1h7hr_2 _search-input--size-medium_1h7hr_116 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
+          class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157 group-list-search__input"
         >
           <div
             class="_search-input__wrapper_1h7hr_8"
@@ -2927,17 +2927,17 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-16_1i355_38"
+                  class="_icon_1i355_2 _icon--size-12_1i355_30"
                 >
                   <div
                     class="_icon__glyph-area_1i355_9"
                   >
                     <svg
                       fill="currentColor"
-                      height="18"
+                      height="14"
                       version="1.1"
                       viewBox="0 0 24 24"
-                      width="18"
+                      width="14"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
