@@ -18,6 +18,7 @@ import {formatAsString} from 'utils/i18n';
 import './input.scss';
 
 export enum SIZE {
+    SMALL = 'small',
     MEDIUM = 'medium',
     LARGE = 'large',
 }
@@ -25,6 +26,7 @@ export enum SIZE {
 export type CustomMessageInputType = {type?: 'info' | 'error' | 'warning' | 'success'; value: React.ReactNode} | null;
 
 const INPUT_SIZE_MAP: Record<SIZE, TextInputSize & TextAreaSize> = {
+    [SIZE.SMALL]: 'small',
     [SIZE.MEDIUM]: 'medium',
     [SIZE.LARGE]: 'large',
 };

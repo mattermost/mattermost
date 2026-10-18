@@ -6,6 +6,7 @@ import {FormattedMessage, defineMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
 import LineSwitch from '../../line_switch';
 
@@ -93,22 +94,20 @@ const AllowedDomainsToggle = ({syncChecked, allAllowedChecked, allowedDomainsChe
                 />
             )}
         >
-            <>
-                <div className='help-text csvDomains'>
-                    <FormattedMessage
-                        id='admin.team_settings.team_details.csvDomains'
-                        defaultMessage='Comma Separated Email Domain List'
-                    />
-                </div>
-                <input
-                    type='text'
-                    value={allowedDomains}
-                    placeholder='mattermost.com'
-                    className='form-control'
-                    onChange={(e) => onToggle(syncChecked, allAllowedChecked, allowedDomainsChecked, e.currentTarget.value)}
-                    disabled={isDisabled}
-                />
-            </>
+            <Input
+                name='allowedDomains'
+                type='text'
+                value={allowedDomains}
+                placeholder='mattermost.com'
+                label={defineMessage({
+                    id: 'admin.team_settings.team_details.csvDomains',
+                    defaultMessage: 'Comma Separated Email Domain List',
+                })}
+                inputSize={SIZE.SMALL}
+                onChange={(e) => onToggle(syncChecked, allAllowedChecked, allowedDomainsChecked, e.currentTarget.value)}
+                disabled={isDisabled}
+                containerClassName='csvDomains'
+            />
         </LineSwitch>));
 
 type PolicyEnforceToggleProps = {

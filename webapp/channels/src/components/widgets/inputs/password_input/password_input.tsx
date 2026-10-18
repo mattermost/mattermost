@@ -35,6 +35,7 @@ type PasswordInputProps = {
 };
 
 const INPUT_SIZE_MAP: Record<SIZE, PasswordInputSize> = {
+    [SIZE.SMALL]: 'small',
     [SIZE.MEDIUM]: 'medium',
     [SIZE.LARGE]: 'large',
 };
