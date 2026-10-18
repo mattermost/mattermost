@@ -13,7 +13,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isAnonymousURLEnabled} from 'selectors/config';
 
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
-import Input from 'components/widgets/inputs/input/input';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import URLInput from 'components/widgets/inputs/url_input/url_input';
 
 import Constants from 'utils/constants';
@@ -195,7 +195,9 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 inputClassName={`${props.name}-input channel-name-input-field`}
                 label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}
                 placeholder={props.placeholder}
+                inputSize={SIZE.MEDIUM}
                 limit={Constants.MAX_CHANNELNAME_LENGTH}
+                showCharacterCount={true}
 
                 // Only pass minLength after the user has interacted with the field
                 minLength={hasInteracted ? Constants.MIN_CHANNELNAME_LENGTH : undefined}
