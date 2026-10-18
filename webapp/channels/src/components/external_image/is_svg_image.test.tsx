@@ -3,7 +3,7 @@
 
 import {isSVGImage} from './is_svg_image';
 
-describe('ExternalIImage isSVGImage', () => {
+describe('ExternalImage isSVGImage', () => {
     for (const testCase of [
         {
             name: 'no metadata, no extension',
@@ -44,6 +44,18 @@ describe('ExternalIImage isSVGImage', () => {
         {
             name: 'no metadata, query contains .svg but path is not svg',
             src: 'https://example.com/image.png?icon=accessibility.svg',
+            imageMetadata: undefined,
+            expected: false,
+        },
+        {
+            name: 'no metadata, non-proxy png with svg-valued url parameter',
+            src: 'https://example.com/image.png?url=' + encodeURIComponent('https://example.com/icon.svg'),
+            imageMetadata: undefined,
+            expected: false,
+        },
+        {
+            name: 'no metadata, non-proxy png with url parameter pointing to png',
+            src: 'https://example.com/image.png?url=' + encodeURIComponent('https://example.com/icon.png'),
             imageMetadata: undefined,
             expected: false,
         },

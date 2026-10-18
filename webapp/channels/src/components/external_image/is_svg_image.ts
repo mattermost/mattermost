@@ -13,7 +13,15 @@ const getPathname = (url: URL) => url.pathname.toLowerCase();
 
 const isSVGPath = (pathname: string) => pathname.endsWith('.svg');
 
+// Matches the image proxy endpoint used by getImageSrc (Client4 image API route).
+// Only URLs served through this endpoint carry the real target in a `url` query parameter.
+const isImageProxyPath = (pathname: string) => pathname === '/api/v4/image';
+
 const getProxyTarget = (url: URL) => {
+    if (!isImageProxyPath(getPathname(url))) {
+        return null;
+    }
+
     const target = url.searchParams.get('url');
     if (!target) {
         return null;
