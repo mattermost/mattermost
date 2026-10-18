@@ -11,8 +11,8 @@
     .DataGrid_search {
         display: flex;
 
-        // Medium SearchInput is ~40px; keep room for vertical padding without clipping.
-        min-height: 56px;
+        // Small SearchInput is ~32px; keep room for vertical padding without clipping.
+        min-height: 48px;
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
