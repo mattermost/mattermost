@@ -2,16 +2,17 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState} from 'react';
+import React from 'react';
 import type {ChangeEventHandler, FocusEventHandler} from 'react';
 import {useIntl} from 'react-intl';
 
+import type {FieldMessageTone} from '@mattermost/compass-ui/components/field-message';
+import {PasswordInput as CompassPasswordInput} from '@mattermost/compass-ui/components/password-input';
+import type {PasswordInputSize} from '@mattermost/compass-ui/components/password-input';
+
 import {ItemStatus} from 'utils/constants';
 
-import Input from '../input/input';
-import type {CustomMessageInputType, SIZE} from '../input/input';
-
-import './password_input.scss';
+import {SIZE} from '../input/input';
 
 type PasswordInputProps = {
     className?: string;
@@ -27,6 +28,15 @@ type PasswordInputProps = {
     inputSize?: SIZE;
 };
 
+const INPUT_SIZE_MAP: Record<SIZE, PasswordInputSize> = {
+    [SIZE.MEDIUM]: 'medium',
+    [SIZE.LARGE]: 'large',
+};
+
+/**
+ * @deprecated Prefer `@mattermost/compass-ui/components/password-input` for new UI.
+ * Thin host wrapper that maps legacy `error` / `info` / `hasError` onto Compass.
+ */
 const PasswordInput = React.forwardRef((
     {
         className,
@@ -39,60 +49,54 @@ const PasswordInput = React.forwardRef((
         error,
         createMode,
         disabled,
-        inputSize,
+        inputSize = SIZE.MEDIUM,
         ...otherProps
     }: PasswordInputProps,
     ref?: React.Ref<HTMLInputElement>,
 ) => {
     const {formatMessage} = useIntl();
 
-    const [showPassword, setShowPassword] = useState(false);
+    const message = error || info;
+    let messageTone: FieldMessageTone | undefined;
+    if (error) {
+        messageTone = ItemStatus.ERROR as FieldMessageTone;
+    } else if (info) {
+        messageTone = ItemStatus.INFO as FieldMessageTone;
+    }
 
-    const toggleShowPassword = () => setShowPassword(!showPassword);
-
-    const customMessageError: CustomMessageInputType | null = error ? {type: ItemStatus.ERROR, value: error} : null;
-    const customMessageInfo: CustomMessageInputType | null = info ? {type: ItemStatus.INFO, value: info} : null;
-    const customMessage = error ? customMessageError : customMessageInfo;
-
-    const placeHolder = createMode ? formatMessage({id: 'widget.passwordInput.createPassword', defaultMessage: 'Choose a Password'}) : formatMessage({id: 'widget.passwordInput.password', defaultMessage: 'Password'});
+    const label = createMode ?
+        formatMessage({id: 'widget.passwordInput.createPassword', defaultMessage: 'Choose a Password'}) :
+        formatMessage({id: 'widget.passwordInput.password', defaultMessage: 'Password'});
 
     return (
-        <Input
+        <CompassPasswordInput
+            ref={ref}
             className={classNames('password-input', className)}
-            wrapperClassName={'password-input-with-toggle'}
             name='password-input'
-            type={showPassword && !disabled ? 'text' : 'password'}
-            inputSize={inputSize}
-            addon={
-                <button
-                    id='password_toggle'
-                    type='button'
-                    aria-label={formatMessage({
-                        id: showPassword ? 'widget.passwordInput.hidePassword' : 'widget.passwordInput.showPassword',
-                        defaultMessage: showPassword ? 'Hide password' : 'Show password',
-                    })}
-                    className='password-input-toggle'
-                    onClick={toggleShowPassword}
-                    disabled={disabled}
-                >
-                    <i
-                        className={showPassword && !disabled ? 'icon-eye-off-outline' : 'icon-eye-outline'}
-                        aria-hidden='true'
-                    />
-                </button>
-            }
+            size={INPUT_SIZE_MAP[inputSize]}
             value={value}
             onChange={onChange}
             onBlur={onBlur}
             onFocus={onFocus}
-            placeholder={placeHolder}
-            hasError={hasError}
-            customMessage={error || info ? customMessage : undefined}
+            label={label}
+            invalid={Boolean(hasError) || Boolean(error)}
+            message={message}
+            messageTone={message ? messageTone : undefined}
             disabled={disabled}
-            ref={ref}
+            showPasswordLabel={formatMessage({
+                id: 'widget.passwordInput.showPassword',
+                defaultMessage: 'Show password',
+            })}
+            hidePasswordLabel={formatMessage({
+                id: 'widget.passwordInput.hidePassword',
+                defaultMessage: 'Hide password',
+            })}
+            revealButtonProps={{id: 'password_toggle'}}
             {...otherProps}
         />
     );
 });
+
+PasswordInput.displayName = 'PasswordInput';
 
 export default PasswordInput;
