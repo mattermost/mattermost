@@ -271,22 +271,20 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	states := map[string]healthcheck.State{}
 	for _, evaluation := range liveEvaluations {
 		states[evaluation.Code] = evaluation.Result.State
+		if evaluation.Code == "LICENSE_EXPIRING" {
+			assert.Equal(t, "health.rule.license_expiring.message.trial", evaluation.Result.MessageID)
+		}
 	}
 	for code, want := range map[string]healthcheck.State{
-		"PUSH_BAD_SCHEME":       healthcheck.StateFiring,
-		"SITE_URL_HTTP":         healthcheck.StateFiring,
-		"LICENSE_EXPIRED":       healthcheck.StateResolved,
-		"LICENSE_EXPIRING":      healthcheck.StateFiring,
-		"LICENSE_TRIAL":         healthcheck.StateFiring,
-		"SEATS_OVER_DEPLOYED":   healthcheck.StateResolved,
-		"SEATS_LIMIT_REACHED":   healthcheck.StateResolved,
-		"SEATS_NEAR_CAPACITY":   healthcheck.StateResolved,
-		"SEATS_LOW_UTILIZATION": healthcheck.StateFiring,
+		"PUSH_BAD_SCHEME":     healthcheck.StateFiring,
+		"SITE_URL_HTTP":       healthcheck.StateFiring,
+		"LICENSE_EXPIRED":     healthcheck.StateResolved,
+		"LICENSE_EXPIRING":    healthcheck.StateFiring,
+		"SEATS_OVER_DEPLOYED": healthcheck.StateResolved,
+		"SEATS_LIMIT_REACHED": healthcheck.StateResolved,
+		"SEATS_NEAR_CAPACITY": healthcheck.StateResolved,
 	} {
 		assert.Equal(t, want, states[code], code)
-	}
-	for _, code := range []string{"SEATS_LOW_ENGAGEMENT", "WORKFLOW_USAGE_CHAT_ONLY", "WORKFLOW_USAGE_LIGHT"} {
-		assert.NotEqual(t, healthcheck.StateUnknown, states[code], code)
 	}
 
 	t.Run("a packet without the license expiry differs only in the codes that need it", func(t *testing.T) {

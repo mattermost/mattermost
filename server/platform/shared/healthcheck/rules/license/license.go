@@ -12,9 +12,8 @@ import (
 )
 
 func init() {
-	healthcheck.Register(licenseExpired, licenseExpiring, licenseTrial,
-		seatsOverDeployed, seatsLimitReached, seatsNearCapacity, seatsLowUtilization,
-		seatsLowEngagement, workflowChatOnly, workflowLight)
+	healthcheck.Register(licenseExpired, licenseExpiring,
+		seatsOverDeployed, seatsLimitReached, seatsNearCapacity)
 }
 
 const (
@@ -53,21 +52,6 @@ var licenseExpiring = healthcheck.Rule{
 	Eval:       evalLicenseExpiring,
 }
 
-var licenseTrial = healthcheck.Rule{
-	Code:     "LICENSE_TRIAL",
-	Area:     model.AreaLicense,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.license_trial.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.license_trial.remediation"),
-		ConsolePath:   licenseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "license.is_trial",
-	Eval:       evalLicenseTrial,
-}
-
 // Measured from CollectedAt, not now, so a packet read later reports what was true then.
 func timeToExpiry(s *healthcheck.Snapshot) (expiresAt time.Time, remaining time.Duration, reasonID string) {
 	expiresAt, ok := s.LicenseExpiresAt()
@@ -94,9 +78,13 @@ func evalLicenseExpired(s *healthcheck.Snapshot) []healthcheck.Result {
 		return []healthcheck.Result{healthcheck.Unknown(reasonID)}
 	case remaining < 0:
 		messageID := healthcheck.TranslationId("health.rule.license_expired.message")
+		license, _ := s.License()
+		switch {
 		// The server never removes an expired Entry license, see doLicenseExpirationCheck.
-		if license, _ := s.License(); license.SkuShortName == model.LicenseShortSkuMattermostEntry {
+		case license.SkuShortName == model.LicenseShortSkuMattermostEntry:
 			messageID = healthcheck.TranslationId("health.rule.license_expired.message.entry")
+		case license.IsTrial:
+			messageID = healthcheck.TranslationId("health.rule.license_expired.message.trial")
 		}
 		return []healthcheck.Result{firingExpiry(messageID, expiresAt, remaining)}
 	default:
@@ -110,19 +98,11 @@ func evalLicenseExpiring(s *healthcheck.Snapshot) []healthcheck.Result {
 	case reasonID != "":
 		return []healthcheck.Result{healthcheck.Unknown(reasonID)}
 	case remaining >= 0 && remaining < expiringWithin:
-		return []healthcheck.Result{firingExpiry(healthcheck.TranslationId("health.rule.license_expiring.message"), expiresAt, remaining)}
-	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-}
-
-func evalLicenseTrial(s *healthcheck.Snapshot) []healthcheck.Result {
-	license, ok := s.License()
-	switch {
-	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
-	case license.IsTrial:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.license_trial.message"))}
+		messageID := healthcheck.TranslationId("health.rule.license_expiring.message")
+		if license, _ := s.License(); license.IsTrial {
+			messageID = healthcheck.TranslationId("health.rule.license_expiring.message.trial")
+		}
+		return []healthcheck.Result{firingExpiry(messageID, expiresAt, remaining)}
 	default:
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}

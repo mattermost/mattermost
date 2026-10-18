@@ -34,17 +34,11 @@ func newSnapshot() *healthcheck.Snapshot {
 	s.Stats = &model.SupportPacketStats{
 		ActiveUsers:         new(int64(300)),
 		SingleChannelGuests: new(int64(0)),
-		MonthlyActiveUsers:  new(int64(250)),
-		IncomingWebhooks:    new(int64(20)),
-		BotAccounts:         new(int64(10)),
 	}
 	s.Config = &model.SupportPacketConfig{Config: &model.Config{
 		GuestAccountsSettings: model.GuestAccountsSettings{Enable: new(true)},
 	}}
-	s.Plugins = &model.SupportPacketPluginList{
-		Enabled: []model.Manifest{{Id: "com.mattermost.calls"}, {Id: "playbooks"}, {Id: "mattermost-ai"}},
-	}
-	s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil, model.SectionPlugins: nil, model.SectionStats: nil}
+	s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil, model.SectionStats: nil}
 	return s
 }
 
@@ -69,7 +63,6 @@ var resolved = want{state: healthcheck.StateResolved}
 
 func firing(value float64) want     { return want{state: healthcheck.StateFiring, value: &value} }
 func resolvedAt(value float64) want { return want{state: healthcheck.StateResolved, value: &value} }
-func firingNoValue() want           { return want{state: healthcheck.StateFiring} }
 func unknown(reasonID string) want  { return want{state: healthcheck.StateUnknown, reason: reasonID} }
 
 func assertResults(t *testing.T, rules []healthcheck.Rule, snapshot *healthcheck.Snapshot, wants map[string]want) {
@@ -97,15 +90,17 @@ func TestRulesAreRegistered(t *testing.T) {
 	registry := healthcheck.Builtin()
 	require.NoError(t, registry.Validate())
 
-	for _, code := range []string{
-		"LICENSE_EXPIRED", "LICENSE_EXPIRING", "LICENSE_TRIAL",
-		"SEATS_OVER_DEPLOYED", "SEATS_LIMIT_REACHED", "SEATS_NEAR_CAPACITY", "SEATS_LOW_UTILIZATION",
-		"SEATS_LOW_ENGAGEMENT", "WORKFLOW_USAGE_CHAT_ONLY", "WORKFLOW_USAGE_LIGHT",
+	for code, surface := range map[string]healthcheck.Surface{
+		"LICENSE_EXPIRED":     healthcheck.SurfaceProduct,
+		"LICENSE_EXPIRING":    healthcheck.SurfaceProduct,
+		"SEATS_OVER_DEPLOYED": healthcheck.SurfaceProduct,
+		"SEATS_LIMIT_REACHED": healthcheck.SurfaceProduct,
+		"SEATS_NEAR_CAPACITY": healthcheck.SurfaceProduct,
 	} {
 		rule, ok := registry.Get(code)
 		require.True(t, ok, code)
 		assert.Equal(t, model.AreaLicense, rule.Area, code)
-		assert.Equal(t, healthcheck.SurfaceProduct, rule.Surface, code)
+		assert.Equal(t, surface, rule.Surface, code)
 		assert.False(t, rule.IsNodeScoped(), code)
 	}
 }
@@ -224,38 +219,30 @@ func TestExpiryRules(t *testing.T) {
 		assert.Equal(t, "health.rule.license_expiring.message", expiring.MessageID)
 		assert.Equal(t, "2026-10-15", expiring.Details["expires_at"])
 	})
-}
 
-func TestLicenseTrial(t *testing.T) {
-	t.Parallel()
-
-	rules := []healthcheck.Rule{licenseTrial}
-
-	t.Run("trial", func(t *testing.T) {
+	t.Run("trial licenses get their own message", func(t *testing.T) {
 		t.Parallel()
-		s := newSnapshot()
-		licenseOf(s).IsTrial = true
-		assertResults(t, rules, s, map[string]want{"LICENSE_TRIAL": firingNoValue()})
-		assert.Equal(t, "health.rule.license_trial.message", evalLicenseTrial(s)[0].MessageID)
-	})
 
-	t.Run("not a trial", func(t *testing.T) {
-		t.Parallel()
-		assertResults(t, rules, newSnapshot(), map[string]want{"LICENSE_TRIAL": resolved})
-	})
+		trial := func(d time.Duration) *healthcheck.Snapshot {
+			s := expiringIn(d)
+			licenseOf(s).IsTrial = true
+			return s
+		}
 
-	t.Run("no license", func(t *testing.T) {
-		t.Parallel()
-		s := newSnapshot()
-		removeLicense(s)
-		assertResults(t, rules, s, map[string]want{"LICENSE_TRIAL": unknown(healthcheck.ReasonLicenseUnavailable)})
+		expired := evalLicenseExpired(trial(-3 * day))[0]
+		assert.Equal(t, "health.rule.license_expired.message.trial", expired.MessageID)
+		assert.Equal(t, "2026-09-22", expired.Details["expires_at"])
+
+		expiring := evalLicenseExpiring(trial(20 * day))[0]
+		assert.Equal(t, "health.rule.license_expiring.message.trial", expiring.MessageID)
+		assert.Equal(t, "2026-10-15", expiring.Details["expires_at"])
 	})
 }
 
 func TestSeatUtilizationRules(t *testing.T) {
 	t.Parallel()
 
-	rules := []healthcheck.Rule{seatsOverDeployed, seatsNearCapacity, seatsLowUtilization, seatsLimitReached}
+	rules := []healthcheck.Rule{seatsOverDeployed, seatsNearCapacity, seatsLimitReached}
 	seated := func(active, guests int64) *healthcheck.Snapshot {
 		s := newSnapshot()
 		s.Stats.ActiveUsers = new(active)
@@ -263,7 +250,7 @@ func TestSeatUtilizationRules(t *testing.T) {
 		return s
 	}
 	all := func(w want) map[string]want {
-		return map[string]want{"SEATS_OVER_DEPLOYED": w, "SEATS_NEAR_CAPACITY": w, "SEATS_LOW_UTILIZATION": w, "SEATS_LIMIT_REACHED": resolved}
+		return map[string]want{"SEATS_OVER_DEPLOYED": w, "SEATS_NEAR_CAPACITY": w, "SEATS_LIMIT_REACHED": resolved}
 	}
 
 	testCases := []struct {
@@ -280,10 +267,9 @@ func TestSeatUtilizationRules(t *testing.T) {
 			name:     "single-channel guests do not take seats",
 			snapshot: func() *healthcheck.Snapshot { return seated(520, 30) },
 			want: map[string]want{
-				"SEATS_OVER_DEPLOYED":   resolvedAt(98),
-				"SEATS_NEAR_CAPACITY":   firing(98),
-				"SEATS_LOW_UTILIZATION": resolvedAt(98),
-				"SEATS_LIMIT_REACHED":   resolved,
+				"SEATS_OVER_DEPLOYED": resolvedAt(98),
+				"SEATS_NEAR_CAPACITY": firing(98),
+				"SEATS_LIMIT_REACHED": resolved,
 			},
 		},
 		{
@@ -294,10 +280,9 @@ func TestSeatUtilizationRules(t *testing.T) {
 				return s
 			},
 			want: map[string]want{
-				"SEATS_OVER_DEPLOYED":   firing(104),
-				"SEATS_NEAR_CAPACITY":   resolvedAt(104),
-				"SEATS_LOW_UTILIZATION": resolvedAt(104),
-				"SEATS_LIMIT_REACHED":   resolved,
+				"SEATS_OVER_DEPLOYED": firing(104),
+				"SEATS_NEAR_CAPACITY": resolvedAt(104),
+				"SEATS_LIMIT_REACHED": resolved,
 			},
 		},
 		{
@@ -308,10 +293,9 @@ func TestSeatUtilizationRules(t *testing.T) {
 				return s
 			},
 			want: map[string]want{
-				"SEATS_OVER_DEPLOYED":   firing(104),
-				"SEATS_NEAR_CAPACITY":   resolvedAt(104),
-				"SEATS_LOW_UTILIZATION": resolvedAt(104),
-				"SEATS_LIMIT_REACHED":   resolved,
+				"SEATS_OVER_DEPLOYED": firing(104),
+				"SEATS_NEAR_CAPACITY": resolvedAt(104),
+				"SEATS_LIMIT_REACHED": resolved,
 			},
 		},
 		{
@@ -327,51 +311,33 @@ func TestSeatUtilizationRules(t *testing.T) {
 			name:     "one seat over",
 			snapshot: func() *healthcheck.Snapshot { return seated(501, 0) },
 			want: map[string]want{
-				"SEATS_OVER_DEPLOYED":   firing(100.2),
-				"SEATS_NEAR_CAPACITY":   resolvedAt(100.2),
-				"SEATS_LOW_UTILIZATION": resolvedAt(100.2),
-				"SEATS_LIMIT_REACHED":   resolved,
+				"SEATS_OVER_DEPLOYED": firing(100.2),
+				"SEATS_NEAR_CAPACITY": resolvedAt(100.2),
+				"SEATS_LIMIT_REACHED": resolved,
 			},
 		},
 		{
 			name:     "exactly full",
 			snapshot: func() *healthcheck.Snapshot { return seated(500, 0) },
 			want: map[string]want{
-				"SEATS_OVER_DEPLOYED":   resolvedAt(100),
-				"SEATS_NEAR_CAPACITY":   firing(100),
-				"SEATS_LOW_UTILIZATION": resolvedAt(100),
-				"SEATS_LIMIT_REACHED":   resolved,
+				"SEATS_OVER_DEPLOYED": resolvedAt(100),
+				"SEATS_NEAR_CAPACITY": firing(100),
+				"SEATS_LIMIT_REACHED": resolved,
 			},
 		},
 		{
 			name:     "exactly 90 percent",
 			snapshot: func() *healthcheck.Snapshot { return seated(450, 0) },
 			want: map[string]want{
-				"SEATS_OVER_DEPLOYED":   resolvedAt(90),
-				"SEATS_NEAR_CAPACITY":   firing(90),
-				"SEATS_LOW_UTILIZATION": resolvedAt(90),
-				"SEATS_LIMIT_REACHED":   resolved,
+				"SEATS_OVER_DEPLOYED": resolvedAt(90),
+				"SEATS_NEAR_CAPACITY": firing(90),
+				"SEATS_LIMIT_REACHED": resolved,
 			},
 		},
 		{
 			name:     "just under 90 percent",
 			snapshot: func() *healthcheck.Snapshot { return seated(449, 0) },
 			want:     all(resolvedAt(89.8)),
-		},
-		{
-			name:     "exactly 30 percent",
-			snapshot: func() *healthcheck.Snapshot { return seated(150, 0) },
-			want:     all(resolvedAt(30)),
-		},
-		{
-			name:     "just under 30 percent",
-			snapshot: func() *healthcheck.Snapshot { return seated(149, 0) },
-			want: map[string]want{
-				"SEATS_OVER_DEPLOYED":   resolvedAt(29.8),
-				"SEATS_NEAR_CAPACITY":   resolvedAt(29.8),
-				"SEATS_LOW_UTILIZATION": firing(29.8),
-				"SEATS_LIMIT_REACHED":   resolved,
-			},
 		},
 		{
 			name: "active users unknown",
@@ -426,7 +392,7 @@ func TestSeatUtilizationRules(t *testing.T) {
 				removeLicense(s)
 				return s
 			},
-			want: map[string]want{"SEATS_OVER_DEPLOYED": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_NEAR_CAPACITY": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_LOW_UTILIZATION": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_LIMIT_REACHED": unknown(healthcheck.ReasonLicenseUnavailable)},
+			want: map[string]want{"SEATS_OVER_DEPLOYED": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_NEAR_CAPACITY": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_LIMIT_REACHED": unknown(healthcheck.ReasonLicenseUnavailable)},
 		},
 	}
 
@@ -529,134 +495,5 @@ func TestSeatsLimitReached(t *testing.T) {
 		result := evalSeatsLimitReached(enforced(505, new(5)))[0]
 		assert.Equal(t, "health.rule.seats_limit_reached.message", result.MessageID)
 		assert.Equal(t, map[string]string{"used": "505", "limit": "505"}, result.Details)
-	})
-}
-
-func TestSeatsLowEngagement(t *testing.T) {
-	t.Parallel()
-
-	rules := []healthcheck.Rule{seatsLowEngagement}
-	engaged := func(active, monthly *int64) *healthcheck.Snapshot {
-		s := newSnapshot()
-		s.Stats.ActiveUsers = active
-		s.Stats.MonthlyActiveUsers = monthly
-		return s
-	}
-
-	testCases := []struct {
-		name     string
-		snapshot *healthcheck.Snapshot
-		want     want
-	}{
-		{name: "healthy", snapshot: newSnapshot(), want: resolvedAt(83.333)},
-		{name: "exactly 60 percent", snapshot: engaged(new(int64(200)), new(int64(120))), want: resolvedAt(60)},
-		{name: "just under 60 percent", snapshot: engaged(new(int64(200)), new(int64(119))), want: firing(59.5)},
-		{name: "no monthly activity", snapshot: engaged(new(int64(200)), new(int64(0))), want: firing(0)},
-		{name: "active users unknown", snapshot: engaged(nil, new(int64(120))), want: unknown(healthcheck.ReasonStatsUnavailable)},
-		{name: "monthly active users unknown", snapshot: engaged(new(int64(200)), nil), want: unknown(healthcheck.ReasonStatsUnavailable)},
-		{name: "no active users", snapshot: engaged(new(int64(0)), new(int64(0))), want: unknown(healthcheck.TranslationId("health.rule.seats_low_engagement.message.no_active_users"))},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			assertResults(t, rules, tc.snapshot, map[string]want{"SEATS_LOW_ENGAGEMENT": tc.want})
-		})
-	}
-
-	t.Run("firing results carry the counts", func(t *testing.T) {
-		t.Parallel()
-
-		result := evalSeatsLowEngagement(engaged(new(int64(200)), new(int64(119))))[0]
-		assert.Equal(t, "health.rule.seats_low_engagement.message", result.MessageID)
-		assert.Equal(t, map[string]string{"monthly_active": "119", "active": "200", "percent": "59.5"}, result.Details)
-	})
-}
-
-func TestWorkflowRules(t *testing.T) {
-	t.Parallel()
-
-	rules := []healthcheck.Rule{workflowChatOnly, workflowLight}
-	usage := func(plugins int, webhooks, bots int64) *healthcheck.Snapshot {
-		s := newSnapshot()
-		s.Plugins.Enabled = s.Plugins.Enabled[:0]
-		for range plugins {
-			s.Plugins.Enabled = append(s.Plugins.Enabled, model.Manifest{Id: "plugin"})
-		}
-		s.Stats.IncomingWebhooks = new(webhooks)
-		s.Stats.BotAccounts = new(bots)
-		return s
-	}
-	chatOnly := map[string]want{"WORKFLOW_USAGE_CHAT_ONLY": firingNoValue(), "WORKFLOW_USAGE_LIGHT": resolved}
-	light := map[string]want{"WORKFLOW_USAGE_CHAT_ONLY": resolved, "WORKFLOW_USAGE_LIGHT": firingNoValue()}
-	neither := map[string]want{"WORKFLOW_USAGE_CHAT_ONLY": resolved, "WORKFLOW_USAGE_LIGHT": resolved}
-	bothUnknown := func(reasonID string) map[string]want {
-		return map[string]want{"WORKFLOW_USAGE_CHAT_ONLY": unknown(reasonID), "WORKFLOW_USAGE_LIGHT": unknown(reasonID)}
-	}
-
-	testCases := []struct {
-		name     string
-		snapshot func() *healthcheck.Snapshot
-		want     map[string]want
-	}{
-		{name: "one plugin, no webhooks, two bots", snapshot: func() *healthcheck.Snapshot { return usage(1, 0, 2) }, want: chatOnly},
-		{name: "no plugins", snapshot: func() *healthcheck.Snapshot { return usage(0, 9, 4) }, want: chatOnly},
-		{name: "ten webhooks", snapshot: func() *healthcheck.Snapshot { return usage(1, 10, 0) }, want: light},
-		{name: "five bots", snapshot: func() *healthcheck.Snapshot { return usage(1, 0, 5) }, want: light},
-		{name: "two plugins", snapshot: func() *healthcheck.Snapshot { return usage(2, 0, 0) }, want: light},
-		{name: "two plugins, 49 webhooks", snapshot: func() *healthcheck.Snapshot { return usage(2, 49, 100) }, want: light},
-		{name: "two plugins, 50 webhooks", snapshot: func() *healthcheck.Snapshot { return usage(2, 50, 0) }, want: neither},
-		{name: "three plugins", snapshot: func() *healthcheck.Snapshot { return usage(3, 0, 0) }, want: neither},
-		{
-			name: "plugins section absent",
-			snapshot: func() *healthcheck.Snapshot {
-				s := newSnapshot()
-				delete(s.Sections, model.SectionPlugins)
-				return s
-			},
-			want: bothUnknown(healthcheck.ReasonPluginsUnavailable),
-		},
-		{
-			name: "plugins section failed",
-			snapshot: func() *healthcheck.Snapshot {
-				s := newSnapshot()
-				s.Sections[model.SectionPlugins] = assert.AnError
-				return s
-			},
-			want: bothUnknown(healthcheck.ReasonPluginsUnavailable),
-		},
-		{
-			name: "incoming webhooks unknown",
-			snapshot: func() *healthcheck.Snapshot {
-				s := usage(1, 0, 2)
-				s.Stats.IncomingWebhooks = nil
-				return s
-			},
-			want: bothUnknown(healthcheck.ReasonStatsUnavailable),
-		},
-		{
-			name: "bot accounts unknown",
-			snapshot: func() *healthcheck.Snapshot {
-				s := usage(1, 0, 2)
-				s.Stats.BotAccounts = nil
-				return s
-			},
-			want: bothUnknown(healthcheck.ReasonStatsUnavailable),
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			assertResults(t, rules, tc.snapshot(), tc.want)
-		})
-	}
-
-	t.Run("firing results carry the counts", func(t *testing.T) {
-		t.Parallel()
-
-		result := evalWorkflowChatOnly(usage(1, 0, 2))[0]
-		assert.Equal(t, "health.rule.workflow_usage_chat_only.message", result.MessageID)
-		assert.Equal(t, map[string]string{"plugins": "1", "webhooks": "0", "bots": "2"}, result.Details)
 	})
 }

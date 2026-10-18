@@ -11,12 +11,8 @@ import (
 )
 
 const (
-	seatsSubject          = "license.users"
-	engagementConsolePath = "/admin_console/reporting/team_statistics"
-
-	nearCapacityPct   = 90
-	lowUtilizationPct = 30
-	lowEngagementPct  = 60
+	seatsSubject    = "license.users"
+	nearCapacityPct = 90
 )
 
 var seatsOverDeployed = healthcheck.Rule{
@@ -62,37 +58,6 @@ var seatsNearCapacity = healthcheck.Rule{
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    seatsSubject,
 	Eval:       evalSeatsNearCapacity,
-}
-
-var seatsLowUtilization = healthcheck.Rule{
-	Code:     "SEATS_LOW_UTILIZATION",
-	Area:     model.AreaLicense,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.seats_low_utilization.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.seats_low_utilization.remediation"),
-		ConsolePath:   licenseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    seatsSubject,
-	Eval:       evalSeatsLowUtilization,
-}
-
-var seatsLowEngagement = healthcheck.Rule{
-	Code:     "SEATS_LOW_ENGAGEMENT",
-	Area:     model.AreaLicense,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.seats_low_engagement.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.seats_low_engagement.remediation"),
-		ConsolePath:   engagementConsolePath,
-	},
-	Surface:        healthcheck.SurfaceProduct,
-	Volatility:     healthcheck.VolatilityThreshold,
-	AppliesToCloud: true,
-	Subject:        "stats.monthly_active_users",
-	Eval:           evalSeatsLowEngagement,
 }
 
 func activeUsers(stats *model.SupportPacketStats) *int64 { return stats.ActiveUsers }
@@ -166,12 +131,6 @@ func evalSeatsNearCapacity(s *healthcheck.Snapshot) []healthcheck.Result {
 	})
 }
 
-func evalSeatsLowUtilization(s *healthcheck.Snapshot) []healthcheck.Result {
-	return evalSeatUtilization(s, healthcheck.TranslationId("health.rule.seats_low_utilization.message"), func(pct float64) bool {
-		return pct < lowUtilizationPct
-	})
-}
-
 func evalSeatsLimitReached(s *healthcheck.Snapshot) []healthcheck.Result {
 	// Packets predating the seat enforcement flag also lack an expiry, so false there means unrecorded.
 	license, ok := s.License()
@@ -196,31 +155,6 @@ func evalSeatsLimitReached(s *healthcheck.Snapshot) []healthcheck.Result {
 		WithDetail("used", strconv.FormatInt(used, 10)).
 		WithDetail("limit", strconv.FormatInt(limit, 10)).
 		WithValue(float64(used))}
-}
-
-func evalSeatsLowEngagement(s *healthcheck.Snapshot) []healthcheck.Result {
-	active, ok := s.Stat(activeUsers)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
-	}
-	if active == 0 {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.seats_low_engagement.message.no_active_users"))}
-	}
-	monthly, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.MonthlyActiveUsers })
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
-	}
-
-	pct := 100 * float64(monthly) / float64(active)
-	if pct >= lowEngagementPct {
-		return []healthcheck.Result{healthcheck.Resolved().WithValue(pct)}
-	}
-
-	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.seats_low_engagement.message")).
-		WithDetail("monthly_active", strconv.FormatInt(monthly, 10)).
-		WithDetail("active", strconv.FormatInt(active, 10)).
-		WithDetail("percent", formatPct(pct)).
-		WithValue(pct)}
 }
 
 func formatPct(pct float64) string {

@@ -336,8 +336,7 @@ func healthTestPacketFiles() map[string]string {
     "ClusterSettings": {"Enable": false},
     "RateLimitSettings": {"Enable": true, "MemoryStoreSize": 10000}
 }`,
-		model.SupportPacketStatsFileName:   "registered_users: 300\nactive_users: 300\nmonthly_active_users: 250\nsingle_channel_guests: 0\nbot_accounts: 10\nincoming_webhooks: 20\n",
-		model.SupportPacketPluginsFileName: `{"enabled": [{"id": "com.mattermost.calls"}, {"id": "playbooks"}, {"id": "mattermost-ai"}], "disabled": []}`,
+		model.SupportPacketStatsFileName: "registered_users: 300\nactive_users: 300\nsingle_channel_guests: 0\n",
 	}
 }
 

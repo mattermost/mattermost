@@ -35,11 +35,8 @@ const (
 	// The fixtures run 11.0, which has ended.
 	versionSubject = "11.0"
 
-	expiresAtSubject  = "license.expires_at"
-	trialSubject      = "license.is_trial"
-	seatsSubject      = "license.users"
-	engagementSubject = "stats.monthly_active_users"
-	workflowSubject   = "plugins.enabled"
+	expiresAtSubject = "license.expires_at"
+	seatsSubject     = "license.users"
 )
 
 type finding struct {
@@ -140,7 +137,6 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "LICENSE_EXPIRED", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
 				{Code: "LICENSE_EXPIRING", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
 				{Code: "SEATS_LIMIT_REACHED", State: healthcheck.StateUnknown, Subject: seatsSubject},
-				{Code: "WORKFLOW_USAGE_CHAT_ONLY", State: healthcheck.StateFiring, Subject: workflowSubject},
 			},
 		},
 		{
@@ -149,7 +145,6 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
 				{Code: "LICENSE_EXPIRING", State: healthcheck.StateFiring, Subject: expiresAtSubject},
-				{Code: "WORKFLOW_USAGE_CHAT_ONLY", State: healthcheck.StateFiring, Subject: workflowSubject},
 			},
 		},
 	}
@@ -317,7 +312,7 @@ func TestReadCloud(t *testing.T) {
 	for _, f := range evaluate(t, snapshot) {
 		codes = append(codes, f.Code)
 	}
-	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY", "WORKFLOW_USAGE_CHAT_ONLY"}, codes)
+	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY"}, codes)
 }
 
 func TestReadLicense(t *testing.T) {
