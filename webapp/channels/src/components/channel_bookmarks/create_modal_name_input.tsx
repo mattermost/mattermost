@@ -11,12 +11,16 @@ import type {Emoji} from '@mattermost/types/emojis';
 import type {FileInfo} from '@mattermost/types/files';
 
 import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
-import Input from 'components/widgets/inputs/input/input';
 
 import Constants, {A11yCustomEventTypes, type A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
 import BookmarkIcon from './bookmark_icon';
+
+// Legacy fieldset chrome styles (Input_container / Input_wrapper / Input_fieldset)
+// — shared with CategorySelector / DropdownInput. Kept for this emoji-leading
+// name field until a Compass leading-addon pattern replaces it.
+import 'components/widgets/inputs/input/input.scss';
 
 type Props = {
     maxLength: number;
@@ -32,6 +36,14 @@ type Props = {
     setShowEmojiPicker: React.Dispatch<React.SetStateAction<boolean>>;
     onAddCustomEmojiClick?: () => void;
 };
+
+/**
+ * Title field for the bookmark create/edit modal.
+ *
+ * Intentionally uses the pre-Compass fieldset Input chrome (not the Compass
+ * TextInput adapter): a leading emoji picker is absolutely positioned over
+ * `.Input_wrapper`, and that layout broke under Compass migration.
+ */
 const CreateModalNameInput = ({
     maxLength,
     type,
@@ -117,6 +129,9 @@ const CreateModalNameInput = ({
         onEmojiClick: handleEmojiClick,
     });
 
+    const inputId = 'input_bookmark-display-name';
+    const value = displayName ?? placeholder ?? '';
+
     return (
         <>
             <NameWrapper>
@@ -133,16 +148,27 @@ const CreateModalNameInput = ({
                     <ChevronDownIcon size={'12px'}/>
                 </button>
                 {emojiPicker}
-                <Input
-                    maxLength={maxLength}
-                    type='text'
-                    name='bookmark-display-name'
-                    onChange={handleInputChange}
-                    value={displayName ?? placeholder ?? ''}
-                    placeholder={placeholder}
-                    data-testid='titleInput'
-                    useLegend={false}
-                />
+                <div className='Input_container'>
+                    <div
+                        className='Input_fieldset'
+                        data-testid='input-wrapper'
+                    >
+                        <div className='Input_wrapper'>
+                            <input
+                                id={inputId}
+                                className='Input form-control medium'
+                                maxLength={maxLength}
+                                type='text'
+                                name='bookmark-display-name'
+                                onChange={handleInputChange}
+                                value={value}
+                                placeholder={placeholder}
+                                data-testid='titleInput'
+                                aria-label={placeholder}
+                            />
+                        </div>
+                    </div>
+                </div>
                 <Clear
                     visible={Boolean(emoji)}
                     tabIndex={0}

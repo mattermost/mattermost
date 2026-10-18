@@ -7,6 +7,12 @@
     .linkInput {
         margin-bottom: 3rem;
         color: rgba(var(--center-channel-color-rgb), 0.72);
+
+        // Reserve one field-message line under the Compass control so realtime
+        // validation (info ↔ error) does not jump the Title field below.
+        > .Input {
+            min-height: calc(var(--text-input-control-height, 40px) + var(--spacing-xs, 8px) + 20px);
+        }
     }
 
     .Input___customMessage {

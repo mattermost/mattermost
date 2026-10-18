@@ -367,13 +367,13 @@ function ChannelBookmarkCreateModal({
         }
     }
 
-    let linkCustomMessage;
+    // Always keep a field message so Compass footer height stays stable while
+    // realtime validation toggles between info and error states.
+    let linkCustomMessage: {type: 'error' | 'info'; value: ReactNode};
     if (linkError) {
-        linkCustomMessage = {type: 'error' as const, value: linkError};
-    } else if (validatedLink && !linkErrorBypass) {
-        linkCustomMessage = null;
+        linkCustomMessage = {type: 'error', value: linkError};
     } else {
-        linkCustomMessage = {type: 'info' as const, value: linkMessage};
+        linkCustomMessage = {type: 'info', value: linkMessage};
     }
 
     return (

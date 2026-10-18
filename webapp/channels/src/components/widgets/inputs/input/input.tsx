@@ -57,6 +57,12 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
     useLegend?: boolean;
     customMessage?: CustomMessageInputType;
     inputSize?: SIZE;
+
+    /**
+     * When true with an effective max (`maxLength` or `limit`), shows Compass
+     * "current / max" character count under the field.
+     */
+    showCharacterCount?: boolean;
     clearable?: boolean;
 
     /** @deprecated Compass clear has no tooltip; use `clearLabel` via clear button a11y only. */
@@ -99,6 +105,7 @@ const Input = React.forwardRef((
         customMessage,
         maxLength,
         inputSize = SIZE.MEDIUM,
+        showCharacterCount = false,
         disabled,
         clearable,
         clearableTooltipText,
@@ -257,6 +264,13 @@ const Input = React.forwardRef((
     const resolvedTrailingAction = trailingAction;
     const trailingIcon = inputSuffix || addon || undefined;
 
+    // Character count needs Compass maxLength. When `limit` is used without a
+    // counter, omit native maxLength so callers can type past and show errors.
+    const effectiveMaxLength = maxLength ?? limit;
+    const resolvedMaxLength = showCharacterCount ?
+        effectiveMaxLength :
+        (limit ? undefined : maxLength);
+
     const sharedFieldProps = {
         id: inputId,
         className: rootClassName,
@@ -270,9 +284,10 @@ const Input = React.forwardRef((
         'data-testid': 'input-wrapper',
         message,
         messageTone: message ? messageTone : undefined,
+        showCharacterCount: Boolean(showCharacterCount && effectiveMaxLength),
         ...valueProps,
         ...otherProps,
-        maxLength: limit ? undefined : maxLength,
+        maxLength: resolvedMaxLength,
         onFocus: handleOnFocus,
         onBlur: handleOnBlur,
         onChange: handleOnChange,

@@ -211,6 +211,31 @@ describe('components/widgets/inputs/Input', () => {
 
             expect(screen.queryByText(/Must be no more than 5 characters/i)).not.toBeInTheDocument();
         });
+
+        test('should show Compass character count when showCharacterCount is set with limit', () => {
+            renderWithContext(
+                <Input
+                    value={'abc'}
+                    limit={5}
+                    showCharacterCount={true}
+                />,
+            );
+
+            expect(screen.getByText('3 / 5')).toBeInTheDocument();
+            expect(screen.getByRole('textbox')).toHaveAttribute('maxLength', '5');
+        });
+
+        test('should show Compass character count when showCharacterCount is set with maxLength', () => {
+            renderWithContext(
+                <Input
+                    value={'hi'}
+                    maxLength={64}
+                    showCharacterCount={true}
+                />,
+            );
+
+            expect(screen.getByText('2 / 64')).toBeInTheDocument();
+        });
     });
 
     describe('required field validation', () => {
