@@ -4,7 +4,6 @@
 package search
 
 import (
-	"math"
 	"net"
 	"net/url"
 	"regexp"
@@ -45,7 +44,7 @@ const (
 )
 
 // Mirrors the enterprise elasticsearch/opensearch Min/MaxVersion constants, which this package cannot import.
-var supportedMajors = map[string][2]int{
+var supportedMajors = map[string]struct{ min, max int }{
 	model.ElasticsearchSettingsESBackend: {8, 9},
 	model.ElasticsearchSettingsOSBackend: {2, 3},
 }
@@ -218,6 +217,10 @@ func unknownConfig() []healthcheck.Result {
 	return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
 }
 
+func unknownDiag() []healthcheck.Result {
+	return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+}
+
 func resolved() []healthcheck.Result {
 	return []healthcheck.Result{healthcheck.Resolved()}
 }
@@ -240,31 +243,26 @@ func databaseSearchDisabled(s *healthcheck.Snapshot) (bool, bool) {
 	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.SqlSettings.DisableDatabaseSearch })
 }
 
+func searchingEnabled(s *healthcheck.Snapshot) (bool, bool) {
+	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ElasticsearchSettings.EnableSearching })
+}
+
 func connectionURL(s *healthcheck.Snapshot) (string, bool) {
 	return s.ConfigString(func(cfg *model.Config) *string { return cfg.ElasticsearchSettings.ConnectionURL })
 }
 
 // leaderDiag returns the leader's diagnostics, or ok=false when they or the given section were not collected.
 func leaderDiag(s *healthcheck.Snapshot, section model.NodeSection) (*model.SupportPacketDiagnostics, bool) {
-	leader, ok := s.Leader()
-	if !ok {
-		return nil, false
-	}
-
-	diag, ok := leader.Diag()
-	if !ok {
-		return nil, false
-	}
-
+	leader, _ := s.Leader()
 	if _, err := leader.SectionErr(section); err != nil {
 		return nil, false
 	}
-
-	return diag, true
+	return leader.Diag()
 }
 
 func isLoopbackHost(host string) bool {
-	if strings.EqualFold(host, "localhost") {
+	host = strings.ToLower(strings.TrimSuffix(host, "."))
+	if host == "localhost" || strings.HasSuffix(host, ".localhost") {
 		return true
 	}
 
@@ -307,7 +305,7 @@ func evalESLocalhostURL(s *healthcheck.Snapshot) []healthcheck.Result {
 func evalESServerError(s *healthcheck.Snapshot) []healthcheck.Result {
 	diag, ok := leaderDiag(s, model.SectionSearchProbe)
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+		return unknownDiag()
 	}
 
 	switch diag.ElasticSearch.Status {
@@ -316,13 +314,14 @@ func evalESServerError(s *healthcheck.Snapshot) []healthcheck.Result {
 	case model.StatusOk, model.StatusDisabled:
 		return resolved()
 	default:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+		return unknownDiag()
 	}
 }
 
-// esServerErrorMessage says search is fully down when there is no database fallback.
+// esServerErrorMessage says search is fully down when Elasticsearch serves search and there is no database fallback.
 func esServerErrorMessage(s *healthcheck.Snapshot) string {
-	if dbDisabled, ok := databaseSearchDisabled(s); ok && dbDisabled {
+	searching, searchingOK := searchingEnabled(s)
+	if dbDisabled, ok := databaseSearchDisabled(s); ok && dbDisabled && searchingOK && searching {
 		return healthcheck.TranslationId("health.rule.es_server_error.message.no_fallback")
 	}
 	return healthcheck.TranslationId("health.rule.es_server_error.message")
@@ -338,7 +337,7 @@ func evalSearchUnavailable(s *healthcheck.Snapshot) []healthcheck.Result {
 		return resolved()
 	}
 
-	searching, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ElasticsearchSettings.EnableSearching })
+	searching, ok := searchingEnabled(s)
 	if !ok {
 		return unknownConfig()
 	}
@@ -349,13 +348,22 @@ func evalSearchUnavailable(s *healthcheck.Snapshot) []healthcheck.Result {
 	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.search_unavailable.message"))}
 }
 
-// evalScale fires when the post count is in (lower, upper] while search runs against the database.
-func evalScale(s *healthcheck.Snapshot, lower, upper int64, messageID string) []healthcheck.Result {
-	searching, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ElasticsearchSettings.EnableSearching })
+// evalScale fires when fires(posts) holds while search runs against the database.
+func evalScale(s *healthcheck.Snapshot, messageID string, fires func(posts int64) bool) []healthcheck.Result {
+	searching, ok := searchingEnabled(s)
 	if !ok {
 		return unknownConfig()
 	}
 	if searching {
+		return resolved()
+	}
+
+	// SEARCH_UNAVAILABLE owns the case where database search is disabled too.
+	dbDisabled, ok := databaseSearchDisabled(s)
+	if !ok {
+		return unknownConfig()
+	}
+	if dbDisabled {
 		return resolved()
 	}
 
@@ -364,7 +372,7 @@ func evalScale(s *healthcheck.Snapshot, lower, upper int64, messageID string) []
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
 	}
 
-	if posts > lower && posts <= upper {
+	if fires(posts) {
 		return []healthcheck.Result{healthcheck.Firing(messageID).WithDetail("posts", strconv.FormatInt(posts, 10)).WithValue(float64(posts))}
 	}
 
@@ -372,11 +380,15 @@ func evalScale(s *healthcheck.Snapshot, lower, upper int64, messageID string) []
 }
 
 func evalScaleESRequired(s *healthcheck.Snapshot) []healthcheck.Result {
-	return evalScale(s, scaleRequiredPosts, math.MaxInt64, healthcheck.TranslationId("health.rule.scale_es_required.message"))
+	return evalScale(s, healthcheck.TranslationId("health.rule.scale_es_required.message"), func(posts int64) bool {
+		return posts > scaleRequiredPosts
+	})
 }
 
 func evalScaleESRecommended(s *healthcheck.Snapshot) []healthcheck.Result {
-	return evalScale(s, scaleRecommendedPosts, scaleRequiredPosts, healthcheck.TranslationId("health.rule.scale_es_recommended.message"))
+	return evalScale(s, healthcheck.TranslationId("health.rule.scale_es_recommended.message"), func(posts int64) bool {
+		return posts > scaleRecommendedPosts && posts <= scaleRequiredPosts
+	})
 }
 
 func liveBatchSize(s *healthcheck.Snapshot) (int, bool) {
@@ -410,7 +422,7 @@ func evalESLiveBatchTooHigh(s *healthcheck.Snapshot) []healthcheck.Result {
 func evalESVersionUnsupported(s *healthcheck.Snapshot) []healthcheck.Result {
 	diag, ok := leaderDiag(s, model.SectionSearchEngine)
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+		return unknownDiag()
 	}
 
 	backend, version := diag.ElasticSearch.Backend, diag.ElasticSearch.ServerVersion
@@ -424,22 +436,22 @@ func evalESVersionUnsupported(s *healthcheck.Snapshot) []healthcheck.Result {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.es_version_unsupported.message.unrecognized"))}
 	}
 
-	if major >= supported[0] && major <= supported[1] {
+	if major >= supported.min && major <= supported.max {
 		return resolved()
 	}
 
 	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.es_version_unsupported.message")).
 		WithDetail("backend", backend).
 		WithDetail("version", version).
-		WithDetail("min", strconv.Itoa(supported[0])).
-		WithDetail("max", strconv.Itoa(supported[1]))}
+		WithDetail("min", strconv.Itoa(supported.min)).
+		WithDetail("max", strconv.Itoa(supported.max))}
 }
 
 func evalESMissingICU(s *healthcheck.Snapshot) []healthcheck.Result {
 	// The plugin list is fetched only after the version, and an empty list is omitted from the packet.
 	diag, ok := leaderDiag(s, model.SectionSearchEngine)
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+		return unknownDiag()
 	}
 	if diag.ElasticSearch.ServerVersion == "" {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.es_missing_icu.message.unavailable"))}

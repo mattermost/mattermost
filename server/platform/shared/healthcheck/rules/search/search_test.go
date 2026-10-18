@@ -130,6 +130,8 @@ func TestESLocalhostURL(t *testing.T) {
 		{name: "loopback ipv6 clustered", url: "http://[::1]:9200", clustered: new(true), want: firing("::1")},
 		{name: "unspecified address clustered", url: "http://0.0.0.0:9200", clustered: new(true), want: firing("0.0.0.0")},
 		{name: "credentials are not reported", url: "http://user:secret@localhost:9200", clustered: new(true), want: firing("localhost")},
+		{name: "fully qualified localhost clustered", url: "http://localhost.:9200", clustered: new(true), want: firing("localhost.")},
+		{name: "localhost subdomain clustered", url: "http://es.localhost:9200", clustered: new(true), want: firing("es.localhost")},
 		{name: "lookalike host clustered", url: "http://notlocalhost.example.com", clustered: new(true), want: resolvedWant},
 		{name: "localhost only in path", url: "http://search.example.com/localhost", clustered: new(true), want: resolvedWant},
 		{name: "cluster setting absent", url: "http://localhost:9200", clustered: nil, want: unknownConfigWant},
@@ -161,7 +163,14 @@ func TestESServerError(t *testing.T) {
 		}
 	}
 
-	dbSearchDisabled := searchSnapshot(func(cfg *model.Config) { cfg.SqlSettings.DisableDatabaseSearch = new(true) }, failed, nil)
+	dbSearchDisabled := searchSnapshot(func(cfg *model.Config) {
+		cfg.SqlSettings.DisableDatabaseSearch = new(true)
+		cfg.ElasticsearchSettings.EnableSearching = new(true)
+	}, failed, nil)
+	dbSearchDisabledSearchingOff := searchSnapshot(func(cfg *model.Config) {
+		cfg.SqlSettings.DisableDatabaseSearch = new(true)
+		cfg.ElasticsearchSettings.EnableSearching = new(false)
+	}, failed, nil)
 	dbSearchAbsent := searchSnapshot(func(cfg *model.Config) { cfg.SqlSettings.DisableDatabaseSearch = nil }, failed, nil)
 
 	sectionFailed := searchSnapshot(nil, esDiag(model.StatusFail, "", ""), nil)
@@ -178,6 +187,7 @@ func TestESServerError(t *testing.T) {
 		{name: "ok", snapshot: searchSnapshot(nil, esDiag(model.StatusOk, "", ""), nil), want: resolvedWant},
 		{name: "fail masks credentials", snapshot: searchSnapshot(nil, failed, nil), want: firing("health.rule.es_server_error.message")},
 		{name: "fail without database fallback", snapshot: dbSearchDisabled, want: firing("health.rule.es_server_error.message.no_fallback")},
+		{name: "fail without database fallback, searching off", snapshot: dbSearchDisabledSearchingOff, want: firing("health.rule.es_server_error.message")},
 		{name: "fail with database search setting absent", snapshot: dbSearchAbsent, want: firing("health.rule.es_server_error.message")},
 		{name: "empty status", snapshot: searchSnapshot(nil, esDiag("", "", ""), nil), want: unknownDiagWant},
 		{name: "leader without diagnostics", snapshot: searchSnapshot(nil, nil, nil), want: unknownDiagWant},
@@ -304,6 +314,24 @@ func TestScaleES(t *testing.T) {
 			}, nil, new(int64(6_000_000))),
 			required:    firing("scale_es_required", 6_000_000),
 			recommended: resolvedAt(6_000_000),
+		},
+		{
+			name: "database search disabled at 6M",
+			snapshot: searchSnapshot(func(cfg *model.Config) {
+				cfg.ElasticsearchSettings.EnableSearching = new(false)
+				cfg.SqlSettings.DisableDatabaseSearch = new(true)
+			}, nil, new(int64(6_000_000))),
+			required:    resolvedWant,
+			recommended: resolvedWant,
+		},
+		{
+			name: "database search setting absent",
+			snapshot: searchSnapshot(func(cfg *model.Config) {
+				cfg.ElasticsearchSettings.EnableSearching = new(false)
+				cfg.SqlSettings.DisableDatabaseSearch = nil
+			}, nil, new(int64(6_000_000))),
+			required:    unknownConfigWant,
+			recommended: unknownConfigWant,
 		},
 	}
 
