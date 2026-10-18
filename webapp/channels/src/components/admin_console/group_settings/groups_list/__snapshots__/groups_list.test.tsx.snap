@@ -171,56 +171,56 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             class="fa fa-caret-down"
           />
         </button>
-      </div>
-      <div
-        class="group-search-filters"
-        id="group-filters"
-      >
         <div
-          class="filter-row"
+          class="group-search-filters"
+          id="group-filters"
         >
-          <span
-            class="filter-check "
-          />
-          <span>
-            Is Linked
-          </span>
+          <div
+            class="filter-row"
+          >
+            <span
+              class="filter-check "
+            />
+            <span>
+              Is Linked
+            </span>
+          </div>
+          <div
+            class="filter-row"
+          >
+            <span
+              class="filter-check "
+            />
+            <span>
+              Is Not Linked
+            </span>
+          </div>
+          <div
+            class="filter-row"
+          >
+            <span
+              class="filter-check "
+            />
+            <span>
+              Is Configured
+            </span>
+          </div>
+          <div
+            class="filter-row"
+          >
+            <span
+              class="filter-check "
+            />
+            <span>
+              Is Not Configured
+            </span>
+          </div>
+          <button
+            class="btn btn-primary search-groups-btn"
+          >
+            Search
+          </button>
         </div>
-        <div
-          class="filter-row"
-        >
-          <span
-            class="filter-check "
-          />
-          <span>
-            Is Not Linked
-          </span>
-        </div>
-        <div
-          class="filter-row"
-        >
-          <span
-            class="filter-check "
-          />
-          <span>
-            Is Configured
-          </span>
-        </div>
-        <div
-          class="filter-row"
-        >
-          <span
-            class="filter-check "
-          />
-          <span>
-            Is Not Configured
-          </span>
-        </div>
-        <button
-          class="btn btn-primary search-groups-btn"
-        >
-          Search
-        </button>
       </div>
       <div
         class="group-list-link-unlink"

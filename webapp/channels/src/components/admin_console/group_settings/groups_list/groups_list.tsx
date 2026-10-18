@@ -586,8 +586,9 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                             showFilters={this.state.showFilters}
                             onToggle={this.openFilters}
                         />
+                        {/* Overlay under the fixed-width search host — must not expand the flex row. */}
+                        {this.state.showFilters && this.renderSearchFilters()}
                     </div>
-                    {this.state.showFilters && this.renderSearchFilters()}
                     <div className='group-list-link-unlink'>
                         {this.renderSelectionActionButton()}
                     </div>

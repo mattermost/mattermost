@@ -20,34 +20,94 @@
         display: flex;
         background: variables.$white;
 
-        // Host layout only; chrome/icon/clear come from Compass SearchInput.
-        // Filter caret is a sibling control — not part of the search field.
+        // Fixed-width host: SearchInput + filter caret. Filter panel overlays
+        // absolutely so opening it cannot grow this row (was expanding past 320px).
         .group-list-search {
             position: relative;
             display: flex;
+            width: 320px;
             max-width: 320px;
-            flex-grow: 1;
-            align-items: center;
-            gap: 4px;
+            flex: 0 0 320px;
+            align-items: stretch;
 
             .group-list-search__input {
                 flex: 1 1 auto;
                 min-width: 0;
+                width: auto;
+
+                // Room for the absolutely positioned filter caret + divider.
+                [class*='search-input__inner'] {
+                    padding-right: 40px;
+                }
             }
 
             .group-filter-action {
+                position: absolute;
+                z-index: 2;
+                top: 0;
+                right: 0;
+                bottom: 0;
                 display: inline-flex;
                 flex-shrink: 0;
                 align-items: center;
                 justify-content: center;
-                padding: 8px;
+                width: 36px;
+                padding: 0;
                 border: none;
+                border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
                 background: transparent;
-                color: inherit;
+                color: rgba(var(--center-channel-color-rgb), 0.64);
                 cursor: pointer;
 
                 &.hidden {
                     visibility: hidden;
+                }
+            }
+
+            .group-search-filters {
+                position: absolute;
+                z-index: 10;
+                top: 100%;
+                left: 0;
+                width: 320px;
+                margin-top: 4px;
+                padding: 20px;
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                background-color: white;
+                box-shadow: var(--elevation-2);
+
+                .search-groups-btn {
+                    right: 20px;
+                    bottom: 20px;
+                    float: right;
+                }
+
+                .cancel-filters {
+                    float: right;
+                }
+
+                .filter-row {
+                    height: 30px;
+                    vertical-align: middle;
+                }
+
+                .filter-check {
+                    display: inline-block;
+                    width: 18px;
+                    height: 18px;
+                    border: 2px solid variables.$dark-gray;
+                    border-radius: 3px;
+                    margin-right: 7px;
+                    vertical-align: middle;
+
+                    &.checked {
+                        border: 0;
+
+                        svg {
+                            background: variables.$white;
+                            fill: variables.$primary-color;
+                        }
+                    }
                 }
             }
         }
@@ -56,53 +116,6 @@
             display: flex;
             flex-grow: 1;
             justify-content: flex-end;
-        }
-
-        .group-search-filters {
-            position: absolute;
-            z-index: 10;
-            top: 100%;
-            left: 0;
-            width: 303px;
-            margin-top: 4px;
-            padding: 20px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            background-color: white;
-            box-shadow: var(--elevation-2);
-
-            .search-groups-btn {
-                right: 20px;
-                bottom: 20px;
-                float: right;
-            }
-
-            .cancel-filters {
-                float: right;
-            }
-
-            .filter-row {
-                height: 30px;
-                vertical-align: middle;
-            }
-
-            .filter-check {
-                display: inline-block;
-                width: 18px;
-                height: 18px;
-                border: 2px solid variables.$dark-gray;
-                border-radius: 3px;
-                margin-right: 7px;
-                vertical-align: middle;
-
-                &.checked {
-                    border: 0;
-
-                    svg {
-                        background: variables.$white;
-                        fill: variables.$primary-color;
-                    }
-                }
-            }
         }
     }
 
