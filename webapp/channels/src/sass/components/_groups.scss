@@ -60,11 +60,15 @@
 
         .group-search-filters {
             position: absolute;
-            top: 40px;
+            z-index: 10;
+            top: 100%;
+            left: 0;
             width: 303px;
+            margin-top: 4px;
             padding: 20px;
             border: 1px solid rgba(0, 0, 0, 0.1);
             background-color: white;
+            box-shadow: var(--elevation-2);
 
             .search-groups-btn {
                 right: 20px;

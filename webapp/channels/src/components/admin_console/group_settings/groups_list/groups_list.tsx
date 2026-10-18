@@ -61,10 +61,10 @@ function GroupsListSearch({value, onChange, onClear, onKeyUp}: GroupsListSearchP
 
 type GroupsListFilterToggleProps = {
     showFilters: boolean;
-    onOpen: () => void;
+    onToggle: (e: React.MouseEvent<HTMLButtonElement>) => void;
 };
 
-function GroupsListFilterToggle({showFilters, onOpen}: GroupsListFilterToggleProps) {
+function GroupsListFilterToggle({showFilters, onToggle}: GroupsListFilterToggleProps) {
     const {formatMessage} = useIntl();
 
     return (
@@ -76,7 +76,8 @@ function GroupsListFilterToggle({showFilters, onOpen}: GroupsListFilterTogglePro
                 defaultMessage: 'Open group filters',
             })}
             aria-expanded={showFilters}
-            onClick={onOpen}
+            aria-controls='group-filters'
+            onClick={onToggle}
         >
             <i
                 className='fa fa-caret-down'
@@ -130,6 +131,8 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         groups: [],
     };
 
+    private attachCloseFiltersListenerTimeout?: number;
+
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -150,8 +153,54 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         this.setState({showFilters: false});
     };
 
+    private handleOutsideFiltersClick = (e: MouseEvent) => {
+        const filtersEl = document.getElementById('group-filters');
+        if (filtersEl && e.target instanceof Node && filtersEl.contains(e.target)) {
+            return;
+        }
+        this.closeFilters();
+    };
+
+    private openFilters = (e: React.MouseEvent) => {
+        // Prevent the opening click from bubbling to document and immediately
+        // closing the menu (React root delegation still lets natives reach document).
+        e.stopPropagation();
+        e.nativeEvent.stopImmediatePropagation();
+
+        if (this.state.showFilters) {
+            return;
+        }
+
+        this.setState({showFilters: true});
+    };
+
+    private syncOutsideClickListener = (showFilters: boolean) => {
+        window.clearTimeout(this.attachCloseFiltersListenerTimeout);
+        document.removeEventListener('click', this.handleOutsideFiltersClick);
+
+        if (!showFilters) {
+            return;
+        }
+
+        // Defer attach so the same user gesture that opened the menu cannot close it.
+        this.attachCloseFiltersListenerTimeout = window.setTimeout(() => {
+            document.addEventListener('click', this.handleOutsideFiltersClick);
+        }, 0);
+    };
+
     public componentDidMount() {
         this.props.actions.getLdapGroups(this.state.page, LDAP_GROUPS_PAGE_SIZE).then(this.handleGetGroupsResponse);
+    }
+
+    public componentDidUpdate(_prevProps: Props, prevState: State) {
+        if (prevState.showFilters !== this.state.showFilters) {
+            this.syncOutsideClickListener(this.state.showFilters);
+        }
+    }
+
+    public componentWillUnmount() {
+        window.clearTimeout(this.attachCloseFiltersListenerTimeout);
+        document.removeEventListener('click', this.handleOutsideFiltersClick);
     }
 
     public async previousPage(e: any): Promise<void> {
@@ -413,6 +462,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                 id='group-filters'
                 className='group-search-filters'
                 onClick={(e) => {
+                    e.stopPropagation();
                     e.nativeEvent.stopImmediatePropagation();
                 }}
             >
@@ -534,10 +584,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                         />
                         <GroupsListFilterToggle
                             showFilters={this.state.showFilters}
-                            onOpen={() => {
-                                document.addEventListener('click', this.closeFilters, {once: true});
-                                this.setState({showFilters: true});
-                            }}
+                            onToggle={this.openFilters}
                         />
                     </div>
                     {this.state.showFilters && this.renderSearchFilters()}

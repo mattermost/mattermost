@@ -9,21 +9,8 @@ import GroupsList from 'components/admin_console/group_settings/groups_list/grou
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-// Helper to open the filter dropdown without it immediately closing.
-// The component registers a document 'click' listener (with {once: true}) to close the dropdown,
-// which fires on the same event that opens it. We temporarily suppress that listener.
-function openFilters() {
-    const originalAddEventListener = document.addEventListener.bind(document);
-    const spy = jest.spyOn(document, 'addEventListener').mockImplementation((...args: Parameters<typeof document.addEventListener>) => {
-        if (args[0] === 'click') {
-            // Suppress the one-time close listener
-            return;
-        }
-        originalAddEventListener(...args);
-    });
-    const caretDown = document.querySelector('i.fa-caret-down')!;
-    fireEvent.click(caretDown);
-    spy.mockRestore();
+async function openFilters() {
+    await userEvent.click(screen.getByRole('button', {name: 'Open group filters'}));
 }
 
 describe('components/admin_console/group_settings/GroupsList.tsx', () => {
@@ -561,7 +548,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         });
 
         // Open the filter dropdown
-        openFilters();
+        await openFilters();
 
         // Verify filters are shown
         expect(screen.getByText('Is Linked')).toBeInTheDocument();
@@ -641,11 +628,43 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         // Filters should not be visible initially
         expect(screen.queryByText('Is Linked')).not.toBeInTheDocument();
 
-        // Click the down arrow
-        openFilters();
+        // Click the filter toggle — must stay open (not closed by the opening click)
+        await openFilters();
 
         // Filters should now be visible
         expect(screen.getByText('Is Linked')).toBeInTheDocument();
+        expect(screen.getByText('Is Not Linked')).toBeInTheDocument();
+        expect(screen.getByText('Is Configured')).toBeInTheDocument();
+        expect(screen.getByText('Is Not Configured')).toBeInTheDocument();
+        expect(document.getElementById('group-filters')).toBeInTheDocument();
+    });
+
+    test('clicking outside closes the filters', async () => {
+        renderWithContext(
+            <GroupsList
+                groups={[]}
+                total={0}
+                actions={{
+                    getLdapGroups: jest.fn().mockReturnValue(Promise.resolve()),
+                    link: jest.fn(),
+                    unlink: jest.fn(),
+                }}
+            />,
+        );
+        await waitFor(() => {
+            expect(screen.getByText('No groups found')).toBeInTheDocument();
+        });
+
+        await openFilters();
+        expect(screen.getByText('Is Linked')).toBeInTheDocument();
+
+        // Allow deferred document listener to attach, then click outside
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        fireEvent.click(document.body);
+
+        await waitFor(() => {
+            expect(screen.queryByText('Is Linked')).not.toBeInTheDocument();
+        });
     });
 
     test('clicking search invokes getLdapGroups', async () => {
@@ -665,16 +684,16 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
             expect(screen.getByText('No groups found')).toBeInTheDocument();
         });
 
-        // Open filters
-        openFilters();
-
-        // Type search string with filter keywords
+        // Type search string with filter keywords before opening filters
+        // (clicking the search input is outside the filter panel and would close it)
         const searchInput = screen.getByPlaceholderText('Search');
         await userEvent.clear(searchInput);
         await userEvent.type(searchInput, 'foo iS:ConfiGuReD is:notlinked');
 
+        await openFilters();
+
         // Click the Search button in the filter panel
-        await userEvent.click(screen.getByText('Search'));
+        await userEvent.click(screen.getByRole('button', {name: 'Search'}));
 
         // getLdapGroups should have been called: once on mount + once on search
         expect(getLdapGroups).toHaveBeenCalledTimes(2);
@@ -703,7 +722,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         await userEvent.type(searchInput, 'foo');
 
         // Open filters
-        openFilters();
+        await openFilters();
 
         // Click the "Is Linked" filter checkbox
         const isLinkedCheckbox = screen.getByText('Is Linked').parentElement!.querySelector('.filter-check')!;
@@ -735,7 +754,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         await userEvent.type(searchInput, 'foo');
 
         // Open filters
-        openFilters();
+        await openFilters();
 
         // Click the "Is Linked" filter checkbox to check it
         const isLinkedCheckbox = screen.getByText('Is Linked').parentElement!.querySelector('.filter-check')!;
