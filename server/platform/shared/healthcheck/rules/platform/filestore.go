@@ -94,12 +94,12 @@ var filestoreUnreachable = healthcheck.Rule{
 // localDirectoryInCluster returns FileSettings.Directory, with applies=false unless the local driver runs in a cluster.
 func localDirectoryInCluster(s *healthcheck.Snapshot) (directory string, applies, ok bool) {
 	clustered, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ClusterSettings.Enable })
-	if !ok {
-		return "", false, false
+	if !ok || !clustered {
+		return "", false, ok
 	}
 
 	driver, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.FileSettings.DriverName })
-	if !ok || !clustered || driver != model.ImageDriverLocal {
+	if !ok || driver != model.ImageDriverLocal {
 		return "", false, ok
 	}
 

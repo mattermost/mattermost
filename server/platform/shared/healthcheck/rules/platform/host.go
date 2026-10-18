@@ -60,8 +60,7 @@ var nodeFDExhaustion = healthcheck.Rule{
 	EvalNode:   evalNodeFDExhaustion,
 }
 
-// leaderOS returns the leader's operating system. The OS is always collected, so an error
-// recorded for another value in the server_host section does not make it unreliable.
+// The OS is always collected, so a server_host error recorded for another value does not hide it.
 func leaderOS(s *healthcheck.Snapshot) (string, bool) {
 	leader, ok := s.Leader()
 	if !ok {
@@ -125,8 +124,7 @@ func listenPort(s *healthcheck.Snapshot) (int, bool) {
 	return number, err == nil
 }
 
-// Only Linux needs a capability to bind a low port; an unknown OS is treated as Linux, the
-// production platform. Port 0 asks the OS for an ephemeral port, which is never privileged.
+// Only Linux needs a capability to bind a low port, so an unknown OS counts as Linux; port 0 is ephemeral.
 func evalBindPrivilegedPort(s *healthcheck.Snapshot) []healthcheck.Result {
 	port, ok := listenPort(s)
 	if !ok {

@@ -113,6 +113,18 @@ func TestFilestoreConfigRules(t *testing.T) {
 			want: allUnknown,
 		},
 		{
+			name: "driver unreadable outside a cluster",
+			snapshot: configSnapshot(func(cfg *model.Config) {
+				cfg.FileSettings.DriverName = nil
+			}),
+			want: map[string]want{
+				"FILESTORE_LOCAL_IN_CLUSTER":        resolved,
+				"FILESTORE_LOCAL_IN_CLUSTER_VERIFY": resolved,
+				"FILESTORE_S3_NO_BUCKET":            configUnknown,
+				"FILESTORE_S3_SSL_OFF":              configUnknown,
+			},
+		},
+		{
 			name: "directory unreadable in a cluster",
 			snapshot: configSnapshot(func(cfg *model.Config) {
 				cfg.ClusterSettings.Enable = new(true)

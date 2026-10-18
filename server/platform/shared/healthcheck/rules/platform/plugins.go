@@ -99,8 +99,7 @@ func evalPluginHealthOff(s *healthcheck.Snapshot) []healthcheck.Result {
 	}
 }
 
-// The plugin list names a plugin as enabled only while it runs, so a plugin enabled in
-// config but listed as disabled failed to start or to stay running.
+// The plugin list marks a plugin enabled only while it runs, so enabled-but-listed-disabled means it stopped.
 func evalPluginNotRunning(s *healthcheck.Snapshot) []healthcheck.Result {
 	enabled, ok := pluginsEnabled(s)
 	if !ok {
