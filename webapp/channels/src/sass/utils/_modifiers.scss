@@ -54,18 +54,32 @@ $positions: 't'top,
     box-shadow: 0 0 1px 3px rgba(var(--link-color-rgb), 0.5), 0 0 0 1px var(--link-color);
 }
 
-// Compass draws its own focus ring; suppress the webapp .a11y--focused glow on
-// the inner control. Do not scope to #root — GenericModal portals outside it.
-[class*="_text-input__wrapper"] .a11y--focused,
-[class*="_text-area__wrapper"] .a11y--focused,
-[class*="_search-input__wrapper"] .a11y--focused,
-[class*="_password-input__wrapper"] .a11y--focused,
-[class*="_select__wrapper"] .a11y--focused,
-[class*="_combobox__wrapper"] .a11y--focused,
-[class*="_date-range-picker__trigger"].a11y--focused,
-button[class*="_button--emphasis-"].a11y--focused,
-button[class*="_icon-button"].a11y--focused,
-button[class*="_action-button"].a11y--focused {
+// Compass draws its own focus ring; for composite fields, target the inner
+// a11y--focused control so only the outer Compass ring remains.
+//
+// From #39071: #root beats theme-injected `.app__body .a11y--focused` without
+// !important. `.app__body .modal` covers GenericModal portals outside #root
+// (also higher specificity than the theme rule).
+#root [class*="_text-input__wrapper"] .a11y--focused,
+#root [class*="_text-area__wrapper"] .a11y--focused,
+#root [class*="_search-input__wrapper"] .a11y--focused,
+#root [class*="_password-input__wrapper"] .a11y--focused,
+#root [class*="_select__wrapper"] .a11y--focused,
+#root [class*="_combobox__wrapper"] .a11y--focused,
+#root [class*="_date-range-picker__trigger"].a11y--focused,
+#root button[class*="_button--emphasis-"].a11y--focused,
+#root button[class*="_icon-button"].a11y--focused,
+#root button[class*="_action-button"].a11y--focused,
+.app__body .modal [class*="_text-input__wrapper"] .a11y--focused,
+.app__body .modal [class*="_text-area__wrapper"] .a11y--focused,
+.app__body .modal [class*="_search-input__wrapper"] .a11y--focused,
+.app__body .modal [class*="_password-input__wrapper"] .a11y--focused,
+.app__body .modal [class*="_select__wrapper"] .a11y--focused,
+.app__body .modal [class*="_combobox__wrapper"] .a11y--focused,
+.app__body .modal [class*="_date-range-picker__trigger"].a11y--focused,
+.app__body .modal button[class*="_button--emphasis-"].a11y--focused,
+.app__body .modal button[class*="_icon-button"].a11y--focused,
+.app__body .modal button[class*="_action-button"].a11y--focused {
     box-shadow: none;
 }
 
