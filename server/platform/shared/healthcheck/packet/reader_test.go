@@ -144,7 +144,7 @@ func TestReadGoldenPackets(t *testing.T) {
 			expected: []finding{
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
-				{Code: "FILESTORE_LOCAL_IN_CLUSTER_VERIFY", State: healthcheck.StateFiring, Subject: filestoreDirSubject},
+				{Code: "FILESTORE_LOCAL_IN_CLUSTER", State: healthcheck.StateFiring, Subject: filestoreDirSubject},
 			},
 		},
 	}

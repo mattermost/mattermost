@@ -14378,7 +14378,7 @@
   },
   {
     "id": "health.rule.bind_privileged_port.message",
-    "translation": "ServiceSettings.ListenAddress binds port {{.port}}, which is below 1024. On Linux, a Mattermost server that does not run as root can bind this port only through the CAP_NET_BIND_SERVICE file capability on its binary. A package upgrade replaces the binary and clears that capability, so the server can fail to start after the next upgrade with \"bind: permission denied\".",
+    "translation": "ServiceSettings.ListenAddress binds port {{.port}}, which is below 1024. On Linux, a Mattermost server that does not run as root can bind this port only through the CAP_NET_BIND_SERVICE file capability on its binary. A package upgrade replaces the binary and clears that capability, so the server can fail to start after the next upgrade with \"bind: permission denied\". The configuration cannot show how the capability is granted, so this warning stays even after you grant it through the systemd unit.",
     "description": "Health dashboard finding detail when the server listens on a privileged port (below 1024); {{.port}} is the port number. 'ServiceSettings.ListenAddress' is a config setting path, 'CAP_NET_BIND_SERVICE' is a Linux capability name and 'bind: permission denied' is a literal error message; do not translate them."
   },
   {
@@ -14508,31 +14508,16 @@
   },
   {
     "id": "health.rule.filestore_local_in_cluster.message",
-    "translation": "FileSettings.DriverName is local with ClusterSettings.Enable on, and FileSettings.Directory ({{.directory}}) is a relative path. It resolves under each node's working directory, so it cannot be a shared mount: files uploaded to one node are not readable from the others.",
-    "description": "Health dashboard finding detail when a high availability cluster stores files in a relative local directory; {{.directory}} is the configured directory. 'FileSettings.DriverName', 'ClusterSettings.Enable' and 'FileSettings.Directory' are config setting paths and 'local' is a setting value; do not translate them."
+    "translation": "FileSettings.DriverName is local with ClusterSettings.Enable on, and FileSettings.Directory is {{.directory}}. In a cluster this directory must be a shared mount (NFS, EFS, GlusterFS, CephFS) mounted identically on every node, or files uploaded to one node are not visible on the others. The configuration cannot show whether the directory is shared, and a node can pass the file storage connection test while writing to its own local disk.",
+    "description": "Health dashboard finding detail when a high availability cluster stores files in a local directory that may or may not be a shared mount; {{.directory}} is the configured directory. 'FileSettings.DriverName', 'ClusterSettings.Enable' and 'FileSettings.Directory' are config setting paths, 'local' is a setting value, and NFS, EFS, GlusterFS and CephFS are shared file system names; do not translate them."
   },
   {
     "id": "health.rule.filestore_local_in_cluster.remediation",
-    "translation": "Move file storage to Amazon S3 (amazons3), or set FileSettings.Directory to an absolute path on a shared mount (NFS, EFS, GlusterFS, CephFS) mounted identically on every node.",
-    "description": "Health dashboard fix-it step for a cluster that stores files in a relative local directory; 'amazons3' is a setting value, NFS, EFS, GlusterFS and CephFS are shared file system names; do not translate them."
+    "translation": "On every app node, run findmnt with the FileSettings.Directory path. A relative path resolves against the Mattermost working directory, usually /opt/mattermost. Every node must show the same remote source, and the Mattermost user must be able to read and write there. If the directory is not a shared mount, move it to one or switch FileSettings.DriverName to amazons3.",
+    "description": "Health dashboard fix-it step asking the admin to confirm that the file storage directory is a shared mount on every node; 'findmnt' is a Linux command, '/opt/mattermost' is a path and 'amazons3' is a setting value; do not translate them."
   },
   {
     "id": "health.rule.filestore_local_in_cluster.title",
-    "translation": "Local file storage in a high availability cluster",
-    "description": "Health dashboard finding title when a high availability cluster stores files on each node's local disk, so nodes cannot read each other's files."
-  },
-  {
-    "id": "health.rule.filestore_local_in_cluster_verify.message",
-    "translation": "FileSettings.DriverName is local with ClusterSettings.Enable on, and FileSettings.Directory is {{.directory}}. In a cluster this directory must be a shared mount (NFS, EFS, GlusterFS, CephFS) mounted identically on every node, or files uploaded to one node are not visible on the others. The configuration cannot show whether the directory is shared, and the file storage connection test runs on one node only.",
-    "description": "Health dashboard finding detail when a high availability cluster stores files in an absolute local directory that may or may not be a shared mount; {{.directory}} is the configured directory. Config setting paths and file system names should not be translated."
-  },
-  {
-    "id": "health.rule.filestore_local_in_cluster_verify.remediation",
-    "translation": "On every app node, run findmnt with the FileSettings.Directory path. Every node must show the same remote source, and the Mattermost user must be able to read and write there. If the directory is not a shared mount, move it to one or switch FileSettings.DriverName to amazons3.",
-    "description": "Health dashboard fix-it step asking the admin to confirm that the file storage directory is a shared mount on every node; 'findmnt' is a Linux command and 'amazons3' is a setting value; do not translate them."
-  },
-  {
-    "id": "health.rule.filestore_local_in_cluster_verify.title",
     "translation": "Local file storage in a high availability cluster: confirm the shared mount",
     "description": "Health dashboard finding title asking the admin to confirm that a cluster's local file storage directory is shared by every node."
   },

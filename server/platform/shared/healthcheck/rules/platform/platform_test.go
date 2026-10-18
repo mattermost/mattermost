@@ -129,11 +129,10 @@ func TestRegistered(t *testing.T) {
 	}{
 		{rateLimitOffLarge, "RATELIMIT_OFF_LARGE", healthcheck.SeverityInfo, healthcheck.SurfaceInternal, healthcheck.VolatilityThreshold, "RateLimitSettings.Enable", false, false},
 		{rateLimitStoreSmall, "RATELIMIT_STORE_SMALL", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "RateLimitSettings.MemoryStoreSize", false, false},
-		{filestoreLocalInCluster, "FILESTORE_LOCAL_IN_CLUSTER", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "FileSettings.DriverName", false, false},
-		{filestoreLocalInClusterVerify, "FILESTORE_LOCAL_IN_CLUSTER_VERIFY", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "FileSettings.Directory", false, false},
+		{filestoreLocalInCluster, "FILESTORE_LOCAL_IN_CLUSTER", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "FileSettings.Directory", false, false},
 		{filestoreS3NoBucket, "FILESTORE_S3_NO_BUCKET", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "FileSettings.AmazonS3Bucket", false, false},
 		{filestoreS3SSLOff, "FILESTORE_S3_SSL_OFF", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "FileSettings.AmazonS3SSL", false, false},
-		{filestoreUnreachable, "FILESTORE_UNREACHABLE", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityProbe, "FileSettings.DriverName", false, false},
+		{filestoreUnreachable, "FILESTORE_UNREACHABLE", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityProbe, "FileSettings.DriverName", false, true},
 		{logDebugProd, "LOG_DEBUG_PROD", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "LogSettings.FileLevel", false, false},
 		{logFileOff, "LOG_FILE_OFF", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "LogSettings.EnableFile", false, false},
 		{metricsOff, "METRICS_OFF", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "MetricsSettings.Enable", false, false},

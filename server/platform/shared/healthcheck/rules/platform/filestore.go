@@ -4,14 +4,12 @@
 package platform
 
 import (
-	"path"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
 func init() {
-	healthcheck.Register(filestoreLocalInCluster, filestoreLocalInClusterVerify, filestoreS3NoBucket, filestoreS3SSLOff, filestoreUnreachable)
+	healthcheck.Register(filestoreLocalInCluster, filestoreS3NoBucket, filestoreS3SSLOff, filestoreUnreachable)
 }
 
 const filestoreConsolePath = "/admin_console/environment/file_storage"
@@ -19,7 +17,7 @@ const filestoreConsolePath = "/admin_console/environment/file_storage"
 var filestoreLocalInCluster = healthcheck.Rule{
 	Code:     "FILESTORE_LOCAL_IN_CLUSTER",
 	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityCritical,
+	Severity: healthcheck.SeverityWarning,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.filestore_local_in_cluster.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.filestore_local_in_cluster.remediation"),
@@ -27,23 +25,8 @@ var filestoreLocalInCluster = healthcheck.Rule{
 	},
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
-	Subject:    "FileSettings.DriverName",
-	Eval:       evalFilestoreLocalInCluster,
-}
-
-var filestoreLocalInClusterVerify = healthcheck.Rule{
-	Code:     "FILESTORE_LOCAL_IN_CLUSTER_VERIFY",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.filestore_local_in_cluster_verify.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.filestore_local_in_cluster_verify.remediation"),
-		ConsolePath:   filestoreConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
 	Subject:    "FileSettings.Directory",
-	Eval:       evalFilestoreLocalInClusterVerify,
+	Eval:       evalFilestoreLocalInCluster,
 }
 
 var filestoreS3NoBucket = healthcheck.Rule{
@@ -88,7 +71,7 @@ var filestoreUnreachable = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityProbe,
 	Subject:    "FileSettings.DriverName",
-	Eval:       evalFilestoreUnreachable,
+	EvalNode:   evalFilestoreUnreachable,
 }
 
 // localDirectoryInCluster returns FileSettings.Directory, with applies=false unless the local driver runs in a cluster.
@@ -117,21 +100,8 @@ func evalFilestoreLocalInCluster(s *healthcheck.Snapshot) []healthcheck.Result {
 	switch {
 	case !ok:
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	// path.IsAbs rather than filepath.IsAbs: mmctl may read a Linux packet on Windows.
-	case applies && !path.IsAbs(directory):
+	case applies:
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_local_in_cluster.message")).WithDetail("directory", directory)}
-	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-}
-
-func evalFilestoreLocalInClusterVerify(s *healthcheck.Snapshot) []healthcheck.Result {
-	directory, applies, ok := localDirectoryInCluster(s)
-	switch {
-	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	case applies && path.IsAbs(directory):
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_local_in_cluster_verify.message")).WithDetail("directory", directory)}
 	default:
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
@@ -177,8 +147,8 @@ func evalFilestoreS3SSLOff(s *healthcheck.Snapshot) []healthcheck.Result {
 	}
 }
 
-func evalFilestoreUnreachable(s *healthcheck.Snapshot) []healthcheck.Result {
-	diag, ok := leaderDiag(s)
+func evalFilestoreUnreachable(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) []healthcheck.Result {
+	diag, ok := n.Diag()
 	if !ok {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
 	}
@@ -191,13 +161,4 @@ func evalFilestoreUnreachable(s *healthcheck.Snapshot) []healthcheck.Result {
 	default:
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
 	}
-}
-
-func leaderDiag(s *healthcheck.Snapshot) (*model.SupportPacketDiagnostics, bool) {
-	leader, ok := s.Leader()
-	if !ok {
-		return nil, false
-	}
-
-	return leader.Diag()
 }

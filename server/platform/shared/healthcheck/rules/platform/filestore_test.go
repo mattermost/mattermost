@@ -23,18 +23,16 @@ func filestoreConfig(clustered bool, driver, directory string) func(*model.Confi
 func TestFilestoreConfigRules(t *testing.T) {
 	t.Parallel()
 
-	rules := []healthcheck.Rule{filestoreLocalInCluster, filestoreLocalInClusterVerify, filestoreS3NoBucket, filestoreS3SSLOff}
+	rules := []healthcheck.Rule{filestoreLocalInCluster, filestoreS3NoBucket, filestoreS3SSLOff}
 	allResolved := map[string]want{
-		"FILESTORE_LOCAL_IN_CLUSTER":        resolved,
-		"FILESTORE_LOCAL_IN_CLUSTER_VERIFY": resolved,
-		"FILESTORE_S3_NO_BUCKET":            resolved,
-		"FILESTORE_S3_SSL_OFF":              resolved,
+		"FILESTORE_LOCAL_IN_CLUSTER": resolved,
+		"FILESTORE_S3_NO_BUCKET":     resolved,
+		"FILESTORE_S3_SSL_OFF":       resolved,
 	}
 	allUnknown := map[string]want{
-		"FILESTORE_LOCAL_IN_CLUSTER":        configUnknown,
-		"FILESTORE_LOCAL_IN_CLUSTER_VERIFY": configUnknown,
-		"FILESTORE_S3_NO_BUCKET":            configUnknown,
-		"FILESTORE_S3_SSL_OFF":              configUnknown,
+		"FILESTORE_LOCAL_IN_CLUSTER": configUnknown,
+		"FILESTORE_S3_NO_BUCKET":     configUnknown,
+		"FILESTORE_S3_SSL_OFF":       configUnknown,
 	}
 	with := func(overrides map[string]want) map[string]want {
 		wants := maps.Clone(allResolved)
@@ -81,7 +79,7 @@ func TestFilestoreConfigRules(t *testing.T) {
 			name:     "clustered local absolute directory",
 			snapshot: configSnapshot(filestoreConfig(true, model.ImageDriverLocal, "/mnt/mattermost")),
 			want: with(map[string]want{
-				"FILESTORE_LOCAL_IN_CLUSTER_VERIFY": firing("health.rule.filestore_local_in_cluster_verify.message", map[string]string{"directory": "/mnt/mattermost"}),
+				"FILESTORE_LOCAL_IN_CLUSTER": firing("health.rule.filestore_local_in_cluster.message", map[string]string{"directory": "/mnt/mattermost"}),
 			}),
 		},
 		{
@@ -100,8 +98,7 @@ func TestFilestoreConfigRules(t *testing.T) {
 				cfg.ClusterSettings.Enable = nil
 			}),
 			want: with(map[string]want{
-				"FILESTORE_LOCAL_IN_CLUSTER":        configUnknown,
-				"FILESTORE_LOCAL_IN_CLUSTER_VERIFY": configUnknown,
+				"FILESTORE_LOCAL_IN_CLUSTER": configUnknown,
 			}),
 		},
 		{
@@ -118,10 +115,9 @@ func TestFilestoreConfigRules(t *testing.T) {
 				cfg.FileSettings.DriverName = nil
 			}),
 			want: map[string]want{
-				"FILESTORE_LOCAL_IN_CLUSTER":        resolved,
-				"FILESTORE_LOCAL_IN_CLUSTER_VERIFY": resolved,
-				"FILESTORE_S3_NO_BUCKET":            configUnknown,
-				"FILESTORE_S3_SSL_OFF":              configUnknown,
+				"FILESTORE_LOCAL_IN_CLUSTER": resolved,
+				"FILESTORE_S3_NO_BUCKET":     configUnknown,
+				"FILESTORE_S3_SSL_OFF":       configUnknown,
 			},
 		},
 		{
@@ -131,8 +127,7 @@ func TestFilestoreConfigRules(t *testing.T) {
 				cfg.FileSettings.Directory = nil
 			}),
 			want: with(map[string]want{
-				"FILESTORE_LOCAL_IN_CLUSTER":        configUnknown,
-				"FILESTORE_LOCAL_IN_CLUSTER_VERIFY": configUnknown,
+				"FILESTORE_LOCAL_IN_CLUSTER": configUnknown,
 			}),
 		},
 		{
@@ -189,51 +184,41 @@ func TestFilestoreUnreachable(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name     string
-		snapshot *healthcheck.Snapshot
-		want     want
+		name string
+		node *healthcheck.NodeSnapshot
+		want want
 	}{
 		{
 			name: "connection test failed",
-			snapshot: configSnapshot(nil, leaderNode(func(diag *model.SupportPacketDiagnostics) {
+			node: diagNode("app-2", false, func(diag *model.SupportPacketDiagnostics) {
 				diag.FileStore.Status = model.StatusFail
 				diag.FileStore.Error = "unable to write to ./data/: permission denied"
-			})),
+			}),
 			want: firing("health.rule.filestore_unreachable.message", map[string]string{"error": "unable to write to ./data/: permission denied"}),
 		},
 		{
-			name:     "connection test succeeded",
-			snapshot: configSnapshot(nil, leaderNode(nil)),
-			want:     resolved,
+			name: "connection test succeeded",
+			node: diagNode("app-2", false, nil),
+			want: resolved,
 		},
 		{
 			name: "status not recorded",
-			snapshot: configSnapshot(nil, leaderNode(func(diag *model.SupportPacketDiagnostics) {
+			node: diagNode("app-2", false, func(diag *model.SupportPacketDiagnostics) {
 				diag.FileStore.Status = ""
-			})),
+			}),
 			want: diagUnknown,
 		},
 		{
-			name:     "leader without diagnostics",
-			snapshot: configSnapshot(nil, &healthcheck.NodeSnapshot{Hostname: "mm.example.com", IsLeader: true}),
-			want:     diagUnknown,
-		},
-		{
-			name:     "only a follower has diagnostics",
-			snapshot: configSnapshot(nil, &healthcheck.NodeSnapshot{Hostname: "app-1", IsLeader: true}, diagNode("app-2", false, nil)),
-			want:     diagUnknown,
-		},
-		{
-			name:     "no nodes",
-			snapshot: configSnapshot(nil),
-			want:     diagUnknown,
+			name: "nil diagnostics",
+			node: &healthcheck.NodeSnapshot{Hostname: "app-2"},
+			want: diagUnknown,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assertRules(t, []healthcheck.Rule{filestoreUnreachable}, tc.snapshot, map[string]want{"FILESTORE_UNREACHABLE": tc.want})
+			assertResult(t, tc.want, filestoreUnreachable.EvalNode(healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{tc.node}), tc.node))
 		})
 	}
 }
