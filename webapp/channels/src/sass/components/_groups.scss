@@ -18,7 +18,6 @@
     .groups-list--global-actions {
         position: relative;
         display: flex;
-        padding: 8px 20px;
         background: variables.$white;
 
         .group-list-search {
@@ -28,7 +27,6 @@
             flex-grow: 1;
             align-items: center;
             gap: 4px;
-            margin-top: 2px;
 
             .group-list-search__input {
                 flex: 1 1 auto;
@@ -40,6 +38,9 @@
                 flex-shrink: 0;
                 align-items: center;
                 padding: 8px;
+                border: none;
+                background: transparent;
+                color: inherit;
                 cursor: pointer;
 
                 &.hidden {

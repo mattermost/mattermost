@@ -43,14 +43,46 @@ function GroupsListSearch({value, onChange, onClear, onKeyUp}: GroupsListSearchP
 
     return (
         <SearchInput
-            size='small'
+            size='medium'
             className='group-list-search__input'
             placeholder={formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
             onKeyUp={onKeyUp}
             onChange={(e) => onChange(e.target.value)}
             onClear={onClear}
             value={value}
+            data-testid='searchInput'
+            clearButtonProps={{
+                'data-testid': 'clear-search',
+                tabIndex: -1,
+            }}
         />
+    );
+}
+
+type GroupsListFilterToggleProps = {
+    showFilters: boolean;
+    onOpen: () => void;
+};
+
+function GroupsListFilterToggle({showFilters, onOpen}: GroupsListFilterToggleProps) {
+    const {formatMessage} = useIntl();
+
+    return (
+        <button
+            type='button'
+            className={classNames('group-filter-action', {hidden: showFilters})}
+            aria-label={formatMessage({
+                id: 'admin.group_settings.groups_list.open_filters',
+                defaultMessage: 'Open group filters',
+            })}
+            aria-expanded={showFilters}
+            onClick={onOpen}
+        >
+            <i
+                className='fa fa-caret-down'
+                aria-hidden={true}
+            />
+        </button>
     );
 }
 
@@ -500,9 +532,9 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                             onClear={() => this.resetFiltersAndSearch()}
                             onKeyUp={(e) => this.handleGroupSearchKeyUp(e)}
                         />
-                        <i
-                            className={'fa fa-caret-down group-filter-action ' + (this.state.showFilters ? 'hidden' : '')}
-                            onClick={() => {
+                        <GroupsListFilterToggle
+                            showFilters={this.state.showFilters}
+                            onOpen={() => {
                                 document.addEventListener('click', this.closeFilters, {once: true});
                                 this.setState({showFilters: true});
                             }}
