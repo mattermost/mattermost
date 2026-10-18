@@ -54,6 +54,7 @@ websocket:
 cluster:
   id: k3n9x7cq4fbq8g1s6ztw2yrm5h
   number_of_nodes: 3
+  number_of_connected_nodes: 3
   is_leader: true
 notifications:
   email:
