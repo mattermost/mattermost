@@ -124,35 +124,40 @@ var auditLevelIDs = func() map[logr.LevelID]struct{} {
 	return m
 }()
 
+// AdditionalAuditTargetsEnv names the environment variable whose audit targets the server
+// adds on top of ExperimentalAuditSettings, whether or not advanced logging is licensed.
+const AdditionalAuditTargetsEnv = "MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL"
+
+// AdditionalAuditConfig returns the audit targets defined by AdditionalAuditTargetsEnv, or nil
+// when it is unset.
+func AdditionalAuditConfig() (mlog.LoggerConfiguration, error) {
+	additionalJSON := strings.TrimSpace(os.Getenv(AdditionalAuditTargetsEnv))
+	if additionalJSON == "" {
+		return nil, nil
+	}
+
+	cfg := make(mlog.LoggerConfiguration)
+	if err := json.Unmarshal([]byte(additionalJSON), &cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
 // IsAuditLoggingActive reports whether the server is actually emitting audit logs to at
 // least one sink, given the audit settings and whether advanced logging is licensed.
 //
 // It returns true when basic file auditing is enabled, or when the advanced audit logging
-// config defines at least one target bound to an audit level. A valid advanced-logging
-// config that routes nothing to an audit level returns false.
+// config or AdditionalAuditTargetsEnv defines at least one target bound to an audit level.
+// Advanced-logging targets that route nothing to an audit level return false.
 func IsAuditLoggingActive(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool) bool {
 	if auditSettings.FileEnabled != nil && *auditSettings.FileEnabled {
 		return true
 	}
 
-	if !allowAdvancedLogging {
-		return false
-	}
-
-	cfg := make(mlog.LoggerConfiguration)
-	if err := json.Unmarshal(auditSettings.GetAdvancedLoggingConfig(), &cfg); err != nil {
-		return false
-	}
-
-	for _, target := range cfg {
-		for _, level := range target.Levels {
-			if _, ok := auditLevelIDs[level.ID]; ok {
-				return true
-			}
-		}
-	}
-
-	return false
+	return hasAdvancedAuditTarget(auditSettings, allowAdvancedLogging, func(l mlog.Level) bool {
+		_, ok := auditLevelIDs[l.ID]
+		return ok
+	})
 }
 
 // IsAuditLevelActive reports whether records logged at the given audit level would actually
@@ -167,20 +172,31 @@ func IsAuditLevelActive(auditSettings model.ExperimentalAuditSettings, allowAdva
 		return true
 	}
 
-	if !allowAdvancedLogging {
-		return false
+	return hasAdvancedAuditTarget(auditSettings, allowAdvancedLogging, func(l mlog.Level) bool {
+		return l.ID == level.ID
+	})
+}
+
+// hasAdvancedAuditTarget reports whether a target from the licensed advanced audit logging
+// config or from AdditionalAuditTargetsEnv is bound to a level accepted by matches.
+// Unparseable JSON contributes no targets.
+func hasAdvancedAuditTarget(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool, matches func(mlog.Level) bool) bool {
+	cfg := make(mlog.LoggerConfiguration)
+
+	if allowAdvancedLogging {
+		advancedCfg := make(mlog.LoggerConfiguration)
+		if err := json.Unmarshal(auditSettings.GetAdvancedLoggingConfig(), &advancedCfg); err == nil {
+			cfg.Append(advancedCfg)
+		}
 	}
 
-	cfg := make(mlog.LoggerConfiguration)
-	if err := json.Unmarshal(auditSettings.GetAdvancedLoggingConfig(), &cfg); err != nil {
-		return false
+	if additionalCfg, err := AdditionalAuditConfig(); err == nil {
+		cfg.Append(additionalCfg)
 	}
 
 	for _, target := range cfg {
-		for _, targetLevel := range target.Levels {
-			if targetLevel.ID == level.ID {
-				return true
-			}
+		if slices.ContainsFunc(target.Levels, matches) {
+			return true
 		}
 	}
 

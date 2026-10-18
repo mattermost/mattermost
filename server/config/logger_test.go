@@ -333,6 +333,7 @@ func TestIsAuditLoggingActive(t *testing.T) {
 		fileEnabled          bool
 		fileName             string
 		advancedLoggingJSON  json.RawMessage
+		additionalTargets    string
 		allowAdvancedLogging bool
 		expected             bool
 	}{
@@ -386,10 +387,58 @@ func TestIsAuditLoggingActive(t *testing.T) {
 			allowAdvancedLogging: true,
 			expected:             false,
 		},
+		{
+			// configureAudit applies env var targets regardless of license.
+			name:                 "env var audit target, unlicensed",
+			fileEnabled:          false,
+			additionalTargets:    string(auditTargetJSON),
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var audit target merged with non-audit advanced config",
+			fileEnabled:          false,
+			advancedLoggingJSON:  stdTargetJSON,
+			additionalTargets:    string(auditTargetJSON),
+			allowAdvancedLogging: true,
+			expected:             true,
+		},
+		{
+			// Like configureAudit, an env var target replaces the advanced target of the same name.
+			name:                 "env var target overrides same-named advanced audit target",
+			fileEnabled:          false,
+			advancedLoggingJSON:  auditTargetJSON,
+			additionalTargets:    `{"my-audit":{"type":"file","levels":[{"id":4,"name":"info"}],"options":{"filename":"audit.log"}}}`,
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "env var target with no audit level",
+			fileEnabled:          false,
+			additionalTargets:    string(stdTargetJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "env var target bound only to audit-delivery",
+			fileEnabled:          false,
+			additionalTargets:    string(deliveryTargetJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "malformed env var JSON",
+			fileEnabled:          false,
+			additionalTargets:    string(malformedJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv(AdditionalAuditTargetsEnv, tc.additionalTargets)
+
 			auditSettings := model.ExperimentalAuditSettings{}
 			auditSettings.SetDefaults()
 			*auditSettings.FileEnabled = tc.fileEnabled
@@ -410,6 +459,7 @@ func TestIsAuditLevelActive(t *testing.T) {
 		level                mlog.Level
 		fileEnabled          bool
 		advancedLoggingJSON  json.RawMessage
+		additionalTargets    string
 		allowAdvancedLogging bool
 		expected             bool
 	}{
@@ -476,10 +526,28 @@ func TestIsAuditLevelActive(t *testing.T) {
 			allowAdvancedLogging: true,
 			expected:             false,
 		},
+		{
+			name:                 "env var delivery target, unlicensed",
+			level:                mlog.LvlAuditDelivery,
+			fileEnabled:          false,
+			additionalTargets:    string(deliveryTargetJSON),
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var target for a different audit level",
+			level:                mlog.LvlAuditDelivery,
+			fileEnabled:          true,
+			additionalTargets:    string(auditTargetJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv(AdditionalAuditTargetsEnv, tc.additionalTargets)
+
 			auditSettings := model.ExperimentalAuditSettings{}
 			auditSettings.SetDefaults()
 			*auditSettings.FileEnabled = tc.fileEnabled
@@ -489,6 +557,33 @@ func TestIsAuditLevelActive(t *testing.T) {
 			assert.Equal(t, tc.expected, IsAuditLevelActive(auditSettings, tc.allowAdvancedLogging, tc.level))
 		})
 	}
+}
+
+func TestAdditionalAuditConfig(t *testing.T) {
+	t.Run("blank", func(t *testing.T) {
+		t.Setenv(AdditionalAuditTargetsEnv, "  ")
+
+		cfg, err := AdditionalAuditConfig()
+		require.NoError(t, err)
+		assert.Nil(t, cfg)
+	})
+
+	t.Run("valid targets", func(t *testing.T) {
+		t.Setenv(AdditionalAuditTargetsEnv, string(deliveryTargetJSON))
+
+		cfg, err := AdditionalAuditConfig()
+		require.NoError(t, err)
+		require.Contains(t, cfg, "my-delivery")
+		assert.Equal(t, "file", cfg["my-delivery"].Type)
+		assert.Equal(t, []mlog.Level{mlog.LvlAuditDelivery}, cfg["my-delivery"].Levels)
+	})
+
+	t.Run("malformed JSON", func(t *testing.T) {
+		t.Setenv(AdditionalAuditTargetsEnv, `{not valid json`)
+
+		_, err := AdditionalAuditConfig()
+		assert.Error(t, err)
+	})
 }
 
 func TestIsLogPathEnforcementEnabled(t *testing.T) {
