@@ -74,7 +74,7 @@ export const GroupProfileAndSettings = ({
             name={displayname}
             title={defineMessage({id: 'admin.group_settings.group_details.group_profile.name', defaultMessage: 'Name'})}
             customID={'groupDisplayName'}
-            isDisabled={true}
+            isReadOnly={true}
             showAtMention={false}
         />
         <div className='group-settings'>

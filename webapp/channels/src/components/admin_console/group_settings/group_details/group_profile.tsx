@@ -14,6 +14,7 @@ type Props = {
     title: MessageDescriptor;
     customID: string;
     isDisabled?: boolean;
+    isReadOnly?: boolean;
     showAtMention: boolean;
     onChange?: React.ChangeEventHandler<HTMLInputElement>;
 };
@@ -23,6 +24,7 @@ const GroupProfile = ({
     title,
     customID,
     isDisabled,
+    isReadOnly,
     showAtMention,
     onChange,
 }: Props) => (
@@ -36,6 +38,7 @@ const GroupProfile = ({
             type='text'
             value={name}
             disabled={isDisabled}
+            readOnly={isReadOnly}
             onChange={onChange}
             label={title}
             inputPrefix={showAtMention ? <Icon glyph={<AtIcon/>}/> : undefined}

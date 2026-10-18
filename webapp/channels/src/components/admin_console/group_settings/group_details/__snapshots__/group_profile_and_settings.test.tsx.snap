@@ -25,7 +25,7 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
       id="groupDisplayName"
     >
       <div
-        class="Input_container disabled"
+        class="Input_container"
       >
         <div
           class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
@@ -45,9 +45,9 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
               <input
                 class="_text-input__input_3inqk_42"
                 data-testid="input-wrapper"
-                disabled=""
                 id="groupDisplayNameInput"
                 name="groupDisplayName"
+                readonly=""
                 type="text"
                 value="GroupProfileAndSettings"
               />
@@ -141,7 +141,7 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
       id="groupDisplayName"
     >
       <div
-        class="Input_container disabled"
+        class="Input_container"
       >
         <div
           class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
@@ -161,9 +161,9 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
               <input
                 class="_text-input__input_3inqk_42"
                 data-testid="input-wrapper"
-                disabled=""
                 id="groupDisplayNameInput"
                 name="groupDisplayName"
+                readonly=""
                 type="text"
                 value="GroupProfileAndSettings"
               />

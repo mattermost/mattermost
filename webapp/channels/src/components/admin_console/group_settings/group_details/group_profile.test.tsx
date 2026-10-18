@@ -28,11 +28,11 @@ describe('components/admin_console/group_settings/group_details/GroupProfile', (
         expect(container.querySelector('svg')).toBeInTheDocument();
     });
 
-    test('should preserve disabled state without mention icon', () => {
+    test('should preserve readOnly state without mention icon', () => {
         const {container} = renderWithContext(
             <GroupProfile
                 customID='groupDisplayName'
-                isDisabled={true}
+                isReadOnly={true}
                 name='board'
                 showAtMention={false}
                 title={{id: 'admin.group_settings.group_details.group_profile.name', defaultMessage: 'Name'}}
@@ -40,8 +40,10 @@ describe('components/admin_console/group_settings/group_details/GroupProfile', (
         );
 
         const input = screen.getByLabelText('Name');
-        expect(input).toBeDisabled();
+        expect(input).toHaveAttribute('readonly');
+        expect(input).not.toBeDisabled();
         expect(input).toHaveAttribute('id', 'groupDisplayNameInput');
+        expect(container.querySelector('.Input_container')).not.toHaveClass('disabled');
         expect(container.querySelector('svg')).not.toBeInTheDocument();
     });
 });
