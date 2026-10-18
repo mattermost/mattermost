@@ -137,7 +137,9 @@ func evalDBReplicaUnused(s *healthcheck.Snapshot) []healthcheck.Result {
 	switch {
 	case !ok:
 		return unknownDiagnostics()
-	case diag.Database.ReplicaConnections == 0:
+	case diag.Database.ReplicasOnline == nil:
+		return unknownDiagnostics()
+	case *diag.Database.ReplicasOnline == 0:
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_replica_unused.message"))}
 	default:
 		return resolved()

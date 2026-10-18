@@ -14598,18 +14598,18 @@
   },
   {
     "id": "health.rule.db_replica_unused.message",
-    "translation": "DataSourceReplicas is set but no replica is connected. The replica is unreachable or misconfigured, and reads are falling back to the primary.",
-    "description": "Health dashboard finding detail when read replicas are configured but none is connected. 'DataSourceReplicas' is a setting name and should not be translated."
+    "translation": "DataSourceReplicas is set but no replica is reachable, so reads are falling back to the primary.",
+    "description": "Health dashboard finding detail when read replicas are configured but none is reachable. 'DataSourceReplicas' is a setting name and should not be translated."
   },
   {
     "id": "health.rule.db_replica_unused.remediation",
     "translation": "Verify the replica DSN, network reachability, and authentication. Check the server logs for replica connection warnings.",
-    "description": "Health dashboard fix-it step when read replicas are configured but none is connected; 'DSN' means the database connection string."
+    "description": "Health dashboard fix-it step when read replicas are configured but none is reachable; 'DSN' means the database connection string."
   },
   {
     "id": "health.rule.db_replica_unused.title",
-    "translation": "Read replicas configured but no active connections",
-    "description": "Health dashboard finding title when read replicas are configured but none is connected."
+    "translation": "Read replicas configured but none reachable",
+    "description": "Health dashboard finding title when read replicas are configured but none is reachable."
   },
   {
     "id": "health.rule.db_trace_on.message",
