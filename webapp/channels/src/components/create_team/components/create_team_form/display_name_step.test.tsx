@@ -34,11 +34,15 @@ describe('DisplayNameStep', () => {
         expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
-    test('should show Compass character count against team name max length', () => {
+    test('should not show a character count under the team name field', () => {
+        // "My Team" is 7 characters; MAX_TEAMNAME_LENGTH is 64.
+        // maxLength/minLength still apply for validation; without
+        // showCharacterCount the "current / max" counter stays hidden.
         renderWithContext(<DisplayNameStep {...defaultProps}/>);
 
-        // "My Team" is 7 characters; MAX_TEAMNAME_LENGTH is 64
-        expect(screen.getByText('7 / 64')).toBeInTheDocument();
+        expect(screen.getByRole('textbox')).toHaveValue('My Team');
+        expect(screen.queryByText('7 / 64')).not.toBeInTheDocument();
+        expect(screen.queryByText(/\/ 64/)).not.toBeInTheDocument();
     });
 
     test('should disable button when team name is invalid', () => {

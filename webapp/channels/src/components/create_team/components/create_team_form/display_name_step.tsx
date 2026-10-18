@@ -66,7 +66,6 @@ export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDis
                                 required={true}
                                 maxLength={Constants.MAX_TEAMNAME_LENGTH}
                                 minLength={Constants.MIN_TEAMNAME_LENGTH}
-                                showCharacterCount={true}
                                 spellCheck='false'
                                 hasError={Boolean(nameError)}
                             />
