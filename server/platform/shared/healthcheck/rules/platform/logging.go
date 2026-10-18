@@ -34,7 +34,7 @@ var logDebugProd = healthcheck.Rule{
 var logFileOff = healthcheck.Rule{
 	Code:     "LOG_FILE_OFF",
 	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
+	Severity: healthcheck.SeverityInfo,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.log_file_off.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.log_file_off.remediation"),

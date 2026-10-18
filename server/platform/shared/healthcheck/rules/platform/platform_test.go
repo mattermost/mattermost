@@ -134,7 +134,7 @@ func TestRegistered(t *testing.T) {
 		{filestoreS3SSLOff, "FILESTORE_S3_SSL_OFF", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "FileSettings.AmazonS3SSL", false, false},
 		{filestoreUnreachable, "FILESTORE_UNREACHABLE", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityProbe, "FileSettings.DriverName", false, true},
 		{logDebugProd, "LOG_DEBUG_PROD", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "LogSettings.FileLevel", false, false},
-		{logFileOff, "LOG_FILE_OFF", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "LogSettings.EnableFile", false, false},
+		{logFileOff, "LOG_FILE_OFF", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "LogSettings.EnableFile", false, false},
 		{metricsOff, "METRICS_OFF", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "MetricsSettings.Enable", false, false},
 		{pluginsOff, "PLUGINS_OFF", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "PluginSettings.Enable", false, false},
 		{pluginHealthOff, "PLUGIN_HEALTH_OFF", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "PluginSettings.EnableHealthCheck", false, false},
