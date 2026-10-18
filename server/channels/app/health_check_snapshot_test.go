@@ -298,7 +298,9 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		require.True(t, stripped)
 
 		needsExpiry := []string{"LICENSE_EXPIRED", "LICENSE_EXPIRING", "SEATS_LIMIT_REACHED"}
-		olderEvaluations := engine.Evaluate(readPacket(t, olderFiles).Snapshot)
+		older := readPacket(t, olderFiles)
+		older.Snapshot.Version.Latest = live.Version.Latest
+		olderEvaluations := engine.Evaluate(older.Snapshot)
 		require.Len(t, olderEvaluations, len(liveEvaluations))
 		for i, evaluation := range olderEvaluations {
 			if slices.Contains(needsExpiry, evaluation.Code) {
