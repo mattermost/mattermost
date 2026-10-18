@@ -90,17 +90,14 @@ func TestRulesAreRegistered(t *testing.T) {
 	registry := healthcheck.Builtin()
 	require.NoError(t, registry.Validate())
 
-	for code, surface := range map[string]healthcheck.Surface{
-		"LICENSE_EXPIRED":     healthcheck.SurfaceProduct,
-		"LICENSE_EXPIRING":    healthcheck.SurfaceProduct,
-		"SEATS_OVER_DEPLOYED": healthcheck.SurfaceProduct,
-		"SEATS_LIMIT_REACHED": healthcheck.SurfaceProduct,
-		"SEATS_NEAR_CAPACITY": healthcheck.SurfaceProduct,
+	for _, code := range []string{
+		"LICENSE_EXPIRED", "LICENSE_EXPIRING",
+		"SEATS_OVER_DEPLOYED", "SEATS_LIMIT_REACHED", "SEATS_NEAR_CAPACITY",
 	} {
 		rule, ok := registry.Get(code)
 		require.True(t, ok, code)
 		assert.Equal(t, model.AreaLicense, rule.Area, code)
-		assert.Equal(t, surface, rule.Surface, code)
+		assert.Equal(t, healthcheck.SurfaceProduct, rule.Surface, code)
 		assert.False(t, rule.IsNodeScoped(), code)
 	}
 }
