@@ -1,5 +1,9 @@
+// inputClassName lands on the Compass TextInput root, which also owns the
+// field-message footer. Constrain only the control chrome so validation
+// messages can grow and push siblings (e.g. URLInput) down.
 .channel-name-input-field {
-    height: 34px !important;
-    border: 0 !important;
-    border-radius: 0 !important;
+    [class*='_text-input__wrapper'] {
+        height: 34px;
+        min-height: 34px;
+    }
 }
