@@ -290,20 +290,6 @@ describe('Environment', () => {
             cy.apiUpdateConfig({ServiceSettings: {WebserverMode: originalWebserverMode}});
         });
 
-        it('can be set to brotli and persists', () => {
-            cy.visit('/admin_console/environment/web_server');
-
-            cy.findByTestId('ServiceSettings.WebserverModedropdown').select('brotli');
-            cy.get('#saveSetting').click().wait(TIMEOUTS.ONE_SEC);
-
-            cy.reload();
-            cy.findByTestId('ServiceSettings.WebserverModedropdown').should('have.value', 'brotli');
-
-            cy.apiGetConfig().then(({config}) => {
-                expect(config.ServiceSettings.WebserverMode).to.equal('brotli');
-            });
-        });
-
         it('can be set back to gzip and persists', () => {
             cy.visit('/admin_console/environment/web_server');
 

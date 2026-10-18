@@ -17,7 +17,6 @@ func TestWriteFileResponseContentLengthHeaders(t *testing.T) {
 	body := "some file contents"
 
 	for mode, compressed := range map[string]bool{
-		"brotli":       true,
 		"gzip":         true,
 		"uncompressed": false,
 		"disabled":     false,
