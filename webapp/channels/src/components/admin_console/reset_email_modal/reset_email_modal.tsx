@@ -135,6 +135,7 @@ export default function ResetEmailModal({
                 defaultMessage: 'Update',
             })}
             compassDesign={true}
+            bodyOverflowVisible={true}
             autoCloseOnConfirmButton={false}
             errorText={error ? <span className='error'>{error}</span> : undefined}
             dataTestId='resetEmailModal'

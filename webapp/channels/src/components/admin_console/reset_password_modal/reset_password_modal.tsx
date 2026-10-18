@@ -133,6 +133,7 @@ export default function ResetPasswordModal({
                 defaultMessage: 'Reset',
             })}
             compassDesign={true}
+            bodyOverflowVisible={true}
             autoCloseOnConfirmButton={false}
             errorText={errorCurrentPass ? <span className='error'>{errorCurrentPass}</span> : undefined}
         >

@@ -6,52 +6,46 @@
 
 .ResetPasswordModal,
 .ResetEmailModal {
+    // Compass field focus rings (outer 1px box-shadow) must not be clipped by
+    // Bootstrap's .modal-content { overflow: hidden } or .modal-body scroll.
+    // GenericModal also sets overflow-visible when bodyOverflowVisible is passed;
+    // keep this as a scoped fallback for the dialog class on these modals.
+    .modal-content,
+    .GenericModal__wrapper,
+    .modal-body {
+        overflow: visible;
+    }
+
     &__body {
         display: flex;
         flex-direction: column;
         gap: 20px;
     }
 
-    // Override Input component styles to work properly in admin console modal
-    // The Input component uses a fieldset for the border, so we need to remove
-    // the default form-control border styling that GenericModal applies
+    // Compass TextInput owns field chrome. Neutralize GenericModal .form-control
+    // borders/backgrounds that can still land on the adapter input.
     .Input_container {
-        .Input_fieldset {
-            background-color: var(--center-channel-bg);
-        }
-
-        .Input_legend {
-            background-color: var(--center-channel-bg);
-        }
-
-        .Input_wrapper {
-            background-color: transparent;
-        }
-
-        // Remove the GenericModal form-control border styling since Input uses fieldset for border
-        // Also remove any background color that might be inherited
         .Input.form-control,
         .form-control,
         input.form-control,
         input {
             height: auto;
-            border: none !important;
-            background: none !important;
-            background-color: transparent !important;
-            box-shadow: none !important;
+            border: none;
+            background: none;
+            background-color: transparent;
+            box-shadow: none;
 
             &:focus {
-                border: none !important;
-                background: none !important;
-                background-color: transparent !important;
-                box-shadow: none !important;
+                border: none;
+                background: none;
+                background-color: transparent;
+                box-shadow: none;
             }
 
             &:hover {
-                background: none !important;
-                background-color: transparent !important;
+                background: none;
+                background-color: transparent;
             }
         }
     }
 }
-
