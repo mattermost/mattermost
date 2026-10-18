@@ -14477,9 +14477,14 @@
     "description": "Health dashboard finding title when the server does not verify the search engine's TLS certificate."
   },
   {
-    "id": "health.rule.es_version_unsupported.message",
-    "translation": "{{.backend}} {{.version}} is outside the supported major versions ({{.min}} to {{.max}}). The server still connects, but search and indexing may behave unexpectedly.",
-    "description": "Health dashboard finding detail for an unsupported search engine version; {{.backend}} is elasticsearch or opensearch, {{.version}} the reported version, {{.min}} and {{.max}} the supported major versions."
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "{{.backend}} {{.version}} is newer than the supported major versions ({{.min}} to {{.max}}). Upgrade Mattermost to a release that supports it, or move the search cluster back to a supported version.",
+    "description": "Health dashboard finding detail when the search engine major version is above the supported range; {{.backend}} is elasticsearch or opensearch, {{.version}} the reported version, {{.min}} and {{.max}} the supported major versions."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "{{.backend}} {{.version}} is older than the supported major versions ({{.min}} to {{.max}}). Upgrade the search cluster to a supported version.",
+    "description": "Health dashboard finding detail when the search engine major version is below the supported range; {{.backend}} is elasticsearch or opensearch, {{.version}} the reported version, {{.min}} and {{.max}} the supported major versions."
   },
   {
     "id": "health.rule.es_version_unsupported.message.unavailable",
@@ -14493,8 +14498,8 @@
   },
   {
     "id": "health.rule.es_version_unsupported.remediation",
-    "translation": "Upgrade the search cluster to a supported major version.",
-    "description": "Health dashboard fix-it step for an unsupported Elasticsearch or OpenSearch version."
+    "translation": "Run a major version of the search cluster that this Mattermost version supports.",
+    "description": "Health dashboard fix-it step for an Elasticsearch or OpenSearch version that is older or newer than the supported range."
   },
   {
     "id": "health.rule.es_version_unsupported.title",

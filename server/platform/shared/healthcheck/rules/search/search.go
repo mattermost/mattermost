@@ -440,7 +440,12 @@ func evalESVersionUnsupported(s *healthcheck.Snapshot) []healthcheck.Result {
 		return resolved()
 	}
 
-	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.es_version_unsupported.message")).
+	messageID := healthcheck.TranslationId("health.rule.es_version_unsupported.message.too_old")
+	if major > supported.max {
+		messageID = healthcheck.TranslationId("health.rule.es_version_unsupported.message.too_new")
+	}
+
+	return []healthcheck.Result{healthcheck.Firing(messageID).
 		WithDetail("backend", backend).
 		WithDetail("version", version).
 		WithDetail("min", strconv.Itoa(supported.min)).

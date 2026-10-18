@@ -381,10 +381,10 @@ func TestESVersionUnsupported(t *testing.T) {
 
 	unrecognized := searchWant{state: healthcheck.StateUnknown, messageID: "health.rule.es_version_unsupported.message.unrecognized"}
 	unavailable := searchWant{state: healthcheck.StateUnknown, messageID: "health.rule.es_version_unsupported.message.unavailable"}
-	firing := func(backend, version, minMajor, maxMajor string) searchWant {
+	firing := func(variant, backend, version, minMajor, maxMajor string) searchWant {
 		return searchWant{
 			state:     healthcheck.StateFiring,
-			messageID: "health.rule.es_version_unsupported.message",
+			messageID: "health.rule.es_version_unsupported.message." + variant,
 			details:   map[string]string{"backend": backend, "version": version, "min": minMajor, "max": maxMajor},
 		}
 	}
@@ -397,11 +397,12 @@ func TestESVersionUnsupported(t *testing.T) {
 	}{
 		{name: "opensearch 2", backend: model.ElasticsearchSettingsOSBackend, version: "2.19.0", want: resolvedWant},
 		{name: "opensearch 3", backend: model.ElasticsearchSettingsOSBackend, version: "3.1.0", want: resolvedWant},
-		{name: "opensearch 1", backend: model.ElasticsearchSettingsOSBackend, version: "1.3.20", want: firing("opensearch", "1.3.20", "2", "3")},
-		{name: "elasticsearch 7", backend: model.ElasticsearchSettingsESBackend, version: "7.17.0", want: firing("elasticsearch", "7.17.0", "8", "9")},
+		{name: "opensearch 4", backend: model.ElasticsearchSettingsOSBackend, version: "4.0.0", want: firing("too_new", "opensearch", "4.0.0", "2", "3")},
+		{name: "opensearch 1", backend: model.ElasticsearchSettingsOSBackend, version: "1.3.20", want: firing("too_old", "opensearch", "1.3.20", "2", "3")},
+		{name: "elasticsearch 7", backend: model.ElasticsearchSettingsESBackend, version: "7.17.0", want: firing("too_old", "elasticsearch", "7.17.0", "8", "9")},
 		{name: "elasticsearch 8", backend: model.ElasticsearchSettingsESBackend, version: "8.15.3", want: resolvedWant},
 		{name: "elasticsearch 9", backend: model.ElasticsearchSettingsESBackend, version: "9.0.0", want: resolvedWant},
-		{name: "elasticsearch 10", backend: model.ElasticsearchSettingsESBackend, version: "10.0.0", want: firing("elasticsearch", "10.0.0", "8", "9")},
+		{name: "elasticsearch 10", backend: model.ElasticsearchSettingsESBackend, version: "10.0.0", want: firing("too_new", "elasticsearch", "10.0.0", "8", "9")},
 		{name: "empty version", backend: model.ElasticsearchSettingsESBackend, version: "", want: unavailable},
 		{name: "unparsable version", backend: model.ElasticsearchSettingsESBackend, version: "latest", want: unrecognized},
 		{name: "unknown backend", backend: "solr", version: "9.0.0", want: unrecognized},
