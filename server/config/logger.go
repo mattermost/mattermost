@@ -179,7 +179,9 @@ func IsAuditLevelActive(auditSettings model.ExperimentalAuditSettings, allowAdva
 
 // hasAdvancedAuditTarget reports whether a target from the licensed advanced audit logging
 // config or from AdditionalAuditTargetsEnv is bound to a level accepted by matches.
-// Unparseable JSON contributes no targets.
+// Unparseable AdvancedLoggingJSON contributes no targets. Malformed additional config
+// reports inactive: configureAudit returns before Configure, so those advanced targets
+// are never applied either.
 func hasAdvancedAuditTarget(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool, matches func(mlog.Level) bool) bool {
 	cfg := make(mlog.LoggerConfiguration)
 
@@ -190,9 +192,11 @@ func hasAdvancedAuditTarget(auditSettings model.ExperimentalAuditSettings, allow
 		}
 	}
 
-	if additionalCfg, err := AdditionalAuditConfig(); err == nil {
-		cfg.Append(additionalCfg)
+	additionalCfg, err := AdditionalAuditConfig()
+	if err != nil {
+		return false
 	}
+	cfg.Append(additionalCfg)
 
 	for _, target := range cfg {
 		if slices.ContainsFunc(target.Levels, matches) {

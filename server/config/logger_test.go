@@ -433,6 +433,16 @@ func TestIsAuditLoggingActive(t *testing.T) {
 			allowAdvancedLogging: true,
 			expected:             false,
 		},
+		{
+			// configureAudit returns before Configure when additional JSON is malformed,
+			// so a valid licensed advanced target is never applied either.
+			name:                 "malformed env var JSON with valid licensed advanced target",
+			fileEnabled:          false,
+			advancedLoggingJSON:  auditTargetJSON,
+			additionalTargets:    string(malformedJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
 	}
 
 	for _, tc := range tests {
@@ -539,6 +549,15 @@ func TestIsAuditLevelActive(t *testing.T) {
 			level:                mlog.LvlAuditDelivery,
 			fileEnabled:          true,
 			additionalTargets:    string(auditTargetJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "malformed env var JSON with valid licensed advanced delivery target",
+			level:                mlog.LvlAuditDelivery,
+			fileEnabled:          false,
+			advancedLoggingJSON:  deliveryTargetJSON,
+			additionalTargets:    string(malformedJSON),
 			allowAdvancedLogging: true,
 			expected:             false,
 		},
