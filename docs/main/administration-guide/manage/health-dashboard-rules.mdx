@@ -1,0 +1,132 @@
+---
+title: "Built-in Health Dashboard rules"
+---
+
+From Mattermost v12.2, the built-in Health Dashboard evaluates your deployment against a catalog of rules and surfaces findings in the System Console. Each rule has a code, a severity, and a remediation step.
+
+<Note>
+
+The Health Dashboard feature flag is off by default. Rules described here are available when the feature flag is enabled.
+
+</Note>
+
+Rules that apply only to self-hosted deployments are marked **Self-hosted only**. None of the rules on this page apply to Mattermost Cloud.
+
+## Severity levels
+
+| Severity | Meaning |
+| --- | --- |
+| Critical | A condition that is actively breaking or hiding a failure mode. Resolve immediately. |
+| Warning | A configuration that increases operational risk. Resolve before it causes an incident. |
+| Info | A recommendation for scale or best practice. Review at your next maintenance window. |
+
+## Cluster and high availability rules
+
+These rules fire only when `ClusterSettings.Enable` is `true` and `ClusterSettings.ClusterName` is non-empty, unless noted otherwise. **Self-hosted only.**
+
+### CLUSTER_SINGLE_NODE — Critical
+
+**Subject:** `ClusterSettings.Enable`
+
+High availability is enabled but the cluster reports only one connected node. The intended HA topology is not running. A single node provides no failover and hides split-brain risk.
+
+**Remediation:** Check gossip connectivity (`ClusterSettings.GossipPort`), firewall rules between nodes, and that all app nodes share the same `ClusterName`. An empty `ClusterName` also keeps the node isolated — the server logs that high availability has been disabled in that case.
+
+**Unknown:** Fires as unknown when the support packet does not include a `cluster.number_of_connected_nodes` value (packets generated before v12.2 do not carry this field).
+
+### CLUSTER_BAD_ADVERTISE — Critical
+
+**Subject:** `ClusterSettings.AdvertiseAddress`
+
+The leader's advertise address is a loopback, unspecified, or localhost address. Other nodes cannot reach the leader at that address, so gossip forms a one-node cluster and split-brain conditions are hidden.
+
+**Remediation:** Set `ClusterSettings.AdvertiseAddress` to the node's reachable IP address or DNS name, or leave it empty to use the network interface address. This rule reads the leader's configuration; review the setting on every node.
+
+### CLUSTER_CONFIG_WRITABLE — Warning
+
+**Subject:** `ClusterSettings.ReadOnlyConfig`
+
+The cluster uses file-based configuration and `ClusterSettings.ReadOnlyConfig` is `false`, so the System Console can write configuration changes. Changes are saved on one node and pushed to the others on a best-effort basis; a node that misses the push keeps its own file, and the nodes' configurations can drift apart.
+
+**Remediation:** Set `ClusterSettings.ReadOnlyConfig` to `true` and manage configuration through the config file or environment variables on every node, or move configuration into the database.
+
+**Unknown:** Fires as unknown when the support packet does not include a `config_source` section or when `Config.Source` is empty (packets from older server versions).
+
+### CLUSTER_GOSSIP_UNENCRYPTED — Info
+
+**Subject:** `ClusterSettings.EnableGossipEncryption`
+
+`ClusterSettings.EnableGossipEncryption` is `false`, so traffic between cluster nodes is not encrypted. This rule fires only when an administrator has explicitly disabled encryption (the default is `true`).
+
+**Remediation:** Enable gossip encryption, then restart all nodes together in a maintenance window. Nodes with and without encryption cannot communicate, so a rolling restart splits the cluster until the last node restarts.
+
+### CLUSTER_LRU_CACHE — Info
+
+**Subject:** `CacheSettings.CacheType`
+
+The deployment has 100,000 or more registered users, high availability is enabled, and the cache backend is the default in-memory LRU cache. Each node maintains its own copy and uses gossip for invalidation; at this scale, cache-invalidation traffic can become significant.
+
+**Remediation:** Evaluate setting `CacheSettings.CacheType` to `redis` with `CacheSettings.RedisAddress` configured. Redis requires a license with the Cluster feature.
+
+**Unknown:** Fires as unknown when usage statistics are unavailable. Resolves without reading statistics when HA is disabled or the cache type is already `redis`.
+
+### CLUSTER_VERSION_SKEW — Warning
+
+**Subject:** `cluster.version`
+
+Cluster nodes report more than one Mattermost version. This rule emits one global result and one result per node.
+
+- A node result is **firing** when that node's version differs from the majority version.
+- A node result is **resolved** when the node matches the majority.
+- A node result is **unknown** when the node reports no version, or when no majority exists (versions are tied).
+
+**Remediation:** Unless an upgrade is in progress, upgrade every node to the same version and confirm that nodes can communicate via gossip.
+
+<Note>
+
+Version comparison uses the three-part release version (`11.2.0`). Build numbers appended by CI (`11.2.0.12345`) are stripped so that live and offline evaluations produce the same result.
+
+</Note>
+
+## Rate limiting rules
+
+These rules evaluate `RateLimitSettings` and apply to any deployment size, including single-node. **Self-hosted only.**
+
+### RATELIMIT_OFF_LARGE — Info
+
+**Subject:** `RateLimitSettings.Enable`
+
+`RateLimitSettings.Enable` is `false` and the instance has more than 500 registered users. Rate limiting protects the server against request floods and misbehaving clients; at larger scale, a single misconfigured client or integration can saturate the API.
+
+<Note>
+
+Mattermost's built-in rate limiter is documented as suitable for smaller deployments. Larger deployments often handle request throttling at a load balancer or API gateway, which this rule cannot detect. The rule is informational and surfaces internally; it does not appear as a product-level warning.
+
+</Note>
+
+**Remediation:** Confirm that request throttling suited to your scale is in place — either Mattermost's built-in rate limiting (**System Console \> Environment \> Rate Limiting**) or at your load balancer or gateway.
+
+**Unknown:** Fires as unknown when usage statistics are unavailable. Resolves without reading statistics when rate limiting is already enabled.
+
+### RATELIMIT_STORE_SMALL — Info
+
+**Subject:** `RateLimitSettings.MemoryStoreSize`
+
+Rate limiting is enabled and `RateLimitSettings.MemoryStoreSize` is smaller than the number of registered users. The rate limiter tracks at most this many clients; when the store is full it evicts the least recently seen client, whose request quota then resets, weakening rate limiting.
+
+**Remediation:** Raise `RateLimitSettings.MemoryStoreSize` to at least the number of registered users.
+
+**Unknown:** Fires as unknown when usage statistics are unavailable. Resolves without reading statistics when rate limiting is disabled.
+
+## Support packet diagnostics
+
+From Mattermost v12.2, the support packet `diagnostics.yaml` includes a `cluster.number_of_connected_nodes` field alongside the existing `cluster.number_of_nodes`.
+
+| Field | Counts |
+| --- | --- |
+| `number_of_nodes` | All nodes registered in the database (includes nodes that have pinged recently but are not reachable via gossip) |
+| `number_of_connected_nodes` | Nodes actively connected via gossip (identified by a non-empty IP address in the memberlist) |
+
+The `CLUSTER_SINGLE_NODE` rule reads `number_of_connected_nodes`. A node that is registered in the database but cut off from gossip is counted by `number_of_nodes` but not by `number_of_connected_nodes`, so the rule correctly detects a cluster that has lost gossip connectivity.
+
+Packets generated before v12.2 do not include `number_of_connected_nodes`; rules that depend on it report an unknown status for those packets.
