@@ -546,8 +546,8 @@ func TestSeatsLowEngagement(t *testing.T) {
 		{name: "exactly 60 percent", snapshot: engaged(new(int64(200)), new(int64(120))), want: resolvedAt(60)},
 		{name: "just under 60 percent", snapshot: engaged(new(int64(200)), new(int64(119))), want: firing(59.5)},
 		{name: "no monthly activity", snapshot: engaged(new(int64(200)), new(int64(0))), want: firing(0)},
-		{name: "active users unknown(healthcheck.ReasonStatsUnavailable)", snapshot: engaged(nil, new(int64(120))), want: unknown(healthcheck.ReasonStatsUnavailable)},
-		{name: "monthly active users unknown(healthcheck.ReasonStatsUnavailable)", snapshot: engaged(new(int64(200)), nil), want: unknown(healthcheck.ReasonStatsUnavailable)},
+		{name: "active users unknown", snapshot: engaged(nil, new(int64(120))), want: unknown(healthcheck.ReasonStatsUnavailable)},
+		{name: "monthly active users unknown", snapshot: engaged(new(int64(200)), nil), want: unknown(healthcheck.ReasonStatsUnavailable)},
 		{name: "no active users", snapshot: engaged(new(int64(0)), new(int64(0))), want: unknown(healthcheck.TranslationId("health.rule.seats_low_engagement.message.no_active_users"))},
 	}
 
