@@ -36,14 +36,14 @@ body {
 .signup-team__container {
     position: relative;
     display: flex;
-    overflow: hidden;
+
+    // Visible so Compass field focus rings (outer 1px box-shadow) are not clipped
+    // on auth forms. Terms of service still needs overflow hidden below.
+    overflow: visible;
     max-width: 400px;
     flex: 1;
     flex-direction: column;
-
-    // Horizontal padding keeps Compass field focus rings (outer 1px box-shadow)
-    // from being clipped by overflow: hidden. Vertical padding unchanged.
-    padding: 40px 2px 0;
+    padding: 40px 0 0;
     margin: 0 auto;
 
     .medium-center {
@@ -104,6 +104,7 @@ body {
     }
 
     &.terms-of-service__container {
+        overflow: hidden;
         max-width: 100%;
     }
 
