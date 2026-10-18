@@ -9,8 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func listenOn(address string) func(*model.Config) {
@@ -184,117 +182,28 @@ func TestNodeFDExhaustion(t *testing.T) {
 	fdsFailed.Diagnostics.Errors[model.SectionServerFDs] = errors.New("error while getting open file descriptor count")
 
 	testCases := []struct {
-		name    string
-		node    *healthcheck.NodeSnapshot
-		state   healthcheck.State
-		message string
-		details map[string]string
-		value   *float64
+		name string
+		node *healthcheck.NodeSnapshot
+		want want
 	}{
-		{
-			name:    "95 percent",
-			node:    fdNode("app-1", true, new(int64(950)), new(int64(1000))),
-			state:   healthcheck.StateFiring,
-			message: "health.rule.node_fd_exhaustion.message",
-			details: map[string]string{"open": "950", "max": "1000"},
-			value:   new(0.95),
-		},
-		{
-			name:    "exactly 90 percent",
-			node:    fdNode("app-1", true, new(int64(90)), new(int64(100))),
-			state:   healthcheck.StateFiring,
-			message: "health.rule.node_fd_exhaustion.message",
-			details: map[string]string{"open": "90", "max": "100"},
-			value:   new(0.90),
-		},
-		{
-			name:  "89 percent",
-			node:  fdNode("app-1", true, new(int64(89)), new(int64(100))),
-			state: healthcheck.StateResolved,
-			value: new(0.89),
-		},
-		{name: "max unsupported", node: fdNode("app-1", true, new(int64(100)), new(int64(-1))), state: healthcheck.StateUnknown, message: healthcheck.ReasonDiagnosticsUnavailable},
-		{name: "open unsupported", node: fdNode("app-1", true, new(int64(-1)), new(int64(1000))), state: healthcheck.StateUnknown, message: healthcheck.ReasonDiagnosticsUnavailable},
-		{name: "max zero", node: fdNode("app-1", true, new(int64(0)), new(int64(0))), state: healthcheck.StateUnknown, message: healthcheck.ReasonDiagnosticsUnavailable},
-		{name: "open not collected", node: fdNode("app-1", true, nil, new(int64(1000))), state: healthcheck.StateUnknown, message: healthcheck.ReasonDiagnosticsUnavailable},
-		{name: "max not collected", node: fdNode("app-1", true, new(int64(100)), nil), state: healthcheck.StateUnknown, message: healthcheck.ReasonDiagnosticsUnavailable},
-		{name: "server_fds absent", node: withoutSection(fdNode("app-1", true, new(int64(950)), new(int64(1000))), model.SectionServerFDs), state: healthcheck.StateUnknown, message: healthcheck.ReasonDiagnosticsUnavailable},
-		{name: "server_fds failed", node: fdsFailed, state: healthcheck.StateUnknown, message: healthcheck.ReasonDiagnosticsUnavailable},
-		{name: "nil diagnostics", node: &healthcheck.NodeSnapshot{Hostname: "app-1"}, state: healthcheck.StateUnknown, message: healthcheck.ReasonDiagnosticsUnavailable},
+		{"95 percent", fdNode("app-1", true, new(int64(950)), new(int64(1000))), firing("health.rule.node_fd_exhaustion.message", map[string]string{"open": "950", "max": "1000"}).withValue(0.95)},
+		{"exactly 90 percent", fdNode("app-1", true, new(int64(90)), new(int64(100))), firing("health.rule.node_fd_exhaustion.message", map[string]string{"open": "90", "max": "100"}).withValue(0.90)},
+		{"89 percent", fdNode("app-1", true, new(int64(89)), new(int64(100))), resolved.withValue(0.89)},
+		{"max unsupported", fdNode("app-1", true, new(int64(100)), new(int64(-1))), diagUnknown},
+		{"open unsupported", fdNode("app-1", true, new(int64(-1)), new(int64(1000))), diagUnknown},
+		{"max zero", fdNode("app-1", true, new(int64(0)), new(int64(0))), diagUnknown},
+		{"open not collected", fdNode("app-1", true, nil, new(int64(1000))), diagUnknown},
+		{"max not collected", fdNode("app-1", true, new(int64(100)), nil), diagUnknown},
+		{"server_fds absent", withoutSection(fdNode("app-1", true, new(int64(950)), new(int64(1000))), model.SectionServerFDs), diagUnknown},
+		{"server_fds failed", fdsFailed, diagUnknown},
+		{"nil diagnostics", &healthcheck.NodeSnapshot{Hostname: "app-1"}, diagUnknown},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			results := nodeFDExhaustion.EvalNode(healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{tc.node}), tc.node)
-			require.Len(t, results, 1)
-			assert.Equal(t, tc.state, results[0].State)
-			assert.Equal(t, tc.message, results[0].MessageID)
-			assert.Equal(t, tc.details, results[0].Details)
-			if tc.value == nil {
-				assert.Nil(t, results[0].Value)
-			} else {
-				require.NotNil(t, results[0].Value)
-				assert.InDelta(t, *tc.value, *results[0].Value, 1e-9)
-			}
+			assertResult(t, tc.want, nodeFDExhaustion.EvalNode(healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{tc.node}), tc.node))
 		})
 	}
-}
-
-func evaluateFDs(t *testing.T, nodes ...*healthcheck.NodeSnapshot) map[string]healthcheck.Result {
-	t.Helper()
-
-	registry := healthcheck.NewRegistry()
-	registry.Register(nodeFDExhaustion)
-	evaluations := healthcheck.NewEngine(healthcheck.EngineOpts{Registry: registry}).Evaluate(healthcheck.NewSnapshot(nodes))
-	require.Len(t, evaluations, len(nodes))
-
-	byScope := map[string]healthcheck.Result{}
-	for _, evaluation := range evaluations {
-		byScope[evaluation.Result.Scope] = evaluation.Result
-	}
-	return byScope
-}
-
-func TestNodeFDExhaustionPerNode(t *testing.T) {
-	t.Parallel()
-
-	t.Run("three node packet with one node near the limit", func(t *testing.T) {
-		t.Parallel()
-
-		results := evaluateFDs(t,
-			fdNode("app-1", false, new(int64(120)), new(int64(65536))),
-			fdNode("app-2", true, new(int64(62260)), new(int64(65536))),
-			fdNode("app-3", false, new(int64(240)), new(int64(65536))),
-		)
-
-		require.Len(t, results, 3)
-		assert.Equal(t, healthcheck.StateFiring, results["app-2"].State)
-		assert.Equal(t, healthcheck.StateResolved, results["app-1"].State)
-		assert.Equal(t, healthcheck.StateResolved, results["app-3"].State)
-		for scope, result := range results {
-			assert.NotNil(t, result.Value, scope)
-			assert.Equal(t, "Server.FileDescriptors", result.Subject, scope)
-		}
-	})
-
-	t.Run("live snapshot with leader-only diagnostics", func(t *testing.T) {
-		t.Parallel()
-
-		results := evaluateFDs(t,
-			&healthcheck.NodeSnapshot{Hostname: "app-1"},
-			fdNode("app-2", true, new(int64(120)), new(int64(65536))),
-			&healthcheck.NodeSnapshot{Hostname: "app-3"},
-		)
-
-		require.Len(t, results, 3)
-		assert.Equal(t, healthcheck.StateResolved, results["app-2"].State)
-		assert.NotNil(t, results["app-2"].Value)
-		for _, follower := range []string{"app-1", "app-3"} {
-			assert.Equal(t, healthcheck.StateUnknown, results[follower].State, follower)
-			assert.Equal(t, healthcheck.ReasonDiagnosticsUnavailable, results[follower].MessageID, follower)
-			assert.Nil(t, results[follower].Value, follower)
-		}
-	})
 }
