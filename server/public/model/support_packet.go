@@ -32,6 +32,11 @@ type SupportPacketLicense struct {
 	Features *Features `yaml:"features,omitempty"`
 }
 
+// MinimumEnterprise reports whether the license is at least Enterprise, as MinimumEnterpriseLicense does for a License.
+func (l *SupportPacketLicense) MinimumEnterprise() bool {
+	return l != nil && MinimumEnterpriseLicense(&License{SkuShortName: l.SkuShortName})
+}
+
 // SupportPacketDiagnostics reports one node's diagnostics. A nil pointer field was not collected, which is not the same as zero.
 type SupportPacketDiagnostics struct {
 	Version int `yaml:"version"`

@@ -34,7 +34,7 @@ func evalAuditLogOff(s *healthcheck.Snapshot) []healthcheck.Result {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
 	}
 	// Matches the System Console, which hides the Audit Logging page below Enterprise.
-	if model.LicenseToLicenseTier[license.SkuShortName] < model.EnterpriseTier {
+	if !license.MinimumEnterprise() {
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
 
