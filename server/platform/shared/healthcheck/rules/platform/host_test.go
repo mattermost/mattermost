@@ -168,8 +168,8 @@ func TestHostRules(t *testing.T) {
 	}
 }
 
-func fdNode(hostname string, leader bool, open, limit *int64) *healthcheck.NodeSnapshot {
-	return diagNode(hostname, leader, func(diag *model.SupportPacketDiagnostics) {
+func fdNode(open, limit *int64) *healthcheck.NodeSnapshot {
+	return leaderNode(func(diag *model.SupportPacketDiagnostics) {
 		diag.Server.OpenFileDescriptors = open
 		diag.Server.MaxFileDescriptors = limit
 	})
@@ -178,7 +178,7 @@ func fdNode(hostname string, leader bool, open, limit *int64) *healthcheck.NodeS
 func TestNodeFDExhaustion(t *testing.T) {
 	t.Parallel()
 
-	fdsFailed := fdNode("app-1", true, new(int64(950)), new(int64(1000)))
+	fdsFailed := fdNode(new(int64(950)), new(int64(1000)))
 	fdsFailed.Diagnostics.Errors[model.SectionServerFDs] = errors.New("error while getting open file descriptor count")
 
 	testCases := []struct {
@@ -186,15 +186,15 @@ func TestNodeFDExhaustion(t *testing.T) {
 		node *healthcheck.NodeSnapshot
 		want want
 	}{
-		{"95 percent", fdNode("app-1", true, new(int64(950)), new(int64(1000))), firing("health.rule.node_fd_exhaustion.message", map[string]string{"open": "950", "max": "1000"}).withValue(0.95)},
-		{"exactly 90 percent", fdNode("app-1", true, new(int64(90)), new(int64(100))), firing("health.rule.node_fd_exhaustion.message", map[string]string{"open": "90", "max": "100"}).withValue(0.90)},
-		{"89 percent", fdNode("app-1", true, new(int64(89)), new(int64(100))), resolved.withValue(0.89)},
-		{"max unsupported", fdNode("app-1", true, new(int64(100)), new(int64(-1))), diagUnknown},
-		{"open unsupported", fdNode("app-1", true, new(int64(-1)), new(int64(1000))), diagUnknown},
-		{"max zero", fdNode("app-1", true, new(int64(0)), new(int64(0))), diagUnknown},
-		{"open not collected", fdNode("app-1", true, nil, new(int64(1000))), diagUnknown},
-		{"max not collected", fdNode("app-1", true, new(int64(100)), nil), diagUnknown},
-		{"server_fds absent", withoutSection(fdNode("app-1", true, new(int64(950)), new(int64(1000))), model.SectionServerFDs), diagUnknown},
+		{"95 percent", fdNode(new(int64(950)), new(int64(1000))), firing("health.rule.node_fd_exhaustion.message", map[string]string{"open": "950", "max": "1000"}).withValue(0.95)},
+		{"exactly 90 percent", fdNode(new(int64(90)), new(int64(100))), firing("health.rule.node_fd_exhaustion.message", map[string]string{"open": "90", "max": "100"}).withValue(0.90)},
+		{"89 percent", fdNode(new(int64(89)), new(int64(100))), resolved.withValue(0.89)},
+		{"max unsupported", fdNode(new(int64(100)), new(int64(-1))), diagUnknown},
+		{"open unsupported", fdNode(new(int64(-1)), new(int64(1000))), diagUnknown},
+		{"max zero", fdNode(new(int64(0)), new(int64(0))), diagUnknown},
+		{"open not collected", fdNode(nil, new(int64(1000))), diagUnknown},
+		{"max not collected", fdNode(new(int64(100)), nil), diagUnknown},
+		{"server_fds absent", withoutSection(fdNode(new(int64(950)), new(int64(1000))), model.SectionServerFDs), diagUnknown},
 		{"server_fds failed", fdsFailed, diagUnknown},
 		{"nil diagnostics", &healthcheck.NodeSnapshot{Hostname: "app-1"}, diagUnknown},
 	}

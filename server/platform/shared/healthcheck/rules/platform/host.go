@@ -102,25 +102,17 @@ func listenPort(s *healthcheck.Snapshot) (int, bool) {
 		if !ok {
 			return 0, false
 		}
-		address = ":http"
 		if security == model.ConnSecurityTLS {
-			address = ":https"
+			return 443, true
 		}
+		return 80, true
 	}
 
 	_, port, err := net.SplitHostPort(address)
 	if err != nil {
 		return 0, false
 	}
-
-	switch port {
-	case "http":
-		return 80, true
-	case "https":
-		return 443, true
-	}
-
-	number, err := strconv.Atoi(port)
+	number, err := net.LookupPort("tcp", port)
 	return number, err == nil
 }
 

@@ -74,37 +74,33 @@ var filestoreUnreachable = healthcheck.Rule{
 	EvalNode:   evalFilestoreUnreachable,
 }
 
-// localDirectoryInCluster returns FileSettings.Directory, with applies=false unless the local driver runs in a cluster.
-func localDirectoryInCluster(s *healthcheck.Snapshot) (directory string, applies, ok bool) {
-	clustered, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ClusterSettings.Enable })
-	if !ok || !clustered {
-		return "", false, ok
-	}
-
-	driver, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.FileSettings.DriverName })
-	if !ok || driver != model.ImageDriverLocal {
-		return "", false, ok
-	}
-
-	directory, ok = s.ConfigString(func(cfg *model.Config) *string { return cfg.FileSettings.Directory })
-	return directory, true, ok
-}
-
 func usesS3(s *healthcheck.Snapshot) (bool, bool) {
 	driver, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.FileSettings.DriverName })
 	return driver == model.ImageDriverS3, ok
 }
 
 func evalFilestoreLocalInCluster(s *healthcheck.Snapshot) []healthcheck.Result {
-	directory, applies, ok := localDirectoryInCluster(s)
-	switch {
-	case !ok:
+	clustered, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ClusterSettings.Enable })
+	if !ok {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	case applies:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_local_in_cluster.message")).WithDetail("directory", directory)}
-	default:
+	}
+	if !clustered {
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
+
+	driver, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.FileSettings.DriverName })
+	if !ok {
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+	}
+	if driver != model.ImageDriverLocal {
+		return []healthcheck.Result{healthcheck.Resolved()}
+	}
+
+	directory, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.FileSettings.Directory })
+	if !ok {
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+	}
+	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_local_in_cluster.message")).WithDetail("directory", directory)}
 }
 
 func evalFilestoreS3NoBucket(s *healthcheck.Snapshot) []healthcheck.Result {

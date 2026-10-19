@@ -5,6 +5,7 @@ package platform
 
 import (
 	"errors"
+	"maps"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -54,9 +55,12 @@ func TestPluginRules(t *testing.T) {
 		cfg.PluginSettings.Enable = new(false)
 	}
 	allResolved := map[string]want{"PLUGINS_OFF": resolved, "PLUGIN_HEALTH_OFF": resolved, "PLUGIN_NOT_RUNNING": resolved}
-	notRunningOnly := func(w want) map[string]want {
-		return map[string]want{"PLUGINS_OFF": resolved, "PLUGIN_HEALTH_OFF": resolved, "PLUGIN_NOT_RUNNING": w}
+	with := func(overrides map[string]want) map[string]want {
+		wants := maps.Clone(allResolved)
+		maps.Copy(wants, overrides)
+		return wants
 	}
+	pluginsUnknown := want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonPluginsUnavailable}
 
 	failed := pluginSnapshot(map[string]*model.PluginState{callsID: {Enable: true}}, pluginList(nil, []string{callsID}), nil)
 	failed.Sections[model.SectionPlugins] = errors.New("boom")
@@ -81,26 +85,26 @@ func TestPluginRules(t *testing.T) {
 			snapshot: pluginSnapshot(nil, nil, all(pluginsDisabled, func(cfg *model.Config) {
 				cfg.PluginSettings.EnableHealthCheck = new(false)
 			})),
-			want: map[string]want{"PLUGINS_OFF": firing("health.rule.plugins_off.message", nil), "PLUGIN_HEALTH_OFF": resolved, "PLUGIN_NOT_RUNNING": resolved},
+			want: with(map[string]want{"PLUGINS_OFF": firing("health.rule.plugins_off.message", nil)}),
 		},
 		{
 			name:     "plugins off with an enabled plugin in the disabled list",
 			snapshot: pluginSnapshot(map[string]*model.PluginState{callsID: {Enable: true}}, pluginList(nil, []string{callsID}), pluginsDisabled),
-			want:     map[string]want{"PLUGINS_OFF": firing("health.rule.plugins_off.message", nil), "PLUGIN_HEALTH_OFF": resolved, "PLUGIN_NOT_RUNNING": resolved},
+			want:     with(map[string]want{"PLUGINS_OFF": firing("health.rule.plugins_off.message", nil)}),
 		},
 		{
 			name: "health check off",
 			snapshot: pluginSnapshot(nil, pluginList(nil, nil), func(cfg *model.Config) {
 				cfg.PluginSettings.EnableHealthCheck = new(false)
 			}),
-			want: map[string]want{"PLUGINS_OFF": resolved, "PLUGIN_HEALTH_OFF": firing("health.rule.plugin_health_off.message", nil), "PLUGIN_NOT_RUNNING": resolved},
+			want: with(map[string]want{"PLUGIN_HEALTH_OFF": firing("health.rule.plugin_health_off.message", nil)}),
 		},
 		{
 			name: "health check flag unreadable",
 			snapshot: pluginSnapshot(nil, pluginList(nil, nil), func(cfg *model.Config) {
 				cfg.PluginSettings.EnableHealthCheck = nil
 			}),
-			want: map[string]want{"PLUGINS_OFF": resolved, "PLUGIN_HEALTH_OFF": configUnknown, "PLUGIN_NOT_RUNNING": resolved},
+			want: with(map[string]want{"PLUGIN_HEALTH_OFF": configUnknown}),
 		},
 		{
 			name: "plugins flag unreadable",
@@ -112,7 +116,7 @@ func TestPluginRules(t *testing.T) {
 		{
 			name:     "enabled plugin in the disabled list",
 			snapshot: pluginSnapshot(map[string]*model.PluginState{callsID: {Enable: true}}, pluginList(nil, []string{callsID}), nil),
-			want:     notRunningOnly(notRunning(callsID)),
+			want:     with(map[string]want{"PLUGIN_NOT_RUNNING": notRunning(callsID)}),
 		},
 		{
 			name: "every enabled plugin that is not running is listed, sorted",
@@ -121,7 +125,7 @@ func TestPluginRules(t *testing.T) {
 				pluginList([]string{callsID}, []string{jiraID, gitlabID}),
 				nil,
 			),
-			want: notRunningOnly(notRunning(gitlabID + ", " + jiraID)),
+			want: with(map[string]want{"PLUGIN_NOT_RUNNING": notRunning(gitlabID + ", " + jiraID)}),
 		},
 		{
 			name:     "enabled plugin that is running",
@@ -151,12 +155,12 @@ func TestPluginRules(t *testing.T) {
 		{
 			name:     "plugin list absent",
 			snapshot: pluginSnapshot(map[string]*model.PluginState{callsID: {Enable: true}}, nil, nil),
-			want:     notRunningOnly(want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonPluginsUnavailable}),
+			want:     with(map[string]want{"PLUGIN_NOT_RUNNING": pluginsUnknown}),
 		},
 		{
 			name:     "plugin list failed",
 			snapshot: failed,
-			want:     notRunningOnly(want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonPluginsUnavailable}),
+			want:     with(map[string]want{"PLUGIN_NOT_RUNNING": pluginsUnknown}),
 		},
 	}
 
