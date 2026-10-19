@@ -14798,8 +14798,8 @@
   },
   {
     "id": "health.rule.job_wedged_at_zero.message",
-    "translation": "The {{.job_type}} job {{.job_id}} started {{.hours}} hours ago and has reported no progress. This usually means the worker died, deadlocked, or lost its database connection before the first batch.",
-    "description": "Health dashboard finding detail for a background job that has been running for hours without any progress; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.hours}} is a whole number of hours."
+    "translation": "The {{.job_type}} job {{.job_id}} has reported no progress and has recorded no activity for more than an hour. This usually means the worker died, deadlocked, or lost its database connection before the first batch.",
+    "description": "Health dashboard finding detail for a background job that is in progress but has neither reported progress nor recorded activity for over an hour; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated."
   },
   {
     "id": "health.rule.job_wedged_at_zero.remediation",
@@ -14808,8 +14808,8 @@
   },
   {
     "id": "health.rule.job_wedged_at_zero.title",
-    "translation": "Job in progress for more than 6 hours with no progress",
-    "description": "Health dashboard finding title when a background job has been running for over 6 hours without reporting any progress."
+    "translation": "Job in progress with no progress or activity for more than an hour",
+    "description": "Health dashboard finding title when a background job is in progress but has neither reported progress nor recorded activity for over an hour."
   },
   {
     "id": "health.rule.push_bad_scheme.message.http",

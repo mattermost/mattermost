@@ -369,6 +369,11 @@ func TestJobWedgedAtZero(t *testing.T) {
 	t.Parallel()
 
 	resolved := jobWant{state: healthcheck.StateResolved}
+	wedged := jobWant{
+		state:     healthcheck.StateFiring,
+		messageID: "health.rule.job_wedged_at_zero.message",
+		details:   map[string]string{"job_id": "job1"},
+	}
 
 	testCases := []struct {
 		name     string
@@ -381,17 +386,18 @@ func TestJobWedgedAtZero(t *testing.T) {
 			want:     resolved,
 		},
 		{
-			name:     "at zero for more than 6h",
-			snapshot: jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(7 * time.Hour), LastActivityAt: ago(time.Hour)}),
-			want: jobWant{
-				state:     healthcheck.StateFiring,
-				messageID: "health.rule.job_wedged_at_zero.message",
-				details:   map[string]string{"job_id": "job1", "hours": "7"},
-			},
+			name:     "at zero and idle for more than 1h",
+			snapshot: jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(2 * time.Hour), LastActivityAt: ago(2 * time.Hour)}),
+			want:     wedged,
 		},
 		{
-			name:     "at zero for exactly 6h",
-			snapshot: jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(6 * time.Hour), LastActivityAt: ago(6 * time.Hour)}),
+			name:     "at zero and idle for exactly 1h",
+			snapshot: jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(time.Hour), LastActivityAt: ago(time.Hour)}),
+			want:     resolved,
+		},
+		{
+			name:     "at zero for hours but still recording activity",
+			snapshot: jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(30 * time.Hour), LastActivityAt: ago(10 * time.Minute)}),
 			want:     resolved,
 		},
 		{
@@ -403,13 +409,9 @@ func TestJobWedgedAtZero(t *testing.T) {
 			name: "pending run queued behind a wedged run",
 			snapshot: jobsSnapshot(
 				&model.Job{Id: "job2", Status: model.JobStatusPending, CreateAt: ago(time.Hour)},
-				&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(7 * time.Hour), LastActivityAt: ago(time.Hour)},
+				&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(7 * time.Hour), LastActivityAt: ago(2 * time.Hour)},
 			),
-			want: jobWant{
-				state:     healthcheck.StateFiring,
-				messageID: "health.rule.job_wedged_at_zero.message",
-				details:   map[string]string{"job_id": "job1", "hours": "7"},
-			},
+			want: wedged,
 		},
 		{
 			name:     "a full window of pending runs",
@@ -446,7 +448,7 @@ func TestJobStuckAndWedgedAreSeparateClaims(t *testing.T) {
 	assert.Equal(t, healthcheck.StateFiring, resultsBySubject(t, jobStuck, snapshot)[model.JobTypeLdapSync].State)
 	assert.Equal(t, healthcheck.StateFiring, resultsBySubject(t, jobWedgedAtZero, snapshot)[model.JobTypeLdapSync].State)
 
-	snapshot = jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(30 * time.Hour), LastActivityAt: ago(time.Hour)})
+	snapshot = jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(30 * time.Hour), LastActivityAt: ago(2 * time.Hour)})
 	assert.Equal(t, healthcheck.StateResolved, resultsBySubject(t, jobStuck, snapshot)[model.JobTypeLdapSync].State)
 	assert.Equal(t, healthcheck.StateFiring, resultsBySubject(t, jobWedgedAtZero, snapshot)[model.JobTypeLdapSync].State)
 }

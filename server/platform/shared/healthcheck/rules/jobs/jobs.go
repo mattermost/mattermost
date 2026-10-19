@@ -16,8 +16,9 @@ func init() {
 }
 
 const (
-	stuckAfter  = 24 * time.Hour
-	wedgedAfter = 6 * time.Hour
+	stuckAfter = 24 * time.Hour
+	// wedgedAfter matches the server's own timeout for an idle migration job.
+	wedgedAfter = time.Hour
 	// collectedRunsPerType matches the per-type cap of the Support Packet job collector.
 	collectedRunsPerType = 5
 )
@@ -195,15 +196,15 @@ func evalJobWedgedAtZero(s *healthcheck.Snapshot) []healthcheck.Result {
 			return healthcheck.ResolvedSubject(jobType)
 		}
 
-		running := s.CollectedAt.Sub(time.UnixMilli(job.StartAt))
-		if running <= wedgedAfter {
+		// Progress is a whole percentage, so a large job sits at 0 for hours; it still touches LastActivityAt every batch.
+		idle := s.CollectedAt.Sub(time.UnixMilli(job.LastActivityAt))
+		if idle <= wedgedAfter {
 			return healthcheck.ResolvedSubject(jobType)
 		}
 
 		return healthcheck.FiringSubject(jobType, healthcheck.TranslationId("health.rule.job_wedged_at_zero.message")).
 			WithDetail("job_type", jobType).
-			WithDetail("job_id", job.Id).
-			WithDetail("hours", hours(running))
+			WithDetail("job_id", job.Id)
 	})
 }
 
