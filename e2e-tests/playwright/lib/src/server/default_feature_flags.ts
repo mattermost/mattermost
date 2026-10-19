@@ -26,6 +26,7 @@ export const defaultFeatureFlags: Record<string, string> = {
     EnableSharedChannelsMemberSync: 'false',
     EnableSharedChannelsPlugins: 'true',
     EnableSyncAllUsersForRemoteCluster: 'false',
+    EnforceLogPathRoot: 'false',
     ExperimentalAuditSettingsSystemConsoleUI: 'true',
     IntegratedBoards: 'false',
     InteractiveDialogAppsForm: 'true',
