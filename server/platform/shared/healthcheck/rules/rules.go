@@ -8,7 +8,9 @@ package rules
 import (
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/cluster"
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/compliance"
+	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/database"
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/notifications"
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/platform"
+	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/search"
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/version"
 )

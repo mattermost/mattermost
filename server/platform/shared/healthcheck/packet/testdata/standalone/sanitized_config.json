@@ -9,13 +9,20 @@
         "EnableIncomingWebhooks": true,
         "EnableOutgoingWebhooks": true
     },
+    "TeamSettings": {
+        "MaxNotificationsPerChannel": 1000
+    },
     "SqlSettings": {
         "DriverName": "postgres",
         "DataSource": "postgres://****:****@db.example.com:5432/mattermost?connect_timeout=10\u0026sslmode=require",
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 10,
-        "MaxOpenConns": 100
+        "MaxOpenConns": 100,
+        "Trace": false,
+        "QueryTimeout": 30,
+        "DisableDatabaseSearch": false,
+        "ReplicaLagSettings": []
     },
     "ExperimentalAuditSettings": {
         "FileEnabled": false,
@@ -50,6 +57,17 @@
         "EnableGossipEncryption": true,
         "ReadOnlyConfig": true,
         "GossipPort": 8074
+    },
+    "ElasticsearchSettings": {
+        "ConnectionURL": "http://localhost:9200",
+        "Backend": "elasticsearch",
+        "Username": "elastic",
+        "Password": "********************************",
+        "EnableIndexing": false,
+        "EnableSearching": false,
+        "EnableAutocomplete": false,
+        "SkipTLSVerification": false,
+        "LiveIndexingBatchSize": 10
     },
     "CacheSettings": {
         "CacheType": "lru",

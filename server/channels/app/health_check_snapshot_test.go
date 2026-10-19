@@ -211,9 +211,17 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		cfg.ServiceSettings.SiteURL = model.NewPointer("http://chat.example.com")
 		cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
 		cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
+		// The live and packet collections each probe SMTP and could disagree.
+		cfg.EmailSettings.SendEmailNotifications = model.NewPointer(false)
+		cfg.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
+		cfg.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
+		cfg.SqlSettings.QueryTimeout = model.NewPointer(60)
 		cfg.ComplianceSettings.Enable = model.NewPointer(true)
 		cfg.ComplianceSettings.Directory = model.NewPointer("")
 	})
+	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
+	license.Customer.Id = model.NewId()
+	th.App.Srv().SetLicense(license)
 
 	// Without it the permissions collector fails and the packet carries a warning.txt.
 	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
@@ -257,7 +265,13 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 			firing[evaluation.Code] = true
 		}
 	}
-	assert.Equal(t, map[string]bool{"PUSH_BAD_SCHEME": true, "SITE_URL_HTTP": true, "COMPLIANCE_NO_DIR": true}, firing)
+	assert.Equal(t, map[string]bool{
+		"COMPLIANCE_NO_DIR":     true,
+		"DB_QUERY_TIMEOUT_HIGH": true,
+		"PUSH_BAD_SCHEME":       true,
+		"PUSH_ID_ONLY":          true,
+		"SITE_URL_HTTP":         true,
+	}, firing)
 }
 
 func TestClusterNodes(t *testing.T) {

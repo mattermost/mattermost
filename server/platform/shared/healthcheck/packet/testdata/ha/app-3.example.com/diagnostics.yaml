@@ -6,6 +6,7 @@ license:
   features:
     compliance: true
     data_retention: true
+    id_loaded: true
     message_export: true
 server:
   # Machine
@@ -47,6 +48,7 @@ database:
   replica_pool_wait_duration_ms: 0 # cumulative across all replicas
   replica_connections_closed_max_idle: 0 # cumulative across all replicas
   replica_connections_closed_max_lifetime: 0 # cumulative across all replicas
+  replicas_online: 0
 file_store:
   file_status: OK
   file_driver: local
@@ -69,7 +71,13 @@ ldap:
 saml:
   status: disabled
 elastic:
-  status: disabled
+  status: OK
+  backend: opensearch
+  server_version: 2.19.1
+  server_plugins:
+    - analysis-icu
+    - analysis-nori
+    - opensearch-security
 oauth_providers:
   gitlab:
     status: disabled

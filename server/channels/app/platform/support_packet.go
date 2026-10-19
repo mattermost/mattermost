@@ -374,7 +374,12 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 
 	/* Email Notifications */
-	if model.SafeDereference(ps.Config().EmailSettings.SendEmailNotifications) {
+	// Invitations, verification and password reset emails go through SMTP even with notification emails off.
+	if model.SafeDereference(ps.Config().EmailSettings.SendEmailNotifications) ||
+		model.SafeDereference(ps.Config().EmailSettings.RequireEmailVerification) ||
+		model.SafeDereference(ps.Config().ServiceSettings.EnableEmailInvitations) ||
+		model.SafeDereference(ps.Config().EmailSettings.EnableSignInWithEmail) ||
+		model.SafeDereference(ps.Config().EmailSettings.EnableSignInWithUsername) {
 		emailSettings := ps.Config().EmailSettings
 		hostname := utils.GetHostnameFromSiteURL(model.SafeDereference(ps.Config().ServiceSettings.SiteURL))
 		mailCfg := &mail.SMTPConfig{
@@ -446,6 +451,7 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 	diagnostics.Database.ReplicaPoolWaitDurationMs = new(storeDiagnostics.ReplicaPoolWaitDurationMs)
 	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = new(storeDiagnostics.ReplicaConnectionsClosedMaxIdle)
 	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = new(storeDiagnostics.ReplicaConnectionsClosedMaxLifetime)
+	diagnostics.Database.ReplicasOnline = new(storeDiagnostics.ReplicasOnline)
 	diagnostics.Database.CacheHitRatio = storeDiagnostics.CacheHitRatio
 	diagnostics.Database.Deadlocks = storeDiagnostics.Deadlocks
 	diagnostics.Database.TempFiles = storeDiagnostics.TempFiles

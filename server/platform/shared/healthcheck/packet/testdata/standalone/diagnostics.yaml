@@ -48,6 +48,7 @@ database:
   replica_pool_wait_duration_ms: 0 # cumulative across all replicas
   replica_connections_closed_max_idle: 0 # cumulative across all replicas
   replica_connections_closed_max_lifetime: 0 # cumulative across all replicas
+  replicas_online: 0
 file_store:
   file_status: OK
   file_driver: local
