@@ -125,7 +125,7 @@ func (ch *Channels) verifyPlugin(logger *mlog.Logger, plugin, signature io.ReadS
 		}
 	}
 
-	return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "", http.StatusUnauthorized)
+	return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "", http.StatusBadRequest)
 }
 
 func validatePublicKey(data []byte) error {

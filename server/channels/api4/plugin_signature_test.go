@@ -132,7 +132,7 @@ func TestUploadPluginWithSignature(t *testing.T) {
 		require.NoError(t, err)
 		_, resp, err := th.SystemAdminClient.UploadPluginWithSignature(context.Background(), bytes.NewReader(tarData), bytes.NewReader(wrongSig), false)
 		require.Error(t, err)
-		CheckUnauthorizedStatus(t, resp)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("succeeds with matching customer key", func(t *testing.T) {
