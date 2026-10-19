@@ -932,16 +932,22 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	t.Run("SMTP unused", func(t *testing.T) {
 		requireVerification := *th.Service.Config().EmailSettings.RequireEmailVerification
 		emailInvitations := *th.Service.Config().ServiceSettings.EnableEmailInvitations
+		signInWithEmail := *th.Service.Config().EmailSettings.EnableSignInWithEmail
+		signInWithUsername := *th.Service.Config().EmailSettings.EnableSignInWithUsername
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.SendEmailNotifications = new(false)
 			cfg.EmailSettings.RequireEmailVerification = new(false)
 			cfg.ServiceSettings.EnableEmailInvitations = new(false)
+			cfg.EmailSettings.EnableSignInWithEmail = new(false)
+			cfg.EmailSettings.EnableSignInWithUsername = new(false)
 		})
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
 				cfg.EmailSettings.SendEmailNotifications = new(true)
 				cfg.EmailSettings.RequireEmailVerification = new(requireVerification)
 				cfg.ServiceSettings.EnableEmailInvitations = new(emailInvitations)
+				cfg.EmailSettings.EnableSignInWithEmail = new(signInWithEmail)
+				cfg.EmailSettings.EnableSignInWithUsername = new(signInWithUsername)
 			})
 		})
 

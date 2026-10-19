@@ -180,6 +180,8 @@ func TestSMTPUnreachable(t *testing.T) {
 			cfg.EmailSettings.SendEmailNotifications = new(enabled)
 			cfg.EmailSettings.RequireEmailVerification = new(false)
 			cfg.ServiceSettings.EnableEmailInvitations = new(false)
+			cfg.EmailSettings.EnableSignInWithEmail = new(false)
+			cfg.EmailSettings.EnableSignInWithUsername = new(false)
 		})
 		s.Config, s.Sections = cfg.Config, cfg.Sections
 		return s
@@ -229,6 +231,24 @@ func TestSMTPUnreachable(t *testing.T) {
 			snapshot: func() *healthcheck.Snapshot {
 				s := withNodes(false, probeFailed)
 				s.Config.Config.EmailSettings.RequireEmailVerification = new(true)
+				return s
+			}(),
+			want: probeFailedWant,
+		},
+		{
+			name: "email sign-in enabled with notification emails off",
+			snapshot: func() *healthcheck.Snapshot {
+				s := withNodes(false, probeFailed)
+				s.Config.Config.EmailSettings.EnableSignInWithEmail = new(true)
+				return s
+			}(),
+			want: probeFailedWant,
+		},
+		{
+			name: "username sign-in enabled with notification emails off",
+			snapshot: func() *healthcheck.Snapshot {
+				s := withNodes(false, probeFailed)
+				s.Config.Config.EmailSettings.EnableSignInWithUsername = new(true)
 				return s
 			}(),
 			want: probeFailedWant,

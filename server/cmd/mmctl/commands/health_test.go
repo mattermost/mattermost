@@ -333,7 +333,7 @@ func healthTestPacketFiles() map[string]string {
 		model.SupportPacketConfigFileName: `{
     "ServiceSettings": {"SiteURL": "https://chat.example.com", "EnableEmailInvitations": false},
     "TeamSettings": {"MaxNotificationsPerChannel": 1000},
-    "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com", "PushNotificationContents": "id_loaded", "SendEmailNotifications": false, "RequireEmailVerification": false},
+    "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com", "PushNotificationContents": "id_loaded", "SendEmailNotifications": false, "RequireEmailVerification": false, "EnableSignInWithEmail": false, "EnableSignInWithUsername": false},
     "ClusterSettings": {"Enable": false},
     "RateLimitSettings": {"Enable": true, "MemoryStoreSize": 10000}
 }`,

@@ -114,6 +114,8 @@ func smtpInUse(s *healthcheck.Snapshot) (inUse, ok bool) {
 		func(cfg *model.Config) *bool { return cfg.EmailSettings.SendEmailNotifications },
 		func(cfg *model.Config) *bool { return cfg.EmailSettings.RequireEmailVerification },
 		func(cfg *model.Config) *bool { return cfg.ServiceSettings.EnableEmailInvitations },
+		func(cfg *model.Config) *bool { return cfg.EmailSettings.EnableSignInWithEmail },
+		func(cfg *model.Config) *bool { return cfg.EmailSettings.EnableSignInWithUsername },
 	} {
 		enabled, ok := s.ConfigBool(get)
 		if !ok {

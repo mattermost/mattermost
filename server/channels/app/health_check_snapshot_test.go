@@ -213,6 +213,8 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
 		// The live and packet collections each probe SMTP and could disagree.
 		cfg.EmailSettings.SendEmailNotifications = model.NewPointer(false)
+		cfg.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
+		cfg.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
 	})
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
 	license.Customer.Id = model.NewId()
