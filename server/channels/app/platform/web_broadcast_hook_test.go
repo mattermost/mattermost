@@ -205,3 +205,19 @@ func TestRunBroadcastHooks(t *testing.T) {
 		assert.NotEqual(t, originalJSON, resultJSON)
 	})
 }
+
+func TestHookedWebSocketEventReject(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	// The hub hands one event to every connection, so a rejection for one recipient must
+	// land on that recipient's copy.
+	event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
+	denied := MakeHookedWebSocketEvent(event)
+	allowed := MakeHookedWebSocketEvent(event)
+
+	denied.Reject()
+
+	assert.True(t, denied.Event().IsRejected())
+	assert.False(t, allowed.Event().IsRejected())
+	assert.False(t, event.IsRejected())
+}

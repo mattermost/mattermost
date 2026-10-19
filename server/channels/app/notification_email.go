@@ -57,6 +57,9 @@ func (a *App) buildEmailNotification(
 		*a.Config().ServiceSettings.EnablePostUsernameOverride)
 
 	emailNotificationContentsType := a.emailNotificationContentsType()
+	if a.channelReadAccessWithholdsEmailContents(rctx, channel) {
+		emailNotificationContentsType = model.EmailNotificationContentsGeneric
+	}
 
 	var subject string
 	if channel.Type == model.ChannelTypeDirect {
@@ -225,7 +228,8 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 		}
 
 		if sendBatched {
-			if err := a.Srv().EmailService.AddNotificationEmailToBatch(user, post, team); err == nil {
+			withholdContents := a.channelReadAccessWithholdsEmailContents(rctx, channel)
+			if err := a.Srv().EmailService.AddNotificationEmailToBatch(user, post, team, withholdContents); err == nil {
 				return emailNotification, nil
 			}
 		}

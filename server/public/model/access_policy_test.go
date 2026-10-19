@@ -1866,6 +1866,96 @@ func TestInheritV0_5Rejected(t *testing.T) {
 	require.Empty(t, child.Imports)
 }
 
+// TestChannelReadAccessAction covers what is particular to channel_read_access. The
+// generic permission-action rules are covered by TestAccessPolicyVersionV0_3 and
+// TestAccessPolicyVersionV0_4; on top of them, v0.3 accepts channel_read_access only
+// where the policy resolves to a channel.
+func TestChannelReadAccessAction(t *testing.T) {
+	t.Run("is registered as a permission action", func(t *testing.T) {
+		require.True(t, IsPermissionAction(AccessControlPolicyActionChannelReadAccess))
+		require.True(t, allowedActionsV0_3[AccessControlPolicyActionChannelReadAccess])
+
+		// The action can be on any rule, not just the first.
+		policy := &AccessControlPolicy{Rules: []AccessControlPolicyRule{
+			{Actions: []string{AccessControlPolicyActionMembership}},
+			{Actions: []string{AccessControlPolicyActionChannelReadAccess}},
+		}}
+		require.True(t, policy.HasPermissionRuleAction())
+	})
+
+	t.Run("accepted on a v0.3 system permission policy", func(t *testing.T) {
+		// Session attributes are allowed here, unlike on a membership rule.
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Name:     "Restrict viewing",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{SystemUserRoleId},
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionChannelReadAccess},
+				Expression: `user.session.device_type == "desktop"`,
+			}},
+		}
+		require.Nil(t, policy.IsValid())
+	})
+
+	t.Run("accepted on a v0.3 channel policy", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionChannelReadAccess},
+				Expression: `user.attributes.dept == "eng"`,
+			}},
+		}
+		require.Nil(t, policy.IsValid())
+	})
+
+	// v0.4 rejects every permission action outside channel policies, but the app layer
+	// stamps every policy v0.3 and only bumps channel policies to v0.4, so v0.3 is the
+	// version parent and team policies actually reach.
+	t.Run("rejected on a v0.3 parent or team policy", func(t *testing.T) {
+		for _, policyType := range []string{AccessControlPolicyTypeParent, AccessControlPolicyTypeTeam} {
+			policy := &AccessControlPolicy{
+				ID:       NewId(),
+				Type:     policyType,
+				Name:     "Not a channel",
+				Revision: 0,
+				Version:  AccessControlPolicyVersionV0_3,
+				Rules: []AccessControlPolicyRule{{
+					Actions:    []string{AccessControlPolicyActionChannelReadAccess},
+					Expression: "true",
+				}},
+			}
+			err := policy.IsValid()
+			require.NotNil(t, err, policyType)
+			require.Equal(t, "model.access_policy.is_valid.actions.channel_read_access_type.app_error", err.Id, policyType)
+		}
+	})
+
+	t.Run("other permission actions are still allowed on a v0.3 parent or team policy", func(t *testing.T) {
+		// The v0.3 guard must be scoped to channel_read_access. The file actions are
+		// permission actions too, and v0.3 accepts them on these types.
+		for _, policyType := range []string{AccessControlPolicyTypeParent, AccessControlPolicyTypeTeam} {
+			policy := &AccessControlPolicy{
+				ID:       NewId(),
+				Type:     policyType,
+				Name:     "Not a channel",
+				Revision: 0,
+				Version:  AccessControlPolicyVersionV0_3,
+				Rules: []AccessControlPolicyRule{{
+					Actions:    []string{AccessControlPolicyActionUploadFileAttachment},
+					Expression: "true",
+				}},
+			}
+			require.Nil(t, policy.IsValid(), policyType)
+		}
+	})
+}
+
 // TestCreateBurnOnReadPostAction covers how create_burn_on_read_post validates.
 // It is a permission action, so a v0.4 channel policy needs a channel role and a
 // unique rule name for it. A v0.3 system permission policy needs neither — its

@@ -29,6 +29,8 @@ func enableTeamABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInt
 		cfg.FeatureFlags.TeamMembershipAccessControl = true
 	})
 	m := &mocks.AccessControlServiceInterface{}
+	// Notification emails consult channel read access asynchronously once ABAC is on.
+	m.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(false, nil).Maybe()
 	th.App.Srv().Channels().AccessControl = m
 	t.Cleanup(func() {
 		th.App.Srv().Channels().AccessControl = nil
