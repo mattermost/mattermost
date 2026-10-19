@@ -213,8 +213,13 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		cfg.ServiceSettings.SiteURL = model.NewPointer("http://chat.example.com")
 		cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
 		cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
+		// The live and packet collections each probe SMTP and could disagree.
+		cfg.EmailSettings.SendEmailNotifications = model.NewPointer(false)
+		cfg.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
+		cfg.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
+		cfg.SqlSettings.QueryTimeout = model.NewPointer(60)
+		cfg.MetricsSettings.Enable = model.NewPointer(true)
 	})
-
 	// Without it the permissions collector fails and the packet carries a warning.txt.
 	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 	require.NoError(t, err)
@@ -263,10 +268,23 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		Registry: healthcheck.Builtin(),
 		Now:      func() time.Time { return evaluatedAt },
 	})
-	liveEvaluations := engine.Evaluate(live)
+	evaluate := func(t *testing.T, snapshot *healthcheck.Snapshot) []healthcheck.Evaluation {
+		t.Helper()
+
+		evaluations := engine.Evaluate(snapshot)
+		// Each collection samples the open file descriptor count separately.
+		for i := range evaluations {
+			if evaluations[i].Code == "NODE_FD_EXHAUSTION" {
+				require.NotNil(t, evaluations[i].Result.Value)
+				evaluations[i].Result.Value = nil
+			}
+		}
+		return evaluations
+	}
+	liveEvaluations := evaluate(t, live)
 
 	require.NotEmpty(t, liveEvaluations)
-	assert.Equal(t, liveEvaluations, engine.Evaluate(offline.Snapshot))
+	assert.Equal(t, liveEvaluations, evaluate(t, offline.Snapshot))
 
 	states := map[string]healthcheck.State{}
 	for _, evaluation := range liveEvaluations {
@@ -276,13 +294,15 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		}
 	}
 	for code, want := range map[string]healthcheck.State{
-		"PUSH_BAD_SCHEME":     healthcheck.StateFiring,
-		"SITE_URL_HTTP":       healthcheck.StateFiring,
-		"LICENSE_EXPIRED":     healthcheck.StateResolved,
-		"LICENSE_EXPIRING":    healthcheck.StateFiring,
-		"SEATS_OVER_DEPLOYED": healthcheck.StateResolved,
-		"SEATS_LIMIT_REACHED": healthcheck.StateResolved,
-		"SEATS_NEAR_CAPACITY": healthcheck.StateResolved,
+		"DB_QUERY_TIMEOUT_HIGH": healthcheck.StateFiring,
+		"PUSH_BAD_SCHEME":       healthcheck.StateFiring,
+		"PUSH_ID_ONLY":          healthcheck.StateFiring,
+		"SITE_URL_HTTP":         healthcheck.StateFiring,
+		"LICENSE_EXPIRED":       healthcheck.StateResolved,
+		"LICENSE_EXPIRING":      healthcheck.StateFiring,
+		"SEATS_OVER_DEPLOYED":   healthcheck.StateResolved,
+		"SEATS_LIMIT_REACHED":   healthcheck.StateResolved,
+		"SEATS_NEAR_CAPACITY":   healthcheck.StateResolved,
 	} {
 		assert.Equal(t, want, states[code], code)
 	}
@@ -303,7 +323,7 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		needsExpiry := []string{"LICENSE_EXPIRED", "LICENSE_EXPIRING", "SEATS_LIMIT_REACHED"}
 		older := readPacket(t, olderFiles)
 		older.Snapshot.Version.Latest = live.Version.Latest
-		olderEvaluations := engine.Evaluate(older.Snapshot)
+		olderEvaluations := evaluate(t, older.Snapshot)
 		require.Len(t, olderEvaluations, len(liveEvaluations))
 		for i, evaluation := range olderEvaluations {
 			if slices.Contains(needsExpiry, evaluation.Code) {

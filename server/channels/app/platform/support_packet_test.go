@@ -39,8 +39,9 @@ import (
 
 type fixedDBStatsStore struct {
 	store.Store
-	masterStats  sql.DBStats
-	replicaStats sql.DBStats
+	masterStats    sql.DBStats
+	replicaStats   sql.DBStats
+	replicasOnline int
 }
 
 func (s *fixedDBStatsStore) GetDiagnostics(_ request.CTX) (*store.DatabaseDiagnostics, error) {
@@ -57,6 +58,7 @@ func (s *fixedDBStatsStore) GetDiagnostics(_ request.CTX) (*store.DatabaseDiagno
 		ReplicaPoolWaitDurationMs:           s.replicaStats.WaitDuration.Milliseconds(),
 		ReplicaConnectionsClosedMaxIdle:     s.replicaStats.MaxIdleClosed,
 		ReplicaConnectionsClosedMaxLifetime: s.replicaStats.MaxLifetimeClosed,
+		ReplicasOnline:                      s.replicasOnline,
 	}
 
 	return diagnostics, nil
@@ -326,7 +328,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Zero(t, d.Database.SearchConnections)
 		require.NotNil(t, d.Database.MasterConnectionsInUse)
 		assert.GreaterOrEqual(t, *d.Database.MasterConnectionsInUse, 0)
-		for _, v := range []*int{d.Database.MasterConnectionsIdle, d.Database.ReplicaConnectionsInUse, d.Database.ReplicaConnectionsIdle} {
+		for _, v := range []*int{d.Database.MasterConnectionsIdle, d.Database.ReplicaConnectionsInUse, d.Database.ReplicaConnectionsIdle, d.Database.ReplicasOnline} {
 			require.NotNil(t, v)
 			assert.GreaterOrEqual(t, *v, 0)
 		}
@@ -943,13 +945,25 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, packet.Notifications.Push.Error)
 	})
 
-	t.Run("email notifications disabled", func(t *testing.T) {
+	t.Run("SMTP unused", func(t *testing.T) {
+		requireVerification := *th.Service.Config().EmailSettings.RequireEmailVerification
+		emailInvitations := *th.Service.Config().ServiceSettings.EnableEmailInvitations
+		signInWithEmail := *th.Service.Config().EmailSettings.EnableSignInWithEmail
+		signInWithUsername := *th.Service.Config().EmailSettings.EnableSignInWithUsername
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.SendEmailNotifications = new(false)
+			cfg.EmailSettings.RequireEmailVerification = new(false)
+			cfg.ServiceSettings.EnableEmailInvitations = new(false)
+			cfg.EmailSettings.EnableSignInWithEmail = new(false)
+			cfg.EmailSettings.EnableSignInWithUsername = new(false)
 		})
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
 				cfg.EmailSettings.SendEmailNotifications = new(true)
+				cfg.EmailSettings.RequireEmailVerification = new(requireVerification)
+				cfg.ServiceSettings.EnableEmailInvitations = new(emailInvitations)
+				cfg.EmailSettings.EnableSignInWithEmail = new(signInWithEmail)
+				cfg.EmailSettings.EnableSignInWithUsername = new(signInWithUsername)
 			})
 		})
 
@@ -1043,6 +1057,31 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, packet.Notifications.Email.Error)
 	})
 
+	t.Run("email invitations probe SMTP with notification emails off", func(t *testing.T) {
+		emailInvitations := *th.Service.Config().ServiceSettings.EnableEmailInvitations
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendEmailNotifications = new(false)
+			cfg.ServiceSettings.EnableEmailInvitations = new(true)
+			cfg.EmailSettings.SMTPServer = new("localhost")
+			cfg.EmailSettings.SMTPPort = new("1")
+			cfg.EmailSettings.SMTPServerTimeout = new(1)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendEmailNotifications = new(true)
+				cfg.ServiceSettings.EnableEmailInvitations = new(emailInvitations)
+				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
+				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
+				cfg.EmailSettings.SMTPServerTimeout = new(10)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.Notifications.Email.Status)
+		assert.NotEmpty(t, packet.Notifications.Email.Error)
+	})
+
 	t.Run("maps connection pool diagnostics for master and replica", func(t *testing.T) {
 		originalStore := th.Service.Store
 		customStore := &fixedDBStatsStore{
@@ -1063,6 +1102,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 				MaxIdleClosed:     23,
 				MaxLifetimeClosed: 29,
 			},
+			replicasOnline: 2,
 		}
 		th.Service.Store = customStore
 		t.Cleanup(func() {
@@ -1083,6 +1123,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, new(int64(4090)), packet.Database.ReplicaPoolWaitDurationMs)
 		assert.Equal(t, new(int64(23)), packet.Database.ReplicaConnectionsClosedMaxIdle)
 		assert.Equal(t, new(int64(29)), packet.Database.ReplicaConnectionsClosedMaxLifetime)
+		assert.Equal(t, new(2), packet.Database.ReplicasOnline)
 	})
 
 	t.Run("OpenID disabled", func(t *testing.T) {
@@ -1346,6 +1387,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		assert.Nil(t, d.Database.ReplicaPoolWaitDurationMs)
 		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxIdle)
 		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxLifetime)
+		assert.Nil(t, d.Database.ReplicasOnline)
 	})
 
 	t.Run("disk space fails", func(t *testing.T) {
@@ -1666,6 +1708,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Database.ReplicaPoolWaitDurationMs = new(int64(66))
 	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = new(int64(4))
 	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = new(int64(3))
+	diagnostics.Database.ReplicasOnline = new(1)
 	diagnostics.Database.CacheHitRatio = &cacheHitRatio
 	diagnostics.Database.Deadlocks = &deadlocks
 	diagnostics.Database.TempFiles = &tempFiles

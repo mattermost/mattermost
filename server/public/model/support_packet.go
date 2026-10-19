@@ -91,6 +91,7 @@ type SupportPacketDiagnostics struct {
 		ReplicaPoolWaitDurationMs           *int64     `yaml:"replica_pool_wait_duration_ms,omitempty"`
 		ReplicaConnectionsClosedMaxIdle     *int64     `yaml:"replica_connections_closed_max_idle,omitempty"`
 		ReplicaConnectionsClosedMaxLifetime *int64     `yaml:"replica_connections_closed_max_lifetime,omitempty"`
+		ReplicasOnline                      *int       `yaml:"replicas_online,omitempty"`
 		CacheHitRatio                       *float64   `yaml:"cache_hit_ratio,omitempty"`
 		Deadlocks                           *int64     `yaml:"deadlocks,omitempty"`
 		TempFiles                           *int64     `yaml:"temp_files,omitempty"`

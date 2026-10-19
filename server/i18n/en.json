@@ -14377,6 +14377,21 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "ServiceSettings.ListenAddress binds port {{.port}}, which is below 1024. On Linux, a Mattermost server that does not run as root can bind this port only through the CAP_NET_BIND_SERVICE file capability on its binary. A package upgrade replaces the binary and clears that capability, so the server can fail to start after the next upgrade with \"bind: permission denied\". The configuration cannot show how the capability is granted, so this warning stays even after you grant it through the systemd unit.",
+    "description": "Health dashboard finding detail when the server listens on a privileged port (below 1024); {{.port}} is the port number. 'ServiceSettings.ListenAddress' is a config setting path, 'CAP_NET_BIND_SERVICE' is a Linux capability name and 'bind: permission denied' is a literal error message; do not translate them."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "Add AmbientCapabilities=CAP_NET_BIND_SERVICE to the Mattermost systemd unit so the capability survives upgrades, or re-run setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost after every upgrade. Alternatively, put a reverse proxy in front of Mattermost and bind Mattermost to a high port such as 8065.",
+    "description": "Health dashboard fix-it step for a server that listens on a privileged port; 'AmbientCapabilities=CAP_NET_BIND_SERVICE' is a systemd setting and the setcap command is a literal shell command; do not translate them."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "Server binds a privileged port directly",
+    "description": "Health dashboard finding title when the server listens on a port below 1024 itself instead of behind a reverse proxy."
+  },
+  {
     "id": "health.rule.cluster_bad_advertise.message",
     "translation": "The leader advertises {{.address}}. Other nodes cannot reach it at that address, so gossip forms a one-node cluster and split brains are hidden.",
     "description": "Health dashboard finding detail when the cluster advertise address is a loopback, unspecified or localhost address; {{.address}} is the configured address, and 'gossip' is the protocol cluster nodes use to talk to each other."
@@ -14475,6 +14490,171 @@
     "id": "health.rule.cluster_version_skew.title",
     "translation": "Multiple Mattermost versions detected in the cluster",
     "description": "Health dashboard finding title when cluster nodes run different Mattermost versions."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "Each node keeps a pool of up to MaxOpenConns connections to the primary. With {{.nodes}} nodes and MaxOpenConns={{.max_open}}, a database failover can produce up to {{.burst}} simultaneous connection attempts to the newly promoted primary, and the DataSource host does not look like a connection pooler. If that exceeds the database's max_connections, it rejects connections ('sorry, too many clients already') and recovery takes longer.",
+    "description": "Health dashboard finding detail for the risk of a reconnection burst after a database failover in a cluster; {{.nodes}}, {{.max_open}}, {{.data_sources}} and {{.burst}} are numbers. 'MaxOpenConns', 'DataSource' and 'max_connections' are setting names and 'sorry, too many clients already' is a literal PostgreSQL error; do not translate them."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "Size every layer against this burst. The most durable fix is to lower SqlSettings.MaxOpenConns per node and/or put PgBouncer (transaction mode) in front of the database to absorb reconnection bursts, rather than only raising max_connections: each connection costs database memory, so a high ceiling risks running out of memory. If max_connections is raised, keep headroom above the burst for replication, monitoring, and admin sessions. Staggering node startup during a failover also keeps the burst below the ceiling.",
+    "description": "Health dashboard fix-it step for the risk of a reconnection burst after a database failover. 'SqlSettings.MaxOpenConns' and 'max_connections' are setting names and 'PgBouncer' is a product name; do not translate them."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "Database failover can cause a connection storm",
+    "description": "Health dashboard finding title when a database failover could make every cluster node reconnect at once and exceed the database's connection limit."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns ({{.max_idle}}) is set higher than MaxOpenConns ({{.max_open}}). Go's database/sql layer silently caps the idle pool at MaxOpenConns, so the extra idle capacity has no effect. Nothing is broken, but the value is misleading and usually indicates the pool was tuned without knowing that idle can never exceed open.",
+    "description": "Health dashboard finding detail when the idle connection limit is above the open connection limit; {{.max_idle}} and {{.max_open}} are numbers. 'SqlSettings.MaxIdleConns', 'MaxOpenConns' and 'database/sql' are technical names and should not be translated."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "Set MaxIdleConns to a value at or below MaxOpenConns (a common guideline is 25-50% of MaxOpenConns).",
+    "description": "Health dashboard fix-it step when the idle connection limit is above the open connection limit. 'MaxIdleConns' and 'MaxOpenConns' are setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns exceeds MaxOpenConns",
+    "description": "Health dashboard finding title when the idle database connection limit is set above the open connection limit. 'MaxIdleConns' and 'MaxOpenConns' are setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "With {{.users}} users and MaxOpenConns={{.max_open}}, request queueing on the app side is possible under burst load. The current default is 100 (MaxIdleConns 50, a 2:1 ratio).",
+    "description": "Health dashboard finding detail when the database connection limit is low for the number of users; {{.users}} and {{.max_open}} are numbers. 'MaxOpenConns' and 'MaxIdleConns' are setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "If app-side request queueing is observed, raise SqlSettings.MaxOpenConns based on monitored need (the 100/50 defaults are the baseline). The real database ceiling is MaxOpenConns x nodes x data sources, so confirm the database's max_connections covers that total before raising it.",
+    "description": "Health dashboard fix-it step when the database connection limit is low for the number of users. 'SqlSettings.MaxOpenConns', 'MaxOpenConns' and 'max_connections' are setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "MaxOpenConns may be low for this user base",
+    "description": "Health dashboard finding title when the database connection limit may be too low for the number of users. 'MaxOpenConns' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas is empty. With {{.users}} users, all reads hit the primary. Read replicas are recommended for larger deployments.",
+    "description": "Health dashboard finding detail when no database read replica is configured on a large deployment; {{.users}} is the number of registered users. 'SqlSettings.DataSourceReplicas' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "Consider provisioning a read replica and adding it to SqlSettings.DataSourceReplicas.",
+    "description": "Health dashboard fix-it step when no database read replica is configured. 'SqlSettings.DataSourceReplicas' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "No read replicas configured",
+    "description": "Health dashboard finding title when no database read replica is configured."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "With {{.posts}} posts and database search, the primary and replicas absorb full-text scans. This causes CPU pressure and search timeouts at this scale.",
+    "description": "Health dashboard finding detail when search runs on the database without a search replica on a large deployment; {{.posts}} is the number of posts."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "Enable Elasticsearch search (preferred) or configure SqlSettings.DataSourceSearchReplicas.",
+    "description": "Health dashboard fix-it step when search runs on the database without a search replica. 'Elasticsearch' is a product name and 'SqlSettings.DataSourceSearchReplicas' is a setting name; do not translate them."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "No search replica and Elasticsearch search disabled",
+    "description": "Health dashboard finding title when there is no database search replica and Elasticsearch is not used for search. 'Elasticsearch' is a product name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "{{.in_use}} of {{.max_open}} primary database connections are in use ({{.percent}}%), at or above 90% of MaxOpenConns. New queries will queue and HTTP latency rises.",
+    "description": "Health dashboard finding detail when the primary database connection pool is nearly full; {{.in_use}}, {{.max_open}} and {{.percent}} are numbers. 'MaxOpenConns' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "Raise SqlSettings.MaxOpenConns and the database's max_connections. Also investigate long-running queries.",
+    "description": "Health dashboard fix-it step when the primary database connection pool is nearly full. 'SqlSettings.MaxOpenConns' and 'max_connections' are setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "Database primary pool near saturation",
+    "description": "Health dashboard finding title when most connections in the primary database connection pool are in use."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "PostgreSQL {{.version}} is below the minimum supported version. Mattermost requires PostgreSQL {{.minimum}} or later.",
+    "description": "Health dashboard finding detail when the database runs an unsupported PostgreSQL version; {{.version}} is the reported server version and {{.minimum}} is the minimum major version. 'PostgreSQL' is a product name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "Plan an upgrade. Newer versions also ship better parallel query and JSONB performance.",
+    "description": "Health dashboard fix-it step when the database runs an unsupported PostgreSQL version. 'JSONB' is a PostgreSQL data type and should not be translated."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "PostgreSQL version is below the minimum supported",
+    "description": "Health dashboard finding title when the database runs a PostgreSQL version older than Mattermost supports. 'PostgreSQL' is a product name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "QueryTimeout is set to {{.timeout}} seconds. Long timeouts let runaway queries hold locks for the full duration, blocking autovacuum, schema migrations, and writers behind the same row. This compounds risk on busy databases without read replicas.",
+    "description": "Health dashboard finding detail when the database query timeout is high; {{.timeout}} is a number of seconds. 'QueryTimeout' is a setting name and 'autovacuum' is a PostgreSQL process; do not translate them."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "Reduce SqlSettings.QueryTimeout to 30. Investigate any specific slow queries separately rather than raising the global ceiling.",
+    "description": "Health dashboard fix-it step when the database query timeout is high. 'SqlSettings.QueryTimeout' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "SqlSettings.QueryTimeout is high (default is 30s)",
+    "description": "Health dashboard finding title when the database query timeout is well above its 30 second default. 'SqlSettings.QueryTimeout' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "DataSourceReplicas is set but no replica is reachable, so reads are falling back to the primary.",
+    "description": "Health dashboard finding detail when read replicas are configured but none is reachable. 'DataSourceReplicas' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "Verify the replica DSN, network reachability, and authentication. Check the server logs for replica connection warnings.",
+    "description": "Health dashboard fix-it step when read replicas are configured but none is reachable; 'DSN' means the database connection string."
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "Read replicas configured but none reachable",
+    "description": "Health dashboard finding title when read replicas are configured but none is reachable."
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "Every SQL statement is logged. This is intended for debugging only: leaving it on fills the disk and writes query payloads to the log files.",
+    "description": "Health dashboard finding detail when SQL statement tracing is enabled."
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "Set SqlSettings.Trace to false unless actively debugging.",
+    "description": "Health dashboard fix-it step when SQL statement tracing is enabled. 'SqlSettings.Trace' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace is enabled",
+    "description": "Health dashboard finding title when SQL statement tracing is enabled. 'SqlSettings.Trace' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "The server runs on {{.os}}. Mattermost supports Linux for production; other operating systems are suitable for development only.",
+    "description": "Health dashboard finding detail when the server does not run on Linux; {{.os}} is the operating system name reported by Go, such as windows or darwin."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "Move the server to a supported Linux distribution.",
+    "description": "Health dashboard fix-it step for a server running on an operating system other than Linux."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "Server is not running on Linux",
+    "description": "Health dashboard finding title when the Mattermost server runs on an operating system other than Linux."
   },
   {
     "id": "health.rule.es_live_batch_sync.message",
@@ -14607,6 +14787,66 @@
     "description": "Health dashboard finding title when the Elasticsearch or OpenSearch cluster runs a major version the server does not support."
   },
   {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "FileSettings.DriverName is local with ClusterSettings.Enable on, and FileSettings.Directory is {{.directory}}. In a cluster this directory must be a shared mount (NFS, EFS, GlusterFS, CephFS) mounted identically on every node, or files uploaded to one node are not visible on the others. The configuration cannot show whether the directory is shared, and a node can pass the file storage connection test while writing to its own local disk.",
+    "description": "Health dashboard finding detail when a high availability cluster stores files in a local directory that may or may not be a shared mount; {{.directory}} is the configured directory. 'FileSettings.DriverName', 'ClusterSettings.Enable' and 'FileSettings.Directory' are config setting paths, 'local' is a setting value, and NFS, EFS, GlusterFS and CephFS are shared file system names; do not translate them."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "On every app node, run findmnt with the FileSettings.Directory path. A relative path resolves against the Mattermost working directory, usually /opt/mattermost. Every node must show the same remote source, and the Mattermost user must be able to read and write there. If the directory is not a shared mount, move it to one or switch FileSettings.DriverName to amazons3.",
+    "description": "Health dashboard fix-it step asking the admin to confirm that the file storage directory is a shared mount on every node; 'findmnt' is a Linux command, '/opt/mattermost' is a path and 'amazons3' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "Local file storage in a high availability cluster: confirm the shared mount",
+    "description": "Health dashboard finding title asking the admin to confirm that a cluster's local file storage directory is shared by every node."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket is empty, so file uploads fail.",
+    "description": "Health dashboard finding detail when Amazon S3 file storage is selected without a bucket name; 'FileSettings.AmazonS3Bucket' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "Set FileSettings.AmazonS3Bucket, along with the region and endpoint.",
+    "description": "Health dashboard fix-it step for Amazon S3 file storage without a bucket name; 'FileSettings.AmazonS3Bucket' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Amazon S3 file storage selected but the bucket is blank",
+    "description": "Health dashboard finding title when file storage uses Amazon S3 but no bucket name is set."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL is false, so files travel between the server and the S3 endpoint unencrypted.",
+    "description": "Health dashboard finding detail when Amazon S3 file storage has SSL turned off; 'FileSettings.AmazonS3SSL' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "Set FileSettings.AmazonS3SSL to true, unless the endpoint only supports plain HTTP.",
+    "description": "Health dashboard fix-it step for Amazon S3 file storage with SSL turned off; 'FileSettings.AmazonS3SSL' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "Amazon S3 SSL disabled",
+    "description": "Health dashboard finding title when file storage connects to Amazon S3 without SSL."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "The server could not connect to its file storage: {{.error}}. File uploads and downloads may fail.",
+    "description": "Health dashboard finding detail when the file storage connection test failed; {{.error}} is the error returned by the test, in English."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "Check the file storage settings, then use Test Connection in System Console > Environment > File Storage. For local storage, check that FileSettings.Directory exists and the Mattermost user can write to it. For Amazon S3, check the bucket, endpoint and credentials.",
+    "description": "Health dashboard fix-it step for a failed file storage connection test; 'Test Connection' and 'System Console > Environment > File Storage' name System Console elements; 'FileSettings.Directory' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "File storage connection test failed",
+    "description": "Health dashboard finding title when the server could not connect to its file storage (local directory or cloud bucket)."
+  },
+  {
     "id": "health.rule.license_expired.message",
     "translation": "The license expired on {{.expires_at}}. The server removes an expired license 10 days after it expires, and Enterprise features stop working.",
     "description": "Health dashboard finding detail when the license has expired; {{.expires_at}} is the expiry date (YYYY-MM-DD)."
@@ -14647,6 +14887,126 @@
     "description": "Health dashboard finding title when the server's license expires in less than 30 days."
   },
   {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel is {{.level}}. Debug-level file logging grows log files quickly, and the extra detail can include request payloads. This is fine while troubleshooting, but not ideal as a steady-state production setting.",
+    "description": "Health dashboard finding detail when the file log level is debug or trace; {{.level}} is the configured level. 'LogSettings.FileLevel' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "If you are not actively troubleshooting, set LogSettings.FileLevel to INFO to reduce log volume.",
+    "description": "Health dashboard fix-it step for a debug or trace file log level; 'LogSettings.FileLevel' is a config setting path and 'INFO' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "File logging at debug or trace level",
+    "description": "Health dashboard finding title when the server writes its log file at the very verbose debug or trace level."
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile is false, so the server writes no log file. Support Packets then contain no server logs, even if an external collector captures stdout or journald, and troubleshooting with Mattermost Support takes longer.",
+    "description": "Health dashboard finding detail when file logging is turned off; 'LogSettings.EnableFile' is a config setting path, 'stdout' and 'journald' are log destinations, and a 'sidecar' is a helper container; do not translate them."
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "Set LogSettings.EnableFile to true. This works alongside console logging, so an existing log collector keeps working.",
+    "description": "Health dashboard fix-it step for disabled file logging; 'LogSettings.EnableFile' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "File logging disabled",
+    "description": "Health dashboard finding title when the server does not write a log file."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel is {{.limit}}, so @channel, @all and @here still work in channels with thousands of members. A single channel-wide mention there fans out thousands of notifications at once, which causes latency spikes.",
+    "description": "Health dashboard finding detail when the per-channel notification limit is above 5000; {{.limit}} is the configured limit, 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and '@channel', '@all' and '@here' are Mattermost mentions, none should be translated."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "Lower TeamSettings.MaxNotificationsPerChannel to 5000 or less (the default is 1000). @channel, @all and @here are disabled once a channel reaches this many members, so check with the teams that use them in large channels first.",
+    "description": "Health dashboard fix-it step for a high per-channel notification limit; 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and '@channel', '@all' and '@here' are Mattermost mentions, none should be translated."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "Channel-wide mentions allowed in very large channels",
+    "description": "Health dashboard finding title when the per-channel notification limit is above 5000, so @channel, @all and @here work in channels with thousands of members; '@channel', '@all' and '@here' are Mattermost mentions and should not be translated."
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "MetricsSettings.Enable is false. Metrics are optional, and many deployments do not run Prometheus. If you want runtime visibility into database connections, HTTP latency and goroutine counts, enabling metrics provides it.",
+    "description": "Health dashboard finding detail when Prometheus metrics are turned off, which is a valid choice; 'MetricsSettings.Enable' is a config setting path and 'Prometheus' is a product name; do not translate them."
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "If you use Prometheus, set MetricsSettings.Enable to true and scrape the metrics listener (port 8067 by default).",
+    "description": "Health dashboard fix-it step for disabled Prometheus metrics; 'MetricsSettings.Enable' is a config setting path and 'scrape' is the Prometheus term for collecting metrics."
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "Prometheus metrics disabled (optional)",
+    "description": "Health dashboard finding title when Prometheus performance metrics are turned off; the finding is informational because metrics are optional."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "The server process has {{.open}} of {{.max}} file descriptors open. Once it reaches the limit, new connections and file operations fail.",
+    "description": "Health dashboard finding detail when a node is close to its open file limit; {{.open}} is the number of open file descriptors and {{.max}} is the limit."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "Raise the open file limit: set LimitNOFILE in the Mattermost systemd unit, or raise the nofile ulimit of the container, then restart the server.",
+    "description": "Health dashboard fix-it step for a node close to its open file limit; 'LimitNOFILE' is a systemd setting and 'nofile' is a ulimit name; do not translate them."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "File descriptors nearly exhausted",
+    "description": "Health dashboard finding title when a server node uses 90% or more of its open file descriptor limit."
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck is false, so a plugin that crashes is not restarted automatically.",
+    "description": "Health dashboard finding detail when the plugin health check is turned off; 'PluginSettings.EnableHealthCheck' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "Set PluginSettings.EnableHealthCheck to true.",
+    "description": "Health dashboard fix-it step for a disabled plugin health check; 'PluginSettings.EnableHealthCheck' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "Plugin health check disabled",
+    "description": "Health dashboard finding title when the server does not monitor and restart crashed plugins."
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "These plugins are enabled but not running: {{.plugins}}.",
+    "description": "Health dashboard finding detail listing plugins that are enabled but failed to start or stopped; {{.plugins}} is a comma-separated list of plugin IDs."
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "In System Console > Plugins > Plugin Management, check the status of each listed plugin, and try disabling and enabling it again. The server log records why a plugin failed to start or was stopped by the plugin health check.",
+    "description": "Health dashboard fix-it step for enabled plugins that are not running; 'System Console > Plugins > Plugin Management' names a System Console page."
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "Enabled plugins are not running",
+    "description": "Health dashboard finding title when one or more plugins are enabled but failed to start or to stay running."
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable is false, so no plugins run. This suits some locked-down deployments, but is often unintentional.",
+    "description": "Health dashboard finding detail when the plugin framework is turned off; 'PluginSettings.Enable' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "If this is unexpected, set PluginSettings.Enable to true.",
+    "description": "Health dashboard fix-it step for a disabled plugin framework; 'PluginSettings.Enable' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "Plugins disabled",
+    "description": "Health dashboard finding title when the plugin framework is turned off, so no plugins run."
+  },
+  {
     "id": "health.rule.push_bad_scheme.message.http",
     "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext.",
     "description": "Health dashboard finding detail when the push notification server URL starts with http:// instead of https://; {{.url}} is the configured URL. 'PushNotificationServer' is a config setting name and should not be translated."
@@ -14680,6 +15040,21 @@
     "id": "health.rule.push_empty_url.title",
     "translation": "Push notifications enabled but PushNotificationServer is blank",
     "description": "Health dashboard finding title when push notifications are turned on but the push notification server URL is empty; 'PushNotificationServer' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents is set to full, so the message text and sender are included in the push payload, which travels through the push proxy and the Apple and Google push services.",
+    "description": "Health dashboard finding detail when push notifications carry the full message text; 'PushNotificationContents' is a config setting name and 'full' is its value, neither should be translated."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "For maximum push privacy, set EmailSettings.PushNotificationContents to id_loaded. Only a message ID is sent, and the mobile app fetches the message content from the server. Mobile devices must then be able to reach the server when a notification arrives, so on servers only reachable through a VPN or internal network, notifications can't show message content. If full is a deliberate choice, mute this finding.",
+    "description": "Health dashboard fix-it step for push notifications that carry the full message text; 'EmailSettings.PushNotificationContents' is the config setting path and 'id_loaded' is its value, neither should be translated."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "Push notifications include the full message text",
+    "description": "Health dashboard finding title when push notification payloads contain the message text and sender."
   },
   {
     "id": "health.rule.push_test_proxy.message",
@@ -14845,6 +15220,21 @@
     "id": "health.rule.site_url_http.title",
     "translation": "SiteURL uses http:// (not https://)",
     "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; 'SiteURL' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "The connection test to the SMTP server failed: {{.error}}",
+    "description": "Health dashboard finding detail when the server could not connect to its SMTP server; {{.error}} is the error returned by the connection test and should not be translated."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "Email notifications, invitations and password reset emails may not be delivered. Check the SMTP server, port, connection security and credentials in the System Console, confirm the Mattermost server can reach the SMTP host, then use Test Connection to verify.",
+    "description": "Health dashboard fix-it step when the SMTP connection test failed; 'Test Connection' is the name of the button on the SMTP page of the System Console."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "SMTP server connection test failed",
+    "description": "Health dashboard finding title when the server could not connect to its SMTP server while email notifications are enabled."
   },
   {
     "id": "health.rule.version.unknown.latest",

@@ -12,6 +12,9 @@
         "EnableIncomingWebhooks": true,
         "EnableOutgoingWebhooks": true
     },
+    "TeamSettings": {
+        "MaxNotificationsPerChannel": 1000
+    },
     "SqlSettings": {
         "DriverName": "postgres",
         "DataSource": "postgres://****:****@db.example.com:5432/mattermost?connect_timeout=10\u0026sslmode=require",
@@ -19,7 +22,25 @@
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 10,
         "MaxOpenConns": 100,
-        "DisableDatabaseSearch": false
+        "Trace": false,
+        "QueryTimeout": 30,
+        "DisableDatabaseSearch": false,
+        "ReplicaLagSettings": []
+    },
+    "LogSettings": {
+        "EnableConsole": true,
+        "ConsoleLevel": "INFO",
+        "ConsoleJson": true,
+        "EnableFile": true,
+        "FileLevel": "INFO",
+        "FileJson": true,
+        "FileLocation": ""
+    },
+    "FileSettings": {
+        "DriverName": "local",
+        "Directory": "./data/",
+        "AmazonS3Bucket": "",
+        "AmazonS3SSL": true
     },
     "EmailSettings": {
         "SendEmailNotifications": true,
@@ -68,6 +89,23 @@
         "VaryByRemoteAddr": true,
         "VaryByUser": false,
         "VaryByHeader": ""
+    },
+    "MetricsSettings": {
+        "Enable": false,
+        "ListenAddress": ":8067"
+    },
+    "PluginSettings": {
+        "Enable": true,
+        "EnableUploads": false,
+        "EnableHealthCheck": true,
+        "PluginStates": {
+            "com.github.manland.mattermost-plugin-gitlab": {
+                "Enable": true
+            },
+            "com.mattermost.calls": {
+                "Enable": true
+            }
+        }
     },
     "FeatureFlags": {
         "TestFeature": "off",
