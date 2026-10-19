@@ -216,6 +216,7 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		cfg.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
 		cfg.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
 		cfg.SqlSettings.QueryTimeout = model.NewPointer(60)
+		cfg.MetricsSettings.Enable = model.NewPointer(true)
 	})
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
 	license.Customer.Id = model.NewId()
@@ -275,7 +276,6 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	}
 	assert.Equal(t, map[string]bool{
 		"DB_QUERY_TIMEOUT_HIGH": true,
-		"METRICS_OFF":           true,
 		"PUSH_BAD_SCHEME":       true,
 		"PUSH_ID_ONLY":          true,
 		"SITE_URL_HTTP":         true,
