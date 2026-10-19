@@ -128,18 +128,17 @@ func latestStartedJob(jobs []*model.Job) *model.Job {
 	return nil
 }
 
-func latestTerminalJob(jobs []*model.Job) *model.Job {
+// latestCompletedJob skips canceled runs too: a worker stop on restart cancels the running job, which says nothing about its health.
+func latestCompletedJob(jobs []*model.Job) *model.Job {
 	for _, job := range jobs {
 		if job == nil {
 			continue
 		}
 
 		switch job.Status {
-		case model.JobStatusPending, model.JobStatusInProgress, model.JobStatusCancelRequested:
-			continue
+		case model.JobStatusSuccess, model.JobStatusWarning, model.JobStatusError:
+			return job
 		}
-
-		return job
 	}
 
 	return nil
@@ -147,7 +146,7 @@ func latestTerminalJob(jobs []*model.Job) *model.Job {
 
 var reasonRunsUnfinished = healthcheck.TranslationId("health.reason.job_runs_unfinished")
 
-// historyTruncated reports whether queued or running rows may have pushed the run a rule needs out of the collected window.
+// historyTruncated reports whether queued, running or canceled rows may have pushed the run a rule needs out of the collected window.
 func historyTruncated(jobs []*model.Job) bool {
 	return len(jobs) >= collectedRunsPerType
 }
@@ -210,7 +209,7 @@ func evalJobWedgedAtZero(s *healthcheck.Snapshot) []healthcheck.Result {
 
 func evalJobFailed(s *healthcheck.Snapshot) []healthcheck.Result {
 	return evalJobTypes(s, monitoredJobTypes, func(jobType string, jobs []*model.Job) healthcheck.Result {
-		job := latestTerminalJob(jobs)
+		job := latestCompletedJob(jobs)
 		if job == nil && historyTruncated(jobs) {
 			return healthcheck.UnknownSubject(jobType, reasonRunsUnfinished)
 		}

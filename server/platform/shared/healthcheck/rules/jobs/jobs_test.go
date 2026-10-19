@@ -487,8 +487,18 @@ func TestJobFailed(t *testing.T) {
 			},
 		},
 		{
-			name:     "latest terminal run canceled",
+			name:     "only canceled runs",
+			snapshot: jobsSnapshot(&model.Job{Id: "canceled", Status: model.JobStatusCanceled}),
+			want:     resolved,
+		},
+		{
+			name:     "error followed by a newer canceled",
 			snapshot: jobsSnapshot(&model.Job{Id: "canceled", Status: model.JobStatusCanceled}, failed),
+			want:     firing,
+		},
+		{
+			name:     "success followed by a newer canceled",
+			snapshot: jobsSnapshot(&model.Job{Id: "canceled", Status: model.JobStatusCanceled}, &model.Job{Id: "ok", Status: model.JobStatusSuccess}),
 			want:     resolved,
 		},
 		{
@@ -518,6 +528,11 @@ func TestJobFailed(t *testing.T) {
 		{
 			name:     "a full window of unfinished runs",
 			snapshot: jobsSnapshot(append(unfinished(collectedRunsPerType-1, model.JobStatusPending), &model.Job{Id: "running", Status: model.JobStatusInProgress})...),
+			want:     jobWant{state: healthcheck.StateUnknown, messageID: "health.reason.job_runs_unfinished"},
+		},
+		{
+			name:     "a full window of canceled runs",
+			snapshot: jobsSnapshot(unfinished(collectedRunsPerType, model.JobStatusCanceled)...),
 			want:     jobWant{state: healthcheck.StateUnknown, messageID: "health.reason.job_runs_unfinished"},
 		},
 		{
