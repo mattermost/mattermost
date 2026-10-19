@@ -48,6 +48,8 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
         class="MenuWrapper "
       >
         <button
+          aria-label="Filter"
+          aria-pressed="true"
           class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 action-icon dots-icon"
           id="filesFilterButton"
           type="button"
@@ -166,6 +168,8 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
         class="MenuWrapper "
       >
         <button
+          aria-label="Filter"
+          aria-pressed="true"
           class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 action-icon dots-icon"
           id="filesFilterButton"
           type="button"
