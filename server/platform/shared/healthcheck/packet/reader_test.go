@@ -132,6 +132,7 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "standalone",
 			expected: []finding{
+				{Code: "JOB_FAILED", State: healthcheck.StateFiring, Subject: model.JobTypeLdapSync},
 				{Code: "LICENSE_EXPIRED", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
 				{Code: "LICENSE_EXPIRING", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
 				{Code: "METRICS_OFF", State: healthcheck.StateFiring, Subject: "MetricsSettings.Enable"},
@@ -149,6 +150,8 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "DB_HA_FAILOVER_STORM_RISK", State: healthcheck.StateFiring, Subject: "SqlSettings.MaxOpenConns"},
 				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateFiring, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
 				{Code: "FILESTORE_LOCAL_IN_CLUSTER", State: healthcheck.StateFiring, Subject: "FileSettings.Directory"},
+				{Code: "JOB_STUCK", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},
+				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},
 				{Code: "LICENSE_EXPIRING", State: healthcheck.StateFiring, Subject: expiresAtSubject},
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},

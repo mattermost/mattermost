@@ -240,6 +240,20 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	require.True(t, th.App.Srv().SetLicense(license))
 	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
 
+	// Half an hour off the hour boundary, so the reported idle hours match although the packet is generated later.
+	stale := time.Now().Add(-30*time.Hour - 30*time.Minute).UnixMilli()
+	for _, job := range []*model.Job{
+		{Id: model.NewId(), Type: model.JobTypeDataRetention, CreateAt: stale - 1000, LastActivityAt: stale - 1000, Status: model.JobStatusError, Data: model.StringMap{"error": "driver: bad connection"}},
+		{Id: model.NewId(), Type: model.JobTypeDataRetention, CreateAt: stale, StartAt: stale, LastActivityAt: stale, Status: model.JobStatusInProgress},
+	} {
+		_, err = th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_, deleteErr := th.App.Srv().Store().Job().Delete(job.Id)
+			require.NoError(t, deleteErr)
+		})
+	}
+
 	err = th.App.clearLatestVersionCache()
 	require.NoError(t, err)
 
@@ -288,13 +302,18 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 
 	states := map[string]healthcheck.State{}
 	for _, evaluation := range liveEvaluations {
-		states[evaluation.Code] = evaluation.Result.State
+		// Job rules report one subject per job type; any firing subject makes the code firing.
+		if states[evaluation.Code] != healthcheck.StateFiring {
+			states[evaluation.Code] = evaluation.Result.State
+		}
 		if evaluation.Code == "LICENSE_EXPIRING" {
 			assert.Equal(t, "health.rule.license_expiring.message.trial", evaluation.Result.MessageID)
 		}
 	}
 	for code, want := range map[string]healthcheck.State{
 		"DB_QUERY_TIMEOUT_HIGH": healthcheck.StateFiring,
+		"JOB_FAILED":            healthcheck.StateFiring,
+		"JOB_STUCK":             healthcheck.StateFiring,
 		"PUSH_BAD_SCHEME":       healthcheck.StateFiring,
 		"PUSH_ID_ONLY":          healthcheck.StateFiring,
 		"SITE_URL_HTTP":         healthcheck.StateFiring,
