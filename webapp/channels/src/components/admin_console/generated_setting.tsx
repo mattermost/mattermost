@@ -7,6 +7,8 @@ import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 
+import Input from 'components/widgets/inputs/input/input';
+
 import SetByEnv from './set_by_env';
 
 type Props = {
@@ -69,13 +71,8 @@ const GeneratedSetting = ({
         );
     }
 
-    let text: React.ReactNode = value;
-    if (!text) {
-        text = (
-            <span className='placeholder-text'>{placeholder}</span>
-        );
-    }
-
+    // Display-only: server-sanitized / fake value (e.g. PublicLinkSalt asterisks).
+    // Never PasswordInput — no real secret and no reveal.
     return (
         <div className='form-group'>
             <label
@@ -85,12 +82,19 @@ const GeneratedSetting = ({
                 {label}
             </label>
             <div className='col-sm-8'>
-                <div
-                    className='form-control disabled'
+                <Input
                     id={id}
-                >
-                    {text}
-                </div>
+                    name={id}
+                    data-testid={`${id}input`}
+                    type='text'
+                    value={value || ''}
+                    placeholder={placeholder}
+                    disabled={true}
+                    useLegend={false}
+
+                    // Left-column label owns the accessible name.
+                    aria-label={undefined}
+                />
                 {disabledText}
                 <div className='help-text'>
                     {helpText}

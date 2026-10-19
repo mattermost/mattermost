@@ -241,11 +241,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 >
                   <label
                     class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_d_"
+                    for="_r_e_"
                   >
                     <input
                       class="_radio__input_h0rbb_17"
-                      id="_r_d_"
+                      id="_r_e_"
                       name="settingd"
                       type="radio"
                       value="option1"
@@ -270,12 +270,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   </label>
                   <label
                     class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_e_"
+                    for="_r_f_"
                   >
                     <input
                       checked=""
                       class="_radio__input_h0rbb_17"
-                      id="_r_e_"
+                      id="_r_f_"
                       name="settingd"
                       type="radio"
                       value="option2"
@@ -300,11 +300,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   </label>
                   <label
                     class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
-                    for="_r_f_"
+                    for="_r_g_"
                   >
                     <input
                       class="_radio__input_h0rbb_17"
-                      id="_r_f_"
+                      id="_r_g_"
                       name="settingd"
                       type="radio"
                       value="option3"
@@ -350,10 +350,30 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   class="col-sm-8"
                 >
                   <div
-                    class="form-control disabled"
-                    id="settinge"
+                    class="Input_container disabled"
                   >
-                    option3
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="settingeinput"
+                            disabled=""
+                            id="settinge"
+                            name="settinge"
+                            placeholder="e.g. 47KyfOxtk5+ovi1MDHFyzMDHIA6esMWb"
+                            type="text"
+                            value="option3"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div
                     class="help-text"
@@ -874,10 +894,30 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                   class="col-sm-8"
                 >
                   <div
-                    class="form-control disabled"
-                    id="PluginSettings.Plugins.testplugin.settinge"
+                    class="Input_container disabled"
                   >
-                    Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="PluginSettings.Plugins.testplugin.settingeinput"
+                            disabled=""
+                            id="PluginSettings.Plugins.testplugin.settinge"
+                            name="PluginSettings.Plugins.testplugin.settinge"
+                            placeholder="e.g. 47KyfOxtk5+ovi1MDHFyzMDHIA6esMWb"
+                            type="text"
+                            value="Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div
                     class="help-text"
