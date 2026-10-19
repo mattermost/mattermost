@@ -6,6 +6,7 @@ package packet
 import (
 	"archive/zip"
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -128,27 +129,31 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "standalone",
 			expected: []finding{
+				{Code: "METRICS_OFF", State: healthcheck.StateFiring, Subject: "MetricsSettings.Enable"},
+				{Code: "PLUGIN_NOT_RUNNING", State: healthcheck.StateFiring, Subject: "PluginSettings.PluginStates"},
+				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
-				{Code: "METRICS_OFF", State: healthcheck.StateFiring, Subject: "MetricsSettings.Enable"},
-				{Code: "PLUGIN_NOT_RUNNING", State: healthcheck.StateFiring, Subject: "PluginSettings.PluginStates"},
 			},
 		},
 		{
 			name: "ha",
 			expected: []finding{
-				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
-				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
-				{Code: "FILESTORE_LOCAL_IN_CLUSTER", State: healthcheck.StateFiring, Subject: "FileSettings.Directory"},
 				{Code: "DB_HA_FAILOVER_STORM_RISK", State: healthcheck.StateFiring, Subject: "SqlSettings.MaxOpenConns"},
 				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateFiring, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
+				{Code: "FILESTORE_LOCAL_IN_CLUSTER", State: healthcheck.StateFiring, Subject: "FileSettings.Directory"},
+				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
+				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},
+				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			// Sorted so parallel rule PRs insert at different lines instead of all appending.
+			require.True(t, slices.IsSortedFunc(tc.expected, func(a, b finding) int { return cmp.Compare(a.Code, b.Code) }), "keep expected findings sorted by code")
 			p := readFiles(t, fixtureFiles(t, tc.name))
 
 			assert.Empty(t, p.Warnings)
@@ -304,7 +309,11 @@ func TestReadCloud(t *testing.T) {
 	for _, f := range evaluate(t, snapshot) {
 		codes = append(codes, f.Code)
 	}
-	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY", "PLUGIN_NOT_RUNNING"}, codes)
+	assert.ElementsMatch(t, []string{
+		"PLUGIN_NOT_RUNNING",
+		"PUSH_ID_ONLY",
+		"PUSH_TEST_PROXY",
+	}, codes)
 }
 
 func TestReadNodeFileDescriptors(t *testing.T) {

@@ -6,6 +6,7 @@ package commands
 import (
 	"archive/zip"
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -327,23 +328,53 @@ const healthTestPacketGeneratedAt = 1790330400000
 
 func healthTestPacketFiles() map[string]string {
 	return map[string]string{
-		model.PacketMetadataFileName:           "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
-		model.SupportPacketDiagnosticsFileName: "version: 2\nlicense:\n  sku_short_name: enterprise\n  features:\n    metrics: true\nserver:\n  os: linux\n  hostname: mm.example.com\n  open_file_descriptors: 120\n  max_file_descriptors: 65536\n  version: 11.0.4\ndatabase:\n  type: postgres\n  version: \"15.8\"\n  master_connections_in_use: 1\nelastic:\n  status: disabled\nfile_store:\n  file_status: OK\n",
-		model.SupportPacketStatsFileName:       "registered_users: 100\nposts: 1000\n",
-		model.SupportPacketConfigFileName: `{
-    "ServiceSettings": {"SiteURL": "https://chat.example.com", "ListenAddress": ":8065"},
-    "SqlSettings": {"DataSource": "postgres://****:****@db.example.com:5432/mattermost", "MaxIdleConns": 50, "MaxOpenConns": 100, "Trace": false, "QueryTimeout": 30, "DisableDatabaseSearch": false},
-    "LogSettings": {"EnableFile": true, "FileLevel": "INFO"},
-    "FileSettings": {"DriverName": "local", "Directory": "./data/"},
-    "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"},
-    "ClusterSettings": {"Enable": false},
-    "ElasticsearchSettings": {"EnableIndexing": false, "EnableSearching": false},
-    "RateLimitSettings": {"Enable": true, "MemoryStoreSize": 10000},
-    "MetricsSettings": {"Enable": true},
-    "PluginSettings": {"Enable": true, "EnableHealthCheck": true}
-}`,
+		model.PacketMetadataFileName: "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
+		model.SupportPacketDiagnosticsFileName: `version: 2
+license:
+  sku_short_name: enterprise
+  features:
+    metrics: true
+server:
+  os: linux
+  hostname: mm.example.com
+  open_file_descriptors: 120
+  max_file_descriptors: 65536
+  version: 11.0.4
+database:
+  type: postgres
+  version: "15.8"
+  master_connections_in_use: 1
+elastic:
+  status: disabled
+file_store:
+  file_status: OK
+notifications:
+  email:
+    status: OK
+`,
+		model.SupportPacketStatsFileName:   "registered_users: 100\nposts: 1000\n",
+		model.SupportPacketConfigFileName:  healthTestPacketConfig(),
 		model.SupportPacketPluginsFileName: `{"enabled": [], "disabled": []}`,
 	}
+}
+
+// healthTestPacketConfig starts from defaults so new rules see a realistic config without editing this fixture.
+func healthTestPacketConfig() string {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.ServiceSettings.SiteURL = model.NewPointer("https://chat.example.com")
+	cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+	cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
+	cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.IdLoadedNotification)
+	cfg.SqlSettings.DataSource = model.NewPointer("postgres://****:****@db.example.com:5432/mattermost")
+	cfg.RateLimitSettings.Enable = model.NewPointer(true)
+	cfg.MetricsSettings.Enable = model.NewPointer(true)
+
+	b, err := json.Marshal(cfg)
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
 }
 
 func (s *MmctlUnitTestSuite) writeHealthTestPacket(files map[string]string) string {

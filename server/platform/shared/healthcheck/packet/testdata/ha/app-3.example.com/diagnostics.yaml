@@ -4,6 +4,7 @@ license:
   users: 500
   sku_short_name: enterprise
   features:
+    id_loaded: true
     metrics: true
 server:
   # Machine
