@@ -36,6 +36,7 @@ func setupBurnOnReadABAC(t *testing.T, borAllowed bool) *TestHelper {
 	})
 
 	mockACS := &mocks.AccessControlServiceInterface{}
+	stubReadAccessNotGoverned(mockACS)
 	original := th.App.Srv().Channels().AccessControl
 	th.App.Srv().Channels().AccessControl = mockACS
 	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
@@ -55,6 +56,7 @@ func setupBurnOnReadABAC(t *testing.T, borAllowed bool) *TestHelper {
 // everything else, for the cases where a policy tightens after a post was scheduled.
 func denyBurnOnReadPolicy(th *TestHelper) {
 	denyACS := &mocks.AccessControlServiceInterface{}
+	stubReadAccessNotGoverned(denyACS)
 	th.App.Srv().Channels().AccessControl = denyACS
 	denyACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 		return req.Action == model.AccessControlPolicyActionCreateBurnOnReadPost
@@ -148,6 +150,7 @@ func TestBurnOnReadABACEnforcementDenies(t *testing.T) {
 	// everything except this one action — so this asserts zero evaluations instead.
 	t.Run("ordinary post never consults the PDP", func(t *testing.T) {
 		countingACS := &mocks.AccessControlServiceInterface{}
+		stubReadAccessNotGoverned(countingACS)
 		countingACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 			Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
 		previous := th.App.Srv().Channels().AccessControl
