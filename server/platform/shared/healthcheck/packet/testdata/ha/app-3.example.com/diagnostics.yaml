@@ -3,6 +3,11 @@ license:
   company: Example Corp
   users: 500
   sku_short_name: enterprise
+  expires_at: 1792058400000
+  is_seat_count_enforced: true
+  features:
+    id_loaded: true
+    metrics: true
 server:
   # Machine
   os: linux
@@ -43,6 +48,7 @@ database:
   replica_pool_wait_duration_ms: 0 # cumulative across all replicas
   replica_connections_closed_max_idle: 0 # cumulative across all replicas
   replica_connections_closed_max_lifetime: 0 # cumulative across all replicas
+  replicas_online: 0
 file_store:
   file_status: OK
   file_driver: local
@@ -54,6 +60,7 @@ websocket:
 cluster:
   id: k3n9x7cq4fbq8g1s6ztw2yrm5h
   number_of_nodes: 3
+  number_of_connected_nodes: 3
 notifications:
   email:
     status: OK
@@ -64,7 +71,13 @@ ldap:
 saml:
   status: disabled
 elastic:
-  status: disabled
+  status: OK
+  backend: opensearch
+  server_version: 2.19.1
+  server_plugins:
+    - analysis-icu
+    - analysis-nori
+    - opensearch-security
 oauth_providers:
   gitlab:
     status: disabled

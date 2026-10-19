@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
@@ -1281,6 +1282,180 @@ func TestPluginAPIReceiveSharedChannelSyncMsg(t *testing.T) {
 		assert.Equal(t, "hello from the plugin remote", post.Message)
 		assert.Equal(t, channel.Id, post.ChannelId)
 		assert.Equal(t, userID, post.UserId)
+	})
+}
+
+func TestPluginAPIReceiveSharedChannelReactionSyncMsg(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.reaction-sync-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+	reactionStore := th.App.Srv().Store().Reaction()
+
+	remoteUserID := model.NewId()
+	userMsg := model.NewSyncMsg(channel.Id)
+	userMsg.Users = map[string]*model.User{
+		remoteUserID: {
+			Id:       remoteUserID,
+			Username: "reactor-" + model.NewId()[:8],
+			Email:    model.NewId() + "@remote.test",
+			RemoteId: new(rc.RemoteId),
+		},
+	}
+	_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, userMsg)
+	require.NoError(t, err)
+
+	post := th.CreatePost(t, channel)
+
+	syncReaction := func(t *testing.T, userID, emojiName string, deleteAt int64) {
+		t.Helper()
+		msg := model.NewSyncMsg(channel.Id)
+		msg.Reactions = []*model.Reaction{{
+			UserId:    userID,
+			PostId:    post.Id,
+			EmojiName: emojiName,
+			CreateAt:  model.GetMillis(),
+			DeleteAt:  deleteAt,
+		}}
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.NoError(t, err)
+	}
+
+	isActive := func(t *testing.T, userID, emojiName string) bool {
+		t.Helper()
+		reactions, err := reactionStore.GetForPost(post.Id, false)
+		require.NoError(t, err)
+		for _, r := range reactions {
+			if r.UserId == userID && r.EmojiName == emojiName {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Reactions the sender would include when syncing this channel back to the remote.
+	sentBackToRemote := func(t *testing.T, emojiName string) bool {
+		t.Helper()
+		reactions, err := reactionStore.GetForPostSince(post.Id, 0, rc.RemoteId, true)
+		require.NoError(t, err)
+		for _, r := range reactions {
+			if r.EmojiName == emojiName {
+				return true
+			}
+		}
+		return false
+	}
+
+	requireNotStored := func(t *testing.T, userID, emojiName string) {
+		t.Helper()
+		_, err := reactionStore.GetSingle(userID, post.Id, rc.RemoteId, emojiName)
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, err, &nfErr)
+	}
+
+	t.Run("re-sent active reaction stays active and is not rewritten", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "thumbsup", 0)
+		first, err := reactionStore.GetSingle(remoteUserID, post.Id, rc.RemoteId, "thumbsup")
+		require.NoError(t, err)
+
+		syncReaction(t, remoteUserID, "thumbsup", 0)
+
+		assert.True(t, isActive(t, remoteUserID, "thumbsup"))
+		second, err := reactionStore.GetSingle(remoteUserID, post.Id, rc.RemoteId, "thumbsup")
+		require.NoError(t, err)
+		assert.Equal(t, first.UpdateAt, second.UpdateAt)
+	})
+
+	t.Run("removed reaction the receiver never had is not created", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "heart", model.GetMillis())
+
+		assert.False(t, isActive(t, remoteUserID, "heart"))
+		requireNotStored(t, remoteUserID, "heart")
+		assert.False(t, sentBackToRemote(t, "heart"))
+	})
+
+	t.Run("removal keeps the remote's ID so it is not sent back", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "smile", 0)
+		syncReaction(t, remoteUserID, "smile", model.GetMillis())
+
+		assert.False(t, isActive(t, remoteUserID, "smile"))
+		deleted, err := reactionStore.GetSingle(remoteUserID, post.Id, rc.RemoteId, "smile")
+		require.NoError(t, err)
+		assert.NotZero(t, deleted.DeleteAt)
+		assert.False(t, sentBackToRemote(t, "smile"))
+	})
+
+	t.Run("re-sent removal stays removed", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "tada", 0)
+		syncReaction(t, remoteUserID, "tada", model.GetMillis())
+		first, err := reactionStore.GetSingle(remoteUserID, post.Id, rc.RemoteId, "tada")
+		require.NoError(t, err)
+
+		syncReaction(t, remoteUserID, "tada", model.GetMillis())
+
+		assert.False(t, isActive(t, remoteUserID, "tada"))
+		assert.False(t, sentBackToRemote(t, "tada"))
+		second, err := reactionStore.GetSingle(remoteUserID, post.Id, rc.RemoteId, "tada")
+		require.NoError(t, err)
+		assert.Equal(t, first.UpdateAt, second.UpdateAt)
+		assert.Equal(t, first.DeleteAt, second.DeleteAt)
+	})
+
+	t.Run("reaction re-added after removal is active", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "rocket", 0)
+		syncReaction(t, remoteUserID, "rocket", model.GetMillis())
+		syncReaction(t, remoteUserID, "rocket", 0)
+
+		assert.True(t, isActive(t, remoteUserID, "rocket"))
+		assert.False(t, sentBackToRemote(t, "rocket"))
+	})
+
+	t.Run("reaction removed without the remote's ID is revived by an active sync", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "eyes", 0)
+		require.True(t, isActive(t, remoteUserID, "eyes"))
+		_, err := reactionStore.Delete(&model.Reaction{UserId: remoteUserID, PostId: post.Id, EmojiName: "eyes"})
+		require.NoError(t, err)
+		require.False(t, isActive(t, remoteUserID, "eyes"))
+
+		syncReaction(t, remoteUserID, "eyes", 0)
+
+		assert.True(t, isActive(t, remoteUserID, "eyes"))
+		revived, err := reactionStore.GetSingle(remoteUserID, post.Id, rc.RemoteId, "eyes")
+		require.NoError(t, err)
+		assert.Zero(t, revived.DeleteAt)
+	})
+
+	t.Run("removal of a reaction removed without the remote's ID is ignored", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "fire", 0)
+		require.True(t, isActive(t, remoteUserID, "fire"))
+		_, err := reactionStore.Delete(&model.Reaction{UserId: remoteUserID, PostId: post.Id, EmojiName: "fire"})
+		require.NoError(t, err)
+
+		syncReaction(t, remoteUserID, "fire", model.GetMillis())
+
+		assert.False(t, isActive(t, remoteUserID, "fire"))
+		requireNotStored(t, remoteUserID, "fire")
+	})
+
+	t.Run("reaction from a user not belonging to the remote is rejected", func(t *testing.T) {
+		syncReaction(t, th.BasicUser.Id, "wave", 0)
+
+		assert.False(t, isActive(t, th.BasicUser.Id, "wave"))
+		requireNotStored(t, th.BasicUser.Id, "wave")
+	})
+
+	t.Run("removal cannot delete a local user's reaction", func(t *testing.T) {
+		_, appErr := th.App.SaveReactionForPost(th.Context, &model.Reaction{UserId: th.BasicUser.Id, PostId: post.Id, EmojiName: "star"})
+		require.Nil(t, appErr)
+
+		syncReaction(t, th.BasicUser.Id, "star", model.GetMillis())
+
+		assert.True(t, isActive(t, th.BasicUser.Id, "star"))
+		local, err := reactionStore.GetSingle(th.BasicUser.Id, post.Id, "", "star")
+		require.NoError(t, err)
+		assert.Empty(t, local.GetRemoteID())
 	})
 }
 

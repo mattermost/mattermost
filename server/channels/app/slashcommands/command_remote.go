@@ -78,7 +78,10 @@ func (rp *RemoteProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Co
 		return response(args.T("api.command_remote.permission_required", map[string]any{"Permission": "manage_secure_connections"}))
 	}
 
-	margs := parseNamedArgs(args.Command)
+	margs, err := parseNamedArgs(args.T, args.Command)
+	if err != nil {
+		return response(err.Error())
+	}
 	action, ok := margs[ActionKey]
 	if !ok {
 		return response(args.T("api.command_remote.missing_command", map[string]any{"Actions": AvailableRemoteActions}))
@@ -136,21 +139,13 @@ func (rp *RemoteProvider) doCreate(a *app.App, args *model.CommandArgs, margs ma
 		Name:        name,
 		DisplayName: displayname,
 		SiteURL:     model.SiteURLPending + model.NewId(), // require a unique siteurl
-		Token:       model.NewId(),
 		CreatorId:   args.UserId,
 	}
 
-	rcSaved, appErr := a.AddRemoteCluster(rc)
+	_, inviteCode, appErr := a.CreateRemoteClusterWithInvite(rc, url, password)
 	if appErr != nil {
 		msg := translatedAppErrMessage(a, args, "Failed to add secure connection", appErr, mlog.String("name", name))
 		return response(args.T("api.command_remote.add_remote.error", map[string]any{"Error": msg}))
-	}
-
-	// Display the encrypted invitation
-	inviteCode, err := a.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, password)
-	if err != nil {
-		msg := translatedAppErrMessage(a, args, "Failed to create secure connection invitation", err, mlog.String("remote_id", rcSaved.RemoteId))
-		return response(args.T("api.command_remote.encrypt_invitation.error", map[string]any{"Error": msg}))
 	}
 
 	return response("##### " + args.T("api.command_remote.invitation_created") + "\n" +
@@ -196,14 +191,10 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 		return response(args.T("api.command_remote.site_url_not_set"))
 	}
 
-	rc, err := rcs.AcceptInvitation(invite, name, displayname, args.UserId, url, "")
-	if err != nil {
-		if appErr, ok := errors.AsType[*model.AppError](err); ok {
-			msg := translatedAppErrMessage(a, args, "Failed to accept secure connection invitation", appErr, mlog.String("remote_id", invite.RemoteId))
-			return response(args.T("api.command_remote.accept_invitation.error", map[string]any{"Error": msg}))
-		}
-		a.Log().Warn("Failed to accept secure connection invitation", mlog.String("remote_id", invite.RemoteId), mlog.Err(err))
-		return response(args.T("api.command_remote.accept_invitation.error", map[string]any{"Error": err.Error()}))
+	rc, appErr := rcs.AcceptInvitation(invite, name, displayname, args.UserId, url, "")
+	if appErr != nil {
+		msg := translatedAppErrMessage(a, args, "Failed to accept secure connection invitation", appErr, mlog.String("remote_id", invite.RemoteId))
+		return response(args.T("api.command_remote.accept_invitation.error", map[string]any{"Error": msg}))
 	}
 
 	return response("##### " + args.T("api.command_remote.accept_invitation", map[string]any{"SiteURL": rc.GetSiteURL()}))
