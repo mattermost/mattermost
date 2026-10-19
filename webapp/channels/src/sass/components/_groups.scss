@@ -33,8 +33,8 @@
             gap: 4px;
 
             .group-list-search__input {
-                flex: 1 1 auto;
                 min-width: 0;
+                flex: 1 1 auto;
             }
 
             .group-filter-action {
@@ -59,9 +59,9 @@
                 top: 100%;
                 left: 0;
                 width: 320px;
-                margin-top: 4px;
                 padding: 20px;
                 border: 1px solid rgba(0, 0, 0, 0.1);
+                margin-top: 4px;
                 background-color: white;
                 box-shadow: var(--elevation-2);
 

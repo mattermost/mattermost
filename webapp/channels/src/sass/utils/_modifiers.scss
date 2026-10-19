@@ -56,7 +56,6 @@ $positions: 't'top,
 
 // Compass draws its own focus ring; for composite fields, target the inner
 // a11y--focused control so only the outer Compass ring remains.
-//
 // From #39071: #root beats theme-injected `.app__body .a11y--focused` without
 // !important. `.a11y__modal` covers GenericModal portals outside #root (body
 // sibling under .modal) in both channels (.app__body) and System Console
