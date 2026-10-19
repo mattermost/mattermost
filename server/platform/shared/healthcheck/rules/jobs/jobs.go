@@ -19,6 +19,8 @@ const (
 	stuckAfter = 24 * time.Hour
 	// wedgedAfter matches the server's own timeout for an idle migration job.
 	wedgedAfter = time.Hour
+	// retentionStaleAfter leaves the daily data retention schedule room to miss a few runs.
+	retentionStaleAfter = 7 * 24 * time.Hour
 	// collectedRunsPerType matches the per-type cap of the Support Packet job collector.
 	collectedRunsPerType = 5
 )
@@ -208,6 +210,21 @@ func evalJobWedgedAtZero(s *healthcheck.Snapshot) []healthcheck.Result {
 	})
 }
 
+// retentionLeftover reports whether job predates turning data retention off, so nothing will run to clear it.
+// Custom policies also keep the scheduler on, but they are not in the snapshot; an active one would have produced a newer run.
+func retentionLeftover(s *healthcheck.Snapshot, job *model.Job) bool {
+	messages, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.DataRetentionSettings.EnableMessageDeletion })
+	if !ok || messages {
+		return false
+	}
+	files, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.DataRetentionSettings.EnableFileDeletion })
+	if !ok || files || s.CollectedAt.IsZero() {
+		return false
+	}
+
+	return s.CollectedAt.Sub(time.UnixMilli(job.LastActivityAt)) > retentionStaleAfter
+}
+
 func evalJobFailed(s *healthcheck.Snapshot) []healthcheck.Result {
 	return evalJobTypes(s, monitoredJobTypes, func(jobType string, jobs []*model.Job) healthcheck.Result {
 		job := latestCompletedJob(jobs)
@@ -215,6 +232,9 @@ func evalJobFailed(s *healthcheck.Snapshot) []healthcheck.Result {
 			return healthcheck.UnknownSubject(jobType, reasonRunsUnfinished)
 		}
 		if job == nil || job.Status != model.JobStatusError {
+			return healthcheck.ResolvedSubject(jobType)
+		}
+		if jobType == model.JobTypeDataRetention && retentionLeftover(s, job) {
 			return healthcheck.ResolvedSubject(jobType)
 		}
 

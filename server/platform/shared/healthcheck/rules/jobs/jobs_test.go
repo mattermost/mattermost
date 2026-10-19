@@ -564,3 +564,63 @@ func TestJobFailed(t *testing.T) {
 		})
 	}
 }
+
+func TestJobFailedAfterRetentionTurnedOff(t *testing.T) {
+	t.Parallel()
+
+	failedAgo := func(d time.Duration) *model.Job {
+		return &model.Job{Id: "failed", Status: model.JobStatusError, LastActivityAt: ago(d), Data: model.StringMap{"error": "driver: bad connection"}}
+	}
+	withRetention := func(snapshot *healthcheck.Snapshot, messages, files bool) *healthcheck.Snapshot {
+		snapshot.Config.Config.DataRetentionSettings.EnableMessageDeletion = new(messages)
+		snapshot.Config.Config.DataRetentionSettings.EnableFileDeletion = new(files)
+		return snapshot
+	}
+
+	testCases := []struct {
+		name     string
+		snapshot *healthcheck.Snapshot
+		want     healthcheck.State
+	}{
+		{
+			name:     "retention off and the failure is older than a week",
+			snapshot: withRetention(jobsSnapshot(failedAgo(8*24*time.Hour)), false, false),
+			want:     healthcheck.StateResolved,
+		},
+		{
+			name:     "retention off and the failure is recent",
+			snapshot: withRetention(jobsSnapshot(failedAgo(2*24*time.Hour)), false, false),
+			want:     healthcheck.StateFiring,
+		},
+		{
+			name:     "message deletion on",
+			snapshot: withRetention(jobsSnapshot(failedAgo(8*24*time.Hour)), true, false),
+			want:     healthcheck.StateFiring,
+		},
+		{
+			name:     "file deletion on",
+			snapshot: withRetention(jobsSnapshot(failedAgo(8*24*time.Hour)), false, true),
+			want:     healthcheck.StateFiring,
+		},
+		{
+			name:     "retention settings absent",
+			snapshot: jobsSnapshot(failedAgo(8 * 24 * time.Hour)),
+			want:     healthcheck.StateFiring,
+		},
+		{
+			name:     "zero CollectedAt",
+			snapshot: withoutCollectedAt(withRetention(jobsSnapshot(failedAgo(8*24*time.Hour)), false, false)),
+			want:     healthcheck.StateFiring,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			results := resultsBySubject(t, jobFailed, tc.snapshot)
+			assert.Equal(t, tc.want, results[model.JobTypeDataRetention].State)
+			assert.Equal(t, healthcheck.StateFiring, results[model.JobTypeLdapSync].State, "other job types ignore the retention settings")
+		})
+	}
+}

@@ -225,7 +225,7 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	// Half an hour off the hour boundary, so the reported idle hours match although the packet is generated later.
 	stale := time.Now().Add(-30*time.Hour - 30*time.Minute).UnixMilli()
 	for _, job := range []*model.Job{
-		{Id: model.NewId(), Type: model.JobTypeDataRetention, CreateAt: stale - 1000, Status: model.JobStatusError, Data: model.StringMap{"error": "driver: bad connection"}},
+		{Id: model.NewId(), Type: model.JobTypeDataRetention, CreateAt: stale - 1000, LastActivityAt: stale - 1000, Status: model.JobStatusError, Data: model.StringMap{"error": "driver: bad connection"}},
 		{Id: model.NewId(), Type: model.JobTypeDataRetention, CreateAt: stale, StartAt: stale, LastActivityAt: stale, Status: model.JobStatusInProgress},
 	} {
 		_, err = th.App.Srv().Store().Job().Save(job)
