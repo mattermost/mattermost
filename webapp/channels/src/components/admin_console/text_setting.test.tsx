@@ -113,8 +113,10 @@ describe('components/admin_console/TextSetting', () => {
         expect(passwordInput).toHaveValue('secret-key');
         expect(passwordInput).toHaveAttribute('placeholder', 'Enter LibreTranslate API Key');
         expect(passwordInput).not.toHaveClass('form-control');
-        expect(container.querySelector('.password-input')).toBeInTheDocument();
-        expect(container.querySelector('.password-input label')).not.toBeInTheDocument();
+        expect(container.querySelector('.Input_container')).toBeInTheDocument();
+        expect(container.querySelector('.password-input')).not.toBeInTheDocument();
+        expect(container.querySelector('legend')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /show password|hide password/i})).not.toBeInTheDocument();
         expect(screen.getByTestId('APIKeyhelp-text')).toHaveTextContent(/requires an API key/);
     });
 });

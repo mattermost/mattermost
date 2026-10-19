@@ -220,7 +220,7 @@ describe('components/widgets/settings/TextSetting', () => {
         expect(container.querySelector('legend')).not.toBeInTheDocument();
     });
 
-    test('should render Compass PasswordInput without floating label for password type', () => {
+    test('should render Compass TextInput type=password without show/hide for password type', () => {
         const onChange = jest.fn();
         const {container} = renderWithContext(
             <TextSetting
@@ -246,8 +246,10 @@ describe('components/widgets/settings/TextSetting', () => {
         expect(input).toHaveAttribute('placeholder', 'Enter API Key');
         expect(input).toHaveAttribute('maxLength', '64');
         expect(input).not.toHaveClass('form-control');
-        expect(container.querySelector('.password-input')).toBeInTheDocument();
-        expect(container.querySelector('.password-input label')).not.toBeInTheDocument();
+        expect(container.querySelector('.Input_container')).toBeInTheDocument();
+        expect(container.querySelector('.password-input')).not.toBeInTheDocument();
+        expect(container.querySelector('legend')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /show password|hide password/i})).not.toBeInTheDocument();
         expect(screen.getByTestId('APIKeyhelp-text')).toHaveTextContent('optional key');
     });
 });
