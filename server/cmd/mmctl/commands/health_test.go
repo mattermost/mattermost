@@ -331,7 +331,9 @@ func healthTestPacketFiles() map[string]string {
 		model.PacketMetadataFileName: "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
 		model.SupportPacketDiagnosticsFileName: `version: 2
 license:
+  users: 500
   sku_short_name: enterprise
+  expires_at: 1821866400000
   features:
     metrics: true
 server:
@@ -352,9 +354,10 @@ notifications:
   email:
     status: OK
 `,
-		model.SupportPacketStatsFileName:   "registered_users: 100\nposts: 1000\n",
+		model.SupportPacketStatsFileName:   "registered_users: 300\nactive_users: 300\nsingle_channel_guests: 0\nposts: 1000\n",
 		model.SupportPacketConfigFileName:  healthTestPacketConfig(),
 		model.SupportPacketPluginsFileName: `{"enabled": [], "disabled": []}`,
+		model.SupportPacketJobsFileName:    "data_retention_jobs: []\n",
 	}
 }
 
@@ -363,6 +366,7 @@ func healthTestPacketConfig() string {
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	cfg.ServiceSettings.SiteURL = model.NewPointer("https://chat.example.com")
+	cfg.GuestAccountsSettings.Enable = model.NewPointer(true)
 	cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
 	cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
 	cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.IdLoadedNotification)

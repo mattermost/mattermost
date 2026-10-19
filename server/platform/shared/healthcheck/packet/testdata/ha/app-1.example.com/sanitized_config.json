@@ -1,4 +1,7 @@
 {
+    "GuestAccountsSettings": {
+        "Enable": true
+    },
     "ServiceSettings": {
         "SiteURL": "http://app-1.internal.example.com",
         "WebsocketURL": "",
@@ -110,6 +113,9 @@
         "VaryByRemoteAddr": true,
         "VaryByUser": false,
         "VaryByHeader": ""
+    },
+    "MessageExportSettings": {
+        "EnableExport": true
     },
     "MetricsSettings": {
         "Enable": true,

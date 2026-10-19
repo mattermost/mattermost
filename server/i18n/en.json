@@ -14352,6 +14352,11 @@
     "description": "Health dashboard reason shown when a health check could not run because the server diagnostics it inspects (for example a connection test result) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "The most recent runs are still queued or running, or were canceled, so older runs could not be checked.",
+    "description": "Health dashboard reason shown when every collected run of a background job is still queued, running or was canceled, so an older run that may matter was not collected and the check's status is unknown."
+  },
+  {
     "id": "health.reason.jobs_unavailable",
     "translation": "Job history unavailable.",
     "description": "Health dashboard reason shown when a health check could not run because the background job history it inspects was not collected, so the check's status is unknown."
@@ -14847,6 +14852,56 @@
     "description": "Health dashboard finding title when the server could not connect to its file storage (local directory or cloud bucket)."
   },
   {
+    "id": "health.rule.job_failed.message",
+    "translation": "The latest finished {{.job_type}} run ({{.job_id}}) ended in error: {{.error}}",
+    "description": "Health dashboard finding detail when a background job's most recent finished run failed; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.error}} is the error message the job recorded."
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "The latest finished {{.job_type}} run ({{.job_id}}) ended in error without recording an error message.",
+    "description": "Health dashboard finding detail when a background job's most recent finished run failed and no error message was recorded; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated."
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "Review the job's error and the server logs at the failed run's start time to find the cause. Common causes to rule out: database load, connection pool limits, network or failover events, and statement timeouts. Resolve it, then run the job again and confirm it completes. Until a run succeeds, the job's work (directory sync, compliance export, data retention or search indexing) is not being done.",
+    "description": "Health dashboard fix-it step for a background job whose latest run failed."
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "Latest job run failed",
+    "description": "Health dashboard finding title when the most recent finished run of a background job (such as AD/LDAP sync or data retention) ended in error."
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "The {{.job_type}} job {{.job_id}} is in progress but has recorded no activity for {{.hours}} hours. This usually means the worker died mid-run or the scheduler is wedged.",
+    "description": "Health dashboard finding detail for a background job that is still marked in progress but has stopped reporting activity; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.hours}} is a whole number of hours."
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "Cancel the stuck job from its System Console page, with mmctl job cancel, or through the API. Check the server logs around the job's last activity, then run it again.",
+    "description": "Health dashboard fix-it step for a background job stuck in progress; 'mmctl job cancel' is a command and should not be translated."
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "Job stuck in progress for more than 24 hours",
+    "description": "Health dashboard finding title when a background job has been marked in progress with no activity for over 24 hours."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "The {{.job_type}} job {{.job_id}} has reported no progress and has recorded no activity for more than an hour. This usually means the worker died, deadlocked, or lost its database connection before the first batch.",
+    "description": "Health dashboard finding detail for a background job that is in progress but has neither reported progress nor recorded activity for over an hour; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "Cancel the job from its System Console page, with mmctl job cancel, or through the API. Check the server logs from the job's start time for panics or connection errors, then run it again. If it recurs, capture a goroutine profile from /debug/pprof/goroutine on the metrics server while the job is stuck.",
+    "description": "Health dashboard fix-it step for a background job running with no progress; 'mmctl job cancel' is a command and '/debug/pprof/goroutine' is a URL path, neither should be translated. 'Goroutine profile' is a Go debugging snapshot of running threads."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "Job in progress with no progress or activity for more than an hour",
+    "description": "Health dashboard finding title when a background job is in progress but has neither reported progress nor recorded activity for over an hour."
+  },
+  {
     "id": "health.rule.ldap_id_is_email.message",
     "translation": "IdAttribute is {{.attribute}}. Mattermost links each account to its directory entry by this attribute, so when a user's email changes (marriage, rebrand, department move) the link breaks and the user can no longer reach their existing account.",
     "description": "Health dashboard finding detail when the AD/LDAP ID attribute is an email attribute. {{.attribute}} is the configured attribute name. 'IdAttribute', 'objectGUID', 'entryUUID' and the command 'mmctl ldap idmigrate' are config or product names and should not be translated."
@@ -15000,6 +15055,46 @@
     "id": "health.rule.ldap_sync_no_basedn.title",
     "translation": "LDAP sync enabled but BaseDN is empty",
     "description": "Health dashboard finding title when AD/LDAP sync is enabled but no base DN is set. 'BaseDN' and 'LdapSettings.BaseDN' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "The license expired on {{.expires_at}}. The server removes an expired license 10 days after it expires, and Enterprise features stop working.",
+    "description": "Health dashboard finding detail when the license has expired; {{.expires_at}} is the expiry date (YYYY-MM-DD)."
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "The trial license expired on {{.expires_at}}. The server removes an expired license 10 days after it expires, and Enterprise features stop working.",
+    "description": "Health dashboard finding detail when a trial license has expired; {{.expires_at}} is the expiry date (YYYY-MM-DD)."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Get a new license and upload it in System Console > About > Edition and License.",
+    "description": "Health dashboard fix-it step for an expired license; 'System Console > About > Edition and License' is the path to the license page in the admin UI."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "License has expired",
+    "description": "Health dashboard finding title when the server's license expired before the health data was collected."
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "The license expires on {{.expires_at}}.",
+    "description": "Health dashboard finding detail when the license expires within 30 days; {{.expires_at}} is the expiry date (YYYY-MM-DD)."
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "The trial license expires on {{.expires_at}}.",
+    "description": "Health dashboard finding detail when a trial license expires within 30 days; {{.expires_at}} is the expiry date (YYYY-MM-DD)."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Get a new license now, so it can be uploaded in System Console > About > Edition and License before the current one expires.",
+    "description": "Health dashboard fix-it step for a license that expires soon; 'System Console > About > Edition and License' is the path to the license page in the admin UI."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "License expires within 30 days",
+    "description": "Health dashboard finding title when the server's license expires in less than 30 days."
   },
   {
     "id": "health.rule.log_debug_prod.message",
@@ -15350,6 +15445,51 @@
     "id": "health.rule.search_unavailable.title",
     "translation": "Search is disabled",
     "description": "Health dashboard finding title when database search is disabled and Elasticsearch or OpenSearch searching is off."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "{{.used}} users count toward the license limit of {{.limit}} users, which is now reached. The server does not create or reactivate users until seats are freed or added.",
+    "description": "Health dashboard finding detail when the license's enforced user limit is reached; {{.used}} is the number of users taking a seat and {{.limit}} is the licensed seats plus any extra users the license allows."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Purchase additional seats, or deactivate users who no longer need access to free seats.",
+    "description": "Health dashboard fix-it step when the license's user limit is reached and the server refuses new users."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "Licensed user limit reached",
+    "description": "Health dashboard finding title when the number of active users reached the hard user limit the license enforces."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "{{.used}} users count toward {{.seats}} licensed seats ({{.percent}}%).",
+    "description": "Health dashboard finding detail when licensed seats are nearly full; {{.used}} is the number of users taking a seat, {{.seats}} the licensed seats and {{.percent}} the ratio as a percentage."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "If you expect more users, plan additional seats before the license is full. Deactivating users who no longer need access frees seats.",
+    "description": "Health dashboard fix-it step when 90% or more of the licensed seats are in use."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "Licensed seats are nearly full",
+    "description": "Health dashboard finding title when users take 90% to 100% of the licensed seats."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "{{.used}} users count toward {{.seats}} licensed seats ({{.percent}}%).",
+    "description": "Health dashboard finding detail when more users take a seat than the license covers; {{.used}} is the number of users taking a seat, {{.seats}} the licensed seats and {{.percent}} the ratio as a percentage."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Purchase additional seats, or deactivate users who no longer need access. Deactivated users do not take a seat.",
+    "description": "Health dashboard fix-it step when more users are active than the license has seats for."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "More users than licensed seats",
+    "description": "Health dashboard finding title when more users take a seat than the license covers."
   },
   {
     "id": "health.rule.session_extend_off.message",
@@ -15855,6 +15995,11 @@
     "id": "model.acknowledgement.is_valid.user_id.app_error",
     "translation": "Invalid user id.",
     "description": "API error when a post acknowledgement has a malformed user ID for the acknowledging user."
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "An internal error occurred.",
+    "description": "Generic fallback returned to API clients when an unexpected internal error (one without a more specific error) reaches the API; shown as the error message, so keep it short and user-facing."
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
@@ -19343,7 +19488,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 140+",
+    "translation": "Version 153+",
     "description": "Compact version requirement label on the Firefox card of the 'unsupported browser' page; the number is the minimum Firefox version."
   },
   {

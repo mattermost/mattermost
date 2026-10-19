@@ -1,4 +1,7 @@
 {
+    "GuestAccountsSettings": {
+        "Enable": true
+    },
     "ServiceSettings": {
         "SiteURL": "http://chat.example.com",
         "WebsocketURL": "",
@@ -51,7 +54,7 @@
     },
     "LdapSettings": {
         "Enable": false,
-        "EnableSync": false,
+        "EnableSync": true,
         "LdapServer": "",
         "LdapPort": 389,
         "ConnectionSecurity": "",
@@ -109,6 +112,9 @@
         "VaryByRemoteAddr": true,
         "VaryByUser": false,
         "VaryByHeader": ""
+    },
+    "MessageExportSettings": {
+        "EnableExport": false
     },
     "MetricsSettings": {
         "Enable": false,
