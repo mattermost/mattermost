@@ -73,7 +73,10 @@ unknown=()
 
 sleep "$INITIAL_DELAY_SECONDS"
 
-candidates=$(search_prs)
+if ! candidates=$(search_prs); then
+  echo "::warning::Searching for PRs labeled ${LABEL} failed; will retry on the next ${BASE_REF} merge."
+  exit 0
+fi
 while IFS=$'\t' read -r number pr_url ref sha mergeable cross_repo; do
   [ -n "$number" ] || continue
   numbers+=("$number")
@@ -110,7 +113,7 @@ for number in "${numbers[@]}"; do
       else
         action[$number]="failed"
         failures=$((failures + 1))
-        echo "::error::Webhook call failed for #${number}."
+        echo "::warning::Webhook call failed for #${number}; will retry on the next ${BASE_REF} merge."
       fi
       ;;
     UNKNOWN)
@@ -138,6 +141,5 @@ done
 } | tee -a "$SUMMARY_FILE"
 
 if [ "$failures" -gt 0 ]; then
-  echo "::error::${failures} webhook call(s) failed."
-  exit 1
+  echo "::warning::${failures} webhook call(s) failed."
 fi

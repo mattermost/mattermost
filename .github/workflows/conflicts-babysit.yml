@@ -40,8 +40,11 @@ jobs:
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # Best-effort: failures surface as warnings and in the job summary, never
+      # as a red run on master.
       - name: Checkout
         if: steps.gate.outputs.run == 'true'
+        continue-on-error: true
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           sparse-checkout: .github/scripts
@@ -49,6 +52,8 @@ jobs:
 
       - name: Dispatch conflicting PRs
         if: steps.gate.outputs.run == 'true'
+        continue-on-error: true
+        timeout-minutes: 10
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WEBHOOK_URL: ${{ secrets.CURSOR_CONFLICTS_WEBHOOK_URL }}
