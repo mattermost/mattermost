@@ -29,6 +29,29 @@
             }
         }
 
+        .SystemUserDetail__field {
+            display: block;
+            margin-top: 12px;
+        }
+
+        .SystemUserDetail__compassField {
+            max-width: 320px;
+        }
+
+        .SystemUserDetail__fieldLabel {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .SystemUserDetail__authMethodValue {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        // Selects and non-Compass CPA email/url inputs still use external labels.
         label {
             display: block;
             font-weight: unset;
@@ -56,16 +79,16 @@
                 }
             }
 
-            .field-error {
-                display: block;
-                margin-top: 4px;
-                color: var(--error-text);
-                font-size: 12px;
-            }
-
             select[multiple] {
                 min-height: 80px;
             }
+        }
+
+        .field-error {
+            display: block;
+            margin-top: 4px;
+            color: var(--error-text);
+            font-size: 12px;
         }
 
         .cpa-section-divider {
@@ -83,14 +106,6 @@
                 letter-spacing: 0.5px;
                 text-transform: uppercase;
             }
-        }
-
-        svg {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            margin: 0 8px 0 0;
-            fill: rgba(var(--sys-color-sidebar-text-rgb), 0.6);
         }
     }
 

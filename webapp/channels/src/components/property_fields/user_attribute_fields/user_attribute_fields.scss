@@ -1,6 +1,15 @@
 .UserAttributeField.cpa-field {
     position: relative;
 
+    .UserAttributeField__compassField {
+        max-width: 320px;
+    }
+
+    .UserAttributeField__labelSpacer {
+        display: block;
+        min-height: 0;
+    }
+
     .field-error {
         display: block;
         margin-top: 4px;

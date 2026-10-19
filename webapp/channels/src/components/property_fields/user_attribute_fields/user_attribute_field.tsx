@@ -19,6 +19,7 @@ import RankBadge from 'components/admin_console/system_properties/rank_badge';
 import * as Menu from 'components/menu';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
+import Input from 'components/widgets/inputs/input/input';
 
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
@@ -28,6 +29,8 @@ import {canEditUserAttribute, isAdminManagedLocked} from './user_attribute_utils
 import type {UserAttributeValue} from './user_attribute_utils';
 
 import './user_attribute_fields.scss';
+
+const COMPASS_TEXT_INPUT_TYPES = new Set(['', 'text', 'tel']);
 
 // Private component for CPA multiselect fields
 type CPAMultiSelectProps = {
@@ -324,21 +327,25 @@ export default function UserAttributeField({
     const errorId = field.id + '-error';
     const describedErrorId = error ? errorId : undefined;
 
+    const fieldLabel = getUserPropertyFieldLabel(field);
+    const textValue = Array.isArray(value) ?
+        value.join(intl.formatMessage({
+            id: 'admin.userManagement.userDetail.arrayValueSeparator',
+            defaultMessage: ', ',
+        })) :
+        String(value);
+
     const fieldContent = (() => {
         if (omitLocksField && valueRefersToOptions(field)) {
-            const display = Array.isArray(value) ?
-                value.join(intl.formatMessage({
-                    id: 'admin.userManagement.userDetail.arrayValueSeparator',
-                    defaultMessage: ', ',
-                })) :
-                String(value);
             return (
-                <input
-                    className='form-control'
+                <Input
+                    name={field.id}
                     type='text'
-                    value={display}
+                    value={textValue}
+                    label={fieldLabel}
                     disabled={true}
                     readOnly={true}
+                    containerClassName='UserAttributeField__compassField'
                 />
             );
         }
@@ -404,7 +411,7 @@ export default function UserAttributeField({
                         id: 'admin.user.selectOptions',
                         defaultMessage: 'Select options...',
                     })}
-                    ariaLabel={getUserPropertyFieldLabel(field)}
+                    ariaLabel={fieldLabel}
                 />
             );
         }
@@ -433,6 +440,24 @@ export default function UserAttributeField({
         case 'text':
         default: {
             const inputType = getInputTypeFromValueType(field.attrs?.value_type);
+            const useCompassField = COMPASS_TEXT_INPUT_TYPES.has(inputType);
+
+            if (useCompassField) {
+                return (
+                    <Input
+                        name={field.id}
+                        type={inputType || 'text'}
+                        value={textValue}
+                        label={fieldLabel}
+                        onChange={(e) => onChange(field.id, e.target.value)}
+                        disabled={isDisabled}
+                        hasError={Boolean(error)}
+                        containerClassName='UserAttributeField__compassField'
+                        aria-describedby={describedErrorId}
+                        aria-invalid={error ? 'true' : 'false'}
+                    />
+                );
+            }
 
             return (
                 <input
@@ -440,7 +465,7 @@ export default function UserAttributeField({
                         error,
                     })}
                     type={inputType}
-                    value={Array.isArray(value) ? value.join(intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '})) : value}
+                    value={textValue}
                     onChange={(e) => onChange(field.id, e.target.value)}
                     disabled={isDisabled}
                     aria-describedby={describedErrorId}
@@ -455,9 +480,20 @@ export default function UserAttributeField({
         <FormattedMessage
             id='admin.userManagement.userDetail.cpaField'
             defaultMessage='{fieldName}'
-            values={{fieldName: getUserPropertyFieldLabel(field)}}
+            values={{fieldName: fieldLabel}}
         />
     );
+
+    // Compass text/tel fields own their floating label; omit the external name.
+    const usesCompassTextInput = (() => {
+        if (omitLocksField && valueRefersToOptions(field)) {
+            return true;
+        }
+        if (field.type === 'text' || field.type === undefined) {
+            return COMPASS_TEXT_INPUT_TYPES.has(getInputTypeFromValueType(field.attrs?.value_type));
+        }
+        return false;
+    })();
 
     const fieldBody = (
         <>
@@ -473,6 +509,14 @@ export default function UserAttributeField({
                 >
                     {fieldName}
                 </label>
+            ) : usesCompassTextInput ? (
+
+                // Keep a first-row spacer so UserAttributeField__trailing
+                // (grid-row: 2) still lines up with the control.
+                <span
+                    className='UserAttributeField__labelSpacer'
+                    aria-hidden={true}
+                />
             ) : fieldName}
             {fieldContent}
             {error && (
@@ -500,7 +544,8 @@ export default function UserAttributeField({
     // Wrapping that in <label> forwards chip clicks to the trigger, so the X
     // opens the menu instead of removing the value. Point the name at the
     // trigger instead (with a click forwarder — divs are not labelable).
-    const root = field.type === 'graph' ? (
+    // Compass text fields also use a div root so the floating label is not nested.
+    const root = (field.type === 'graph' || usesCompassTextInput) ? (
         <div
             className='UserAttributeField cpa-field'
             data-testid={testId}
