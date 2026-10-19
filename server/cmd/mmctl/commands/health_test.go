@@ -6,6 +6,7 @@ package commands
 import (
 	"archive/zip"
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -327,13 +328,57 @@ const healthTestPacketGeneratedAt = 1790330400000
 
 func healthTestPacketFiles() map[string]string {
 	return map[string]string{
-		model.PacketMetadataFileName:           "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
-		model.SupportPacketDiagnosticsFileName: "version: 2\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\n",
-		model.SupportPacketConfigFileName: `{
-    "ServiceSettings": {"SiteURL": "https://chat.example.com"},
-    "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"}
-}`,
+		model.PacketMetadataFileName: "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
+		model.SupportPacketDiagnosticsFileName: `version: 2
+license:
+  users: 500
+  sku_short_name: enterprise
+  expires_at: 1821866400000
+  features:
+    metrics: true
+server:
+  os: linux
+  hostname: mm.example.com
+  open_file_descriptors: 120
+  max_file_descriptors: 65536
+  version: 11.0.4
+database:
+  type: postgres
+  version: "15.8"
+  master_connections_in_use: 1
+elastic:
+  status: disabled
+file_store:
+  file_status: OK
+notifications:
+  email:
+    status: OK
+`,
+		model.SupportPacketStatsFileName:   "registered_users: 300\nactive_users: 300\nsingle_channel_guests: 0\nposts: 1000\n",
+		model.SupportPacketConfigFileName:  healthTestPacketConfig(),
+		model.SupportPacketPluginsFileName: `{"enabled": [], "disabled": []}`,
+		model.SupportPacketJobsFileName:    "data_retention_jobs: []\n",
 	}
+}
+
+// healthTestPacketConfig starts from defaults so new rules see a realistic config without editing this fixture.
+func healthTestPacketConfig() string {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.ServiceSettings.SiteURL = model.NewPointer("https://chat.example.com")
+	cfg.GuestAccountsSettings.Enable = model.NewPointer(true)
+	cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+	cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
+	cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.IdLoadedNotification)
+	cfg.SqlSettings.DataSource = model.NewPointer("postgres://****:****@db.example.com:5432/mattermost")
+	cfg.RateLimitSettings.Enable = model.NewPointer(true)
+	cfg.MetricsSettings.Enable = model.NewPointer(true)
+
+	b, err := json.Marshal(cfg)
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
 }
 
 func (s *MmctlUnitTestSuite) writeHealthTestPacket(files map[string]string) string {
