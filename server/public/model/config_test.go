@@ -2244,18 +2244,55 @@ func TestLdapSettingsIsValid(t *testing.T) {
 			ExpectError: false,
 		},
 		{
-			Name: "invalid LDAP port",
+			Name: "invalid LDAP port with LDAP disabled",
 			LdapSettings: LdapSettings{
 				Enable:   new(false),
-				LdapPort: new(65536),
+				LdapPort: new(0),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid LDAP query timeout with LDAP disabled",
+			LdapSettings: LdapSettings{
+				Enable:       new(false),
+				QueryTimeout: new(0),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid LDAP port",
+			LdapSettings: LdapSettings{
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				LdapPort:          new(65536),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid LDAP port with only sync enabled",
+			LdapSettings: LdapSettings{
+				Enable:     new(false),
+				EnableSync: new(true),
+				LdapPort:   new(0),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "invalid LDAP query timeout",
 			LdapSettings: LdapSettings{
-				Enable:       new(false),
-				QueryTimeout: new(0),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				QueryTimeout:      new(0),
 			},
 			ExpectError: true,
 		},
@@ -2794,6 +2831,20 @@ func TestLogSettingsIsValid(t *testing.T) {
 				FileLevel: new("verbose"),
 			},
 			ExpectError: true,
+		},
+		"invalid console level with console disabled": {
+			LogSettings: LogSettings{
+				EnableConsole: new(false),
+				ConsoleLevel:  new("verbose"),
+			},
+			ExpectError: false,
+		},
+		"invalid file level with file disabled": {
+			LogSettings: LogSettings{
+				EnableFile: new(false),
+				FileLevel:  new("verbose"),
+			},
+			ExpectError: false,
 		},
 		"negative max field size": {
 			LogSettings: LogSettings{
@@ -5116,6 +5167,18 @@ func TestElasticsearchSettingsSetDefaults(t *testing.T) {
 		s := ElasticsearchSettings{EnableSearchPublicChannelsWithoutMembership: NewPointer(false)}
 		s.SetDefaults()
 		require.False(t, *s.EnableSearchPublicChannelsWithoutMembership)
+	})
+
+	t.Run("EnableFileIndexing defaults to true when nil", func(t *testing.T) {
+		s := ElasticsearchSettings{}
+		s.SetDefaults()
+		require.True(t, *s.EnableFileIndexing)
+	})
+
+	t.Run("EnableFileIndexing preserves explicit false", func(t *testing.T) {
+		s := ElasticsearchSettings{EnableFileIndexing: NewPointer(false)}
+		s.SetDefaults()
+		require.False(t, *s.EnableFileIndexing)
 	})
 }
 

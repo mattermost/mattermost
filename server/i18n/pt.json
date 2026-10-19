@@ -3062,15 +3062,15 @@
     "translation": "Erro ao obter o token de acesso da base de dados antes da eliminação."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "O registo de utilizadores está desativado."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "A ligação de registo expirou."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "A ligação de registo não parece ser válida."
   },
   {
@@ -3396,10 +3396,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
     "translation": "Não é possível atualizar uma mensagem num canal de mensagem direta restrito."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Não é possível encontrar a mensagem ou o comentário existente a atualizar."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3843,7 +3839,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Não foi possível remover o convite do servidor remoto para o canal"
+    "translation": "Não foi possível anular o convite do servidor remoto para o canal."
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -7141,19 +7137,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Não é possível silenciar o resultado da verificação de estado."
+    "translation": "Não é possível silenciar a ocorrência da Saúde do site."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Resultado da verificação de estado não encontrado."
+    "translation": "Ocorrência da Saúde do site não encontrada."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Não é possível deixar de silenciar o resultado da verificação de estado."
+    "translation": "Não é possível deixar de silenciar a ocorrência da Saúde do site."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Resultado da verificação de estado não encontrado."
+    "translation": "Ocorrência da Saúde do site não encontrada."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -8840,11 +8836,11 @@
     "translation": "Não foi possível eliminar a mensagem de notificação persistente"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Não é possível obter a prioridade da mensagem"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Não é possível obter a prioridade da mensagem com contexto"
   },
   {
@@ -8876,7 +8872,7 @@
     "translation": "Ocorreu um erro ao atualizar as preferências."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Não foi possível analisar a versão do plugin pré-empacotado."
   },
   {
@@ -11111,10 +11107,6 @@
     "translation": "O teste de ligação LDAP falhou. Servidor: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Erro: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Falha ao obter os campos CPA"
-  },
-  {
     "id": "ent.ldap.create_fail",
     "translation": "Não é possível criar o utilizador LDAP."
   },
@@ -11205,10 +11197,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Limite de Tamanho Excedido. Experimente aumentar a definição Tamanho máximo da página. Consulte https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded para mais detalhes."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Valor do atributo LDAP vazio"
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -11435,10 +11423,6 @@
     "translation": "O início de sessão SAML não foi bem-sucedido porque a resposta do Provedor de Identidade não está encriptada. Por favor, contacte o seu Administrador do Sistema."
   },
   {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Falha ao obter o(s) campo(s) CPA"
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Recebemos uma resposta vazia do Provedor de Identidade."
   },
@@ -11563,11 +11547,11 @@
     "translation": "A funcionalidade {{.Feature}} não está disponível para a licença atual"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Não é possível interpretar o URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Não é possível obter os canais."
   },
   {
@@ -13100,7 +13084,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Modo do servidor web {{.Value}} inválido. Deve ser 'gzip', 'nogzip' ou 'disabled'."
+    "translation": "Modo do servidor web {{.Value}} inválido. Deve ser 'gzip', 'uncompressed' ou 'disabled'."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -14593,5 +14577,165 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Não foi possível encontrar o utilizador {{.user}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NÃO ENCONTRADA**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "removida"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` não é um valor válido para `{{.Arg}}`"
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "A Saúde do site não está ativada."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "A Saúde do site requer uma licença Enterprise."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Não é possível voltar ao início do ficheiro."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Não é possível obter a ocorrência da Saúde do site."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Ocorrência da Saúde do site não encontrada."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Não é possível obter as ocorrências da Saúde do site."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "O atributo já não é sincronizado a partir desta fonte, pelo que a sincronização não o pode alterar."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "As opções de um atributo sincronizado a partir de AD/LDAP ou SAML são geridas pela sincronização e não podem ser adicionadas, renomeadas nem removidas."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "O atributo sincronizado tem opções inválidas."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Fonte de sincronização de propriedades inválida."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "ID de utilizador inválido para a sincronização de propriedades."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Não é possível determinar que opções do atributo sincronizado estão em utilização."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "A configuração de registo contém um caminho de ficheiro de registo ou de auditoria fora do diretório raiz de registos. Consulte os registos do servidor para obter mais detalhes."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Hora de recolha desconhecida."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Secção de configuração indisponível."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Diagnóstico do servidor indisponível."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Histórico de tarefas indisponível."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Detalhes da licença indisponíveis."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Lista de plugins indisponível."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "A regra falhou inesperadamente e não pôde ser avaliada."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Estatísticas de utilização indisponíveis."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} utiliza http://, pelo que as notificações push são enviadas em texto simples."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} tem um esquema inválido. Os utilizadores de dispositivos móveis não receberão notificações."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Adicione o prefixo https:// a PushNotificationServer e verifique se é acessível a partir do nó da aplicação."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer não utiliza https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Todas as tentativas de envio push irão falhar com 'unsupported protocol scheme'."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Aponte PushNotificationServer para https://push.mattermost.com ou para um proxy push alojado por si."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Notificações push ativadas, mas PushNotificationServer está em branco"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com é o proxy push de teste do Mattermost. Não tem SLA, tem um débito limitado e não se destina a utilização em produção. A entrega de notificações push móveis será pouco fiável para algo além de testes em pequena escala."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Mude para https://push.mattermost.com (o Hosted Push Notification Service de produção, incluído no Enterprise) ou para um proxy push alojado por si."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer aponta para push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL é necessário para os URLs de webhooks, os retornos de chamada OAuth, o conteúdo das notificações push móveis e as hiperligações nos e-mails. As integrações não funcionam enquanto estiver vazio."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Defina SiteURL com o URL HTTPS público do servidor."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL está vazio"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL é {{.url}}. Os cookies de sessão e os tokens de autenticação circulam em texto simples."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Disponibilize o Mattermost através de HTTPS e atualize SiteURL para o endereço https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL utiliza http:// (não https://)"
   }
 ]
