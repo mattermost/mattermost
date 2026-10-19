@@ -5,6 +5,7 @@ license:
   sku_short_name: enterprise
   features:
     id_loaded: true
+    metrics: true
 server:
   # Machine
   os: linux
