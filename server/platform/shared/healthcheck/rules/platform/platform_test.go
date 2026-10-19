@@ -139,7 +139,7 @@ func TestRegistered(t *testing.T) {
 		{pluginsOff, "PLUGINS_OFF", healthcheck.SeverityInfo, healthcheck.SurfaceInternal, healthcheck.VolatilityStable, "PluginSettings.Enable", false, false},
 		{pluginHealthOff, "PLUGIN_HEALTH_OFF", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "PluginSettings.EnableHealthCheck", false, false},
 		{pluginNotRunning, "PLUGIN_NOT_RUNNING", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityProbe, "PluginSettings.PluginStates", true, false},
-		{envUnsupportedOS, "ENV_UNSUPPORTED_OS", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "Server.OS", false, false},
+		{envUnsupportedOS, "ENV_UNSUPPORTED_OS", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "Server.OS", false, false},
 		{bindPrivilegedPort, "BIND_PRIVILEGED_PORT", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "ServiceSettings.ListenAddress", false, false},
 		{nodeFDExhaustion, "NODE_FD_EXHAUSTION", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.FileDescriptors", false, true},
 	}

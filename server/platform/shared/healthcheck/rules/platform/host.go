@@ -20,7 +20,7 @@ const fdExhaustionRatio = 0.90
 var envUnsupportedOS = healthcheck.Rule{
 	Code:     "ENV_UNSUPPORTED_OS",
 	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityCritical,
+	Severity: healthcheck.SeverityWarning,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.env_unsupported_os.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.env_unsupported_os.remediation"),
