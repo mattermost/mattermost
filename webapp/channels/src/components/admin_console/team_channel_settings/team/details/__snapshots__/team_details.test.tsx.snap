@@ -158,21 +158,16 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
                     <div
                       class="_text-input__wrapper_3inqk_31"
                     >
-                      <label
-                        class="_text-input__label_3inqk_53"
-                        for="input_allowedDomains"
-                      >
-                        Comma Separated Email Domain List
-                      </label>
                       <div
                         class="_text-input__inner_3inqk_80"
                       >
                         <input
+                          aria-label="Comma Separated Email Domain List"
                           class="_text-input__input_3inqk_42"
                           data-testid="input-wrapper"
                           id="input_allowedDomains"
                           name="allowedDomains"
-                          placeholder="mattermost.com"
+                          placeholder="Comma Separated Email Domain List"
                           type="text"
                           value=""
                         />

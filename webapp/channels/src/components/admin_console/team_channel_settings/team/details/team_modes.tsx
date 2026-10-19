@@ -98,11 +98,11 @@ const AllowedDomainsToggle = ({syncChecked, allAllowedChecked, allowedDomainsChe
                 name='allowedDomains'
                 type='text'
                 value={allowedDomains}
-                placeholder='mattermost.com'
-                label={defineMessage({
+                placeholder={defineMessage({
                     id: 'admin.team_settings.team_details.csvDomains',
                     defaultMessage: 'Comma Separated Email Domain List',
                 })}
+                useLegend={false}
                 inputSize={SIZE.SMALL}
                 onChange={(e) => onToggle(syncChecked, allAllowedChecked, allowedDomainsChecked, e.currentTarget.value)}
                 disabled={isDisabled}
