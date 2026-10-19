@@ -7,7 +7,7 @@ import {promisify} from 'node:util';
 import {GenericContainer, Wait} from 'testcontainers';
 import type {BoundPorts, StartedTestContainer, WaitStrategy} from 'testcontainers';
 
-import {isUpgradeToPhaseProjectSelected} from '../upgrade_env';
+import {isUpgradeToPhaseProjectActive} from '../upgrade_env';
 
 import {
     INBUCKET_ALIAS,
@@ -211,7 +211,7 @@ function startServerWithRetry(networkName: string, env: Record<string, string>):
         // Upgrade-swap-to skips reuse: the old container was rm -f'd and reuse could reattach to an
         // unrelated leftover on the same image tag. upgrade-from still needs withReuse() so Ryuk
         // doesn't reap the server before upgrade-to can adopt the stack.
-        if (testConfig.testcontainersReuse && !isUpgradeToPhaseProjectSelected()) {
+        if (testConfig.testcontainersReuse && !isUpgradeToPhaseProjectActive()) {
             builder = builder.withReuse();
         }
 
