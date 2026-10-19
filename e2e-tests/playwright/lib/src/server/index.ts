@@ -50,10 +50,12 @@ export {
 export {
     defaultEnabledPluginIds,
     disableUnexpectedPlugins,
+    ensureDemoPlugin,
     installAndEnablePlugin,
     isPluginActive,
     getPluginStatus,
 } from './plugin';
+export type {EnsureDemoPluginOptions} from './plugin';
 export {isWebhookTestServerReachable, setupWebhookTestServer} from './webhook_server';
 export {
     generateLdapUser,

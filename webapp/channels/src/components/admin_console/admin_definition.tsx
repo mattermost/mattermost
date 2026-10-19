@@ -101,6 +101,7 @@ import AttributeDetails from './global_attributes/attribute_details';
 import ClassificationAttribute from './global_attributes/classification_attribute';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
+import HealthDashboard from './health_dashboard';
 import IPFiltering from './ip_filtering';
 import LDAPWizard from './ldap_wizard';
 import LicenseSettings from './license_settings';
@@ -279,6 +280,19 @@ const adminDefinitionMessages = defineMessages({
     redis_clientcache_desc: {id: 'admin.cacheSettings.redisClientCacheDesc', defaultMessage: 'When true, client-side caching is disabled.'},
 });
 
+const siteHealthHidden = it.any(
+    it.not(it.configIsTrue('FeatureFlags', 'HealthDashboard')),
+    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+    it.not(it.isSystemAdmin),
+);
+
+// Site health replaces Workspace Optimization only for admins who can see it; delegated admins keep the old page.
+const workspaceOptimizationHidden = it.any(
+    it.not(siteHealthHidden),
+    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),
+    it.licensedForFeature('Cloud'),
+);
+
 const AdminDefinition: AdminDefinitionType = {
     about: {
         icon: (
@@ -376,6 +390,15 @@ const AdminDefinition: AdminDefinitionType = {
         sectionTitle: defineMessage({id: 'admin.sidebar.reporting', defaultMessage: 'Reporting'}),
         isHidden: it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.REPORTING)),
         subsections: {
+            site_health: {
+                url: 'reporting/site_health',
+                title: defineMessage({id: 'admin.sidebar.siteHealth', defaultMessage: 'Site health'}),
+                schema: {
+                    id: 'HealthDashboard',
+                    component: HealthDashboard,
+                },
+                isHidden: siteHealthHidden,
+            },
             workspace_optimization: {
                 url: 'reporting/workspace_optimization',
                 title: defineMessage({id: 'admin.sidebar.workspaceOptimization', defaultMessage: 'Workspace Optimization'}),
@@ -383,10 +406,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'WorkspaceOptimizationDashboard',
                     component: WorkspaceOptimizationDashboard,
                 },
-                isHidden: it.any(
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),
-                    it.licensedForFeature('Cloud'),
-                ),
+                isHidden: workspaceOptimizationHidden,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),
             },
             system_analytics: {

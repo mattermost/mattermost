@@ -57,10 +57,6 @@ func (r Rule) IsNodeScoped() bool {
 	return r.EvalNode != nil
 }
 
-func (r Rule) AppliesTo(d Deployment) bool {
-	if d.IsCloud {
-		return r.AppliesToCloud
-	}
-
-	return true
+func (r Rule) AppliesTo(isCloud bool) bool {
+	return !isCloud || r.AppliesToCloud
 }

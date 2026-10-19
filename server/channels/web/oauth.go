@@ -367,7 +367,8 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.CompleteOAuth(c.AppContext, service, body, props, tokenUser)
+	user, userCreated, err := c.App.CompleteOAuth(c.AppContext, service, body, props, tokenUser)
+	auditRec.AddMeta("user_created", userCreated)
 	if err != nil {
 		err.Translate(c.AppContext.T)
 		c.LogErrorByCode(err)
@@ -544,7 +545,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !*c.App.Config().TeamSettings.EnableUserCreation {
 		utils.RenderWebError(c.App.Config(), w, r, http.StatusBadRequest, url.Values{
-			"message": []string{i18n.T("api.oauth.singup_with_oauth.disabled.app_error")},
+			"message": []string{i18n.T("api.oauth.signup_with_oauth.disabled.app_error")},
 		}, c.App.AsymmetricSigningKey())
 		return
 	}

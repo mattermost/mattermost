@@ -7,10 +7,18 @@ import type {Bot} from '@mattermost/types/bots';
 import type {IncomingWebhook, OAuthApp, OutgoingOAuthConnection, OutgoingWebhook} from '@mattermost/types/integrations';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import type {BotCreateWarnings} from 'components/integrations/bots/bot_create_warnings';
+import {BOT_CREATE_WARNINGS_PARAM, serializeBotCreateWarnings} from 'components/integrations/bots/bot_create_warnings';
 import ConfirmIntegration from 'components/integrations/confirm_integration/confirm_integration';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
+import {getHistory} from 'utils/browser_history';
+import {ErrorPageTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
+
+const TITLE = 'Bot account created, but some settings were not saved';
+const ROLES = 'The role and post permissions could not be saved. Edit the bot to set them again.';
+const ATTRS = 'Attributes could not be saved. Edit the bot to add them again.';
 
 describe('components/integrations/ConfirmIntegration', () => {
     const id = 'r5tpgt4iepf45jt768jz84djic';
@@ -32,6 +40,7 @@ describe('components/integrations/ConfirmIntegration', () => {
     };
 
     const location = {
+        pathname: '/team_test/integrations/confirm',
         search: '',
     };
     const team = TestHelper.getTeamMock({
@@ -162,5 +171,121 @@ describe('components/integrations/ConfirmIntegration', () => {
 
         // Bad type means redirect to error page
         expect(container).toMatchSnapshot();
+    });
+
+    describe('bot create warnings', () => {
+        const CONFIRM_PATH = '/team_test/integrations/confirm';
+        const withWarnings = (warnings: BotCreateWarnings) =>
+            `${BOT_CREATE_WARNINGS_PARAM}=${encodeURIComponent(serializeBotCreateWarnings(warnings) ?? '')}`;
+
+        const replace = getHistory().replace as jest.Mock;
+
+        const confirmElement = (search: string) => (
+            <ConfirmIntegration
+                {...props}
+                location={{pathname: CONFIRM_PATH, search}}
+            />
+        );
+        const renderConfirm = (search: string) => renderWithContext(confirmElement(search), initialState);
+        const botSearch = (warnings?: BotCreateWarnings) =>
+            `?type=bots&id=${userId}&token=${token}` + (warnings ? `&${withWarnings(warnings)}` : '');
+
+        test('bot without warnings shows token and no banner', () => {
+            renderConfirm(botSearch());
+
+            expect(screen.getByText(token)).toBeInTheDocument();
+            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(replace).not.toHaveBeenCalled();
+        });
+
+        test('bot with warnings shows the banner above the help text and keeps the token', () => {
+            renderConfirm(botSearch({attributesFailed: true}));
+
+            const banner = screen.getByTestId('botCreateWarnings');
+            expect(within(banner).getByText(TITLE)).toBeInTheDocument();
+            expect(within(banner).getByText(ATTRS)).toBeInTheDocument();
+            expect(screen.getByText(token)).toBeInTheDocument();
+
+            const helpText = screen.getByText(/has been created successfully/);
+            expect(banner.compareDocumentPosition(helpText) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        });
+
+        test('removes bot_warnings from the URL, keeps type/id/token, and keeps the banner', () => {
+            renderConfirm(botSearch({attributesFailed: true}));
+
+            expect(replace).toHaveBeenCalledTimes(1);
+            expect(replace).toHaveBeenCalledWith(`${CONFIRM_PATH}?type=bots&id=${userId}&token=${token}`);
+
+            const params = new URLSearchParams(String(replace.mock.calls[0][0]).split('?')[1]);
+            expect(params.get('type')).toBe('bots');
+            expect(params.get('id')).toBe(userId);
+            expect(params.get('token')).toBe(token);
+            expect(params.has(BOT_CREATE_WARNINGS_PARAM)).toBe(false);
+
+            expect(screen.getByTestId('botCreateWarnings')).toBeInTheDocument();
+            expect(screen.getByText(token)).toBeInTheDocument();
+        });
+
+        test('keeps the other params when bot_warnings is not last', () => {
+            renderConfirm(`?type=bots&${withWarnings({rolesFailed: true})}&id=${userId}&token=${token}`);
+
+            expect(replace).toHaveBeenCalledTimes(1);
+            expect(replace).toHaveBeenCalledWith(`${CONFIRM_PATH}?type=bots&id=${userId}&token=${token}`);
+            expect(within(screen.getByTestId('botCreateWarnings')).getByText(ROLES)).toBeInTheDocument();
+        });
+
+        test('dismissing hides the banner', async () => {
+            renderConfirm(botSearch({attributesFailed: true}));
+
+            const banner = screen.getByTestId('botCreateWarnings');
+            await userEvent.click(within(banner).getByRole('button', {name: 'Close'}));
+
+            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.getByText(token)).toBeInTheDocument();
+        });
+
+        test('non-bot confirmation ignores bot warnings', () => {
+            renderConfirm(`?type=commands&id=${id}&${withWarnings({attributesFailed: true})}`);
+
+            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.getByText(token)).toBeInTheDocument();
+            expect(replace).not.toHaveBeenCalled();
+        });
+
+        test('unknown bot id with warnings only redirects to the error page', () => {
+            renderConfirm(`?type=bots&id=unknown&token=${token}&${withWarnings({attributesFailed: true})}`);
+
+            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(replace).toHaveBeenCalled();
+            for (const [path] of replace.mock.calls) {
+                expect(path).toBe(`/error?type=${ErrorPageTypes.PAGE_NOT_FOUND}`);
+            }
+        });
+
+        test('shows the warning once: it survives the cleanup rerender but not a fresh mount', () => {
+            const {rerender, unmount} = renderConfirm(botSearch({attributesFailed: true}));
+            const cleanedSearch = String(replace.mock.calls[0][0]).slice(CONFIRM_PATH.length);
+            expect(cleanedSearch).toBe(botSearch());
+
+            rerender(confirmElement(cleanedSearch));
+            expect(within(screen.getByTestId('botCreateWarnings')).getByText(ATTRS)).toBeInTheDocument();
+            expect(screen.getByText(token)).toBeInTheDocument();
+            expect(replace).toHaveBeenCalledTimes(1);
+            unmount();
+
+            renderConfirm(cleanedSearch);
+            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.getByText(token)).toBeInTheDocument();
+            expect(replace).toHaveBeenCalledTimes(1);
+        });
+
+        test('strips an unrecognized bot_warnings value without showing a banner', () => {
+            renderConfirm(`${botSearch()}&${BOT_CREATE_WARNINGS_PARAM}=foo`);
+
+            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.getByText(token)).toBeInTheDocument();
+            expect(replace).toHaveBeenCalledTimes(1);
+            expect(replace).toHaveBeenCalledWith(`${CONFIRM_PATH}${botSearch()}`);
+        });
     });
 });

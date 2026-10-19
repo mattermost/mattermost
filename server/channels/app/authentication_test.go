@@ -607,7 +607,15 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
+				// Set up before the attempts start: an expectation registered while
+				// another goroutine is calling DoLogin can match that call before its
+				// return values are set, which panics.
 				mockLdap := &mocks.LdapInterface{}
+				if tc.doLoginExpectedErrID == "ent.ldap.do_login.invalid_password.app_error" {
+					mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, &model.AppError{Id: tc.doLoginExpectedErrID})
+				} else {
+					mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), tc.password).Return(user, nil)
+				}
 				th.App.Channels().Ldap = mockLdap
 				// Reset login attempts
 				err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0)
@@ -623,12 +631,6 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 				for i := range concurrentAttempts {
 					go func(i int) {
 						defer completeWG.Done()
-
-						if tc.doLoginExpectedErrID == "ent.ldap.do_login.invalid_password.app_error" {
-							mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, &model.AppError{Id: tc.doLoginExpectedErrID})
-						} else {
-							mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), tc.password).Return(user, nil)
-						}
 						_, appErrs[i] = th.App.checkLdapUserPasswordAndAllCriteria(th.Context, user, tc.password, tc.mfaToken)
 					}(i)
 				}
@@ -637,14 +639,12 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 
 				expectedErrsCount := 0
 				for i := range concurrentAttempts {
+					require.NotNil(t, appErrs[i], "Every attempt should fail.")
 					if appErrs[i].Id == tc.expectedErrID {
 						expectedErrsCount++
 						continue
 					}
-
-					if appErrs[i] != nil {
-						require.Equal(t, "api.user.check_user_login_attempts.too_many_ldap.app_error", appErrs[i].Id, "All other errors should be of too many login attempts only.")
-					}
+					require.Equal(t, "api.user.check_user_login_attempts.too_many_ldap.app_error", appErrs[i].Id, "All other errors should be of too many login attempts only.")
 				}
 
 				// Password/MFA failure attempts should not breach the maxFailedAttempts
