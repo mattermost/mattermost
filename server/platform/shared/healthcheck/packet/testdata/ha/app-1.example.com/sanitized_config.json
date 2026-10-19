@@ -9,6 +9,9 @@
         "EnableIncomingWebhooks": true,
         "EnableOutgoingWebhooks": true
     },
+    "TeamSettings": {
+        "MaxNotificationsPerChannel": 1000
+    },
     "SqlSettings": {
         "DriverName": "postgres",
         "DataSource": "postgres://****:****@db.example.com:5432/mattermost?connect_timeout=10\u0026sslmode=require",

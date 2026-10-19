@@ -6,6 +6,7 @@ package commands
 import (
 	"archive/zip"
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -327,18 +328,42 @@ const healthTestPacketGeneratedAt = 1790330400000
 
 func healthTestPacketFiles() map[string]string {
 	return map[string]string{
-		model.PacketMetadataFileName:           "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
-		model.SupportPacketDiagnosticsFileName: "version: 2\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\ndatabase:\n  type: postgres\n  version: \"15.8\"\n  master_connections_in_use: 1\nelastic:\n  status: disabled\n",
-		model.SupportPacketStatsFileName:       "registered_users: 100\nposts: 1000\n",
-		model.SupportPacketConfigFileName: `{
-    "ServiceSettings": {"SiteURL": "https://chat.example.com"},
-    "SqlSettings": {"DataSource": "postgres://****:****@db.example.com:5432/mattermost", "MaxIdleConns": 50, "MaxOpenConns": 100, "Trace": false, "QueryTimeout": 30, "DisableDatabaseSearch": false},
-    "ClusterSettings": {"Enable": false},
-    "ElasticsearchSettings": {"EnableIndexing": false, "EnableSearching": false},
-    "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"},
-    "RateLimitSettings": {"Enable": true, "MemoryStoreSize": 10000}
-}`,
+		model.PacketMetadataFileName: "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
+		model.SupportPacketDiagnosticsFileName: `version: 2
+server:
+  hostname: mm.example.com
+  version: 11.0.4
+database:
+  type: postgres
+  version: "15.8"
+  master_connections_in_use: 1
+elastic:
+  status: disabled
+notifications:
+  email:
+    status: OK
+`,
+		model.SupportPacketStatsFileName:  "registered_users: 100\nposts: 1000\n",
+		model.SupportPacketConfigFileName: healthTestPacketConfig(),
 	}
+}
+
+// healthTestPacketConfig starts from defaults so new rules see a realistic config without editing this fixture.
+func healthTestPacketConfig() string {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.ServiceSettings.SiteURL = model.NewPointer("https://chat.example.com")
+	cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+	cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
+	cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.IdLoadedNotification)
+	cfg.SqlSettings.DataSource = model.NewPointer("postgres://****:****@db.example.com:5432/mattermost")
+	cfg.RateLimitSettings.Enable = model.NewPointer(true)
+
+	b, err := json.Marshal(cfg)
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
 }
 
 func (s *MmctlUnitTestSuite) writeHealthTestPacket(files map[string]string) string {
