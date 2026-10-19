@@ -167,7 +167,8 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
                             cy.wrap($el).find('legend, label').first().invoke('text').then((label) => {
                                 const name = label.trim();
                                 expect(name.length).to.be.greaterThan(0);
-                                cy.wrap($el).findByRole('textbox', {name}).should('exist');
+                                // Password inputs are not role=textbox; label text still names them.
+                                cy.wrap($el).findByLabelText(name).should('exist');
                             });
                         });
                     }

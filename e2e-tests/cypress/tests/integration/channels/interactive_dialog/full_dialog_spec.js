@@ -133,7 +133,11 @@ describe('Interactive Dialog - Apps Form', () => {
                             cy.get('span').should('have.text', element.placeholder);
                         });
                     } else {
-                        cy.get(`#${element.name}`).should('be.visible').and('have.value', element.default || '').and('have.attr', 'placeholder', element.placeholder || '');
+                        cy.get(`#${element.name}`).should('be.visible').and('have.value', element.default || '');
+                        // Compass omits empty placeholder attributes; only assert when provided.
+                        if (element.placeholder) {
+                            cy.get(`#${element.name}`).should('have.attr', 'placeholder', element.placeholder);
+                        }
                     }
 
                     // * Verify that input element are given with the correct type of "input", "email", "number" and "password".

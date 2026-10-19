@@ -144,7 +144,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/database",
-                "selector": "maxIdleConnsinput"
+                "selector": "maxIdleConnsnumber"
             }
         ]
     },
@@ -225,7 +225,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/session_lengths",
-                "selector": "sessionLengthWebInDaysinput"
+                "selector": "sessionLengthWebInHoursnumber"
             }
         ]
     },
@@ -270,7 +270,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/authentication/password",
-                "selector": "passwordMinimumLengthinput"
+                "selector": "passwordMinimumLengthnumber"
             }
         ]
     },
