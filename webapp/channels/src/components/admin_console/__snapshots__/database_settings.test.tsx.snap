@@ -141,12 +141,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                     >
                       <input
                         class="_text-input__input_3inqk_42"
-                        data-testid="maxIdleConnsinput"
+                        data-testid="maxIdleConnsnumber"
                         dir="auto"
                         id="maxIdleConns"
                         name="maxIdleConns"
                         placeholder="E.g.: \\"10\\""
-                        type="text"
+                        type="number"
                         value="10"
                       />
                     </div>
@@ -189,12 +189,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                     >
                       <input
                         class="_text-input__input_3inqk_42"
-                        data-testid="maxOpenConnsinput"
+                        data-testid="maxOpenConnsnumber"
                         dir="auto"
                         id="maxOpenConns"
                         name="maxOpenConns"
                         placeholder="E.g.: \\"10\\""
-                        type="text"
+                        type="number"
                         value="100"
                       />
                     </div>
@@ -237,12 +237,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                     >
                       <input
                         class="_text-input__input_3inqk_42"
-                        data-testid="queryTimeoutinput"
+                        data-testid="queryTimeoutnumber"
                         dir="auto"
                         id="queryTimeout"
                         name="queryTimeout"
                         placeholder="E.g.: \\"30\\""
-                        type="text"
+                        type="number"
                         value="10"
                       />
                     </div>
@@ -285,12 +285,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                     >
                       <input
                         class="_text-input__input_3inqk_42"
-                        data-testid="analyticsQueryTimeoutinput"
+                        data-testid="analyticsQueryTimeoutnumber"
                         dir="auto"
                         id="analyticsQueryTimeout"
                         name="analyticsQueryTimeout"
                         placeholder="E.g.: \\"300\\""
-                        type="text"
+                        type="number"
                         value="300"
                       />
                     </div>
@@ -333,12 +333,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                     >
                       <input
                         class="_text-input__input_3inqk_42"
-                        data-testid="connMaxLifetimeMillisecondsinput"
+                        data-testid="connMaxLifetimeMillisecondsnumber"
                         dir="auto"
                         id="connMaxLifetimeMilliseconds"
                         name="connMaxLifetimeMilliseconds"
                         placeholder="E.g.: \\"3600000\\""
-                        type="text"
+                        type="number"
                         value="10"
                       />
                     </div>
@@ -381,12 +381,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                     >
                       <input
                         class="_text-input__input_3inqk_42"
-                        data-testid="connMaxIdleTimeMillisecondsinput"
+                        data-testid="connMaxIdleTimeMillisecondsnumber"
                         dir="auto"
                         id="connMaxIdleTimeMilliseconds"
                         name="connMaxIdleTimeMilliseconds"
                         placeholder="E.g.: \\"300000\\""
-                        type="text"
+                        type="number"
                         value="20"
                       />
                     </div>
@@ -429,12 +429,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                     >
                       <input
                         class="_text-input__input_3inqk_42"
-                        data-testid="minimumHashtagLengthinput"
+                        data-testid="minimumHashtagLengthnumber"
                         dir="auto"
                         id="minimumHashtagLength"
                         name="minimumHashtagLength"
                         placeholder="E.g.: \\"3\\""
-                        type="text"
+                        type="number"
                         value="10"
                       />
                     </div>

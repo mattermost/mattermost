@@ -270,7 +270,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.MaxIdleConns')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <TextSetting
                     id='maxOpenConns'
@@ -285,7 +285,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.MaxOpenConns')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <TextSetting
                     id='queryTimeout'
@@ -300,7 +300,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.QueryTimeout')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <TextSetting
                     id='analyticsQueryTimeout'
@@ -315,7 +315,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.AnalyticsQueryTimeout')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <TextSetting
                     id='connMaxLifetimeMilliseconds'
@@ -330,7 +330,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.ConnMaxLifetimeMilliseconds')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <TextSetting
                     id='connMaxIdleTimeMilliseconds'
@@ -345,7 +345,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.ConnMaxIdleTimeMilliseconds')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <TextSetting
                     id='minimumHashtagLength'
@@ -360,7 +360,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.MinimumHashtagLength')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <BooleanSetting
                     id='trace'
