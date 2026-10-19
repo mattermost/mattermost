@@ -18,9 +18,13 @@ import (
 )
 
 // allowSelfInclusion stubs QueryUsersForExpression so checkSelfInclusion
-// succeeds for userID. Maybe() so tests whose expressions skip the check
-// ("true"/empty) still pass AssertExpectations.
+// succeeds for userID, and ExpressionToVisualAST so the advanced-rule check
+// sees every rule as table-editable. Maybe() so tests whose expressions skip
+// the checks ("true"/empty) still pass AssertExpectations.
 func allowSelfInclusion(mockACS *mocks.AccessControlServiceInterface, userID string) {
+	mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).
+		Return(&model.VisualExpression{}, nil).
+		Maybe()
 	mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
 		Return([]*model.User{{Id: userID}}, int64(1), nil).
 		Maybe()
@@ -697,6 +701,8 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 		mockACS := enableABAC()
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("model.SubjectSearchOptions")).
 			Return([]*model.User{{Id: teamAdmin.Id}}, int64(1), nil)
+		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).
+			Return(&model.VisualExpression{}, nil).Maybe()
 		return mockACS
 	}
 
@@ -899,6 +905,57 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		mockACS.AssertExpectations(t)
+	})
+
+	// Replaces the permissive default so the rule under test needs the Advanced editor.
+	requireAdvancedEditor := func(mockACS *mocks.AccessControlServiceInterface) {
+		kept := mockACS.ExpectedCalls[:0]
+		for _, call := range mockACS.ExpectedCalls {
+			if call.Method != "ExpressionToVisualAST" {
+				kept = append(kept, call)
+			}
+		}
+		mockACS.ExpectedCalls = kept
+		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).
+			Return(nil, model.NewAppError("ExpressionToVisualAST", "app.pap.expression_to_visual_ast.app_error", nil, "", http.StatusBadRequest))
+	}
+	complexRule := "user.attributes.department == 'a' || user.attributes.team == 'b'"
+
+	t.Run("channel admin cannot write a rule that needs the Advanced editor", func(t *testing.T) {
+		ch, client, mockACS := setupChannelAdmin(t)
+		requireAdvancedEditor(mockACS)
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), ch.Id).Return(nil, notFound)
+
+		req := &model.AccessControlPolicy{
+			ID:      ch.Id,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules:   membershipRule(complexRule),
+		}
+		_, resp, err := client.CreateAccessControlPolicy(context.Background(), req)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Contains(t, err.Error(), "advanced logic")
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("team admin cannot write a rule that needs the Advanced editor", func(t *testing.T) {
+		mockACS := setupTeamAdmin(t)
+		defer th.LoginBasic(t)
+		requireAdvancedEditor(mockACS)
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).Return(nil, notFound)
+
+		req := &model.AccessControlPolicy{
+			ID:      th.BasicTeam.Id,
+			Type:    model.AccessControlPolicyTypeTeam,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules:   membershipRule(complexRule),
+		}
+		_, resp, err := th.Client.CreateAccessControlPolicy(context.Background(), req)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Contains(t, err.Error(), "advanced logic")
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
 	})
 }
 

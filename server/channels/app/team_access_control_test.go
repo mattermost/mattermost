@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -699,6 +700,11 @@ func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 			mockACS.AssertExpectations(t)
 		})
 
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).
+			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusNotFound)).Once()
+		mockACS.On("ExpressionToVisualAST", mock.AnythingOfType("*request.Context"), "false").
+			Return(&model.VisualExpression{}, (*model.AppError)(nil)).Once()
+
 		// Guard calls QueryUsersForExpression with the caller as subject; return
 		// empty — caller does not satisfy the expression.
 		mockACS.On("QueryUsersForExpression",
@@ -752,6 +758,8 @@ func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 				{Actions: []string{"membership"}, Expression: "true"},
 			},
 		}
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).
+			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusNotFound)).Once()
 		// "true" skips checkSelfInclusion; SavePolicy is reached without a query.
 		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.Anything).
 			Return(savedPolicy, (*model.AppError)(nil)).Once()
@@ -798,6 +806,10 @@ func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 				{Actions: []string{"membership"}, Expression: expression},
 			},
 		}
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).
+			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusNotFound)).Once()
+		mockACS.On("ExpressionToVisualAST", mock.AnythingOfType("*request.Context"), expression).
+			Return(&model.VisualExpression{}, (*model.AppError)(nil)).Once()
 		// Non-"true" expression must go through checkSelfInclusion.
 		mockACS.On("QueryUsersForExpression",
 			mock.AnythingOfType("*request.Context"),
@@ -867,5 +879,210 @@ func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(rctx, teamPolicy)
 		require.Nil(t, appErr)
 		require.NotNil(t, result)
+	})
+}
+
+// TestCreateOrUpdateAccessControlPolicy_AdvancedMembershipRule verifies that
+// non-sysadmins can't write or replace a membership rule the table editor can't
+// represent, while resubmitting one unchanged still works.
+func TestCreateOrUpdateAccessControlPolicy_AdvancedMembershipRule(t *testing.T) {
+	const (
+		complexRule = `user.attributes.dept == "eng" || user.attributes.role == "lead"`
+		simpleRule  = `user.attributes.dept == "eng"`
+		otherSimple = `user.attributes.dept == "ops"`
+	)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		cfg.FeatureFlags.AttributeValueMasking = false
+	}).InitBasic(t)
+
+	callerID := th.BasicUser.Id
+	adminCtx := th.Context.WithSession(&model.Session{
+		UserId: callerID,
+		Id:     model.NewId(),
+		Roles:  model.SystemUserRoleId,
+	})
+	sysadminCtx := th.Context.WithSession(&model.Session{
+		UserId: th.SystemAdminUser.Id,
+		Id:     model.NewId(),
+		Roles:  model.SystemUserRoleId + " " + model.SystemAdminRoleId,
+	})
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+
+	notFound := model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusNotFound)
+	badRequest := model.NewAppError("ExpressionToVisualAST", "app.pap.expression_to_visual_ast.app_error", nil, "", http.StatusBadRequest)
+
+	setupMock := func(t *testing.T) *mocks.AccessControlServiceInterface {
+		t.Helper()
+		mockACS := &mocks.AccessControlServiceInterface{}
+		originalACS := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+		// Self-inclusion is not under test here.
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).
+			Return([]*model.User{{Id: callerID}}, int64(1), nil).Maybe()
+		return mockACS
+	}
+
+	policyWith := func(id string, typ string, expression string) *model.AccessControlPolicy {
+		return &model.AccessControlPolicy{
+			ID:   id,
+			Type: typ,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: expression},
+			},
+		}
+	}
+
+	ctxMatcher := mock.AnythingOfType("*request.Context")
+
+	t.Run("team admin writing a complex rule on a new policy is rejected", func(t *testing.T) {
+		mockACS := setupMock(t)
+		mockACS.On("GetPolicy", ctxMatcher, th.BasicTeam.Id).Return(nil, notFound).Once()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, complexRule).Return(nil, badRequest).Once()
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, complexRule))
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Equal(t, "app.pap.save_policy.advanced_rule_requires_system_admin", appErr.Id)
+		assert.Nil(t, result)
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("team admin replacing a stored complex rule with a simple one is rejected", func(t *testing.T) {
+		mockACS := setupMock(t)
+		mockACS.On("GetPolicy", ctxMatcher, th.BasicTeam.Id).
+			Return(policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, complexRule), nil).Once()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, simpleRule).Return(&model.VisualExpression{}, nil).Maybe()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, complexRule).Return(nil, badRequest).Once()
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, simpleRule))
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Equal(t, "app.pap.save_policy.advanced_rule_requires_system_admin", appErr.Id)
+		assert.Nil(t, result)
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("team admin resubmitting the stored complex rule unchanged saves", func(t *testing.T) {
+		mockACS := setupMock(t)
+		stored := policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, complexRule)
+		mockACS.On("GetPolicy", ctxMatcher, th.BasicTeam.Id).Return(stored, nil).Once()
+		mockACS.On("SavePolicy", ctxMatcher, mock.Anything).Return(stored, nil).Once()
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, complexRule))
+		require.Nil(t, appErr)
+		require.NotNil(t, result)
+		mockACS.AssertNotCalled(t, "ExpressionToVisualAST", mock.Anything, mock.Anything)
+	})
+
+	t.Run("team admin changing a simple rule to another simple one saves", func(t *testing.T) {
+		mockACS := setupMock(t)
+		mockACS.On("GetPolicy", ctxMatcher, th.BasicTeam.Id).
+			Return(policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, simpleRule), nil).Once()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, simpleRule).Return(&model.VisualExpression{}, nil).Once()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, otherSimple).Return(&model.VisualExpression{}, nil).Once()
+		saved := policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, otherSimple)
+		mockACS.On("SavePolicy", ctxMatcher, mock.Anything).Return(saved, nil).Once()
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, otherSimple))
+		require.Nil(t, appErr)
+		require.NotNil(t, result)
+	})
+
+	t.Run("channel admin writing a complex rule on a channel policy is rejected", func(t *testing.T) {
+		mockACS := setupMock(t)
+		mockACS.On("GetPolicy", ctxMatcher, privateChannel.Id).Return(nil, notFound).Once()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, complexRule).Return(nil, badRequest).Once()
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, policyWith(privateChannel.Id, model.AccessControlPolicyTypeChannel, complexRule))
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Equal(t, "app.pap.save_policy.advanced_rule_requires_system_admin", appErr.Id)
+		assert.Nil(t, result)
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("system admin writing a complex rule skips the check and saves", func(t *testing.T) {
+		mockACS := setupMock(t)
+		saved := policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, complexRule)
+		mockACS.On("SavePolicy", ctxMatcher, mock.Anything).Return(saved, nil).Once()
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(sysadminCtx, policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, complexRule))
+		require.Nil(t, appErr)
+		require.NotNil(t, result)
+		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
+		mockACS.AssertNotCalled(t, "ExpressionToVisualAST", mock.Anything, mock.Anything)
+	})
+
+	t.Run("a non-400 conversion error propagates", func(t *testing.T) {
+		mockACS := setupMock(t)
+		serverErr := model.NewAppError("ExpressionToVisualAST", "app.pap.expression_to_visual_ast.app_error", nil, "", http.StatusInternalServerError)
+		mockACS.On("GetPolicy", ctxMatcher, th.BasicTeam.Id).Return(nil, notFound).Once()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, simpleRule).Return(nil, serverErr).Once()
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, simpleRule))
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		assert.Equal(t, serverErr.Id, appErr.Id)
+		assert.Nil(t, result)
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("team admin adding a second complex membership rule is rejected", func(t *testing.T) {
+		mockACS := setupMock(t)
+		mockACS.On("GetPolicy", ctxMatcher, th.BasicTeam.Id).
+			Return(policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, simpleRule), nil).Once()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, simpleRule).Return(&model.VisualExpression{}, nil).Maybe()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, complexRule).Return(nil, badRequest).Once()
+
+		submitted := policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, simpleRule)
+		submitted.Rules = append(submitted.Rules, model.AccessControlPolicyRule{Actions: []string{"membership"}, Expression: complexRule})
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, submitted)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Equal(t, "app.pap.save_policy.advanced_rule_requires_system_admin", appErr.Id)
+		assert.Nil(t, result)
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("team admin replacing a stored named complex membership rule is rejected", func(t *testing.T) {
+		mockACS := setupMock(t)
+		stored := policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, simpleRule)
+		stored.Rules = append(stored.Rules, model.AccessControlPolicyRule{Name: "leads", Actions: []string{"membership"}, Expression: complexRule})
+		mockACS.On("GetPolicy", ctxMatcher, th.BasicTeam.Id).Return(stored, nil).Once()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, complexRule).Return(nil, badRequest).Once()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, mock.Anything).Return(&model.VisualExpression{}, nil).Maybe()
+
+		submitted := policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, simpleRule)
+		submitted.Rules = append(submitted.Rules, model.AccessControlPolicyRule{Name: "leads", Actions: []string{"membership"}, Expression: otherSimple})
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, submitted)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Equal(t, "app.pap.save_policy.advanced_rule_requires_system_admin", appErr.Id)
+		assert.Nil(t, result)
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("team admin resubmitting stored membership rules in a different order saves", func(t *testing.T) {
+		mockACS := setupMock(t)
+		stored := policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, simpleRule)
+		stored.Rules = append(stored.Rules, model.AccessControlPolicyRule{Actions: []string{"membership"}, Expression: complexRule})
+		mockACS.On("GetPolicy", ctxMatcher, th.BasicTeam.Id).Return(stored, nil).Once()
+		mockACS.On("SavePolicy", ctxMatcher, mock.Anything).Return(stored, nil).Once()
+
+		submitted := policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, complexRule)
+		submitted.Rules = append(submitted.Rules, model.AccessControlPolicyRule{Actions: []string{"membership"}, Expression: simpleRule})
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, submitted)
+		require.Nil(t, appErr)
+		require.NotNil(t, result)
+		mockACS.AssertNotCalled(t, "ExpressionToVisualAST", mock.Anything, mock.Anything)
 	})
 }

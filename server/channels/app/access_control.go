@@ -505,6 +505,9 @@ func saveForbiddenError(rctx request.CTX, where, internalReason string) *model.A
 //     so plugin saves pass mergeFromStore=false)
 //  3. rejectMaskedTokens — never persist the masking sentinel
 //
+// Non-sysadmins also can't write or replace a channel/team membership rule that
+// needs the Advanced editor (checkMembershipRuleEditable).
+//
 // Self-inclusion always runs for non-sysadmins with a non-empty callerID, even
 // when AttributeValueMasking is off. That matches product intent (a non-sysadmin
 // cannot save a policy that excludes them) and keeps the plugin path from
@@ -553,6 +556,11 @@ func (a *App) enforceAccessControlPolicyWriteGuards(
 	}
 
 	if callerID != "" && !a.HasPermissionTo(rctx, callerID, model.PermissionManageSystem) {
+		if policy.Type == model.AccessControlPolicyTypeTeam || policy.Type == model.AccessControlPolicyTypeChannel {
+			if appErr := a.checkMembershipRuleEditable(rctx, policy); appErr != nil {
+				return nil, appErr
+			}
+		}
 		if appErr := a.checkSelfInclusion(rctx, policy, callerID, mergedHidden); appErr != nil {
 			return nil, appErr
 		}
@@ -583,6 +591,64 @@ func (a *App) checkSelfInclusion(rctx request.CTX, policy *model.AccessControlPo
 	}
 
 	return nil
+}
+
+// checkMembershipRuleEditable keeps membership rules the table editor can't represent
+// (|| beyond multiselect "any of", grouping) System Console only: a non-sysadmin may
+// resubmit them unchanged, but not write one or replace one. Runs after the masking
+// merge so an unchanged masked round-trip compares equal to the stored rules.
+//
+// Covers every rule carrying the membership action, named or not, because the engine
+// ORs all of them; checking only the first would let a second rule slip through.
+func (a *App) checkMembershipRuleEditable(rctx request.CTX, policy *model.AccessControlPolicy) *model.AppError {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil
+	}
+
+	existing, appErr := acs.GetPolicy(rctx, policy.ID)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		return appErr
+	}
+
+	submitted := membershipExpressions(policy)
+	stored := membershipExpressions(existing)
+	if slices.Equal(submitted, stored) {
+		return nil
+	}
+
+	all := slices.Concat(submitted, stored)
+	slices.Sort(all)
+	for _, expression := range slices.Compact(all) {
+		if expression == "" || expression == "true" {
+			continue
+		}
+		// Same conversion the table editor loads rules with; it fails exactly when the rule needs the Advanced editor.
+		if _, appErr := acs.ExpressionToVisualAST(rctx, expression); appErr != nil {
+			if appErr.StatusCode != http.StatusBadRequest {
+				return appErr
+			}
+			return model.NewAppError("checkMembershipRuleEditable", "app.pap.save_policy.advanced_rule_requires_system_admin", nil, "", http.StatusForbidden)
+		}
+	}
+
+	return nil
+}
+
+// membershipExpressions returns the sorted expressions of every rule on p that carries
+// the membership action, so a reorder alone doesn't read as a change. Nil-safe.
+func membershipExpressions(p *model.AccessControlPolicy) []string {
+	if p == nil {
+		return nil
+	}
+	var expressions []string
+	for _, rule := range p.Rules {
+		if slices.Contains(rule.Actions, model.AccessControlPolicyActionMembership) || slices.Contains(rule.Actions, "*") {
+			expressions = append(expressions, rule.Expression)
+		}
+	}
+	slices.Sort(expressions)
+	return expressions
 }
 
 func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppError {

@@ -10256,6 +10256,11 @@
     "description": "API error for admins when restoring rank-comparison operators in an access control policy expression fails; technical failure, not user mistake."
   },
   {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Only a System Admin can change membership rules that use advanced logic. Edit them in the System Console.",
+    "description": "API error when a team or channel admin tries to save, or replace, a membership rule that can only be edited in the System Console's Advanced (CEL) editor."
+  },
+  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy.",
     "description": "Generic API error shown to system admins when saving an attribute-based access control policy fails."
