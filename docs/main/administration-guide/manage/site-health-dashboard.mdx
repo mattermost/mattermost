@@ -2,11 +2,13 @@
 title: "Site health dashboard"
 ---
 
+<PlanAvailability slug="entry-ent" />
+
 From Mattermost v12.1, the Site health dashboard gives system administrators a single view of active health findings across their Mattermost deployment.
 
 <Important>
 
-The Site health dashboard is controlled by the `HealthDashboard` feature flag, which is off by default. Contact your Mattermost account team to enable it.
+The Site health dashboard is controlled by the `HealthDashboard` feature flag, which is off by default. Contact your Mattermost account team to enable it. Health checks only run on servers with an Entry, Enterprise, or Enterprise Advanced license; on other plans the dashboard shows no findings.
 
 </Important>
 
@@ -14,9 +16,23 @@ The Site health dashboard is controlled by the `HealthDashboard` feature flag, w
 
 Go to **System Console \> Reporting \> Site health**. Only system administrators can access this page.
 
+## What the dashboard checks
+
+The dashboard runs built-in checks against your configuration and the live state of your deployment. Checks are grouped into the following categories:
+
+| Category | Examples of what is checked |
+| --- | --- |
+| Platform | Site URL is set and uses HTTPS, file storage is reachable, plugins are enabled and running, file logging level, API rate limiting, file descriptor usage, and the host operating system. |
+| Database | Connection pool sizing and saturation, read and search replicas, query timeout, SQL tracing, and the PostgreSQL version. |
+| Search | Search availability, Elasticsearch or OpenSearch version and plugins, connection security, indexing batch size, and whether your post volume calls for Elasticsearch. |
+| Cluster | High availability nodes that can't reach each other, a cluster running with a single node, mixed Mattermost versions across nodes, unencrypted cluster traffic, and the cache backend at scale. |
+| Notifications | Push notification server address and security, push notification contents, SMTP connectivity, and channel-wide mentions in large channels. |
+| Jobs | Background jobs that failed, are stuck in progress, or have made no progress. |
+| Version | Whether your Mattermost version is past end of life, an Extended Support Release is nearing end of life, or newer releases are available. |
+
 ## Understanding findings
 
-The dashboard continuously evaluates your deployment and surfaces findings in one of three states:
+The dashboard evaluates your deployment and surfaces findings in one of three states:
 
 | State | Meaning |
 | --- | --- |
@@ -25,6 +41,21 @@ The dashboard continuously evaluates your deployment and surfaces findings in on
 | Resolved | The check was previously failing and has since passed. |
 
 Each finding row shows its severity, title, category area, and how long the condition has been in its current state. Select a row to expand it and read the full description and any remediation guidance.
+
+### Severity levels
+
+| Severity | Meaning | What to do |
+| --- | --- | --- |
+| Critical | A core capability is broken or at imminent risk, such as an unsupported Mattermost version, search being unavailable, or the database connection pool being nearly exhausted. | Fix as soon as possible. |
+| Warning | A misconfiguration or risk that degrades security, reliability, or performance but isn't causing an outage today. | Plan a fix. |
+| Info | A recommendation or best practice for your deployment's size and setup. | Review and decide whether it applies to you. |
+
+### How checks run
+
+Checks run automatically about once an hour. In a high availability cluster, one node runs the checks on behalf of the whole cluster.
+
+- After you fix the cause of a finding, it moves to **Recently resolved** after the next check run, which can take up to an hour.
+- A finding becomes **Unknown** when the information needed to evaluate it isn't available, for example because a service the check depends on can't be reached, or because the check hasn't reported for longer than expected.
 
 ### Filter by tab
 
@@ -65,15 +96,6 @@ Each muted finding row shows:
 - When it was muted (relative time, shown as "just now" for the first minute).
 - An **Unmute** button.
 
-Display names follow the **Teammate name display** setting configured in **System Console \> Site configuration \> Users and teams**.
-
 ### Unmute a finding
 
 Select **Unmute** on any row in the muted list. The finding returns to the open list immediately.
-
-### Error handling
-
-If a mute or unmute request fails, the change is rolled back and a dismissible error banner appears:
-
-- Mute failure: *The finding could not be muted, so it is still in the open list. Try again.*
-- Unmute failure: *The finding could not be unmuted, so it is still muted. Try again.*
