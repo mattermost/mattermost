@@ -1614,7 +1614,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin2"}
 		plugin, resp, err := client.InstallMarketplacePlugin(context.Background(), pRequest)
 		require.Error(t, err)
-		CheckInternalErrorStatus(t, resp)
+		CheckBadRequestStatus(t, resp)
 		require.Nil(t, plugin)
 	}, "plugin not verified")
 
@@ -1728,7 +1728,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin"}
 		manifest, resp, err := client.InstallMarketplacePlugin(context.Background(), pRequest)
 		require.Error(t, err)
-		CheckInternalErrorStatus(t, resp)
+		CheckBadRequestStatus(t, resp)
 		require.Nil(t, manifest)
 		assert.True(t, requestHandled)
 	}, "verify EnterprisePlugins is false for TE")
@@ -2089,7 +2089,7 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 			pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin"}
 			manifest, resp, err := client.InstallMarketplacePlugin(context.Background(), pRequest)
 			require.Error(t, err)
-			CheckInternalErrorStatus(t, resp)
+			CheckBadRequestStatus(t, resp)
 			require.Nil(t, manifest)
 
 			pluginsResp, _, err = client.GetPlugins(context.Background())
@@ -2100,7 +2100,7 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 			pRequest = &model.InstallMarketplacePluginRequest{Id: "testplugin2"}
 			manifest, resp, err = client.InstallMarketplacePlugin(context.Background(), pRequest)
 			require.Error(t, err)
-			CheckInternalErrorStatus(t, resp)
+			CheckBadRequestStatus(t, resp)
 			require.Nil(t, manifest)
 
 			pluginsResp, _, err = client.GetPlugins(context.Background())
