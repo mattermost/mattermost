@@ -75,6 +75,11 @@ sleep "$INITIAL_DELAY_SECONDS"
 
 if ! candidates=$(search_prs); then
   echo "::warning::Searching for PRs labeled ${LABEL} failed; will retry on the next ${BASE_REF} merge."
+  {
+    echo "## Conflicts babysit"
+    echo ""
+    echo "Searching for PRs labeled \`${LABEL}\` failed, so no PRs were processed. Will retry on the next \`${BASE_REF}\` merge."
+  } >> "$SUMMARY_FILE"
   exit 0
 fi
 while IFS=$'\t' read -r number pr_url ref sha mergeable cross_repo; do

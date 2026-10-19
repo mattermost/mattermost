@@ -43,6 +43,7 @@ jobs:
       # Best-effort: failures surface as warnings and in the job summary, never
       # as a red run on master.
       - name: Checkout
+        id: checkout
         if: steps.gate.outputs.run == 'true'
         continue-on-error: true
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -51,7 +52,8 @@ jobs:
           persist-credentials: false
 
       - name: Dispatch conflicting PRs
-        if: steps.gate.outputs.run == 'true'
+        id: dispatch
+        if: steps.gate.outputs.run == 'true' && steps.checkout.outcome == 'success'
         continue-on-error: true
         timeout-minutes: 10
         env:
@@ -63,3 +65,23 @@ jobs:
           BASE_SHA: ${{ github.sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: .github/scripts/conflicts-babysit.sh
+
+      - name: Report step failures
+        if: >-
+          always() && steps.gate.outputs.run == 'true' &&
+          (steps.checkout.outcome == 'failure' || steps.dispatch.outcome == 'failure')
+        env:
+          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          DISPATCH_OUTCOME: ${{ steps.dispatch.outcome }}
+        run: |
+          echo "::warning::Conflicts babysit did not complete (checkout: ${CHECKOUT_OUTCOME}, dispatch: ${DISPATCH_OUTCOME}); will retry on the next master merge."
+          {
+            echo "## Conflicts babysit"
+            echo ""
+            echo "A step failed, so some PRs may not have been dispatched."
+            echo ""
+            echo "| Step | Outcome |"
+            echo "| --- | --- |"
+            echo "| Checkout | ${CHECKOUT_OUTCOME} |"
+            echo "| Dispatch | ${DISPATCH_OUTCOME} |"
+          } >> "$GITHUB_STEP_SUMMARY"
