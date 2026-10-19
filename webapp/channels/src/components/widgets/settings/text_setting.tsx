@@ -29,6 +29,9 @@ export type Props = {
     type?: InputTypes;
     autoFocus?: boolean;
     multiple?: boolean;
+    min?: number | string;
+    max?: number | string;
+    step?: number | string;
 };
 
 function TextSetting(props: Props) {
@@ -51,12 +54,12 @@ function TextSetting(props: Props) {
     // Compass TextInput/TextArea for chrome only — keep the classic Setting
     // left-column label (no floating legend). Account Settings and other
     // call sites that want floating labels use Input with useLegend default.
-    const useCompassField = type === 'text' || type === 'textarea';
+    const useCompassField = type === 'text' || type === 'textarea' || type === 'number';
 
     let input = null;
     if (useCompassField) {
-        // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
-        const testId = `${props.id}input`;
+        // e2e tests use `${id}input` for text/textarea and `${id}number` for number
+        const testId = type === 'number' ? `${props.id}number` : `${props.id}input`;
         const inputValue = Array.isArray(props.value) ? props.value.join(',') : props.value;
         const resolvedMaxLength = maxLength >= 0 ? maxLength : undefined;
 
@@ -69,6 +72,9 @@ function TextSetting(props: Props) {
                 value={inputValue}
                 placeholder={props.placeholder}
                 maxLength={resolvedMaxLength}
+                min={props.min}
+                max={props.max}
+                step={props.step}
                 disabled={props.disabled}
                 autoFocus={props.autoFocus}
                 onChange={handleChange}
@@ -99,6 +105,9 @@ function TextSetting(props: Props) {
                 placeholder={props.placeholder}
                 value={props.value}
                 maxLength={maxLength}
+                min={props.min}
+                max={props.max}
+                step={props.step}
                 onChange={handleChange}
                 disabled={props.disabled}
             />

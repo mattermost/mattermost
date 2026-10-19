@@ -161,16 +161,33 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="pushNotificationServerinput"
-                disabled=""
-                id="pushNotificationServer"
-                maxlength="-1"
-                placeholder="E.g.: \\"https://push-test.mattermost.com\\""
-                type="text"
-                value="https://global.push.mattermost.com"
-              />
+              <div
+                class="Input_container disabled"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="pushNotificationServerinput"
+                        dir="auto"
+                        disabled=""
+                        id="pushNotificationServer"
+                        name="pushNotificationServer"
+                        placeholder="E.g.: \\"https://push-test.mattermost.com\\""
+                        type="text"
+                        value="https://global.push.mattermost.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="pushNotificationServerhelp-text"
@@ -220,15 +237,32 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="maxNotificationsPerChannelnumber"
-                id="maxNotificationsPerChannel"
-                maxlength="-1"
-                placeholder="E.g.: \\"1000\\""
-                type="number"
-                value="1000"
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="maxNotificationsPerChannelnumber"
+                        dir="auto"
+                        id="maxNotificationsPerChannel"
+                        name="maxNotificationsPerChannel"
+                        placeholder="E.g.: \\"1000\\""
+                        type="number"
+                        value="1000"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="maxNotificationsPerChannelhelp-text"
@@ -337,15 +371,32 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="pushNotificationServerinput"
-                id="pushNotificationServer"
-                maxlength="-1"
-                placeholder="E.g.: \\"https://push-test.mattermost.com\\""
-                type="text"
-                value="https://global.push.mattermost.com"
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="pushNotificationServerinput"
+                        dir="auto"
+                        id="pushNotificationServer"
+                        name="pushNotificationServer"
+                        placeholder="E.g.: \\"https://push-test.mattermost.com\\""
+                        type="text"
+                        value="https://global.push.mattermost.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="pushNotificationServerhelp-text"
@@ -377,15 +428,32 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                data-testid="maxNotificationsPerChannelnumber"
-                id="maxNotificationsPerChannel"
-                maxlength="-1"
-                placeholder="E.g.: \\"1000\\""
-                type="number"
-                value="1000"
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="maxNotificationsPerChannelnumber"
+                        dir="auto"
+                        id="maxNotificationsPerChannel"
+                        name="maxNotificationsPerChannel"
+                        placeholder="E.g.: \\"1000\\""
+                        type="number"
+                        value="1000"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="maxNotificationsPerChannelhelp-text"

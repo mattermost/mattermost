@@ -45,4 +45,29 @@ describe('components/admin_console/TextSetting', () => {
         expect(screen.getByTestId('some.idinput')).toBeDisabled();
         expect(screen.getByText(/environment variable/i)).toBeInTheDocument();
     });
+
+    test('renders Compass number input with left label and SetByEnv footer', () => {
+        const {container} = renderWithContext(
+            <AdminTextSetting
+                id='ServiceSettings.ReadTimeout'
+                label='Read Timeout'
+                value={300}
+                type='number'
+                onChange={jest.fn()}
+                setByEnv={true}
+                helpText='help'
+            />,
+        );
+
+        expect(screen.getByTestId('ServiceSettings.ReadTimeoutlabel')).toHaveTextContent('Read Timeout');
+        const input = screen.getByTestId('ServiceSettings.ReadTimeoutnumber');
+        expect(input).toHaveAttribute('type', 'number');
+        expect(input).toHaveAttribute('id', 'ServiceSettings.ReadTimeout');
+        expect(input).toBeDisabled();
+        expect(input).not.toHaveClass('form-control');
+        expect(container.querySelector('.Input_container')).toBeInTheDocument();
+        expect(container.querySelector('legend')).not.toBeInTheDocument();
+        expect(screen.getByTestId('ServiceSettings.ReadTimeouthelp-text')).toHaveTextContent('help');
+        expect(screen.getByText(/environment variable/i)).toBeInTheDocument();
+    });
 });

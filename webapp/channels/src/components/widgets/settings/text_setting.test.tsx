@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {render, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {fireEvent, render, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import TextSetting from './text_setting';
 
@@ -99,22 +99,53 @@ describe('components/widgets/settings/TextSetting', () => {
         expect(screen.getByTestId('apps.fieldinput')).toBeInTheDocument();
     });
 
-    test('should keep native form-control for number type', () => {
+    test('should render Compass Input without floating label for number type', () => {
+        const onChange = jest.fn();
+        const {container} = render(
+            <TextSetting
+                id='string.id'
+                label='some label'
+                value={42}
+                type='number'
+                min={1}
+                max={100}
+                step={1}
+                onChange={onChange}
+            />,
+        );
+
+        expect(screen.getByTestId('string.idlabel')).toHaveTextContent('some label');
+
+        const input = screen.getByTestId('string.idnumber');
+        expect(input).toBeInTheDocument();
+        expect(input).toHaveValue(42);
+        expect(input).toHaveAttribute('type', 'number');
+        expect(input).toHaveAttribute('id', 'string.id');
+        expect(input).toHaveAttribute('min', '1');
+        expect(input).toHaveAttribute('max', '100');
+        expect(input).toHaveAttribute('step', '1');
+        expect(input).not.toHaveClass('form-control');
+        expect(container.querySelector('.Input_container')).toBeInTheDocument();
+        expect(container.querySelector('legend')).not.toBeInTheDocument();
+    });
+
+    test('should parse number onChange for number type', () => {
         const onChange = jest.fn();
         render(
             <TextSetting
                 id='string.id'
                 label='some label'
-                value={42}
+                value={1}
                 type='number'
                 onChange={onChange}
             />,
         );
 
         const input = screen.getByTestId('string.idnumber');
-        expect(input).toHaveClass('form-control');
-        expect(input).toHaveAttribute('type', 'number');
-        expect(screen.getByTestId('string.idlabel')).toBeInTheDocument();
+        fireEvent.change(input, {target: {value: '7'}});
+
+        expect(onChange).toHaveBeenCalledTimes(1);
+        expect(onChange).toHaveBeenCalledWith('string.id', 7);
     });
 
     test('should call onChange when input value changes', async () => {
