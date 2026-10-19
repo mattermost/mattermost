@@ -10,6 +10,7 @@ import type {AdminConfig} from '@mattermost/types/config';
 import {recycleDatabaseConnection, ping} from 'actions/admin_actions';
 
 import ExternalLink from 'components/external_link';
+import Input from 'components/widgets/inputs/input/input';
 
 import {DocLinks} from 'utils/constants';
 
@@ -420,12 +421,16 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                         />
                     </label>
                     <div className='col-sm-8'>
-                        <input
+                        <Input
                             id='activeSearchBackend'
+                            name='activeSearchBackend'
                             type='text'
-                            className='form-control'
                             value={this.state.searchBackend}
-                            disabled={true}
+                            readOnly={true}
+                            useLegend={false}
+
+                            // Left-column label owns the accessible name.
+                            aria-label={undefined}
                         />
                         <div className='help-text'>
                             <FormattedMessage

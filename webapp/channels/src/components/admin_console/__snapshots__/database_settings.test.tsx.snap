@@ -667,13 +667,31 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                disabled=""
-                id="activeSearchBackend"
-                type="text"
-                value=""
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="input-wrapper"
+                        id="activeSearchBackend"
+                        name="activeSearchBackend"
+                        readonly=""
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
               >
