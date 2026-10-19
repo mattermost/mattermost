@@ -14482,11 +14482,6 @@
     "description": "Health dashboard finding detail when the license has expired; {{.expires_at}} is the expiry date (YYYY-MM-DD)."
   },
   {
-    "id": "health.rule.license_expired.message.entry",
-    "translation": "The license expired on {{.expires_at}}.",
-    "description": "Health dashboard finding detail when a Mattermost Entry license has expired; {{.expires_at}} is the expiry date (YYYY-MM-DD). 'Mattermost Entry' is a product name and should not be translated."
-  },
-  {
     "id": "health.rule.license_expired.message.trial",
     "translation": "The trial license expired on {{.expires_at}}. The server removes an expired license 10 days after it expires, and Enterprise features stop working.",
     "description": "Health dashboard finding detail when a trial license has expired; {{.expires_at}} is the expiry date (YYYY-MM-DD)."

@@ -78,12 +78,7 @@ func evalLicenseExpired(s *healthcheck.Snapshot) []healthcheck.Result {
 		return []healthcheck.Result{healthcheck.Unknown(reasonID)}
 	case remaining < 0:
 		messageID := healthcheck.TranslationId("health.rule.license_expired.message")
-		license, _ := s.License()
-		switch {
-		// The server never removes an expired Entry license, see doLicenseExpirationCheck.
-		case license.IsMattermostEntry():
-			messageID = healthcheck.TranslationId("health.rule.license_expired.message.entry")
-		case license.IsTrial:
+		if license, _ := s.License(); license.IsTrial {
 			messageID = healthcheck.TranslationId("health.rule.license_expired.message.trial")
 		}
 		return []healthcheck.Result{firingExpiry(messageID, expiresAt, remaining)}
