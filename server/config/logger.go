@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/mattermost/logr/v2"
 
@@ -75,8 +76,8 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 	var err error
 
 	// add the simple audit config
-	if *auditSettings.FileEnabled {
-		targetCfg, err = makeSimpleFileTarget(*auditSettings.FileName, "error", true)
+	if model.SafeDereference(auditSettings.FileEnabled) {
+		targetCfg, err = makeSimpleFileTarget(model.SafeDereference(auditSettings.FileName), "error", true)
 		if err != nil {
 			return nil, err
 		}
@@ -128,9 +129,11 @@ var auditLevelIDs = func() map[logr.LevelID]struct{} {
 // adds on top of ExperimentalAuditSettings, whether or not advanced logging is licensed.
 const AdditionalAuditTargetsEnv = "MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL"
 
-// AdditionalAuditConfig returns the audit targets defined by AdditionalAuditTargetsEnv, or nil
-// when it is unset.
-func AdditionalAuditConfig() (mlog.LoggerConfiguration, error) {
+// additionalAuditConfig reads AdditionalAuditTargetsEnv once, so every check sees the value
+// configureAudit used. Tests that set the env var must reset it.
+var additionalAuditConfig = sync.OnceValues(readAdditionalAuditConfig)
+
+func readAdditionalAuditConfig() (mlog.LoggerConfiguration, error) {
 	additionalJSON := strings.TrimSpace(os.Getenv(AdditionalAuditTargetsEnv))
 	if additionalJSON == "" {
 		return nil, nil
@@ -143,18 +146,38 @@ func AdditionalAuditConfig() (mlog.LoggerConfiguration, error) {
 	return cfg, nil
 }
 
+// AdditionalAuditConfig returns the audit targets defined by AdditionalAuditTargetsEnv, or nil
+// when it is unset.
+func AdditionalAuditConfig() (mlog.LoggerConfiguration, error) {
+	cfg, err := additionalAuditConfig()
+	return maps.Clone(cfg), err
+}
+
+// EffectiveAuditConfig returns the audit targets the server configures: the basic `_defAudit`
+// file target, the advanced config from configSrc, then AdditionalAuditTargetsEnv. Later
+// targets replace earlier ones of the same name.
+func EffectiveAuditConfig(auditSettings model.ExperimentalAuditSettings, configSrc LogConfigSrc) (mlog.LoggerConfiguration, error) {
+	cfg, err := MloggerConfigFromAuditConfig(auditSettings, configSrc)
+	if err != nil {
+		return nil, fmt.Errorf("invalid config for audit, %w", err)
+	}
+
+	cfgAdditional, err := AdditionalAuditConfig()
+	if err != nil {
+		return nil, fmt.Errorf("invalid additional config for audit, %w", err)
+	}
+	cfg.Append(cfgAdditional)
+
+	return cfg, nil
+}
+
 // IsAuditLoggingActive reports whether the server is actually emitting audit logs to at
 // least one sink, given the audit settings and whether advanced logging is licensed.
 //
-// It returns true when basic file auditing is enabled, or when the advanced audit logging
-// config or AdditionalAuditTargetsEnv defines at least one target bound to an audit level.
-// Advanced-logging targets that route nothing to an audit level return false.
+// It returns true when the effective audit config has at least one target bound to an
+// audit level. A config that routes nothing to an audit level returns false.
 func IsAuditLoggingActive(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool) bool {
-	if auditSettings.FileEnabled != nil && *auditSettings.FileEnabled {
-		return true
-	}
-
-	return hasAdvancedAuditTarget(auditSettings, allowAdvancedLogging, func(l mlog.Level) bool {
+	return hasAuditTargetFor(auditSettings, allowAdvancedLogging, func(l mlog.Level) bool {
 		_, ok := auditLevelIDs[l.ID]
 		return ok
 	})
@@ -167,36 +190,32 @@ func IsAuditLoggingActive(auditSettings model.ExperimentalAuditSettings, allowAd
 // one the built-in `_defAudit` target is bound to. Enabling
 // ExperimentalAuditSettings.FileEnabled does not make audit-delivery active, for example.
 func IsAuditLevelActive(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool, level mlog.Level) bool {
-	if auditSettings.FileEnabled != nil && *auditSettings.FileEnabled &&
-		slices.ContainsFunc(basicAuditFileLevels, func(l mlog.Level) bool { return l.ID == level.ID }) {
-		return true
-	}
-
-	return hasAdvancedAuditTarget(auditSettings, allowAdvancedLogging, func(l mlog.Level) bool {
+	return hasAuditTargetFor(auditSettings, allowAdvancedLogging, func(l mlog.Level) bool {
 		return l.ID == level.ID
 	})
 }
 
-// hasAdvancedAuditTarget reports whether a target from the licensed advanced audit logging
-// config or from AdditionalAuditTargetsEnv is bound to a level accepted by matches.
-// Unparseable AdvancedLoggingJSON contributes no targets. Malformed additional config
-// reports inactive: configureAudit returns before Configure, so those advanced targets
-// are never applied either.
-func hasAdvancedAuditTarget(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool, matches func(mlog.Level) bool) bool {
-	cfg := make(mlog.LoggerConfiguration)
-
-	if allowAdvancedLogging {
-		advancedCfg := make(mlog.LoggerConfiguration)
-		if err := json.Unmarshal(auditSettings.GetAdvancedLoggingConfig(), &advancedCfg); err == nil {
-			cfg.Append(advancedCfg)
+// hasAuditTargetFor reports whether a target in the effective audit config is bound to a
+// level accepted by matches. Any config the server would fail to apply reports inactive,
+// since configureAudit then configures no targets at all.
+func hasAuditTargetFor(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool, matches func(mlog.Level) bool) bool {
+	var configSrc LogConfigSrc
+	if dsn := auditSettings.GetAdvancedLoggingConfig(); allowAdvancedLogging && !utils.IsEmptyJSON(dsn) {
+		src, err := newJSONSrc(dsn)
+		if err != nil {
+			return false
 		}
+		configSrc = src
 	}
 
-	additionalCfg, err := AdditionalAuditConfig()
+	cfg, err := EffectiveAuditConfig(auditSettings, configSrc)
 	if err != nil {
 		return false
 	}
-	cfg.Append(additionalCfg)
+
+	if err := validateAuditTargets(cfg); err != nil {
+		return false
+	}
 
 	for _, target := range cfg {
 		if slices.ContainsFunc(target.Levels, matches) {
@@ -205,6 +224,20 @@ func hasAdvancedAuditTarget(auditSettings model.ExperimentalAuditSettings, allow
 	}
 
 	return false
+}
+
+// validateAuditTargets builds cfg's targets on a throwaway logger, the same way
+// audit.Configure does, so a target the server would reject is not counted as active.
+func validateAuditTargets(cfg mlog.LoggerConfiguration) error {
+	logger, err := mlog.NewLogger()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = logger.Shutdown()
+	}()
+
+	return logger.ConfigureTargets(cfg, nil)
 }
 
 func GetLogFileLocation(fileLocation string) string {

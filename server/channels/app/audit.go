@@ -143,17 +143,10 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	}
 
 	// ExperimentalAuditSettings provides basic file audit (E0, E10); logConfigSrc provides advanced config (E20).
-	cfg, err := config.MloggerConfigFromAuditConfig(s.platform.Config().ExperimentalAuditSettings, logConfigSrc)
+	cfg, err := config.EffectiveAuditConfig(s.platform.Config().ExperimentalAuditSettings, logConfigSrc)
 	if err != nil {
-		return fmt.Errorf("invalid config for audit, %w", err)
+		return err
 	}
-
-	// Append additional config from env var; any target name collisions will be overwritten.
-	cfgAdditional, err := config.AdditionalAuditConfig()
-	if err != nil {
-		return fmt.Errorf("invalid additional config for audit, %w", err)
-	}
-	cfg.Append(cfgAdditional)
 
 	return adt.Configure(cfg)
 }
