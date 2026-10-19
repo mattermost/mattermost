@@ -3,14 +3,18 @@
 
 import {referencesResourceAttributes} from 'components/admin_console/access_control/editors/shared';
 
-// Team membership rules can't use these; /cel/check accepts them but the save rejects them.
+// CEL allows whitespace around the member dot, so `user . session.x` is still a session reference.
+const SESSION_REFERENCE = /\buser\s*\.\s*session\b/;
+
+// Early feedback only: /cel/check accepts these, and the team policy save is what rejects them.
+// It also keeps a doomed rule from reaching the parent link writes, which run before the save.
 export function teamRuleGuardErrorId(expression: string): 'resource_attributes' | 'session_attributes' | undefined {
     if (referencesResourceAttributes(expression)) {
         return 'resource_attributes';
     }
 
-    // Same lexical test as the server (model/access_policy.go).
-    if (expression.includes('user.session')) {
+    const withoutLiterals = expression.replace(/'[^']*'|"[^"]*"/g, '');
+    if (SESSION_REFERENCE.test(withoutLiterals)) {
         return 'session_attributes';
     }
     return undefined;

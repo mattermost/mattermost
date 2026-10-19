@@ -10286,6 +10286,11 @@
     "description": "API error when a saved access control policy expression still contains an unresolved masked-value placeholder; asks the admin to reload the policy and retry."
   },
   {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "This membership rule uses an operator or function that membership sync cannot evaluate, such as a conditional (?:). Rewrite the rule using only comparisons, &&, ||, in, and the supported attribute functions.",
+    "description": "API error (400) shown to an admin saving a team, channel, or parent access policy whose membership rule cannot be converted to the database query used by membership sync (for example it uses the ternary ?: operator). Without this error the rule would be stored but never add or remove members."
+  },
+  {
     "id": "app.pap.save_policy.name_exists.app_error",
     "translation": "A policy with this name already exists. Please choose a different name.",
     "description": "Validation error when an admin saves an access control policy using a name already taken by another policy."

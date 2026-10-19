@@ -14,6 +14,12 @@ import {TestHelper} from 'utils/test_helper';
 
 import TeamLevelAccessRules from './team_level_access_rules';
 
+const mockIsSystemAdmin = jest.fn(() => true);
+jest.mock('mattermost-redux/selectors/entities/users', () => ({
+    ...jest.requireActual('mattermost-redux/selectors/entities/users'),
+    isCurrentUserSystemAdmin: () => mockIsSystemAdmin(),
+}));
+
 jest.mock('components/admin_console/access_control/editors/table_editor/table_editor', () => {
     const actual = jest.requireActual('components/admin_console/access_control/editors/table_editor/table_editor');
     return {
@@ -949,6 +955,49 @@ describe('TeamLevelAccessRules', () => {
             expect(screen.getByTestId('cel-editor')).toBeInTheDocument();
             expect(getToggle()).toBe(toggle);
             expect(toggle).toHaveFocus();
+        });
+    });
+
+    describe('non-System Admin', () => {
+        const complexExpression = 'user.attributes.A == "x" || user.attributes.B == "y"';
+
+        beforeEach(() => {
+            mockIsSystemAdmin.mockReturnValue(false);
+        });
+
+        afterEach(() => {
+            mockIsSystemAdmin.mockReturnValue(true);
+        });
+
+        test('hides the Advanced toggle', () => {
+            renderWithContext(<TeamLevelAccessRules {...defaultProps}/>);
+
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            expect(screen.queryByTestId('team-rules-editor-mode-toggle')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('team-rules-advanced-locked')).not.toBeInTheDocument();
+        });
+
+        test('shows a complex rule read-only with a notice and auto-add disabled', () => {
+            renderWithContext(
+                <TeamLevelAccessRules
+                    {...defaultProps}
+                    initialExpression={complexExpression}
+                />,
+            );
+
+            expect(screen.getByTestId('cel-editor')).toHaveAttribute('data-disabled', 'true');
+            expect(screen.getByTestId('team-rules-advanced-locked')).toHaveTextContent('Only a System Admin can change them.');
+            expect(screen.getByTestId('team-auto-add-members-checkbox')).toBeDisabled();
+            expect(screen.queryByTestId('team-rules-editor-mode-toggle')).not.toBeInTheDocument();
+        });
+
+        test('locks when the table fails to parse the rule', async () => {
+            renderWithContext(<TeamLevelAccessRules {...defaultProps}/>);
+
+            await userEvent.click(screen.getByTestId('trigger-parse-error'));
+
+            expect(screen.getByTestId('cel-editor')).toHaveAttribute('data-disabled', 'true');
+            expect(screen.getByTestId('team-rules-advanced-locked')).toBeInTheDocument();
         });
     });
 });

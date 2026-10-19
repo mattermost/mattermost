@@ -12,6 +12,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import {Client4} from 'mattermost-redux/client';
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import CELEditor from 'components/admin_console/access_control/editors/cel_editor/editor';
 import {excludeSessionAttributes, hasUsableAttributes, isSimpleExpression, toCELEditorAttributes} from 'components/admin_console/access_control/editors/shared';
@@ -61,6 +62,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
 }) => {
     const {formatMessage} = useIntl();
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
+    const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
 
     const [expression, setExpression] = useState(initialExpression);
     const [originalExpression, setOriginalExpression] = useState(initialExpression);
@@ -72,6 +74,9 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
 
     const [editorMode, setEditorMode] = useState<'table' | 'cel'>('table');
     const [celValid, setCelValid] = useState(true);
+
+    // The server only lets System Admins write rules that need the Advanced editor.
+    const advancedLocked = !isSystemAdmin && editorMode === 'cel';
 
     const enableUserManaged = accessControlSettings?.EnableUserManagedAttributes || false;
     const membershipAttributes = useMemo(() => excludeSessionAttributes(userAttributes), [userAttributes]);
@@ -135,11 +140,11 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
     }, []);
 
     const handleAutoSyncToggle = useCallback(() => {
-        if (isDisabled || !hasMembershipRule) {
+        if (isDisabled || !hasMembershipRule || advancedLocked) {
             return;
         }
         setAutoSyncMembers((prev) => !prev);
-    }, [isDisabled, hasMembershipRule]);
+    }, [isDisabled, hasMembershipRule, advancedLocked]);
 
     // TableEditor reuses onParseError when it has no attribute to add a row with;
     // only a real parse failure means the rule needs the Advanced editor.
@@ -210,7 +215,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
         </WithTooltip>
     );
 
-    const autoSyncDisabled = isDisabled || !hasMembershipRule;
+    const autoSyncDisabled = isDisabled || !hasMembershipRule || advancedLocked;
 
     const renderAutoSyncSection = () => {
         return (
@@ -271,15 +276,28 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                     defaultMessage: 'User attributes and values as additional rules to restrict team membership',
                 })}
                 className='team-level-access-rules'
-                button={toggleButton}
+                button={isSystemAdmin ? toggleButton : undefined}
             >
                 <div className='team-access-rules__editor'>
+                    {advancedLocked && (
+                        <div
+                            className='team-access-rules__locked-notice'
+                            role='status'
+                            data-testid='team-rules-advanced-locked'
+                        >
+                            <i className='icon icon-information-outline'/>
+                            <FormattedMessage
+                                id='admin.team_settings.team_detail.rules.advanced_locked'
+                                defaultMessage='These rules use advanced logic. Only a System Admin can change them.'
+                            />
+                        </div>
+                    )}
                     {editorMode === 'cel' ? (
                         <CELEditor
                             value={expression}
                             onChange={handleExpressionChange}
                             onValidate={setCelValid}
-                            disabled={isDisabled || noUsableAttributes}
+                            disabled={isDisabled || noUsableAttributes || advancedLocked}
                             hasMaskedRows={hasMaskedRows}
                             userAttributes={celAttributes}
                             actions={celActions}

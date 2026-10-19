@@ -59,6 +59,30 @@ const simpleRule = () => `user.attributes.${DEPT} == "Sales"`;
 const engineeringRule = () => `user.attributes.${DEPT} == "Engineering"`;
 const invalidRule = () => `user.attributes.${LOC} ==`;
 
+// Valid CEL that /cel/check accepts, but membership sync can't turn into SQL.
+const ternaryRule = () => `user.attributes.${LOC} == "US" ? true : false`;
+
+const ADVANCED_RULE_ERROR_ID = 'app.pap.save_policy.advanced_rule_requires_system_admin';
+const NOT_SQLIZABLE_ERROR_ID = 'app.pap.save_policy.membership_rule_not_sqlizable';
+const NOT_SQLIZABLE_MESSAGE = 'membership sync cannot evaluate';
+
+async function expectServerRejection(
+    call: () => Promise<unknown>,
+    status: number,
+    errorId: string,
+    because: string,
+): Promise<void> {
+    let error: {status_code?: number; server_error_id?: string} | undefined;
+    try {
+        await call();
+    } catch (err) {
+        error = err as typeof error;
+    }
+    expect(error, `expected the server to refuse: ${because}`).toBeDefined();
+    expect(error?.status_code, because).toBe(status);
+    expect(error?.server_error_id, because).toBe(errorId);
+}
+
 type FixtureLabel = 'engUS' | 'engAPAC' | 'salesEU' | 'salesAPAC';
 
 const FIXTURE_ATTRIBUTES: Record<FixtureLabel, {dept: string; loc: string}> = {
@@ -365,6 +389,10 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         await switchTeamRulesMode(page);
         await typeTeamRulesCel(page, 'user.session.ip == "1.2.3.4"');
 
+        await expect(rulesPanel.locator('[role="alert"]').filter({hasText: 'session attributes'})).toBeVisible();
+
+        // CEL allows whitespace around the member dot, so this is the same reference.
+        await typeTeamRulesCel(page, 'user . session.ip == "1.2.3.4"');
         await expect(rulesPanel.locator('[role="alert"]').filter({hasText: 'session attributes'})).toBeVisible();
 
         await page.getByTestId('saveSetting').click();
@@ -732,5 +760,181 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
             .exclude('#team_level_access_rules .suggest-widget')
             .analyze();
         expect(results.violations).toHaveLength(0);
+    });
+
+    /**
+     * @objective The server, not just the UI, keeps Advanced team rules System Admin only.
+     */
+    test('MM-71104-T19 team admin API writes and deletes of an Advanced rule are refused', async ({pw}) => {
+        test.setTimeout(180_000);
+        const {adminClient, team, users} = await setupFixture(pw);
+
+        // # A team admin who satisfies both rules, so self-inclusion never decides the outcome
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
+        await setUserAttribute(adminClient, teamAdmin.id, DEPT, 'Sales');
+        await setUserAttribute(adminClient, teamAdmin.id, LOC, 'US');
+        await waitForAttributeViewToInclude(adminClient, simpleRule(), [users.salesEU.id, teamAdmin.id]);
+        await waitForAttributeViewToInclude(adminClient, orRule(), [users.engUS.id, teamAdmin.id]);
+        const {client: teamAdminClient} = await pw.makeClient({
+            username: teamAdmin.username,
+            password: teamAdmin.password,
+        });
+
+        // * Writing a new Advanced rule is refused
+        await expectServerRejection(
+            () => createTeamMembershipPolicy(teamAdminClient, team.id, orRule()),
+            403,
+            ADVANCED_RULE_ERROR_ID,
+            'team admin wrote an Advanced rule',
+        );
+        expect(await getMembershipExpression(adminClient, team.id)).toBeUndefined();
+
+        // * A simple rule is still theirs to write
+        await createTeamMembershipPolicy(teamAdminClient, team.id, simpleRule());
+        expect(await getMembershipExpression(adminClient, team.id)).toBe(simpleRule());
+
+        // # A System Admin replaces it with an Advanced rule
+        await createTeamMembershipPolicy(adminClient, team.id, orRule());
+
+        // * Replacing it with a simple rule is refused
+        await expectServerRejection(
+            () => createTeamMembershipPolicy(teamAdminClient, team.id, simpleRule()),
+            403,
+            ADVANCED_RULE_ERROR_ID,
+            'team admin replaced an Advanced rule',
+        );
+
+        // * Deleting the policy is refused
+        await expectServerRejection(
+            () => teamAdminClient.deleteAccessControlPolicy(team.id),
+            403,
+            ADVANCED_RULE_ERROR_ID,
+            'team admin deleted an Advanced rule',
+        );
+
+        // * Resubmitting it unchanged is allowed, so unrelated saves aren't blocked
+        await createTeamMembershipPolicy(teamAdminClient, team.id, orRule());
+
+        expect(await getMembershipExpression(adminClient, team.id)).toBe(orRule());
+    });
+
+    /**
+     * @objective A membership rule that sync can't run as SQL is rejected on save instead of
+     *            being stored and silently never enforced.
+     */
+    test('MM-71104-T20 a rule membership sync cannot evaluate is rejected on save', async ({pw}) => {
+        test.setTimeout(180_000);
+        const {adminClient, adminUser, team} = await setupFixture(pw);
+
+        // * The API refuses it even for a System Admin
+        await expectServerRejection(
+            () => createTeamMembershipPolicy(adminClient, team.id, ternaryRule()),
+            400,
+            NOT_SQLIZABLE_ERROR_ID,
+            'system admin saved a ternary membership rule',
+        );
+
+        // # Type the same rule in the Advanced editor; /cel/check accepts it
+        const {page} = await pw.testBrowser.login(adminUser);
+        await openTeamRules(page, team);
+        await switchTeamRulesMode(page);
+        await typeTeamRulesCel(page, ternaryRule());
+        await waitForTeamRulesValidation(page, 'validated');
+
+        await page.getByTestId('saveSetting').click();
+
+        // * Whether or not the confirm step appears first, the save ends with the server's reason
+        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'});
+        const errorMessage = page.getByTestId('saveChangesPanel-errorMessage');
+        await expect(confirmModal.or(errorMessage)).toBeVisible({timeout: 15_000});
+        if (await confirmModal.isVisible()) {
+            await confirmModal.getByRole('button', {name: 'Apply'}).click();
+        }
+        await expect(errorMessage).toContainText(NOT_SQLIZABLE_MESSAGE, {timeout: 15_000});
+
+        // * Nothing was persisted
+        expect(await getMembershipExpression(adminClient, team.id)).toBeUndefined();
+        expect((await adminClient.getTeam(team.id)).policy_enforced).toBeFalsy();
+    });
+
+    // Parent links are written before the team policy, and nothing rolls them back when the
+    // policy save fails. Enable once the save order or a rollback is fixed.
+    test.fixme('MM-71104-T20b a rejected save does not leave a parent link behind', async ({pw}) => {
+        test.setTimeout(180_000);
+        const {adminClient, adminUser, team} = await setupFixture(pw);
+
+        const parentName = `Eng Parent ${pw.random.id()}`;
+        const parent = await createTeamMembershipParentPolicy(adminClient, parentName, engineeringRule());
+        createdPolicyIds.push(parent.id);
+
+        const {page} = await pw.testBrowser.login(adminUser);
+        await openTeamRules(page, team);
+
+        await page.locator('[data-testid="link-to-a-policy"]').click();
+        const modal = page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
+        await modal.waitFor({state: 'visible', timeout: 5000});
+        await (await findPolicyRow(modal, parentName)).click();
+
+        await switchTeamRulesMode(page);
+        await typeTeamRulesCel(page, ternaryRule());
+        await waitForTeamRulesValidation(page, 'validated');
+        await page.getByTestId('saveSetting').click();
+
+        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'});
+        const errorMessage = page.getByTestId('saveChangesPanel-errorMessage');
+        await expect(confirmModal.or(errorMessage)).toBeVisible({timeout: 15_000});
+        if (await confirmModal.isVisible()) {
+            await confirmModal.getByRole('button', {name: 'Apply'}).click();
+        }
+        await expect(errorMessage).toContainText(NOT_SQLIZABLE_MESSAGE, {timeout: 15_000});
+
+        const response: any = await getTeamAccessControlPolicy(adminClient, team.id).catch(() => null);
+        expect(response?.policy?.imports ?? []).not.toContain(parent.id);
+    });
+
+    /**
+     * @objective Only System Admins get the Advanced toggle on the System Console team page;
+     *            other console admins see an Advanced rule read-only.
+     */
+    test('MM-71104-T21 a System Manager sees an Advanced rule read-only with no toggle', async ({pw}) => {
+        test.setTimeout(180_000);
+        const {adminClient, team} = await setupFixture(pw);
+        await createTeamMembershipPolicy(adminClient, team.id, orRule(), false);
+
+        // # A System Manager: console access to teams, but not manage_system
+        const username = `sysmanager${getRandomId()}`;
+        const password = newTestPassword();
+        const systemManager = await adminClient.createUser(
+            {email: `${username}@sample.mattermost.com`, username, password} as any,
+            '',
+            '',
+        );
+        createdUserIds.push(systemManager.id);
+        systemManager.password = password;
+        await adminClient.updateUserRoles(systemManager.id, 'system_user system_manager');
+        await adminClient.savePreferences(systemManager.id, [
+            {user_id: systemManager.id, category: 'tutorial_step', name: systemManager.id, value: '999'},
+            {user_id: systemManager.id, category: 'onboarding', name: 'complete', value: 'true'},
+            {
+                user_id: systemManager.id,
+                category: 'onboarding_task_list',
+                name: 'onboarding_task_list_show',
+                value: 'false',
+            },
+        ]);
+
+        const {page} = await pw.testBrowser.login(systemManager);
+        const rulesPanel = await openTeamRules(page, team);
+
+        // * The rule is shown, but with no way into or out of Advanced and nothing editable
+        await expect(rulesPanel.locator('.cel-editor')).toContainText(orRule(), {timeout: 15_000});
+        await expect(page.getByTestId('team-rules-editor-mode-toggle')).toHaveCount(0);
+        await expect(rulesPanel.getByTestId('team-rules-advanced-locked')).toContainText(
+            'Only a System Admin can change them',
+        );
+        await expect(rulesPanel.getByTestId('team-auto-add-members-checkbox')).toBeDisabled();
+
+        expect(await getMembershipExpression(adminClient, team.id)).toBe(orRule());
     });
 });

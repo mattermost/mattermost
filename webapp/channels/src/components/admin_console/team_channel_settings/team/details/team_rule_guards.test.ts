@@ -16,6 +16,15 @@ describe('teamRuleGuardErrorId', () => {
         expect(teamRuleGuardErrorId('user.session.ip == "1.2.3.4"')).toBe('session_attributes');
     });
 
+    test('flags session attribute references with whitespace around the dot', () => {
+        expect(teamRuleGuardErrorId('user . session.ip == "1.2.3.4"')).toBe('session_attributes');
+        expect(teamRuleGuardErrorId('user\n.session.ip == "1.2.3.4"')).toBe('session_attributes');
+    });
+
+    test('ignores session attribute text inside a string literal', () => {
+        expect(teamRuleGuardErrorId('user.attributes.Note == "user.session.ip"')).toBeUndefined();
+    });
+
     test('accepts plain user attribute rules', () => {
         expect(teamRuleGuardErrorId('user.attributes.Department == "Engineering" || user.attributes.Location == "EU"')).toBeUndefined();
     });
