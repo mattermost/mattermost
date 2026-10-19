@@ -6,12 +6,12 @@ import type {ChangeEvent, JSX, ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 import {Button} from '@mattermost/shared/components/button';
 
 import LoadingScreen from 'components/loading_screen';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-import SearchIcon from 'components/widgets/icons/fa_search_icon';
 
 import './backstage_list.scss';
 
@@ -57,6 +57,7 @@ const BackstageList = (remainingProps: Props) => {
 
     const [filter, setFilter] = useState('');
     const updateFilter = (e: ChangeEvent<HTMLInputElement>) => setFilter(e.target.value);
+    const clearFilter = () => setFilter('');
     const filterLowered = filter.toLowerCase();
 
     let searchPlaceholder;
@@ -157,14 +158,15 @@ const BackstageList = (remainingProps: Props) => {
             {remainingProps.error}
             <div className='backstage-filters'>
                 <div className='backstage-filter__search'>
-                    <SearchIcon/>
-                    <input
-                        type='search'
-                        className='form-control'
+                    <SearchInput
+                        id='searchInput'
+                        size='small'
                         placeholder={searchPlaceholder}
                         value={filter}
                         onChange={updateFilter}
-                        id='searchInput'
+                        onClear={clearFilter}
+                        data-testid='searchInput'
+                        clearButtonProps={{tabIndex: 0}}
                     />
                 </div>
             </div>
