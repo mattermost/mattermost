@@ -333,6 +333,10 @@ func healthTestPacketFiles() map[string]string {
 server:
   hostname: mm.example.com
   version: 11.0.4
+database:
+  type: postgres
+  version: "15.8"
+  master_connections_in_use: 1
 elastic:
   status: disabled
 notifications:
@@ -352,6 +356,7 @@ func healthTestPacketConfig() string {
 	cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
 	cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
 	cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.IdLoadedNotification)
+	cfg.SqlSettings.DataSource = model.NewPointer("postgres://****:****@db.example.com:5432/mattermost")
 	cfg.RateLimitSettings.Enable = model.NewPointer(true)
 
 	b, err := json.Marshal(cfg)
