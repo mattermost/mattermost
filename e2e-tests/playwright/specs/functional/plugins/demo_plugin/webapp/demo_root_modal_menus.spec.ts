@@ -94,5 +94,15 @@ test('should open Sample Confirmation Dialog from team dropdown and respond to C
         channelsPage.centerView.container.locator('p').filter({hasText: 'confirmed an Interactive Dialog'}),
     ).toBeVisible();
 
-    // Cancel test omitted due to unexpected behavior. Will re-add once issue is resolved.
+    // # Reopen the dialog from the team dropdown and click Cancel
+    await channelsPage.sidebarLeft.teamMenuButton.click();
+    await channelsPage.page.getByRole('menuitem', {name: 'Sample Confirmation Dialog'}).click();
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('button', {name: 'Cancel'}).click();
+
+    // * Verify the dialog closes and a cancellation post appears
+    await expect(dialog).not.toBeVisible();
+    await expect(
+        channelsPage.centerView.container.locator('p').filter({hasText: 'canceled an Interactive Dialog'}),
+    ).toBeVisible();
 });
