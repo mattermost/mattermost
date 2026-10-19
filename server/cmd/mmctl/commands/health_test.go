@@ -355,6 +355,7 @@ notifications:
 		model.SupportPacketStatsFileName:   "registered_users: 100\nposts: 1000\n",
 		model.SupportPacketConfigFileName:  healthTestPacketConfig(),
 		model.SupportPacketPluginsFileName: `{"enabled": [], "disabled": []}`,
+		model.SupportPacketJobsFileName:    "data_retention_jobs: []\n",
 	}
 }
 

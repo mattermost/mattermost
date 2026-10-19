@@ -230,6 +230,20 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		require.NoError(t, deleteErr)
 	})
 
+	// Half an hour off the hour boundary, so the reported idle hours match although the packet is generated later.
+	stale := time.Now().Add(-30*time.Hour - 30*time.Minute).UnixMilli()
+	for _, job := range []*model.Job{
+		{Id: model.NewId(), Type: model.JobTypeDataRetention, CreateAt: stale - 1000, LastActivityAt: stale - 1000, Status: model.JobStatusError, Data: model.StringMap{"error": "driver: bad connection"}},
+		{Id: model.NewId(), Type: model.JobTypeDataRetention, CreateAt: stale, StartAt: stale, LastActivityAt: stale, Status: model.JobStatusInProgress},
+	} {
+		_, err = th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_, deleteErr := th.App.Srv().Store().Job().Delete(job.Id)
+			require.NoError(t, deleteErr)
+		})
+	}
+
 	err = th.App.clearLatestVersionCache()
 	require.NoError(t, err)
 
@@ -276,6 +290,8 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	}
 	assert.Equal(t, map[string]bool{
 		"DB_QUERY_TIMEOUT_HIGH": true,
+		"JOB_FAILED":            true,
+		"JOB_STUCK":             true,
 		"PUSH_BAD_SCHEME":       true,
 		"PUSH_ID_ONLY":          true,
 		"SITE_URL_HTTP":         true,
