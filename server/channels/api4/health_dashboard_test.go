@@ -468,7 +468,7 @@ func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 
 		byCode := map[string]*model.HealthFinding{}
 		for _, f := range list.Findings {
-			if strings.HasPrefix(f.Code, "PUSH_") {
+			if f.Subject == "EmailSettings.PushNotificationServer" {
 				byCode[f.Code] = f
 			}
 		}
