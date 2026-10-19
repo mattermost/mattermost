@@ -57,6 +57,7 @@ describe('components/feature_discovery', () => {
 
             expect(screen.queryByText('Bar')).toBeInTheDocument();
             expect(screen.queryByText('Foo')).toBeInTheDocument();
+            expect(screen.getByTestId('featureDiscovery_title').tagName).toBe('SPAN');
 
             expect(screen.getByRole('button', {name: 'Start trial'})).toBeInTheDocument();
             await userEvent.click(screen.getByRole('button', {name: 'Start trial'}));
@@ -122,6 +123,7 @@ describe('components/feature_discovery', () => {
 
             expect(screen.queryByText('Bar')).toBeInTheDocument();
             expect(screen.queryByText('Foo')).toBeInTheDocument();
+            expect(screen.getByTestId('featureDiscovery_title').tagName).toBe('SPAN');
 
             //this option is visible only when it is cloud environment
             expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
@@ -233,6 +235,7 @@ describe('components/feature_discovery', () => {
 
             expect(screen.queryByText('Bar')).toBeInTheDocument();
             expect(screen.queryByText('Foo')).toBeInTheDocument();
+            expect(screen.getByTestId('featureDiscovery_title').tagName).toBe('SPAN');
 
             // Should show Contact Sales button instead of Start Trial when Team Edition
             const contactSalesButton = screen.getByRole('button', {name: 'Contact sales'});
@@ -293,6 +296,7 @@ describe('components/feature_discovery', () => {
 
             expect(screen.queryByText('Bar')).toBeInTheDocument();
             expect(screen.queryByText('Foo')).toBeInTheDocument();
+            expect(screen.getByTestId('featureDiscovery_title').tagName).toBe('SPAN');
 
             // Should show Contact Sales button when previous trial license exists
             const contactSalesButton = screen.getByRole('button', {name: 'Contact sales'});
@@ -355,6 +359,7 @@ describe('components/feature_discovery', () => {
 
             expect(screen.queryByText('Bar')).toBeInTheDocument();
             expect(screen.queryByText('Foo')).toBeInTheDocument();
+            expect(screen.getByTestId('featureDiscovery_title').tagName).toBe('SPAN');
 
             // Should show Start Trial button when Enterprise Ready and no previous trial
             const startTrialButton = screen.getByRole('button', {name: 'Start trial'});
