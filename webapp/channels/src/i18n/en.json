@@ -2095,14 +2095,6 @@
     "defaultMessage": "Delete orphaned field",
     "description": "Accessible label for the delete button on a user attribute whose owning plugin has been uninstalled. \"Field\" is the attribute: use the same word as in Attribute Management. \"Orphaned\" means its plugin is no longer installed, as the neighbouring orphaned-attribute strings say; prefer that meaning over a literal calque."
   },
-  "admin.accessibility.next_page": {
-    "defaultMessage": "Next page",
-    "description": "Accessible label for the next-page button in the reusable System Console data grid."
-  },
-  "admin.accessibility.previous_page": {
-    "defaultMessage": "Previous page",
-    "description": "Accessible label for the previous-page button in the reusable System Console data grid."
-  },
   "admin.advance.cluster": {
     "defaultMessage": "High Availability",
     "description": "Page title of the High Availability (server clustering) page in the System Console."
