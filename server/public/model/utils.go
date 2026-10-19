@@ -804,6 +804,23 @@ func IsValidHTTPURL(rawURL string) bool {
 	return true
 }
 
+// DecodeId returns the 16 bytes that an ID made by NewId encodes; ok is false for any string NewId could not have produced.
+func DecodeId(id string) (b [16]byte, ok bool) {
+	if len(id) != 26 {
+		return b, false
+	}
+	if n, err := encoding.Decode(b[:], []byte(id)); err != nil || n != len(b) {
+		return [16]byte{}, false
+	}
+	// The decoder ignores the last character's two unused bits, so check that b encodes back to id.
+	var check [26]byte
+	encoding.Encode(check[:], b[:])
+	if string(check[:]) != id {
+		return [16]byte{}, false
+	}
+	return b, true
+}
+
 func IsValidId(value string) bool {
 	if len(value) != 26 {
 		return false
