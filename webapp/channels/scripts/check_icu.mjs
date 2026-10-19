@@ -34,6 +34,12 @@
  *     or variable and everything after it. The message still parses, so this
  *     check is the only thing that catches it.
  *
+ * The per-message checks live in icu_rules.mjs. One of its rules is a warning
+ * rather than an error, because the catalogs already ship strings that break
+ * it:
+ *
+ *   - a horizontal arrow in a right-to-left locale, which points backwards
+ *
  * Key parity is a separate question from whether the entries that exist are
  * correct. An extra key, one en.json does not have, is only ever a warning:
  * nothing will read it, so it is dead weight rather than a defect, and is left
@@ -47,13 +53,9 @@
  */
 
 import fs from 'fs';
-import {createRequire} from 'node:module';
-import {pathToFileURL} from 'node:url';
 import path from 'path';
 
-// Resolved through react-intl: a bare import gets whichever copy npm hoisted.
-const reactIntlRequire = createRequire(import.meta.resolve('react-intl'));
-const {parse} = await import(pathToFileURL(reactIntlRequire.resolve('@formatjs/icu-messageformat-parser')).href);
+import {analyzeSource, checkMessage} from './icu_rules.mjs';
 
 const SOURCE = 'en.json';
 
@@ -100,98 +102,20 @@ try {
     process.exit(2);
 }
 
-// A lone ASCII apostrophe before < or { opens an ICU quoted literal that
-// swallows the tag or variable. A doubled one does not: '' is the escape for a
-// literal apostrophe, and l''<link> is a documented way to write an elision. So
-// only an unpaired apostrophe is a defect.
-const UNESCAPED_APOSTROPHE = /(?<!')'(?!')[<{]/;
-
 const errors = [];
 const warnings = [];
 
-// Element type ids from @formatjs/icu-messageformat-parser's TYPE enum. They
-// are inlined as numbers in the AST, so name them for legible messages.
-const TYPES = {
-    1: 'argument',
-    2: 'number',
-    3: 'date',
-    4: 'time',
-    5: 'select',
-    6: 'plural',
-    8: 'tag',
-};
-
-/**
- * Maps the role the source uses a variable in to the roles a translation may
- * promote it to.
- *
- * English needs a plural far less often than the languages it is translated
- * into: "{count} items were deleted" is one sentence in English and four in
- * Russian. Wrapping a bare {count} in {count, plural, ...} is how a translator
- * makes that sentence grammatical, and it loses nothing, so it is allowed,
- * even though the source never asked for a plural. Demotion is the reverse and
- * stays fatal.
- *
- * The formatting types are deliberately absent. They are not interchangeable
- * with each other or reachable from a bare argument: {x, number} over a string
- * renders NaN and {x, date} over a non-date renders "Invalid Date", so a
- * translation reaching for one the source did not use is a defect, not a
- * grammar fix.
- */
-const PROMOTIONS = {
-    argument: new Set(['plural', 'select']),
-    number: new Set(['plural']),
-};
-
-/**
- * Map every variable and tag in an AST to the set of types it is used as. A
- * single name is regularly used in more than one role ("{count, number} new
- * {count, plural, one {message} other {messages}}" uses count as both a number
- * and a plural), so this has to be a set per name, not a type per name.
- *
- * Plural categories are deliberately not compared: which categories a message
- * needs is a property of the locale, not of the source string.
- */
-function argTypes(ast, out = new Map()) {
-    for (const el of ast) {
-        if (TYPES[el.type] && el.value !== undefined) {
-            if (!out.has(el.value)) {
-                out.set(el.value, new Set());
-            }
-            out.get(el.value).add(TYPES[el.type]);
-        }
-        if (el.options) {
-            for (const option of Object.values(el.options)) {
-                argTypes(option.value, out);
-            }
-        }
-        if (el.children) {
-            argTypes(el.children, out);
-        }
-    }
-    return out;
-}
-
-const enArgs = new Map();
+const sources = new Map();
 for (const [key, message] of Object.entries(en)) {
     try {
-        enArgs.set(key, argTypes(parse(message, {ignoreTag: false, requiresOtherClause: true})));
+        sources.set(key, analyzeSource(message));
     } catch (e) {
         errors.push(`${SOURCE}:${key}: source does not parse: ${e.message}`);
     }
 }
 
-// Horizontal arrows and pointers. They are not bidi-mirrored, so in a
-// right-to-left sentence one meaning "next" or "leads to" points backwards.
-// Vertical arrows and the ↵ key symbol read the same either way.
-const HORIZONTAL_GLYPH = /[\u2190\u2192\u21D0\u21D2\u27F5\u27F6\u2794\u279C-\u27BF\u2B05\u25B6\u25B8\u25BA\u25C0\u25C2\u25C4]/u;
-const isRightToLeft = (locale) => {
-    const tag = new Intl.Locale(locale);
-    return (tag.getTextInfo ? tag.getTextInfo() : tag.textInfo).direction === 'rtl';
-};
-
 for (const name of localeNames) {
-    const rightToLeft = isRightToLeft(path.basename(name, '.json'));
+    const locale = path.basename(name, '.json');
     let data;
     const text = readCatalog(name);
     try {
@@ -238,65 +162,16 @@ for (const name of localeNames) {
             continue;
         }
 
-        if (rightToLeft && HORIZONTAL_GLYPH.test(message)) {
-            warnings.push(`${name}:${key}: horizontal arrow in a right-to-left locale points the opposite way to the reading direction`);
-        }
-
-        // ignoreTag: false parses <b>...</b> as tags rather than literal text,
-        // so the tag checks below see them; requiresOtherClause: true rejects a
-        // plural or select with no "other" arm, which ICU requires as the fallback.
-        let ast;
-        try {
-            ast = parse(message, {ignoreTag: false, requiresOtherClause: true});
-        } catch (e) {
-            errors.push(`${name}:${key}: does not parse: ${e.message}`);
-            continue;
-        }
-
         // Absent only when en.json's own message failed to parse, which was
         // already reported once against en.json. Comparing against a source we
         // could not read would just repeat that for every locale.
-        const sourceArgs = enArgs.get(key);
-        if (!sourceArgs) {
+        const source = sources.get(key);
+        if (!source) {
             continue;
         }
 
-        const targetArgs = argTypes(ast);
-        for (const arg of targetArgs.keys()) {
-            if (!sourceArgs.has(arg)) {
-                errors.push(`${name}:${key}: unknown variable/tag "${arg}" not present in source`);
-            }
-        }
-
-        for (const arg of sourceArgs.keys()) {
-            if (!targetArgs.has(arg)) {
-                errors.push(`${name}:${key}: source variable/tag "${arg}" is missing from the translation`);
-            }
-        }
-
-        for (const [arg, types] of targetArgs) {
-            // Not in the source at all, which the unknown-variable check above
-            // has already reported.
-            const sourceTypes = sourceArgs.get(arg);
-            if (!sourceTypes) {
-                continue;
-            }
-            for (const type of types) {
-                if (sourceTypes.has(type)) {
-                    continue;
-                }
-                if ([...sourceTypes].some((sourceType) => PROMOTIONS[sourceType]?.has(type))) {
-                    continue;
-                }
-                errors.push(`${name}:${key}: "${arg}" is used as ${type}, but the source only uses it as ${[...sourceTypes].join('/')}`);
-            }
-        }
-
-        // Only when the source is clean. The same quoting in en.json is the
-        // author's own, and blaming each translation for it would report the one
-        // source defect once per locale.
-        if (UNESCAPED_APOSTROPHE.test(message) && !UNESCAPED_APOSTROPHE.test(en[key])) {
-            errors.push(`${name}:${key}: ASCII apostrophe before ICU syntax opens a quoted literal and swallows the rest of the message; use ’ or '' instead`);
+        for (const {severity, message: detail} of checkMessage(source, message, locale)) {
+            (severity === 'error' ? errors : warnings).push(`${name}:${key}: ${detail}`);
         }
     }
 }
