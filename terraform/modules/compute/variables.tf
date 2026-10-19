@@ -1,0 +1,14 @@
+variable "name_prefix" { type = string }
+variable "aws_region" { type = string }
+variable "ami_id" { type = string }
+variable "instance_type" { type = string }
+variable "public_subnet_a_id" { type = string }
+variable "public_subnet_b_id" { type = string }
+variable "application_security_group_id" { type = string }
+variable "database_endpoint" { type = string }
+variable "database_name" { type = string }
+variable "database_username" { type = string }
+variable "database_password_parameter_name" { type = string }
+variable "s3_bucket_name" { type = string }
+variable "mattermost_image" { type = string }
+variable "log_group_name" { type = string }

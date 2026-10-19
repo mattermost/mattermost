@@ -1,0 +1,23 @@
+.terraform/
+terraform.tfstate
+terraform.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+!terraform.tfvars.example
+*.tfplan
+modules/failover/lambda/*.zip
+
+# Terraform local state, plans, and crash dumps
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+
+# Local Terraform overrides
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json

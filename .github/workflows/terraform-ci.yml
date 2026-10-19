@@ -1,0 +1,111 @@
+name: "Terraform CI - Mattermost Infrastructure"
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - infra/mattermost-terraform
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform-ci.yml"
+
+  pull_request:
+    branches:
+      - master
+      - main
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform-ci.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  terraform-validation:
+    name: "Terraform Format and Validate"
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.16.6"
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive .
+
+      - name: Set up Python for Checkov
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install Checkov
+        run: python -m pip install --disable-pip-version-check checkov==3.3.29
+
+      - name: Static security analysis with Checkov
+        run: checkov --directory . --config-file .checkov.yml --framework terraform
+
+      - name: Initialize without remote backend
+        run: terraform init -backend=false -input=false -lockfile=readonly
+
+      - name: Validate configuration
+        run: terraform validate
+
+  terraform-plan:
+    name: "Terraform Plan using AWS OIDC"
+    if: ${{ github.ref == 'refs/heads/infra/mattermost-terraform' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+    needs: terraform-validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      TF_VAR_allowed_cidr: ${{ vars.ALLOWED_CIDR }}
+      TF_VAR_alert_email: ${{ vars.ALERT_EMAIL }}
+
+    permissions:
+      contents: read
+      id-token: write
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.16.6"
+
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: arn:aws:iam::786759548615:role/MattermostGitHubTerraformPlan
+          aws-region: us-east-1
+          role-session-name: MattermostTerraformPlan
+          allowed-account-ids: "786759548615"
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Initialize remote backend
+        run: terraform init -input=false -lockfile=readonly
+
+      - name: Generate Terraform plan
+        run: terraform plan -input=false -no-color -lock-timeout=2m

@@ -1,0 +1,7 @@
+aws_region        = "us-east-1"
+alert_email       = "your-email@example.com"
+allowed_cidr      = "203.0.113.10/32" # Replace with your actual public IP/32
+budget_limit_usd  = 40
+instance_type     = "t3.small"
+db_instance_class = "db.t3.micro"
+mattermost_image  = "ghcr.io/sespinosab/mattermost:latest"
