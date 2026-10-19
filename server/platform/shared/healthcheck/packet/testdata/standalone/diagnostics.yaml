@@ -4,7 +4,10 @@ license:
   users: 500
   sku_short_name: enterprise
   features:
+    compliance: true
+    data_retention: true
     id_loaded: true
+    message_export: true
     metrics: true
 server:
   # Machine

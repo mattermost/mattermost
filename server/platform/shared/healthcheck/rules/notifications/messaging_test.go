@@ -47,7 +47,7 @@ var (
 )
 
 func withLicenseFeatures(s *healthcheck.Snapshot, features *model.Features) *healthcheck.Snapshot {
-	diag := &model.SupportPacketDiagnostics{License: model.SupportPacketLicense{Features: features}}
+	diag := &model.SupportPacketDiagnostics{License: model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise, Features: features}}
 	licensed := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{{
 		Hostname:    "app-1",
 		IsLeader:    true,
