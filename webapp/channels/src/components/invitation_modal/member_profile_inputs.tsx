@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import type {MemberInviteProfile} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import InputError from 'components/input_error';
 import Input from 'components/widgets/inputs/input/input';
 
 import {Constants, ValidationErrors} from 'utils/constants';
@@ -51,6 +52,7 @@ function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
     const {formatMessage} = useIntl();
     const [usernameError, setUsernameError] = useState<string | undefined>();
     const emailKey = email.toLowerCase();
+    const usernameErrorId = `error_preset-username-${emailKey}`;
 
     const updateField = (field: 'username' | 'first_name' | 'last_name') => (event: React.ChangeEvent<HTMLInputElement>) => {
         if (field === 'username') {
@@ -100,9 +102,20 @@ function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
                     autoCapitalize='off'
                     label={formatMessage({id: 'invite_modal.preset_profile.username', defaultMessage: 'Username'})}
                     hasError={Boolean(usernameError)}
-                    customMessage={usernameError ? {type: 'error', value: usernameError} : null}
+                    aria-describedby={usernameError ? usernameErrorId : undefined}
                 />
             </div>
+            {/* Keep the long validation copy full-width under the row (master layout),
+                not inside the one-third Username column via FieldMessage. */}
+            {usernameError && (
+                <div
+                    id={usernameErrorId}
+                    className='MemberProfileInputs__error'
+                    role='alert'
+                >
+                    <InputError message={usernameError}/>
+                </div>
+            )}
         </div>
     );
 }
