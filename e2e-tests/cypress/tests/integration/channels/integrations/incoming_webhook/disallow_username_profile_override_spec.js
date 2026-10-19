@@ -45,7 +45,9 @@ describe('Incoming webhook', () => {
     });
 
     it('MM-T622 Disallow override of username and profile picture', () => {
-        const iconUrl = 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png';
+        // The old mattermost.com marketing asset 404s, and a failed image load
+        // replaces the avatar src with the default icon before this assertion runs.
+        const iconUrl = 'https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/mattermost-icon_128x128.png';
 
         // # Enable username and icon override
         cy.apiAdminLogin();
