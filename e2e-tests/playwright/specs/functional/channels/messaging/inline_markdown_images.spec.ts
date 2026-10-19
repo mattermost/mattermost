@@ -15,6 +15,7 @@ type Box = {x: number; y: number; width: number; height: number};
 /**
  * Bounding box of a text-node substring. Locator.getByText matches the wrapping
  * <p>, which also contains the images and would overlap them even after a wrap.
+ * Range.getBoundingClientRect is viewport-relative, like Playwright boundingBox().
  */
 async function textNodeBox(scope: Locator, needle: string): Promise<Box | null> {
     return scope.evaluate((root, text) => {
