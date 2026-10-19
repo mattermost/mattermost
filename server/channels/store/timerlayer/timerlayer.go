@@ -9344,6 +9344,22 @@ func (s *TimerLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]
 	return result, err
 }
 
+func (s *TimerLayerPropertyValueStore) GetReferencedOptionIDs(groupID string, fieldIDs []string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.PropertyValueStore.GetReferencedOptionIDs(groupID, fieldIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.GetReferencedOptionIDs", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyValueStore) SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 	start := time.Now()
 
@@ -11453,6 +11469,22 @@ func (s *TimerLayerSessionAttributeStore) Get(sessionID string) (map[string]any,
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionAttributeStore.Get", success, elapsed)
 	}
 	return result, resultVar1, err
+}
+
+func (s *TimerLayerSessionAttributeStore) GetEpoch(sessionID string) (string, error) {
+	start := time.Now()
+
+	result, err := s.SessionAttributeStore.GetEpoch(sessionID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionAttributeStore.GetEpoch", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerSessionAttributeStore) Invalidate(sessionID string) error {

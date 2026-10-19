@@ -4,12 +4,17 @@
 package app
 
 import (
+	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 // TestGetGroup tests basic group retrieval and verifies that ViewUsersRestrictions
@@ -517,4 +522,222 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 	actual, err = th.App.UserIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	require.Nil(t, err)
 	require.False(t, actual)
+}
+
+func TestPublishReceivedGroupEvent(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	testCluster := &testlib.FakeClusterInterface{}
+	th.Server.Platform().SetCluster(testCluster)
+	defer th.Server.Platform().SetCluster(nil)
+
+	capturePublishedGroup := func(t *testing.T, publish func()) *model.WebSocketEvent {
+		t.Helper()
+		testCluster.ClearMessages()
+		publish()
+
+		events := selectReceivedGroupEvents(t, testCluster)
+		require.Len(t, events, 1)
+		return events[0]
+	}
+
+	t.Run("broadcast scope follows allow_reference", func(t *testing.T) {
+		testCases := []struct {
+			name           string
+			allowReference bool
+			restricted     bool
+		}{
+			{"non-referenceable group is restricted to group readers", false, true},
+			{"referenceable group is broadcast to everyone", true, false},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				group := &model.Group{
+					Id:             model.NewId(),
+					DisplayName:    "dn_" + model.NewId(),
+					Source:         model.GroupSourceLdap,
+					AllowReference: tc.allowReference,
+				}
+
+				ev := capturePublishedGroup(t, func() {
+					require.Nil(t, th.App.publishReceivedGroupEvent(group))
+				})
+
+				if tc.restricted {
+					assertBroadcastRestricted(t, ev)
+				} else {
+					assertBroadcastUnrestricted(t, ev)
+				}
+			})
+		}
+	})
+
+	t.Run("gate is applied through the real mutation paths", func(t *testing.T) {
+		newGroupFixture := func(t *testing.T, allowReference bool) *model.Group {
+			t.Helper()
+			id := model.NewId()
+			group, appErr := th.App.CreateGroup(&model.Group{
+				DisplayName:    "dn_" + id,
+				Name:           new("name" + id),
+				Source:         model.GroupSourceLdap,
+				RemoteId:       new(model.NewId()),
+				AllowReference: allowReference,
+			})
+			require.Nil(t, appErr)
+			return group
+		}
+
+		t.Run("CreateGroupWithUserIds", func(t *testing.T) {
+			id := model.NewId()
+			ev := capturePublishedGroup(t, func() {
+				_, appErr := th.App.CreateGroupWithUserIds(&model.GroupWithUserIds{
+					Group: model.Group{
+						DisplayName:    "dn_" + id,
+						Name:           new("name" + id),
+						Source:         model.GroupSourceCustom,
+						AllowReference: false,
+					},
+				})
+				require.Nil(t, appErr)
+			})
+			assertRestrictedGroupEvent(t, ev)
+		})
+
+		t.Run("UpdateGroup", func(t *testing.T) {
+			group := newGroupFixture(t, false)
+			group.DisplayName = "dn_" + model.NewId()
+
+			ev := capturePublishedGroup(t, func() {
+				_, appErr := th.App.UpdateGroup(group)
+				require.Nil(t, appErr)
+			})
+			assertRestrictedGroupEvent(t, ev)
+		})
+
+		t.Run("UpdateGroup leaves a referenceable group unrestricted", func(t *testing.T) {
+			group := newGroupFixture(t, true)
+			group.DisplayName = "dn_" + model.NewId()
+
+			ev := capturePublishedGroup(t, func() {
+				_, appErr := th.App.UpdateGroup(group)
+				require.Nil(t, appErr)
+			})
+			assertBroadcastUnrestricted(t, ev)
+		})
+
+		t.Run("DeleteGroup", func(t *testing.T) {
+			group := newGroupFixture(t, false)
+
+			ev := capturePublishedGroup(t, func() {
+				_, appErr := th.App.DeleteGroup(group.Id)
+				require.Nil(t, appErr)
+			})
+			assertRestrictedGroupEvent(t, ev)
+		})
+
+		t.Run("RestoreGroup", func(t *testing.T) {
+			group := newGroupFixture(t, false)
+			_, appErr := th.App.DeleteGroup(group.Id)
+			require.Nil(t, appErr)
+
+			ev := capturePublishedGroup(t, func() {
+				_, appErr := th.App.RestoreGroup(group.Id)
+				require.Nil(t, appErr)
+			})
+			assertRestrictedGroupEvent(t, ev)
+		})
+	})
+}
+
+func selectReceivedGroupEvents(t *testing.T, cluster *testlib.FakeClusterInterface) []*model.WebSocketEvent {
+	t.Helper()
+
+	var events []*model.WebSocketEvent
+	for _, msg := range cluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+		return msg.Event == model.ClusterEventPublish
+	}) {
+		ev, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
+		require.NoError(t, err)
+		if ev.EventType() == model.WebsocketEventReceivedGroup {
+			events = append(events, ev)
+		}
+	}
+
+	return events
+}
+
+func assertBroadcastUnrestricted(t *testing.T, ev *model.WebSocketEvent) {
+	t.Helper()
+
+	require.Empty(t, ev.GetBroadcast().RequiredPermissions)
+	require.False(t, ev.GetBroadcast().ContainsSensitiveData)
+}
+
+func assertBroadcastRestricted(t *testing.T, ev *model.WebSocketEvent) {
+	t.Helper()
+
+	require.Equal(t, []string{model.PermissionSysconsoleReadUserManagementGroups.Id}, ev.GetBroadcast().RequiredPermissions)
+	require.True(t, ev.GetBroadcast().ContainsSensitiveData)
+}
+
+func assertRestrictedGroupEvent(t *testing.T, ev *model.WebSocketEvent) {
+	t.Helper()
+
+	assertBroadcastRestricted(t, ev)
+
+	groupJSON, ok := ev.GetData()["group"].(string)
+	require.True(t, ok)
+
+	var group *model.Group
+	require.NoError(t, json.Unmarshal([]byte(groupJSON), &group))
+	require.False(t, group.AllowReference)
+	require.NotNil(t, group.MemberCount)
+}
+
+func TestReceivedGroupEventDelivery(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	connForRoles := func(t *testing.T, user *model.User, roles string) *platform.WebConn {
+		t.Helper()
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: user.Id, Roles: roles})
+		require.Nil(t, appErr)
+
+		wc := &platform.WebConn{
+			Platform: th.Server.Platform(),
+			Suite:    th.App,
+			UserId:   user.Id,
+			T:        i18n.T,
+		}
+		wc.SetConnectionID(model.NewId())
+		wc.SetSession(session)
+		wc.SetSessionToken(session.Token)
+		wc.SetSessionExpiresAt(session.ExpiresAt)
+
+		return wc
+	}
+
+	restricted := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
+	restrictBroadcastToGroupReaders(restricted.GetBroadcast())
+
+	testCases := []struct {
+		description string
+		user        *model.User
+		roles       string
+		expected    bool
+	}{
+		{"system manager holding no manage_system", th.BasicUser2, model.SystemUserRoleId + " " + model.SystemManagerRoleId, true},
+		{"system admin", th.SystemAdminUser, model.SystemUserRoleId + " " + model.SystemAdminRoleId, true},
+		{"regular user", th.BasicUser, model.SystemUserRoleId, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.description, func(t *testing.T) {
+			wc := connForRoles(t, tc.user, tc.roles)
+			require.Equal(t, tc.expected, wc.ShouldSendEvent(restricted))
+		})
+	}
 }

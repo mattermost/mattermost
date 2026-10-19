@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Editor} from '@tiptap/react';
 import classNames from 'classnames';
 import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -29,6 +28,7 @@ import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
+import {applyWysiwygFormatting} from 'components/advanced_text_editor/wysiwyg_editor/apply_wysiwyg_formatting';
 import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import {makeAsyncComponent} from 'components/async_load';
@@ -62,12 +62,13 @@ import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_util
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
+import {getDraftRepeatDisabledReason} from 'utils/scheduled_post_repeat';
 import {allAtMentions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {draftHasAttachments, isPostDraftEmpty} from 'types/store/draft';
+import {isPostDraftEmpty} from 'types/store/draft';
 
 import AIActionsMenu from './ai_actions_menu';
 import DoNotDisturbWarning from './do_not_disturb_warning';
@@ -334,58 +335,6 @@ const AdvancedTextEditor = ({
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
     }, [dispatch, isInEditMode, storageKey]);
 
-    const applyWysiwygFormatting = useCallback((editor: Editor, mode: MarkdownMode) => {
-        const isInlineMark = mode === 'bold' || mode === 'italic' || mode === 'strike';
-        if (isInlineMark && editor.state.selection.empty) {
-            const $from = editor.state.selection.$from;
-            const text = $from.parent.textContent;
-            const offset = $from.parentOffset;
-            if (text && offset >= 0) {
-                const isWordChar = (/\S/);
-                let start = offset;
-                while (start > 0 && isWordChar.test(text[start - 1])) {
-                    start--;
-                }
-                let end = offset;
-                while (end < text.length && isWordChar.test(text[end])) {
-                    end++;
-                }
-                if (start < end) {
-                    const parentStart = $from.pos - offset;
-                    editor.chain().focus().setTextSelection({from: parentStart + start, to: parentStart + end}).run();
-                }
-            }
-        }
-
-        const chain = editor.chain().focus();
-        switch (mode) {
-        case 'bold':
-            chain.toggleBold().run();
-            break;
-        case 'italic':
-            chain.toggleItalic().run();
-            break;
-        case 'strike':
-            chain.toggleStrike().run();
-            break;
-        case 'heading':
-            chain.toggleHeading({level: 3}).run();
-            break;
-        case 'code':
-            chain.toggleCodeBlock().run();
-            break;
-        case 'quote':
-            chain.toggleBlockquote().run();
-            break;
-        case 'ul':
-            chain.toggleBulletList().run();
-            break;
-        case 'ol':
-            chain.toggleOrderedList().run();
-            break;
-        }
-    }, []);
-
     const applyFormatting = useCallback((mode: MarkdownMode) => {
         if (showPreview) {
             return;
@@ -426,7 +375,7 @@ const AdvancedTextEditor = ({
                 Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
             }
         });
-    }, [showPreview, wysiwygEnabled, handleDraftChange, applyWysiwygFormatting]);
+    }, [showPreview, wysiwygEnabled, handleDraftChange]);
 
     const toggleAdvanceTextEditor = useCallback(() => {
         dispatch(savePreferences(currentUserId, [{
@@ -485,6 +434,7 @@ const AdvancedTextEditor = ({
     const {
         labels: burnOnReadLabels,
         additionalControl: burnOnReadAdditionalControl,
+        isBurnOnReadSendable: burnOnReadSendable,
     } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
     const [handleSubmit, errorClass] = useSubmit(
         draft,
@@ -547,6 +497,8 @@ const AdvancedTextEditor = ({
         focusTextbox();
     }, [draft, handleDraftChange, focusTextbox]);
 
+    const isDraftSendable = isValidPersistentNotifications && burnOnReadSendable;
+
     const handleSubmitWrapper = useCallback(() => {
         const isEmptyPost = isPostDraftEmpty(draft);
 
@@ -564,14 +516,22 @@ const AdvancedTextEditor = ({
             return;
         }
 
+        // useKeyHandler prevents submits already when draft isn't sendable,
+        // but wysiwyg editor does not useKeyHandler, so check here too.
+        // Don't gate in edit mode because that could break the ability to remove mentions
+        // on an existing post with persistent notifications
+        if (!isInEditMode && !isDraftSendable) {
+            return;
+        }
+
         handleSubmitWithErrorHandling();
-    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS]);
+    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS, isDraftSendable]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
         rootId,
-        isValidPersistentNotifications,
+        isDraftSendable,
         location,
         textboxRef,
         showFormattingBar,
@@ -743,13 +703,13 @@ const AdvancedTextEditor = ({
         };
     }, [channelId, rootId]);
 
-    const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
+    const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isDraftSendable;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
         <SendButton
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
             channelId={channelId}
-            allowRecurring={!draftHasAttachments(draft)}
+            repeatDisabledReason={getDraftRepeatDisabledReason(draft)}
         />
     );
 
@@ -800,7 +760,7 @@ const AdvancedTextEditor = ({
     let loginSuccessfulLabel;
     if (!wasNotifiedOfLogIn) {
         loginSuccessfulLabel = formatMessage({
-            id: 'channelView.login.successfull',
+            id: 'channelView.login.successful',
             defaultMessage: 'Login Successful',
         });
 
@@ -922,7 +882,7 @@ const AdvancedTextEditor = ({
                         className='sr-only'
                     >
                         <FormattedMessage
-                            id='channelView.login.successfull'
+                            id='channelView.login.successful'
                             defaultMessage='Login Successful'
                         />
                     </div>

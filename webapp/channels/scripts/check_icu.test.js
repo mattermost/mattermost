@@ -131,14 +131,15 @@ describe('check_icu', () => {
     });
 
     describe('key parity', () => {
-        test('an extra key is always an error, since nothing will read it', () => {
+        test('an extra key is only a warning, since nothing will read it', () => {
             const {code, stderr} = check(
                 {'a.b': 'Hello'},
                 {'fr.json': {'a.b': 'Bonjour', 'z.z': 'Orphelin'}},
             );
 
-            expect(code).toBe(1);
+            expect(code).toBe(0);
             expect(stderr).toContain('fr.json:z.z: extra key not in en.json');
+            expect(stderr).toContain('1 warning(s)');
         });
 
         test('a missing key is an error by default', () => {
@@ -154,6 +155,30 @@ describe('check_icu', () => {
             expect(code).toBe(0);
             expect(stderr).toContain('fr.json:a.b: missing key');
             expect(stderr).toContain('1 warning(s)');
+        });
+
+        // react-intl treats '' as falsy and falls back to the English, so an
+        // empty translation reaches the user exactly as a missing key does.
+        test('an empty translation is an error by default', () => {
+            const {code, stderr} = check({'a.b': 'Hello'}, {'fr.json': {'a.b': ''}});
+
+            expect(code).toBe(1);
+            expect(stderr).toContain('fr.json:a.b: empty translation');
+        });
+
+        test('an empty translation is a warning under --warn-missing-keys', () => {
+            const {code, stderr} = check({'a.b': 'Hello'}, {'fr.json': {'a.b': ''}}, {warnMissingKeys: true});
+
+            expect(code).toBe(0);
+            expect(stderr).toContain('fr.json:a.b: empty translation');
+            expect(stderr).toContain('1 warning(s)');
+        });
+
+        test('a whitespace-only translation is an error by default', () => {
+            const {code, stderr} = check({'a.b': 'Hello'}, {'fr.json': {'a.b': ' '}});
+
+            expect(code).toBe(1);
+            expect(stderr).toContain('fr.json:a.b: empty translation');
         });
     });
 

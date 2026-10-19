@@ -944,7 +944,14 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 
 	receivedUpdatedPost.SanitizeProps()
 
-	postLists, nErr := a.Srv().Store().Post().Get(rctx, receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
+	// Read the row we are about to mutate from master. The post may have been written
+	// milliseconds ago, so a replica that has not caught up yet would report it missing
+	// and callers would surface that as a spurious failure. DeletePost and
+	// PermanentDeletePost already pin their equivalent lookup (MM-70867).
+	//
+	// GetSingle rather than Get: only this row is needed, and Get additionally fetches
+	// every reply in the thread just for them to be discarded here.
+	oldPost, nErr := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), receivedUpdatedPost.Id, false)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -957,13 +964,8 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 			return nil, false, model.NewAppError("UpdatePost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
-	oldPost := postLists.Posts[receivedUpdatedPost.Id]
 
 	var appErr *model.AppError
-	if oldPost == nil {
-		appErr = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
-		return nil, false, appErr
-	}
 
 	if oldPost.DeleteAt != 0 {
 		appErr = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]any{"PostId": receivedUpdatedPost.Id}, "", http.StatusBadRequest)
@@ -1416,7 +1418,9 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 		patchPostOptions = model.DefaultUpdatePostOptions()
 	}
 
-	post, err := a.GetSinglePost(rctx, postID, false)
+	// Read the row we are about to mutate from master; see the note in UpdatePost
+	// (MM-70867).
+	post, err := a.GetSinglePost(sqlstore.RequestContextWithMaster(rctx), postID, false)
 	if err != nil {
 		return nil, false, err
 	}
@@ -1567,18 +1571,18 @@ func degradedABACEtagEpoch() string {
 	return unknownABACEtagEpoch + "-" + strconv.FormatInt(time.Now().UnixNano(), 10)
 }
 
-// AppendABACEtag folds the policy and user-attribute epochs into a base ETag, so a policy or
-// attribute change misses the cache and SanitizePostListMetadataForUser runs instead of the
-// request 304ing onto differently-sanitized content. No-op when ABAC is inactive.
+// AppendABACEtag folds the policy, user-attribute, and session-attribute epochs into a base ETag,
+// so a change to any of them misses the cache and SanitizePostListMetadataForUser runs instead of
+// the request 304ing onto differently-sanitized content. No-op when ABAC is inactive.
 //
 // Pass "" for channelID when no channel is in scope; the policy epoch then covers only the
 // system-scoped permission policies.
-func (a *App) AppendABACEtag(base string, userID string, channelID string) string {
+func (a *App) AppendABACEtag(rctx request.CTX, base string, channelID string) string {
 	if !a.attributeBasedAccessControlEnabled() {
 		return base
 	}
 
-	rctx := request.EmptyContext(a.Log())
+	userID := rctx.Session().UserId
 
 	policyEpoch := degradedABACEtagEpoch()
 	if epoch, err := a.Srv().Store().AccessControlPolicy().GetEtagEpoch(rctx, channelID); err == nil {
@@ -1600,10 +1604,22 @@ func (a *App) AppendABACEtag(base string, userID string, channelID string) strin
 		}
 	}
 
-	return fmt.Sprintf("%s.%s.%s", base, policyEpoch, cpaEpoch)
+	sessionEpoch := unknownABACEtagEpoch
+	if sessionID := rctx.Session().Id; sessionID != "" {
+		sessionEpoch = degradedABACEtagEpoch()
+		if epoch, err := a.Srv().Store().SessionAttribute().GetEpoch(sessionID); err == nil {
+			sessionEpoch = epoch
+		} else {
+			a.Log().Warn("ABAC ETag: failed to get session attribute epoch; session component will be unknown",
+				mlog.String("session_id", sessionID),
+				mlog.Err(err))
+		}
+	}
+
+	return fmt.Sprintf("%s.%s.%s.%s", base, policyEpoch, cpaEpoch, sessionEpoch)
 }
 
-func (a *App) GetPostsEtag(channel *model.Channel, userID string, collapsedThreads bool) string {
+func (a *App) GetPostsEtag(rctx request.CTX, channel *model.Channel, collapsedThreads bool) string {
 	includeTranslations := false
 	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
 		if enabled, err := a.AutoTranslation().IsChannelEnabled(channel.Id); err == nil && enabled {
@@ -1611,7 +1627,7 @@ func (a *App) GetPostsEtag(channel *model.Channel, userID string, collapsedThrea
 		}
 	}
 	base := a.Srv().Store().Post().GetEtag(channel.Id, true, collapsedThreads, includeTranslations)
-	base = a.AppendABACEtag(base, userID, channel.Id)
+	base = a.AppendABACEtag(rctx, base, channel.Id)
 	return fmt.Sprintf("%v.%t", base, channel.DisableJoinLeaveMessages)
 }
 

@@ -17,6 +17,7 @@ type Props = {
     onExited: () => void;
     isOrphaned?: boolean;
     sourcePluginId?: string;
+    ownerPluginIds?: string[];
 };
 
 // GenericModal only renders a Cancel button when handleCancel is supplied, and
@@ -34,7 +35,8 @@ const noop = () => {};
  * Pass `orphan` when the field's source plugin is no longer installed, so the
  * confirmation can explain where the leftover attribute came from. It is an
  * object rather than a bare flag so there is no way to declare a field orphaned
- * without supplying the plugin it came from.
+ * without supplying the plugin it came from. For an attribute whose owners are
+ * all uninstalled, pass `{ownerPluginIds}` instead to name those owners.
  *
  * `onExited` runs once the modal has finished closing, whether it was confirmed
  * or cancelled. ModalController composes it with its own close handling, so the
@@ -45,7 +47,7 @@ const noop = () => {};
 export const useGlobalAttributeFieldDelete = () => {
     const dispatch = useDispatch();
 
-    return (name: string, onConfirm: () => void, orphan?: {sourcePluginId?: string}, onExited?: () => void) => {
+    return (name: string, onConfirm: () => void, orphan?: {sourcePluginId?: string} | {ownerPluginIds: string[]}, onExited?: () => void) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.GLOBAL_ATTRIBUTE_FIELD_DELETE,
             dialogType: GlobalAttributeDeleteModal,
@@ -53,15 +55,16 @@ export const useGlobalAttributeFieldDelete = () => {
                 name,
                 onConfirm,
                 isOrphaned: Boolean(orphan),
-                sourcePluginId: orphan?.sourcePluginId,
+                sourcePluginId: orphan && 'sourcePluginId' in orphan ? orphan.sourcePluginId : undefined,
+                ownerPluginIds: orphan && 'ownerPluginIds' in orphan ? orphan.ownerPluginIds : undefined,
                 onExited,
             },
         }));
     };
 };
 
-function GlobalAttributeDeleteModal({name, onConfirm, onExited, isOrphaned = false, sourcePluginId}: Props) {
-    const {formatMessage} = useIntl();
+function GlobalAttributeDeleteModal({name, onConfirm, onExited, isOrphaned = false, sourcePluginId, ownerPluginIds}: Props) {
+    const {formatMessage, formatList} = useIntl();
 
     const title = formatMessage({
         id: 'admin.global_attributes.confirm.delete.title',
@@ -84,9 +87,20 @@ function GlobalAttributeDeleteModal({name, onConfirm, onExited, isOrphaned = fal
             compassDesign={true}
         >
             {/* An uninstalled plugin leaves no manifest behind to resolve a display
-                name from, so the raw source_plugin_id is the only identifier we can
-                honestly show here. */}
-            {isOrphaned && (
+                name from, so the raw plugin ID (source_plugin_id or an owner's ID) is the
+                only identifier we can honestly show here. */}
+            {isOrphaned && ownerPluginIds?.length ? (
+                <p>
+                    <FormattedMessage
+                        id='admin.global_attributes.confirm.delete.orphaned_owners_body'
+                        defaultMessage='This attribute was managed by {pluginIds}, which {count, plural, one {is} other {are}} no longer installed.'
+                        values={{
+                            pluginIds: formatList(ownerPluginIds, {type: 'conjunction'}),
+                            count: ownerPluginIds.length,
+                        }}
+                    />
+                </p>
+            ) : isOrphaned && (
                 <p>
                     <FormattedMessage
                         id='admin.global_attributes.confirm.delete.orphaned_body'

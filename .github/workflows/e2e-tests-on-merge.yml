@@ -68,6 +68,49 @@ jobs:
             exit 1
           fi
 
+  check-changes:
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    outputs:
+      should_run_rolling_upgrades: "${{ steps.check.outputs.should_run_rolling_upgrades }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 2
+      - name: ci/check-relevant-changes
+        id: check
+        env:
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+        run: |
+          # Merges land as a single commit on master/release branches, so diff
+          # against its parent instead of a PR base (mirrors e2e-tests-ci.yml).
+          CHANGED_FILES=$(git diff --name-only "${COMMIT_SHA}~1" "${COMMIT_SHA}")
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Rolling upgrades: auto when the merge touches the harness or a
+          # server surface an upgrade has to survive (same conditions as the
+          # PR pipeline's check-changes job).
+          SHOULD_RUN_ROLLING_UPGRADES="false"
+          if echo "$CHANGED_FILES" | grep -qE '^e2e-tests/playwright/(upgrade-specs/|script/resolve_upgrade_matrix\.mjs)'; then
+            echo "Found Playwright upgrade-path harness changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-tests-playwright-rolling-upgrades'; then
+            echo "Found Playwright rolling-upgrade workflow changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^server/(channels/db/migrations/|config/migrations/|channels/app/(migrations|permissions_migrations)\.go$|public/model/version\.go$)'; then
+            echo "Found server migration or version changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          fi
+
+          echo "should_run_rolling_upgrades=${SHOULD_RUN_ROLLING_UPGRADES}" >> $GITHUB_OUTPUT
+          echo "Should run rolling upgrades: ${SHOULD_RUN_ROLLING_UPGRADES}"
+
   # Enterprise Edition
   e2e-cypress:
     needs: generate-build-variables
@@ -94,7 +137,9 @@ jobs:
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
 
   e2e-playwright:
-    needs: generate-build-variables
+    needs:
+      - generate-build-variables
+      - check-changes
     permissions:
       contents: read
       statuses: write
@@ -108,6 +153,7 @@ jobs:
       enable_reporting: true
       report_type: ${{ needs.generate-build-variables.outputs.report_type }}
       ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+      run_rolling_upgrades: ${{ needs.check-changes.outputs.should_run_rolling_upgrades }}
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
@@ -141,7 +187,9 @@ jobs:
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
 
   e2e-playwright-fips:
-    needs: generate-build-variables
+    needs:
+      - generate-build-variables
+      - check-changes
     if: needs.generate-build-variables.outputs.fips_supported == 'true'
     permissions:
       contents: read
@@ -157,6 +205,7 @@ jobs:
       enable_reporting: true
       report_type: ${{ needs.generate-build-variables.outputs.report_type }}
       ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+      run_rolling_upgrades: ${{ needs.check-changes.outputs.should_run_rolling_upgrades }}
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"

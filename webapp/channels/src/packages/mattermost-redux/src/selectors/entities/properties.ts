@@ -258,7 +258,7 @@ export type ResolvedChannelAttribute = {
 
 const EMPTY_RESOLVED: ResolvedChannelAttribute[] = [];
 
-function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: PropertyFieldOption; displayValue: string; displayValues: string[]; unresolvedOptionIds?: string[]} {
+export function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: PropertyFieldOption; displayValue: string; displayValues: string[]; unresolvedOptionIds?: string[]} {
     if (!isPropertyValueSet(raw)) {
         return {displayValue: '', displayValues: []};
     }

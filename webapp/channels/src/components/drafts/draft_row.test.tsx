@@ -14,10 +14,13 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import {deleteScheduledPost} from 'mattermost-redux/actions/scheduled_posts';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
+import {PostTypes} from 'mattermost-redux/constants/posts';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import {getDrafts as getDraftsForTeam} from 'actions/views/drafts';
 import {makeGetDrafts} from 'selectors/drafts';
+
+import {useCreateBurnOnReadAccess} from 'components/common/hooks/useCreateBurnOnReadAccess';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
@@ -25,6 +28,7 @@ import {StoragePrefixes} from 'utils/constants';
 
 import type {PostDraft} from 'types/store/draft';
 
+import DraftActions from './draft_actions';
 import DraftRow from './draft_row';
 
 const SCHEDULED_AT = 1735689600;
@@ -43,13 +47,13 @@ jest.mock('components/advanced_text_editor/use_priority', () => () => ({onSubmit
 
 // The real action rows call these callbacks with no arguments, so the fakes must too:
 // forwarding the click event into onSend breaks the submit path.
-jest.mock('components/drafts/draft_actions', () => (props: DraftActionProps) => (
+jest.mock('components/drafts/draft_actions', () => jest.fn((props: DraftActionProps) => (
     <div>
         <button onClick={() => props.onSend()}>{'Send draft'}</button>
         <button onClick={() => props.onSchedule({scheduled_at: SCHEDULED_AT})}>{'Schedule draft'}</button>
         <button onClick={() => props.onDelete()}>{'Delete draft'}</button>
     </div>
-));
+)));
 jest.mock('components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions', () => (props: ScheduledPostActionProps) => (
     <div>
         <button onClick={() => props.onSend()}>{'Send scheduled post'}</button>
@@ -57,6 +61,9 @@ jest.mock('components/drafts/draft_actions/schedule_post_actions/scheduled_post_
 ));
 
 jest.mock('components/drafts/draft_title', () => () => <div>{'Draft Title'}</div>);
+jest.mock('components/common/hooks/useCreateBurnOnReadAccess', () => ({
+    useCreateBurnOnReadAccess: jest.fn(() => true),
+}));
 jest.mock('components/drafts/panel/panel_body', () => () => <div>{'Panel Body'}</div>);
 jest.mock('components/edit_scheduled_post', () => () => <div>{'Edit Scheduled Post'}</div>);
 jest.mock('components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title', () => () => (
@@ -451,6 +458,48 @@ describe('components/drafts/drafts_row', () => {
 
             await waitFor(() => expect(createPostSpy).toHaveBeenCalledTimes(2));
             expect(deleteDraftSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('burn-on-read drafts', () => {
+        // DraftActions is stubbed, so the prop it was handed is the observable result.
+        const lastCanSend = () => jest.mocked(DraftActions).mock.calls.at(-1)?.[0].canSend;
+
+        beforeEach(() => {
+            jest.mocked(DraftActions).mockClear();
+        });
+
+        const burnOnReadProps = {
+            ...baseProps,
+            item: {...baseProps.item, type: PostTypes.BURN_ON_READ} as PostDraft,
+        };
+
+        it('offers sending a burn-on-read draft while the policy allows it', () => {
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(true);
+
+            renderWithContext(<DraftRow {...burnOnReadProps}/>, initialState);
+
+            expect(lastCanSend()).toBe(true);
+        });
+
+        // Send and Schedule are both gated on canSend, and both are creation paths the
+        // server would reject, so withdrawing the pair is right rather than collateral.
+        it('withholds sending a burn-on-read draft once the policy denies it', () => {
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(false);
+
+            renderWithContext(<DraftRow {...burnOnReadProps}/>, initialState);
+
+            expect(lastCanSend()).toBe(false);
+        });
+
+        // The gate has to key on the draft's type, or an ordinary draft in a channel
+        // where burn-on-read is denied would lose its Send button too.
+        it('leaves an ordinary draft sendable even where burn-on-read is denied', () => {
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(false);
+
+            renderWithContext(<DraftRow {...baseProps}/>, initialState);
+
+            expect(lastCanSend()).toBe(true);
         });
     });
 });

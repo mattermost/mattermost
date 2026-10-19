@@ -1246,6 +1246,12 @@ type PropertyValueStore interface {
 	Delete(groupID string, id string) error
 	DeleteForField(groupID, fieldID string) error
 	DeleteForTarget(groupID string, targetType string, targetID string) error
+	// GetReferencedOptionIDs returns the distinct option IDs that live values
+	// of the given select-shaped fields reference, from both single-option
+	// (JSON string) and multi-option (JSON string array) values. Pass a
+	// template together with the fields linking to it to cover every value
+	// that points at the template's options.
+	GetReferencedOptionIDs(groupID string, fieldIDs []string) ([]string, error)
 }
 
 type AccessControlPolicyStore interface {
@@ -1317,6 +1323,7 @@ type AttributesStore interface {
 type SessionAttributeStore interface {
 	Refresh(sessionID string, attrs map[string]any, updatedAt int64) error
 	Get(sessionID string) (map[string]any, map[string]int64, error)
+	GetEpoch(sessionID string) (string, error)
 	Invalidate(sessionID string) error
 	Clear() error
 }

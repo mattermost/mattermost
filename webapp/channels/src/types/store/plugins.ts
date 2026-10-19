@@ -237,10 +237,18 @@ export type UserGuideDropdownAction = PluginComponent & {
     action: (fileInfo: FileInfo) => void;
 };
 
+export type PhoneCallRequest = {
+    number: string;
+    userId: string;
+    label: string;
+    fieldId: string;
+};
+
 export type CallButtonAction = PluginComponent & {
     button: React.ReactNode;
     dropdownButton: React.ReactNode;
     action: (channel?: Channel | null, member?: ChannelMembership) => void;
+    phoneAction?: (call: PhoneCallRequest) => void;
 };
 
 export type MobileChannelHeaderButtonAction = PluginComponent & {

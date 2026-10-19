@@ -19,37 +19,49 @@ var collectedJobTypes = []string{
 }
 
 func (s *Snapshot) ConfigString(get func(*model.Config) *string) (string, bool) {
-	if get == nil || !s.Has(model.SectionConfig) || s.Config == nil || s.Config.Config == nil {
+	value, ok := configValue(s, get)
+	if !ok || value == model.FakeSetting {
 		return "", false
 	}
 
-	value := get(s.Config.Config)
-	if value == nil || *value == model.FakeSetting {
-		return "", false
-	}
-
-	return *value, true
+	return value, true
 }
 
 func (s *Snapshot) ConfigBool(get func(*model.Config) *bool) (bool, bool) {
+	return configValue(s, get)
+}
+
+func (s *Snapshot) ConfigInt(get func(*model.Config) *int) (int, bool) {
+	return configValue(s, get)
+}
+
+func (s *Snapshot) ConfigInt64(get func(*model.Config) *int64) (int64, bool) {
+	return configValue(s, get)
+}
+
+// configValue returns ok=false when the config section is absent or the field is nil.
+// TODO: make this a generic method on Snapshot once the module targets Go 1.27.
+func configValue[T any](s *Snapshot, get func(*model.Config) *T) (T, bool) {
+	var zero T
 	if get == nil || !s.Has(model.SectionConfig) || s.Config == nil || s.Config.Config == nil {
-		return false, false
+		return zero, false
 	}
 
 	value := get(s.Config.Config)
 	if value == nil {
-		return false, false
+		return zero, false
 	}
 
 	return *value, true
 }
 
-func (s *Snapshot) ConfigInt(get func(*model.Config) *int) (int, bool) {
-	if get == nil || !s.Has(model.SectionConfig) || s.Config == nil || s.Config.Config == nil {
+// Stat returns a workspace stat, or ok=false when stats were not collected or the query for this stat failed.
+func (s *Snapshot) Stat(get func(*model.SupportPacketStats) *int64) (int64, bool) {
+	if get == nil || s == nil || s.Stats == nil {
 		return 0, false
 	}
 
-	value := get(s.Config.Config)
+	value := get(s.Stats)
 	if value == nil {
 		return 0, false
 	}
@@ -86,12 +98,34 @@ func (s *Snapshot) JobsFor(jobType string) ([]*model.Job, bool) {
 	}
 }
 
+// License reads the leader's diagnostics so live and packet snapshots see the same license fields.
+func (s *Snapshot) License() (*model.SupportPacketLicense, bool) {
+	leader, ok := s.Leader()
+	if !ok || !leader.sectionOK(model.SectionLicense) {
+		return nil, false
+	}
+
+	diag, ok := leader.Diag()
+	if !ok {
+		return nil, false
+	}
+
+	return &diag.License, true
+}
+
+// IsCloud is false when the license is unavailable.
+func (s *Snapshot) IsCloud() bool {
+	license, ok := s.License()
+	return ok && license.IsCloud
+}
+
 func (s *Snapshot) LicenseFeature(get func(*model.Features) *bool) (bool, bool) {
-	if get == nil || s == nil || s.License == nil || s.License.Features == nil {
+	license, ok := s.License()
+	if !ok || get == nil || license.Features == nil {
 		return false, false
 	}
 
-	value := get(s.License.Features)
+	value := get(license.Features)
 	if value == nil {
 		return false, false
 	}
