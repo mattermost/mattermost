@@ -10752,6 +10752,35 @@ func TestLoginWithDesktopToken(t *testing.T) {
 
 		assert.Len(t, sessions, 0)
 	})
+
+	t.Run("respects user DeleteAt", func(t *testing.T) {
+		for _, tc := range []struct {
+			name        string
+			authService string
+		}{
+			{name: "SAML", authService: model.UserAuthServiceSaml},
+			{name: "OAuth", authService: model.UserAuthServiceGitlab},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				authUser := th.CreateUserWithAuth(t, tc.authService)
+
+				token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), authUser)
+				assert.Nil(t, appErr)
+
+				th.UpdateActiveUser(t, authUser, false)
+
+				// Checks that desktop token login consults user DeleteAt before creating a session.
+				_, resp, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+				require.Error(t, err)
+				CheckErrorID(t, err, "api.user.login.inactive.app_error")
+				CheckUnauthorizedStatus(t, resp)
+
+				sessions, _, sessErr := th.SystemAdminClient.GetSessions(context.Background(), authUser.Id, "")
+				require.NoError(t, sessErr)
+				assert.Len(t, sessions, 0)
+			})
+		}
+	})
 }
 
 func TestLoginSSOCodeExchangeDeprecated(t *testing.T) {
@@ -10844,6 +10873,55 @@ func TestLoginSSOCodeExchange(t *testing.T) {
 		assert.Equal(t, samlUser.Id, user.Id)
 		assert.Equal(t, samlUser.Email, user.Email)
 		assert.Equal(t, samlUser.Username, user.Username)
+	})
+
+	t.Run("respects user DeleteAt", func(t *testing.T) {
+		for _, tc := range []struct {
+			name        string
+			authService string
+		}{
+			{name: "SAML", authService: model.UserAuthServiceSaml},
+			{name: "OAuth", authService: model.UserAuthServiceGitlab},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				authUser := th.CreateUserWithAuth(t, tc.authService)
+
+				codeVerifier := "test_code_verifier_delete_at_" + tc.name
+				state := "test_state_delete_at_" + tc.name
+
+				sum := sha256.Sum256([]byte(codeVerifier))
+				codeChallenge := base64.RawURLEncoding.EncodeToString(sum[:])
+
+				extra := map[string]string{
+					"user_id":               authUser.Id,
+					"code_challenge":        codeChallenge,
+					"code_challenge_method": "S256",
+					"state":                 state,
+				}
+
+				token := model.NewToken(model.TokenTypeSSOCodeExchange, model.MapToJSON(extra))
+				require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+				th.UpdateActiveUser(t, authUser, false)
+
+				props := map[string]string{
+					"login_code":    token.Token,
+					"code_verifier": codeVerifier,
+					"state":         state,
+				}
+
+				// Checks that SSO code exchange consults user DeleteAt before creating a session.
+				resp, err := th.Client.DoAPIPost(context.Background(), "/users/login/sso/code-exchange", model.MapToJSON(props))
+				require.Error(t, err)
+				CheckErrorID(t, err, "api.user.login.inactive.app_error")
+				CheckUnauthorizedStatus(t, model.BuildResponse(resp))
+				require.Empty(t, resp.Header.Get(model.HeaderToken))
+
+				sessions, _, sessErr := th.SystemAdminClient.GetSessions(context.Background(), authUser.Id, "")
+				require.NoError(t, sessErr)
+				assert.Len(t, sessions, 0)
+			})
+		}
 	})
 }
 
