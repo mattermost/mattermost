@@ -20,12 +20,9 @@ func audit(fileEnabled bool, advanced string) func(cfg *model.Config) {
 	}
 }
 
-// licensedLeader returns a leader whose license has features only when advancedLogging is non-nil, like packets from older servers.
-func licensedLeader(sku string, advancedLogging *bool) *healthcheck.NodeSnapshot {
-	license := model.SupportPacketLicense{SkuShortName: sku}
-	if advancedLogging != nil {
-		license.Features = &model.Features{AdvancedLogging: advancedLogging}
-	}
+// licensedLeader returns a leader whose license has nil features, like packets from older servers, unless features is given.
+func licensedLeader(sku string, features *model.Features) *healthcheck.NodeSnapshot {
+	license := model.SupportPacketLicense{SkuShortName: sku, Features: features}
 	return &healthcheck.NodeSnapshot{
 		Hostname:    "app-1",
 		IsLeader:    true,
@@ -48,7 +45,6 @@ func TestAuditLogOff(t *testing.T) {
 	off := func(users string) want {
 		return firing("health.rule.audit_log_off.message", map[string]string{"users": users})
 	}
-	licenseUnknown := want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonLicenseUnavailable}
 
 	configFailed := enterprise(nil)
 	configFailed.Sections[model.SectionConfig] = errors.New("boom")
@@ -64,8 +60,8 @@ func TestAuditLogOff(t *testing.T) {
 		{"enterprise advanced", withUsers(configSnapshot(audit(false, ""), licensedLeader(model.LicenseShortSkuEnterpriseAdvanced, nil)), 5001), off("5001").withValue(5001)},
 		{"file enabled with stats absent", enterprise(audit(true, "")), resolved},
 		{"advanced audit-api target with license features unknown", withUsers(enterprise(audit(false, apiTarget)), 50000), resolved},
-		{"advanced audit-api target with advanced logging licensed", withUsers(configSnapshot(audit(false, apiTarget), licensedLeader(model.LicenseShortSkuEnterprise, new(true))), 50000), resolved},
-		{"advanced audit-api target without advanced logging license", withUsers(configSnapshot(audit(false, apiTarget), licensedLeader(model.LicenseShortSkuEnterprise, new(false))), 5001), off("5001").withValue(5001)},
+		{"advanced audit-api target with advanced logging licensed", withUsers(configSnapshot(audit(false, apiTarget), licensedLeader(model.LicenseShortSkuEnterprise, &model.Features{AdvancedLogging: new(true)})), 50000), resolved},
+		{"advanced audit-api target without advanced logging license", withUsers(configSnapshot(audit(false, apiTarget), licensedLeader(model.LicenseShortSkuEnterprise, &model.Features{AdvancedLogging: new(false)})), 5001), off("5001").withValue(5001)},
 		{"advanced audit-delivery only counts as inactive", withUsers(enterprise(audit(false, auditTarget(`{"id": 104, "name": "audit-delivery"}`))), 5001), off("5001").withValue(5001)},
 		{"inactive with stats absent", enterprise(audit(false, "")), statsUnknown},
 		{"inactive at the threshold", withUsers(enterprise(audit(false, "")), 5000), resolved.withValue(5000)},

@@ -22,9 +22,10 @@ type want struct {
 }
 
 var (
-	resolved      = want{state: healthcheck.StateResolved}
-	configUnknown = want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonConfigUnavailable}
-	statsUnknown  = want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable}
+	resolved       = want{state: healthcheck.StateResolved}
+	configUnknown  = want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonConfigUnavailable}
+	statsUnknown   = want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable}
+	licenseUnknown = want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonLicenseUnavailable}
 )
 
 func firing(messageID string, details map[string]string) want {
@@ -50,6 +51,12 @@ func configSnapshot(mutate func(*model.Config), nodes ...*healthcheck.NodeSnapsh
 	return s
 }
 
+// licensedConfig returns a configSnapshot whose leader is licensed for compliance, data retention and message export.
+func licensedConfig(mutate func(*model.Config)) *healthcheck.Snapshot {
+	features := &model.Features{Compliance: new(true), DataRetention: new(true), MessageExport: new(true)}
+	return configSnapshot(mutate, licensedLeader(model.LicenseShortSkuEnterprise, features))
+}
+
 func withUsers(s *healthcheck.Snapshot, users int64) *healthcheck.Snapshot {
 	s.Stats = &model.SupportPacketStats{RegisteredUsers: new(users)}
 	s.Sections[model.SectionStats] = nil
@@ -69,15 +76,93 @@ func assertResult(t *testing.T, expected want, results []healthcheck.Result, msg
 func TestRulesConfigUnavailable(t *testing.T) {
 	t.Parallel()
 
-	failed := configSnapshot(func(*model.Config) {})
+	failed := licensedConfig(func(*model.Config) {})
 	failed.Sections[model.SectionConfig] = errors.New("boom")
 
 	for _, rule := range []healthcheck.Rule{complianceNoDir, retentionTightBatches, exportGRTimeoutLow} {
 		t.Run(rule.Code, func(t *testing.T) {
 			t.Parallel()
 
-			assertResult(t, configUnknown, rule.Eval(&healthcheck.Snapshot{}))
+			assertResult(t, licenseUnknown, rule.Eval(&healthcheck.Snapshot{}))
 			assertResult(t, configUnknown, rule.Eval(failed))
+		})
+	}
+}
+
+func TestRulesLicenseFeature(t *testing.T) {
+	t.Parallel()
+
+	ruleCases := []struct {
+		rule    healthcheck.Rule
+		feature func(f *model.Features, granted bool)
+		firing  func(cfg *model.Config)
+	}{
+		{
+			rule:    complianceNoDir,
+			feature: func(f *model.Features, granted bool) { f.Compliance = new(granted) },
+			firing: func(cfg *model.Config) {
+				cfg.ComplianceSettings.Enable = new(true)
+				cfg.ComplianceSettings.Directory = new("")
+			},
+		},
+		{
+			rule:    retentionTightBatches,
+			feature: func(f *model.Features, granted bool) { f.DataRetention = new(granted) },
+			firing: func(cfg *model.Config) {
+				cfg.DataRetentionSettings.EnableMessageDeletion = new(true)
+				cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds = new(0)
+			},
+		},
+		{
+			rule:    exportGRTimeoutLow,
+			feature: func(f *model.Features, granted bool) { f.MessageExport = new(granted) },
+			firing: func(cfg *model.Config) {
+				cfg.MessageExportSettings.EnableExport = new(true)
+				cfg.MessageExportSettings.ExportFormat = new(model.ComplianceExportTypeGlobalrelay)
+				cfg.MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout = new(5)
+			},
+		},
+	}
+
+	for _, rc := range ruleCases {
+		t.Run(rc.rule.Code, func(t *testing.T) {
+			t.Parallel()
+
+			withFeature := func(granted bool) *model.Features {
+				f := &model.Features{}
+				rc.feature(f, granted)
+				return f
+			}
+
+			testCases := []struct {
+				name   string
+				leader *healthcheck.NodeSnapshot
+				state  healthcheck.State
+			}{
+				{"licensed", licensedLeader(model.LicenseShortSkuEnterprise, withFeature(true)), healthcheck.StateFiring},
+				{"feature not licensed", licensedLeader(model.LicenseShortSkuEnterprise, withFeature(false)), healthcheck.StateResolved},
+				{"unlicensed", licensedLeader("", nil), healthcheck.StateResolved},
+				{"features missing from older packet", licensedLeader(model.LicenseShortSkuEnterprise, nil), healthcheck.StateUnknown},
+				{"feature missing", licensedLeader(model.LicenseShortSkuEnterprise, &model.Features{}), healthcheck.StateUnknown},
+				{"license unavailable", nil, healthcheck.StateUnknown},
+			}
+
+			for _, tc := range testCases {
+				t.Run(tc.name, func(t *testing.T) {
+					t.Parallel()
+
+					var nodes []*healthcheck.NodeSnapshot
+					if tc.leader != nil {
+						nodes = append(nodes, tc.leader)
+					}
+					results := rc.rule.Eval(configSnapshot(rc.firing, nodes...))
+					require.Len(t, results, 1)
+					assert.Equal(t, tc.state, results[0].State)
+					if tc.state == healthcheck.StateUnknown {
+						assert.Equal(t, healthcheck.ReasonLicenseUnavailable, results[0].MessageID)
+					}
+				})
+			}
 		})
 	}
 }
@@ -118,7 +203,7 @@ func TestComplianceNoDir(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assertResult(t, tc.want, complianceNoDir.Eval(configSnapshot(tc.update)))
+			assertResult(t, tc.want, complianceNoDir.Eval(licensedConfig(tc.update)))
 		})
 	}
 }
@@ -153,28 +238,28 @@ func TestRetentionTightBatches(t *testing.T) {
 		snapshot *healthcheck.Snapshot
 		want     want
 	}{
-		{"message deletion with no pause", configSnapshot(retention(true, false, 0)), tight("0")},
-		{"file deletion just below the minimum", configSnapshot(retention(false, true, 99)), tight("99")},
-		{"default pause", configSnapshot(retention(true, true, 100)), resolved},
-		{"custom policy run with tight batches", withJobs(configSnapshot(retention(false, false, 10)), time.Hour), tight("10")},
-		{"custom policy run at the window edge", withJobs(configSnapshot(retention(false, false, 10)), retentionJobWindow), tight("10")},
-		{"only stale runs with tight batches", withJobs(configSnapshot(retention(false, false, 10)), retentionJobWindow+time.Minute), resolved},
-		{"deletion off without runs", withJobs(configSnapshot(retention(false, false, 10))), resolved},
-		{"deletion off with jobs absent", configSnapshot(retention(false, false, 10)), want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonJobsUnavailable}},
+		{"message deletion with no pause", licensedConfig(retention(true, false, 0)), tight("0")},
+		{"file deletion just below the minimum", licensedConfig(retention(false, true, 99)), tight("99")},
+		{"default pause", licensedConfig(retention(true, true, 100)), resolved},
+		{"custom policy run with tight batches", withJobs(licensedConfig(retention(false, false, 10)), time.Hour), tight("10")},
+		{"custom policy run at the window edge", withJobs(licensedConfig(retention(false, false, 10)), retentionJobWindow), tight("10")},
+		{"only stale runs with tight batches", withJobs(licensedConfig(retention(false, false, 10)), retentionJobWindow+time.Minute), resolved},
+		{"deletion off without runs", withJobs(licensedConfig(retention(false, false, 10))), resolved},
+		{"deletion off with jobs absent", licensedConfig(retention(false, false, 10)), want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonJobsUnavailable}},
 		{
 			"deletion off with collection time unknown",
 			func() *healthcheck.Snapshot {
-				s := withJobs(configSnapshot(retention(false, false, 10)), time.Hour)
+				s := withJobs(licensedConfig(retention(false, false, 10)), time.Hour)
 				s.CollectedAt = time.Time{}
 				return s
 			}(),
 			want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonCollectedAtUnknown},
 		},
-		{"message deletion absent", configSnapshot(func(cfg *model.Config) { cfg.DataRetentionSettings.EnableMessageDeletion = nil }), configUnknown},
-		{"file deletion absent", configSnapshot(func(cfg *model.Config) { cfg.DataRetentionSettings.EnableFileDeletion = nil }), configUnknown},
+		{"message deletion absent", licensedConfig(func(cfg *model.Config) { cfg.DataRetentionSettings.EnableMessageDeletion = nil }), configUnknown},
+		{"file deletion absent", licensedConfig(func(cfg *model.Config) { cfg.DataRetentionSettings.EnableFileDeletion = nil }), configUnknown},
 		{
 			"pause absent",
-			configSnapshot(func(cfg *model.Config) {
+			licensedConfig(func(cfg *model.Config) {
 				retention(true, false, 0)(cfg)
 				cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds = nil
 			}),
@@ -257,7 +342,7 @@ func TestExportGRTimeoutLow(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assertResult(t, tc.want, exportGRTimeoutLow.Eval(configSnapshot(tc.update)))
+			assertResult(t, tc.want, exportGRTimeoutLow.Eval(licensedConfig(tc.update)))
 		})
 	}
 }
