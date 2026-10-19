@@ -55,7 +55,7 @@ func (s *stubRemoteClusterService) SendFile(ctx context.Context, us *model.Uploa
 func (s *stubRemoteClusterService) SendProfileImage(ctx context.Context, userID string, rc *model.RemoteCluster, provider remotecluster.ProfileImageProvider, f remotecluster.SendProfileImageResultFunc) error {
 	return nil
 }
-func (s *stubRemoteClusterService) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, error) {
+func (s *stubRemoteClusterService) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, *model.AppError) {
 	return nil, nil
 }
 func (s *stubRemoteClusterService) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) remotecluster.Response {

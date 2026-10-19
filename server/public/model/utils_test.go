@@ -255,6 +255,32 @@ func TestAppErrorSerialize(t *testing.T) {
 	})
 }
 
+func TestAsAppError(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		assert.Nil(t, AsAppError(nil))
+	})
+
+	t.Run("AppError", func(t *testing.T) {
+		appErr := NewAppError("TestAsAppError", "message", nil, "", http.StatusNotFound)
+		assert.Same(t, appErr, AsAppError(appErr))
+	})
+
+	t.Run("wrapped AppError", func(t *testing.T) {
+		appErr := NewAppError("TestAsAppError", "message", nil, "", http.StatusNotFound)
+		assert.Same(t, appErr, AsAppError(fmt.Errorf("context: %w", appErr)))
+	})
+
+	t.Run("plain error", func(t *testing.T) {
+		err := errors.New("plain")
+
+		appErr := AsAppError(err)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "model.app_error.internal_error", appErr.Id)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		assert.ErrorIs(t, appErr, err)
+	})
+}
+
 func TestCopyStringMap(t *testing.T) {
 	itemKey := "item1"
 	originalMap := make(map[string]string)

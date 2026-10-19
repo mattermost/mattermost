@@ -119,7 +119,7 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
         return null;
     }
 
-    const addLabel = channel.group_constrained ? formatMessage({id: 'intro_messages.inviteGropusToChannel.button', defaultMessage: 'Add groups'}) : formatMessage({id: 'intro_messages.inviteMembersToChannel.button', defaultMessage: 'Add people'});
+    const addLabel = channel.group_constrained ? formatMessage({id: 'intro_messages.inviteGroupsToChannel.button', defaultMessage: 'Add groups'}) : formatMessage({id: 'intro_messages.inviteMembersToChannel.button', defaultMessage: 'Add people'});
 
     return (
         <div className='MoreThanMaxFreeUsersWrapper'>
