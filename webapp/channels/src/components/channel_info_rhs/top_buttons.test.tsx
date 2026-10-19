@@ -26,7 +26,6 @@ describe('channel_info_rhs/top_buttons', () => {
         channelURL: 'https://test.com',
         isFavorite: false,
         isMuted: false,
-        isInvitingPeople: false,
         isInManagedCategory: false,
         canAddPeople: true,
         actions: {
@@ -123,7 +122,7 @@ describe('channel_info_rhs/top_buttons', () => {
             },
         };
 
-        const {rerender} = renderWithContext(
+        renderWithContext(
             <TopButtons
                 {...testProps}
             />,
@@ -132,20 +131,10 @@ describe('channel_info_rhs/top_buttons', () => {
         const addPeopleButton = screen.getByRole('button', {name: 'Add People'});
         expect(addPeopleButton).toBeInTheDocument();
         expect(addPeopleButton).toHaveAttribute('aria-haspopup', 'dialog');
-        expect(addPeopleButton).toHaveAttribute('aria-expanded', 'false');
+        expect(addPeopleButton).not.toHaveAttribute('aria-expanded');
         expect(addPeopleButton).not.toHaveAttribute('aria-pressed');
         await userEvent.click(addPeopleButton);
         expect(addPeople).toHaveBeenCalled();
-
-        rerender(
-            <TopButtons
-                {...testProps}
-                isInvitingPeople={true}
-            />,
-        );
-
-        expect(screen.getByRole('button', {name: 'Add People'})).toHaveAttribute('aria-expanded', 'true');
-        expect(screen.getByRole('button', {name: 'Add People'})).not.toHaveAttribute('aria-pressed');
     });
     test('should not Add People in DM', () => {
         const testProps: Props = {

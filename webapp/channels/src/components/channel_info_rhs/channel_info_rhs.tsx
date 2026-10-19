@@ -84,7 +84,6 @@ export interface Props {
     isArchived: boolean;
     isFavorite: boolean;
     isMuted: boolean;
-    isInvitingPeople: boolean;
     isMobile: boolean;
     isInManagedCategory: boolean;
     canManageMembers: boolean;
@@ -111,7 +110,6 @@ const ChannelInfoRhs = ({
     isArchived,
     isFavorite,
     isMuted,
-    isInvitingPeople,
     isMobile,
     isInManagedCategory,
     currentTeam,
@@ -247,7 +245,6 @@ const ChannelInfoRhs = ({
                         channelURL={channelURL}
                         isFavorite={isFavorite}
                         isMuted={isMuted}
-                        isInvitingPeople={isInvitingPeople}
                         isArchived={isArchived}
                         isInManagedCategory={isInManagedCategory}
                         canAddPeople={!isArchived && canManageMembers}
