@@ -69,7 +69,7 @@ const HeaderIconWrapper = (props: Props) => {
         if (!buttonRef.current || count === undefined || !countId) {
             return;
         }
-        const countEl = buttonRef.current.children[1] as HTMLElement | undefined;
+        const countEl = buttonRef.current.querySelector('[class*="icon-button__count"]');
         if (countEl) {
             countEl.id = countId;
         }

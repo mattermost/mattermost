@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-import {defineMessage, FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
@@ -19,7 +19,7 @@ import {Constants} from 'utils/constants';
 
 const LDAP_GROUPS_PAGE_SIZE = 200;
 
-type Props = WrappedComponentProps & {
+type Props = {
     groups: MixedUnlinkedGroupRedux[];
     total: number;
     readOnly?: boolean;
@@ -531,4 +531,4 @@ class GroupsList extends React.PureComponent<Props, State> {
     }
 }
 
-export default injectIntl(GroupsList);
+export default GroupsList;

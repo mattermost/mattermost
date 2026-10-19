@@ -557,9 +557,7 @@ describe('components/ProfilePopover', () => {
         })['plugins-com.mattermost.calls'].channels = {dmChannelId: {enabled: true}};
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        await act(async () => {
-            expect(await screen.queryByLabelText('Start Call')).toBeInTheDocument();
-        });
+        expect(await screen.findByLabelText('Start Call')).toBeInTheDocument();
     });
 
     test('should show start call button for admin when calls test mode is on', async () => {
@@ -585,9 +583,7 @@ describe('components/ProfilePopover', () => {
         };
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        await act(async () => {
-            expect(await screen.queryByLabelText('Start Call')).toBeInTheDocument();
-        });
+        expect(await screen.findByLabelText('Start Call')).toBeInTheDocument();
     });
 
     test('should display attributes if attribute exists for user', async () => {

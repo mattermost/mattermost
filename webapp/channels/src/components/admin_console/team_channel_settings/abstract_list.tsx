@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {JSX, MouseEvent} from 'react';
-import {FormattedMessage, injectIntl, type MessageDescriptor, type WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, type MessageDescriptor} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
@@ -21,7 +21,7 @@ type Paging = {
     total: number;
 };
 
-type Props = WrappedComponentProps & {
+type Props = {
     data: Array<Group | TeamWithMembership>;
     onPageChangedCallback?: (page: Paging, data: Array<Group | Team>) => void;
     total: number;
@@ -165,4 +165,4 @@ class AbstractList extends React.PureComponent<Props, State> {
     };
 }
 
-export default injectIntl(AbstractList);
+export default AbstractList;

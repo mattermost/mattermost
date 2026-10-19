@@ -208,19 +208,19 @@
                 }
 
                 button {
-                    visibility: hidden;
+                    opacity: 0;
                 }
             }
 
             &:hover .actionIcon button,
             .actionIcon:focus-within button,
             .actionIcon button[aria-expanded='true'] {
-                visibility: visible;
+                opacity: 1;
             }
 
             @media (hover: none) {
                 .actionIcon button {
-                    visibility: visible;
+                    opacity: 1;
                 }
             }
 

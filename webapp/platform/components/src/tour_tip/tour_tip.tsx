@@ -17,6 +17,8 @@ import classNames from 'classnames';
 import React, {useId, useRef, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {CloseIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -197,7 +199,7 @@ export const TourTip = ({
                 <WithTooltip title={formatMessage({id: 'tutorial_tip.close', defaultMessage: 'Close'})}>
                     <IconButton
                         size='small'
-                        icon={<i className='icon icon-close' aria-hidden='true'/>}
+                        icon={<Icon glyph={<CloseIcon/>}/>}
                         onClick={handleDismiss}
                         aria-label={formatMessage({id: 'tutorial_tip.close', defaultMessage: 'Close'})}
                         data-testid={'close_tutorial_tip'}

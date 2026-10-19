@@ -63,7 +63,7 @@ const ToggleFormattingBar = (props: ToggleFormattingBarProps): JSX.Element => {
                         <ChevronIcon
                             size={12}
                             color='currentColor'
-                            aria-label={iconAriaLabel}
+                            aria-hidden={true}
                         />
                     </>
                 }

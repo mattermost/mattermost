@@ -37,6 +37,11 @@ export default function FilesFilterMenu(props: Props): JSX.Element {
                         className='action-icon dots-icon'
                         size='small'
                         unreadBadge={props.selectedFilter !== 'all'}
+                        aria-label={intl.formatMessage({
+                            id: 'channel_info_rhs.menu.files.filter',
+                            defaultMessage: 'Filter',
+                        })}
+                        aria-pressed={props.selectedFilter !== 'all'}
                         icon={
                             <Icon
                                 glyph={<FilterVariantIcon color='currentColor'/>}

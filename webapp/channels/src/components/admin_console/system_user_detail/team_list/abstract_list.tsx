@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-import {FormattedMessage, injectIntl, type MessageDescriptor, type WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, type MessageDescriptor} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -16,7 +16,7 @@ import './abstract_list.scss';
 
 const PAGE_SIZE = 10;
 
-type Props = WrappedComponentProps & {
+type Props = {
     userId: string;
     headerLabels: Array<{
         label?: MessageDescriptor;
@@ -180,5 +180,5 @@ class AbstractList extends React.PureComponent<Props, State> {
     };
 }
 
-export default injectIntl(AbstractList);
+export default AbstractList;
 
