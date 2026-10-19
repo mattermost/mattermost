@@ -69,11 +69,14 @@ func configSnapshot(edit func(cfg *model.Config)) *healthcheck.Snapshot {
 func assertResults(t *testing.T, snapshot *healthcheck.Snapshot, wants map[string]want) {
 	t.Helper()
 
+	rules := map[string]healthcheck.Rule{}
 	for _, rule := range allRules {
-		w, ok := wants[rule.Code]
-		if !ok {
-			continue
-		}
+		rules[rule.Code] = rule
+	}
+
+	for code, w := range wants {
+		rule, ok := rules[code]
+		require.True(t, ok, "unknown code %s", code)
 
 		results := rule.Eval(snapshot)
 		require.Len(t, results, 1, rule.Code)
@@ -175,7 +178,7 @@ func gateSnapshot(edit func(cfg *model.Config)) *healthcheck.Snapshot {
 		edit(cfg)
 	})
 	s.Config, s.Sections = cs.Config, cs.Sections
-	s.Stats = &model.SupportPacketStats{RegisteredUsers: new(int64(500))}
+	s.Stats = &model.SupportPacketStats{ActiveUsers: new(int64(500))}
 	s.Jobs = &model.SupportPacketJobList{LDAPSyncJobs: []*model.Job{{Status: model.JobStatusSuccess, StartAt: 1_000_000, LastActivityAt: 1_000_000 + 5*60*1000}}}
 	s.Sections[model.SectionStats] = nil
 	s.Sections[model.SectionJobs] = nil

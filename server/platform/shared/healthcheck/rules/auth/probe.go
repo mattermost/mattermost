@@ -46,22 +46,22 @@ var samlProbeFailed = healthcheck.Rule{
 	Eval:           gated(samlEnabled, evalSamlProbeFailed),
 }
 
-// leaderProbe reads a probe result the leader recorded; an empty status means it never ran.
-// It ignores probe section errors, which the collector sets only when LDAP vendor info fails after a passing test.
+// leaderProbe resolves only on OK: an empty or disabled status means the leader never ran the probe.
 func leaderProbe(s *healthcheck.Snapshot, probe func(*model.SupportPacketDiagnostics) (status, probeErr string), firingID string) healthcheck.Result {
 	leader, _ := s.Leader()
+	// Probe section errors are ignored: the collector sets them only when LDAP vendor info fails after a passing test.
 	diag, ok := leader.Diag()
 	if !ok {
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 
 	switch status, probeErr := probe(diag); status {
-	case "":
-		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
+	case model.StatusOk:
+		return healthcheck.Resolved()
 	case model.StatusFail:
 		return healthcheck.Firing(firingID).WithDetail("error", probeErr)
 	default:
-		return healthcheck.Resolved()
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 }
 

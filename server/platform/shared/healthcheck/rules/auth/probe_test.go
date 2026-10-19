@@ -62,9 +62,9 @@ func TestProbeRules(t *testing.T) {
 			want:     map[string]want{"LDAP_PROBE_FAILED": resolved, "SAML_PROBE_FAILED": resolved},
 		},
 		{
-			name:     "disabled",
+			name:     "disabled although the gate is open",
 			snapshot: probeSnapshot(leaderWith(model.StatusDisabled, ""), nil),
-			want:     map[string]want{"LDAP_PROBE_FAILED": resolved, "SAML_PROBE_FAILED": resolved},
+			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_PROBE_FAILED": diagnosticsUnavailable},
 		},
 		{
 			name:     "empty status",

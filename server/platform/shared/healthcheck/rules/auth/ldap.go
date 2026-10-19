@@ -271,7 +271,7 @@ func evalLdapRecommendedAtScale(s *healthcheck.Snapshot) []healthcheck.Result {
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
 
-	users, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.RegisteredUsers })
+	users, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.ActiveUsers })
 	if !ok {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
 	}
@@ -283,14 +283,11 @@ func evalLdapRecommendedAtScale(s *healthcheck.Snapshot) []healthcheck.Result {
 	return []healthcheck.Result{result.WithValue(float64(users))}
 }
 
-// ssoEnabled reports whether any identity provider manages accounts instead of local passwords.
+// ssoEnabled ignores LDAP sync, which signs no one in: sync-only users still use local passwords.
 func ssoEnabled(s *healthcheck.Snapshot) (bool, bool) {
-	ldap, ok := ldapEnabled(s)
-	if !ok || ldap {
-		return ldap, ok
-	}
-
+	known := true
 	for _, setting := range []func(*model.Config) *bool{
+		func(cfg *model.Config) *bool { return cfg.LdapSettings.Enable },
 		func(cfg *model.Config) *bool { return cfg.SamlSettings.Enable },
 		func(cfg *model.Config) *bool { return cfg.GitLabSettings.Enable },
 		func(cfg *model.Config) *bool { return cfg.GoogleSettings.Enable },
@@ -298,11 +295,12 @@ func ssoEnabled(s *healthcheck.Snapshot) (bool, bool) {
 		func(cfg *model.Config) *bool { return cfg.OpenIdSettings.Enable },
 	} {
 		enabled, ok := s.ConfigBool(setting)
-		if !ok || enabled {
-			return enabled, ok
+		if enabled {
+			return true, true
 		}
+		known = known && ok
 	}
-	return false, true
+	return false, known
 }
 
 func evalLdapSyncDutyCycle(s *healthcheck.Snapshot) healthcheck.Result {

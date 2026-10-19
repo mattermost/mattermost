@@ -183,7 +183,7 @@ func TestLdapRecommendedAtScale(t *testing.T) {
 	snapshot := func(users *int64, edit func(cfg *model.Config)) *healthcheck.Snapshot {
 		s := configSnapshot(edit)
 		if users != nil {
-			s.Stats = &model.SupportPacketStats{RegisteredUsers: users}
+			s.Stats = &model.SupportPacketStats{ActiveUsers: users}
 			s.Sections[model.SectionStats] = nil
 		}
 		return s
@@ -201,7 +201,7 @@ func TestLdapRecommendedAtScale(t *testing.T) {
 		{"100 users without SSO", snapshot(new(int64(100)), nil), resolved.withValue(100)},
 		{"SAML enabled and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.SamlSettings.Enable = new(true) }), resolved},
 		{"LDAP sign-in enabled and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.LdapSettings.Enable = new(true) }), resolved},
-		{"LDAP sync only and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.LdapSettings.EnableSync = new(true) }), resolved},
+		{"LDAP sync only is not SSO", snapshot(new(int64(101)), func(cfg *model.Config) { cfg.LdapSettings.EnableSync = new(true) }), firingAt("101", 101)},
 		{"GitLab enabled and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.GitLabSettings.Enable = new(true) }), resolved},
 		{"Google enabled and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.GoogleSettings.Enable = new(true) }), resolved},
 		{"Office 365 enabled and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.Office365Settings.Enable = new(true) }), resolved},
@@ -218,6 +218,10 @@ func TestLdapRecommendedAtScale(t *testing.T) {
 			want: want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable},
 		},
 		{"SAML setting absent", snapshot(new(int64(500)), func(cfg *model.Config) { cfg.SamlSettings.Enable = nil }), configUnavailable},
+		{"OpenID enabled and GitLab setting absent", snapshot(new(int64(500)), func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = nil
+			cfg.OpenIdSettings.Enable = new(true)
+		}), resolved},
 		{"OpenID setting absent", snapshot(new(int64(500)), func(cfg *model.Config) { cfg.OpenIdSettings.Enable = nil }), configUnavailable},
 	}
 

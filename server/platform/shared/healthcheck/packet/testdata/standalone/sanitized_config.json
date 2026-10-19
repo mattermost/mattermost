@@ -74,6 +74,18 @@
         "SignatureAlgorithm": "RSAwithSHA256",
         "IdAttribute": ""
     },
+    "GitLabSettings": {
+        "Enable": false
+    },
+    "GoogleSettings": {
+        "Enable": false
+    },
+    "Office365Settings": {
+        "Enable": false
+    },
+    "OpenIdSettings": {
+        "Enable": false
+    },
     "ClusterSettings": {
         "Enable": false,
         "ClusterName": "",
