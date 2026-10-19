@@ -51,7 +51,7 @@ describe('Integrations', () => {
         cy.visit(`/${teamA}/integrations`);
 
         // # Isolate icon links
-        cy.get('.integrations-list.d-flex.flex-wrap').within(() => {
+        cy.get('.integrations-list').within(() => {
             // * Incoming Webhooks link is visible and works
             cy.findByText('Incoming Webhooks').scrollIntoView().should('be.visible').click();
             cy.url().should('include', '/incoming_webhooks');
@@ -61,7 +61,7 @@ describe('Integrations', () => {
         cy.visit(`/${teamA}/integrations`);
 
         // * Outgoing Webhooks link is visible and works
-        cy.get('.integrations-list.d-flex.flex-wrap').within(() => {
+        cy.get('.integrations-list').within(() => {
             cy.findByText('Outgoing Webhooks').scrollIntoView().should('be.visible').click();
             cy.url().should('include', '/outgoing_webhooks');
         });
@@ -70,7 +70,7 @@ describe('Integrations', () => {
         cy.visit(`/${teamA}/integrations`);
 
         // * Slash Commands link is visible and works
-        cy.get('.integrations-list.d-flex.flex-wrap').within(() => {
+        cy.get('.integrations-list').within(() => {
             cy.findByText('Slash Commands').scrollIntoView().should('be.visible').click();
             cy.url().should('include', '/commands');
         });
@@ -79,7 +79,7 @@ describe('Integrations', () => {
         cy.visit(`/${teamA}/integrations`);
 
         // * Bot Accounts link is visible and works
-        cy.get('.integrations-list.d-flex.flex-wrap').within(() => {
+        cy.get('.integrations-list').within(() => {
             cy.findByText('Bot Accounts').scrollIntoView().should('be.visible').click();
             cy.url().should('include', '/bots');
         });
