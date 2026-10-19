@@ -551,7 +551,7 @@
         Must have `sysconsole_write_plugins` permission.
 
 
-        __Minimum server version__: 11.x
+        __Minimum server version__: 12.1
       operationId: UploadPluginSignaturePublicKey
       requestBody:
         content:
@@ -594,7 +594,7 @@
         Must have `sysconsole_write_plugins` permission.
 
 
-        __Minimum server version__: 11.x
+        __Minimum server version__: 12.1
       operationId: DeletePluginSignaturePublicKey
       parameters:
         - name: filename
