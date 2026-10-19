@@ -328,15 +328,17 @@ const healthTestPacketGeneratedAt = 1790330400000
 func healthTestPacketFiles() map[string]string {
 	return map[string]string{
 		model.PacketMetadataFileName:           "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
-		model.SupportPacketDiagnosticsFileName: "version: 2\nlicense:\n  users: 500\n  sku_short_name: enterprise\n  expires_at: 1821866400000\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\n",
+		model.SupportPacketDiagnosticsFileName: "version: 2\nlicense:\n  users: 500\n  sku_short_name: enterprise\n  expires_at: 1821866400000\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\nelastic:\n  status: disabled\n",
 		model.SupportPacketConfigFileName: `{
     "ServiceSettings": {"SiteURL": "https://chat.example.com"},
     "GuestAccountsSettings": {"Enable": true},
+    "SqlSettings": {"DisableDatabaseSearch": false},
+    "ElasticsearchSettings": {"EnableIndexing": false, "EnableSearching": false},
     "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"},
     "ClusterSettings": {"Enable": false},
     "RateLimitSettings": {"Enable": true, "MemoryStoreSize": 10000}
 }`,
-		model.SupportPacketStatsFileName: "registered_users: 300\nactive_users: 300\nsingle_channel_guests: 0\n",
+		model.SupportPacketStatsFileName: "registered_users: 300\nactive_users: 300\nsingle_channel_guests: 0\nposts: 1000\n",
 	}
 }
 
