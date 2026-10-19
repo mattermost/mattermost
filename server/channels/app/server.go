@@ -1208,10 +1208,7 @@ func (s *Server) Start() error {
 	go func() {
 		var err error
 		if *s.platform.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
-			tlsConfig := &tls.Config{
-				PreferServerCipherSuites: true,
-				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
-			}
+			tlsConfig := &tls.Config{}
 
 			switch *s.platform.Config().ServiceSettings.TLSMinVer {
 			case "1.0":

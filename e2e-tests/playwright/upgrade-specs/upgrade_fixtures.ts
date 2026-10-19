@@ -13,6 +13,8 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {APIRequestContext} from '@playwright/test';
 
 import {
+    demoPluginId,
+    demoPluginUrl,
     expect,
     getFileData,
     getFileFromAsset,
@@ -108,9 +110,8 @@ export const seeder = {
     UPGRADE_ADMIN_SEARCH_MESSAGE: 'upgrade-check admin-searchable-marker-xyz789',
     UPGRADE_ADMIN_AVATAR_MESSAGE: 'upgrade-check admin avatar message',
 
-    UPGRADE_PLUGIN_ID: 'com.mattermost.demo-plugin',
-    UPGRADE_PLUGIN_BUNDLE_URL:
-        'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0.tar.gz',
+    UPGRADE_PLUGIN_ID: demoPluginId,
+    UPGRADE_PLUGIN_BUNDLE_URL: demoPluginUrl,
     UPGRADE_PLUGIN_BUNDLE_PATH: path.resolve(process.cwd(), '.upgrade_plugin_bundle.tar.gz'),
 };
 

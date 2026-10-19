@@ -6,6 +6,7 @@ package commands
 import (
 	"archive/zip"
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -327,13 +328,61 @@ const healthTestPacketGeneratedAt = 1790330400000
 
 func healthTestPacketFiles() map[string]string {
 	return map[string]string{
-		model.PacketMetadataFileName:           "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
-		model.SupportPacketDiagnosticsFileName: "version: 2\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\n",
-		model.SupportPacketConfigFileName: `{
-    "ServiceSettings": {"SiteURL": "https://chat.example.com"},
-    "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"}
-}`,
+		model.PacketMetadataFileName: "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
+		model.SupportPacketDiagnosticsFileName: `version: 2
+license:
+  users: 500
+  sku_short_name: enterprise
+  expires_at: 1821866400000
+  features:
+    metrics: true
+    compliance: true
+    data_retention: true
+    message_export: true
+server:
+  os: linux
+  hostname: mm.example.com
+  open_file_descriptors: 120
+  max_file_descriptors: 65536
+  version: 11.0.4
+database:
+  type: postgres
+  version: "15.8"
+  master_connections_in_use: 1
+elastic:
+  status: disabled
+file_store:
+  file_status: OK
+notifications:
+  email:
+    status: OK
+`,
+		model.SupportPacketStatsFileName:   "registered_users: 300\nactive_users: 300\nsingle_channel_guests: 0\nposts: 1000\n",
+		model.SupportPacketJobsFileName:    "data_retention_jobs: []\n",
+		model.SupportPacketConfigFileName:  healthTestPacketConfig(),
+		model.SupportPacketPluginsFileName: `{"enabled": [], "disabled": []}`,
 	}
+}
+
+// healthTestPacketConfig starts from defaults so new rules see a realistic config without editing this fixture.
+func healthTestPacketConfig() string {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.ServiceSettings.SiteURL = model.NewPointer("https://chat.example.com")
+	cfg.GuestAccountsSettings.Enable = model.NewPointer(true)
+	cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+	cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
+	cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.IdLoadedNotification)
+	cfg.SqlSettings.DataSource = model.NewPointer("postgres://****:****@db.example.com:5432/mattermost")
+	cfg.RateLimitSettings.Enable = model.NewPointer(true)
+	cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+	cfg.MetricsSettings.Enable = model.NewPointer(true)
+
+	b, err := json.Marshal(cfg)
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
 }
 
 func (s *MmctlUnitTestSuite) writeHealthTestPacket(files map[string]string) string {
@@ -398,7 +447,12 @@ Notifications
             PushNotificationServer http://push.example.com uses http://, so push notifications are sent in cleartext.
             → Prefix PushNotificationServer with https:// and verify reachability from the app node.
 
-1 critical`, s.printedHealthFindings())
+Version
+  CRITICAL  Mattermost version is past end-of-life
+            Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15. No security patches ship for this release line. Upgrade to the latest release.
+            → Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.
+
+2 critical`, s.printedHealthFindings())
 	})
 
 	s.Run("an old packet is not reported as stopped evaluation", func() {
@@ -441,10 +495,11 @@ Notifications
 		s.Require().True(ok)
 		s.Equal(int64(healthTestPacketGeneratedAt), list.EvaluatedAt)
 		findings := list.Findings
-		s.Require().Len(findings, 1)
-		s.Equal("PUSH_BAD_SCHEME", findings[0].Code)
-		s.Equal("PushNotificationServer does not use https://", findings[0].Title)
-		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[0].FirstSeenAt)
+		s.Require().Len(findings, 2)
+		s.Equal("VERSION_EOL", findings[0].Code)
+		s.Equal("PUSH_BAD_SCHEME", findings[1].Code)
+		s.Equal("PushNotificationServer does not use https://", findings[1].Title)
+		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[1].FirstSeenAt)
 		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
 	})
 

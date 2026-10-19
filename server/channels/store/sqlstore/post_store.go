@@ -644,6 +644,10 @@ func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, que
 	return "AND ChannelId = ?", append(queryParams, channelId)
 }
 
+func threadUpdatesIncludeDeletions(opts model.GetPostsOptions) bool {
+	return opts.UpdatesOnly && opts.Direction == "down" && opts.FromUpdateAt != 0
+}
+
 func (s *SqlPostStore) getPostWithCollapsedThreads(rctx request.CTX, id, userID string, opts model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
@@ -677,10 +681,10 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(rctx request.CTX, id, userID 
 	}
 
 	posts := []*model.Post{}
-	query = s.postsQuery.Where(sq.Eq{
-		"Posts.RootId":   id,
-		"Posts.DeleteAt": 0,
-	})
+	query = s.postsQuery.Where(sq.Eq{"Posts.RootId": id})
+	if !threadUpdatesIncludeDeletions(opts) {
+		query = query.Where(sq.Eq{"Posts.DeleteAt": 0})
+	}
 
 	var sort string
 	if opts.Direction != "" {
@@ -818,13 +822,13 @@ func (s *SqlPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptio
 				}).Suffix(")"),
 			).
 			From("Posts p, replycount").
-			Where(sq.And{
-				sq.Or{
-					sq.Eq{"p.Id": rootId},
-					sq.Eq{"p.RootId": rootId},
-				},
-				sq.Eq{"p.DeleteAt": 0},
+			Where(sq.Or{
+				sq.Eq{"p.Id": rootId},
+				sq.Eq{"p.RootId": rootId},
 			})
+		if !threadUpdatesIncludeDeletions(opts) {
+			query = query.Where(sq.Eq{"p.DeleteAt": 0})
+		}
 
 		var sort string
 		if opts.Direction != "" {
