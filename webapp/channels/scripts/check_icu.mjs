@@ -119,7 +119,16 @@ for (const [key, message] of Object.entries(en)) {
 }
 
 for (const name of localeNames) {
+    // The plural and direction rules come from Intl, which throws on a name
+    // that is not a locale tag, such as en_US.
     const locale = path.basename(name, '.json');
+    try {
+        Intl.getCanonicalLocales(locale);
+    } catch {
+        errors.push(`${name}: "${locale}" is not a locale tag, such as pt-BR`);
+        continue;
+    }
+
     let data;
     const text = readCatalog(name);
     try {

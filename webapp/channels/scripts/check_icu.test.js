@@ -505,6 +505,20 @@ describe('check_icu', () => {
             expect(stdout).toContain('OK: 1 locale files checked');
         });
 
+        test('reports a catalog not named for a locale, and checks the rest', () => {
+            const {code, stderr} = check(
+                {'a.b': 'Hello {name}'},
+                {
+                    'en_US.json': {'a.b': 'Hello {name}'},
+                    'fr.json': {'a.b': 'Bonjour'},
+                },
+            );
+
+            expect(code).toBe(1);
+            expect(stderr).toContain('en_US.json: "en_US" is not a locale tag');
+            expect(stderr).toContain('fr.json:a.b:');
+        });
+
         test('reports every locale file, not just the first that fails', () => {
             const {code, stderr} = check(
                 {'a.b': 'Hello {name}'},
