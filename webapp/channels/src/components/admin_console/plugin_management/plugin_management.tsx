@@ -606,7 +606,9 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             automaticPrepackagedPlugins: config?.PluginSettings?.AutomaticPrepackagedPlugins,
             marketplaceUrl: config?.PluginSettings?.MarketplaceURL,
             requirePluginSignature: config?.PluginSettings?.RequirePluginSignature,
-            signaturePublicKeyFiles: [...(config?.PluginSettings?.SignaturePublicKeyFiles || [])],
+            signaturePublicKeyFiles: (config?.PluginSettings?.SignaturePublicKeyFiles || []).filter(
+                (filename): filename is string => Boolean(filename),
+            ),
         };
 
         return state;

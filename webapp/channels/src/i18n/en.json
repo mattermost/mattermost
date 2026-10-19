@@ -1075,58 +1075,6 @@
     "defaultMessage": "Contact sales to use",
     "description": "Button on the AD/LDAP upsell banner shown when a trial was already used; opens the contact-sales page."
   },
-  "admin.plugin.upload.choose_signature": {
-    "defaultMessage": "Choose Signature File",
-    "description": "Button label on System Console Plugin Management to select a detached OpenPGP signature file when Require Plugin Signature is enabled."
-  },
-  "admin.plugin.upload.dropzone_title_signed": {
-    "defaultMessage": "Click or drop plugin bundle (.tar.gz)",
-    "description": "Dropzone title for uploading a plugin bundle when signed upload is required."
-  },
-  "admin.plugin.upload.selected_signature": {
-    "defaultMessage": "Selected signature: {fileName}",
-    "description": "Status text after an admin selects a plugin signature file; {fileName} is the selected file name."
-  },
-  "admin.plugin.upload.signature_help": {
-    "defaultMessage": "Also select the detached OpenPGP signature for the plugin bundle (.sig or .asc). Upload starts when both files are selected.",
-    "description": "Help text under the plugin upload dropzone explaining that a signature file is also required."
-  },
-  "admin.plugin.upload.signature_pending": {
-    "defaultMessage": "Plugin selected: {fileName}. Now choose a signature file.",
-    "description": "Prompt after the plugin bundle is selected but before the signature file is chosen; {fileName} is the plugin file name."
-  },
-  "admin.plugin.upload.signature_required": {
-    "defaultMessage": "A detached signature file (.sig or .asc) is required when plugin signature verification is enabled.",
-    "description": "Error or helper text when a signature file is required for plugin upload but missing."
-  },
-  "admin.plugins.settings.requirePluginSignatureDescSignedUpload": {
-    "defaultMessage": "When true, plugins must be signed and verified against the Mattermost signing key or a configured customer public key. Upload a plugin bundle together with its detached signature (.sig or .asc). See <link>documentation</link> to learn more.",
-    "description": "Help text for Require Plugin Signature when custom signature key management is enabled; <link> wraps the documentation link text."
-  },
-  "admin.plugins.settings.signaturePublicKeys": {
-    "defaultMessage": "Plugin Signature Public Keys:",
-    "description": "Label for the System Console setting that lists customer OpenPGP public keys used to verify plugin signatures."
-  },
-  "admin.plugins.settings.signaturePublicKeys.remove": {
-    "defaultMessage": "Remove",
-    "description": "Button label to remove a configured plugin signature public key from System Console."
-  },
-  "admin.plugins.settings.signaturePublicKeys.removing": {
-    "defaultMessage": "Removing...",
-    "description": "Button label shown while a plugin signature public key is being removed from System Console."
-  },
-  "admin.plugins.settings.signaturePublicKeys.upload": {
-    "defaultMessage": "Upload Public Key",
-    "description": "Button label to upload a customer plugin signature public key in System Console."
-  },
-  "admin.plugins.settings.signaturePublicKeys.uploading": {
-    "defaultMessage": "Uploading...",
-    "description": "Button label shown while a plugin signature public key upload is in progress."
-  },
-  "admin.plugins.settings.signaturePublicKeysDesc": {
-    "defaultMessage": "Upload OpenPGP public keys trusted to verify plugin signatures, in addition to the Mattermost signing key. See <link>documentation</link> to learn more.",
-    "description": "Help text for Plugin Signature Public Keys; <link> wraps the documentation link text."
-  },
   "admin_settings.save_unsaved_changes": {
     "defaultMessage": "Please save unsaved changes first",
     "description": "Error shown to system admins when they click an action/test button in the System Console while the settings form still has unsaved changes."
@@ -12539,6 +12487,10 @@
     "defaultMessage": "Uninstall plugin",
     "description": "Menu item in System Console > Plugin Management that removes a plugin from the server."
   },
+  "admin.plugin.upload.choose_signature": {
+    "defaultMessage": "Choose Signature File",
+    "description": "Button label on System Console Plugin Management to select a detached OpenPGP signature file when Require Plugin Signature is enabled."
+  },
   "admin.plugin.upload.disabled_permission": {
     "defaultMessage": "You need permission to manage plugins before uploading a plugin.",
     "description": "Explanation shown next to the disabled plugin upload control in System Console > Plugins > Plugin Management when the current admin lacks the permission to manage plugins."
@@ -12558,6 +12510,10 @@
   "admin.plugin.upload.dropzone_title": {
     "defaultMessage": "Click or drop plugin bundle to upload",
     "description": "Default label inside the plugin upload drop zone in System Console > Plugins > Plugin Management, before a file is chosen. \"plugin bundle\" is the .tar.gz plugin archive."
+  },
+  "admin.plugin.upload.dropzone_title_signed": {
+    "defaultMessage": "Click or drop plugin bundle (.tar.gz)",
+    "description": "Dropzone title for uploading a plugin bundle when signed upload is required."
   },
   "admin.plugin.upload.overwrite_review.downgrade": {
     "defaultMessage": "This upload downgrades the existing plugin. Downgrades can remove fixes or features.",
@@ -12602,6 +12558,22 @@
   "admin.plugin.upload.selected_file": {
     "defaultMessage": "Selected: {fileName}",
     "description": "Label inside the plugin upload drop zone after the admin picks a file but before uploading. {fileName} is the chosen file's name."
+  },
+  "admin.plugin.upload.selected_signature": {
+    "defaultMessage": "Selected signature: {fileName}",
+    "description": "Status text after an admin selects a plugin signature file; {fileName} is the selected file name."
+  },
+  "admin.plugin.upload.signature_help": {
+    "defaultMessage": "Also select the detached OpenPGP signature for the plugin bundle (.sig or .asc). Upload starts when both files are selected.",
+    "description": "Help text under the plugin upload dropzone explaining that a signature file is also required."
+  },
+  "admin.plugin.upload.signature_pending": {
+    "defaultMessage": "Plugin selected: {fileName}. Now choose a signature file.",
+    "description": "Prompt after the plugin bundle is selected but before the signature file is chosen; {fileName} is the plugin file name."
+  },
+  "admin.plugin.upload.signature_required": {
+    "defaultMessage": "A detached signature file (.sig or .asc) is required when plugin signature verification is enabled.",
+    "description": "Error or helper text when a signature file is required for plugin upload but missing."
   },
   "admin.plugin.upload.success": {
     "defaultMessage": "Successfully uploaded plugin: {pluginName}",
@@ -12706,6 +12678,34 @@
   "admin.plugins.settings.requirePluginSignatureDesc": {
     "defaultMessage": "When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more.",
     "description": "Help text for the Require Plugin Signature setting in System Console Plugin Management; <link> wraps a documentation link."
+  },
+  "admin.plugins.settings.requirePluginSignatureDescSignedUpload": {
+    "defaultMessage": "When true, plugins must be signed and verified against the Mattermost signing key or a configured customer public key. Upload a plugin bundle together with its detached signature (.sig or .asc). See <link>documentation</link> to learn more.",
+    "description": "Help text for Require Plugin Signature when custom signature key management is enabled; <link> wraps the documentation link text."
+  },
+  "admin.plugins.settings.signaturePublicKeys": {
+    "defaultMessage": "Plugin Signature Public Keys:",
+    "description": "Label for the System Console setting that lists customer OpenPGP public keys used to verify plugin signatures."
+  },
+  "admin.plugins.settings.signaturePublicKeys.remove": {
+    "defaultMessage": "Remove",
+    "description": "Button label to remove a configured plugin signature public key from System Console."
+  },
+  "admin.plugins.settings.signaturePublicKeys.removing": {
+    "defaultMessage": "Removing...",
+    "description": "Button label shown while a plugin signature public key is being removed from System Console."
+  },
+  "admin.plugins.settings.signaturePublicKeys.upload": {
+    "defaultMessage": "Upload Public Key",
+    "description": "Button label to upload a customer plugin signature public key in System Console."
+  },
+  "admin.plugins.settings.signaturePublicKeys.uploading": {
+    "defaultMessage": "Uploading...",
+    "description": "Button label shown while a plugin signature public key upload is in progress."
+  },
+  "admin.plugins.settings.signaturePublicKeysDesc": {
+    "defaultMessage": "Upload OpenPGP public keys trusted to verify plugin signatures, in addition to the Mattermost signing key. See <link>documentation</link> to learn more.",
+    "description": "Help text for Plugin Signature Public Keys; <link> wraps the documentation link text."
   },
   "admin.posts.burnOnRead.duration.10min": {
     "defaultMessage": "10 minutes",

@@ -19,6 +19,7 @@ export const defaultFeatureFlags: Record<string, string> = {
     DiscoverableChannels: 'false',
     EnableAIPluginBridge: 'false',
     EnableAIRecaps: 'false',
+    EnableCustomPluginSignatureKeys: 'false',
     EnableDocs: 'false',
     EnableMFIPluginSignaturePublicKey: 'true',
     EnableMattermostEntry: 'true',

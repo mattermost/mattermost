@@ -49,7 +49,7 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 	if len(data) == 0 {
 		return model.NewAppError("AddPublicKey", "app.plugin.add_public_key.empty.app_error", nil, "", http.StatusBadRequest)
 	}
-	if err := validatePublicKey(data); err != nil {
+	if err = validatePublicKey(data); err != nil {
 		return model.NewAppError("AddPublicKey", "app.plugin.add_public_key.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	err = a.Srv().platform.SetConfigFile(filename, data)
