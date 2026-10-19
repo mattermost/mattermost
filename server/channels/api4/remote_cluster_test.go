@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/base64"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -447,6 +448,36 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
 		require.Empty(t, rc)
+	})
+
+	t.Run("should return a translated error without the remote's reason if the remote rejects the invite", func(t *testing.T) {
+		remote := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`{"status":"FAIL","err":"[click here](https://evil.example.com)"}`))
+		}))
+		defer remote.Close()
+
+		rejectingInvite := &model.RemoteClusterInvite{RemoteId: model.NewId(), SiteURL: remote.URL, Token: "token"}
+		rejectingEncrypted, err := rejectingInvite.Encrypt(rcAcceptInvite.Password)
+		require.NoError(t, err)
+		rcAcceptInvite.Invite = base64.URLEncoding.EncodeToString(rejectingEncrypted)
+		defer func() { rcAcceptInvite.Invite = encoded }()
+
+		// Developer mode keeps detailed_error in the response, so the test can check it.
+		enableDeveloper := *th.App.Config().ServiceSettings.EnableDeveloper
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = enableDeveloper })
+
+		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
+		checkHTTPStatus(t, resp, http.StatusBadGateway)
+		CheckErrorID(t, err, "api.remote_cluster.accept_invitation.rejected.app_error")
+		CheckErrorMessage(t, err, "The remote site rejected the invitation.")
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		require.NotContains(t, appErr.DetailedError, "evil.example.com")
+		require.Empty(t, rc)
+
+		_, getErr := th.App.GetRemoteCluster(rejectingInvite.RemoteId, false)
+		require.NotNil(t, getErr, "the refused connection must not remain active")
 	})
 
 	t.Run("should fail with a conflict error if the connection already exists", func(t *testing.T) {
