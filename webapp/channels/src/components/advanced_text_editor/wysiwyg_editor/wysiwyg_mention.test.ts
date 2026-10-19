@@ -59,15 +59,15 @@ describe('WysiwygMention', () => {
     });
 
     it.each([
-        ['an email address', 'mail me@example.com', 'mail me@example.com'],
-        ['strikethrough', '~~gone~~', '~~gone~~'],
-        ['an inline code span', '`@user1 ~town-square`', '`@user1 ~town-square`'],
-        ['a mid-word tilde', 'about~5 minutes', 'about\\~5 minutes'],
-    ])('leaves %s alone', (_, markdown, serialized) => {
+        ['an email address', 'mail me@example.com'],
+        ['strikethrough', '~~gone~~'],
+        ['an inline code span', '`@user1 ~town-square`'],
+        ['a mid-word tilde', 'about~5 minutes'],
+    ])('leaves %s alone', (_, markdown) => {
         editor = createEditor(markdown);
 
         expect(mentionsIn(editor)).toEqual([]);
-        expect(serializeToMarkdown(editor)).toBe(serialized);
+        expect(serializeToMarkdown(editor)).toBe(markdown);
     });
 });
 

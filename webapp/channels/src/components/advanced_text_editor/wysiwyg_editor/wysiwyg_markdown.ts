@@ -43,6 +43,11 @@ MarkdownManager.prototype.parse = function parse(markdown: string): JSONContent 
     return {type: 'doc', content: manager.parseTokens(tokens)};
 };
 
+// Text typed into a paragraph is markdown source: `[label](url)`, an unclosed ``` that
+// keeps Enter from sending, `- [ ]` task markers. The serializer's backslash escaping
+// would post those characters literally, so text is written out unchanged.
+(MarkdownManager.prototype as unknown as {escapeMarkdownSyntax: (text: string) => string}).escapeMarkdownSyntax = (text) => text;
+
 export const isRedundantLinkText = (text: string, href: string): boolean => {
     if (!text || !href) {
         return false;
@@ -126,26 +131,6 @@ export const plainTextContent = (text: string): JSONContent[] => text.split(/\r?
     content: line ? [{type: 'text', text: line}] : [],
 }));
 
-const FENCE_LINE = /^(\s*)```/;
-const ESCAPED_TASK_MARKER = /^(\s*(?:[-+*]|\d+\.)\s+)\\\[([ xX])\\\]/;
-
-// The serializer backslash-escapes `[` / `]`, but list items that start with
-// `[ ]` / `[x]` still post as checkboxes. Skip fenced code so literal examples
-// there are left alone.
-export const restoreEscapedTaskMarkers = (markdown: string): string => {
-    let inFence = false;
-    return markdown.split('\n').map((line) => {
-        if (FENCE_LINE.test(line)) {
-            inFence = !inFence;
-            return line;
-        }
-        if (inFence) {
-            return line;
-        }
-        return line.replace(ESCAPED_TASK_MARKER, '$1[$2]');
-    }).join('\n');
-};
-
 export const serializeToMarkdown = (editor: Editor): string => {
     const markdown = editor.markdown ?
         editor.markdown.serialize(stripRedundantLinkMarks(editor.getJSON())) :
@@ -153,8 +138,8 @@ export const serializeToMarkdown = (editor: Editor): string => {
 
     // Strip &nbsp; artifacts the @tiptap/markdown serializer leaves around
     // empty paragraphs at doc start/end.
-    return restoreEscapedTaskMarkers(markdown.trimEnd().
+    return markdown.trimEnd().
         replace(/\n\n&nbsp;\n/g, '\n').
         replace(/\n\n&nbsp;$/g, '').
-        replace(/^&nbsp;$/, ''));
+        replace(/^&nbsp;$/, '');
 };
