@@ -27,7 +27,7 @@ var pluginsOff = healthcheck.Rule{
 		RemediationID: healthcheck.TranslationId("health.rule.plugins_off.remediation"),
 		ConsolePath:   pluginsConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
+	Surface:    healthcheck.SurfaceInternal,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "PluginSettings.Enable",
 	Eval:       evalPluginsOff,

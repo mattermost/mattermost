@@ -19,13 +19,13 @@ const loggingConsolePath = "/admin_console/environment/logging"
 var logDebugProd = healthcheck.Rule{
 	Code:     "LOG_DEBUG_PROD",
 	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
+	Severity: healthcheck.SeverityInfo,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.log_debug_prod.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.log_debug_prod.remediation"),
 		ConsolePath:   loggingConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
+	Surface:    healthcheck.SurfaceInternal,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "LogSettings.FileLevel",
 	Eval:       evalLogDebugProd,

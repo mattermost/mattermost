@@ -14583,12 +14583,12 @@
   },
   {
     "id": "health.rule.log_file_off.message",
-    "translation": "LogSettings.EnableFile is false. This is fine if an external collector captures the server logs from stdout, journald or a sidecar. Otherwise, no server logs are kept for troubleshooting.",
+    "translation": "LogSettings.EnableFile is false, so the server writes no log file. Support Packets then contain no server logs, even if an external collector captures stdout or journald, and troubleshooting with Mattermost Support takes longer.",
     "description": "Health dashboard finding detail when file logging is turned off; 'LogSettings.EnableFile' is a config setting path, 'stdout' and 'journald' are log destinations, and a 'sidecar' is a helper container; do not translate them."
   },
   {
     "id": "health.rule.log_file_off.remediation",
-    "translation": "Verify that an external collector captures the server logs. If none does, set LogSettings.EnableFile to true.",
+    "translation": "Set LogSettings.EnableFile to true. This works alongside console logging, so an existing log collector keeps working.",
     "description": "Health dashboard fix-it step for disabled file logging; 'LogSettings.EnableFile' is a config setting path and should not be translated."
   },
   {
