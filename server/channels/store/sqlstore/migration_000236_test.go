@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,9 +31,9 @@ var legacyCompatMigrations = []string{
 // cleanups run after the test's deferred store.Close.
 func withoutLegacyCompat(t *testing.T, s *SqlStore) func() {
 	t.Helper()
-	for i := len(legacyCompatMigrations) - 1; i >= 0; i-- {
-		_, err := s.GetMaster().ExecNoTimeout(readMigrationSQL(t, legacyCompatMigrations[i]+".down.sql"))
-		require.NoError(t, err, "reverting %s", legacyCompatMigrations[i])
+	for _, name := range slices.Backward(legacyCompatMigrations) {
+		_, err := s.GetMaster().ExecNoTimeout(readMigrationSQL(t, name+".down.sql"))
+		require.NoError(t, err, "reverting %s", name)
 	}
 	return func() {
 		for _, name := range legacyCompatMigrations {
