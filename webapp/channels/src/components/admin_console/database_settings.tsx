@@ -217,11 +217,16 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                         <FormattedMessage {...messages.driverName}/>
                     </label>
                     <div className='col-sm-8'>
-                        <input
+                        <Input
+                            id='DriverName'
+                            name='DriverName'
                             type='text'
-                            className='form-control'
                             value={this.state.driverName}
-                            disabled={true}
+                            readOnly={true}
+                            useLegend={false}
+
+                            // Left-column label owns the accessible name.
+                            aria-label={undefined}
                         />
                         <div className='help-text'>
                             <FormattedMessage {...messages.driverNameDescription}/>
@@ -236,11 +241,16 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                         <FormattedMessage {...messages.dataSource}/>
                     </label>
                     <div className='col-sm-8'>
-                        <input
+                        <Input
+                            id='DataSource'
+                            name='DataSource'
                             type='text'
-                            className='form-control'
                             value={dataSource}
-                            disabled={true}
+                            readOnly={true}
+                            useLegend={false}
+
+                            // Left-column label owns the accessible name.
+                            aria-label={undefined}
                         />
                         <div className='help-text'>
                             <FormattedMessage {...messages.dataSourceDescription}/>

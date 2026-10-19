@@ -38,11 +38,30 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                disabled=""
-                type="text"
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="input-wrapper"
+                        id="DriverName"
+                        name="DriverName"
+                        readonly=""
+                        type="text"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
               >
@@ -62,12 +81,31 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             <div
               class="col-sm-8"
             >
-              <input
-                class="form-control"
-                disabled=""
-                type="text"
-                value="**********@localhost/mattermost_test?sslmode=disable&connect_timeout=10"
-              />
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                >
+                  <div
+                    class="_text-input__wrapper_3inqk_31"
+                  >
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="input-wrapper"
+                        id="DataSource"
+                        name="DataSource"
+                        readonly=""
+                        type="text"
+                        value="**********@localhost/mattermost_test?sslmode=disable&connect_timeout=10"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="help-text"
               >
