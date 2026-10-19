@@ -690,8 +690,8 @@ describe('Messaging', () => {
                 cy.wrap(el).find('.post-edited__indicator').should('have.text', 'Edited');
             });
 
-            // # Close the modal
-            cy.findAllByLabelText('Close').should('be.visible').first().click();
+            // # Close the search RHS
+            cy.uiCloseRHS();
         });
     });
 
