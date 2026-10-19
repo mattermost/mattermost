@@ -1111,6 +1111,10 @@
     "defaultMessage": "Remove",
     "description": "Button label to remove a configured plugin signature public key from System Console."
   },
+  "admin.plugins.settings.signaturePublicKeys.removing": {
+    "defaultMessage": "Removing...",
+    "description": "Button label shown while a plugin signature public key is being removed from System Console."
+  },
   "admin.plugins.settings.signaturePublicKeys.upload": {
     "defaultMessage": "Upload Public Key",
     "description": "Button label to upload a customer plugin signature public key in System Console."

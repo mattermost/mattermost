@@ -804,9 +804,11 @@ describe('components/PluginManagement', () => {
         renderWithContext(<PluginManagement {...props}/>);
 
         expect(screen.getByText('development-public-key.asc')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Remove'})).toBeEnabled();
         expect(screen.getByRole('button', {name: 'Upload Public Key'})).toBeEnabled();
         expect(screen.getByRole('button', {name: 'Choose Signature File'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: /Click or drop plugin bundle/})).toBeEnabled();
+        expect(screen.queryByRole('list')).not.toBeInTheDocument();
         expect(screen.queryByText('Plugin signatures are required. Install plugins through Marketplace instead.')).not.toBeInTheDocument();
     });
 

@@ -8,6 +8,7 @@ import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 import semver from 'semver';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -541,6 +542,7 @@ type State = BaseState & {
     removing: string | null;
     draggingUpload: boolean;
     uploadingPublicKey: boolean;
+    removingPublicKey: string | null;
     publicKeyError: string | null;
 };
 export class PluginManagement extends OLDAdminSettings<Props, State> {
@@ -569,6 +571,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             resolveRemoveModal: null,
             draggingUpload: false,
             uploadingPublicKey: false,
+            removingPublicKey: null,
             publicKeyError: null,
         });
         if (!this.state.signaturePublicKeyFiles) {
@@ -745,13 +748,14 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
     };
 
     handleRemovePublicKey = async (filename: string) => {
-        this.setState({publicKeyError: null});
+        this.setState({publicKeyError: null, removingPublicKey: filename});
         const {error} = await this.props.actions.removePluginSignaturePublicKey(filename);
         if (error) {
-            this.setState({publicKeyError: error.message});
+            this.setState({publicKeyError: error.message, removingPublicKey: null});
             return;
         }
         this.setState((prev) => ({
+            removingPublicKey: null,
             signaturePublicKeyFiles: prev.signaturePublicKeyFiles.filter((name) => name !== filename),
         }));
         await this.props.actions.getConfig();
@@ -759,7 +763,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
 
     renderSignaturePublicKeysSetting = () => {
         const publicKeys = this.state.signaturePublicKeyFiles || [];
-        const disabled = this.props.isDisabled || !this.state.enable || this.state.uploadingPublicKey;
+        const disabled = this.props.isDisabled || !this.state.enable || this.state.uploadingPublicKey || Boolean(this.state.removingPublicKey);
 
         return (
             <SettingSet
@@ -786,52 +790,64 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                     />
                 }
             >
-                {publicKeys.length > 0 && (
-                    <ul className='PluginManagement__publicKeyList'>
-                        {publicKeys.map((filename) => (
-                            <li key={filename}>
-                                <span>{filename}</span>
-                                <button
-                                    type='button'
-                                    className='btn btn-link btn-danger'
-                                    disabled={disabled}
-                                    onClick={() => this.handleRemovePublicKey(filename)}
-                                >
+                {publicKeys.map((filename) => {
+                    const removing = this.state.removingPublicKey === filename;
+                    return (
+                        <div
+                            key={filename}
+                            className='PluginManagement__publicKeyItem'
+                        >
+                            <div className='help-text remove-filename'>
+                                {filename}
+                            </div>
+                            <Button
+                                type='button'
+                                variant='destructive'
+                                disabled={disabled}
+                                onClick={() => this.handleRemovePublicKey(filename)}
+                            >
+                                {removing ? (
+                                    <FormattedMessage
+                                        id='admin.plugins.settings.signaturePublicKeys.removing'
+                                        defaultMessage='Removing...'
+                                    />
+                                ) : (
                                     <FormattedMessage
                                         id='admin.plugins.settings.signaturePublicKeys.remove'
                                         defaultMessage='Remove'
                                     />
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-                <button
-                    type='button'
-                    className='btn btn-tertiary'
-                    disabled={disabled}
-                    onClick={() => this.publicKeyFileInput.current?.click()}
-                >
-                    {this.state.uploadingPublicKey ? (
-                        <FormattedMessage
-                            id='admin.plugins.settings.signaturePublicKeys.uploading'
-                            defaultMessage='Uploading...'
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='admin.plugins.settings.signaturePublicKeys.upload'
-                            defaultMessage='Upload Public Key'
-                        />
-                    )}
-                </button>
-                <input
-                    ref={this.publicKeyFileInput}
-                    className='PluginManagement__fileInput'
-                    type='file'
-                    accept='.asc,.gpg,.pub'
-                    onChange={this.handlePublicKeyUpload}
-                    disabled={disabled}
-                />
+                                )}
+                            </Button>
+                        </div>
+                    );
+                })}
+                <div className='file__upload'>
+                    <Button
+                        type='button'
+                        emphasis='tertiary'
+                        disabled={disabled}
+                        onClick={() => this.publicKeyFileInput.current?.click()}
+                    >
+                        {this.state.uploadingPublicKey ? (
+                            <FormattedMessage
+                                id='admin.plugins.settings.signaturePublicKeys.uploading'
+                                defaultMessage='Uploading...'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='admin.plugins.settings.signaturePublicKeys.upload'
+                                defaultMessage='Upload Public Key'
+                            />
+                        )}
+                    </Button>
+                    <input
+                        ref={this.publicKeyFileInput}
+                        type='file'
+                        accept='.asc,.gpg,.pub'
+                        onChange={this.handlePublicKeyUpload}
+                        disabled={disabled}
+                    />
+                </div>
                 {this.state.publicKeyError && (
                     <div className='PluginManagement__uploadStatus PluginManagement__uploadStatus--error'>
                         <span>{this.state.publicKeyError}</span>

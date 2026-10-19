@@ -79,6 +79,10 @@
         white-space: nowrap;
     }
 
+    &__publicKeyItem {
+        margin-bottom: 12px;
+    }
+
     &__uploadStatus {
         display: flex;
         align-items: flex-start;
