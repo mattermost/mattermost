@@ -1,6 +1,56 @@
-ldap_sync_jobs: []
-data_retention_jobs: []
-message_export_jobs: []
-elastic_post_indexing_jobs: []
+ldap_sync_jobs:
+- id: k3d8wq1zn5gxbpo7r9yfjt4hue
+  type: ldap_sync
+  priority: 0
+  create_at: "2026-09-25T09:00:00Z"
+  start_at: "2026-09-25T09:00:02.318Z"
+  last_activity_at: "2026-09-25T09:02:47.66Z"
+  status: success
+  progress: 100
+  data:
+    ldap_groups_count: "41"
+    ldap_users_count: "2875"
+data_retention_jobs:
+- id: m7tbq2e9cfx4yhw1zo6s8rjd3a
+  type: data_retention
+  priority: 0
+  create_at: "2026-09-25T00:00:00Z"
+  start_at: "2026-09-25T00:00:05.204Z"
+  last_activity_at: "2026-09-25T00:41:19.733Z"
+  status: success
+  progress: 0
+  data: {}
+message_export_jobs:
+- id: p1x9c6wkuy3fbq8nzmte4hr5do
+  type: message_export
+  priority: 0
+  create_at: "2026-09-24T03:00:00Z"
+  start_at: "2026-09-24T03:00:06.47Z"
+  last_activity_at: "2026-09-24T03:00:06.47Z"
+  status: in_progress
+  progress: 0
+  data:
+    export_type: actiance
+- id: a8rn4e2gz7ykvmw5qdu1ct9obx
+  type: message_export
+  priority: 0
+  create_at: "2026-09-23T03:00:00Z"
+  start_at: "2026-09-23T03:00:04.912Z"
+  last_activity_at: "2026-09-23T03:18:52.305Z"
+  status: success
+  progress: 100
+  data:
+    export_type: actiance
+    messages_exported: "18234"
+elastic_post_indexing_jobs:
+- id: z5h2ftc8wq9ojm3ky1bx7r6deu
+  type: elasticsearch_post_indexing
+  priority: 0
+  create_at: "2026-09-02T14:12:31.448Z"
+  start_at: "2026-09-02T14:12:35.019Z"
+  last_activity_at: "2026-09-02T16:47:03.587Z"
+  status: success
+  progress: 100
+  data: {}
 elastic_post_aggregation_jobs: []
 migration_jobs: []
