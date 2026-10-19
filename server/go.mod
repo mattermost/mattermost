@@ -6,7 +6,7 @@ require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.23.3
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.15.0
-	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.8.2
+	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.8.0 // 1.8.1+ links apache/arrow-go via list-blobs Arrow support
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/avct/uasurfer v0.0.0-20250915105040-a942f6fb6edc
 	github.com/aws/aws-sdk-go-v2 v1.47.3
@@ -45,7 +45,7 @@ require (
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gosaml2 v0.10.0
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
-	github.com/mattermost/logr/v2 v2.0.23
+	github.com/mattermost/logr/v2 v2.0.22 // v2.0.23 defaults to sync.Map level cache; clear() fills 65535 entries
 	github.com/mattermost/mattermost-plugin-ai v1.14.2
 	github.com/mattermost/mattermost/server/public v0.5.0
 	github.com/mattermost/morph v1.1.0
@@ -86,12 +86,7 @@ require (
 	golang.org/x/text v0.43.0
 )
 
-require (
-	github.com/Azure/azure-sdk-for-go/sdk/storage/internal v0.1.0 // indirect
-	github.com/apache/arrow-go/v18 v18.8.0 // indirect
-	github.com/google/flatbuffers v25.12.19+incompatible // indirect
-	go.opentelemetry.io/otel/log v1.47.0 // indirect
-)
+require go.opentelemetry.io/otel/log v1.47.0 // indirect
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
