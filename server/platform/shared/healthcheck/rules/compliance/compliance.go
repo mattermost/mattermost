@@ -36,7 +36,7 @@ var complianceNoDir = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "ComplianceSettings.Directory",
-	Eval:       evalComplianceNoDir,
+	Eval:       requireFeature(func(f *model.Features) *bool { return f.Compliance }, evalComplianceNoDir),
 }
 
 var retentionTightBatches = healthcheck.Rule{
@@ -51,7 +51,7 @@ var retentionTightBatches = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "DataRetentionSettings.TimeBetweenBatchesMilliseconds",
-	Eval:       evalRetentionTightBatches,
+	Eval:       requireFeature(func(f *model.Features) *bool { return f.DataRetention }, evalRetentionTightBatches),
 }
 
 var exportGRTimeoutLow = healthcheck.Rule{
@@ -67,36 +67,24 @@ var exportGRTimeoutLow = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout",
-	Eval:       evalExportGRTimeoutLow,
+	Eval:       requireFeature(func(f *model.Features) *bool { return f.MessageExport }, evalExportGRTimeoutLow),
 }
 
-// licensed reports whether the license grants a feature the rule's runtime requires.
-func licensed(s *healthcheck.Snapshot, feature func(*model.Features) *bool) (granted bool, unknownReason string) {
-	license, ok := s.License()
-	if !ok {
-		return false, healthcheck.ReasonLicenseUnavailable
+// requireFeature resolves when the license lacks the feature the rule's runtime needs, so stale settings on an unlicensed server don't fire.
+func requireFeature(feature func(*model.Features) *bool, eval func(*healthcheck.Snapshot) []healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
+	return func(s *healthcheck.Snapshot) []healthcheck.Result {
+		granted, ok := s.LicenseFeature(feature)
+		if !ok {
+			return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
+		}
+		if !granted {
+			return []healthcheck.Result{healthcheck.Resolved()}
+		}
+		return eval(s)
 	}
-	// Unlicensed servers also report no features.
-	if license.Features == nil && license.SkuShortName == "" {
-		return false, ""
-	}
-
-	granted, ok = s.LicenseFeature(feature)
-	if !ok {
-		return false, healthcheck.ReasonLicenseUnavailable
-	}
-	return granted, ""
 }
 
 func evalComplianceNoDir(s *healthcheck.Snapshot) []healthcheck.Result {
-	granted, reason := licensed(s, func(f *model.Features) *bool { return f.Compliance })
-	if reason != "" {
-		return []healthcheck.Result{healthcheck.Unknown(reason)}
-	}
-	if !granted {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
 	enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ComplianceSettings.Enable })
 	if !ok {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
@@ -147,14 +135,6 @@ func retentionRuns(s *healthcheck.Snapshot) (runs bool, unknownReason string) {
 }
 
 func evalRetentionTightBatches(s *healthcheck.Snapshot) []healthcheck.Result {
-	granted, reason := licensed(s, func(f *model.Features) *bool { return f.DataRetention })
-	if reason != "" {
-		return []healthcheck.Result{healthcheck.Unknown(reason)}
-	}
-	if !granted {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
 	runs, reason := retentionRuns(s)
 	if reason != "" {
 		return []healthcheck.Result{healthcheck.Unknown(reason)}
@@ -186,14 +166,6 @@ func globalRelayEnabled(s *healthcheck.Snapshot) (enabled, ok bool) {
 }
 
 func evalExportGRTimeoutLow(s *healthcheck.Snapshot) []healthcheck.Result {
-	granted, reason := licensed(s, func(f *model.Features) *bool { return f.MessageExport })
-	if reason != "" {
-		return []healthcheck.Result{healthcheck.Unknown(reason)}
-	}
-	if !granted {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
 	enabled, ok := globalRelayEnabled(s)
 	if !ok {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}

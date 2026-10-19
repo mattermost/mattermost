@@ -121,10 +121,14 @@ func (s *Snapshot) IsCloud() bool {
 	return ok && license.IsCloud
 }
 
+// LicenseFeature reports false for an unlicensed server, which carries no features, and unknown for a licensed packet that predates them.
 func (s *Snapshot) LicenseFeature(get func(*model.Features) *bool) (bool, bool) {
 	license, ok := s.License()
-	if !ok || get == nil || license.Features == nil {
+	if !ok || get == nil {
 		return false, false
+	}
+	if license.Features == nil {
+		return false, license.SkuShortName == ""
 	}
 
 	value := get(license.Features)

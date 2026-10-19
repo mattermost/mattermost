@@ -5,7 +5,6 @@ package compliance
 
 import (
 	"encoding/json"
-	"errors"
 	"strings"
 	"testing"
 
@@ -46,15 +45,11 @@ func TestAuditLogOff(t *testing.T) {
 		return firing("health.rule.audit_log_off.message", map[string]string{"users": users})
 	}
 
-	configFailed := enterprise(nil)
-	configFailed.Sections[model.SectionConfig] = errors.New("boom")
-
 	testCases := []struct {
 		name     string
 		snapshot *healthcheck.Snapshot
 		want     want
 	}{
-		{"license unavailable", withUsers(configSnapshot(audit(false, "")), 50000), licenseUnknown},
 		{"unlicensed", withUsers(configSnapshot(audit(false, ""), licensedLeader("", nil)), 50000), resolved},
 		{"professional", withUsers(configSnapshot(audit(false, ""), licensedLeader(model.LicenseShortSkuProfessional, nil)), 50000), resolved},
 		{"enterprise advanced", withUsers(configSnapshot(audit(false, ""), licensedLeader(model.LicenseShortSkuEnterpriseAdvanced, nil)), 5001), off("5001").withValue(5001)},
@@ -67,7 +62,6 @@ func TestAuditLogOff(t *testing.T) {
 		{"inactive at the threshold", withUsers(enterprise(audit(false, "")), 5000), resolved.withValue(5000)},
 		{"inactive above the threshold", withUsers(enterprise(audit(false, "")), 5001), off("5001").withValue(5001)},
 		{"file enabled absent", enterprise(func(cfg *model.Config) { cfg.ExperimentalAuditSettings.FileEnabled = nil }), configUnknown},
-		{"config section failed", configFailed, configUnknown},
 	}
 
 	for _, tc := range testCases {

@@ -149,8 +149,14 @@ func TestLicenseFeature(t *testing.T) {
 		require.False(t, ok)
 	})
 
+	t.Run("unlicensed", func(t *testing.T) {
+		value, ok := licensedSnapshot(model.SupportPacketLicense{}).LicenseFeature(ldap)
+		require.True(t, ok)
+		require.False(t, value)
+	})
+
 	t.Run("features not in packet", func(t *testing.T) {
-		_, ok := licensedSnapshot(model.SupportPacketLicense{}).LicenseFeature(ldap)
+		_, ok := licensedSnapshot(model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise}).LicenseFeature(ldap)
 		require.False(t, ok)
 	})
 

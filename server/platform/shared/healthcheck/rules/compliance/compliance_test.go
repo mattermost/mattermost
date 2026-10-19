@@ -73,13 +73,13 @@ func assertResult(t *testing.T, expected want, results []healthcheck.Result, msg
 	assert.Equal(t, expected.value, results[0].Value, msgAndArgs...)
 }
 
-func TestRulesConfigUnavailable(t *testing.T) {
+func TestRulesLicenseOrConfigUnavailable(t *testing.T) {
 	t.Parallel()
 
-	failed := licensedConfig(func(*model.Config) {})
+	failed := licensedConfig(nil)
 	failed.Sections[model.SectionConfig] = errors.New("boom")
 
-	for _, rule := range []healthcheck.Rule{complianceNoDir, retentionTightBatches, exportGRTimeoutLow} {
+	for _, rule := range []healthcheck.Rule{complianceNoDir, auditLogOff, retentionTightBatches, exportGRTimeoutLow} {
 		t.Run(rule.Code, func(t *testing.T) {
 			t.Parallel()
 
@@ -94,12 +94,12 @@ func TestRulesLicenseFeature(t *testing.T) {
 
 	ruleCases := []struct {
 		rule    healthcheck.Rule
-		feature func(f *model.Features, granted bool)
+		feature func(granted bool) *model.Features
 		firing  func(cfg *model.Config)
 	}{
 		{
 			rule:    complianceNoDir,
-			feature: func(f *model.Features, granted bool) { f.Compliance = new(granted) },
+			feature: func(granted bool) *model.Features { return &model.Features{Compliance: new(granted)} },
 			firing: func(cfg *model.Config) {
 				cfg.ComplianceSettings.Enable = new(true)
 				cfg.ComplianceSettings.Directory = new("")
@@ -107,7 +107,7 @@ func TestRulesLicenseFeature(t *testing.T) {
 		},
 		{
 			rule:    retentionTightBatches,
-			feature: func(f *model.Features, granted bool) { f.DataRetention = new(granted) },
+			feature: func(granted bool) *model.Features { return &model.Features{DataRetention: new(granted)} },
 			firing: func(cfg *model.Config) {
 				cfg.DataRetentionSettings.EnableMessageDeletion = new(true)
 				cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds = new(0)
@@ -115,7 +115,7 @@ func TestRulesLicenseFeature(t *testing.T) {
 		},
 		{
 			rule:    exportGRTimeoutLow,
-			feature: func(f *model.Features, granted bool) { f.MessageExport = new(granted) },
+			feature: func(granted bool) *model.Features { return &model.Features{MessageExport: new(granted)} },
 			firing: func(cfg *model.Config) {
 				cfg.MessageExportSettings.EnableExport = new(true)
 				cfg.MessageExportSettings.ExportFormat = new(model.ComplianceExportTypeGlobalrelay)
@@ -124,26 +124,24 @@ func TestRulesLicenseFeature(t *testing.T) {
 		},
 	}
 
+	enterpriseLeader := func(features *model.Features) []*healthcheck.NodeSnapshot {
+		return []*healthcheck.NodeSnapshot{licensedLeader(model.LicenseShortSkuEnterprise, features)}
+	}
+
 	for _, rc := range ruleCases {
 		t.Run(rc.rule.Code, func(t *testing.T) {
 			t.Parallel()
 
-			withFeature := func(granted bool) *model.Features {
-				f := &model.Features{}
-				rc.feature(f, granted)
-				return f
-			}
-
 			testCases := []struct {
-				name   string
-				leader *healthcheck.NodeSnapshot
-				state  healthcheck.State
+				name  string
+				nodes []*healthcheck.NodeSnapshot
+				state healthcheck.State
 			}{
-				{"licensed", licensedLeader(model.LicenseShortSkuEnterprise, withFeature(true)), healthcheck.StateFiring},
-				{"feature not licensed", licensedLeader(model.LicenseShortSkuEnterprise, withFeature(false)), healthcheck.StateResolved},
-				{"unlicensed", licensedLeader("", nil), healthcheck.StateResolved},
-				{"features missing from older packet", licensedLeader(model.LicenseShortSkuEnterprise, nil), healthcheck.StateUnknown},
-				{"feature missing", licensedLeader(model.LicenseShortSkuEnterprise, &model.Features{}), healthcheck.StateUnknown},
+				{"licensed", enterpriseLeader(rc.feature(true)), healthcheck.StateFiring},
+				{"feature not licensed", enterpriseLeader(rc.feature(false)), healthcheck.StateResolved},
+				{"unlicensed", []*healthcheck.NodeSnapshot{licensedLeader("", nil)}, healthcheck.StateResolved},
+				{"features missing from older packet", enterpriseLeader(nil), healthcheck.StateUnknown},
+				{"feature missing", enterpriseLeader(&model.Features{}), healthcheck.StateUnknown},
 				{"license unavailable", nil, healthcheck.StateUnknown},
 			}
 
@@ -151,11 +149,7 @@ func TestRulesLicenseFeature(t *testing.T) {
 				t.Run(tc.name, func(t *testing.T) {
 					t.Parallel()
 
-					var nodes []*healthcheck.NodeSnapshot
-					if tc.leader != nil {
-						nodes = append(nodes, tc.leader)
-					}
-					results := rc.rule.Eval(configSnapshot(rc.firing, nodes...))
+					results := rc.rule.Eval(configSnapshot(rc.firing, tc.nodes...))
 					require.Len(t, results, 1)
 					assert.Equal(t, tc.state, results[0].State)
 					if tc.state == healthcheck.StateUnknown {
