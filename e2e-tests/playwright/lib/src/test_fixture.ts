@@ -36,6 +36,7 @@ import {
     elasticsearchServerConfig,
     enableAIBridgeTestMode,
     ensureAzurite,
+    ensureDemoPlugin,
     ensureElasticsearch,
     ensureFeatureFlag,
     ensureDefaultServerEnv,
@@ -211,6 +212,7 @@ export class PlaywrightExtended {
     readonly createMockAIAgent;
     readonly rewriteCompletion;
     readonly recapCompletion;
+    readonly ensureDemoPlugin;
     readonly installAndEnablePlugin;
     readonly isPluginActive;
 
@@ -341,6 +343,7 @@ export class PlaywrightExtended {
         this.rewriteCompletion = rewriteCompletion;
         this.recapCompletion = recapCompletion;
         this.isOutsideRemoteUserHour = isOutsideRemoteUserHour;
+        this.ensureDemoPlugin = ensureDemoPlugin;
         this.installAndEnablePlugin = installAndEnablePlugin;
         this.isPluginActive = isPluginActive;
 
