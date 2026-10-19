@@ -51,9 +51,9 @@ func TestMigration000223(t *testing.T) {
 	store, err := New(*settings, logger, nil)
 	require.NoError(t, err)
 	defer store.Close()
-	// The test recreates the pre-000223 option blobs and runs the down
-	// migration, neither of which 000236 and 000237 allow.
-	defer withoutLegacyCompat(t, store)()
+	// The test runs the down migration, which drops PropertyOptions out from
+	// under the AttributeView that 000236 builds on it.
+	defer withoutLegacyAttributeView(t, store)()
 
 	// New() applies all migrations, so 000223 is already in effect.
 	require.True(t, tableExists(t, store, "PropertyOptions"), "PropertyOptions should exist after migration")

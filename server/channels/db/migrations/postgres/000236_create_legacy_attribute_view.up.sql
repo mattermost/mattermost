@@ -15,9 +15,14 @@
 -- from it would resolve options as they stood at the upgrade, and would resolve
 -- nothing at all for any field upgraded code has written since.
 --
+-- The one difference is that UserAttributeView's graph branches are left out.
+-- 11.10 has no graph type, so no policy it evaluates can reference one, and a
+-- graph value falls through to the stored value like any other type 11.10 does
+-- not resolve.
+--
 -- Upgraded code never reads or refreshes this view. It is a compatibility shim
--- for the upgrade window, to be dropped -- together with the trigger 000237
--- adds -- once no supported release reads AttributeView.
+-- for the upgrade window, to be dropped once no supported release reads
+-- AttributeView.
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS AttributeView AS
 SELECT
@@ -54,17 +59,6 @@ SELECT
                   AND po.DeleteAt = 0
                 LIMIT 1
             )
-            -- 11.10 has no graph type, so nothing it evaluates reads these. The
-            -- branches are kept anyway so the two views agree on every row.
-            WHEN pf.Type = 'graph' AND jsonb_typeof(pv.Value) = 'array' THEN COALESCE((
-                SELECT jsonb_agg(po.ID)
-                FROM jsonb_array_elements_text(pv.Value) AS option_id
-                JOIN PropertyOptions po
-                  ON po.ID = option_id
-                 AND po.FieldID IN (pf.ID, COALESCE(NULLIF(pf.LinkedFieldID, ''), pf.ID))
-                 AND po.DeleteAt = 0
-            ), '[]'::jsonb)
-            WHEN pf.Type = 'graph' THEN '[]'::jsonb
             ELSE pv.Value
         END
     ) AS Attributes

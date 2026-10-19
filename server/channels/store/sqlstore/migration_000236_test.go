@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,41 +13,30 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-// legacyCompatMigrations are the migrations that keep servers from before
-// 000216 working against this schema, in the order they apply.
-var legacyCompatMigrations = []string{
-	"000236_create_legacy_attribute_view",
-	"000237_create_legacy_option_write_guard",
-}
-
-// withoutLegacyCompat reverts legacyCompatMigrations and returns a function
-// that re-applies them, for a test that recreates the state of an earlier
-// migration. They have to come off first, the way a real downgrade would take
-// them off: AttributeView depends on PropertyOptions, and the write guard
-// refuses the option blobs that the earlier state is made of.
+// withoutLegacyAttributeView reverts 000236 and returns a function that
+// re-applies it, for a test that recreates the state of an earlier migration.
+// It has to come off first, the way a real downgrade would take it off:
+// AttributeView depends on PropertyOptions, and 000216's down migration
+// recreates a view of the same name.
 //
 // Restoring is left to the caller, as a defer, rather than to t.Cleanup:
 // cleanups run after the test's deferred store.Close.
-func withoutLegacyCompat(t *testing.T, s *SqlStore) func() {
+func withoutLegacyAttributeView(t *testing.T, s *SqlStore) func() {
 	t.Helper()
-	for _, name := range slices.Backward(legacyCompatMigrations) {
-		_, err := s.GetMaster().ExecNoTimeout(readMigrationSQL(t, name+".down.sql"))
-		require.NoError(t, err, "reverting %s", name)
-	}
+	_, err := s.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000236_create_legacy_attribute_view.down.sql"))
+	require.NoError(t, err, "reverting 000236")
 	return func() {
-		for _, name := range legacyCompatMigrations {
-			_, err := s.GetMaster().ExecNoTimeout(readMigrationSQL(t, name+".up.sql"))
-			assert.NoError(t, err, "re-applying %s", name)
-		}
+		_, err := s.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000236_create_legacy_attribute_view.up.sql"))
+		assert.NoError(t, err, "re-applying 000236")
 	}
 }
 
 // TestMigration000236 verifies the AttributeView kept for servers from before
 // 000216: that it exists alongside the per-object-type views, that an 11.10
 // server's refresh of it succeeds, and that it resolves every option-bearing
-// type from PropertyOptions -- including through a field that links to a
-// template, which holds no options of its own -- exactly as UserAttributeView
-// does.
+// type 11.10 knows from PropertyOptions -- including through a field that links
+// to a template, which holds no options of its own -- exactly as
+// UserAttributeView does.
 func TestMigration000236(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
@@ -204,7 +192,7 @@ func TestMigration000236(t *testing.T) {
 			"user_multi": ["Topic B", "Topic A"],
 			"user_text": "hello"
 		}`, attributesIn(t, "AttributeView", userTarget),
-			"%s: AttributeView must resolve every option-bearing type from PropertyOptions", stage)
+			"%s: AttributeView must resolve every option-bearing type 11.10 knows from PropertyOptions", stage)
 		require.JSONEq(t, attributesIn(t, "UserAttributeView", userTarget), attributesIn(t, "AttributeView", userTarget),
 			"%s: AttributeView must agree with UserAttributeView", stage)
 		require.Zero(t, countIn(t, "AttributeView", channelTarget),
