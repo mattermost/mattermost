@@ -84,14 +84,6 @@ func assertResults(t *testing.T, snapshot *healthcheck.Snapshot, wants map[strin
 	}
 }
 
-func codes(rules []healthcheck.Rule) []string {
-	out := make([]string, 0, len(rules))
-	for _, rule := range rules {
-		out = append(out, rule.Code)
-	}
-	return out
-}
-
 func TestRegistered(t *testing.T) {
 	registry := healthcheck.Builtin()
 	require.NoError(t, registry.Validate())
@@ -131,8 +123,8 @@ func TestConfigAbsent(t *testing.T) {
 	t.Parallel()
 
 	wants := map[string]want{}
-	for _, code := range codes(allRules) {
-		wants[code] = configUnavailable
+	for _, rule := range allRules {
+		wants[rule.Code] = configUnavailable
 	}
 
 	t.Run("no config section", func(t *testing.T) {
@@ -182,10 +174,11 @@ func gateSnapshot(edit func(cfg *model.Config)) *healthcheck.Snapshot {
 		everyConditionHolds(cfg)
 		edit(cfg)
 	})
-	s.Config = cs.Config
+	s.Config, s.Sections = cs.Config, cs.Sections
 	s.Stats = &model.SupportPacketStats{RegisteredUsers: new(int64(500))}
 	s.Jobs = &model.SupportPacketJobList{LDAPSyncJobs: []*model.Job{{Status: model.JobStatusSuccess, StartAt: 1_000_000, LastActivityAt: 1_000_000 + 5*60*1000}}}
-	s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil, model.SectionStats: nil, model.SectionJobs: nil}
+	s.Sections[model.SectionStats] = nil
+	s.Sections[model.SectionJobs] = nil
 	return s
 }
 
@@ -222,7 +215,7 @@ func TestGates(t *testing.T) {
 		assert.Equal(t, all(ldapGated, healthcheck.StateResolved), stateOf(t, s, ldapGated))
 		assert.Equal(t, all(syncGated, healthcheck.StateResolved), stateOf(t, s, syncGated))
 		assert.Equal(t, all(samlGated, healthcheck.StateResolved), stateOf(t, s, samlGated))
-		assert.Equal(t, healthcheck.StateFiring, stateOf(t, s, []healthcheck.Rule{ldapRecommendedAtScale})["LDAP_RECOMMENDED_AT_SCALE"])
+		assert.Equal(t, healthcheck.StateFiring, ldapRecommendedAtScale.Eval(s)[0].State)
 	})
 
 	t.Run("sync only opens the LDAP and sync gates", func(t *testing.T) {

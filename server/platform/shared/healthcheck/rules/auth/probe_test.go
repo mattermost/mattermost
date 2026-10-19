@@ -13,14 +13,14 @@ import (
 // probeSnapshot enables LDAP sign-in and SAML over the given nodes.
 func probeSnapshot(nodes []*healthcheck.NodeSnapshot, edit func(cfg *model.Config)) *healthcheck.Snapshot {
 	s := healthcheck.NewSnapshot(nodes)
-	s.Config = configSnapshot(func(cfg *model.Config) {
+	cs := configSnapshot(func(cfg *model.Config) {
 		cfg.LdapSettings.Enable = new(true)
 		cfg.SamlSettings.Enable = new(true)
 		if edit != nil {
 			edit(cfg)
 		}
-	}).Config
-	s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil}
+	})
+	s.Config, s.Sections = cs.Config, cs.Sections
 	return s
 }
 
