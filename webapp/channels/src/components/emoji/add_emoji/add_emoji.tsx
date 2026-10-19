@@ -14,6 +14,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import BackstageInput from 'components/backstage/components/backstage_input';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 
@@ -316,11 +317,10 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='name'
                                     type='text'
                                     maxLength={64}
-                                    className='form-control'
                                     value={this.state.name}
                                     onChange={this.updateName}
                                 />
