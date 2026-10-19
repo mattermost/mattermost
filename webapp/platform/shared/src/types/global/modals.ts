@@ -27,6 +27,13 @@ export type NewChannelModalProps = {
     categoryHelpText?: string;
 };
 
+// initialTab is a built-in tab ('info', 'configuration', …) or the id registerChannelSettingsTab returned.
+export type ChannelSettingsModalProps = {
+    channelId: string;
+    initialTab?: string;
+    focusOriginElement?: string;
+};
+
 export type PublishedModalProps = {
     user_settings: UserSettingsModalProps;
     invitation: InvitationModalProps;
@@ -35,6 +42,7 @@ export type PublishedModalProps = {
     leave_team: LeaveTeamModalProps;
     file_preview_modal: FilePreviewModalProps;
     new_channel_modal: NewChannelModalProps;
+    channel_settings: ChannelSettingsModalProps;
 };
 
 export type PublishedModalId = keyof PublishedModalProps;
