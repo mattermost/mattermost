@@ -84,24 +84,30 @@ func TestRunContextCanceledSuppressed(t *testing.T) {
 }
 
 func TestRunOtherErrorsPrinted(t *testing.T) {
-	sentinelErr := errors.New("something went wrong")
-	cmd := &cobra.Command{
-		Use:           "error-test",
-		SilenceErrors: true,
-		SilenceUsage:  true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return sentinelErr
-		},
+	for name, cmdErr := range map[string]error{
+		"generic":           errors.New("something went wrong"),
+		"deadline exceeded": fmt.Errorf("dial tcp: %w", context.DeadlineExceeded),
+	} {
+		t.Run(name, func(t *testing.T) {
+			cmd := &cobra.Command{
+				Use:           "error-test",
+				SilenceErrors: true,
+				SilenceUsage:  true,
+				RunE: func(cmd *cobra.Command, args []string) error {
+					return cmdErr
+				},
+			}
+			RootCmd.AddCommand(cmd)
+			defer RootCmd.RemoveCommand(cmd)
+
+			stderr := captureStderr(t, func() {
+				err := executeRoot([]string{"error-test"})
+				assert.ErrorIs(t, err, cmdErr)
+			})
+
+			assert.Contains(t, stderr, "Error: "+cmdErr.Error())
+		})
 	}
-	RootCmd.AddCommand(cmd)
-	defer RootCmd.RemoveCommand(cmd)
-
-	stderr := captureStderr(t, func() {
-		err := executeRoot([]string{"error-test"})
-		assert.ErrorIs(t, err, sentinelErr)
-	})
-
-	assert.Contains(t, stderr, "Error: something went wrong")
 }
 
 func (s *MmctlUnitTestSuite) TestArgumentsHaveWhitespaceTrimmed() {

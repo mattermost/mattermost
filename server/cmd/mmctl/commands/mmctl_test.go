@@ -81,6 +81,10 @@ func (s *MmctlE2ETestSuite) SetupTest() {
 	printer.SetFormat(printer.FormatJSON)
 }
 
+func (s *MmctlE2ETestSuite) SetupSubTest() {
+	printer.Clean()
+}
+
 func (s *MmctlE2ETestSuite) TearDownTest() {
 	// Remove the test helper from the structure to avoid reusing the same helper between tests
 	s.th = nil
@@ -133,12 +137,10 @@ func (s *MmctlE2ETestSuite) SetupMessageExportTestHelper() *api4.TestHelper {
 // helper facilitates checking both
 func (s *MmctlE2ETestSuite) RunForSystemAdminAndLocal(testName string, fn func(client.Client)) {
 	s.Run(testName+"/SystemAdminClient", func() {
-		printer.Clean()
 		fn(s.th.SystemAdminClient)
 	})
 
 	s.Run(testName+"/LocalClient", func() {
-		printer.Clean()
 		fn(s.th.LocalClient)
 	})
 }
@@ -147,17 +149,14 @@ func (s *MmctlE2ETestSuite) RunForSystemAdminAndLocal(testName string, fn func(c
 // registered in the TestHelper
 func (s *MmctlE2ETestSuite) RunForAllClients(testName string, fn func(client.Client)) {
 	s.Run(testName+"/Client", func() {
-		printer.Clean()
 		fn(s.th.Client)
 	})
 
 	s.Run(testName+"/SystemAdminClient", func() {
-		printer.Clean()
 		fn(s.th.SystemAdminClient)
 	})
 
 	s.Run(testName+"/LocalClient", func() {
-		printer.Clean()
 		fn(s.th.LocalClient)
 	})
 }
