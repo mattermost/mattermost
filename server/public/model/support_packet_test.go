@@ -117,3 +117,9 @@ func TestSupportPacketDiagnosticsYAMLOmitsNilAndKeepsZero(t *testing.T) {
 	assert.Equal(t, new(0), roundTrip.Database.MasterConnectionsInUse)
 	assert.Equal(t, new(uint64(0)), roundTrip.FileStore.AvailableMB)
 }
+
+func TestSupportPacketLicenseIsMattermostEntry(t *testing.T) {
+	assert.True(t, (&SupportPacketLicense{SkuShortName: LicenseShortSkuMattermostEntry}).IsMattermostEntry())
+	assert.False(t, (&SupportPacketLicense{SkuShortName: LicenseShortSkuEnterprise}).IsMattermostEntry())
+	assert.False(t, (*SupportPacketLicense)(nil).IsMattermostEntry())
+}

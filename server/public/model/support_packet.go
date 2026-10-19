@@ -32,6 +32,10 @@ type SupportPacketLicense struct {
 	Features *Features `yaml:"features,omitempty"`
 }
 
+func (l *SupportPacketLicense) IsMattermostEntry() bool {
+	return l != nil && l.SkuShortName == LicenseShortSkuMattermostEntry
+}
+
 // MinimumEnterprise reports whether the license is at least Enterprise, as MinimumEnterpriseLicense does for a License.
 func (l *SupportPacketLicense) MinimumEnterprise() bool {
 	return l != nil && MinimumEnterpriseLicense(&License{SkuShortName: l.SkuShortName})
