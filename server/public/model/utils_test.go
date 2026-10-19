@@ -879,6 +879,30 @@ func TestIsValidAlphaNumHyphenUnderscorePlus(t *testing.T) {
 	}
 }
 
+func TestDecodeId(t *testing.T) {
+	id := NewId()
+	b, ok := DecodeId(id)
+	require.True(t, ok)
+	require.Equal(t, id, encoding.EncodeToString(b[:]))
+
+	// The last character carries 3 bits of the ID and 2 unused bits that NewId leaves at zero. Setting an
+	// unused bit gives a different string that the decoder still turns into the same 16 bytes; DecodeId must
+	// reject it, or two channels could share one key.
+	const alphabet = "ybndrfg8ejkmcpqxot1uwisza345h769"
+	alt := id[:25] + string(alphabet[strings.IndexByte(alphabet, id[25])|1])
+	var same [16]byte
+	_, err := encoding.Decode(same[:], []byte(alt))
+	require.NoError(t, err)
+	require.Equal(t, b, same, "the decoder ignores the unused bits")
+	_, ok = DecodeId(alt)
+	require.False(t, ok)
+
+	for _, bad := range []string{"l0v2aaaaaaaaaaaaaaaaaaaaaa", "short"} {
+		_, ok := DecodeId(bad)
+		require.False(t, ok, bad)
+	}
+}
+
 func TestIsValidId(t *testing.T) {
 	cases := []struct {
 		Input  string
