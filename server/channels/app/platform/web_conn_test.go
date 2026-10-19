@@ -429,6 +429,13 @@ func TestWebConnShouldSendEventAllocs(t *testing.T) {
 	wc, channelIDs := newShouldSendEventBenchConn(t, th, 200)
 	memberChannelID := channelIDs[len(channelIDs)/2]
 
+	// Give the session the admin role so that the sensitive-data case below is
+	// delivered to it. The helper's suite grants every permission regardless, so
+	// this only makes the case read as what it is.
+	session := wc.GetSession().DeepCopy()
+	session.Roles = model.SystemUserRoleId + " " + model.SystemAdminRoleId
+	wc.SetSession(session)
+
 	cases := shouldSendEventBenchCases(memberChannelID)
 	cases = append(cases,
 		shouldSendEventBenchCase{"required_permission_granted", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", nil, "").SetBroadcast(&model.WebsocketBroadcast{ChannelId: memberChannelID, RequiredPermissions: []string{model.PermissionReadChannel.Id}}), true},
