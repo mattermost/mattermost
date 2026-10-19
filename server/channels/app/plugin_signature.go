@@ -39,9 +39,20 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 	if filename == "." || filename == string(filepath.Separator) || filename == "" {
 		return model.NewAppError("AddPublicKey", "app.plugin.add_public_key.invalid_name.app_error", nil, "", http.StatusBadRequest)
 	}
-	if isSamlFile(&a.Config().SamlSettings, filename) {
-		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusBadRequest)
+	if isReservedConfigFile(a.Config(), filename) {
+		return model.NewAppError("AddPublicKey", "app.plugin.add_public_key.reserved.app_error", nil, "", http.StatusBadRequest)
 	}
+
+	// Do not overwrite an existing config-store file unless it is already a
+	// configured plugin signature public key (re-upload/replace is allowed).
+	if !slices.Contains(a.Config().PluginSettings.SignaturePublicKeyFiles, filename) {
+		if exists, err := a.Srv().platform.HasConfigFile(filename); err != nil {
+			return model.NewAppError("AddPublicKey", "app.plugin.write_file.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		} else if exists {
+			return model.NewAppError("AddPublicKey", "app.plugin.add_public_key.conflict.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	data, err := io.ReadAll(key)
 	if err != nil {
 		return model.NewAppError("AddPublicKey", "app.plugin.write_file.read.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -69,8 +80,11 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 // DeletePublicKey will delete plugin public key from the config.
 func (a *App) DeletePublicKey(name string) *model.AppError {
 	filename := filepath.Base(name)
-	if isSamlFile(&a.Config().SamlSettings, filename) {
-		return model.NewAppError("DeletePublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusBadRequest)
+	if isReservedConfigFile(a.Config(), filename) {
+		return model.NewAppError("DeletePublicKey", "app.plugin.delete_public_key.reserved.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !slices.Contains(a.Config().PluginSettings.SignaturePublicKeyFiles, filename) {
+		return model.NewAppError("DeletePublicKey", "app.plugin.delete_public_key.not_found.app_error", nil, "", http.StatusBadRequest)
 	}
 	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
 		return model.NewAppError("DeletePublicKey", "app.plugin.delete_public_key.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -177,4 +191,21 @@ func decodeIfArmored(reader io.Reader) (io.Reader, error) {
 // isSamlFile checks if filename is a SAML file.
 func isSamlFile(saml *model.SamlSettings, filename string) bool {
 	return filename == *saml.PublicCertificateFile || filename == *saml.PrivateKeyFile || filename == *saml.IdpCertificateFile
+}
+
+// isReservedConfigFile reports whether filename is reserved for another
+// config-store feature (SAML, LDAP, audit certificate). Plugin signature key
+// APIs must not create or delete these names.
+func isReservedConfigFile(cfg *model.Config, filename string) bool {
+	if isSamlFile(&cfg.SamlSettings, filename) {
+		return true
+	}
+	switch filename {
+	case SamlPublicCertificateName, SamlPrivateKeyName, SamlIdpCertificateName,
+		model.LdapPublicCertificateName, model.LdapPrivateKeyName,
+		AuditCertificateFilename:
+		return true
+	default:
+		return false
+	}
 }

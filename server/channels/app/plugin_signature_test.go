@@ -74,10 +74,40 @@ func TestPluginPublicKeys(t *testing.T) {
 		require.Nil(t, appErr)
 	})
 
-	appErr = th.App.DeletePublicKey("wrong file name")
-	require.Nil(t, appErr)
-	appErr = th.App.DeletePublicKey("wrong-file-name.plugin.gpg")
-	require.Nil(t, appErr)
+	t.Run("rejects reserved config filenames", func(t *testing.T) {
+		appErr = th.App.AddPublicKey(model.LdapPublicCertificateName, bytes.NewReader(publicKey))
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.plugin.add_public_key.reserved.app_error", appErr.Id)
+
+		appErr = th.App.AddPublicKey(AuditCertificateFilename, bytes.NewReader(publicKey))
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.plugin.add_public_key.reserved.app_error", appErr.Id)
+
+		appErr = th.App.DeletePublicKey(model.LdapPrivateKeyName)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.plugin.delete_public_key.reserved.app_error", appErr.Id)
+	})
+
+	t.Run("rejects overwriting non-key config files", func(t *testing.T) {
+		otherFilename := "other-config-file.pem"
+		require.NoError(t, th.App.Srv().platform.SetConfigFile(otherFilename, []byte("existing")))
+		t.Cleanup(func() {
+			_ = th.App.Srv().platform.RemoveConfigFile(otherFilename)
+		})
+
+		appErr = th.App.AddPublicKey(otherFilename, bytes.NewReader(publicKey))
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.plugin.add_public_key.conflict.app_error", appErr.Id)
+	})
+
+	t.Run("rejects deleting unconfigured key names", func(t *testing.T) {
+		appErr = th.App.DeletePublicKey("wrong file name")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.plugin.delete_public_key.not_found.app_error", appErr.Id)
+		appErr = th.App.DeletePublicKey("wrong-file-name.plugin.gpg")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.plugin.delete_public_key.not_found.app_error", appErr.Id)
+	})
 
 	appErr = th.App.DeletePublicKey(publicKeyFilename)
 	require.Nil(t, appErr)

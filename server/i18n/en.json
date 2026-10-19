@@ -10486,6 +10486,11 @@
     "description": "Error when the server fails to evaluate a permission policy while checking a user's access."
   },
   {
+    "id": "app.plugin.add_public_key.conflict.app_error",
+    "translation": "A configuration file with this name already exists and is not a plugin signature public key.",
+    "description": "App error when uploading a plugin signature public key would overwrite an unrelated config-store file."
+  },
+  {
     "id": "app.plugin.add_public_key.empty.app_error",
     "translation": "Plugin signature public key file is empty.",
     "description": "App error when an uploaded plugin signature public key file is empty."
@@ -10499,6 +10504,11 @@
     "id": "app.plugin.add_public_key.invalid_name.app_error",
     "translation": "Invalid plugin signature public key filename.",
     "description": "App error when a plugin signature public key filename is empty or invalid after basename sanitization."
+  },
+  {
+    "id": "app.plugin.add_public_key.reserved.app_error",
+    "translation": "This filename is reserved for another server configuration file and cannot be used for a plugin signature public key.",
+    "description": "App error when a plugin signature public key upload uses a reserved SAML, LDAP, or audit certificate filename."
   },
   {
     "id": "app.plugin.addon_not_licensed.app_error",
@@ -10524,6 +10534,16 @@
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "An error occurred while deleting the public key.",
     "description": "Admin console error when deleting a plugin-signing public key from the server fails."
+  },
+  {
+    "id": "app.plugin.delete_public_key.not_found.app_error",
+    "translation": "Plugin signature public key was not found.",
+    "description": "App error when deleting a plugin signature public key that is not listed in PluginSettings.SignaturePublicKeyFiles."
+  },
+  {
+    "id": "app.plugin.delete_public_key.reserved.app_error",
+    "translation": "This filename is reserved for another server configuration file and cannot be deleted as a plugin signature public key.",
+    "description": "App error when a delete request targets a reserved SAML, LDAP, or audit certificate filename."
   },
   {
     "id": "app.plugin.disabled.app_error",

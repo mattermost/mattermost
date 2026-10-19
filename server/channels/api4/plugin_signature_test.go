@@ -74,6 +74,18 @@ func TestPluginSignaturePublicKeyAPI(t *testing.T) {
 		require.NotContains(t, th.App.Config().PluginSettings.SignaturePublicKeyFiles, filename)
 	})
 
+	t.Run("rejects delete of unconfigured filename", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeletePluginSignaturePublicKey(context.Background(), "not-a-configured-key.asc")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("rejects reserved config filenames", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.UploadPluginSignaturePublicKey(context.Background(), publicKey, model.LdapPublicCertificateName)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ExperimentalSettings.RestrictSystemAdmin = true
