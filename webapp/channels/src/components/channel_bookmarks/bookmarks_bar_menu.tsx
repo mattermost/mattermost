@@ -23,7 +23,6 @@ import {MAX_BOOKMARKS_PER_CHANNEL} from './utils';
 
 const BookmarksBarIconMenuTrigger = Menu.createMenuIconButtonTrigger({
     size: 'x-small',
-    padding: 'compact',
 });
 
 interface BookmarksBarMenuProps {

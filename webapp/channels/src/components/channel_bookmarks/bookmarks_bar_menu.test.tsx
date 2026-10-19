@@ -114,6 +114,7 @@ describe('BookmarksBarMenu — IconButton triggers', () => {
         expect(button).toHaveAttribute('aria-label', 'Add a bookmark');
         expect(button?.className).toContain('icon-button');
         expect(button?.className).toContain('icon-button--size-x-small');
+        expect(button?.className).not.toContain('icon-button--padding-compact');
         expect(button).not.toHaveClass('withLabel');
     });
 
@@ -133,6 +134,7 @@ describe('BookmarksBarMenu — IconButton triggers', () => {
         expect(button).toBeInTheDocument();
         expect(button?.className).toContain('icon-button');
         expect(button?.className).toContain('icon-button--size-x-small');
+        expect(button?.className).not.toContain('icon-button--padding-compact');
         expect(button?.className).toContain('icon-button--has-count');
         expect(button).toHaveTextContent('2');
     });
