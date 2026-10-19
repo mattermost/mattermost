@@ -5,11 +5,14 @@ import React from 'react';
 import type {ChangeEvent, ReactNode} from 'react';
 
 import Input from 'components/widgets/inputs/input/input';
+import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
 import Setting from './setting';
 
 const INPUT_TYPES = ['text', 'textarea', 'number', 'email', 'tel', 'url', 'password'] as const;
 export type InputTypes = typeof INPUT_TYPES[number];
+
+const COMPASS_TEXT_TYPES = ['text', 'textarea', 'number', 'email', 'tel', 'url'] as const;
 
 export type Props = {
     id: string;
@@ -51,15 +54,36 @@ function TextSetting(props: Props) {
         }
     }
 
-    // Compass TextInput/TextArea for chrome only — keep the classic Setting
-    // left-column label (no floating legend). Account Settings and other
-    // call sites that want floating labels use Input with useLegend default.
-    const useCompassField = type === 'text' || type === 'textarea' || type === 'number';
+    // Compass fields for chrome only — keep the classic Setting left-column
+    // label (no floating legend). Account Settings and other call sites that
+    // want floating labels use Input/PasswordInput with useLegend default.
+    const useCompassTextField = (COMPASS_TEXT_TYPES as readonly string[]).includes(type);
+    const useCompassPassword = type === 'password';
 
     let input = null;
-    if (useCompassField) {
-        // e2e tests use `${id}input` for text/textarea and `${id}number` for number
-        const testId = type === 'number' ? `${props.id}number` : `${props.id}input`;
+    if (useCompassPassword) {
+        // e2e tests use `${id}password` for password fields
+        const testId = `${props.id}password`;
+        const inputValue = Array.isArray(props.value) ? props.value.join(',') : String(props.value);
+        const resolvedMaxLength = maxLength >= 0 ? maxLength : undefined;
+
+        input = (
+            <PasswordInput
+                id={props.id}
+                name={props.id}
+                data-testid={testId}
+                value={inputValue}
+                placeholder={props.placeholder}
+                maxLength={resolvedMaxLength}
+                disabled={props.disabled}
+                autoFocus={props.autoFocus}
+                onChange={handleChange}
+                useLegend={false}
+            />
+        );
+    } else if (useCompassTextField) {
+        // e2e tests use `${id}input` for text/textarea and `${id}${type}` otherwise
+        const testId = (type === 'text' || type === 'textarea') ? `${props.id}input` : `${props.id}${type}`;
         const inputValue = Array.isArray(props.value) ? props.value.join(',') : props.value;
         const resolvedMaxLength = maxLength >= 0 ? maxLength : undefined;
 

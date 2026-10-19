@@ -32,6 +32,15 @@ type PasswordInputProps = {
     name?: string;
     label?: string | MessageDescriptor;
     autoFocus?: boolean;
+    placeholder?: string;
+    maxLength?: number;
+
+    /**
+     * When false, omit the floating label so an external label (e.g. Setting's
+     * left-column label) owns the accessible name. Default: true.
+     */
+    useLegend?: boolean;
+    'data-testid'?: string;
 };
 
 const INPUT_SIZE_MAP: Record<SIZE, PasswordInputSize> = {
@@ -61,6 +70,10 @@ const PasswordInput = React.forwardRef((
         name = 'password-input',
         label: labelProp,
         autoFocus,
+        placeholder,
+        maxLength,
+        useLegend = true,
+        'data-testid': dataTestId,
         ...otherProps
     }: PasswordInputProps,
     ref?: React.Ref<HTMLInputElement>,
@@ -78,7 +91,9 @@ const PasswordInput = React.forwardRef((
     const defaultLabel = createMode ?
         formatMessage({id: 'widget.passwordInput.createPassword', defaultMessage: 'Choose a Password'}) :
         formatMessage({id: 'widget.passwordInput.password', defaultMessage: 'Password'});
-    const label = labelProp ? formatAsString(formatMessage, labelProp) : defaultLabel;
+    const label = useLegend ?
+        (labelProp ? formatAsString(formatMessage, labelProp) : defaultLabel) :
+        undefined;
 
     return (
         <CompassPasswordInput
@@ -92,11 +107,14 @@ const PasswordInput = React.forwardRef((
             onBlur={onBlur}
             onFocus={onFocus}
             label={label}
+            placeholder={placeholder}
+            maxLength={maxLength}
             invalid={Boolean(hasError) || Boolean(error)}
             message={message}
             messageTone={message ? messageTone : undefined}
             disabled={disabled}
             autoFocus={autoFocus}
+            data-testid={dataTestId}
             showPasswordLabel={formatMessage({
                 id: 'widget.passwordInput.showPassword',
                 defaultMessage: 'Show password',

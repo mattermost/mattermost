@@ -188,4 +188,66 @@ describe('components/widgets/settings/TextSetting', () => {
         expect(screen.getByTestId('string.idhelp-text')).toHaveTextContent('help me');
         expect(screen.getByTestId('string.idlabel')).toHaveTextContent('some label');
     });
+
+    test.each([
+        ['url', 'URLurl', 'https://example.com'],
+        ['email', 'useremail', 'user@example.com'],
+        ['tel', 'phonetel', '+15551212'],
+    ] as const)('should render Compass Input without floating label for %s type', (type, testId, value) => {
+        const onChange = jest.fn();
+        const id = testId.replace(new RegExp(`${type}$`), '');
+        const {container} = render(
+            <TextSetting
+                id={id}
+                label='some label'
+                value={value}
+                type={type}
+                placeholder={`Enter ${type}`}
+                onChange={onChange}
+            />,
+        );
+
+        expect(screen.getByTestId(`${id}label`)).toHaveTextContent('some label');
+
+        const input = screen.getByTestId(testId);
+        expect(input).toBeInTheDocument();
+        expect(input).toHaveValue(value);
+        expect(input).toHaveAttribute('type', type);
+        expect(input).toHaveAttribute('id', id);
+        expect(input).toHaveAttribute('placeholder', `Enter ${type}`);
+        expect(input).not.toHaveClass('form-control');
+        expect(container.querySelector('.Input_container')).toBeInTheDocument();
+        expect(container.querySelector('legend')).not.toBeInTheDocument();
+    });
+
+    test('should render Compass PasswordInput without floating label for password type', () => {
+        const onChange = jest.fn();
+        const {container} = renderWithContext(
+            <TextSetting
+                id='APIKey'
+                label='API Key'
+                value='secret'
+                type='password'
+                placeholder='Enter API Key'
+                maxLength={64}
+                disabled={false}
+                helpText='optional key'
+                onChange={onChange}
+            />,
+        );
+
+        expect(screen.getByTestId('APIKeylabel')).toHaveTextContent('API Key');
+
+        const input = screen.getByTestId('APIKeypassword');
+        expect(input).toBeInTheDocument();
+        expect(input).toHaveValue('secret');
+        expect(input).toHaveAttribute('type', 'password');
+        expect(input).toHaveAttribute('id', 'APIKey');
+        expect(input).toHaveAttribute('placeholder', 'Enter API Key');
+        expect(input).toHaveAttribute('maxLength', '64');
+        expect(input).not.toHaveClass('form-control');
+        expect(container.querySelector('.password-input')).toBeInTheDocument();
+        expect(container.querySelector('.password-input label')).not.toBeInTheDocument();
+        expect(screen.getByTestId('APIKeyhelp-text')).toHaveTextContent('optional key');
+    });
 });
