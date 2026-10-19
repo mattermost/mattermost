@@ -3,8 +3,9 @@
 
 import React from 'react';
 import type {ChangeEvent, ChangeEventHandler, JSX} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 import {Button} from '@mattermost/shared/components/button';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 
@@ -14,11 +15,9 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import EmojiListItem from 'components/emoji/emoji_list_item';
 import LoadingScreen from 'components/loading_screen';
-import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import SaveButton from 'components/save_button';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-import SearchIcon from 'components/widgets/icons/fa_search_icon';
 
 const EMOJI_PER_PAGE = 50;
 const EMOJI_SEARCH_DELAY_MILLISECONDS = 200;
@@ -53,8 +52,30 @@ interface State {
     loading: boolean;
     page: number;
     nextLoading: boolean;
+    searchTerm: string;
     searchEmojis: string[] | null;
     missingPages: boolean;
+}
+
+type EmojiListSearchProps = {
+    value: string;
+    onChange: ChangeEventHandler<HTMLInputElement>;
+    onClear: () => void;
+};
+
+function EmojiListSearch({value, onChange, onClear}: EmojiListSearchProps) {
+    const {formatMessage} = useIntl();
+
+    return (
+        <SearchInput
+            size='small'
+            placeholder={formatMessage({id: 'emoji_list.search', defaultMessage: 'Search Custom Emoji'})}
+            value={value}
+            onChange={onChange}
+            onClear={onClear}
+            clearButtonProps={{tabIndex: 0}}
+        />
+    );
 }
 
 export default class EmojiList extends React.PureComponent<Props, State> {
@@ -67,6 +88,7 @@ export default class EmojiList extends React.PureComponent<Props, State> {
             loading: true,
             page: 0,
             nextLoading: false,
+            searchTerm: '',
             searchEmojis: null,
             missingPages: true,
         };
@@ -113,13 +135,7 @@ export default class EmojiList extends React.PureComponent<Props, State> {
         this.props.scrollToTop();
     };
 
-    onSearchChange: ChangeEventHandler = (e: ChangeEvent): void => {
-        if (!e || !e.target) {
-            return;
-        }
-
-        const term = (e.target as HTMLInputElement).value || '';
-
+    runSearch = (term: string): void => {
         clearTimeout(this.searchTimeout!);
 
         this.searchTimeout = setTimeout(async () => {
@@ -145,6 +161,17 @@ export default class EmojiList extends React.PureComponent<Props, State> {
                 this.setState({searchEmojis: [], loading: false});
             }
         }, EMOJI_SEARCH_DELAY_MILLISECONDS);
+    };
+
+    onSearchChange: ChangeEventHandler<HTMLInputElement> = (e: ChangeEvent<HTMLInputElement>): void => {
+        const term = e.target.value || '';
+        this.setState({searchTerm: term});
+        this.runSearch(term);
+    };
+
+    onSearchClear = (): void => {
+        this.setState({searchTerm: ''});
+        this.runSearch('');
     };
 
     deleteFromSearch = (emojiId: string): void => {
@@ -267,13 +294,10 @@ export default class EmojiList extends React.PureComponent<Props, State> {
             <div>
                 <div className='backstage-filters'>
                     <div className='backstage-filter__search'>
-                        <SearchIcon/>
-                        <LocalizedPlaceholderInput
-                            type='search'
-                            className='form-control'
-                            placeholder={defineMessage({id: 'emoji_list.search', defaultMessage: 'Search Custom Emoji'})}
+                        <EmojiListSearch
+                            value={this.state.searchTerm}
                             onChange={this.onSearchChange}
-                            style={style.search}
+                            onClear={this.onSearchClear}
                         />
                     </div>
                 </div>
@@ -332,7 +356,3 @@ export default class EmojiList extends React.PureComponent<Props, State> {
         );
     }
 }
-
-const style = {
-    search: {flexGrow: 0, flexShrink: 0},
-};
