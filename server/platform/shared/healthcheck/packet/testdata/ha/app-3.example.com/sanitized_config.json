@@ -1,0 +1,156 @@
+{
+    "GuestAccountsSettings": {
+        "Enable": true
+    },
+    "ServiceSettings": {
+        "SiteURL": "https://chat.example.com",
+        "WebsocketURL": "",
+        "ListenAddress": ":8065",
+        "ConnectionSecurity": "",
+        "TLSMinVer": "1.2",
+        "Forward80To443": false,
+        "EnableIncomingWebhooks": true,
+        "EnableOutgoingWebhooks": true
+    },
+    "TeamSettings": {
+        "MaxNotificationsPerChannel": 1000
+    },
+    "SqlSettings": {
+        "DriverName": "postgres",
+        "DataSource": "postgres://****:****@db.example.com:5432/mattermost?connect_timeout=10\u0026sslmode=require",
+        "DataSourceReplicas": [],
+        "DataSourceSearchReplicas": [],
+        "MaxIdleConns": 10,
+        "MaxOpenConns": 200,
+        "Trace": false,
+        "QueryTimeout": 30,
+        "DisableDatabaseSearch": false,
+        "ReplicaLagSettings": []
+    },
+    "ExperimentalAuditSettings": {
+        "FileEnabled": true,
+        "FileName": "/var/log/mattermost/audit.log",
+        "AdvancedLoggingJSON": {},
+        "Certificate": ""
+    },
+    "LogSettings": {
+        "EnableConsole": true,
+        "ConsoleLevel": "INFO",
+        "ConsoleJson": true,
+        "EnableFile": true,
+        "FileLevel": "INFO",
+        "FileJson": true,
+        "FileLocation": ""
+    },
+    "FileSettings": {
+        "DriverName": "local",
+        "Directory": "/mnt/mattermost/data/",
+        "AmazonS3Bucket": "",
+        "AmazonS3SSL": true
+    },
+    "EmailSettings": {
+        "SendEmailNotifications": true,
+        "SMTPServer": "smtp.example.com",
+        "SMTPPort": "587",
+        "SMTPPassword": "********************************",
+        "SendPushNotifications": true,
+        "PushNotificationServer": "http://push.example.com",
+        "PushNotificationContents": "full"
+    },
+    "ComplianceSettings": {
+        "Enable": false,
+        "Directory": "./data/",
+        "EnableDaily": false,
+        "BatchSize": 30000
+    },
+    "LdapSettings": {
+        "EnableSync": true
+    },
+    "ClusterSettings": {
+        "Enable": true,
+        "ClusterName": "production",
+        "OverrideHostname": "",
+        "NetworkInterface": "",
+        "BindAddress": "",
+        "AdvertiseAddress": "",
+        "UseIPAddress": true,
+        "EnableGossipCompression": true,
+        "EnableGossipEncryption": true,
+        "ReadOnlyConfig": true,
+        "GossipPort": 8074
+    },
+    "ElasticsearchSettings": {
+        "ConnectionURL": "https://search.example.com:9200",
+        "Backend": "opensearch",
+        "Username": "mattermost",
+        "Password": "********************************",
+        "EnableIndexing": true,
+        "EnableSearching": true,
+        "EnableAutocomplete": true,
+        "SkipTLSVerification": false,
+        "LiveIndexingBatchSize": 1
+    },
+    "CacheSettings": {
+        "CacheType": "lru",
+        "RedisAddress": "",
+        "RedisPassword": "",
+        "RedisDB": -1
+    },
+    "RateLimitSettings": {
+        "Enable": false,
+        "PerSec": 10,
+        "MaxBurst": 100,
+        "MemoryStoreSize": 10000,
+        "VaryByRemoteAddr": true,
+        "VaryByUser": false,
+        "VaryByHeader": ""
+    },
+    "DataRetentionSettings": {
+        "EnableMessageDeletion": true,
+        "EnableFileDeletion": true,
+        "MessageRetentionDays": 0,
+        "MessageRetentionHours": 17520,
+        "FileRetentionDays": 0,
+        "FileRetentionHours": 17520,
+        "DeletionJobStartTime": "02:00",
+        "BatchSize": 3000,
+        "TimeBetweenBatchesMilliseconds": 100
+    },
+    "MessageExportSettings": {
+        "EnableExport": true,
+        "ExportFormat": "globalrelay",
+        "DailyRunTime": "01:00",
+        "ExportFromTimestamp": 0,
+        "BatchSize": 10000,
+        "GlobalRelaySettings": {
+            "CustomerType": "A9",
+            "SMTPUsername": "archive-user@example.com",
+            "SMTPPassword": "********************************",
+            "EmailAddress": "archive@example.com",
+            "SMTPServerTimeout": 10,
+            "CustomSMTPServerName": "",
+            "CustomSMTPPort": "25"
+        }
+    },
+    "MetricsSettings": {
+        "Enable": true,
+        "ListenAddress": ":8067"
+    },
+    "PluginSettings": {
+        "Enable": true,
+        "EnableUploads": false,
+        "EnableHealthCheck": true,
+        "PluginStates": {
+            "com.github.manland.mattermost-plugin-gitlab": {
+                "Enable": false
+            },
+            "com.mattermost.calls": {
+                "Enable": true
+            }
+        }
+    },
+    "FeatureFlags": {
+        "TestFeature": "off",
+        "HealthDashboard": false
+    }
+}

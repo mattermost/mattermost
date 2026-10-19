@@ -687,7 +687,7 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 func (a *App) sendDeletionReportToReviewers(rctx request.CTX, flaggedPostId string, report *model.PostDeletionReport, contentFlaggingGroupId string) {
 	reportFileName := fmt.Sprintf("deletion_report_%s.md", flaggedPostId)
 
-	_, appErr := a.postReviewerMessage(rctx, "", contentFlaggingGroupId, flaggedPostId, report, reportFileName)
+	_, appErr := a.postReviewerMessage(rctx, "", contentFlaggingGroupId, flaggedPostId, report, reportFileName, "")
 	if appErr != nil {
 		rctx.Logger().Error("Failed to send deletion report to reviewers", mlog.Err(appErr), mlog.String("post_id", flaggedPostId))
 	}
@@ -814,7 +814,7 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 }
 
 func (a *App) deleteEditHistories(rctx request.CTX, postId, deleteByID string, report *model.PostDeletionReport) {
-	editHistories, appErr := a.GetEditHistoryForPost(postId)
+	editHistories, appErr := a.getEditHistoryForPostUnrestricted(rctx, postId)
 	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get edit history for post", mlog.Err(appErr), mlog.String("post_id", postId))
 		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.edit_histories"), model.StepFailed, i18n.TranslationId("app.data_spillage.report.detail.failed_retrieve_edit_history"), []string{appErr.Error()})
@@ -986,6 +986,7 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 
 	if postHiddenByContentFlagging {
 		message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", flaggedPost.ChannelId, "", nil, "")
+		a.markPostDeliveryForBroadcast(rctx, message, flaggedPost)
 		appErr = a.publishWebsocketEventForPost(rctx, flaggedPost, message)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to publish websocket event for post edit while keeping flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
@@ -1232,7 +1233,7 @@ func (a *App) postAssignReviewerMessage(rctx request.CTX, contentFlaggingGroupId
 	}
 
 	message := fmt.Sprintf("@%s was assigned as a reviewer by @%s", reviewerUser.Username, assignedByUser.Username)
-	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "")
+	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "", "")
 }
 
 func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) ([]*model.Post, *model.AppError) {
@@ -1246,7 +1247,7 @@ func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, act
 		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
 	}
 
-	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "")
+	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "", "")
 }
 
 func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) ([]*model.Post, *model.AppError) {
@@ -1260,7 +1261,7 @@ func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actor
 		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
 	}
 
-	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "")
+	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "", "")
 }
 
 func (a *App) getReporterUserId(rctx request.CTX, flaggedPostId, contentFlaggingGroupId string) (string, *model.AppError) {
@@ -1329,7 +1330,9 @@ func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId str
 	return a.postContentReviewBotMessage(rctx, message, userId)
 }
 
-func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGroupId, flaggedPostId string, report *model.PostDeletionReport, reportFileName string) ([]*model.Post, *model.AppError) {
+// postReviewerMessage replies on the content review thread of every reviewer that has
+// one for flaggedPostId, or only on targetReviewerId's thread when that is non-empty.
+func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGroupId, flaggedPostId string, report *model.PostDeletionReport, reportFileName, targetReviewerId string) ([]*model.Post, *model.AppError) {
 	mappedFields, appErr := a.GetContentFlaggingMappedFields(rctx, contentFlaggingGroupId)
 	if appErr != nil {
 		return nil, appErr
@@ -1364,6 +1367,12 @@ func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGrou
 			continue
 		}
 
+		// The review post is authored by the bot, so the other side of the DM is the reviewer.
+		reviewerUserId := channel.GetOtherUserIdForDM(reviewerPost.UserId)
+		if targetReviewerId != "" && reviewerUserId != targetReviewerId {
+			continue
+		}
+
 		// Determine the post message and file data, localizing per-reviewer if a report is provided
 		postMessage := message
 		var postFileData []byte
@@ -1372,7 +1381,6 @@ func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGrou
 		if report != nil {
 			T := i18n.GetUserTranslations("")
 			// Fetch reviewer user to get their locale
-			reviewerUserId := channel.GetOtherUserIdForDM(reviewerPost.UserId)
 			reviewer, userErr := a.GetUser(rctx, reviewerUserId)
 			if userErr != nil {
 				rctx.Logger().Error("Failed to get reviewer user for localization, falling back to default locale", mlog.Err(userErr), mlog.String("user_id", reviewerPost.UserId))

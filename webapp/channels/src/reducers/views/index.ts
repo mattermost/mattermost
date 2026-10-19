@@ -18,14 +18,12 @@ import modals from './modals';
 import notice from './notice';
 import onboardingTasks from './onboarding_tasks';
 import posts from './posts';
-import productMenu from './product_menu';
 import readout from './readout';
 import rhs from './rhs';
 import rhsSuppressed from './rhs_suppressed';
 import search from './search';
 import settings from './settings';
 import system from './system';
-import textbox from './textbox';
 import threads from './threads';
 
 export default combineReducers({
@@ -46,11 +44,9 @@ export default combineReducers({
     channelSelectorModal,
     settings,
     marketplace,
-    textbox,
     channelSidebar,
     onboardingTasks,
     threads,
-    productMenu,
     drafts,
     readout,
 });

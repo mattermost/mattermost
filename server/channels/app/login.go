@@ -214,6 +214,13 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 		return nil, err
 	}
 
+	if user.LastLogin == 0 && len(user.Props) > 0 && user.Props[model.UserPropsKeyImportedInactive] == "true" {
+		delete(user.Props, model.UserPropsKeyImportedInactive)
+		if _, appErr := a.UpdateUser(rctx, user, false); appErr != nil {
+			rctx.Logger().Warn("Failed to clear importedInactive prop on first login", mlog.Err(appErr))
+		}
+	}
+
 	if updateErr := a.Srv().Store().User().UpdateLastLogin(user.Id, session.CreateAt); updateErr != nil {
 		return nil, model.NewAppError("DoLogin", "app.login.doLogin.updateLastLogin.error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
 	}

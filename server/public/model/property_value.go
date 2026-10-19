@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -26,6 +27,12 @@ const (
 	// the Mattermost instance itself rather than to a user/channel/post,
 	// so there is no 26-char entity ID available; this sentinel stands in.
 	PropertyValueSystemTargetID = "system"
+
+	// PropertyValueWithheldJSON replaces a value a websocket broadcast may
+	// not carry (see BroadcastValue). It is a JSON object so it cannot be
+	// read as a client's `null` clear or as an empty-id delete tombstone,
+	// the two meanings a real value's JSON already carries.
+	PropertyValueWithheldJSON = `{"withheld":true}`
 )
 
 type PropertyValue struct {
@@ -200,6 +207,22 @@ type PropertyValuePatchItem struct {
 	Value   json.RawMessage `json:"value"`
 }
 
+// IsEmptyPropertyValue reports whether a raw value counts as unset. Mirrors the
+// webapp, which renders null, "" and [] alike as "Not set". Callers must
+// sanitize first: that is what turns ["  "] into [].
+func IsEmptyPropertyValue(raw json.RawMessage) bool {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return true
+	}
+
+	switch string(trimmed) {
+	case "null", `""`, "[]":
+		return true
+	}
+	return false
+}
+
 // SanitizePropertyValue normalizes a raw property value's JSON:
 //   - a top-level JSON string has surrounding whitespace trimmed;
 //   - a top-level JSON array of strings has each element trimmed and empty
@@ -255,4 +278,19 @@ func SanitizePropertyValue(raw json.RawMessage) json.RawMessage {
 	}
 
 	return raw
+}
+
+// BroadcastValue returns what a websocket broadcast may carry in place of
+// value: the value itself for a public field, the withheld marker
+// otherwise.
+//
+// Accepted ceiling: a caller who writes the literal JSON
+// `{"withheld":true}` into a text field makes clients refetch that field
+// once and get the real value back. That is the worst outcome, so no
+// escaping scheme is built for it.
+func BroadcastValue(field *PropertyField, value json.RawMessage) json.RawMessage {
+	if field != nil && field.GetAccessMode() == PropertyAccessModePublic {
+		return value
+	}
+	return json.RawMessage(PropertyValueWithheldJSON)
 }

@@ -444,24 +444,25 @@ func (a *App) createUserOrGuest(rctx request.CTX, user *model.User, guest bool) 
 	return ruser, nil
 }
 
-func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (*model.User, *model.AppError) {
+// CreateOAuthUser creates a user from OAuth/OIDC identity data.
+func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (user *model.User, userWasCreated bool, err *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, false, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
-		return nil, e
+		return nil, false, e
 	}
 
-	settings, err := provider.GetSSOSettings(rctx, a.Config(), service)
-	if err != nil {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.oauth.get_settings.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
+	settings, getErr := provider.GetSSOSettings(rctx, a.Config(), service)
+	if getErr != nil {
+		return nil, false, model.NewAppError("CreateOAuthUser", "api.user.oauth.get_settings.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(getErr)
 	}
 
-	user, err := provider.GetUserFromJSON(rctx, userData, tokenUser, settings)
-	if err != nil {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
+	user, getErr = provider.GetUserFromJSON(rctx, userData, tokenUser, settings)
+	if getErr != nil {
+		return nil, false, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(getErr)
 	}
 	if user.AuthService == "" {
 		user.AuthService = service
@@ -478,36 +479,36 @@ func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Read
 
 	userByAuth, _ := a.ch.srv.userService.GetUserByAuth(user.AuthData, service)
 	if userByAuth != nil {
-		return userByAuth, nil
+		return userByAuth, false, nil
 	}
 
 	userByEmail, _ := a.ch.srv.userService.GetUserByEmail(user.Email)
 	if userByEmail != nil {
 		if userByEmail.AuthService == "" {
-			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
+			return nil, false, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
 		}
 		if provider.IsSameUser(rctx, userByEmail, user) {
-			if _, err = a.Srv().Store().User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
+			if _, updateErr := a.Srv().Store().User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); updateErr != nil {
 				// if the user is not updated, write a warning to the log, but don't prevent user login
-				rctx.Logger().Warn("Error attempting to update user AuthData", mlog.Err(err))
+				rctx.Logger().Warn("Error attempting to update user AuthData", mlog.Err(updateErr))
 			}
-			return userByEmail, nil
+			return userByEmail, false, nil
 		}
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email+" authData="+*user.AuthData, http.StatusBadRequest)
+		return nil, false, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email+" authData="+*user.AuthData, http.StatusBadRequest)
 	}
 
 	user.EmailVerified = true
 
 	ruser, appErr := a.CreateUser(rctx, user)
 	if appErr != nil {
-		return nil, appErr
+		return nil, false, appErr
 	}
 
 	if appErr = a.AddUserToTeamByInviteIfNeeded(rctx, ruser, inviteToken, inviteId); appErr != nil {
 		rctx.Logger().Warn("Failed to add user to team", mlog.Err(appErr))
 	}
 
-	return ruser, nil
+	return ruser, true, nil
 }
 
 func (a *App) AddUserToTeamByInviteIfNeeded(rctx request.CTX, user *model.User, inviteToken string, inviteId string) *model.AppError {
@@ -1571,6 +1572,11 @@ func (a *App) UpdateUser(rctx request.CTX, user *model.User, sendNotifications b
 		if err := a.isUniqueToGroupNames(user.Username); err != nil {
 			err.Where = "UpdateUser"
 			return nil, err
+		}
+
+		// Blocks renaming a bot's user into a protected username; see CreateBot/PatchBot.
+		if prev.IsBot && !model.IsProtectedBotUsername(prev.Username) && model.IsProtectedBotUsername(user.Username) {
+			return nil, model.NewAppError("UpdateUser", "app.user.update.reserved_username.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
@@ -3061,7 +3067,9 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 		Posts: make(map[string]*model.Post, len(result.Threads)),
 	}
 	for _, thread := range result.Threads {
-		a.sanitizeThreadResponse(thread)
+		a.sanitizeProfiles(thread.Participants, false)
+		thread.Post.SanitizeNonIdentityProps()
+		thread.Post.StripActionIntegrations()
 		list.AddPost(thread.Post)
 	}
 
@@ -3096,20 +3104,14 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 		}
 	}
 
-	a.sanitizeThreadResponse(thread)
+	a.sanitizeProfiles(thread.Participants, false)
+	thread.Post.SanitizeNonIdentityProps()
+	thread.Post.StripActionIntegrations()
 	a.populatePostListTranslations(rctx, &model.PostList{Posts: map[string]*model.Post{thread.Post.Id: thread.Post}})
 	return thread, nil
 }
 
 // sanitizeThreadResponse removes server-only data from a thread response before it is sent to clients.
-func (a *App) sanitizeThreadResponse(thread *model.ThreadResponse) {
-	a.sanitizeProfiles(thread.Participants, false)
-	if thread.Post != nil {
-		thread.Post.SanitizeProps()
-		thread.Post.StripActionIntegrations()
-	}
-}
-
 func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 	nErr := a.Srv().Store().Thread().MarkAllAsReadByTeam(userID, teamID)
 	if nErr != nil {
@@ -3188,7 +3190,9 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 		}
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	a.sanitizeThreadResponse(userThread)
+	a.sanitizeProfiles(userThread.Participants, false)
+	userThread.Post.SanitizeNonIdentityProps()
+	userThread.Post.StripActionIntegrations()
 	sanitizedPost, isMemberForPreviews, appErr := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
 	if appErr != nil {
 		return appErr
@@ -3202,6 +3206,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	message.Add("thread", string(payload))
 	message.Add("previous_unread_replies", int64(0))
 	message.Add("previous_unread_mentions", int64(0))
+	a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
 	auditRec := a.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
 	defer a.LogAuditRec(rctx, auditRec, nil)

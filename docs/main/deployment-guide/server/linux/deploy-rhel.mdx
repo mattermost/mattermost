@@ -6,13 +6,13 @@ sidebar_label: "Red Hat (RHEL)"
 <EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
 <DeploymentAvailability modes="self-hosted" />
 
-Install Mattermost Server on Red Hat Enterprise Linux (RHEL), Rocky Linux, AlmaLinux, Oracle Linux 7+, or CentOS Stream. RHEL doesn't have a signed APT-style repository, so this guide installs from the release tarball with manual systemd setup, then walks through the security configuration RHEL deployments typically need (SELinux contexts, firewalld rules, fapolicyd allow rules).
+Install Mattermost Server on Red Hat Enterprise Linux (RHEL) 9+ or a compatible distribution, such as Rocky Linux, AlmaLinux, Oracle Linux, or CentOS Stream 9+. RHEL doesn't have a signed APT-style repository, so this guide installs from the release tarball with manual systemd setup, then walks through the security configuration RHEL deployments typically need (SELinux contexts, firewalld rules, fapolicyd allow rules).
 
 <Note title="Minimum requirements">
 
-- **Operating system**: RHEL 7+, Rocky / Alma 8+, Oracle Linux 7+, CentOS Stream 8+.
+- **Operating system**: RHEL 9+, Rocky Linux 9+, AlmaLinux 9+, Oracle Linux 9+, or CentOS Stream 9+. From v12.0, the server binary requires glibc 2.34 or later, so version 7 and 8 releases of these distributions (glibc 2.17 and 2.28) can run Mattermost v11.11 or earlier only, including the v11.7 ESR.
 - **Hardware**: 1 vCPU and 2 GB RAM (supports up to ~1,000 users).
-- **Database**: [PostgreSQL 14+](/deployment-guide/postgres-migration).
+- **Database**: [PostgreSQL 15+](/administration-guide/manage/admin/postgres-migration).
 - **Network**: TCP 80/443 inbound (TLS), 8065 inbound (System Console), 10025 outbound (SMTP relay if used).
 
 </Note>
@@ -27,7 +27,7 @@ Choose one of:
 
 ## Step 2: Prepare the database
 
-Follow the [database preparation](/deployment-guide/server/preparations#database-preparation) instructions to create the Mattermost database, user, and grants.
+Follow the [database preparation](/deployment-guide/server/prepare-database) instructions to create the Mattermost database, user, and grants.
 
 ## Step 3: Download the Mattermost Server tarball
 
@@ -37,14 +37,14 @@ SSH onto the target host and download the release. Replace `amd64` with `arm64` 
 <TabItem value="latest" label="Latest release" default>
 
 ```sh
-wget https://releases.mattermost.com/11.10.1/mattermost-11.10.1-linux-amd64.tar.gz
+wget https://releases.mattermost.com/12.0.0/mattermost-12.0.0-linux-amd64.tar.gz
 ```
 
 </TabItem>
 <TabItem value="esr" label="Current ESR">
 
 ```sh
-wget https://releases.mattermost.com/11.7.10/mattermost-11.7.10-linux-amd64.tar.gz
+wget https://releases.mattermost.com/11.7.13/mattermost-11.7.13-linux-amd64.tar.gz
 ```
 
 </TabItem>
@@ -320,7 +320,7 @@ allow perm=execute exe=/opt/rtcd/bin/rtcd : dir=/opt/rtcd all trust=0
 allow perm=execute exe=/usr/lib/systemd/systemd trust=1 : dir=/opt/rtcd/ all trust=0
 ```
 
-Then reload fapolicyd as above. See [RTCD setup and configuration](/deployment-guide/calls/calls-rtcd-setup) for the full rtcd install path.
+Then reload fapolicyd as above. See [RTCD Setup and Configuration](/deployment-guide/calls/calls-rtcd-setup) for the full rtcd install path.
 
 <Note title="Rule numbering">
 
@@ -354,4 +354,3 @@ sudo userdel mattermost
 
 - [Set up an NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy)
 - [Set up TLS](/deployment-guide/server/setup-tls)
-- [DISA STIG mapping](/security-guide/compliance-frameworks/disa-stig) if this deployment is bound for a regulated environment

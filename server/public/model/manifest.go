@@ -209,6 +209,12 @@ type Manifest struct {
 	// Minimum server version: 5.6
 	MinServerVersion string `json:"min_server_version,omitempty" yaml:"min_server_version,omitempty"`
 
+	// RequiredAddOn names the add-on the server license must grant before this plugin
+	// can be enabled or activated, matched case-insensitively against License.AddOns.
+	//
+	// Minimum server version: 12.0
+	RequiredAddOn string `json:"required_add_on,omitempty" yaml:"required_add_on,omitempty"`
+
 	// Server defines the server-side portion of your plugin.
 	Server *ManifestServer `json:"server,omitempty" yaml:"server,omitempty"`
 

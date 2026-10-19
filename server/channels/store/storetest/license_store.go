@@ -48,6 +48,10 @@ func testLicenseStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	require.Equal(t, record.Bytes, l1.Bytes, "license bytes didn't match")
 
+	// LoadLicense clears the active license on ErrNotFound and keeps it on any other
+	// error, so the distinction has to hold here.
 	_, err = ss.License().Get(rctx, "missing")
 	require.Error(t, err, "should fail on get license")
+	var nfErr *store.ErrNotFound
+	require.ErrorAs(t, err, &nfErr, "a missing license must be reported as ErrNotFound")
 }

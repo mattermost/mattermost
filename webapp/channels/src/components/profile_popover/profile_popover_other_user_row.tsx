@@ -174,6 +174,7 @@ const ProfilePopoverOtherUserRow = ({
                     fullname={fullname}
                     userId={user.id}
                     username={user.username}
+                    hide={hide}
                 />
             </div>
         </div>

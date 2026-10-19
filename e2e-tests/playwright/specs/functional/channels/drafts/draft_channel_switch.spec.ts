@@ -27,9 +27,11 @@ test.describe('draft channel switch', () => {
         // * Destination composer must not inherit the origin draft
         expect(await channelsPage.centerView.postCreate.getInputValue()).toBe('');
 
-        // * Origin draft was persisted: the channel pencil is in the DOM
-        // (often CSS-hidden until hover) and the Drafts sidebar link appears
-        await expect(channelsPage.sidebarLeft.item('off-topic').getByTestId('draftIcon')).toHaveCount(1);
+        // * Origin draft was persisted: the channel pencil icon is visible
+        // (move the mouse off the sidebar first: the pencil is hidden while its row is hovered)
+        // and the Drafts sidebar link appears
+        await channelsPage.centerView.postCreate.input.hover();
+        await expect(channelsPage.sidebarLeft.draftIcon('off-topic')).toBeVisible();
         await channelsPage.sidebarLeft.draftsVisible();
 
         // # Send a different message from Town Square
@@ -62,53 +64,47 @@ test.describe('draft channel switch', () => {
 
     /**
      * @objective Verify Ctrl/Cmd+K restores the destination draft and routes
-     * messages to the selected channel with concurrent React enabled.
+     * messages to the selected channel.
      */
-    test(
-        'quick switcher keeps drafts and messages scoped to their channels with concurrent React',
-        {tag: '@messaging'},
-        async ({pw}) => {
-            await pw.ensureFeatureFlag('EnableConcurrentReact', true);
+    test('quick switcher keeps drafts and messages scoped to their channels', {tag: '@messaging'}, async ({pw}) => {
+        const {team, user} = await pw.initSetup();
+        const {channelsPage, page} = await pw.testBrowser.login(user);
 
-            const {team, user} = await pw.initSetup();
-            const {channelsPage, page} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, 'off-topic');
+        await channelsPage.toBeVisible();
 
-            await channelsPage.goto(team.name, 'off-topic');
-            await channelsPage.toBeVisible();
+        const originDraft = `quick-switch-origin-${pw.random.id()}`;
+        const destinationMessage = `quick-switch-destination-${pw.random.id()}`;
 
-            const originDraft = `quick-switch-origin-${pw.random.id()}`;
-            const destinationMessage = `quick-switch-destination-${pw.random.id()}`;
+        // # Leave a draft in Off-Topic
+        await channelsPage.centerView.postCreate.writeMessage(originDraft);
 
-            // # Leave a draft in Off-Topic
-            await channelsPage.centerView.postCreate.writeMessage(originDraft);
+        // # Switch to Town Square using Ctrl/Cmd+K
+        await page.keyboard.press('ControlOrMeta+K');
+        await expect(channelsPage.findChannelsModal.input).toBeVisible();
+        await channelsPage.findChannelsModal.input.fill('town');
+        await channelsPage.findChannelsModal.selectChannel('town-square');
+        await channelsPage.centerView.header.toHaveTitle('Town Square');
 
-            // # Switch to Town Square using Ctrl/Cmd+K
-            await page.keyboard.press('ControlOrMeta+K');
-            await expect(channelsPage.findChannelsModal.input).toBeVisible();
-            await channelsPage.findChannelsModal.input.fill('town');
-            await channelsPage.findChannelsModal.selectChannel('town-square');
-            await channelsPage.centerView.header.toHaveTitle('Town Square');
+        // * Town Square did not inherit the Off-Topic draft
+        expect(await channelsPage.centerView.postCreate.getInputValue()).toBe('');
 
-            // * Town Square did not inherit the Off-Topic draft
-            expect(await channelsPage.centerView.postCreate.getInputValue()).toBe('');
+        // # Send a destination-owned message
+        await channelsPage.centerView.postCreate.writeMessage(destinationMessage);
+        await channelsPage.centerView.postCreate.sendMessage();
+        await channelsPage.centerView.waitUntilLastPostContains(destinationMessage);
 
-            // # Send a destination-owned message
-            await channelsPage.centerView.postCreate.writeMessage(destinationMessage);
-            await channelsPage.centerView.postCreate.sendMessage();
-            await channelsPage.centerView.waitUntilLastPostContains(destinationMessage);
+        // # Return to Off-Topic using Ctrl/Cmd+K
+        await page.keyboard.press('ControlOrMeta+K');
+        await expect(channelsPage.findChannelsModal.input).toBeVisible();
+        await channelsPage.findChannelsModal.input.fill('off');
+        await channelsPage.findChannelsModal.selectChannel('off-topic');
+        await channelsPage.centerView.header.toHaveTitle('Off-Topic');
 
-            // # Return to Off-Topic using Ctrl/Cmd+K
-            await page.keyboard.press('ControlOrMeta+K');
-            await expect(channelsPage.findChannelsModal.input).toBeVisible();
-            await channelsPage.findChannelsModal.input.fill('off');
-            await channelsPage.findChannelsModal.selectChannel('off-topic');
-            await channelsPage.centerView.header.toHaveTitle('Off-Topic');
-
-            // * The origin draft was restored and the destination message was not misrouted
-            expect(await channelsPage.centerView.postCreate.getInputValue()).toBe(originDraft);
-            await expect(channelsPage.centerView.container).not.toContainText(destinationMessage);
-        },
-    );
+        // * The origin draft was restored and the destination message was not misrouted
+        expect(await channelsPage.centerView.postCreate.getInputValue()).toBe(originDraft);
+        await expect(channelsPage.centerView.container).not.toContainText(destinationMessage);
+    });
 
     /**
      * @objective Verify sending /msg to an existing DM clears the origin
@@ -147,7 +143,7 @@ test.describe('draft channel switch', () => {
 
             // * Origin draft was cleared by the submit, not left behind as /msg
             expect(await channelsPage.centerView.postCreate.getInputValue()).toBe('');
-            await expect(channelsPage.sidebarLeft.item('off-topic').getByTestId('draftIcon')).toHaveCount(0);
+            await expect(channelsPage.sidebarLeft.draftIcon('off-topic')).not.toBeAttached();
         },
     );
 

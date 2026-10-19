@@ -2,32 +2,124 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState} from 'react';
+import React, {useState, type JSX} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {AccountOutlineIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownIcon, SyncIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {FieldVisibility} from '@mattermost/types/properties';
 
-import {resourceTypeLabels} from './attribute_applies_to_constants';
-import type {AttributeAppliesToItemProps} from './attribute_applies_to_constants';
+import {resourceTypeLabels, type AttributeAppliesToItemProps} from './attribute_applies_to_constants';
+import AttributeSelect from './attribute_select';
+import type {AttributeSelectOption} from './attribute_select';
+import type {ExternalSource} from './external_source';
+import {externalSourceMessages} from './external_source';
+import ResourceTypeIcon from './resource_type_icon';
 
 import './attribute_applies_to_item.scss';
 
 const BODY_ID = 'attribute-applies-to-user-panel';
 
+// Display order: Always | When set | Hidden.
+const PROFILE_DISPLAY_VALUES: FieldVisibility[] = ['always', 'when_set', 'hidden'];
+
+// What the Managed-by indicator names, one per source. The icon is the same
+// rotating-arrows glyph the Definition block's "Synced with" chips carry.
+const MANAGED_BY_OPTIONS: Record<ExternalSource, AttributeSelectOption<ExternalSource>> = {
+    ldap: {id: 'ldap', icon: SyncIcon, label: externalSourceMessages.ldap.title},
+    saml: {id: 'saml', icon: SyncIcon, label: externalSourceMessages.saml.title},
+};
+
 // The Users row of the Applies-to list -- owns its own expand/collapse state
-// (deliberately not the shared Accordion component, see the plan's Decisions
-// table: AccordionCard renders the row itself from plain data with no slot
-// for a child component to own it, and its open-row tracking is by array
-// index, which misattributes state when a row is removed from the middle of
-// the list). Remove is only reachable once expanded -- there is no
-// collapsed-row remove affordance.
-function AttributeAppliesToUserItem({disabled = false, onRemove}: AttributeAppliesToItemProps): JSX.Element {
+// (deliberately not the shared Accordion component: AccordionCard renders the
+// row itself from plain data with no slot for a child component to own it,
+// and its open-row tracking is by array index, which misattributes state when
+// a row is removed from the middle of the list). Remove is only reachable
+// once expanded -- there is no collapsed-row remove affordance.
+function AttributeAppliesToUserItem({
+    disabled = false,
+    lockedTooltip,
+    removeLockedTooltip,
+    onRemove,
+    visibility = 'when_set',
+    onVisibilityChange,
+    managed = '',
+    onManagedChange,
+    externalSource,
+    whoCanSetLockedTooltip,
+}: AttributeAppliesToItemProps): JSX.Element {
     const {formatMessage} = useIntl();
     const [isOpen, setIsOpen] = useState(false);
 
     const label = formatMessage(resourceTypeLabels.user);
     const toggleLabel = formatMessage(isOpen ? messages.collapseLabel : messages.expandLabel, {label});
+
+    const toggleButton = (
+        <button
+            type='button'
+            className='AttributeAppliesToItem__toggle'
+            onClick={() => setIsOpen((prev) => !prev)}
+            disabled={disabled}
+            aria-expanded={isOpen}
+            aria-controls={BODY_ID}
+            aria-label={toggleLabel}
+            data-testid='attributeAppliesToRow-user-toggle'
+        >
+            <ChevronDownIcon
+                size={16}
+                className={classNames('AttributeAppliesToItem__chevron', {'AttributeAppliesToItem__chevron--open': isOpen})}
+            />
+            <span className='AttributeAppliesToItem__name'>
+                <ResourceTypeIcon type='user'/>
+                <span className='AttributeAppliesToItem__label'>{label}</span>
+            </span>
+        </button>
+    );
+
+    const removeButton = (
+        <Button
+            type='button'
+            emphasis='tertiary'
+            variant='destructive'
+            size='sm'
+            className='AttributeAppliesToItem__remove'
+            onClick={onRemove}
+            disabled={disabled || Boolean(removeLockedTooltip)}
+            data-testid='attributeAppliesToRow-user-remove'
+        >
+            <FormattedMessage {...messages.removeLabel}/>
+        </Button>
+    );
+
+    const whoCanSetDisabled = disabled || Boolean(whoCanSetLockedTooltip);
+    const whoCanSetRadioList = (
+        <div className='AttributeAppliesToItem__radioList'>
+            <label className='AttributeAppliesToItem__radioOption'>
+                <input
+                    type='radio'
+                    name='attribute-applies-to-user-who-can-set'
+                    checked={managed === ''}
+                    disabled={whoCanSetDisabled}
+                    onChange={() => onManagedChange?.('')}
+                    data-testid='attributeAppliesToUserWhoCanSet-member'
+                />
+                <FormattedMessage {...messages.whoCanSetMemberLabel}/>
+            </label>
+            <label className='AttributeAppliesToItem__radioOption'>
+                <input
+                    type='radio'
+                    name='attribute-applies-to-user-who-can-set'
+                    checked={managed === 'admin'}
+                    disabled={whoCanSetDisabled}
+                    onChange={() => onManagedChange?.('admin')}
+                    data-testid='attributeAppliesToUserWhoCanSet-admin'
+                />
+                <FormattedMessage {...messages.whoCanSetAdminLabel}/>
+            </label>
+        </div>
+    );
 
     return (
         <div
@@ -35,38 +127,28 @@ function AttributeAppliesToUserItem({disabled = false, onRemove}: AttributeAppli
             data-testid='attributeAppliesToRow-user'
         >
             <div className='AttributeAppliesToItem__header'>
-                <Button
-                    type='button'
-                    emphasis='quaternary'
-                    className='AttributeAppliesToItem__toggle'
-                    onClick={() => setIsOpen((prev) => !prev)}
-                    disabled={disabled}
-                    aria-expanded={isOpen}
-                    aria-controls={BODY_ID}
-                    aria-label={toggleLabel}
-                    data-testid='attributeAppliesToRow-user-toggle'
-                >
-                    <ChevronDownIcon
-                        size={16}
-                        className={classNames('AttributeAppliesToItem__chevron', {'AttributeAppliesToItem__chevron--open': isOpen})}
-                    />
-                    <AccountOutlineIcon size={18}/>
-                    <span className='AttributeAppliesToItem__label'>{label}</span>
-                </Button>
-                {isOpen && (
-                    <Button
-                        type='button'
-                        emphasis='tertiary'
-                        variant='destructive'
-                        size='sm'
-                        className='AttributeAppliesToItem__remove'
-                        onClick={onRemove}
-                        disabled={disabled}
-                        data-testid='attributeAppliesToRow-user-remove'
-                    >
-                        <FormattedMessage {...messages.removeLabel}/>
-                    </Button>
-                )}
+                {lockedTooltip ? (
+                    <WithTooltip title={lockedTooltip}>
+                        <span
+                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled toggle is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                            tabIndex={0}
+                            data-testid='attributeAppliesToRow-user-toggleLockWrap'
+                        >
+                            {toggleButton}
+                        </span>
+                    </WithTooltip>
+                ) : toggleButton}
+                {isOpen && (removeLockedTooltip ? (
+                    <WithTooltip title={removeLockedTooltip}>
+                        <span
+                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled Remove is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                            tabIndex={0}
+                            data-testid='attributeAppliesToRow-user-removeLockWrap'
+                        >
+                            {removeButton}
+                        </span>
+                    </WithTooltip>
+                ) : removeButton)}
             </div>
             {isOpen && (
                 <div
@@ -76,10 +158,71 @@ function AttributeAppliesToUserItem({disabled = false, onRemove}: AttributeAppli
                     className='AttributeAppliesToItem__body'
                     data-testid='attributeAppliesToRow-user-body'
                 >
+                    {externalSource && (
+                        <div className='AttributeAppliesToItem__row'>
+                            <span className='AttributeAppliesToItem__label'>
+                                <FormattedMessage {...messages.managedByLabel}/>
+                            </span>
+                            <div className='AttributeAppliesToItem__managedBy'>
+                                <AttributeSelect
+                                    idPrefix='attribute-applies-to-user-managed-by'
+                                    dataTestId='attributeAppliesToUserManagedBy'
+                                    selected={MANAGED_BY_OPTIONS[externalSource]}
+                                    locked={true}
+                                    ariaLabel={formatMessage(messages.managedByAriaLabel, {value: formatMessage(externalSourceMessages[externalSource].title)})}
+                                />
+                                <div className='AttributeAppliesToItem__helpText'>
+                                    <FormattedMessage {...messages.managedByHelp}/>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <div className='AttributeAppliesToItem__row'>
-                        <span>
-                            <FormattedMessage {...messages.bodyPlaceholder}/>
+                        <span className='AttributeAppliesToItem__label'>
+                            <FormattedMessage {...messages.profileDisplayLabel}/>
                         </span>
+                        <div
+                            className='AttributeAppliesToItem__profileDisplaySegments'
+                            role='group'
+                            aria-label={formatMessage(messages.profileDisplayLabel)}
+                        >
+                            {PROFILE_DISPLAY_VALUES.map((value) => (
+                                <button
+                                    key={value}
+                                    type='button'
+                                    className={classNames('AttributeAppliesToItem__profileDisplaySegment', {
+                                        'AttributeAppliesToItem__profileDisplaySegment--active': visibility === value,
+                                    })}
+                                    aria-pressed={visibility === value}
+                                    disabled={disabled}
+                                    data-testid={`attributeAppliesToUserProfileDisplay-${value}`}
+                                    onClick={() => onVisibilityChange?.(value)}
+                                >
+                                    <FormattedMessage {...profileDisplayValueMessages[value]}/>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className='AttributeAppliesToItem__row'>
+                        <span className='AttributeAppliesToItem__label'>
+                            <FormattedMessage {...messages.whoCanSetLabel}/>
+                        </span>
+                        <div className='AttributeAppliesToItem__whoCanSet'>
+                            {whoCanSetLockedTooltip ? (
+                                <WithTooltip title={whoCanSetLockedTooltip}>
+                                    <span
+                                        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled radios are unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                                        tabIndex={0}
+                                        data-testid='attributeAppliesToUserWhoCanSet-lockWrap'
+                                    >
+                                        {whoCanSetRadioList}
+                                    </span>
+                                </WithTooltip>
+                            ) : whoCanSetRadioList}
+                            <div className='AttributeAppliesToItem__helpText'>
+                                <FormattedMessage {...messages.whoCanSetHelp}/>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -93,8 +236,51 @@ const messages = defineMessages({
     expandLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.expand', defaultMessage: 'Expand {label}'},
     collapseLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.collapse', defaultMessage: 'Collapse {label}'},
     removeLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.remove', defaultMessage: 'Remove resource'},
-    bodyPlaceholder: {
-        id: 'admin.global_attributes.attribute_details.applies_to.item.body_placeholder',
-        defaultMessage: 'No additional settings for this resource yet.',
+    managedByLabel: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.managed_by.label',
+        defaultMessage: 'Managed by',
+    },
+    managedByAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.managed_by.aria_label',
+        defaultMessage: 'Managed by: {value}. Values are synced from an external source and cannot be changed here.',
+    },
+    managedByHelp: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.managed_by.help',
+        defaultMessage: 'Not editable in Mattermost.',
+    },
+    profileDisplayLabel: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.profile_display.label',
+        defaultMessage: 'Profile display',
+    },
+    whoCanSetLabel: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.label',
+        defaultMessage: 'Who can set the value',
+    },
+    whoCanSetMemberLabel: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.member.label',
+        defaultMessage: 'Member',
+    },
+    whoCanSetAdminLabel: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.admin.label',
+        defaultMessage: 'System Administrator',
+    },
+    whoCanSetHelp: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.help',
+        defaultMessage: 'Choose Member or System Administrator.',
+    },
+});
+
+const profileDisplayValueMessages: Record<FieldVisibility, MessageDescriptor> = defineMessages({
+    always: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.profile_display.always.label',
+        defaultMessage: 'Always',
+    },
+    when_set: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.profile_display.when_set.label',
+        defaultMessage: 'When set',
+    },
+    hidden: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.profile_display.hidden.label',
+        defaultMessage: 'Hidden',
     },
 });

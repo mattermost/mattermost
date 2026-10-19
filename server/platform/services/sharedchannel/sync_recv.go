@@ -557,10 +557,15 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		}
 
 		// First update the basic post. The post is federated and remote-owned
-		// (verified above); the origin cluster already enforced mm_blocks_actions
-		// authority, so allow the synced value through the UpdatePost freeze so
-		// button edits (or removals) made upstream propagate to this cluster.
-		rpost, _, appErr = scs.app.UpdatePost(rctx, post, &model.UpdatePostOptions{AllowMmBlocksActionsUpdate: true})
+		// (verified above); the origin cluster already enforced both
+		// mm_blocks_actions and integration-prop authority, so allow the synced
+		// values through the UpdatePost freeze — button edits made upstream
+		// propagate, and the remote's display-identity values are honored
+		// instead of restoring stale local ones from the prior post.
+		rpost, _, appErr = scs.app.UpdatePost(rctx, post, &model.UpdatePostOptions{
+			AllowMmBlocksActionsUpdate: true,
+			AllowIdentityPropsUpdate:   true,
+		})
 		if appErr != nil {
 			rerr := errors.New(appErr.Error())
 			return nil, rerr
@@ -704,14 +709,22 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 		return nil, fmt.Errorf("reaction sync failed: %w", ErrChannelIDMismatch)
 	}
 
+	// GetSingle only matches rows owned by this remote, including soft-deleted ones, so a remote
+	// can never delete a reaction it does not own.
 	existingReaction, err := scs.server.GetStore().Reaction().GetSingle(reaction.UserId, reaction.PostId, rc.RemoteId, reaction.EmojiName)
 	if err != nil && !isNotFoundError(err) {
 		return nil, fmt.Errorf("error fetching reaction for sync: %w", err)
 	}
+	isActive := existingReaction != nil && existingReaction.DeleteAt == 0
 
-	if existingReaction == nil {
-		// reaction does not exist; check that user belongs to remote and create reaction
-		// this is not done for delete since deletion can be done by admins on the remote
+	// The sender sends each reaction's current state and may re-send it.
+	// Keeping the remote's ID on deleted rows stops the removal echoing back.
+	reaction.RemoteId = new(rc.RemoteId)
+
+	if reaction.DeleteAt == 0 {
+		if isActive {
+			return existingReaction, nil
+		}
 		user, err := scs.server.GetStore().User().Get(rctx, reaction.UserId)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching user for reaction sync: %w", err)
@@ -719,12 +732,10 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 		if user.GetRemoteID() != rc.RemoteId {
 			return nil, fmt.Errorf("reaction sync failed: %w", ErrRemoteIDMismatch)
 		}
-		reaction.RemoteId = new(rc.RemoteId)
 		savedReaction, appErr = scs.app.SaveReactionForPost(request.EmptyContext(scs.server.Log()), reaction)
 	} else {
-		// make sure the reaction being deleted is owned by the remote
-		if existingReaction.GetRemoteID() != rc.RemoteId {
-			return nil, fmt.Errorf("reaction sync failed: %w", ErrRemoteIDMismatch)
+		if !isActive {
+			return reaction, nil
 		}
 		appErr = scs.app.DeleteReactionForPost(request.EmptyContext(scs.server.Log()), reaction)
 	}

@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useMemo} from 'react';
-import {useSelector} from 'react-redux';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {PropertyField} from '@mattermost/types/properties';
+
+import {getPluginStatuses} from 'mattermost-redux/actions/admin';
 
 import {isFieldOrphaned} from 'utils/properties';
 
@@ -40,4 +42,40 @@ export function useInstalledPluginIds(): ReadonlySet<string> {
 export function useIsFieldOrphaned(field: Pick<PropertyField, 'attrs'>): boolean {
     const installedPluginIds = useInstalledPluginIds();
     return isFieldOrphaned(field, installedPluginIds);
+}
+
+/**
+ * Fetches pluginStatuses once (ref-guarded against re-dispatch on re-render)
+ * when `shouldFetch` first becomes true, and reports whether that fetch has
+ * settled -- needed by useInstalledPluginIds' own callers to gate orphan
+ * detection on the settle-gate documented above (an inventory that hasn't
+ * loaded yet is indistinguishable from "nothing installed").
+ *
+ * `shouldFetch` is a value, not a one-time trigger: passing `false` (e.g. a
+ * field known not to be plugin-owned) never dispatches, avoiding the fetch on
+ * pages where no row/field needs it.
+ */
+export function usePluginInventoryLoaded(shouldFetch: boolean): boolean {
+    const dispatch = useDispatch();
+    const [loaded, setLoaded] = useState(false);
+    const requestedRef = useRef(false);
+    const isMountedRef = useRef(true);
+
+    useEffect(() => () => {
+        isMountedRef.current = false;
+    }, []);
+
+    useEffect(() => {
+        if (!shouldFetch || requestedRef.current) {
+            return;
+        }
+        requestedRef.current = true;
+        dispatch(getPluginStatuses()).finally(() => {
+            if (isMountedRef.current) {
+                setLoaded(true);
+            }
+        });
+    }, [dispatch, shouldFetch]);
+
+    return loaded;
 }

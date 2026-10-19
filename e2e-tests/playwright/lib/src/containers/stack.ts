@@ -20,6 +20,7 @@ import {
     INBUCKET_WEB_PORT,
     KEYCLOAK_ALIAS,
     KEYCLOAK_PORT,
+    MATTERMOST_DATA_DIR,
     MATTERMOST_ALIAS,
     MATTERMOST_PORT,
     MINIO_ALIAS,
@@ -47,16 +48,19 @@ import {
     POSTGRES_IMAGE,
 } from './default_images';
 import {startInbucketContainer} from './inbucket_container';
-import {logTestcontainers} from './log';
+import {logTestcontainers, warnTestcontainers} from './log';
 import {resolveMattermostBootEnv, startMattermostContainer} from './mattermost_container';
+import {withStackLock} from './lock';
 import {getNetwork, getNetworkGatewayIp, stopNetwork} from './network';
+import {removeOrphanedServerContainers} from './orphans';
 import {startPostgresContainer} from './postgres_container';
 import {ADDITIONAL_SERVICE_STARTERS} from './requirements';
 import {startWebhookContainer} from './webhook_container';
 
 import {clearClientCache} from '@/server/client';
-import {defaultBootEnv, testConfig} from '@/test_config';
+import {defaultBootEnv, reloadTestConfig, testConfig} from '@/test_config';
 import type {TestContainersServiceName} from '@/test_config';
+import {isUpgradeToPhaseProjectActive, upgradeToStackNotRunningError} from '@/upgrade_env';
 import {duration} from '@/util';
 
 const execFileAsync = promisify(execFile);
@@ -94,8 +98,18 @@ export async function startStack(): Promise<void> {
         return;
     }
 
+    await withStackLock('start the stack', startStackLocked);
+}
+
+async function startStackLocked(): Promise<void> {
+    // Another process may have brought the stack up while this one waited for the lock.
+    reloadTestConfig();
     if (await reuseExistingStack()) {
         return;
+    }
+
+    if (isUpgradeToPhaseProjectActive()) {
+        throw upgradeToStackNotRunningError();
     }
 
     // reuseExistingStack() found nothing live to reuse — any bootEnvOverrides read from a stale
@@ -104,6 +118,13 @@ export async function startStack(): Promise<void> {
     // created will actually boot with, or a later restart could wrongly believe some stale
     // setting is already active and skip a restart it actually needs.
     testConfig.bootEnvOverrides = defaultBootEnv();
+
+    // The bind-mounted data dir persists across container restarts; reset only on a fresh boot.
+    // Mattermost runs as UID 2000 and creates 0750 dirs (see makeMattermostDataHostReadable). The
+    // host workspace is a different user, so this empty mount must be world-writable or the
+    // server cannot create those dirs. Host chown to 2000 is not reliable (non-root CI, rootless
+    // Docker, Docker Desktop UID mapping).
+    await resetLocalStorageDir();
 
     const network = await getNetwork();
 
@@ -176,6 +197,19 @@ export async function startStack(): Promise<void> {
     resetEnvFile('initial boot');
 
     logStackStarted(started);
+}
+
+// A worker is killed without cleanup when a run is interrupted. If that happens mid-restart, the new server keeps
+// running but nothing records it. The main process survives and runs this at teardown.
+async function removeStrandedServerContainers(): Promise<void> {
+    try {
+        await withStackLock('clean up after the run', async () => {
+            reloadTestConfig();
+            await removeOrphanedServerContainers(testConfig.mattermostContainerId);
+        });
+    } catch (error) {
+        warnTestcontainers(`could not clean up stranded server containers: ${String(error)}`);
+    }
 }
 
 /**
@@ -261,6 +295,8 @@ export async function stopStack(options: {force?: boolean} = {}): Promise<void> 
         return;
     }
 
+    await removeStrandedServerContainers();
+
     if (reused) {
         reused = false;
         logTestcontainers('this process reused an existing server — leaving it untouched.');
@@ -319,10 +355,19 @@ export function bootEnvMatches(env: Record<string, string>): boolean {
  * result, new container id, and new baseURL are appended to .env.testcontainers so any other
  * process picks up the real current state instead of a stale or default one.
  *
+ * `unset` removes keys from the overrides, so the server boots with the baseline value (or none).
+ *
  * Always performs the restart without checking whether `env` is already active — callers (e.g.
  * ensureMinio()/ensureAzurite()) own that decision via bootEnvMatches().
  */
-export async function restartMattermostContainer(env: Record<string, string>): Promise<void> {
+export async function restartMattermostContainer(env: Record<string, string>, unset: string[] = []): Promise<void> {
+    await withStackLock('restart the server', () => restartMattermostContainerLocked(env, unset));
+}
+
+async function restartMattermostContainerLocked(env: Record<string, string>, unset: string[]): Promise<void> {
+    // Another process may have replaced the server while this one waited for the lock.
+    reloadTestConfig();
+
     if (!testConfig.useTestContainers) {
         throw new Error('restartMattermostContainer requires PW_USE_TESTCONTAINERS=true.');
     }
@@ -334,7 +379,11 @@ export async function restartMattermostContainer(env: Record<string, string>): P
 
     extendTimeoutForRestart();
 
-    testConfig.bootEnvOverrides = {...testConfig.bootEnvOverrides, ...env};
+    const overrides = {...testConfig.bootEnvOverrides, ...env};
+    for (const key of unset) {
+        delete overrides[key];
+    }
+    testConfig.bootEnvOverrides = overrides;
 
     await execFileAsync('docker', ['rm', '-f', testConfig.mattermostContainerId]);
 
@@ -347,9 +396,95 @@ export async function restartMattermostContainer(env: Record<string, string>): P
     testConfig.mattermostContainerId = mattermost.getId();
     clearClientCache();
 
-    appendEnvFile(`restart requested by ${describeCurrentTest()} — env ${JSON.stringify(env)}`);
+    const change = describeRestartChange(redactServerEnv(env), unset);
+    appendEnvFile(`restart requested by ${describeCurrentTest()} — ${change}`);
 
-    logTestcontainers(`restarted server with ${JSON.stringify(env)}.`);
+    logTestcontainers(`restarted server (${testConfig.serverImage}): ${change}.`);
+    await logServerImageAge(testConfig.serverImage);
+}
+
+// Spells out what a restart changed, since an empty env object alone reads as "nothing".
+function describeRestartChange(set: Record<string, string>, unset: string[]): string {
+    const parts: string[] = [];
+    if (Object.keys(set).length > 0) {
+        parts.push(`set ${JSON.stringify(set)}`);
+    }
+    if (unset.length > 0) {
+        parts.push(`removed ${unset.join(', ')}`);
+    }
+
+    return parts.length > 0 ? parts.join('; ') : 'no env changes';
+}
+
+/** The env the running server container was actually started with. */
+export async function getMattermostContainerEnv(): Promise<Record<string, string>> {
+    const {stdout} = await execFileAsync('docker', [
+        'inspect',
+        '--format',
+        '{{json .Config.Env}}',
+        testConfig.mattermostContainerId,
+    ]).catch((error: Error) => {
+        if (String(error.message).includes('no such object')) {
+            throw new Error(
+                `Server container ${testConfig.mattermostContainerId} no longer exists (a restart or start likely failed). Run "npm run testcontainers:down" and retry.`,
+                {cause: error},
+            );
+        }
+        throw error;
+    });
+
+    return Object.fromEntries(
+        (JSON.parse(stdout) as string[]).map((entry) => {
+            const separator = entry.indexOf('=');
+            return [entry.slice(0, separator), entry.slice(separator + 1)];
+        }),
+    );
+}
+
+// Empties the server's bind-mounted data directory on a fresh boot. The server writes as UID 2000
+// into 0750 dirs, so on Linux the host user cannot delete them — which failed global setup on
+// every second boot, and so on every retest. Falls back to clearing from a container, as root.
+async function resetLocalStorageDir(): Promise<void> {
+    try {
+        fs.rmSync(MATTERMOST_DATA_DIR, {recursive: true, force: true});
+    } catch (error) {
+        // Not matched on errno: EACCES on Linux, ENOTEMPTY on macOS, same cause.
+        const code = (error as NodeJS.ErrnoException).code ?? 'unknown';
+        logTestcontainers(`server data dir not removable as this user (${code}); clearing it in a container`);
+        try {
+            await clearLocalStorageInContainer();
+        } catch (containerError) {
+            // Starting dirty would carry a previous run's uploads into this run's assertions.
+            throw new Error(
+                `Could not clear ${MATTERMOST_DATA_DIR} (host: ${code}, container: ` +
+                    `${(containerError as Error).message}). Remove it manually and re-run.`,
+            );
+        }
+    }
+
+    fs.mkdirSync(MATTERMOST_DATA_DIR, {recursive: true});
+    fs.chmodSync(MATTERMOST_DATA_DIR, 0o777);
+}
+
+// Clears the mount's contents (not the mount point) as root, which the host uid mapping does not
+// restrict. Same shape as makeMattermostDataHostReadable(): Postgres image, already pulled per run.
+// `find -delete` needs no shell — the server image ships none.
+async function clearLocalStorageInContainer(): Promise<void> {
+    fs.mkdirSync(MATTERMOST_DATA_DIR, {recursive: true});
+    await execFileAsync('docker', [
+        'run',
+        '--rm',
+        '--user',
+        '0',
+        '-v',
+        `${MATTERMOST_DATA_DIR}:/data`,
+        POSTGRES_IMAGE,
+        'find',
+        '/data',
+        '-mindepth',
+        '1',
+        '-delete',
+    ]);
 }
 
 // Identifies whichever spec/test is currently driving a restart, so .env.testcontainers's history
@@ -498,7 +633,7 @@ async function logServerImageAge(image: string): Promise<void> {
     logTestcontainers(
         `server image "${image}" (built ${created.toISOString()}, ${age} ago).` +
             (looksStale
-                ? ` This is a moving tag and the cached copy may be outdated — run "docker pull ${image}" for the latest build.`
+                ? ` This is a moving tag and the cached copy may be outdated — run "docker pull --platform linux/amd64 ${image}" for the latest build.`
                 : ''),
     );
 }
@@ -525,6 +660,21 @@ function redactServerEnvValue(key: string, value: string): string {
         return value.replace(/:([^:@/]+)@/, ':***@');
     }
     return value;
+}
+
+function redactServerEnv(env: Record<string, string>): Record<string, string> {
+    return Object.fromEntries(Object.entries(env).map(([key, value]) => [key, redactServerEnvValue(key, value)]));
+}
+
+function redactEnvFileForArchive(contents: string): string {
+    return contents.replace(/^PW_TESTCONTAINERS_BOOT_ENV='(.*)'$/gm, (_match, json: string) => {
+        try {
+            const parsed = JSON.parse(json) as Record<string, string>;
+            return `PW_TESTCONTAINERS_BOOT_ENV='${JSON.stringify(redactServerEnv(parsed))}'`;
+        } catch {
+            return "PW_TESTCONTAINERS_BOOT_ENV='{}'";
+        }
+    });
 }
 
 function formatServerEnvSummary(): string {
@@ -606,6 +756,10 @@ function envFileLines(label: string): string[] {
         `PW_AZURITE_URL=${testConfig.azuriteUrl}`,
         `PW_TESTCONTAINERS_NETWORK_NAME=${testConfig.testcontainersNetworkName}`,
         `PW_TESTCONTAINERS_MATTERMOST_CONTAINER_ID=${testConfig.mattermostContainerId}`,
+        // Persist the image currently running (separate from process SERVER_IMAGE / to-image).
+        `PW_TESTCONTAINERS_SERVER_IMAGE=${testConfig.serverImage}`,
+        // Unredacted: the next process reads this back into bootEnvOverrides so upgrade-to and
+        // pw.ensure*() can adopt the running server. CI artifacts get a redacted copy via archiveEnvFile.
         `PW_TESTCONTAINERS_BOOT_ENV='${JSON.stringify(testConfig.bootEnvOverrides)}'`,
         '',
     ];
@@ -629,14 +783,16 @@ function appendEnvFile(label: string): void {
     fs.appendFileSync(ENV_FILE_PATH, envFileLines(label).join('\n') + '\n', 'utf-8');
 }
 
-// Preserves the full restart history as a debug artifact before it's deleted — logs/ is already
-// what CI's upload-debug-artifacts step picks up, so this needs no separate wiring.
+// Preserves restart history as a debug artifact before it's deleted — logs/ is what CI's
+// upload-debug-artifacts step picks up. Boot-env secrets stay in the live .env.testcontainers
+// (needed to adopt the stack) and are redacted in this copy.
 function archiveEnvFile(): void {
     if (!fs.existsSync(ENV_FILE_PATH)) {
         return;
     }
     fs.mkdirSync(LOG_DIR, {recursive: true});
-    fs.copyFileSync(ENV_FILE_PATH, path.join(LOG_DIR, 'testcontainers_env_history.log'));
+    const redacted = redactEnvFileForArchive(fs.readFileSync(ENV_FILE_PATH, 'utf-8'));
+    fs.writeFileSync(path.join(LOG_DIR, 'testcontainers_env_history.log'), redacted, 'utf-8');
 }
 
 function removeEnvFile(): void {
@@ -662,21 +818,27 @@ async function collectLogs(stack: StartedStack): Promise<void> {
         targets.map(async ([name, container]) => {
             const logStream = await container.logs();
             const outFile = fs.createWriteStream(path.join(LOG_DIR, `${name}.log`));
-            await new Promise<void>((resolve, reject) => {
-                logStream.pipe(outFile);
-                // Don't let a stalled log stream hold up teardown indefinitely.
-                const timer = setTimeout(() => {
-                    outFile.end();
-                    resolve();
-                }, 10_000);
-                logStream.on('end', () => {
+            await new Promise<void>((resolve) => {
+                let settled = false;
+                // container.logs() follows a running container, so a stack left running
+                // (PW_TESTCONTAINERS_REUSE=true) never emits 'end' on its own — unpipe and
+                // destroy the source before ending outFile so a chunk already in flight can't
+                // land on the closed destination and crash the process with ERR_STREAM_WRITE_AFTER_END.
+                const finish = () => {
+                    if (settled) {
+                        return;
+                    }
+                    settled = true;
                     clearTimeout(timer);
-                    resolve();
-                });
-                logStream.on('error', (error) => {
-                    clearTimeout(timer);
-                    reject(error);
-                });
+                    logStream.unpipe(outFile);
+                    logStream.destroy();
+                    outFile.end(resolve);
+                };
+                logStream.pipe(outFile, {end: false});
+                const timer = setTimeout(finish, 10_000);
+                logStream.on('end', finish);
+                logStream.on('error', finish);
+                outFile.on('error', finish);
             });
         }),
     );

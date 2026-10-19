@@ -21,7 +21,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 	s.SetupTestHelper().InitBasic(s.T())
 
 	createTeam := func(displayName string) string {
-		teamName := model.NewId()
+		teamName := model.NewRandomTeamName()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", teamName, "")
 		cmd.Flags().String("display-name", displayName, "")
@@ -56,7 +56,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 	s.RunForSystemAdminAndLocal("Rename the name (slug) of an existing team", func(c client.Client) {
 		printer.Clean()
 		teamName := createTeam("Original Display Name")
-		newName := model.NewId()
+		newName := model.NewRandomTeamName()
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", newName, "Team Name")
@@ -100,7 +100,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 	s.RunForSystemAdminAndLocal("Rename both the name and the display name of an existing team", func(c client.Client) {
 		printer.Clean()
 		teamName := createTeam("Original Display Name")
-		newName := model.NewId()
+		newName := model.NewRandomTeamName()
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", newName, "Team Name")
@@ -143,7 +143,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 
 		cmd := &cobra.Command{}
 		args := []string{s.th.BasicTeam.Name}
-		cmd.Flags().String("name", model.NewId(), "Team Name")
+		cmd.Flags().String("name", model.NewRandomTeamName(), "Team Name")
 		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 
 		err := renameTeamCmdF(s.th.Client, cmd, args)
@@ -369,7 +369,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 	s.RunForAllClients("Should not create a team w/o display-name", func(c client.Client) {
 		printer.Clean()
 		cmd := &cobra.Command{}
-		cmd.Flags().String("name", model.NewId(), "")
+		cmd.Flags().String("name", model.NewRandomTeamName(), "")
 
 		err := createTeamCmdF(c, cmd, []string{})
 		s.EqualError(err, "display-name is required")
@@ -379,7 +379,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 	s.Run("Should create a new team w/ email using LocalClient", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
-		teamName := model.NewId()
+		teamName := model.NewRandomTeamName()
 		cmd.Flags().String("name", teamName, "")
 		cmd.Flags().String("display-name", "somedisplayname", "")
 		email := "someemail@example.com"
@@ -396,7 +396,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 	s.Run("Should create a new team w/ assigned email using SystemAdminClient", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
-		teamName := model.NewId()
+		teamName := model.NewRandomTeamName()
 		cmd.Flags().String("name", teamName, "")
 		cmd.Flags().String("display-name", "somedisplayname", "")
 		email := "someemail@example.com"
@@ -413,7 +413,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 	s.Run("Should create a new team w/ assigned email using Client", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
-		teamName := model.NewId()
+		teamName := model.NewRandomTeamName()
 		cmd.Flags().String("name", teamName, "")
 		cmd.Flags().String("display-name", "somedisplayname", "")
 		email := "someemail@example.com"
@@ -430,7 +430,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 	s.RunForAllClients("Should create a new open team", func(c client.Client) {
 		printer.Clean()
 		cmd := &cobra.Command{}
-		teamName := model.NewId()
+		teamName := model.NewRandomTeamName()
 		cmd.Flags().String("name", teamName, "")
 		cmd.Flags().String("display-name", "somedisplayname", "")
 
@@ -446,7 +446,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 	s.RunForAllClients("Should create a new private team", func(c client.Client) {
 		printer.Clean()
 		cmd := &cobra.Command{}
-		teamName := model.NewId()
+		teamName := model.NewRandomTeamName()
 		cmd.Flags().String("name", teamName, "")
 		cmd.Flags().String("display-name", "somedisplayname", "")
 		cmd.Flags().Bool("private", true, "")

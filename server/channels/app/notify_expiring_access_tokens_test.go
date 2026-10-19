@@ -130,7 +130,7 @@ func TestNotifyExpiringAccessTokens(t *testing.T) {
 		require.NotContains(t, messages[0], "day", "the 24-hour message must not mention days")
 	})
 
-	t.Run("bot-owned token is not notified", func(t *testing.T) {
+	t.Run("user-owned bot token notifies the bot owner", func(t *testing.T) {
 		th := setup(t)
 
 		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: "expiring_bot", OwnerId: th.BasicUser.Id})
@@ -141,10 +141,60 @@ func TestNotifyExpiringAccessTokens(t *testing.T) {
 		require.NoError(t, err)
 
 		require.NoError(t, th.App.NotifyExpiringAccessTokens())
-		require.Empty(t, systemBotDMMessages(t, th, bot.UserId), "bot accounts must not be warned")
+		messages := systemBotDMMessages(t, th, th.BasicUser.Id)
+		require.Len(t, messages, 1)
+		require.Contains(t, messages[0], "expiring_bot")
+		require.Contains(t, messages[0], "bot token")
+		require.Empty(t, systemBotDMMessages(t, th, bot.UserId), "the bot account must not be warned")
 
 		stored, err := th.App.Srv().Store().UserAccessToken().Get(token.Id)
 		require.NoError(t, err)
-		require.Nil(t, stored.LastNotifiedAt, "bot token marker must stay unset")
+		require.NotNil(t, stored.LastNotifiedAt)
+	})
+
+	t.Run("user-owned bot token uses final warning within 24 hours", func(t *testing.T) {
+		th := setup(t)
+
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: "final_warning_bot", OwnerId: th.BasicUser.Id})
+		require.Nil(t, appErr)
+
+		token := &model.UserAccessToken{Token: model.NewId(), UserId: bot.UserId, Description: "final bot token", ExpiresAt: model.GetMillis() + 12*60*60*1000}
+		_, err := th.App.Srv().Store().UserAccessToken().Save(token)
+		require.NoError(t, err)
+
+		require.NoError(t, th.App.NotifyExpiringAccessTokens())
+		messages := systemBotDMMessages(t, th, th.BasicUser.Id)
+		require.Len(t, messages, 1)
+		require.Contains(t, messages[0], bot.Username)
+		require.Contains(t, messages[0], "within 24 hours")
+	})
+
+	t.Run("user-owned bot token is warned when user access tokens are disabled", func(t *testing.T) {
+		th := setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = false })
+
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: "disabled_pat_bot", OwnerId: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		token := &model.UserAccessToken{Token: model.NewId(), UserId: bot.UserId, Description: "bot token", ExpiresAt: model.GetMillis() + 5*model.DayInMilliseconds}
+		_, err := th.App.Srv().Store().UserAccessToken().Save(token)
+		require.NoError(t, err)
+
+		require.NoError(t, th.App.NotifyExpiringAccessTokens())
+		require.Len(t, systemBotDMMessages(t, th, th.BasicUser.Id), 1)
+	})
+
+	t.Run("plugin-owned bot token is not notified", func(t *testing.T) {
+		th := setup(t)
+
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: "plugin_expiring_bot", OwnerId: "com.mattermost.test"})
+		require.Nil(t, appErr)
+		token := &model.UserAccessToken{Token: model.NewId(), UserId: bot.UserId, Description: "plugin bot token", ExpiresAt: model.GetMillis() + 5*model.DayInMilliseconds}
+		_, err := th.App.Srv().Store().UserAccessToken().Save(token)
+		require.NoError(t, err)
+
+		require.NoError(t, th.App.NotifyExpiringAccessTokens())
+		stored, err := th.App.Srv().Store().UserAccessToken().Get(token.Id)
+		require.NoError(t, err)
+		require.Nil(t, stored.LastNotifiedAt)
 	})
 }

@@ -7,7 +7,6 @@ linters:
     - containedctx       # storing context.Context in a struct is an established pattern here
     - contextcheck
     - cyclop
-    - depguard
     - dogsled            # test helpers return many values; blank-heavy destructuring is idiomatic
     - dupl
     - dupword
@@ -40,7 +39,6 @@ linters:
     - iface              # identical job interfaces are intentional — type-safe scheduling without coupling
     - inamedparam
     - interfacebloat
-    - intrange
     - iotamixing         # const blocks intentionally mix iota with explicit values (ABI stability, ASCII)
     - ireturn
     - lll
@@ -80,6 +78,14 @@ linters:
     - wsl
     - wsl_v5
   settings:
+    depguard:
+      rules:
+        main:
+          files:
+            - "$all"
+          deny:
+            - pkg: "math/rand$"
+              desc: "use math/rand/v2 instead"
     govet:
       disable:
         - fieldalignment

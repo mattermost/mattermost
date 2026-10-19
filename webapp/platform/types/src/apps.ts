@@ -388,7 +388,7 @@ function isAppForm(v: unknown): v is AppForm {
     return true;
 }
 
-export type AppFormValue = string | AppSelectOption | AppSelectOption[] | boolean | null;
+export type AppFormValue = string | string[] | AppSelectOption | AppSelectOption[] | boolean | null;
 
 function isAppFormValue(v: unknown): v is AppFormValue {
     if (typeof v === 'string') {
@@ -404,7 +404,7 @@ function isAppFormValue(v: unknown): v is AppFormValue {
     }
 
     if (Array.isArray(v)) {
-        return v.every(isAppSelectOption);
+        return v.every((e) => typeof e === 'string' || isAppSelectOption(e));
     }
 
     return isAppSelectOption(v);
@@ -439,12 +439,24 @@ export function isAppSelectOption(v: unknown): v is AppSelectOption {
 export type AppFieldType = string;
 
 // DateTime field configuration
+export type CollapsibleConfig = {
+    fields?: AppField[]; // Child fields grouped inside this collapsible section
+    expanded?: boolean; // Whether the section starts expanded (default: true)
+    bordered?: boolean; // Whether the section renders with a border (default: true)
+};
+
 export type DateTimeConfig = {
     min_date?: string; // Minimum allowed date (ISO date, datetime, or relative like "+2H", "today")
     max_date?: string; // Maximum allowed date (ISO date, datetime, or relative like "+7d", "tomorrow")
     time_interval?: number; // Minutes between time options (default: 60)
     location_timezone?: string; // IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
     manual_time_entry?: boolean; // Allow text entry for time
+};
+
+export type MatrixConfig = {
+    rows: AppSelectOption[];
+    columns: AppSelectOption[];
+    row_selection?: 'multiple' | 'single';
 };
 
 // This should go in mattermost-redux
@@ -483,6 +495,12 @@ export type AppField = {
 
     // Date/datetime configuration
     datetime_config?: DateTimeConfig;
+
+    // Collapsible section config. A field of type 'collapsible' groups child
+    // fields behind an expandable title and contributes no value of its own.
+    collapsible_config?: CollapsibleConfig;
+    label_position?: 'before' | 'after';
+    matrix_config?: MatrixConfig;
 
     // Action button props
     action_button_url?: string;

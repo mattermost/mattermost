@@ -9,7 +9,6 @@ import MultiSelectCards from 'components/common/multi_select_cards';
 import GithubSVG from 'components/common/svg_images_components/github_svg';
 import GitlabSVG from 'components/common/svg_images_components/gitlab_svg';
 import JiraSVG from 'components/common/svg_images_components/jira_svg';
-import ServiceNowSVG from 'components/common/svg_images_components/servicenow_svg';
 import ZoomSVG from 'components/common/svg_images_components/zoom_svg';
 import ExternalLink from 'components/external_link';
 
@@ -141,20 +140,6 @@ const Plugins = (props: Props) => {
                                         defaultMessage: 'Start Zoom audio and video conferencing calls in Mattermost with a single click',
                                     }),
                                 },
-                                {
-                                    onClick: () => props.setOption('servicenow'),
-                                    icon: <ServiceNowSVG/>,
-                                    id: 'onboarding_wizard.plugins.servicenow',
-                                    buttonText: formatMessage({
-                                        id: 'onboarding_wizard.plugins.servicenow',
-                                        defaultMessage: 'ServiceNow',
-                                    }),
-                                    checked: props.options.servicenow,
-                                    tooltip: formatMessage({
-                                        id: 'onboarding_wizard.plugins.servicenow.tooltip',
-                                        defaultMessage: 'This plugin serves as an integration between Mattermost and ServiceNow.',
-                                    }),
-                                },
                             ]}
                         />
                         {props.isSelfHosted && (
@@ -163,7 +148,7 @@ const Plugins = (props: Props) => {
                                     id='onboarding_wizard.plugins.marketplace'
                                     defaultMessage='More tools can be added once your workspace is set up. To see all available integrations, <a>visit the Marketplace.</a>'
                                     values={{
-                                        a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                        a: (chunks: React.ReactNode | readonly React.ReactNode[]) => (
                                             <strong>
                                                 <ExternalLink
                                                     href='https://mattermost.com/marketplace/'

@@ -145,7 +145,7 @@ func (rcs *Service) sendFrameToRemote(timeout time.Duration, rc *model.RemoteClu
 
 	req, err := http.NewRequest("POST", url, bytes.NewReader(body))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", errInvalidRemoteURL, err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set(model.HeaderRemoteclusterId, rc.RemoteId)
@@ -160,12 +160,12 @@ func (rcs *Service) sendFrameToRemote(timeout time.Duration, rc *model.RemoteClu
 		}
 	}
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", errRemoteUnreachable, err)
 	}
 	defer resp.Body.Close()
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", errRemoteUnreachable, err)
 	}
 
 	if resp.StatusCode != http.StatusOK {

@@ -4,8 +4,9 @@
 package app
 
 import (
+	"cmp"
 	"net/http"
-	"sort"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -66,8 +67,8 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 			seen[p.ID] = true
 		}
 	}
-	sort.Slice(policies, func(i, j int) bool {
-		return policies[i].ID < policies[j].ID
+	slices.SortFunc(policies, func(a, b *model.AccessControlPolicy) int {
+		return cmp.Compare(a.ID, b.ID)
 	})
 
 	// Single batched Channel lookup for all policies' child_ids so we don't
@@ -86,7 +87,7 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	for id := range unionSet {
 		union = append(union, id)
 	}
-	sort.Strings(union)
+	slices.Sort(union)
 
 	var idToType map[string]model.ChannelType
 	batchLookupFailed := false
@@ -120,8 +121,9 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	// is not a reason to hide the policy from them.
 	filtered := make([]*model.AccessControlPolicy, 0, len(policies))
 	for _, policy := range policies {
-		if len(policy.Rules) > 0 && policyAppliesToPrivateChannel(rctx, policy, idToType, batchLookupFailed) {
-			expression := policy.Rules[0].Expression
+		effectiveRules := policy.EffectiveRules()
+		if len(effectiveRules) > 0 && policyAppliesToPrivateChannel(rctx, policy, idToType, batchLookupFailed) {
+			expression := effectiveRules[0].Expression
 			matches, matchErr := a.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
 			if matchErr != nil {
 				rctx.Logger().Warn("Failed to validate self-inclusion for policy",
@@ -366,16 +368,12 @@ func (a *App) SendTeamAccessControlRemovalNotification(rctx request.CTX, systemB
 	return a.sendTeamAccessControlMembershipDM(rctx, systemBot, userID, team, model.PostTypeAccessControlTeamRemoval, message)
 }
 
-// SendTeamAccessControlAdditionNotification audits the auto-add and DMs the
-// user, from the system bot, that they were added to the team because they meet
-// its membership policy. Like the removal DM, it leaks no policy detail. The
-// audit record is always written; only the DM depends on the system bot.
+// SendTeamAccessControlAdditionNotification DMs the user, from the system bot,
+// that they were added to the team because they meet its membership policy. Like
+// the removal DM, it leaks no policy detail. The membership audit record is
+// emitted by AddTeamMemberByAccessPolicy, not here, so the two Send* helpers stay
+// DM-only.
 func (a *App) SendTeamAccessControlAdditionNotification(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team) *model.AppError {
-	rec := a.MakeAuditRecord(rctx, model.AuditEventTeamMembershipAdded, model.AuditStatusSuccess)
-	model.AddEventParameterToAuditRec(rec, "user_id", userID)
-	model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
-	a.LogAuditRec(rctx, rec, nil)
-
 	locale := ""
 	if user, err := a.GetUser(rctx, userID); err == nil {
 		locale = user.Locale

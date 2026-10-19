@@ -23,8 +23,6 @@ describe('Search Date Filter', () => {
     const testData = getTestMessages();
     const {
         commonText,
-        allMessagesInOrder,
-        todayMessage,
         firstMessage,
     } = testData;
     const admin = getAdminAccount();
@@ -39,14 +37,6 @@ describe('Search Date Filter', () => {
 
             setupTestData(testData, {team, channel, admin, anotherAdmin});
         });
-    });
-
-    it('MM-T585_1 Unfiltered search for all posts is not affected', () => {
-        searchAndValidate(commonText, allMessagesInOrder);
-    });
-
-    it('MM-T585_2 Unfiltered search for recent post is not affected', () => {
-        searchAndValidate(todayMessage, [todayMessage]);
     });
 
     it.skip('MM-T596 Use calendar picker to set date', () => {

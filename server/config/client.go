@@ -78,10 +78,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["UseAnonymousURLs"] = strconv.FormatBool(*c.PrivacySettings.UseAnonymousURLs)
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
+	props["EnableFileSearch"] = strconv.FormatBool(*c.ServiceSettings.EnableFileSearch)
 	props["EnablePublicLink"] = strconv.FormatBool(*c.FileSettings.EnablePublicLink)
 
 	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
-	props["EnableExperimentalLocales"] = strconv.FormatBool(*c.LocalizationSettings.EnableExperimentalLocales)
 
 	props["SQLDriverName"] = *c.SqlSettings.DriverName
 

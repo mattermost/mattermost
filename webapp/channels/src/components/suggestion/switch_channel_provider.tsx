@@ -118,6 +118,7 @@ export interface WrappedChannel {
     unread_mentions?: number;
     discoverableNonMember?: boolean;
     hasPendingJoinRequest?: boolean;
+    hiddenInSidebar?: boolean;
 }
 
 type Props = SuggestionProps<WrappedChannel> & {
@@ -484,7 +485,13 @@ export const ConnectedSwitchChannelSuggestion = connect(
     {forwardRef: true},
 )(SwitchChannelSuggestion);
 
-let prefix = '';
+function getWrappedChannelTerm(wrappedChannel: WrappedChannel) {
+    if (isFakeDirectChannel(wrappedChannel.channel) && wrappedChannel.channel.userId) {
+        return wrappedChannel.channel.userId;
+    }
+
+    return wrappedChannel.channel.id;
+}
 
 function sortChannelsByRecencyAndTypeAndDisplayName(wrappedA: WrappedChannel, wrappedB: WrappedChannel) {
     if (wrappedA.last_viewed_at && wrappedB.last_viewed_at) {
@@ -499,53 +506,116 @@ function sortChannelsByRecencyAndTypeAndDisplayName(wrappedA: WrappedChannel, wr
     return sortChannelsByTypeAndDisplayName('en', wrappedA.channel as Channel, wrappedB.channel as Channel);
 }
 
-export function quickSwitchSorter(wrappedA: WrappedChannel, wrappedB: WrappedChannel) {
-    const aIsArchived = wrappedA.channel.delete_at ? wrappedA.channel.delete_at !== 0 : false;
-    const bIsArchived = wrappedB.channel.delete_at ? wrappedB.channel.delete_at !== 0 : false;
+// Results are ranked on one additive scale so that comparing any two of them is consistent with
+// comparing them through a third. Each weight is larger than the sum of every weaker one, so a
+// stronger reason to demote always outranks any combination of weaker reasons.
+const ARCHIVED_RANK_PENALTY = 72;
+const DEACTIVATED_RANK_PENALTY = 36;
 
-    if (aIsArchived && !bIsArchived) {
-        return 1;
-    } else if (!aIsArchived && bIsArchived) {
-        return -1;
+// How recently the user engaged with a conversation is the primary signal: one opened within the
+// last month leads, a staler one comes next, and one that was never opened trails both. This is what
+// keeps an exact but long-abandoned match below conversations the user actually uses.
+const RECENT_ACTIVITY_WINDOW = 30 * 24 * 60 * 60 * 1000;
+const STALE_ACTIVITY_RANK_PENALTY = 12;
+const NO_ACTIVITY_RANK_PENALTY = 24;
+
+// Within a recency band a name the search term is a prefix of beats one that only contains it
+// somewhere in the middle, so a channel directly named for the term is not buried under direct
+// messages that merely mention it.
+const NON_PREFIX_MATCH_RANK_PENALTY = 6;
+
+// Within a recency band and prefix tier a direct message outranks a group message, which outranks a
+// channel.
+const GROUP_MESSAGE_RANK_PENALTY = 2;
+const CHANNEL_RANK_PENALTY = 4;
+
+const HIDDEN_IN_SIDEBAR_RANK_PENALTY = 1;
+
+// The search term is compared against lower cased display names and usernames, neither of which
+// carries the leading @ of a mention.
+function normalizeSearchTerm(searchTerm: string) {
+    const lowerCased = searchTerm.toLowerCase();
+    return lowerCased.startsWith('@') ? lowerCased.substring(1) : lowerCased;
+}
+
+// A group message has no name of its own: its display name is its members listed alphabetically, so
+// it starts with a searched username only when that member happens to sort first. That is
+// coincidental rather than a real prefix match, so group messages never count as one.
+function startsWithSearchTerm(wrapped: WrappedChannel, searchTerm: string) {
+    const channel = wrapped.channel;
+
+    if (channel.type === Constants.GM_CHANNEL) {
+        return false;
     }
 
-    if (wrappedA.deactivated && !wrappedB.deactivated) {
-        return 1;
-    } else if (wrappedB.deactivated && !wrappedA.deactivated) {
-        return -1;
+    let displayName = channel.display_name.toLowerCase();
+    if (channel.type === Constants.DM_CHANNEL && displayName.startsWith('@')) {
+        displayName = displayName.substring(1);
     }
 
-    const a = wrappedA.channel;
-    const b = wrappedB.channel;
+    return displayName.startsWith(searchTerm) || wrapped.name.toLowerCase().startsWith(searchTerm);
+}
 
-    let aDisplayName = a.display_name.toLowerCase();
-    let bDisplayName = b.display_name.toLowerCase();
-
-    if (a.type === Constants.DM_CHANNEL && aDisplayName.startsWith('@')) {
-        aDisplayName = aDisplayName.substring(1);
+function activityRankPenalty(wrapped: WrappedChannel) {
+    if (!wrapped.last_viewed_at) {
+        return NO_ACTIVITY_RANK_PENALTY;
     }
 
-    if (b.type === Constants.DM_CHANNEL && bDisplayName.startsWith('@')) {
-        bDisplayName = bDisplayName.substring(1);
+    if (Date.now() - wrapped.last_viewed_at > RECENT_ACTIVITY_WINDOW) {
+        return STALE_ACTIVITY_RANK_PENALTY;
     }
 
-    const aStartsWith = aDisplayName.startsWith(prefix) || wrappedA.name.toLowerCase().startsWith(prefix);
-    const bStartsWith = bDisplayName.startsWith(prefix) || wrappedB.name.toLowerCase().startsWith(prefix);
+    return 0;
+}
 
-    // Open channels user haven't interacted should be at the  bottom of the list
-    if (a.type === Constants.OPEN_CHANNEL && !wrappedA.last_viewed_at && (b.type !== Constants.OPEN_CHANNEL || wrappedB.last_viewed_at)) {
-        return 1;
-    } else if (b.type === Constants.OPEN_CHANNEL && !wrappedB.last_viewed_at) {
-        return -1;
+function typeRankPenalty(channel: ChannelItem) {
+    if (channel.type === Constants.DM_CHANNEL) {
+        return 0;
     }
 
-    // Sort channels starting with the search term first
-    if (aStartsWith && !bStartsWith) {
-        return -1;
-    } else if (!aStartsWith && bStartsWith) {
-        return 1;
+    if (channel.type === Constants.GM_CHANNEL) {
+        return GROUP_MESSAGE_RANK_PENALTY;
     }
-    return sortChannelsByRecencyAndTypeAndDisplayName(wrappedA, wrappedB);
+
+    return CHANNEL_RANK_PENALTY;
+}
+
+function rankPenalties(wrapped: WrappedChannel, searchTerm: string) {
+    const channel = wrapped.channel;
+
+    return {
+        archived: channel.delete_at ? ARCHIVED_RANK_PENALTY : 0,
+        deactivated: wrapped.deactivated ? DEACTIVATED_RANK_PENALTY : 0,
+        activity: activityRankPenalty(wrapped),
+        nonPrefixMatch: startsWithSearchTerm(wrapped, searchTerm) ? 0 : NON_PREFIX_MATCH_RANK_PENALTY,
+        type: typeRankPenalty(channel),
+        hiddenInSidebar: wrapped.hiddenInSidebar ? HIDDEN_IN_SIDEBAR_RANK_PENALTY : 0,
+    };
+}
+
+function searchRank(wrapped: WrappedChannel, searchTerm: string) {
+    const penalties = rankPenalties(wrapped, searchTerm);
+
+    return penalties.archived +
+        penalties.deactivated +
+        penalties.activity +
+        penalties.nonPrefixMatch +
+        penalties.type +
+        penalties.hiddenInSidebar;
+}
+
+export function makeQuickSwitchSorter(searchTerm: string) {
+    const normalizedTerm = normalizeSearchTerm(searchTerm);
+
+    return (wrappedA: WrappedChannel, wrappedB: WrappedChannel) => {
+        const rankDifference = searchRank(wrappedA, normalizedTerm) - searchRank(wrappedB, normalizedTerm);
+
+        if (rankDifference !== 0) {
+            return rankDifference;
+        }
+
+        return sortChannelsByRecencyAndTypeAndDisplayName(wrappedA, wrappedB);
+    };
 }
 
 function makeChannelSearchFilter(curState: GlobalState, channelPrefix: string) {
@@ -556,8 +626,14 @@ function makeChannelSearchFilter(curState: GlobalState, channelPrefix: string) {
     const SEPARATOR = ';|;';
 
     return (channel: ChannelItem) => {
-        let searchString = `${channel.display_name}${SEPARATOR}${channel.name}`;
-        if (channel.type === Constants.GM_CHANNEL || channel.type === Constants.DM_CHANNEL) {
+        // Direct and group channel names are opaque identifiers (userId__userId or a hex hash)
+        // that are never shown in the UI. Matching the search term against them produces false
+        // positives whenever the term happens to appear in the id (e.g. "ac" inside a GM hash).
+        const isDirectOrGroup =
+            channel.type === Constants.GM_CHANNEL || channel.type === Constants.DM_CHANNEL;
+
+        let searchString = isDirectOrGroup ? (channel.display_name || '') : `${channel.display_name}${SEPARATOR}${channel.name}`;
+        if (isDirectOrGroup) {
             const usersInChannel = usersInChannels[channel.id] || new Set([]);
 
             // In case the channel is a DM and the profilesInChannel is not populated
@@ -594,7 +670,7 @@ function makeChannelSearchFilter(curState: GlobalState, channelPrefix: string) {
                     userString = searchParts.join(SEPARATOR);
                     userSearchStrings[userId] = userString;
                 }
-                searchString += userString;
+                searchString += `${SEPARATOR}${userString}`;
             }
         }
 
@@ -620,7 +696,6 @@ export default class SwitchChannelProvider extends Provider {
      */
     handlePretextChanged(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>) {
         if (channelPrefix) {
-            prefix = channelPrefix;
             this.startNewRequest(channelPrefix);
             if (this.shouldCancelDispatch(channelPrefix)) {
                 return false;
@@ -722,8 +797,12 @@ export default class SwitchChannelProvider extends Provider {
             type: UserTypes.RECEIVED_PROFILES_LIST,
             data: [...localUserData.filter((user) => user.id !== currentUserId), ...remoteUserData.filter((user) => user.id !== currentUserId)],
         });
-        const combinedTerms = [...localFormattedData.terms, ...remoteFormattedData.terms.filter((term) => !localFormattedData.terms.includes(term))];
-        const combinedItems = [...localFormattedData.items, ...remoteFormattedData.items.filter((item: any) => !localFormattedData.terms.includes((item.channel as FakeDirectChannel).userId || item.channel.id))];
+        const remoteOnlyItems = remoteFormattedData.items.filter((item) => !localFormattedData.terms.includes(getWrappedChannelTerm(item)));
+
+        // Ranking has to span both sets, otherwise a result only the server knows about is stuck
+        // below every local match however well it matches the search term
+        const combinedItems = [...localFormattedData.items, ...remoteOnlyItems].sort(makeQuickSwitchSorter(channelPrefix));
+        const combinedTerms = combinedItems.map(getWrappedChannelTerm);
 
         resultsCallback({
             matchedPretext: channelPrefix,
@@ -779,13 +858,13 @@ export default class SwitchChannelProvider extends Provider {
     formatGroup(channelPrefix: string, allChannels: ChannelItem[], users: UserProfile[], skipNotMember = true) {
         const channels = [];
 
-        const members = getMyChannelMemberships(this.store.getState());
+        const state = this.store.getState();
+        const members = getMyChannelMemberships(state);
 
         const completedChannels: RelationOneToOne<Channel, boolean> = {};
 
-        const channelFilter = makeChannelSearchFilter(this.store.getState(), channelPrefix);
+        const channelFilter = makeChannelSearchFilter(state, channelPrefix);
 
-        const state = this.store.getState();
         const allUnreadChannelIds = getAllTeamsUnreadChannelIds(state);
         const allUnreadChannelIdsSet = new Set(allUnreadChannelIds);
         const currentUserId = getCurrentUserId(state);
@@ -828,6 +907,7 @@ export default class SwitchChannelProvider extends Provider {
                     if (!isGMVisible && skipNotMember) {
                         continue;
                     }
+                    wrappedChannel.hiddenInSidebar = !isGMVisible;
                 } else if (newChannel.type === Constants.DM_CHANNEL) {
                     const userId = Utils.getUserIdFromChannelId(newChannel.name);
                     const user = users.find((u) => u.id === userId);
@@ -888,14 +968,8 @@ export default class SwitchChannelProvider extends Provider {
         }
 
         const channelNames = channels.
-            sort(quickSwitchSorter).
-            map((wrappedChannel) => {
-                if (isFakeDirectChannel(wrappedChannel.channel) && wrappedChannel.channel.userId) {
-                    return wrappedChannel.channel.userId;
-                }
-
-                return wrappedChannel.channel.id;
-            });
+            sort(makeQuickSwitchSorter(channelPrefix)).
+            map(getWrappedChannelTerm);
 
         return {
             items: channels,
@@ -928,7 +1002,6 @@ export default class SwitchChannelProvider extends Provider {
         }).slice(0, 5);
         let sortedUnreadChannels = this.wrapChannels(unreadChannelsExclMuted, Constants.MENTION_UNREAD);
         if (wrappedRecentChannels.length === 0) {
-            prefix = '';
             this.startNewRequest('');
             this.fetchChannels(resultsCallback);
         }

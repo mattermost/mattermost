@@ -155,6 +155,14 @@ func testReactionDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		firstUpdateAt := result.Posts[post.Id].UpdateAt
 
+		// updatePostForReactionsOnDelete stamps UpdateAt with model.GetMillis()
+		// (1ms resolution). Wait until the clock advances past firstUpdateAt so
+		// Delete is guaranteed to write a larger UpdateAt, regardless of how
+		// coarse the wall-clock granularity is.
+		for model.GetMillis() <= firstUpdateAt {
+			time.Sleep(time.Millisecond)
+		}
+
 		_, nErr = ss.Reaction().Delete(reaction)
 		require.NoError(t, nErr)
 

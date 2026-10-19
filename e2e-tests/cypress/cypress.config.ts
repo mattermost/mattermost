@@ -34,7 +34,7 @@ export default defineConfig({
         cwsURL: 'http://localhost:8076',
         cwsAPIURL: 'http://localhost:8076',
         dbClient: 'postgres',
-        dbConnection: 'postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable&connect_timeout=10',
+        dbConnection: process.env.CYPRESS_dbConnection || 'postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable&connect_timeout=10',
         elasticsearchConnectionURL: 'http://localhost:9200',
         firstTest: false,
         keycloakAppName: 'mattermost',
@@ -57,7 +57,7 @@ export default defineConfig({
         serverClusterEnabled: false,
         serverClusterName: 'mm_dev_cluster',
         serverClusterHostCount: 3,
-        smtpUrl: 'http://localhost:9001',
+        smtpUrl: process.env.CYPRESS_smtpUrl || 'http://localhost:9001',
         webhookBaseUrl: 'http://localhost:3000',
     },
     e2e: {

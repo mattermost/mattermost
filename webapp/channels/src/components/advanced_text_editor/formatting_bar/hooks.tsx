@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Instance} from '@popperjs/core';
 import debounce from 'lodash/debounce';
-import {useEffect, useLayoutEffect, useMemo, useState} from 'react';
+import {useLayoutEffect, useMemo, useState} from 'react';
 
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
@@ -154,13 +153,4 @@ export const useFormattingBarControls = (
         layoutMode,
         showTextStyleDropdown,
     };
-};
-
-export const useUpdateOnVisibilityChange = (update: Instance['update'] | null, isVisible: boolean) => {
-    useEffect(() => {
-        if (!isVisible || !update) {
-            return;
-        }
-        update();
-    }, [isVisible, update]);
 };

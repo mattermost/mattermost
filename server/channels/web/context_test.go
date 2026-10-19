@@ -4,6 +4,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 
@@ -175,7 +176,31 @@ func TestMfaRequired(t *testing.T) {
 		AppContext: th.Context,
 	}
 
-	c.MfaRequired()
+	c.MfaRequired(http.MethodGet)
 
 	assert.Equal(t, c.Err.Id, "api.context.get_user.app_error")
+}
+
+func TestSetError(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		c := &Context{}
+		c.SetError(nil)
+		assert.Nil(t, c.Err)
+	})
+
+	t.Run("AppError", func(t *testing.T) {
+		appErr := model.NewAppError("TestSetError", "message", nil, "", http.StatusNotFound)
+
+		c := &Context{}
+		c.SetError(appErr)
+		assert.Same(t, appErr, c.Err)
+	})
+
+	t.Run("plain error", func(t *testing.T) {
+		c := &Context{}
+		c.SetError(errors.New("plain"))
+		require.NotNil(t, c.Err)
+		assert.Equal(t, "model.app_error.internal_error", c.Err.Id)
+		assert.Equal(t, http.StatusInternalServerError, c.Err.StatusCode)
+	})
 }

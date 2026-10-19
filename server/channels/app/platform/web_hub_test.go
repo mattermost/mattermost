@@ -589,7 +589,7 @@ func TestHubIsRegistered(t *testing.T) {
 
 	mockSuite := &platform_mocks.SuiteIFace{}
 	mockSuite.On("GetSession", session.Token).Return(session, nil)
-	mockSuite.On("MFARequired", mock.Anything).Return(nil)
+	mockSuite.On("MFARequired", mock.Anything, mock.Anything).Return(nil)
 	th.Suite = mockSuite
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))
@@ -624,7 +624,7 @@ func TestHubWebConnCount(t *testing.T) {
 
 	mockSuite := &platform_mocks.SuiteIFace{}
 	mockSuite.On("GetSession", session.Token).Return(session, nil)
-	mockSuite.On("MFARequired", mock.Anything).Return(nil)
+	mockSuite.On("MFARequired", mock.Anything, mock.Anything).Return(nil)
 	th.Suite = mockSuite
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))

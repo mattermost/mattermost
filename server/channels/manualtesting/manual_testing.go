@@ -7,11 +7,10 @@ import (
 	"context"
 	"errors"
 	"hash/fnv"
-	"math/rand"
+	"math/rand/v2"
 	"net/http"
 	"net/url"
-	"strconv"
-	"time"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -40,20 +39,21 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	// URL Parameters
 	params, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
-		c.Err = model.NewAppError("/manual", "manaultesting.manual_test.parse.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("/manual", "manualtesting.manual_test.parse.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	// Grab a uuid (if available) to seed the random number generator so we don't get conflicts.
+	// Grab a uid (if available) to seed the random number generator so we don't get conflicts.
+	var rng *rand.Rand
 	uid, ok := params["uid"]
 	if ok {
-		hasher := fnv.New32a()
-		_, writeErr := hasher.Write([]byte(uid[0] + strconv.Itoa(int(time.Now().UTC().UnixNano()))))
+		hasher := fnv.New64a()
+		_, writeErr := hasher.Write([]byte(uid[0]))
 		if writeErr != nil {
 			c.Logger.Error("Failed to write to hasher", mlog.Err(writeErr))
 		}
-		hash := hasher.Sum32()
-		rand.Seed(int64(hash))
+		hash := hasher.Sum64()
+		rng = rand.New(rand.NewPCG(hash, hash))
 	} else {
 		c.Logger.Debug("No uid in URL")
 	}
@@ -68,10 +68,15 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	var userID string
 	if ok1 && ok2 {
 		c.Logger.Info("Creating user and team")
+		teamNameSuffix := utils.RandomName(utils.Range{Begin: 20, End: 20}, utils.LOWERCASE)
+		if rng != nil {
+			teamNameSuffix = randomLowercase(rng, 20)
+		}
+
 		// Create team for testing
 		team := &model.Team{
 			DisplayName: teamDisplayName[0],
-			Name:        "zz" + utils.RandomName(utils.Range{Begin: 20, End: 20}, utils.LOWERCASE),
+			Name:        "zz" + teamNameSuffix,
 			Email:       "success+" + model.NewId() + "simulator.amazonses.com",
 			Type:        model.TeamOpen,
 		}
@@ -169,7 +174,7 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	// Grab the test ID and pick the test
 	testname, ok := params["test"]
 	if !ok {
-		c.Err = model.NewAppError("/manual", "manaultesting.manual_test.parse.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("/manual", "manualtesting.manual_test.parse.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -179,6 +184,16 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		// ADD YOUR NEW TEST HERE!
 	case "general":
 	}
+}
+
+// randomLowercase returns a random lowercase string of length n generated
+// from rng.
+func randomLowercase(rng *rand.Rand, n int) string {
+	var sb strings.Builder
+	for range n {
+		sb.WriteByte(utils.LOWERCASE[rng.IntN(len(utils.LOWERCASE))])
+	}
+	return sb.String()
 }
 
 func getChannelID(a *app.App, channelname string, teamid string, userid string) (string, bool) {

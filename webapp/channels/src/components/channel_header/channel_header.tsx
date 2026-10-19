@@ -9,6 +9,8 @@ import type {WrappedComponentProps} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import ChannelAttributeLabels from 'components/channel_attributes/channel_attribute_labels';
+import {ChannelLabelSurface} from 'components/common/hooks/useChannelLabels';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import PopoutButton from 'components/popout_button';
@@ -43,7 +45,7 @@ const membersTooltipMessages = defineMessages({
 export type Props = WrappedComponentProps & PropsFromRedux;
 
 class ChannelHeader extends React.PureComponent<Props> {
-    toggleFavoriteRef: RefObject<HTMLButtonElement>;
+    toggleFavoriteRef: RefObject<HTMLButtonElement | null>;
 
     constructor(props: Props) {
         super(props);
@@ -405,7 +407,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     {muteTrigger}
                                     {memberListButton}
                                     {pinnedButton}
-                                    {this.props.isFileAttachmentsEnabled &&
+                                    {this.props.canSearchFiles &&
                                         <HeaderIconWrapper
                                             buttonClass={channelFilesIconClass}
                                             buttonId={'channelHeaderFilesButton'}
@@ -420,6 +422,12 @@ class ChannelHeader extends React.PureComponent<Props> {
                                         channel={channel}
                                         channelMember={channelMember!}
                                     />
+                                    {!isDirect && !isGroup && (
+                                        <ChannelAttributeLabels
+                                            channelId={channel.id}
+                                            surface={[ChannelLabelSurface.INFO, ChannelLabelSurface.HEADER]}
+                                        />
+                                    )}
                                 </div>
                                 <div
                                     id='channelHeaderDescription'

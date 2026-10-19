@@ -4,7 +4,7 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-import type {ChangeEvent} from 'react';
+import type {ChangeEvent, JSX} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {InputProps, OnChangeValue, StylesConfig} from 'react-select';
@@ -12,6 +12,7 @@ import {components} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import ExternalLink from 'components/external_link';
@@ -513,36 +514,29 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                     defaultMessage='Auto-follow threads on channel-wide mentions'
                                 />
                             </legend>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='channelMentionAutoFollowOn'
-                                        type='radio'
-                                        name='channelMentionAutoFollow'
-                                        checked={this.state.channelMentionAutoFollow}
-                                        onChange={() => this.handleChangeForChannelMentionAutoFollowRadio(true)}
-                                    />
+                            <div className='settings-radio-group'>
+                                <Radio
+                                    id='channelMentionAutoFollowOn'
+                                    name='channelMentionAutoFollow'
+                                    checked={this.state.channelMentionAutoFollow}
+                                    onChange={() => this.handleChangeForChannelMentionAutoFollowRadio(true)}
+                                >
                                     <FormattedMessage
                                         id='user.settings.notifications.channelMentionAutoFollow.on'
                                         defaultMessage='On'
                                     />
-                                </label>
-                                <br/>
-                            </div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='channelMentionAutoFollowOff'
-                                        type='radio'
-                                        name='channelMentionAutoFollow'
-                                        checked={!this.state.channelMentionAutoFollow}
-                                        onChange={() => this.handleChangeForChannelMentionAutoFollowRadio(false)}
-                                    />
+                                </Radio>
+                                <Radio
+                                    id='channelMentionAutoFollowOff'
+                                    name='channelMentionAutoFollow'
+                                    checked={!this.state.channelMentionAutoFollow}
+                                    onChange={() => this.handleChangeForChannelMentionAutoFollowRadio(false)}
+                                >
                                     <FormattedMessage
                                         id='user.settings.notifications.channelMentionAutoFollow.off'
                                         defaultMessage='Off'
                                     />
-                                </label>
+                                </Radio>
                             </div>
                         </fieldset>
                     }
@@ -922,52 +916,40 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             defaultMessage='Reply notifications'
                         />
                     </legend>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='notificationCommentsAny'
-                                type='radio'
-                                name='commentsNotificationLevel'
-                                checked={commentsActive[0]}
-                                onChange={this.handleNotifyCommentsRadio.bind(this, 'any')}
-                            />
+                    <div className='settings-radio-group'>
+                        <Radio
+                            id='notificationCommentsAny'
+                            name='commentsNotificationLevel'
+                            checked={commentsActive[0]}
+                            onChange={this.handleNotifyCommentsRadio.bind(this, 'any')}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.commentsAny'
                                 defaultMessage='Trigger notifications on messages in reply threads that I start or participate in'
                             />
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='notificationCommentsRoot'
-                                type='radio'
-                                name='commentsNotificationLevel'
-                                checked={commentsActive[1]}
-                                onChange={this.handleNotifyCommentsRadio.bind(this, 'root')}
-                            />
+                        </Radio>
+                        <Radio
+                            id='notificationCommentsRoot'
+                            name='commentsNotificationLevel'
+                            checked={commentsActive[1]}
+                            onChange={this.handleNotifyCommentsRadio.bind(this, 'root')}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.commentsRoot'
                                 defaultMessage='Trigger notifications on messages in threads that I start'
                             />
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='notificationCommentsNever'
-                                type='radio'
-                                name='commentsNotificationLevel'
-                                checked={commentsActive[2]}
-                                onChange={this.handleNotifyCommentsRadio.bind(this, 'never')}
-                            />
+                        </Radio>
+                        <Radio
+                            id='notificationCommentsNever'
+                            name='commentsNotificationLevel'
+                            checked={commentsActive[2]}
+                            onChange={this.handleNotifyCommentsRadio.bind(this, 'never')}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.commentsNever'
                                 defaultMessage="Do not trigger notifications on messages in reply threads unless I'm mentioned"
                             />
-                        </label>
+                        </Radio>
                     </div>
                 </fieldset>,
             );
