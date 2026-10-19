@@ -92,7 +92,7 @@ function getBaseState(): DeepPartial<GlobalState> {
 }
 
 function mockLocalHour(hour: number) {
-    const fakeLocal = DateTime.local(2025, 1, 1, hour, {zone: 'Asia/Kolkata'});
+    const fakeLocal = DateTime.fromObject({year: 2025, month: 1, day: 1, hour}, {zone: 'Asia/Kolkata'});
     if (!fakeLocal.isValid) {
         throw new Error('expected a valid DateTime');
     }
