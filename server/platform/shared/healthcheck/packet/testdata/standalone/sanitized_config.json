@@ -60,6 +60,9 @@
         "EnableDaily": false,
         "BatchSize": 30000
     },
+    "LdapSettings": {
+        "EnableSync": true
+    },
     "ClusterSettings": {
         "Enable": false,
         "ClusterName": "",

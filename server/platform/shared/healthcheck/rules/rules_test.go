@@ -27,6 +27,11 @@ func TestBuiltinRegistry(t *testing.T) {
 		"RETENTION_TIGHT_BATCHES",
 		"EXPORT_GR_TIMEOUT_LOW",
 
+		// jobs
+		"JOB_STUCK",
+		"JOB_WEDGED_AT_ZERO",
+		"JOB_FAILED",
+
 		// notifications
 		"PUSH_EMPTY_URL",
 		"PUSH_BAD_SCHEME",
