@@ -328,7 +328,7 @@ const healthTestPacketGeneratedAt = 1790330400000
 func healthTestPacketFiles() map[string]string {
 	return map[string]string{
 		model.PacketMetadataFileName:           "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
-		model.SupportPacketDiagnosticsFileName: "version: 2\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\ndatabase:\n  type: postgres\n  version: \"15.8\"\n  master_connections_in_use: 1\n",
+		model.SupportPacketDiagnosticsFileName: "version: 2\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\ndatabase:\n  type: postgres\n  version: \"15.8\"\n  master_connections_in_use: 1\nelastic:\n  status: disabled\n",
 		model.SupportPacketStatsFileName:       "registered_users: 100\nposts: 1000\n",
 		model.SupportPacketConfigFileName: `{
     "ServiceSettings": {"SiteURL": "https://chat.example.com"},
