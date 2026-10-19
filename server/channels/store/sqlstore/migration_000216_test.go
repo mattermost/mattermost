@@ -36,6 +36,9 @@ func TestMigration000216(t *testing.T) {
 	store, err := New(*settings, logger, nil)
 	require.NoError(t, err)
 	defer store.Close()
+	// 000236 brings AttributeView back for servers from before this migration,
+	// so take it off to see the schema as 000216 left it.
+	defer withoutLegacyCompat(t, store)()
 
 	// New() applies all migrations, so 000216 is already in effect.
 	require.True(t, matviewExists(t, store, "UserAttributeView"), "UserAttributeView should exist after migration")

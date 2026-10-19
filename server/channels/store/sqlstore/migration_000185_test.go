@@ -34,6 +34,8 @@ func TestMigration000185(t *testing.T) {
 	store, err := New(*settings, logger, nil)
 	require.NoError(t, err)
 	defer store.Close()
+	// The fields below carry option blobs, which 000237 refuses.
+	defer withoutLegacyCompat(t, store)()
 
 	master := store.GetMaster()
 
