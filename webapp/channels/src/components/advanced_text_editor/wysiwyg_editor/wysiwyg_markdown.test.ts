@@ -175,5 +175,6 @@ describe('markdown parsing', () => {
         const content = parseMarkdownContent(editor, '- Task List\n  - [ ] To-do item');
 
         expect(() => editor.schema.nodeFromJSON(content!).check()).not.toThrow();
+        expect(roundTrip('- Task List\n  - [ ] To-do item')).toContain('- [ ] To-do item');
     });
 });

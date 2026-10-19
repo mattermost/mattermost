@@ -132,9 +132,11 @@ export const serializeToMarkdown = (editor: Editor): string => {
         editor.getMarkdown();
 
     // Strip &nbsp; artifacts the @tiptap/markdown serializer leaves around
-    // empty paragraphs at doc start/end.
+    // empty paragraphs at doc start/end. Restore `[ ]` / `[x]` task markers
+    // that the serializer now backslash-escapes; they still post as checkboxes.
     return markdown.trimEnd().
         replace(/\n\n&nbsp;\n/g, '\n').
         replace(/\n\n&nbsp;$/g, '').
-        replace(/^&nbsp;$/, '');
+        replace(/^&nbsp;$/, '').
+        replace(/(^|\n)(\s*(?:[-+*]|\d+\.)\s+)\\\[([ xX])\\\]/g, '$1$2[$3]');
 };
