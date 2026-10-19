@@ -93,7 +93,7 @@ describe('Collapsed Reply Threads', () => {
         cy.get('#click_to_replyTitle').click();
 
         // # Click radio button with option B ('off')
-        cy.get('#click_to_replyFormatB').click();
+        cy.get('#click_to_replyFormatB').check({force: true});
 
         // # Save settings
         cy.get('#saveSetting').click();

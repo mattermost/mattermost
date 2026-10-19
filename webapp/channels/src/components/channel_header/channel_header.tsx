@@ -377,7 +377,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     {muteTrigger}
                                     {memberListButton}
                                     {pinnedButton}
-                                    {this.props.isFileAttachmentsEnabled &&
+                                    {this.props.canSearchFiles &&
                                         <HeaderIconWrapper
                                             active={rhsState === RHSStates.CHANNEL_FILES}
                                             buttonClass='channel-header__icon'

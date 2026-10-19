@@ -1,4 +1,7 @@
 {
+    "GuestAccountsSettings": {
+        "Enable": true
+    },
     "ServiceSettings": {
         "SiteURL": "http://chat.example.com",
         "WebsocketURL": "",
@@ -9,13 +12,41 @@
         "EnableIncomingWebhooks": true,
         "EnableOutgoingWebhooks": true
     },
+    "TeamSettings": {
+        "MaxNotificationsPerChannel": 1000
+    },
     "SqlSettings": {
         "DriverName": "postgres",
         "DataSource": "postgres://****:****@db.example.com:5432/mattermost?connect_timeout=10\u0026sslmode=require",
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 10,
-        "MaxOpenConns": 100
+        "MaxOpenConns": 100,
+        "Trace": false,
+        "QueryTimeout": 30,
+        "DisableDatabaseSearch": false,
+        "ReplicaLagSettings": []
+    },
+    "ExperimentalAuditSettings": {
+        "FileEnabled": false,
+        "FileName": "",
+        "AdvancedLoggingJSON": {},
+        "Certificate": ""
+    },
+    "LogSettings": {
+        "EnableConsole": true,
+        "ConsoleLevel": "INFO",
+        "ConsoleJson": true,
+        "EnableFile": true,
+        "FileLevel": "INFO",
+        "FileJson": true,
+        "FileLocation": ""
+    },
+    "FileSettings": {
+        "DriverName": "local",
+        "Directory": "./data/",
+        "AmazonS3Bucket": "",
+        "AmazonS3SSL": true
     },
     "EmailSettings": {
         "SendEmailNotifications": true,
@@ -26,6 +57,15 @@
         "PushNotificationServer": "https://push-test.mattermost.com",
         "PushNotificationContents": "full"
     },
+    "ComplianceSettings": {
+        "Enable": true,
+        "Directory": "",
+        "EnableDaily": false,
+        "BatchSize": 30000
+    },
+    "LdapSettings": {
+        "EnableSync": true
+    },
     "ClusterSettings": {
         "Enable": false,
         "ClusterName": "",
@@ -35,8 +75,79 @@
         "AdvertiseAddress": "",
         "UseIPAddress": true,
         "EnableGossipCompression": true,
+        "EnableGossipEncryption": true,
         "ReadOnlyConfig": true,
         "GossipPort": 8074
+    },
+    "ElasticsearchSettings": {
+        "ConnectionURL": "http://localhost:9200",
+        "Backend": "elasticsearch",
+        "Username": "elastic",
+        "Password": "********************************",
+        "EnableIndexing": false,
+        "EnableSearching": false,
+        "EnableAutocomplete": false,
+        "SkipTLSVerification": false,
+        "LiveIndexingBatchSize": 10
+    },
+    "CacheSettings": {
+        "CacheType": "lru",
+        "RedisAddress": "",
+        "RedisPassword": "",
+        "RedisDB": -1
+    },
+    "RateLimitSettings": {
+        "Enable": false,
+        "PerSec": 10,
+        "MaxBurst": 100,
+        "MemoryStoreSize": 10000,
+        "VaryByRemoteAddr": true,
+        "VaryByUser": false,
+        "VaryByHeader": ""
+    },
+    "DataRetentionSettings": {
+        "EnableMessageDeletion": false,
+        "EnableFileDeletion": false,
+        "MessageRetentionDays": 365,
+        "MessageRetentionHours": 0,
+        "FileRetentionDays": 365,
+        "FileRetentionHours": 0,
+        "DeletionJobStartTime": "02:00",
+        "BatchSize": 3000,
+        "TimeBetweenBatchesMilliseconds": 100
+    },
+    "MessageExportSettings": {
+        "EnableExport": false,
+        "ExportFormat": "actiance",
+        "DailyRunTime": "01:00",
+        "ExportFromTimestamp": 0,
+        "BatchSize": 10000,
+        "GlobalRelaySettings": {
+            "CustomerType": "A9",
+            "SMTPUsername": "",
+            "SMTPPassword": "",
+            "EmailAddress": "",
+            "SMTPServerTimeout": 1800,
+            "CustomSMTPServerName": "",
+            "CustomSMTPPort": "25"
+        }
+    },
+    "MetricsSettings": {
+        "Enable": false,
+        "ListenAddress": ":8067"
+    },
+    "PluginSettings": {
+        "Enable": true,
+        "EnableUploads": false,
+        "EnableHealthCheck": true,
+        "PluginStates": {
+            "com.github.manland.mattermost-plugin-gitlab": {
+                "Enable": true
+            },
+            "com.mattermost.calls": {
+                "Enable": true
+            }
+        }
     },
     "FeatureFlags": {
         "TestFeature": "off",

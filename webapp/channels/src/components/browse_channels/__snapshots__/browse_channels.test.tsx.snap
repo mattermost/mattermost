@@ -282,7 +282,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
                           </span>
                         </div>
                         <div
-                          aria-label="Channel Information: Membership Indicator: Joined, Member count 0 , Purpose: channel-3-purpose"
+                          aria-label="Channel Information: Membership Indicator: Joined, Member count 0, Purpose: channel-3-purpose"
                           id="channelPurposeContainer"
                         >
                           <svg
@@ -368,7 +368,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
                           </span>
                         </div>
                         <div
-                          aria-label="Channel Information: Membership Indicator: Joined, Member count 0 , Purpose: Default channel purpose"
+                          aria-label="Channel Information: Membership Indicator: Joined, Member count 0, Purpose: Default channel purpose"
                           id="channelPurposeContainer"
                         >
                           <svg

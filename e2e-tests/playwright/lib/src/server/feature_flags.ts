@@ -3,6 +3,7 @@
 
 import {test} from '@playwright/test';
 
+import {logTestcontainers} from '../containers/log';
 import {bootEnvMatches, restartMattermostContainer} from '../containers/stack';
 
 import {getAdminClient} from './init';
@@ -37,6 +38,7 @@ export async function ensureFeatureFlag(
         );
         if (mismatched.length === 0) {
             // Already matches - nothing to restart, even against an external server.
+            logTestcontainers(`feature flags already match (${describeFlags()}); no restart.`);
             return;
         }
 

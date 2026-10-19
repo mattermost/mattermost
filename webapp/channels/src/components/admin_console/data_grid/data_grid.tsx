@@ -4,7 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {CSSProperties, JSX} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import PaginationButtons from 'components/common/pagination_buttons';
@@ -64,7 +65,7 @@ type Props = {
 
     className?: string;
     disabled?: boolean;
-};
+} & WrappedComponentProps;
 
 type State = {
     visibleColumns: Column[];
@@ -299,4 +300,4 @@ class DataGrid extends React.PureComponent<Props, State> {
     }
 }
 
-export default DataGrid;
+export default injectIntl(DataGrid);

@@ -77,6 +77,10 @@ const ThreadList = ({
         if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') {
             return;
         }
+        const editableHost = target?.closest?.('[contenteditable]');
+        if (editableHost && editableHost.getAttribute('contenteditable') !== 'false') {
+            return;
+        }
         const comboKeyPressed = e.altKey || e.metaKey || e.shiftKey || e.ctrlKey;
         if (comboKeyPressed || (!Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN) && !Keyboard.isKeyPressed(e, Constants.KeyCodes.UP))) {
             return;

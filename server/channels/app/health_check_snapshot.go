@@ -4,6 +4,7 @@
 package app
 
 import (
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -33,6 +34,10 @@ func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVe
 	for _, node := range nodes {
 		if node.IsLeader {
 			node.Diagnostics = diagnostics
+			// A standalone node has no cluster hostname; the packet reader takes it from diagnostics too.
+			if diag, ok := node.Diag(); ok && node.Hostname == "" {
+				node.Hostname = model.SafeDereference(diag.Server.Hostname)
+			}
 		}
 	}
 
@@ -43,11 +48,6 @@ func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVe
 
 	snapshot.Config, err = a.Srv().Platform().GetSupportPacketConfig(rctx)
 	sections[model.SectionConfig] = err
-
-	snapshot.License = a.License()
-	if snapshot.License != nil {
-		snapshot.Deployment.IsCloud = snapshot.License.IsCloud()
-	}
 
 	snapshot.Stats, err = a.getSupportPacketStats(rctx)
 	sections[model.SectionStats] = err
@@ -67,7 +67,7 @@ func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVe
 		sections[model.SectionVersion] = appErr
 	} else {
 		sections[model.SectionVersion] = nil
-		snapshot.Version.Latest = release.TagName
+		snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
 	}
 
 	return snapshot, nil

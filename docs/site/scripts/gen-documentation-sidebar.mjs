@@ -79,6 +79,7 @@ const OVERVIEW_GROUPS = {
       'release-policy',
       {label: 'Server', landing: 'server', items: [
         'mattermost-server-releases',
+        'mattermost-v12-changelog',
         'mattermost-v11-changelog',
         'mattermost-v10-changelog',
         'unsupported-legacy-releases',
@@ -496,6 +497,7 @@ const ADMIN_MANAGE_GROUPS = {
       {label: 'Attribute-based access control', landing: 'admin/attribute-based-access-control', items: [
         'admin/attribute-management',
         'admin/user-attributes',
+        'admin/channel-attributes',
         'admin/abac-system-wide-policies',
         'admin/abac-team-membership',
         'admin/abac-team-channel-policies',
@@ -565,7 +567,7 @@ const ADMIN_MANAGE_ORDER = [
 
 const ADMIN_MANAGE_HIDDEN = new Set([
   'admin/server-maintenance',
-  'admin/user-management', 'admin/attribute-management', 'admin/user-attributes', 'team-channel-members',
+  'admin/user-management', 'admin/attribute-management', 'admin/user-attributes', 'admin/channel-attributes', 'team-channel-members',
   'admin/attribute-based-access-control', 'admin/abac-system-wide-policies',
   'admin/abac-team-channel-policies', 'admin/abac-team-membership', 'admin/abac-channel-access-rules',
   'admin/session-attributes',
@@ -852,6 +854,7 @@ const ADMIN_COMPLY_ORDER = [
   'legal-hold',
   'custom-terms-of-service',
   'embedded-json-audit-log-schema',
+  'post-delivery-audit-logging',
 ];
 
 const ADMIN_COMPLY_HIDDEN = new Set([]);
@@ -1037,7 +1040,6 @@ const INTEGRATIONS_GROUPS = {
         'github',
         'gitlab',
         'jira',
-        'servicenow',
         'zoom',
       ]},
     ],
@@ -1074,7 +1076,7 @@ const INTEGRATIONS_HIDDEN = new Set([
   'popular-integrations',
   'mattermost-mission-collaboration-for-m365', 'microsoft-calendar',
   'microsoft-teams-meetings', 'microsoft-teams-sync',
-  'github', 'gitlab', 'jira', 'servicenow', 'zoom',
+  'github', 'gitlab', 'jira', 'zoom',
   'webhook-integrations', 'incoming-webhooks', 'outgoing-webhooks',
   'slash-commands', 'run-slash-commands', 'built-in-slash-commands',
 ]);

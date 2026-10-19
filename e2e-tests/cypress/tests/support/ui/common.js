@@ -45,7 +45,9 @@ Cypress.Commands.add('uiCloseTeamSettingsModal', () => {
 });
 
 Cypress.Commands.add('uiGetRadioButton', (name) => {
-    return cy.findByRole('radio', {name}).should('be.visible');
+    // Compass Radio keeps the native input at opacity:0. Resolve via role
+    // (including hidden) and return the visible label for click/assert.
+    return cy.findByRole('radio', {name, hidden: true}).closest('label').should('be.visible');
 });
 
 Cypress.Commands.add('uiGetHeading', (name) => {

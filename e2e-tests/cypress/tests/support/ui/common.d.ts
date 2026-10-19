@@ -92,12 +92,13 @@ declare namespace Cypress {
         uiCloseTeamSettingsModal(): Chainable;
 
         /**
-         * Get a radio button by its text using "cy.findByRole"
+         * Get a Compass radio's visible label by accessible name.
+         * The native input is opacity:0; callers should click the returned label.
          *
          * @example
          *   cy.uiGetRadioButton('Custom Theme');
          */
-        uiGetRadioButton(): Chainable;
+        uiGetRadioButton(name: string): Chainable;
 
         /**
          * Get a heading by its text using "cy.findByRole"

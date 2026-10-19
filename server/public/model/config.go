@@ -55,6 +55,9 @@ const (
 
 	DatabaseDriverPostgres = "postgres"
 
+	// MinimumPostgresMajorVersion is the oldest PostgreSQL major version the server supports.
+	MinimumPostgresMajorVersion = 15
+
 	SearchengineElasticsearch = "elasticsearch"
 
 	MinioAccessKey = "minioaccesskey"
@@ -468,7 +471,7 @@ type ServiceSettings struct {
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableCrossTeamSearch                             *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool   `access:"write_restrictable,cloud_restrictable"`
-	EnableFileSearch                                  *bool   `access:"write_restrictable"`
+	EnableFileSearch                                  *bool   `access:"site_file_sharing_and_downloads,write_restrictable"`
 	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
 	EnableUserTypingMessages                          *bool   `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableChannelViewedMessages                       *bool   `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -1648,11 +1651,11 @@ func NewLogSettings() *LogSettings {
 }
 
 func (s *LogSettings) isValid() *AppError {
-	if !isValidLogLevelName(*s.ConsoleLevel) {
+	if *s.EnableConsole && !isValidLogLevelName(*s.ConsoleLevel) {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log_level.app_error", map[string]any{"Setting": "LogSettings.ConsoleLevel", "Value": *s.ConsoleLevel}, "", http.StatusBadRequest)
 	}
 
-	if !isValidLogLevelName(*s.FileLevel) {
+	if *s.EnableFile && !isValidLogLevelName(*s.FileLevel) {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log_level.app_error", map[string]any{"Setting": "LogSettings.FileLevel", "Value": *s.FileLevel}, "", http.StatusBadRequest)
 	}
 
@@ -3302,6 +3305,7 @@ type ElasticsearchSettings struct {
 	Trace                                       *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	IgnoredPurgeIndexes                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSearchPublicChannelsWithoutMembership *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableFileIndexing                          *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -3419,6 +3423,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.EnableSearchPublicChannelsWithoutMembership == nil {
 		s.EnableSearchPublicChannelsWithoutMembership = new(true)
+	}
+
+	if s.EnableFileIndexing == nil {
+		s.EnableFileIndexing = new(true)
 	}
 }
 
@@ -4889,12 +4897,14 @@ func (s *LdapSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.ldap_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if appErr := validatePort(*s.LdapPort, false, "LdapSettings.LdapPort"); appErr != nil {
-		return appErr
-	}
+	if *s.Enable || *s.EnableSync {
+		if appErr := validatePort(*s.LdapPort, false, "LdapSettings.LdapPort"); appErr != nil {
+			return appErr
+		}
 
-	if appErr := validatePositiveNumber(*s.QueryTimeout, "LdapSettings.QueryTimeout"); appErr != nil {
-		return appErr
+		if appErr := validatePositiveNumber(*s.QueryTimeout, "LdapSettings.QueryTimeout"); appErr != nil {
+			return appErr
+		}
 	}
 
 	if *s.SyncIntervalMinutes <= 0 {
@@ -5080,7 +5090,7 @@ func (s *ServiceSettings) isValid() *AppError {
 		return appErr
 	}
 
-	if !(*s.WebserverMode == "gzip" || *s.WebserverMode == "nogzip" || *s.WebserverMode == "disabled") {
+	if !(*s.WebserverMode == "gzip" || *s.WebserverMode == "uncompressed" || *s.WebserverMode == "disabled") {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_mode.app_error", map[string]any{"Value": *s.WebserverMode}, "", http.StatusBadRequest)
 	}
 
@@ -5688,8 +5698,13 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 	o.PluginSettings.Sanitize(pluginManifests)
 }
 
-// SanitizeDataSource redacts sensitive information (username and password) from a PostgreSQL
-// connection string while preserving other connection parameters.
+// SanitizeDataSource redacts the username and password of a PostgreSQL connection URL
+// while preserving the other connection parameters.
+//
+// Only the URL form of a connection string is supported, that is one prefixed with
+// postgres:// or postgresql://. Any other value, including a keyword/value connection
+// string, returns an empty string and an error, leaving it to the caller to decide what
+// to report in its place. An empty dataSource returns an empty string and no error.
 //
 // Example:
 //
@@ -5703,9 +5718,30 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 		return "", errors.New("invalid drivername: only postgres is supported")
 	}
 
+	// These are the prefixes the PostgreSQL driver itself uses to tell a connection
+	// URL from a keyword/value connection string.
+	if !strings.HasPrefix(dataSource, "postgres://") && !strings.HasPrefix(dataSource, "postgresql://") {
+		return "", errors.New("invalid data source: only postgres connection URLs are supported")
+	}
+
+	// A password holding an unescaped '/', '?' or '#' ends the authority at that
+	// character, so the '@' that separates the credentials from the host lands in
+	// the path, query, or fragment. url.Parse keeps those parts, so the credentials
+	// would survive redaction. The authority runs up to the first '/', '?' or '#';
+	// if the '@' only appears past it, the credentials are not isolated and the
+	// connection string cannot be partially redacted.
+	rest := dataSource[strings.Index(dataSource, "://")+len("://"):]
+	authority := rest
+	if end := strings.IndexAny(rest, "/?#"); end >= 0 {
+		authority = rest[:end]
+	}
+	if !strings.Contains(authority, "@") && strings.Contains(rest, "@") {
+		return "", errors.New("invalid data source")
+	}
+
 	u, err := url.Parse(dataSource)
 	if err != nil {
-		return "", err
+		return "", dataSourceParseError(err)
 	}
 	u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
 
@@ -5718,9 +5754,16 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 	// Unescape the URL to make it human-readable
 	out, err := url.QueryUnescape(u.String())
 	if err != nil {
-		return "", err
+		return "", dataSourceParseError(err)
 	}
 	return out, nil
+}
+
+// dataSourceParseError reports that a connection string could not be read as a URL
+// without retaining any part of it. The description reported by [url.Parse] can quote
+// the malformed input, credentials included, so it is never surfaced.
+func dataSourceParseError(error) error {
+	return errors.New("invalid data source")
 }
 
 type FilterTag struct {
