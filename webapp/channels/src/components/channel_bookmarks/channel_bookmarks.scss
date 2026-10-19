@@ -48,6 +48,13 @@
     display: none;
 }
 
+// Compass IconButton --has-count sets width:auto, but size+padding-compact is more
+// specific and keeps the fixed square (28px). Unlock width for the overflow count,
+// same pattern as .channel-header__icon--wide.
+#channelBookmarksBarMenuButton[class*='icon-button--has-count'] {
+    width: auto;
+}
+
 // Empty-state labeled chip only — icon-only / overflow triggers use Compass IconButton.
 .channelBookmarksBarMenuButton.withLabel {
     display: flex;

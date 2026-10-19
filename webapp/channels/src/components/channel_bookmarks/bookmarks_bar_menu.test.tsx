@@ -131,6 +131,7 @@ describe('BookmarksBarMenu — IconButton triggers', () => {
         const button = container.querySelector('#channelBookmarksBarMenuButton');
         expect(button).toBeInTheDocument();
         expect(button?.className).toContain('icon-button');
+        expect(button?.className).toContain('icon-button--has-count');
         expect(button).toHaveTextContent('2');
     });
 
