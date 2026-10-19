@@ -317,7 +317,9 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div
+                    class="SystemUserDetail__fieldHeading"
+                  >
                     Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
@@ -349,7 +351,7 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                         Email
                       </span>
                     </span>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
@@ -768,7 +770,9 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div
+                    class="SystemUserDetail__fieldHeading"
+                  >
                     Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
@@ -800,7 +804,7 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                         Email
                       </span>
                     </span>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
@@ -1219,7 +1223,9 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div
+                    class="SystemUserDetail__fieldHeading"
+                  >
                     Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
@@ -1251,7 +1257,7 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                         Email
                       </span>
                     </span>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
@@ -1670,7 +1676,9 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div
+                    class="SystemUserDetail__fieldHeading"
+                  >
                     Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
@@ -1702,7 +1710,7 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                         Email
                       </span>
                     </span>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
@@ -2121,7 +2129,9 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div
+                    class="SystemUserDetail__fieldHeading"
+                  >
                     Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
@@ -2153,7 +2163,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                         Email
                       </span>
                     </span>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
@@ -2578,7 +2588,9 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div
+                    class="SystemUserDetail__fieldHeading"
+                  >
                     Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
@@ -2610,7 +2622,7 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                         Email
                       </span>
                     </span>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
@@ -3033,7 +3045,9 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <label>
+                  <div
+                    class="SystemUserDetail__fieldHeading"
+                  >
                     Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
@@ -3065,7 +3079,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                         LDAP
                       </span>
                     </span>
-                  </label>
+                  </div>
                 </div>
                 <div
                   class="field-column right"

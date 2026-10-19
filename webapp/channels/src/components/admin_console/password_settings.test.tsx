@@ -5,9 +5,8 @@ import React from 'react';
 
 import PasswordSettings from 'components/admin_console/password_settings';
 
-import Constants from 'utils/constants';
-
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import Constants from 'utils/constants';
 
 describe('components/PasswordSettings', () => {
     const config = {

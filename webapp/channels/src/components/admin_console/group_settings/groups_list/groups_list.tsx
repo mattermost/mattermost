@@ -70,7 +70,7 @@ function GroupsListFilterToggle({showFilters, onToggle}: GroupsListFilterToggleP
     return (
         <button
             type='button'
-            className={classNames('group-filter-action', {hidden: showFilters})}
+            className='group-filter-action'
             aria-label={formatMessage({
                 id: 'admin.group_settings.groups_list.open_filters',
                 defaultMessage: 'Open group filters',
@@ -168,6 +168,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         e.nativeEvent.stopImmediatePropagation();
 
         if (this.state.showFilters) {
+            this.closeFilters();
             return;
         }
 

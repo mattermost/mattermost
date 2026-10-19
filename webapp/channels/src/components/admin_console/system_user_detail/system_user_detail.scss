@@ -39,7 +39,8 @@
             gap: 8px;
         }
 
-        label {
+        label,
+        .SystemUserDetail__fieldHeading {
             display: block;
             font-weight: unset;
 

@@ -250,9 +250,14 @@ const Input = React.forwardRef((
     // Floating label may fall back to placeholder when no label is passed. In that
     // case omit the in-field placeholder so the same string is not shown twice.
     const floatingLabel = useLegend ? formatAsString(formatMessage, label || placeholder) : undefined;
-    const compassPlaceholder = useLegend ?
-        (label ? formatAsString(formatMessage, placeholder) : undefined) :
-        formatAsString(formatMessage, focused ? (label && placeholder) || label : label || placeholder);
+    let compassPlaceholder: string | undefined;
+    if (useLegend) {
+        compassPlaceholder = label ? formatAsString(formatMessage, placeholder) : undefined;
+    } else if (focused) {
+        compassPlaceholder = formatAsString(formatMessage, (label && placeholder) || label);
+    } else {
+        compassPlaceholder = formatAsString(formatMessage, label || placeholder);
+    }
     const ariaLabel = useLegend ? undefined : formatAsString(formatMessage, label || placeholder);
     const clearLabel = clearLabelFallback || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'});
 
@@ -271,9 +276,14 @@ const Input = React.forwardRef((
     // Character count needs Compass maxLength. When `limit` is used without a
     // counter, omit native maxLength so callers can type past and show errors.
     const effectiveMaxLength = maxLength ?? limit;
-    const resolvedMaxLength = showCharacterCount ?
-        effectiveMaxLength :
-        (limit ? undefined : maxLength);
+    let resolvedMaxLength: number | undefined;
+    if (showCharacterCount) {
+        resolvedMaxLength = effectiveMaxLength;
+    } else if (limit) {
+        resolvedMaxLength = undefined;
+    } else {
+        resolvedMaxLength = maxLength;
+    }
 
     const sharedFieldProps = {
         id: inputId,

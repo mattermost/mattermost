@@ -800,7 +800,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         // Authentication Method stays display-only (not a Compass text field).
         fields.push(
-            <label key='authMethod'>
+            <div
+                key='authMethod'
+                className='SystemUserDetail__fieldHeading'
+            >
                 <FormattedMessage
                     id='admin.userManagement.userDetail.authenticationMethod'
                     defaultMessage='Authentication Method'
@@ -809,7 +812,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     <Icon glyph={<ShieldOutlineIcon/>}/>
                     <span data-testid='authenticationMethodValue'>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
                 </span>
-            </label>,
+            </div>,
         );
 
         if (isManagedByProvider) {

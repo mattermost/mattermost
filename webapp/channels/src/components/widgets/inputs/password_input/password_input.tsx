@@ -91,9 +91,10 @@ const PasswordInput = React.forwardRef((
     const defaultLabel = createMode ?
         formatMessage({id: 'widget.passwordInput.createPassword', defaultMessage: 'Choose a Password'}) :
         formatMessage({id: 'widget.passwordInput.password', defaultMessage: 'Password'});
-    const label = useLegend ?
-        (labelProp ? formatAsString(formatMessage, labelProp) : defaultLabel) :
-        undefined;
+    let label: string | undefined;
+    if (useLegend) {
+        label = labelProp ? formatAsString(formatMessage, labelProp) : defaultLabel;
+    }
 
     // Match legacy Input adapter: id defaults to input_${name} (login/signup Cypress
     // and Playwright target #input_password-input). Reveal toggle stays #password_toggle.

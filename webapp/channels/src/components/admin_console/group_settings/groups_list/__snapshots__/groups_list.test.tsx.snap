@@ -163,7 +163,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           aria-controls="group-filters"
           aria-expanded="true"
           aria-label="Open group filters"
-          class="group-filter-action hidden"
+          class="group-filter-action"
           type="button"
         >
           <i

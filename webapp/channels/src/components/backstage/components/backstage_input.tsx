@@ -11,7 +11,7 @@ import type {InputProps} from 'components/widgets/inputs/input/input';
  * Keeps the classic left-column label — no floating legend.
  */
 const BackstageInput = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>((props, ref) => {
-    const {useLegend: _useLegend, 'aria-label': ariaLabel, name, id, ...rest} = props;
+    const {'aria-label': ariaLabel, name, id, ...rest} = props;
 
     return (
         <Input
