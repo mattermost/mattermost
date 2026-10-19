@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -26,7 +26,7 @@ type Props = {
     teamReviewersSetting: Record<string, TeamReviewerSetting>;
     onChange: (updatedTeamSettings: Record<string, TeamReviewerSetting>) => void;
     disabled?: boolean;
-}
+};
 
 export default function TeamReviewers({teamReviewersSetting, onChange, disabled}: Props): JSX.Element {
     const intl = useIntl();
@@ -153,7 +153,7 @@ export default function TeamReviewers({teamReviewersSetting, onChange, disabled}
                 enabled: (
                     <Toggle
                         id={`team_content_reviewer_toggle_${team.id}`}
-                        ariaLabel={intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.toggle', defaultMessage: 'Enable or disable content reviewers for this team'})}
+                        ariaLabel={intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.toggle', defaultMessage: 'Enable or disable content reviewers for team {teamName}'}, {teamName: team.display_name})}
                         size='btn-md'
                         onToggle={getHandleToggle(team.id)}
                         toggled={teamReviewersSetting[team.id]?.Enabled || false}

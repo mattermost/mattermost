@@ -4,10 +4,12 @@
 package app
 
 import (
+	"cmp"
 	"net/http"
-	"sort"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
@@ -65,8 +67,8 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 			seen[p.ID] = true
 		}
 	}
-	sort.Slice(policies, func(i, j int) bool {
-		return policies[i].ID < policies[j].ID
+	slices.SortFunc(policies, func(a, b *model.AccessControlPolicy) int {
+		return cmp.Compare(a.ID, b.ID)
 	})
 
 	// Single batched Channel lookup for all policies' child_ids so we don't
@@ -85,7 +87,7 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	for id := range unionSet {
 		union = append(union, id)
 	}
-	sort.Strings(union)
+	slices.Sort(union)
 
 	var idToType map[string]model.ChannelType
 	batchLookupFailed := false
@@ -119,8 +121,9 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	// is not a reason to hide the policy from them.
 	filtered := make([]*model.AccessControlPolicy, 0, len(policies))
 	for _, policy := range policies {
-		if len(policy.Rules) > 0 && policyAppliesToPrivateChannel(rctx, policy, idToType, batchLookupFailed) {
-			expression := policy.Rules[0].Expression
+		effectiveRules := policy.EffectiveRules()
+		if len(effectiveRules) > 0 && policyAppliesToPrivateChannel(rctx, policy, idToType, batchLookupFailed) {
+			expression := effectiveRules[0].Expression
 			matches, matchErr := a.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
 			if matchErr != nil {
 				rctx.Logger().Warn("Failed to validate self-inclusion for policy",
@@ -346,6 +349,64 @@ func (a *App) ValidateTeamAdminSelfInclusion(rctx request.CTX, userID, expressio
 			nil, "policy rules would exclude the requesting admin", http.StatusBadRequest)
 	}
 
+	return nil
+}
+
+// SendTeamAccessControlRemovalNotification DMs the user, from the system bot,
+// that the team's membership policy removed them. The message carries only the
+// team name — never any policy/attribute detail.
+// The systemBot may be pre-resolved by the caller (the sync worker resolves it
+// once per team rather than once per user, since GetSystemBot is not free); pass
+// nil to have it resolved here.
+func (a *App) SendTeamAccessControlRemovalNotification(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team) *model.AppError {
+	locale := ""
+	if user, err := a.GetUser(rctx, userID); err == nil {
+		locale = user.Locale
+	}
+	T := i18n.GetUserTranslations(locale)
+	message := T("api.team.access_control.removed.system_message", map[string]any{"TeamName": team.DisplayName})
+	return a.sendTeamAccessControlMembershipDM(rctx, systemBot, userID, team, model.PostTypeAccessControlTeamRemoval, message)
+}
+
+// SendTeamAccessControlAdditionNotification DMs the user, from the system bot,
+// that they were added to the team because they meet its membership policy. Like
+// the removal DM, it leaks no policy detail. The membership audit record is
+// emitted by AddTeamMemberByAccessPolicy, not here, so the two Send* helpers stay
+// DM-only.
+func (a *App) SendTeamAccessControlAdditionNotification(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team) *model.AppError {
+	locale := ""
+	if user, err := a.GetUser(rctx, userID); err == nil {
+		locale = user.Locale
+	}
+	T := i18n.GetUserTranslations(locale)
+	message := T("api.team.access_control.added.system_message", map[string]any{"TeamName": team.DisplayName})
+	return a.sendTeamAccessControlMembershipDM(rctx, systemBot, userID, team, model.PostTypeAccessControlTeamAddition, message)
+}
+
+func (a *App) sendTeamAccessControlMembershipDM(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team, postType, message string) *model.AppError {
+	if systemBot == nil {
+		var appErr *model.AppError
+		if systemBot, appErr = a.GetSystemBot(rctx); appErr != nil {
+			return appErr
+		}
+	}
+
+	channel, appErr := a.GetOrCreateDirectChannel(rctx, userID, systemBot.UserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   message,
+		Type:      postType,
+		UserId:    systemBot.UserId,
+		Props:     model.StringInterface{"team_name": team.DisplayName},
+	}
+
+	if _, _, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); appErr != nil {
+		return appErr
+	}
 	return nil
 }
 

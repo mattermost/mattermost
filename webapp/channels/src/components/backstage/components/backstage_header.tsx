@@ -7,7 +7,7 @@ import {useIntl} from 'react-intl';
 
 type Props = {
     children?: ReactNode;
-}
+};
 
 const BackstageHeader = ({children}: Props) => {
     const {formatMessage} = useIntl();

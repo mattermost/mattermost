@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
 
 import {buttonClassNames} from '@mattermost/shared/components/button';
@@ -25,7 +25,7 @@ import './global_policy_form.scss';
 type ValueType = {
     label: string | JSX.Element;
     value: string;
-}
+};
 type Props = {
     config: DeepPartial<AdminConfig>;
     messageRetentionHours: string | undefined;
@@ -45,7 +45,7 @@ type State = {
     saving: boolean;
     serverError: React.ReactNode;
     formErrorText: React.ReactNode;
-}
+};
 
 export default class GlobalPolicyForm extends React.PureComponent<Props, State> {
     constructor(props: Props) {

@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {useIntl} from 'react-intl';
 
 import SectionNotice from 'components/section_notice';
 
 export type Props = {
     channelMemberNames: string[];
-}
+};
 const WarningTextSection = (props: Props): JSX.Element => {
     const intl = useIntl();
 

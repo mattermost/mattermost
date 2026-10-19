@@ -24,6 +24,7 @@ import {
     TableWrapper,
 } from '../classification_markings_styled';
 import type {ClassificationLevel} from '../utils/presets';
+import {isPendingLevel} from '../utils/presets';
 
 type ClassificationLevelsTableProps = {
     levels: ClassificationLevel[];
@@ -60,6 +61,7 @@ export default function ClassificationLevelsTable({levels, updateLevel, deleteLe
                         id={row.original.id}
                         updateLevel={updateLevel}
                         disabled={disabled}
+                        autoFocus={isPendingLevel(row.original)}
                         label={formatMessage({id: 'admin.classification_markings.levels.table.text.input', defaultMessage: 'Classification level name'})}
                     />
                 ),

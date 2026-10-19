@@ -7,10 +7,20 @@ import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {getChannels, getArchivedChannels, getRecommendedChannelsForUser, joinChannel, getChannelsMemberCount, searchAllChannels} from 'mattermost-redux/actions/channels';
+import {
+    getChannels,
+    getArchivedChannels,
+    getRecommendedChannelsForUser,
+    joinChannel,
+    getChannelsMemberCount,
+    searchAllChannels,
+    getMyChannelJoinRequests,
+    withdrawMyChannelJoinRequest,
+} from 'mattermost-redux/actions/channels';
 import {RequestStatus} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector, getMyPendingJoinRequestsByChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -42,12 +52,18 @@ const getArchivedOtherChannels = createSelector(
 const getPrivateChannelsSelector = createSelector(
     'getPrivateChannelsSelector',
     getChannelsInCurrentTeam,
-    (channels: Channel[]) => channels && channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL),
+
+    // Active private channels only. Archived private channels are surfaced
+    // exclusively through `archivedChannels`; including them here would both
+    // leak them past the Hide Archived toggle and double them up alongside the
+    // archived list.
+    (channels: Channel[]) => channels && channels.filter((c) => c.delete_at === 0 && c.type === Constants.PRIVATE_CHANNEL),
 );
 
 function mapStateToProps(state: GlobalState) {
     const team = getCurrentTeam(state);
     const getGlobalItem = makeGetGlobalItem(StoragePrefixes.HIDE_JOINED_CHANNELS, 'false');
+    const getHideArchivedItem = makeGetGlobalItem(StoragePrefixes.HIDE_ARCHIVED_CHANNELS, 'true');
 
     return {
         channels: getChannelsWithoutArchived(state) || [],
@@ -59,10 +75,15 @@ function mapStateToProps(state: GlobalState) {
         channelsRequestStarted: state.requests.channels.getChannels.status === RequestStatus.STARTED,
         myChannelMemberships: getMyChannelMemberships(state) || {},
         shouldHideJoinedChannels: getGlobalItem(state) === 'true',
+        shouldHideArchivedChannels: getHideArchivedItem(state) === 'true',
         rhsState: getRhsState(state),
         rhsOpen: getIsRhsOpen(state),
         channelsMemberCount: getChannelsMemberCountSelector(state),
         accessControlEnabled: isChannelAccessControlEnabled(state),
+
+        // Discoverable Private Channels — feed the per-row state machine.
+        discoverableFeatureEnabled: isDiscoverableChannelsEnabled(state),
+        myPendingJoinRequests: getMyPendingJoinRequestsByChannel(state),
     };
 }
 
@@ -79,6 +100,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setGlobalItem,
             closeRightHandSide,
             getChannelsMemberCount,
+            getMyChannelJoinRequests,
+            withdrawMyChannelJoinRequest,
         }, dispatch),
     };
 }

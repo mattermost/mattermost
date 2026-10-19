@@ -15,14 +15,14 @@ import {Constants} from 'utils/constants';
 
 const INT32_MAX = 2147483647;
 
-type Props ={
+type Props = {
     config: Partial<AdminConfig>;
     show: boolean;
     onClose: () => void;
     actions: {
         patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     };
-}
+};
 
 export default function EditPostTimeLimitModal(props: Props) {
     const {ServiceSettings} = props.config;

@@ -165,6 +165,61 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 		assert.Len(t, values, 1, "value must survive a rename")
 	})
 
+	t.Run("select<->rank transition preserves values", func(t *testing.T) {
+		optionAID := model.NewId()
+		optionBID := model.NewId()
+
+		for _, tc := range []struct {
+			name     string
+			fromType model.PropertyFieldType
+			toType   model.PropertyFieldType
+		}{
+			{"select->rank", model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank},
+			{"rank->select", model.PropertyFieldTypeRank, model.PropertyFieldTypeSelect},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				field := &model.PropertyField{
+					GroupID:    th.CPAGroupID,
+					Name:       tc.name + "-" + model.NewId(),
+					Type:       tc.fromType,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
+					Attrs: model.StringInterface{
+						model.PropertyFieldAttributeOptions: []map[string]any{
+							{"id": optionAID, "name": "Option A"},
+							{"id": optionBID, "name": "Option B"},
+						},
+					},
+				}
+				created, err := th.service.CreatePropertyField(th.Context, field)
+				require.NoError(t, err)
+
+				raw, err := json.Marshal(optionAID)
+				require.NoError(t, err)
+				_, err = th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+					GroupID:    th.CPAGroupID,
+					FieldID:    created.ID,
+					TargetID:   model.NewId(),
+					TargetType: model.PropertyValueTargetTypeUser,
+					Value:      raw,
+				})
+				require.NoError(t, err)
+
+				created.Type = tc.toType
+				_, clearedIDs, err := th.service.UpdatePropertyField(th.Context, th.CPAGroupID, created)
+				require.NoError(t, err)
+				assert.Empty(t, clearedIDs, "select<->rank transition must not clear values")
+
+				values, err := th.service.SearchPropertyValues(th.Context, th.CPAGroupID, model.PropertyValueSearchOpts{
+					FieldID: created.ID,
+					PerPage: 10,
+				})
+				require.NoError(t, err)
+				assert.Len(t, values, 1, "value must survive a select<->rank type change")
+			})
+		}
+	})
+
 	t.Run("plural batch reports cleared ids per affected field", func(t *testing.T) {
 		// Field 1: select with a value, will be patched to text → cleanup expected.
 		optID := model.NewId()

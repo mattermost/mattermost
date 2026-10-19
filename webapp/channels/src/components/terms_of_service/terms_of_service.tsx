@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router';
 
@@ -37,7 +37,7 @@ export interface TermsOfServiceProps extends RouteComponentProps {
         getTermsOfService: () => Promise<ActionResult<ReduxTermsOfService>>;
         updateMyTermsOfServiceStatus: (
             termsOfServiceId: string,
-            accepted: boolean
+            accepted: boolean,
         ) => Promise<ActionResult>;
     };
     emojiMap: EmojiMap;

@@ -11,6 +11,7 @@ import {getAgents as getAgentsAction} from 'mattermost-redux/actions/agents';
 import {Client4} from 'mattermost-redux/client';
 import {getAgents} from 'mattermost-redux/selectors/entities/agents';
 
+import {useSelectedAgent} from 'components/common/agents';
 import type TextboxClass from 'components/textbox/textbox';
 
 import type {PostDraft} from 'types/store/draft';
@@ -20,7 +21,7 @@ import {RewriteAction} from './rewrite_action';
 const useRewrite = (
     draft: PostDraft,
     handleDraftChange: ((draft: PostDraft, options: {instant?: boolean; show?: boolean}) => void),
-    textboxRef: React.RefObject<TextboxClass>,
+    textboxRef: React.RefObject<TextboxClass | null>,
     focusTextbox: (keepFocus?: boolean) => void,
     setServerError: React.Dispatch<React.SetStateAction<(ServerError & {
         submittedMessage?: string;
@@ -28,9 +29,9 @@ const useRewrite = (
 ) => {
     const dispatch = useDispatch();
     const agents = useSelector(getAgents);
+    const [selectedAgentId, setSelectedAgentId] = useSelectedAgent(agents);
 
     const [prompt, setPrompt] = useState('');
-    const [selectedAgentId, setSelectedAgentId] = useState<string>('');
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,7 +40,7 @@ const useRewrite = (
     const [lastAction, setLastAction] = useState<RewriteAction>(RewriteAction.CUSTOM);
     const [lastPrompt, setLastPrompt] = useState('');
 
-    const currentPromiseRef = useRef<Promise<string>>();
+    const currentPromiseRef = useRef<Promise<string>>(undefined);
     const customPromptRef = useRef<HTMLInputElement | null>(null);
 
     const handleRewrite = useCallback(async (action?: RewriteAction, prompt?: string) => {
@@ -139,12 +140,6 @@ const useRewrite = (
     useEffect(() => {
         dispatch(getAgentsAction());
     }, [dispatch]);
-
-    useEffect(() => {
-        if (agents && agents.length > 0 && !selectedAgentId) {
-            setSelectedAgentId(agents[0].id);
-        }
-    }, [agents, selectedAgentId]);
 
     useEffect(() => {
         if (isMenuOpen && !draft.message.trim()) {

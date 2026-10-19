@@ -13,7 +13,6 @@ import {markAsUnreadFromPost, verifyPostNextToNewMessageSeparator} from './helpe
 
 import {beUnread} from '@/support/assertions';
 
-
 describe('Bot post unread message', () => {
     let newChannel;
     let botPost;

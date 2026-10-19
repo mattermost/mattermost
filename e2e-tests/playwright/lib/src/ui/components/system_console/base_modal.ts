@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 /**
  * Base modal component for System Console modals.
@@ -15,7 +16,7 @@ export default class BaseModal {
 
     constructor(container: Locator) {
         this.container = container;
-        this.title = container.locator('.modal-title');
+        this.title = container.getByRole('heading');
         this.closeButton = container.getByRole('button', {name: 'Close'});
         this.cancelButton = container.getByRole('button', {name: 'Cancel'});
     }

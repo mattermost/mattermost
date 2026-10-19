@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 const {generateRandomUser} = require('../../../support/api/user');
 
@@ -144,7 +144,6 @@ describe('Channel members RHS', () => {
             cy.uiCloseRHS();
 
             for (let i = 0; i < 20; i++) {
-
                 cy.apiCreateUser().then(({user: newUser}) => {
                     cy.apiAddUserToTeam(testTeam.id, newUser.id).then(() => {
                         cy.apiAddUserToChannel(channel.id, newUser.id);
@@ -291,7 +290,6 @@ describe('Channel members RHS', () => {
         cy.apiCreateChannel(testTeam.id, 'big-search-test-channel', 'Big Search Test Channel', 'O').then(({channel}) => {
             // # create 100 random users
             for (let i = 0; i < 100; i++) {
-
                 cy.apiCreateUser().then(({user: newUser}) => {
                     cy.apiAddUserToTeam(testTeam.id, newUser.id).then(() => {
                         cy.apiAddUserToChannel(channel.id, newUser.id);

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import moment from 'moment';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -24,7 +24,7 @@ import './menu_item.scss';
 
 type Props = {
     id: string;
-}
+};
 const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
     const subscription = useSelector(getCloudSubscription);
     const subscriptionProduct = useSelector(getSubscriptionProduct);

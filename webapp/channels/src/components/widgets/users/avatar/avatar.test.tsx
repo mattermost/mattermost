@@ -105,12 +105,8 @@ describe('components/widgets/users/Avatar', () => {
 
         fireEvent.error(avatar);
 
-        // Should change from the initial URL (bot icon set, even if empty in test environment)
         expect(avatar.src).not.toBe(initialSrc);
-
-        // In production, this would be the bot default icon
-        // In test environment, it may resolve to empty string or base URL
-        expect(avatar.src === BotDefaultIcon || avatar.src === 'http://localhost:8065/').toBe(true);
+        expect(avatar.src).toBe(new URL(BotDefaultIcon, window.location.href).href);
     });
 
     test('should not change src if already using fallback image', () => {
@@ -127,6 +123,18 @@ describe('components/widgets/users/Avatar', () => {
 
         // Should not change src if it's already the fallback
         expect(avatar.src).toBe(initialSrc);
+    });
+
+    test('should still render an img element after image load error', () => {
+        render(withIntl(
+            <Avatar url='test-url'/>,
+        ));
+
+        const avatar = screen.getByRole('img') as HTMLImageElement;
+
+        fireEvent.error(avatar);
+
+        expect(screen.getByRole('img')).toBeInTheDocument();
     });
 
     describe('getAvatarWidth', () => {

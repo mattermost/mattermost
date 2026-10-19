@@ -22,9 +22,11 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators({
-            doPostActionWithCookie, openModal,
-        }, dispatch),
+        actions: {
+            ...bindActionCreators({
+                doPostActionWithCookie, openModal,
+            }, dispatch),
+        },
     };
 }
 

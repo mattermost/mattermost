@@ -11,18 +11,18 @@ import {TeamTypes, ContentFlaggingTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ActionFunc} from 'mattermost-redux/types/actions';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 
 export type ContentFlaggingChannelRequestIdentifier = {
     channelId?: string;
     flaggedPostId?: string;
-}
+};
 
 export type ContentFlaggingTeamRequestIdentifier = {
     teamId?: string;
     flaggedPostId?: string;
-}
+};
 
 function channelComparator(a: ContentFlaggingChannelRequestIdentifier, b: ContentFlaggingChannelRequestIdentifier) {
     return a.channelId === b.channelId;
@@ -262,5 +262,16 @@ export function getPostContentFlaggingValues(postId: string): ActionFuncAsync<Ar
         }
 
         return {data: response};
+    };
+}
+
+export function removeContentFlaggingPost(postId: string): ActionFunc<void> {
+    return (dispatch) => {
+        dispatch({
+            type: ContentFlaggingTypes.FLAGGED_POST_REMOVED,
+            data: {postId},
+        });
+
+        return {};
     };
 }

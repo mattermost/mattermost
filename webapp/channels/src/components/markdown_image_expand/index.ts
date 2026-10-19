@@ -20,7 +20,7 @@ export type OwnProps = {
     alt: string;
     onToggle?: (visible: boolean) => void;
     children: ReactNode;
-}
+};
 
 const mapStateToProps = (state: GlobalState, {postId, imageKey}: OwnProps) => {
     return {

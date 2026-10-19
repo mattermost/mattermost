@@ -32,7 +32,7 @@ type Props = {
 
 type State = {
     form?: AppForm;
-}
+};
 
 class AppsFormContainer extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -201,6 +201,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         return (
             <AppsForm
                 form={form}
+                channelId={this.props.appContext.channel_id}
                 timezone={this.props.timezone}
                 onExited={this.props.onExited}
                 onHide={this.props.onHide}

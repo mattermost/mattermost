@@ -77,6 +77,49 @@ func (p *PropertyService) CountPropertyFieldsForTarget(groupID, targetType, targ
 	return p.api.CountPropertyFieldsForTarget(groupID, targetType, targetID, includeDeleted)
 }
 
+// GetPropertyFieldOptions returns one page of a property field's options,
+// ordered by creation time and continuing after the option the cursor names.
+// The page includes options inherited from a linked template, flagged
+// read_only, and each option carries the names of the options directly above it
+// where the field's options form a hierarchy.
+//
+// A page holds the options this caller may see, which on a field whose options
+// are access-controlled is fewer than the field has. Continue while the page's
+// HasMore is true, passing its NextCursorCreateAt and NextCursorID back on the
+// next call: the page length alone does not say whether the listing is over.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
+	return p.api.GetPropertyFieldOptions(groupID, fieldID, cursorCreateAt, cursorID, perPage)
+}
+
+// CreatePropertyFieldOptions adds options to a property field. Each option may
+// name the options it sits under, by name, in parents. Every option is created
+// or none is.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	return p.api.CreatePropertyFieldOptions(groupID, fieldID, options)
+}
+
+// UpdatePropertyFieldOptions rewrites options a property field owns, each named
+// by id. A part the payload leaves out is left as it was; parents, when given,
+// replaces that option's parent set. Every option is updated or none is.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	return p.api.UpdatePropertyFieldOptions(groupID, fieldID, options)
+}
+
+// DeletePropertyFieldOptions removes options a property field owns, named by id.
+// The set is judged as a whole, so a whole branch of a hierarchy can be removed
+// in one call.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error {
+	return p.api.DeletePropertyFieldOptions(groupID, fieldID, optionIDs)
+}
+
 // CreatePropertyValue creates a new property value.
 //
 // Minimum server version: 10.10
@@ -180,4 +223,46 @@ func (p *PropertyService) DeletePropertyValuesForTarget(groupID, targetType, tar
 // Minimum server version: 10.10
 func (p *PropertyService) DeletePropertyValuesForField(groupID, fieldID string) error {
 	return p.api.DeletePropertyValuesForField(groupID, fieldID)
+}
+
+// UpsertPropertyValuesWithOptions creates or updates multiple property values,
+// declaring the scope the plugin is acting as for owner-based access control.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) UpsertPropertyValuesWithOptions(values []*model.PropertyValue, options model.PropertyRequestOptions) ([]*model.PropertyValue, error) {
+	return p.api.UpsertPropertyValuesWithOptions(values, options)
+}
+
+// UpsertPropertyValueWithOptions creates or updates a single property value,
+// declaring the scope the plugin is acting as for owner-based access control.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) UpsertPropertyValueWithOptions(value *model.PropertyValue, options model.PropertyRequestOptions) (*model.PropertyValue, error) {
+	return p.api.UpsertPropertyValueWithOptions(value, options)
+}
+
+// DeletePropertyValueWithOptions deletes a property value, declaring the scope
+// the plugin is acting as for owner-based access control.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) DeletePropertyValueWithOptions(groupID, valueID string, options model.PropertyRequestOptions) error {
+	return p.api.DeletePropertyValueWithOptions(groupID, valueID, options)
+}
+
+// DeletePropertyValuesForTargetWithOptions deletes all property values for a
+// target, declaring the scope the plugin is acting as. This is the
+// deprovisioning entrypoint and needs only the target, no value objects.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID string, options model.PropertyRequestOptions) error {
+	return p.api.DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID, options)
+}
+
+// DeletePropertyValuesForFieldWithOptions deletes all property values for a
+// field, declaring the scope the plugin is acting as for owner-based access
+// control.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) DeletePropertyValuesForFieldWithOptions(groupID, fieldID string, options model.PropertyRequestOptions) error {
+	return p.api.DeletePropertyValuesForFieldWithOptions(groupID, fieldID, options)
 }

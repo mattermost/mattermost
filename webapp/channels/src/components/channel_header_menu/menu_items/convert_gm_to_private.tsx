@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -16,7 +16,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;
-}
+};
 
 const ConvertGMtoPrivate = ({channel}: Props): JSX.Element => {
     const dispatch = useDispatch();

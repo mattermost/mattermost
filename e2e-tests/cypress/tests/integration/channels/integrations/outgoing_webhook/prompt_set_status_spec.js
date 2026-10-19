@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Prompting set status', () => {

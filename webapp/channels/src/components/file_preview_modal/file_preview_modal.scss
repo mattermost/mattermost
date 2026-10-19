@@ -1,3 +1,12 @@
+@keyframes file-preview-modal-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 .file-preview-modal {
     padding-left: 0 !important;
 
@@ -11,6 +20,11 @@
         width: 100%;
         height: 100%;
         flex-direction: column;
+        animation: file-preview-modal-fade-in 250ms ease-in-out;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
     }
 
     &__title {
@@ -19,6 +33,7 @@
 
     &__content {
         display: flex;
+        overflow: hidden; // clip transformed image previews so panning can't escape behind the header
         height: calc(100vh - 72px);
         align-items: center;
         justify-content: center;

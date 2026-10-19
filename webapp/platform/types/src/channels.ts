@@ -36,7 +36,8 @@ export type ChannelBanner = {
     enabled?: boolean;
     text?: string;
     background_color?: string;
-}
+    attribute_banner_disabled?: boolean;
+};
 
 export function channelBannerEnabled(banner: ChannelBanner | undefined): boolean {
     if (!banner) {
@@ -88,11 +89,24 @@ export type Channel = {
      * attached" semantic.
      */
     policy_actions?: Record<string, boolean>;
+
+    /**
+     * True when the channel's policy opts into the membership sync job's add
+     * pass, i.e. matching users are added to the channel automatically.
+     */
+    policy_auto_add?: boolean;
+
+    /** @deprecated Use {@link policy_auto_add}, which this now mirrors. */
     policy_is_active?: boolean;
     default_category_name?: string;
     managed_category_name?: string;
     autotranslation?: boolean;
     discoverable?: boolean;
+    disable_join_leave_messages?: boolean;
+
+    // Create-only: attribute values to store with the channel. Sent so the server
+    // can refuse a channel that would not satisfy its own required attributes.
+    property_values?: Array<{field_id: string; value: unknown}>;
 };
 
 export type ServerChannel = Channel & {
@@ -110,7 +124,7 @@ export type ServerChannel = Channel & {
      * @remarks This field will be moved to a {@link ChannelMessageCount} object when this channel is stored in Redux.
      */
     total_msg_count_root: number;
-}
+};
 
 export type ChannelMessageCount = {
 
@@ -119,7 +133,7 @@ export type ChannelMessageCount = {
 
     /** The number of root posts in this channel, not including join/leave messages */
     root: number;
-}
+};
 
 export type ChannelWithTeamData = Channel & {
     team_display_name: string;
@@ -156,6 +170,32 @@ export type GetChannelJoinRequestsOptions = {
     status?: ChannelJoinRequestStatus;
     page?: number;
     per_page?: number;
+};
+
+export type ChannelJoinRequestPatch = {
+    status: 'approved' | 'denied';
+    denial_reason?: string;
+};
+
+export type ChannelJoinRequestApprovalResponse = {
+    status: 'approved';
+};
+
+// Slice of ChannelsState holding pending/past join requests by channel.
+//
+// `myPendingByChannel`: pending request that the current user has open against
+// a given channel, used by Browse rows and the Request to Join modal.
+// `byChannel`: admin-queue lists keyed by channel id (filled when an admin
+// opens the queue UI).
+// `countsByChannel`: pending count per channel, used by the indicator triad
+// on the channel header / LHS / RHS.
+// `myList`: the current user's pending requests across channels (My Pending
+// Requests tab).
+export type ChannelJoinRequestsState = {
+    myPendingByChannel: Record<string, ChannelJoinRequest>;
+    byChannel: Record<string, ChannelJoinRequest[]>;
+    countsByChannel: Record<string, number>;
+    myList: ChannelJoinRequest[];
 };
 
 export type ChannelMembership = {
@@ -227,6 +267,7 @@ export type ChannelsState = {
     messageCounts: RelationOneToOne<Channel, ChannelMessageCount>;
     channelsMemberCount: Record<string, number>;
     restrictedDMs: RelationOneToOne<Channel, boolean>;
+    joinRequests: ChannelJoinRequestsState;
 };
 
 export type ChannelModeration = {

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -84,6 +85,49 @@ func TestPostIsValid(t *testing.T) {
 	require.Nil(t, appErr)
 }
 
+func TestAccessControlTeamPostTypes(t *testing.T) {
+	maxPostSize := 10000
+
+	for _, postType := range []string{PostTypeAccessControlTeamRemoval, PostTypeAccessControlTeamAddition} {
+		// Persisted to Posts.Type, which is varchar(26).
+		require.LessOrEqual(t, len(postType), 26, "post type %q must fit Posts.Type varchar(26)", postType)
+		require.True(t, strings.HasPrefix(postType, PostSystemMessagePrefix), "post type %q must be a system message", postType)
+
+		o := Post{
+			Id:        NewId(),
+			CreateAt:  GetMillis(),
+			UpdateAt:  GetMillis(),
+			UserId:    NewId(),
+			ChannelId: NewId(),
+			Message:   "test",
+			Type:      postType,
+		}
+		require.Nil(t, o.IsValid(maxPostSize), "post type %q must be an accepted system type", postType)
+	}
+}
+
+func TestIsAccessControlTeamMembershipNotification(t *testing.T) {
+	cases := []struct {
+		name     string
+		postType string
+		expected bool
+	}{
+		{"removal DM", PostTypeAccessControlTeamRemoval, true},
+		{"addition DM", PostTypeAccessControlTeamAddition, true},
+		{"regular post", "", false},
+		{"add to team", PostTypeAddToTeam, false},
+		{"remove from team", PostTypeRemoveFromTeam, false},
+		{"join channel", PostTypeJoinChannel, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := &Post{Type: tc.postType}
+			require.Equal(t, tc.expected, p.IsAccessControlTeamMembershipNotification())
+		})
+	}
+}
+
 func TestPostPreSave(t *testing.T) {
 	o := Post{Message: "test"}
 	o.PreSave()
@@ -99,16 +143,45 @@ func TestPostPreSave(t *testing.T) {
 	o.Etag()
 }
 
+func TestIsSystemMessagePostType(t *testing.T) {
+	for _, tc := range []struct {
+		postType string
+		want     bool
+	}{
+		{"", false},
+		{"custom_foo", false},
+		{PostTypeJoinLeave, true},
+		{PostTypeJoinChannel, true},
+		{PostTypeDefault, false},
+		// case-sensitive: mixed-case prefix is not a system type
+		{"System_generic", false},
+		// whitespace is not trimmed
+		{" " + PostSystemMessagePrefix + "foo", false},
+	} {
+		require.Equal(t, tc.want, IsSystemMessagePostType(tc.postType), "postType=%q", tc.postType)
+	}
+}
+
 func TestPostIsSystemMessage(t *testing.T) {
-	post1 := Post{Message: "test_1"}
-	post1.PreSave()
+	require.False(t, (&Post{Message: "test_1"}).IsSystemMessage())
+	require.True(t, (&Post{Message: "test_2", Type: PostTypeJoinLeave}).IsSystemMessage())
+}
 
-	require.False(t, post1.IsSystemMessage())
+func TestPostIsNotificationSuppressed(t *testing.T) {
+	post := &Post{Message: "test"}
+	post.AddProp(PostPropsSilentNotification, true)
+	require.True(t, post.IsNotificationSuppressed())
 
-	post2 := Post{Message: "test_2", Type: PostTypeJoinLeave}
-	post2.PreSave()
+	post.AddProp(PostPropsForceNotification, NewId())
+	require.False(t, post.IsNotificationSuppressed())
 
-	require.True(t, post2.IsSystemMessage())
+	post2 := &Post{Message: "test"}
+	post2.AddProp(PostPropsForceNotification, false)
+	require.False(t, post2.HasForceNotification())
+
+	post3 := &Post{Message: "test"}
+	post3.AddProp(PostPropsForceNotification, true)
+	require.True(t, post3.HasForceNotification())
 }
 
 func TestPostChannelMentions(t *testing.T) {
@@ -142,9 +215,17 @@ func TestPostSanitizeProps(t *testing.T) {
 	post3 := &Post{
 		Message: "test",
 		Props: StringInterface{
-			PropsAddChannelMember:      "no good",
-			PostPropsForceNotification: "no good",
-			PostPropsAttachments:       "good",
+			PropsAddChannelMember:       "no good",
+			PostPropsForceNotification:  "no good",
+			PostPropsAttachments:        "good",
+			PostPropsFromWebhook:        "forged",
+			PostPropsFromBot:            "forged",
+			PostPropsFromOAuthApp:       "forged",
+			PostPropsFromPlugin:         "forged",
+			PostPropsOverrideUsername:   "Imposter",
+			PostPropsOverrideIconURL:    "https://attacker.example/icon.png",
+			PostPropsOverrideIconEmoji:  ":imposter:",
+			PostPropsWebhookDisplayName: "forged-hook",
 		},
 	}
 
@@ -154,6 +235,115 @@ func TestPostSanitizeProps(t *testing.T) {
 	require.Nil(t, post3.GetProp(PostPropsForceNotification))
 
 	require.NotNil(t, post3.GetProp(PostPropsAttachments))
+
+	// v12: from_* identity markers and the display-identity overrides are
+	// stripped by default so a regular client cannot forge them. Trusted
+	// integration entry points (webhook.go, command.go, plugin_api.go) re-set
+	// the values via CreatePostFlags in app.CreatePost under verified authority.
+	require.Nil(t, post3.GetProp(PostPropsFromWebhook))
+	require.Nil(t, post3.GetProp(PostPropsFromBot))
+	require.Nil(t, post3.GetProp(PostPropsFromOAuthApp))
+	require.Nil(t, post3.GetProp(PostPropsFromPlugin))
+	require.Nil(t, post3.GetProp(PostPropsOverrideUsername))
+	require.Nil(t, post3.GetProp(PostPropsOverrideIconURL))
+	require.Nil(t, post3.GetProp(PostPropsOverrideIconEmoji))
+	require.Nil(t, post3.GetProp(PostPropsWebhookDisplayName))
+
+	// Federated post: notification-policy markers (silent/force), the from_*
+	// identity markers, and the display-identity overrides were all verified by
+	// the origin cluster and must survive sanitization on the receiving side.
+	// The non-integration system prop (PropsAddChannelMember) is still stripped
+	// — it's a synthesis marker for local "user added to channel" system posts
+	// and doesn't belong on federated posts regardless. RemoteId is server-set
+	// (SanitizeInput on the API4 path wipes any client-supplied value), so this
+	// branch can't be reached by forgery.
+	remoteId := "remote-cluster-1"
+	post4 := &Post{
+		Message:  "test",
+		RemoteId: &remoteId,
+		Props: StringInterface{
+			PropsAddChannelMember:       "should-be-stripped",
+			PostPropsForceNotification:  "preserved-id",
+			PostPropsSilentNotification: true,
+			PostPropsFromWebhook:        "true",
+			PostPropsFromBot:            "true",
+			PostPropsFromOAuthApp:       "true",
+			PostPropsFromPlugin:         "true",
+			PostPropsOverrideUsername:   "RemoteBot",
+			PostPropsOverrideIconURL:    "https://remote.example/icon.png",
+			PostPropsOverrideIconEmoji:  ":remote:",
+			PostPropsWebhookDisplayName: "RemoteHook",
+		},
+	}
+
+	post4.SanitizeProps()
+
+	require.Nil(t, post4.GetProp(PropsAddChannelMember), "non-integration system prop must still be stripped from federated posts")
+	require.Equal(t, "preserved-id", post4.GetProp(PostPropsForceNotification))
+	require.Equal(t, true, post4.GetProp(PostPropsSilentNotification))
+	require.Equal(t, "true", post4.GetProp(PostPropsFromWebhook))
+	require.Equal(t, "true", post4.GetProp(PostPropsFromBot))
+	require.Equal(t, "true", post4.GetProp(PostPropsFromOAuthApp))
+	require.Equal(t, "true", post4.GetProp(PostPropsFromPlugin))
+	require.Equal(t, "RemoteBot", post4.GetProp(PostPropsOverrideUsername))
+	require.Equal(t, "https://remote.example/icon.png", post4.GetProp(PostPropsOverrideIconURL))
+	require.Equal(t, ":remote:", post4.GetProp(PostPropsOverrideIconEmoji))
+	require.Equal(t, "RemoteHook", post4.GetProp(PostPropsWebhookDisplayName))
+
+	// Empty-string RemoteId must NOT be treated as federated — it's the zero
+	// value SanitizeInput sets when wiping a client-forged value. silent_notification
+	// gets stripped just like for posts with no RemoteId field at all.
+	emptyRemoteId := ""
+	post5 := &Post{
+		Message:  "test",
+		RemoteId: &emptyRemoteId,
+		Props: StringInterface{
+			PostPropsSilentNotification: true,
+		},
+	}
+
+	post5.SanitizeProps()
+
+	require.Nil(t, post5.GetProp(PostPropsSilentNotification), "empty RemoteId must not be treated as federated")
+}
+
+func TestPostSanitizeNonIdentityProps(t *testing.T) {
+	post := &Post{
+		Message: "test",
+		Props: StringInterface{
+			PropsAddChannelMember:       "no good",
+			PostPropsForceNotification:  "no good",
+			PostPropsAttachments:        "good",
+			PostPropsFromWebhook:        "true",
+			PostPropsFromBot:            "true",
+			PostPropsFromOAuthApp:       "true",
+			PostPropsFromPlugin:         "true",
+			PostPropsOverrideUsername:   "MyBot",
+			PostPropsOverrideIconURL:    "https://example.com/icon.png",
+			PostPropsOverrideIconEmoji:  ":robot:",
+			PostPropsWebhookDisplayName: "MyHook",
+		},
+	}
+
+	post.SanitizeNonIdentityProps()
+
+	require.Nil(t, post.GetProp(PropsAddChannelMember))
+	require.Nil(t, post.GetProp(PostPropsForceNotification))
+
+	require.NotNil(t, post.GetProp(PostPropsAttachments))
+
+	// Unlike SanitizeProps, the already-persisted, already-verified display
+	// identity must survive on a read path — this is what CreatePost/UpdatePost
+	// settled via SanitizeProps + re-injection at write time, and a read-only
+	// call must not wipe it a second time.
+	require.Equal(t, "true", post.GetProp(PostPropsFromWebhook))
+	require.Equal(t, "true", post.GetProp(PostPropsFromBot))
+	require.Equal(t, "true", post.GetProp(PostPropsFromOAuthApp))
+	require.Equal(t, "true", post.GetProp(PostPropsFromPlugin))
+	require.Equal(t, "MyBot", post.GetProp(PostPropsOverrideUsername))
+	require.Equal(t, "https://example.com/icon.png", post.GetProp(PostPropsOverrideIconURL))
+	require.Equal(t, ":robot:", post.GetProp(PostPropsOverrideIconEmoji))
+	require.Equal(t, "MyHook", post.GetProp(PostPropsWebhookDisplayName))
 }
 
 func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
@@ -182,6 +372,18 @@ func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
 	keys2 := post2.ContainsIntegrationsReservedProps()
 	require.Len(t, keys2, 6)
 	require.Contains(t, keys2, PostPropsMmBlocksActions)
+
+	post3 := &Post{
+		Message: "test",
+		Props: StringInterface{
+			PostPropsSilentNotification: true,
+			PostPropsForceNotification:  NewId(),
+		},
+	}
+	keys3 := post3.ContainsIntegrationsReservedProps()
+	require.Len(t, keys3, 2)
+	require.Contains(t, keys3, PostPropsSilentNotification)
+	require.Contains(t, keys3, PostPropsForceNotification)
 }
 
 func TestPostPatch_ContainsIntegrationsReservedProps(t *testing.T) {
@@ -196,6 +398,28 @@ func TestPostPatch_ContainsIntegrationsReservedProps(t *testing.T) {
 	postPatch2 := &PostPatch{}
 	keys2 := postPatch2.ContainsIntegrationsReservedProps()
 	require.Len(t, keys2, 0)
+}
+
+func TestPostPatchIsEmpty(t *testing.T) {
+	// The api4 post edit time limit derives its check from IsEmpty, so a field IsEmpty does not
+	// account for silently escapes that limit. Add new fields here and to IsEmpty together.
+	require.Equal(t, 5, reflect.TypeFor[PostPatch]().NumField())
+
+	for name, patch := range map[string]PostPatch{
+		"is pinned":     {IsPinned: new(true)},
+		"message":       {Message: new("edited")},
+		"props":         {Props: &StringInterface{"foo": "bar"}},
+		"file ids":      {FileIds: &StringArray{"fileid"}},
+		"has reactions": {HasReactions: new(true)},
+	} {
+		t.Run(name, func(t *testing.T) {
+			require.False(t, patch.IsEmpty())
+		})
+	}
+
+	t.Run("no fields set", func(t *testing.T) {
+		require.True(t, (&PostPatch{}).IsEmpty())
+	})
 }
 
 func TestPost_AttachmentsEqual(t *testing.T) {
@@ -1007,6 +1231,173 @@ func TestPostPriority(t *testing.T) {
 	require.True(t, p.IsUrgent())
 }
 
+func TestPost_HasUnsafeLinks(t *testing.T) {
+	t.Run("nil props", func(t *testing.T) {
+		p := &Post{}
+		require.False(t, p.HasUnsafeLinks())
+	})
+
+	t.Run("missing prop", func(t *testing.T) {
+		p := &Post{Props: StringInterface{"other": "x"}}
+		require.False(t, p.HasUnsafeLinks())
+	})
+
+	t.Run("true", func(t *testing.T) {
+		p := &Post{Props: StringInterface{PostPropsUnsafeLinks: "true"}}
+		require.True(t, p.HasUnsafeLinks())
+	})
+
+	t.Run("false string is not unsafe", func(t *testing.T) {
+		p := &Post{Props: StringInterface{PostPropsUnsafeLinks: "false"}}
+		require.False(t, p.HasUnsafeLinks())
+	})
+
+	t.Run("non-string is not unsafe", func(t *testing.T) {
+		p := &Post{Props: StringInterface{PostPropsUnsafeLinks: true}}
+		require.False(t, p.HasUnsafeLinks())
+	})
+}
+
+func TestPost_AllStrings(t *testing.T) {
+	t.Run("messageOnly", func(t *testing.T) {
+		p := &Post{Message: "  hello  "}
+		assert.Equal(t, []string{"  hello  "}, p.AllStrings(AllStringsOptions{}))
+	})
+
+	t.Run("emptyMessage", func(t *testing.T) {
+		p := &Post{Message: "   "}
+		assert.Empty(t, p.AllStrings(AllStringsOptions{}))
+	})
+
+	t.Run("interactiveProps", func(t *testing.T) {
+		p := &Post{
+			Message: "root",
+			Props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "mm-line"},
+					map[string]any{"type": "button", "text": "OK", "action_id": "act"},
+				},
+				PostPropsBlockKitBlocks: []any{
+					map[string]any{"type": "image", "image_url": "https://example.com/i.png", "alt_text": "logo"},
+				},
+				PostPropsAdaptiveCards: []any{
+					map[string]any{"type": "AdaptiveCard", "version": "1.0", "body": []any{
+						map[string]any{"type": "TextBlock", "text": "card-line"},
+					}},
+				},
+			},
+		}
+		got := p.AllStrings(AllStringsOptions{})
+		require.Contains(t, got, "root")
+		require.Contains(t, got, "mm-line")
+		require.NotContains(t, got, "OK")
+		require.NotContains(t, got, "act")
+		require.NotContains(t, got, "https://example.com/i.png")
+		require.NotContains(t, got, "logo")
+		require.Contains(t, got, "card-line")
+	})
+
+	t.Run("omitInteractiveBlocks", func(t *testing.T) {
+		p := &Post{
+			Message: "root",
+			Props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "mm-line"},
+				},
+				PostPropsBlockKitBlocks: []any{
+					map[string]any{
+						"type": "section",
+						"text": map[string]any{
+							"type": "mrkdwn",
+							"text": "block kit-line",
+						},
+					},
+				},
+				PostPropsAdaptiveCards: []any{
+					map[string]any{
+						"type": "AdaptiveCard",
+						"body": []any{
+							map[string]any{"type": "TextBlock", "text": "card-line"},
+						},
+					},
+				},
+			},
+		}
+		got := p.AllStrings(AllStringsOptions{OmitInteractiveBlocks: true})
+		require.Contains(t, got, "root")
+		require.NotContains(t, got, "mm-line")
+		require.NotContains(t, got, "block kit-line")
+		require.NotContains(t, got, "card-line")
+	})
+
+	t.Run("blockKitHeaderPlainText", func(t *testing.T) {
+		p := &Post{
+			Props: StringInterface{
+				PostPropsBlockKitBlocks: []any{
+					map[string]any{
+						"type": "header",
+						"text": map[string]any{
+							"type":  "plain_text",
+							"text":  "Section title",
+							"emoji": true,
+						},
+					},
+				},
+			},
+		}
+		got := p.AllStrings(AllStringsOptions{})
+		require.Contains(t, got, "Section title")
+	})
+
+	t.Run("includesMessageAttachments", func(t *testing.T) {
+		p := &Post{
+			Message: "hi",
+			Props: StringInterface{
+				PostPropsAttachments: []*MessageAttachment{
+					{
+						AuthorName: "author",
+						Fallback:   "fallback",
+						Title:      "T",
+						Text:       "body",
+						Pretext:    "pre",
+						Footer:     "footer line",
+					},
+					{Fields: []*MessageAttachmentField{{Title: "Col", Value: "f1"}, {Title: "N", Value: 7}}},
+				},
+			},
+		}
+		got := p.AllStrings(AllStringsOptions{})
+		require.Contains(t, got, "hi")
+		require.Contains(t, got, "author")
+		require.NotContains(t, got, "fallback")
+		require.Contains(t, got, "T")
+		require.Contains(t, got, "body")
+		require.Contains(t, got, "pre")
+		require.Contains(t, got, "footer line")
+		require.Contains(t, got, "Col")
+		require.Contains(t, got, "f1")
+		require.Contains(t, got, "N")
+		require.Contains(t, got, "7")
+	})
+
+	t.Run("interactivePropsWithoutMessage", func(t *testing.T) {
+		p := &Post{
+			Props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "button", "text": "Go", "action_id": "x"},
+				},
+			},
+		}
+		got := p.AllStrings(AllStringsOptions{})
+		require.Len(t, got, 0)
+	})
+
+	t.Run("nilProps", func(t *testing.T) {
+		p := &Post{Message: "x", Props: nil}
+		assert.Equal(t, []string{"x"}, p.AllStrings(AllStringsOptions{}))
+	})
+}
+
 func TestPost_PropsIsValid(t *testing.T) {
 	tests := map[string]struct {
 		props   StringInterface
@@ -1112,6 +1503,12 @@ func TestPost_PropsIsValid(t *testing.T) {
 			},
 			wantErr: "",
 		},
+		"valid silent_notification": {
+			props: StringInterface{
+				PostPropsSilentNotification: true,
+			},
+			wantErr: "",
+		},
 		"valid multiple props": {
 			props: StringInterface{
 				PostPropsFromWebhook:              "true",
@@ -1121,6 +1518,57 @@ func TestPost_PropsIsValid(t *testing.T) {
 				PostPropsMentionHighlightDisabled: true,
 			},
 			wantErr: "",
+		},
+		"valid mm_blocks array is treated as opaque data": {
+			props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "content": "Hello world"},
+					map[string]any{"type": "divider"},
+				},
+			},
+			wantErr: "",
+		},
+		"valid mm_blocks with unknown block types is treated as opaque data": {
+			props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "unknown_future_block_type", "foo": "bar"},
+				},
+			},
+			wantErr: "",
+		},
+		"valid mm_blocks with empty blocks prop": {
+			props: StringInterface{
+				PostPropsMmBlocks:       []any{map[string]any{"type": "text", "text": "a"}},
+				PostPropsBlockKitBlocks: []any{},
+			},
+			wantErr: "",
+		},
+		"valid attachments with empty mm_blocks array": {
+			props: StringInterface{
+				PostPropsMmBlocks: []any{},
+				PostPropsAttachments: []*MessageAttachment{
+					{Fallback: "f"},
+				},
+			},
+			wantErr: "",
+		},
+		"invalid multiple interactive payloads mm_blocks and blocks": {
+			props: StringInterface{
+				PostPropsMmBlocks: []any{map[string]any{"type": "text", "text": "a"}},
+				PostPropsBlockKitBlocks: []any{
+					map[string]any{"type": "section", "text": map[string]any{"type": "mrkdwn", "text": "b"}},
+				},
+			},
+			wantErr: "at most one interactive payload",
+		},
+		"invalid multiple interactive payloads attachments and cards": {
+			props: StringInterface{
+				PostPropsAdaptiveCards: []any{map[string]any{"type": "AdaptiveCard", "version": "1.0", "body": []any{}}},
+				PostPropsAttachments: []*MessageAttachment{
+					{Fallback: "f"},
+				},
+			},
+			wantErr: "at most one interactive payload",
 		},
 		"invalid added_user_id type": {
 			props: StringInterface{
@@ -1278,6 +1726,47 @@ func TestPost_PropsIsValid(t *testing.T) {
 			} else {
 				assert.ErrorContains(t, err, tc.wantErr)
 			}
+		})
+	}
+}
+
+func TestMembershipSystemPostTypes(t *testing.T) {
+	types := MembershipSystemPostTypes()
+	require.NotEmpty(t, types)
+
+	expected := []string{
+		PostTypeJoinLeave,
+		PostTypeAddRemove,
+		PostTypeJoinChannel,
+		PostTypeGuestJoinChannel,
+		PostTypeLeaveChannel,
+		PostTypeJoinTeam,
+		PostTypeLeaveTeam,
+		PostTypeAddToChannel,
+		PostTypeAddGuestToChannel,
+		PostTypeRemoveFromChannel,
+		PostTypeAddToTeam,
+		PostTypeRemoveFromTeam,
+	}
+	require.ElementsMatch(t, expected, types)
+}
+
+func TestIsMembershipSystemPost(t *testing.T) {
+	t.Run("nil post returns false", func(t *testing.T) {
+		require.False(t, IsMembershipSystemPost(nil))
+	})
+
+	t.Run("regular message post returns false", func(t *testing.T) {
+		require.False(t, IsMembershipSystemPost(&Post{Type: ""}))
+	})
+
+	t.Run("custom post type returns false", func(t *testing.T) {
+		require.False(t, IsMembershipSystemPost(&Post{Type: "custom_some_type"}))
+	})
+
+	for _, postType := range MembershipSystemPostTypes() {
+		t.Run("returns true for "+postType, func(t *testing.T) {
+			require.True(t, IsMembershipSystemPost(&Post{Type: postType}))
 		})
 	}
 }

@@ -9,9 +9,9 @@
 
 // Group: @channels @enterprise @system_console @group_mentions
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {Group} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {Group} from '@mattermost/types/groups';
 
 import {
     disablePermission,
@@ -22,8 +22,6 @@ import {enableGroupMention} from './helpers';
 
 import ldapUsers from '@/fixtures/ldap_users.json';
 import * as TIMEOUTS from '@/fixtures/timeouts';
-
-
 
 describe('Group Mentions', () => {
     let groupID: string;

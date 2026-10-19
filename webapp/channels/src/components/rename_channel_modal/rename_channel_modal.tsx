@@ -18,7 +18,7 @@ import Constants from 'utils/constants';
 
 type Actions = {
     patchChannel: (channelId: string, patch: Partial<Channel>) => Promise<ActionResult>;
-}
+};
 
 type Props = {
     channel: Channel;
@@ -26,7 +26,7 @@ type Props = {
     onExited: () => void;
     actions: Actions;
     intl: IntlShape;
-}
+};
 
 type State = {
     show: boolean;
@@ -34,7 +34,7 @@ type State = {
     channelUrl: string;
     isSaving: boolean;
     urlError: string;
-}
+};
 
 export class RenameChannelModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -119,6 +119,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                         currentUrl={this.state.channelUrl}
                         readOnly={false}
                         isEditingExistingChannel={true}
+                        isDefaultChannel={this.props.channel.name === Constants.DEFAULT_CHANNEL}
                         onErrorStateChange={(isError, errorMsg) => this.setState({urlError: isError ? (errorMsg || '') : ''})}
                         urlError={this.state.urlError}
                     />

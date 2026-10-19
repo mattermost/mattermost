@@ -7,6 +7,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Server Logs
     </div>
@@ -84,6 +85,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
         >
           <div
             class="DataGrid"
+            data-testid="dataGrid"
           >
             <div
               class="DataGrid_search"
@@ -236,6 +238,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
             </div>
             <div
               class="DataGrid_header"
+              data-testid="dataGrid-header"
             >
               <div
                 class="DataGrid_cell"
@@ -286,13 +289,16 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
             </div>
             <div
               class="DataGrid_rows"
+              data-testid="dataGrid-rows"
               style="min-height: 120px;"
             >
               <div
                 class="DataGrid_row"
+                data-testid="dataGrid-row"
               >
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 1.5; text-align: left;"
                 >
                   <span
@@ -308,6 +314,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 </div>
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 0.5; text-align: left;"
                 >
                   <span
@@ -318,6 +325,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 </div>
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 2.5; text-align: left;"
                 >
                   <span
@@ -329,6 +337,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 </div>
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 1.5; text-align: left;"
                 >
                   <span
@@ -339,6 +348,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 </div>
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 1; text-align: left;"
                 >
                   <button
@@ -351,9 +361,11 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
               </div>
               <div
                 class="DataGrid_row"
+                data-testid="dataGrid-row"
               >
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 1.5; text-align: left;"
                 >
                   <span
@@ -369,6 +381,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 </div>
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 0.5; text-align: left;"
                 >
                   <span
@@ -379,6 +392,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 </div>
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 2.5; text-align: left;"
                 >
                   <span
@@ -390,6 +404,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 </div>
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 1.5; text-align: left;"
                 >
                   <span
@@ -400,6 +415,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 </div>
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 1; text-align: left;"
                 >
                   <button
@@ -412,9 +428,11 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
               </div>
               <div
                 class="DataGrid_row"
+                data-testid="dataGrid-row"
               >
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 1.5; text-align: left;"
                 >
                   <span
@@ -430,6 +448,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 </div>
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 0.5; text-align: left;"
                 >
                   <span
@@ -440,6 +459,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 </div>
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 2.5; text-align: left;"
                 >
                   <span
@@ -451,6 +471,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 </div>
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 1.5; text-align: left;"
                 >
                   <span
@@ -461,6 +482,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 </div>
                 <div
                   class="DataGrid_cell"
+                  data-testid="dataGrid-cell"
                   style="flex-grow: 1; text-align: left;"
                 >
                   <button
@@ -474,11 +496,16 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
             </div>
             <div
               class="DataGrid_footer"
+              data-testid="dataGrid-footer"
             >
               <div
                 class="DataGrid_cell"
               >
-                1 - 3 of 3
+                <span
+                  data-testid="dataGrid-footer-paginationInfo"
+                >
+                  1 - 3 of 3
+                </span>
                 <button
                   aria-label="Previous page"
                   class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"

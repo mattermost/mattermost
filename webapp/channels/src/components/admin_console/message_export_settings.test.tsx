@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 
+import type {AdminConfig} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
 
 import MessageExportSettingsDefault, {MessageExportSettings} from 'components/admin_console/message_export_settings';
@@ -66,6 +68,7 @@ describe('components/MessageExportSettings', () => {
                     EmailAddress: 'globalRelay@mattermost.com',
                     CustomSMTPServerName: '',
                     CustomSMTPPort: '25',
+                    SenderAddress: '',
                 },
             },
         };
@@ -93,6 +96,7 @@ describe('components/MessageExportSettings', () => {
                     EmailAddress: 'globalRelay@mattermost.com',
                     CustomSMTPServerName: '',
                     CustomSMTPPort: '25',
+                    SenderAddress: '',
                 },
             },
         };
@@ -103,6 +107,171 @@ describe('components/MessageExportSettings', () => {
             />,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot, enabled, globalrelay, custom customer type', () => {
+        const config = {
+            MessageExportSettings: {
+                EnableExport: true,
+                ExportFormat: 'globalrelay',
+                DailyRunTime: '01:00',
+                ExportFromTimestamp: 12345678,
+                BatchSize: 10000,
+                GlobalRelaySettings: {
+                    CustomerType: 'CUSTOM',
+                    SMTPUsername: 'globalRelayUser',
+                    SMTPPassword: 'globalRelayPassword',
+                    EmailAddress: 'globalRelay@mattermost.com',
+                    CustomSMTPServerName: 'feeds.globalrelay.com',
+                    CustomSMTPPort: '25',
+                    CustomHeaderName: 'X-ProofpointArchiveMediaType',
+                    CustomHeaderValue: 'Message',
+                    SenderAddress: 'compliance-export@mattermost.com',
+                },
+            },
+        };
+
+        const {container} = renderWithContext(
+            <MessageExportSettingsDefault
+                config={config}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should render the custom header fields with their configured values for the CUSTOM customer type', () => {
+        const config = {
+            MessageExportSettings: {
+                EnableExport: true,
+                ExportFormat: 'globalrelay',
+                DailyRunTime: '01:00',
+                ExportFromTimestamp: 12345678,
+                BatchSize: 10000,
+                GlobalRelaySettings: {
+                    CustomerType: 'CUSTOM',
+                    SMTPUsername: 'globalRelayUser',
+                    SMTPPassword: 'globalRelayPassword',
+                    EmailAddress: 'globalRelay@mattermost.com',
+                    CustomSMTPServerName: 'feeds.globalrelay.com',
+                    CustomSMTPPort: '25',
+                    CustomHeaderName: 'X-ProofpointArchiveMediaType',
+                    CustomHeaderValue: 'Message',
+                    SenderAddress: 'compliance-export@mattermost.com',
+                },
+            },
+        };
+
+        renderWithContext(
+            <MessageExportSettingsDefault
+                config={config}
+            />,
+        );
+
+        expect(screen.getByTestId('globalRelayCustomHeaderNameinput')).toHaveValue('X-ProofpointArchiveMediaType');
+        expect(screen.getByTestId('globalRelayCustomHeaderValueinput')).toHaveValue('Message');
+        expect(screen.getByTestId('globalRelaySenderAddressinput')).toHaveValue('compliance-export@mattermost.com');
+    });
+
+    test('should render the sender address field for non-CUSTOM customer types', () => {
+        const config = {
+            MessageExportSettings: {
+                EnableExport: true,
+                ExportFormat: 'globalrelay',
+                DailyRunTime: '01:00',
+                ExportFromTimestamp: 12345678,
+                BatchSize: 10000,
+                GlobalRelaySettings: {
+                    CustomerType: 'A10',
+                    SMTPUsername: 'globalRelayUser',
+                    SMTPPassword: 'globalRelayPassword',
+                    EmailAddress: 'globalRelay@mattermost.com',
+                    CustomSMTPServerName: '',
+                    CustomSMTPPort: '25',
+                    SenderAddress: 'compliance-export@mattermost.com',
+                },
+            },
+        };
+
+        renderWithContext(
+            <MessageExportSettingsDefault
+                config={config}
+            />,
+        );
+
+        expect(screen.getByTestId('globalRelaySenderAddressinput')).toHaveValue('compliance-export@mattermost.com');
+    });
+
+    test('should not render the custom header fields for non-CUSTOM customer types', () => {
+        const config = {
+            MessageExportSettings: {
+                EnableExport: true,
+                ExportFormat: 'globalrelay',
+                DailyRunTime: '01:00',
+                ExportFromTimestamp: 12345678,
+                BatchSize: 10000,
+                GlobalRelaySettings: {
+                    CustomerType: 'A10',
+                    SMTPUsername: 'globalRelayUser',
+                    SMTPPassword: 'globalRelayPassword',
+                    EmailAddress: 'globalRelay@mattermost.com',
+                    CustomSMTPServerName: '',
+                    CustomSMTPPort: '25',
+                    CustomHeaderName: 'X-ProofpointArchiveMediaType',
+                    CustomHeaderValue: 'Message',
+                    SenderAddress: '',
+                },
+            },
+        };
+
+        renderWithContext(
+            <MessageExportSettingsDefault
+                config={config}
+            />,
+        );
+
+        expect(screen.queryByTestId('globalRelayCustomHeaderNameinput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('globalRelayCustomHeaderValueinput')).not.toBeInTheDocument();
+    });
+
+    test('should carry edited custom header values into the saved config', () => {
+        const config = {
+            MessageExportSettings: {
+                EnableExport: true,
+                ExportFormat: 'globalrelay',
+                DailyRunTime: '01:00',
+                ExportFromTimestamp: 12345678,
+                BatchSize: 10000,
+                GlobalRelaySettings: {
+                    CustomerType: 'CUSTOM',
+                    SMTPUsername: 'globalRelayUser',
+                    SMTPPassword: 'globalRelayPassword',
+                    EmailAddress: 'globalRelay@mattermost.com',
+                    CustomSMTPServerName: 'feeds.globalrelay.com',
+                    CustomSMTPPort: '25',
+                    CustomHeaderName: '',
+                    CustomHeaderValue: '',
+                    SenderAddress: '',
+                },
+            },
+        } as unknown as AdminConfig;
+
+        const ref = React.createRef<MessageExportSettings>();
+        renderWithContext(
+            <MessageExportSettings
+                intl={defaultIntl}
+                config={config}
+                ref={ref}
+            />,
+        );
+
+        fireEvent.change(screen.getByTestId('globalRelayCustomHeaderNameinput'), {target: {value: 'X-ProofpointArchiveMediaType'}});
+        fireEvent.change(screen.getByTestId('globalRelayCustomHeaderValueinput'), {target: {value: 'Message'}});
+        fireEvent.change(screen.getByTestId('globalRelaySenderAddressinput'), {target: {value: 'compliance-export@mattermost.com'}});
+
+        const savedConfig = ref.current!.getConfigFromState(config);
+        expect(savedConfig.MessageExportSettings.GlobalRelaySettings.CustomHeaderName).toBe('X-ProofpointArchiveMediaType');
+        expect(savedConfig.MessageExportSettings.GlobalRelaySettings.CustomHeaderValue).toBe('Message');
+        expect(savedConfig.MessageExportSettings.GlobalRelaySettings.SenderAddress).toBe('compliance-export@mattermost.com');
     });
 });
 
@@ -120,7 +289,7 @@ describe('components/MessageExportSettings/getJobDetails', () => {
         },
     };
 
-    let ref: React.RefObject<MessageExportSettings>;
+    let ref: React.RefObject<MessageExportSettings | null>;
 
     beforeEach(() => {
         ref = React.createRef<MessageExportSettings>();

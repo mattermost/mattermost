@@ -12,7 +12,7 @@ type Props = {
     button: SectionNoticeButtonProp;
     emphasis?: ButtonEmphasis;
     buttonClass?: 'btn-link';
-}
+};
 
 const SectionNoticeButton = ({
     button,

@@ -30,7 +30,7 @@ type Props = {
     enableOAuthServiceProvider: boolean;
     enableOutgoingOAuthConnections: boolean;
     team: Team;
-}
+};
 
 export default class Integrations extends React.PureComponent <Props> {
     componentDidMount() {

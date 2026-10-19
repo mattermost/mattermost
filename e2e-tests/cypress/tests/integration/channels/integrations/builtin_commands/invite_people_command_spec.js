@@ -14,7 +14,6 @@ import {loginAndVisitChannel} from './helper';
 
 import {getJoinEmailTemplate, verifyEmailBody} from '@/utils';
 
-
 describe('Integrations', () => {
     let testUser;
     let testTeam;

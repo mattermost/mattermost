@@ -15,7 +15,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"reflect"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -27,11 +27,15 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 // Helper to enable feature with license
@@ -282,14 +286,14 @@ func TestCreatePost(t *testing.T) {
 		}
 	})
 
-	t.Run("err with integrations-reserved props", func(t *testing.T) {
-		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+	t.Run("integrations-reserved props are stripped even when hardened mode is on", func(t *testing.T) {
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.EnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+			*cfg.ServiceSettings.EnableHardenedMode = true
 		})
 
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+			*cfg.ServiceSettings.EnableHardenedMode = originalHardenedModeSetting
 		})
 
 		rpost, postResp, postErr := client.CreatePost(context.Background(), &model.Post{
@@ -298,9 +302,10 @@ func TestCreatePost(t *testing.T) {
 			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
 		})
 
-		require.Error(t, postErr)
-		CheckBadRequestStatus(t, postResp)
-		assert.Nil(t, rpost)
+		require.NoError(t, postErr)
+		CheckCreatedStatus(t, postResp)
+		require.NotNil(t, rpost)
+		assert.Empty(t, rpost.GetProp(model.PostPropsFromWebhook))
 	})
 
 	t.Run("invalid post type", func(t *testing.T) {
@@ -465,6 +470,19 @@ func TestCreatePost(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Zero(t, *createdPost.RemoteId)
 	})
+
+	t.Run("message longer than max post size is rejected", func(t *testing.T) {
+		longPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   strings.Repeat("a", th.App.MaxPostSize()+1),
+		}
+
+		rpost, resp, err := client.CreatePost(context.Background(), longPost)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, rpost)
+	})
+
 	t.Run("not logged in", func(t *testing.T) {
 		resp, err := client.Logout(context.Background())
 		require.NoError(t, err)
@@ -698,15 +716,12 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, post.GetProps(), model.PostPropsFromOAuthApp, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
 
-	t.Run("allow username and icon overrides", func(t *testing.T) {
-		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
-		})
-
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
-		})
+	t.Run("username and icon overrides are not honored for an OAuth client", func(t *testing.T) {
+		// v12: override_username/override_icon_url are stripped for every
+		// locally-originated post and only re-injected for FromIncomingWebhook
+		// (see app.CreatePost) — an OAuth-app session posting directly via the
+		// REST API is not FromIncomingWebhook, so the reserved prop is never
+		// honored, independent of the hardened-mode setting.
 
 		post, _, err = client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -715,8 +730,8 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 		})
 
 		require.NoError(t, err)
-		assert.Contains(t, post.GetProps(), model.PostPropsOverrideUsername, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
-		assert.Contains(t, post.GetProps(), model.PostPropsOverrideIconURL, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideIconURL))
+		assert.NotContains(t, post.GetProps(), model.PostPropsOverrideUsername, fmt.Sprintf("%s prop should be stripped for an OAuth client", model.PostPropsOverrideUsername))
+		assert.NotContains(t, post.GetProps(), model.PostPropsOverrideIconURL, fmt.Sprintf("%s prop should be stripped for an OAuth client", model.PostPropsOverrideIconURL))
 	})
 }
 
@@ -983,6 +998,10 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 }
 
 func TestMoveThread(t *testing.T) {
+	// Skipped: MoveThreadsEnabled is retired and forced off on config load (MM-69646).
+	// This test requires the flag and cannot run while the server refuses to enable it.
+	t.Skip("MoveThreadsEnabled feature flag is retired (MM-69646)")
+
 	th := SetupEnterprise(t).InitBasic(t)
 
 	// Enable MoveThreads feature flag
@@ -1572,6 +1591,177 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	assert.Equal(t, "online", st.Status)
 }
 
+func TestCreatePostSilentRejectedForHumanUser(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	api, err := Init(th.Server)
+	require.NoError(t, err)
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+
+	handler := api.APIHandler(createPost)
+	resp := httptest.NewRecorder()
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "silent human post",
+	}
+
+	postJSON, jsonErr := json.Marshal(post)
+	require.NoError(t, jsonErr)
+	req := httptest.NewRequest("POST", "/api/v4/posts?silent=true", bytes.NewReader(postJSON))
+	req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusForbidden, resp.Code)
+}
+
+func TestCreatePostSilentQueryParam(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	api, err := Init(th.Server)
+	require.NoError(t, err)
+
+	handler := api.APIHandler(createPost)
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "silent query param post",
+	}
+	postJSON, jsonErr := json.Marshal(post)
+	require.NoError(t, jsonErr)
+
+	t.Run("invalid silent value returns 400", func(t *testing.T) {
+		session, _ := th.App.GetSession(th.Client.AuthToken)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest("POST", "/api/v4/posts?silent=invalid", bytes.NewReader(postJSON))
+		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+
+		handler.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+	})
+
+	t.Run("silent=false does not set prop", func(t *testing.T) {
+		session, _ := th.App.GetSession(th.Client.AuthToken)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest("POST", "/api/v4/posts?silent=false", bytes.NewReader(postJSON))
+		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+
+		handler.ServeHTTP(resp, req)
+		require.Equal(t, http.StatusCreated, resp.Code)
+
+		var rp model.Post
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&rp))
+		assert.False(t, rp.HasSilentNotification())
+	})
+
+	t.Run("silent=0 does not set prop", func(t *testing.T) {
+		session, _ := th.App.GetSession(th.Client.AuthToken)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest("POST", "/api/v4/posts?silent=0", bytes.NewReader(postJSON))
+		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+
+		handler.ServeHTTP(resp, req)
+		require.Equal(t, http.StatusCreated, resp.Code)
+
+		var rp model.Post
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&rp))
+		assert.False(t, rp.HasSilentNotification())
+	})
+
+	t.Run("empty silent param is ignored", func(t *testing.T) {
+		session, _ := th.App.GetSession(th.Client.AuthToken)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest("POST", "/api/v4/posts?silent=", bytes.NewReader(postJSON))
+		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+
+		handler.ServeHTTP(resp, req)
+		require.Equal(t, http.StatusCreated, resp.Code)
+
+		var rp model.Post
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&rp))
+		assert.False(t, rp.HasSilentNotification())
+	})
+
+	t.Run("bot may create silent post via query param", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+		bot := th.CreateBotWithSystemAdminClient(t)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
+		require.Nil(t, appErr)
+		_, appErr = th.App.UpdateUserRoles(th.Context, bot.UserId, model.TeamUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, botUser, th.BasicTeam)
+		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+		})
+		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), bot.UserId, "silent-bot-token", 0)
+		require.NoError(t, err)
+
+		resp := httptest.NewRecorder()
+		botPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "silent bot post",
+			UserId:    bot.UserId,
+		}
+		botPostJSON, err := json.Marshal(botPost)
+		require.NoError(t, err)
+		req := httptest.NewRequest("POST", "/api/v4/posts?silent=true", bytes.NewReader(botPostJSON))
+		req.Header.Set(model.HeaderAuth, "Bearer "+rtoken.Token)
+
+		handler.ServeHTTP(resp, req)
+		require.Equal(t, http.StatusCreated, resp.Code)
+
+		var rp model.Post
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&rp))
+		assert.True(t, rp.HasSilentNotification())
+	})
+}
+
+func TestPatchEditsMoreThanPinState(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	// Patches come from factories so that the expectation has its own pointees, which is what
+	// makes the non-mutation assertion below catch a mutated pointee and not just a reassigned field.
+	testCases := []struct {
+		name     string
+		newPatch func() model.PostPatch
+		expected bool
+	}{
+		{"empty patch", func() model.PostPatch { return model.PostPatch{} }, false},
+		{"pin state only", func() model.PostPatch { return model.PostPatch{IsPinned: new(true)} }, false},
+		{"unpin state only", func() model.PostPatch { return model.PostPatch{IsPinned: new(false)} }, false},
+		{"message", func() model.PostPatch { return model.PostPatch{Message: new("edited")} }, true},
+		{"props", func() model.PostPatch {
+			return model.PostPatch{Props: &model.StringInterface{"foo": "bar"}}
+		}, true},
+		{"file ids", func() model.PostPatch { return model.PostPatch{FileIds: &model.StringArray{"fileid"}} }, true},
+		{"has reactions", func() model.PostPatch { return model.PostPatch{HasReactions: new(true)} }, true},
+		{"message alongside pin state", func() model.PostPatch {
+			return model.PostPatch{IsPinned: new(true), Message: new("edited")}
+		}, true},
+		{"props alongside pin state", func() model.PostPatch {
+			return model.PostPatch{IsPinned: new(true), Props: &model.StringInterface{"foo": "bar"}}
+		}, true},
+		{"file ids alongside pin state", func() model.PostPatch {
+			return model.PostPatch{IsPinned: new(true), FileIds: &model.StringArray{"fileid"}}
+		}, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			patch := tc.newPatch()
+			require.Equal(t, tc.expected, patchEditsMoreThanPinState(&patch))
+			require.Equal(t, tc.newPatch(), patch, "the caller's patch must not be modified")
+		})
+	}
+}
+
 func TestUpdatePost(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -1820,30 +2010,101 @@ func TestUpdatePost(t *testing.T) {
 			Message:   oldPost.Message,
 			IsPinned:  true,
 		}
+		updatedPost, _, err := client.UpdatePost(context.Background(), oldPost.Id, up)
+		require.NoError(t, err)
+		require.True(t, updatedPost.IsPinned)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.True(t, storedPost.IsPinned)
+	})
+
+	t.Run("clear is_pinned but not message, post too old", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			IsPinned:  true,
+			CreateAt:  model.GetMillis() - 2000,
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		up := &model.Post{
+			Id:        oldPost.Id,
+			ChannelId: channel.Id,
+			Message:   oldPost.Message,
+			IsPinned:  false,
+		}
+		updatedPost, _, err := client.UpdatePost(context.Background(), oldPost.Id, up)
+		require.NoError(t, err)
+		require.False(t, updatedPost.IsPinned)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.False(t, storedPost.IsPinned)
+	})
+
+	t.Run("change is_pinned and message, post too old", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis() - 2000,
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		up := &model.Post{
+			Id:        oldPost.Id,
+			ChannelId: channel.Id,
+			Message:   "edited message",
+			IsPinned:  true,
+		}
 		_, resp, err := client.UpdatePost(context.Background(), oldPost.Id, up)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "original message", storedPost.Message)
+		require.False(t, storedPost.IsPinned)
 	})
 
-	t.Run("err with integrations-reserved props", func(t *testing.T) {
-		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+	t.Run("integrations-reserved props are stripped even when hardened mode is on", func(t *testing.T) {
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.EnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+			*cfg.ServiceSettings.EnableHardenedMode = true
 		})
 
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+			*cfg.ServiceSettings.EnableHardenedMode = originalHardenedModeSetting
 		})
 
-		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
+		updated, resp, err := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
+			Id:        rpost.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with props",
 			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
 		})
 
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, updated)
+		assert.Empty(t, updated.GetProp(model.PostPropsFromWebhook))
 	})
 
 	t.Run("should prevent updating post with files when user lacks upload_file permission in target channel (team scheme)", func(t *testing.T) {
@@ -2301,6 +2562,25 @@ func TestUpdatePost(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("message longer than max post size is rejected", func(t *testing.T) {
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		longPost := &model.Post{
+			Id:        post.Id,
+			ChannelId: channel.Id,
+			Message:   strings.Repeat("a", th.App.MaxPostSize()+1),
+		}
+		updatedPost, resp, err := client.UpdatePost(context.Background(), post.Id, longPost)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, updatedPost)
+	})
 }
 
 func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
@@ -2346,7 +2626,7 @@ func TestPatchPost(t *testing.T) {
 		require.NoError(t, err)
 		fileIDs[i] = fileResp.FileInfos[0].Id
 	}
-	sort.Strings(fileIDs)
+	slices.Sort(fileIDs)
 
 	post := &model.Post{
 		ChannelId:    channel.Id,
@@ -2717,10 +2997,44 @@ func TestPatchPost(t *testing.T) {
 		patch := &model.PostPatch{
 			IsPinned: new(true),
 		}
+		patchedPost, _, err := th.SystemAdminClient.PatchPost(context.Background(), oldPost.Id, patch)
+		require.NoError(t, err)
+		require.True(t, patchedPost.IsPinned)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.True(t, storedPost.IsPinned)
+	})
+
+	t.Run("patch is_pinned along with message, time limit expired", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			CreateAt:  model.GetMillis() - 2000,
+		}
+		oldPost, _, err := th.SystemAdminClient.CreatePost(context.Background(), oldPost)
+		require.NoError(t, err)
+
+		patch := &model.PostPatch{
+			IsPinned: new(true),
+			Message:  new("edited message"),
+		}
 		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), oldPost.Id, patch)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "original message", storedPost.Message)
+		require.False(t, storedPost.IsPinned)
 	})
 
 	t.Run("patch has_reactions only, time limit expired", func(t *testing.T) {
@@ -2748,14 +3062,14 @@ func TestPatchPost(t *testing.T) {
 		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
 	})
 
-	t.Run("err with integrations-reserved props", func(t *testing.T) {
-		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+	t.Run("integrations-reserved props are stripped even when hardened mode is on", func(t *testing.T) {
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.EnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+			*cfg.ServiceSettings.EnableHardenedMode = true
 		})
 
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+			*cfg.ServiceSettings.EnableHardenedMode = originalHardenedModeSetting
 		})
 
 		post := &model.Post{
@@ -2763,15 +3077,17 @@ func TestPatchPost(t *testing.T) {
 			Message:   "#hashtag a message",
 			CreateAt:  model.GetMillis() - 2000,
 		}
-		post, _, createErr := th.SystemAdminClient.CreatePost(context.Background(), post)
+		post, _, createErr := client.CreatePost(context.Background(), post)
 		require.NoError(t, createErr)
 
 		patch := &model.PostPatch{}
 		patch.Props = &model.StringInterface{model.PostPropsFromWebhook: "true"}
-		_, patchResp, patchErr := client.PatchPost(context.Background(), post.Id, patch)
+		patched, patchResp, patchErr := client.PatchPost(context.Background(), post.Id, patch)
 
-		require.Error(t, patchErr)
-		CheckBadRequestStatus(t, patchResp)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, patchResp)
+		require.NotNil(t, patched)
+		assert.Empty(t, patched.GetProp(model.PostPropsFromWebhook))
 	})
 
 	t.Run("should be able to add new files", func(t *testing.T) {
@@ -2902,6 +3218,22 @@ func TestPatchPost(t *testing.T) {
 		require.Contains(t, patchedPost.FileIds, fileInfo1.Id)
 		require.Contains(t, patchedPost.FileIds, fileInfo2.Id)
 	})
+
+	t.Run("message longer than max post size is rejected", func(t *testing.T) {
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+		})
+		require.NoError(t, err)
+
+		patch := &model.PostPatch{
+			Message: new(strings.Repeat("a", th.App.MaxPostSize()+1)),
+		}
+		patchedPost, resp, err := client.PatchPost(context.Background(), post.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, patchedPost)
+	})
 }
 
 func TestPinPost(t *testing.T) {
@@ -2926,12 +3258,57 @@ func TestPinPost(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		resp, err := client.PinPost(context.Background(), oldPost.Id)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		// Give the post a non-zero EditAt so that a pin clearing it would be caught below.
+		editedPost, _, appErr := th.App.PatchPost(th.Context, oldPost.Id, &model.PostPatch{
+			Message: new("edited message"),
+		}, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+		require.NotZero(t, editedPost.EditAt)
+
+		_, err := client.PinPost(context.Background(), oldPost.Id)
+		require.NoError(t, err)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.True(t, storedPost.IsPinned)
+		require.Equal(t, editedPost.EditAt, storedPost.EditAt, "pinning must not mark the post as edited")
 	})
 
-	t.Run("idempotent pin/unpin after time limit", func(t *testing.T) {
+	t.Run("pin another user's post after time limit", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis() - 2000,
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		th.LoginBasic2(t)
+		defer th.LoginBasic(t)
+
+		_, err := client.PinPost(context.Background(), oldPost.Id)
+		require.NoError(t, err)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.True(t, storedPost.IsPinned)
+
+		_, err = client.UnpinPost(context.Background(), oldPost.Id)
+		require.NoError(t, err)
+
+		storedPost, appErr = th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.False(t, storedPost.IsPinned)
+	})
+
+	t.Run("no-op pin/unpin after time limit", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostEditTimeLimit = 1
 		})
@@ -2957,12 +3334,35 @@ func TestPinPost(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
+		// Give both posts a non-zero EditAt so that a no-op clearing it would be caught below.
+		editedPinnedPost, _, appErr := th.App.PatchPost(th.Context, pinnedPost.Id, &model.PostPatch{
+			Message: new("edited message"),
+		}, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+		require.NotZero(t, editedPinnedPost.EditAt)
+
+		editedUnpinnedPost, _, appErr := th.App.PatchPost(th.Context, unpinnedPost.Id, &model.PostPatch{
+			Message: new("edited message"),
+		}, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+		require.NotZero(t, editedUnpinnedPost.EditAt)
+
 		// Both are no-ops and must succeed regardless of age.
 		_, err := client.PinPost(context.Background(), pinnedPost.Id)
 		require.NoError(t, err)
 
+		storedPost, appErr := th.App.GetSinglePost(th.Context, pinnedPost.Id, false)
+		require.Nil(t, appErr)
+		require.True(t, storedPost.IsPinned)
+		require.Equal(t, editedPinnedPost.EditAt, storedPost.EditAt, "a no-op pin must not mark the post as edited")
+
 		_, err = client.UnpinPost(context.Background(), unpinnedPost.Id)
 		require.NoError(t, err)
+
+		storedPost, appErr = th.App.GetSinglePost(th.Context, unpinnedPost.Id, false)
+		require.Nil(t, appErr)
+		require.False(t, storedPost.IsPinned)
+		require.Equal(t, editedUnpinnedPost.EditAt, storedPost.EditAt, "a no-op unpin must not mark the post as edited")
 	})
 
 	post := th.BasicPost
@@ -3014,9 +3414,20 @@ func TestUnpinPost(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		resp, err := client.UnpinPost(context.Background(), oldPost.Id)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		// Give the post a non-zero EditAt so that an unpin clearing it would be caught below.
+		editedPost, _, appErr := th.App.PatchPost(th.Context, oldPost.Id, &model.PostPatch{
+			Message: new("edited message"),
+		}, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+		require.NotZero(t, editedPost.EditAt)
+
+		_, err := client.UnpinPost(context.Background(), oldPost.Id)
+		require.NoError(t, err)
+
+		storedPost, appErr := th.App.GetSinglePost(th.Context, oldPost.Id, false)
+		require.Nil(t, appErr)
+		require.False(t, storedPost.IsPinned)
+		require.Equal(t, editedPost.EditAt, storedPost.EditAt, "unpinning must not mark the post as edited")
 	})
 
 	pinnedPost := th.CreatePinnedPost(t)
@@ -3466,6 +3877,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("FileInfo").Return(th.App.Srv().Store().FileInfo())
 	mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+	mockStore.On("DeliveryTracking").Return(th.App.Srv().Store().DeliveryTracking())
 	mockStore.On("System").Return(th.App.Srv().Store().System())
 	mockStore.On("License").Return(th.App.Srv().Store().License())
 	mockStore.On("Role").Return(th.App.Srv().Store().Role())
@@ -3649,6 +4061,50 @@ func TestGetPostsBefore(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.Len(t, posts.Order, 9, "expected 9 posts")
 	})
+}
+
+func TestGetPostsExcludeMembershipSystemPosts(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	membershipPost := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "user joined the channel",
+		Type:      model.PostTypeJoinChannel,
+		Props: model.StringInterface{
+			"username": th.BasicUser.Username,
+		},
+	}
+	createdMembershipPost, _, appErr := th.App.CreatePost(th.Context, membershipPost, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	normalPost := th.CreatePost(t)
+
+	disableJoinLeave := true
+	_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{
+		DisableJoinLeaveMessages: &disableJoinLeave,
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	posts, _, err := client.GetPostsBefore(context.Background(), th.BasicChannel.Id, normalPost.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+	_, found := posts.Posts[createdMembershipPost.Id]
+	require.False(t, found)
+
+	disableJoinLeave = false
+	_, resp, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{
+		DisableJoinLeaveMessages: &disableJoinLeave,
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	posts, _, err = client.GetPostsBefore(context.Background(), th.BasicChannel.Id, normalPost.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+	require.Contains(t, posts.Posts, createdMembershipPost.Id)
 }
 
 func TestGetPostsAfter(t *testing.T) {
@@ -3862,7 +4318,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		for postId := range posts {
 			namedPostIds = append(namedPostIds, namePost(postId))
 		}
-		sort.Strings(namedPostIds)
+		slices.Sort(namedPostIds)
 
 		return namedPostIds
 	}
@@ -4052,6 +4508,323 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		NextPostId: "",
 		PrevPostId: post10.Id,
 	}, posts)
+}
+
+// TestGetPostsForChannelAroundLastUnreadBurnOnRead verifies that burn-on-read
+// posts which have expired for the requesting user are excluded from the
+// response and, crucially, that the NextPostId/PrevPostId pagination cursors
+// step over them instead of pointing at a post the client can no longer see.
+// A cursor that referenced an expired post made the webapp believe more posts
+// were available, leaving the channel stuck loading (MM-67500).
+func TestGetPostsForChannelAroundLastUnreadBurnOnRead(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupEnterprise(t).InitBasic(t)
+	enableBurnOnReadFeature(th)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.BurnOnRead = true
+	})
+
+	// user1 is the viewer, user2 creates burn-on-read posts
+	user1 := th.BasicUser
+	client1 := th.Client
+
+	user2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user2, th.BasicTeam)
+	client2 := th.CreateClient()
+	_, _, err := client2.Login(context.Background(), user2.Email, user2.Password)
+	require.NoError(t, err)
+
+	createChannel := func(t *testing.T) *model.Channel {
+		t.Helper()
+		ch := th.CreatePublicChannel(t)
+		// since the channel is created with th.Client,
+		// user1 will be in the channel.
+		th.AddUserToChannel(t, user2, ch)
+		t.Cleanup(func() {
+			_, err := th.Client.DeleteChannel(context.Background(), ch.Id)
+			require.NoError(t, err)
+		})
+		return ch
+	}
+
+	createRegularPost := func(t *testing.T, client *model.Client4, channel *model.Channel, message string) *model.Post {
+		t.Helper()
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   message,
+		}
+		created, resp, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		return created
+	}
+
+	createBurnOnReadPost := func(t *testing.T, client *model.Client4, channel *model.Channel, message string) *model.Post {
+		t.Helper()
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   message,
+			Type:      model.PostTypeBurnOnRead,
+		}
+		created, resp, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		return created
+	}
+
+	setLastViewedAt := func(t *testing.T, channelID, userID string, at int64) {
+		t.Helper()
+		member, err := th.App.Srv().Store().Channel().GetMember(th.Context, channelID, userID)
+		require.NoError(t, err)
+		member.LastViewedAt = at
+		_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, member)
+		require.NoError(t, err)
+		th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelID)
+	}
+
+	burnPost := func(t *testing.T, client *model.Client4, postID string) {
+		t.Helper()
+		resp, err := client.BurnPost(context.Background(), postID)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	}
+
+	t.Run("expired BoR post is excluded from results and NextPostId/PrevPostId skip it", func(t *testing.T) {
+		ch := createChannel(t)
+
+		// Create posts: regular1, bor (by user2), regular2, regular3
+		regular1 := createRegularPost(t, client1, ch, "regular 1")
+		borPost := createBurnOnReadPost(t, client2, ch, "secret message")
+		regular2 := createRegularPost(t, client1, ch, "regular 2")
+		regular3 := createRegularPost(t, client1, ch, "regular 3")
+
+		// Set last viewed before the BoR post so it becomes the first unread
+		setLastViewedAt(t, ch.Id, user1.Id, borPost.CreateAt-1)
+
+		// User1 reveals then burns the BoR post (expires the read receipt)
+		_, resp, err := client1.RevealPost(context.Background(), borPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		burnPost(t, client1, borPost.Id)
+
+		// Call GetPostsAroundLastUnread
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+		require.NoError(t, err)
+
+		// BoR post should NOT be in the Order or Posts
+		assert.NotContains(t, posts.Order, borPost.Id, "expired BoR post should not be in Order")
+		assert.NotContains(t, posts.Posts, borPost.Id, "expired BoR post should not be in Posts")
+
+		// regular2 and regular3 should be present
+		assert.Contains(t, posts.Posts, regular2.Id, "regular2 should be in Posts")
+		assert.Contains(t, posts.Posts, regular3.Id, "regular3 should be in Posts")
+
+		// PrevPostId should skip the expired BoR post and point to regular1
+		assert.Equal(t, regular1.Id, posts.PrevPostId, "PrevPostId should skip expired BoR post and point to regular1")
+	})
+
+	t.Run("non-expired BoR post is visible and NextPostId/PrevPostId reference correctly", func(t *testing.T) {
+		ch := createChannel(t)
+
+		// Create posts: regular1, regular2, borPost (by user2), regular3
+		// borPost is positioned after regular2 so it falls just outside
+		// the page window when small limits are used.
+		regular1 := createRegularPost(t, client1, ch, "regular 1")
+		regular2 := createRegularPost(t, client1, ch, "regular 2")
+		borPost := createBurnOnReadPost(t, client2, ch, "secret message")
+		_ = createRegularPost(t, client1, ch, "regular 3")
+
+		// Set last viewed before regular1 so it becomes the first unread
+		setLastViewedAt(t, ch.Id, user1.Id, regular1.CreateAt-1)
+
+		// Reveal the BoR post (receipt is still valid, NOT expired)
+		_, _, err := client1.RevealPost(context.Background(), borPost.Id)
+		require.NoError(t, err)
+
+		// Use limit_after=2 so the window contains regular1 + regular2.
+		// borPost sits just outside the window and should appear as NextPostId.
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 1, 2, false)
+		require.NoError(t, err)
+
+		// regular2 must be in the window; borPost must be outside it
+		assert.Contains(t, posts.Order, regular2.Id, "regular2 should be in the page window")
+		assert.NotContains(t, posts.Order, borPost.Id, "borPost should be outside the page window")
+
+		// Non-expired revealed BoR post should appear as NextPostId
+		assert.Equal(t, borPost.Id, posts.NextPostId, "non-expired revealed BoR post should appear as NextPostId")
+
+		// Also verify with full limits that the BoR post is included in results
+		postsFull, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+		require.NoError(t, err)
+		assert.Contains(t, postsFull.Order, borPost.Id, "non-expired BoR post should be in Order with full page")
+		assert.Contains(t, postsFull.Posts, borPost.Id, "non-expired BoR post should be in Posts with full page")
+	})
+
+	t.Run("unrevealed BoR post appears with empty message", func(t *testing.T) {
+		ch := createChannel(t)
+
+		_ = createRegularPost(t, client1, ch, "regular 1")
+		borPost := createBurnOnReadPost(t, client2, ch, "secret message")
+		_ = createRegularPost(t, client1, ch, "regular 2")
+
+		// Set last viewed before borPost
+		setLastViewedAt(t, ch.Id, user1.Id, borPost.CreateAt-1)
+
+		// Do NOT reveal the BoR post
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+		require.NoError(t, err)
+
+		// BoR post should be in the list but with empty message (unrevealed)
+		assert.Contains(t, posts.Order, borPost.Id, "unrevealed BoR post should still be in Order")
+		assert.Contains(t, posts.Posts, borPost.Id, "unrevealed BoR post should still be in Posts")
+		assert.Empty(t, posts.Posts[borPost.Id].Message, "unrevealed BoR post should have empty message")
+	})
+
+	t.Run("multiple expired BoR posts are all excluded from results", func(t *testing.T) {
+		ch := createChannel(t)
+
+		regular1 := createRegularPost(t, client1, ch, "regular 1")
+		bor1 := createBurnOnReadPost(t, client2, ch, "secret 1")
+		bor2 := createBurnOnReadPost(t, client2, ch, "secret 2")
+		regular2 := createRegularPost(t, client1, ch, "regular 2")
+
+		// Set last viewed before bor1
+		setLastViewedAt(t, ch.Id, user1.Id, bor1.CreateAt-1)
+
+		// Reveal then burn both BoR posts (expires the read receipts)
+		_, _, err := client1.RevealPost(context.Background(), bor1.Id)
+		require.NoError(t, err)
+		_, _, err = client1.RevealPost(context.Background(), bor2.Id)
+		require.NoError(t, err)
+
+		burnPost(t, client1, bor1.Id)
+		burnPost(t, client1, bor2.Id)
+
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+		require.NoError(t, err)
+
+		// Both BoR posts should be excluded from Order and Posts
+		assert.NotContains(t, posts.Order, bor1.Id, "expired bor1 should not be in Order")
+		assert.NotContains(t, posts.Order, bor2.Id, "expired bor2 should not be in Order")
+		assert.NotContains(t, posts.Posts, bor1.Id, "expired bor1 should not be in Posts")
+		assert.NotContains(t, posts.Posts, bor2.Id, "expired bor2 should not be in Posts")
+
+		// Regular posts should be present
+		assert.Contains(t, posts.Posts, regular2.Id, "regular2 should be in Posts")
+
+		assert.Equal(t, regular1.Id, posts.PrevPostId, "PrevPostId should skip both expired BoR posts and point to regular1")
+	})
+
+	t.Run("BoR feature disabled - expired receipt posts still appear normally", func(t *testing.T) {
+		ch := createChannel(t)
+
+		_ = createRegularPost(t, client1, ch, "regular 1")
+		borPost := createBurnOnReadPost(t, client2, ch, "secret message")
+		_ = createRegularPost(t, client1, ch, "regular 2")
+
+		setLastViewedAt(t, ch.Id, user1.Id, borPost.CreateAt-1)
+
+		// Reveal then burn (expires the read receipt)
+		_, _, err := client1.RevealPost(context.Background(), borPost.Id)
+		require.NoError(t, err)
+		burnPost(t, client1, borPost.Id)
+
+		// Disable the feature
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			enableBurnOnReadFeature(th)
+		})
+
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+		require.NoError(t, err)
+
+		// With feature disabled, the BoR post should still be in the list
+		// when the feature is disabled, only the creation of the post is limited.
+		assert.Contains(t, posts.Order, borPost.Id, "BoR post should appear when feature is disabled")
+		assert.Contains(t, posts.Posts, borPost.Id, "BoR post should appear when feature is disabled")
+	})
+
+	t.Run("author sees own BoR post without needing to reveal", func(t *testing.T) {
+		ch := createChannel(t)
+
+		_ = createRegularPost(t, client2, ch, "regular 1")
+		borPost := createBurnOnReadPost(t, client2, ch, "my secret message")
+		_ = createRegularPost(t, client2, ch, "regular 2")
+
+		setLastViewedAt(t, ch.Id, user2.Id, borPost.CreateAt-1)
+
+		// Author (user2) calls the endpoint - should see their own BoR post
+		posts, _, err := client2.GetPostsAroundLastUnread(context.Background(), user2.Id, ch.Id, 5, 5, false)
+		require.NoError(t, err)
+
+		assert.Contains(t, posts.Order, borPost.Id, "author should see own BoR post in Order")
+		assert.Contains(t, posts.Posts, borPost.Id, "author should see own BoR post in Posts")
+		assert.Equal(t, "my secret message", posts.Posts[borPost.Id].Message, "author should see full BoR post message")
+	})
+
+	// createExpiredBoRRun creates n burn-on-read posts (authored by user2) and has
+	// user1 reveal then burn each one, leaving an expired read receipt for user1.
+	createExpiredBoRRun := func(t *testing.T, ch *model.Channel, n int) []string {
+		t.Helper()
+		ids := make([]string, 0, n)
+		for i := range n {
+			bor := createBurnOnReadPost(t, client2, ch, fmt.Sprintf("secret %d", i))
+			_, _, err := client1.RevealPost(context.Background(), bor.Id)
+			require.NoError(t, err)
+			burnPost(t, client1, bor.Id)
+			ids = append(ids, bor.Id)
+		}
+		return ids
+	}
+
+	// These two cases cover the reviewer's MM-67500 concern: when MORE than one
+	// page (30) worth of expired burn-on-read posts sits between the first-unread
+	// post and the post at the far end, the server must page past all of them so
+	// the far post stays reachable and no cursor points at a hidden expired post.
+	t.Run("newest post stays reachable past a full page of expired BoR posts", func(t *testing.T) {
+		ch := createChannel(t)
+
+		firstUnread := createRegularPost(t, client1, ch, "first unread")
+		expired := createExpiredBoRRun(t, ch, 35) // more than one 30-post page
+		newest := createRegularPost(t, client1, ch, "newest")
+
+		setLastViewedAt(t, ch.Id, user1.Id, firstUnread.CreateAt-1)
+
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 30, 30, false)
+		require.NoError(t, err)
+
+		assert.Contains(t, posts.Order, firstUnread.Id, "first unread post should be returned")
+		assert.Contains(t, posts.Order, newest.Id, "newest post must be reachable past the expired BoR posts")
+		for _, id := range expired {
+			assert.NotContains(t, posts.Order, id, "expired BoR post must not be returned")
+			assert.NotEqual(t, id, posts.NextPostId, "NextPostId must never point at an expired BoR post")
+		}
+	})
+
+	t.Run("oldest post stays reachable past a full page of expired BoR posts", func(t *testing.T) {
+		ch := createChannel(t)
+
+		oldest := createRegularPost(t, client1, ch, "oldest")
+		expired := createExpiredBoRRun(t, ch, 35) // more than one 30-post page
+		firstUnread := createRegularPost(t, client1, ch, "first unread")
+		newest := createRegularPost(t, client1, ch, "newest")
+
+		setLastViewedAt(t, ch.Id, user1.Id, firstUnread.CreateAt-1)
+
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 30, 30, false)
+		require.NoError(t, err)
+
+		assert.Contains(t, posts.Order, firstUnread.Id, "first unread post should be returned")
+		assert.Contains(t, posts.Order, newest.Id, "newest post should be returned")
+		assert.Contains(t, posts.Order, oldest.Id, "oldest post must be reachable past the expired BoR posts")
+		for _, id := range expired {
+			assert.NotContains(t, posts.Order, id, "expired BoR post must not be returned")
+			assert.NotEqual(t, id, posts.PrevPostId, "PrevPostId must never point at an expired BoR post")
+		}
+	})
 }
 
 func TestGetPost(t *testing.T) {
@@ -4667,6 +5440,46 @@ func TestGetPostThread(t *testing.T) {
 
 	_, _, err = th.SystemAdminClient.GetPostThread(context.Background(), th.BasicPost.Id, "", false)
 	require.NoError(t, err)
+}
+
+func TestGetPostThreadUpdatesOnlyDeletedReplies(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	root := th.CreatePost(t)
+	kept, _, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, RootId: root.Id, Message: "kept"})
+	require.NoError(t, err)
+	deleted, _, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, RootId: root.Id, Message: "deleted"})
+	require.NoError(t, err)
+	_, err = client.DeletePost(context.Background(), deleted.Id)
+	require.NoError(t, err)
+
+	updatesSince := func(collapsed bool) model.GetPostsOptions {
+		return model.GetPostsOptions{CollapsedThreads: collapsed, UpdatesOnly: true, FromUpdateAt: deleted.CreateAt - 1, Direction: "down"}
+	}
+
+	for _, collapsed := range []bool{true, false} {
+		t.Run(fmt.Sprintf("collapsed=%t", collapsed), func(t *testing.T) {
+			list, _, getErr := client.GetPostThreadWithOpts(context.Background(), root.Id, "", model.GetPostsOptions{CollapsedThreads: collapsed, Direction: "down"})
+			require.NoError(t, getErr)
+			require.Contains(t, list.Posts, kept.Id)
+			require.NotContains(t, list.Posts, deleted.Id)
+
+			list, _, getErr = client.GetPostThreadWithOpts(context.Background(), root.Id, "", updatesSince(collapsed))
+			require.NoError(t, getErr)
+			require.Contains(t, list.Order, deleted.Id)
+			assert.NotZero(t, list.Posts[deleted.Id].DeleteAt)
+			assert.Empty(t, list.Posts[deleted.Id].Message)
+		})
+	}
+
+	_, err = client.DeletePost(context.Background(), root.Id)
+	require.NoError(t, err)
+	_, resp, err := client.GetPostThreadWithOpts(context.Background(), root.Id, "", updatesSince(true))
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestSearchPosts(t *testing.T) {
@@ -5404,6 +6217,140 @@ func TestGetPostsByIds(t *testing.T) {
 	CheckNotFoundStatus(t, response)
 }
 
+func TestGetPostsByIdsFileMetadataABAC(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	}).InitBasic(t)
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	createPostWithFile := func(t *testing.T) *model.Post {
+		t.Helper()
+
+		fileResp, _, err := th.Client.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test.txt")
+		require.NoError(t, err)
+		require.Len(t, fileResp.FileInfos, 1)
+
+		post, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with files",
+			FileIds:   model.StringArray{fileResp.FileInfos[0].Id},
+		})
+		require.NoError(t, err)
+		return post
+	}
+
+	mockDownloadDecision := func(t *testing.T, allowed bool) *einterfacesmocks.AccessControlServiceInterface {
+		t.Helper()
+
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment &&
+				req.Subject.ID == th.BasicUser.Id &&
+				req.Resource.Type == model.AccessControlPolicyTypeChannel &&
+				req.Resource.ID == th.BasicChannel.Id
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
+
+		return mockACS
+	}
+
+	// Posts are created before any decision is mocked so the stored posts keep their file ids.
+	postWithFile1 := createPostWithFile(t)
+	postWithFile2 := createPostWithFile(t)
+	plainPost := th.CreatePost(t)
+
+	t.Run("file metadata is stripped from every post when the policy denies the download action", func(t *testing.T) {
+		mockACS := mockDownloadDecision(t, false)
+
+		posts, resp, err := th.Client.GetPostsByIds(context.Background(), []string{postWithFile1.Id, postWithFile2.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts, 2)
+
+		for _, post := range posts {
+			assert.Empty(t, post.FileIds, "file ids should be stripped")
+			require.NotNil(t, post.Metadata)
+			assert.Empty(t, post.Metadata.Files, "file metadata should be stripped")
+			assert.Equal(t, 1, post.Metadata.RedactedFileCount)
+		}
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("file metadata is returned when the policy allows the download action", func(t *testing.T) {
+		mockACS := mockDownloadDecision(t, true)
+
+		posts, resp, err := th.Client.GetPostsByIds(context.Background(), []string{postWithFile1.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts, 1)
+		assert.Len(t, posts[0].FileIds, 1)
+		require.NotNil(t, posts[0].Metadata)
+		assert.Len(t, posts[0].Metadata.Files, 1)
+		assert.Equal(t, 0, posts[0].Metadata.RedactedFileCount)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("posts without attachments are returned untouched in a denied batch", func(t *testing.T) {
+		mockACS := mockDownloadDecision(t, false)
+
+		posts, resp, err := th.Client.GetPostsByIds(context.Background(), []string{postWithFile1.Id, plainPost.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts, 2)
+
+		byID := map[string]*model.Post{}
+		for _, post := range posts {
+			byID[post.Id] = post
+		}
+
+		require.Contains(t, byID, plainPost.Id)
+		assert.Equal(t, plainPost.Message, byID[plainPost.Id].Message)
+		assert.Empty(t, byID[plainPost.Id].FileIds)
+		require.NotNil(t, byID[plainPost.Id].Metadata)
+		assert.Equal(t, 0, byID[plainPost.Id].Metadata.RedactedFileCount)
+
+		require.Contains(t, byID, postWithFile1.Id)
+		assert.Empty(t, byID[postWithFile1.Id].Metadata.Files)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("file metadata is unaffected when ABAC is disabled", func(t *testing.T) {
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			})
+		})
+
+		posts, resp, err := th.Client.GetPostsByIds(context.Background(), []string{postWithFile1.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, posts, 1)
+		assert.Len(t, posts[0].FileIds, 1)
+		require.NotNil(t, posts[0].Metadata)
+		assert.Len(t, posts[0].Metadata.Files, 1)
+		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
+}
+
 func TestGetEditHistoryForPost(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -5526,16 +6473,16 @@ func TestGetEditHistoryForPost(t *testing.T) {
 }
 
 func TestCreatePostNotificationsWithCRT(t *testing.T) {
-	t.Skip("flaky")
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	rpost := th.CreatePost(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
+
+	rpost := th.CreatePost(t)
 
 	testCases := []struct {
 		name        string
@@ -5642,7 +6589,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 			require.NoError(t, err)
 
 			// post a reply on the thread
-			_, _, appErr := th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
+			reply, _, appErr := th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
 			require.Nil(t, appErr)
 
 			var caught bool
@@ -5650,23 +6597,34 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 				for {
 					select {
 					case ev := <-userWSClient.EventChannel:
-						if ev.EventType() == model.WebsocketEventPosted {
-							caught = true
-							data := ev.GetData()
-
-							users, ok := data["mentions"]
-							require.Equal(t, tc.mentions, ok)
-							if ok {
-								require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
-							}
-
-							users, ok = data["followers"]
-							require.Equal(t, tc.followers, ok)
-
-							if ok {
-								require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
-							}
+						if ev.EventType() != model.WebsocketEventPosted {
+							continue
 						}
+						data := ev.GetData()
+						post, ok := data["post"]
+						if !ok {
+							continue
+						}
+						var evPost model.Post
+						require.NoError(t, json.Unmarshal([]byte(post.(string)), &evPost))
+						if evPost.Id != reply.Id {
+							continue
+						}
+						caught = true
+
+						users, ok := data["mentions"]
+						require.Equal(t, tc.mentions, ok)
+						if ok {
+							require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
+						}
+
+						users, ok = data["followers"]
+						require.Equal(t, tc.followers, ok)
+
+						if ok {
+							require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
+						}
+						return
 					case <-time.After(5 * time.Second):
 						return
 					}
@@ -6164,7 +7122,7 @@ func TestPostGetInfo(t *testing.T) {
 		})
 	}
 
-	t.Run("Open post - Current team - Non-member denied when compliance is enabled", func(t *testing.T) {
+	t.Run("Open post - Current team - Non-member can get join metadata when compliance is enabled", func(t *testing.T) {
 		info, resp, err := otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -6182,12 +7140,20 @@ func TestPostGetInfo(t *testing.T) {
 			})
 		})
 
-		_, resp, err = otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
+		info, resp, err = otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, openChannel.Id, info.ChannelId)
+		require.Equal(t, openChannel.Type, info.ChannelType)
+		require.True(t, info.HasJoinedTeam)
+		require.False(t, info.HasJoinedChannel)
+
+		_, resp, err = otherTeamMemberClient.GetPost(context.Background(), openPost.Id, "")
 		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("Open post - Open team - Non-member denied when compliance is enabled", func(t *testing.T) {
+	t.Run("Open post - Open team - Non-member can get join metadata when compliance is enabled", func(t *testing.T) {
 		_, appErr := th.App.GetTeamMember(th.Context, openTeam.Id, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 
@@ -6211,7 +7177,41 @@ func TestPostGetInfo(t *testing.T) {
 			})
 		})
 
-		_, resp, err = client.GetPostInfo(context.Background(), openTeamOpenPost.Id)
+		info, resp, err = client.GetPostInfo(context.Background(), openTeamOpenPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, openTeamOpenChannel.Id, info.ChannelId)
+		require.Equal(t, openTeamOpenChannel.Type, info.ChannelType)
+		require.False(t, info.HasJoinedTeam)
+		require.False(t, info.HasJoinedChannel)
+
+		_, resp, err = client.GetPost(context.Background(), openTeamOpenPost.Id, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Open post - Current team - Guest outside channel is denied when compliance is enabled", func(t *testing.T) {
+		_, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guestUser.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.GetChannelMember(th.Context, openChannel.Id, guestUser.Id)
+		require.NotNil(t, appErr)
+
+		_, resp, err := guestClient.GetPostInfo(context.Background(), openPost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+
+		originalComplianceEnabled := *th.App.Config().ComplianceSettings.Enable
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ComplianceSettings.Enable = true
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ComplianceSettings.Enable = originalComplianceEnabled
+			})
+		})
+
+		_, resp, err = guestClient.GetPostInfo(context.Background(), openPost.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -7432,4 +8432,125 @@ func TestRewritePostRequiresReadAccessToRootThread(t *testing.T) {
 	require.Equalf(t, http.StatusForbidden, resp.StatusCode,
 		"rewrite with root_id in an unreadable channel must return forbidden before using thread content; status=%d body=%s", resp.StatusCode, string(bodyBytes))
 	assert.NotContains(t, string(bodyBytes), secretToken, "response must not leak private thread content")
+}
+
+// replicaLagPostStore simulates a read replica that has not yet received one
+// specific post. Any lookup of that post which is not pinned to the master DB
+// fails with a not-found, exactly as a lagging PostgreSQL hot standby would.
+// Every other lookup passes through to the real store.
+type replicaLagPostStore struct {
+	store.PostStore
+
+	mu            sync.Mutex
+	laggingPostID string
+}
+
+func (s *replicaLagPostStore) setLaggingPost(postID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.laggingPostID = postID
+}
+
+func (s *replicaLagPostStore) missesPost(rctx request.CTX, postID string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.laggingPostID != "" && s.laggingPostID == postID && !sqlstore.HasMaster(rctx.Context())
+}
+
+func (s *replicaLagPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
+	if s.missesPost(rctx, id) {
+		return nil, store.NewErrNotFound("Post", id)
+	}
+	return s.PostStore.GetSingle(rctx, id, inclDeleted)
+}
+
+func (s *replicaLagPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	if s.missesPost(rctx, id) {
+		return nil, store.NewErrNotFound("Post", id)
+	}
+	return s.PostStore.Get(rctx, id, opts, userID, sanitizeOptions)
+}
+
+// replicaLagStore decorates a real Store, swapping Post() for the lagging
+// implementation above. All other store calls pass through.
+type replicaLagStore struct {
+	store.Store
+	posts *replicaLagPostStore
+}
+
+func (s *replicaLagStore) Post() store.PostStore {
+	return s.posts
+}
+
+// TestPostMutationHandlersReadFromMaster covers MM-70867. Handlers that mutate an
+// existing post must pin their lookups to the master DB: a user edits or deletes a post
+// milliseconds after creating it, so an unpinned read can be served by a replica that
+// has not received the row yet. The edit handlers turn that not-found into a 403 "You do
+// not have the appropriate permissions.", which is what the customer sees; deletePost
+// reports it as a 404.
+func TestPostMutationHandlersReadFromMaster(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	originalStore := th.App.Srv().Store()
+	lagging := &replicaLagPostStore{PostStore: originalStore.Post()}
+	th.App.Srv().SetStore(&replicaLagStore{Store: originalStore, posts: lagging})
+	t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
+
+	// createPostWithLaggingReplica creates a post and then makes every unpinned
+	// lookup of it miss, reproducing the read-after-write race.
+	createPostWithLaggingReplica := func(t *testing.T) *model.Post {
+		t.Helper()
+
+		post, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+		})
+		require.NoError(t, err)
+
+		lagging.setLaggingPost(post.Id)
+		t.Cleanup(func() { lagging.setLaggingPost("") })
+
+		return post
+	}
+
+	t.Run("updatePost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		post.Message = "edited message"
+		updated, _, err := th.Client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err, "editing a post the replica has not caught up on must not fail")
+		require.Equal(t, "edited message", updated.Message)
+	})
+
+	t.Run("patchPost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		patched, _, err := th.Client.PatchPost(context.Background(), post.Id, &model.PostPatch{
+			Message: model.NewPointer("patched message"),
+		})
+		require.NoError(t, err, "patching a post the replica has not caught up on must not fail")
+		require.Equal(t, "patched message", patched.Message)
+	})
+
+	// app.DeletePost already pins its own lookup, but the handler looks the post up
+	// first and that read raced. Unlike the edit handlers, deletePost reports the
+	// miss honestly as a 404 rather than relabelling it a 403.
+	t.Run("deletePost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		_, err := th.Client.DeletePost(context.Background(), post.Id)
+		require.NoError(t, err, "deleting a post the replica has not caught up on must not fail")
+	})
+
+	// Pinning goes through app.PatchPost, so it raced in both the handler's own lookup
+	// and the app layer's.
+	t.Run("pinPost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		_, err := th.Client.PinPost(context.Background(), post.Id)
+		require.NoError(t, err, "pinning a post the replica has not caught up on must not fail")
+	})
+
+	// app.UpdatePost and app.PatchPost pin their own lookups; that is covered by
+	// TestPostMutationsReadFromMaster in the app package.
 }

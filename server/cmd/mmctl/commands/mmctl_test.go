@@ -8,15 +8,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/mocks"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/mock/gomock"
 )
 
 var EnableEnterpriseTests string
@@ -28,6 +29,7 @@ type MmctlUnitTestSuite struct {
 }
 
 func (s *MmctlUnitTestSuite) SetupTest() {
+	viper.Reset()
 	printer.Clean()
 	printer.SetFormat(printer.FormatJSON)
 
@@ -37,6 +39,7 @@ func (s *MmctlUnitTestSuite) SetupTest() {
 
 func (s *MmctlUnitTestSuite) TearDownTest() {
 	s.mockCtrl.Finish()
+	viper.Reset()
 }
 
 type MmctlE2ETestSuite struct {

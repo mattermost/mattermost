@@ -26,9 +26,9 @@ import './async_team_select.scss';
 const TEAMS_PER_PAGE = 50;
 
 export type OptionType = {
-    label: string | ReactElement;
+    label: string | ReactElement<any>;
     value: string;
-}
+};
 
 interface Props {
     className?: string;

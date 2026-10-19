@@ -7,10 +7,7 @@ import type {
     ContentFlaggingConfig,
     ContentFlaggingState,
 } from '@mattermost/types/content_flagging';
-import type {
-    NameMappedPropertyFields,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ContentFlaggingTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -83,6 +80,15 @@ function postValues(state: ContentFlaggingState['postValues'] = {}, action: MMRe
             [postId]: Object.values(valuesByFieldId),
         };
     }
+    case ContentFlaggingTypes.FLAGGED_POST_REMOVED: {
+        const postId = action.data?.postId as string | undefined;
+        if (!postId || !(postId in state)) {
+            return state;
+        }
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, postId);
+        return nextState;
+    }
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:
@@ -97,6 +103,15 @@ function flaggedPosts(state: ContentFlaggingState['flaggedPosts'] = {}, action: 
             ...state,
             [action.data.id]: action.data,
         };
+    }
+    case ContentFlaggingTypes.FLAGGED_POST_REMOVED: {
+        const postId = action.data?.postId as string | undefined;
+        if (!postId || !(postId in state)) {
+            return state;
+        }
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, postId);
+        return nextState;
     }
     case UserTypes.LOGOUT_SUCCESS:
         return {};

@@ -5,6 +5,7 @@ package model
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/utils/timeutils"
@@ -49,12 +50,18 @@ func init() {
 		ChannelAdminRoleId,
 
 		CustomGroupUserRoleId,
+		SystemCustomGroupAdminRoleId,
 
 		PlaybookAdminRoleId,
 		PlaybookMemberRoleId,
 		RunAdminRoleId,
 		RunMemberRoleId,
 	}, NewSystemRoleIDs...)
+
+	builtInRoleSet = make(map[string]bool, len(BuiltInSchemeManagedRoleIDs))
+	for _, id := range BuiltInSchemeManagedRoleIDs {
+		builtInRoleSet[id] = true
+	}
 
 	// When updating the values here, the values in mattermost-redux must also be updated.
 	SysconsoleAncillaryPermissions = map[string][]*Permission{
@@ -426,6 +433,19 @@ type Role struct {
 	SchemeManaged bool     `json:"scheme_managed"`
 	BuiltIn       bool     `json:"built_in"`
 	SchemeId      *string  `json:"scheme_id"`
+}
+
+func (r *Role) Clone() *Role {
+	rCopy := *r
+	if r.Permissions != nil {
+		rCopy.Permissions = make([]string, len(r.Permissions))
+		copy(rCopy.Permissions, r.Permissions)
+	}
+	if r.SchemeId != nil {
+		schemeId := *r.SchemeId
+		rCopy.SchemeId = &schemeId
+	}
+	return &rCopy
 }
 
 func (r *Role) Auditable() map[string]any {
@@ -802,6 +822,16 @@ func (r *Role) IsValidWithoutId() error {
 		return fmt.Errorf("role description exceeds maximum length of %d", RoleDescriptionMaxLength)
 	}
 
+	if unknown := r.UnknownPermissions(); len(unknown) > 0 {
+		return fmt.Errorf("unknown permissions: %s", strings.Join(unknown, ", "))
+	}
+
+	return nil
+}
+
+// UnknownPermissions returns the permissions on the role that are not present in
+// AllPermissions or DeprecatedPermissions (see MM-68830).
+func (r *Role) UnknownPermissions() []string {
 	check := func(perms []*Permission, permission string) bool {
 		for _, p := range perms {
 			if permission == p.Id {
@@ -810,13 +840,14 @@ func (r *Role) IsValidWithoutId() error {
 		}
 		return false
 	}
+
+	var unknown []string
 	for _, permission := range r.Permissions {
 		if !check(AllPermissions, permission) && !check(DeprecatedPermissions, permission) {
-			return fmt.Errorf("unknown permission %q", permission)
+			unknown = append(unknown, permission)
 		}
 	}
-
-	return nil
+	return unknown
 }
 
 func CleanRoleNames(roleNames []string) ([]string, bool) {
@@ -843,6 +874,60 @@ func IsValidRoleName(roleName string) bool {
 
 	if strings.TrimLeft(roleName, "abcdefghijklmnopqrstuvwxyz0123456789_") != "" {
 		return false
+	}
+
+	return true
+}
+
+// builtInRoleSet is the O(1) lookup set for BuiltInSchemeManagedRoleIDs, built in init().
+// Despite its name, BuiltInSchemeManagedRoleIDs is the canonical list of built-in role
+// IDs and not all of its entries are scheme-managed (roughly half have SchemeManaged: false,
+// e.g. custom_group_user). It is used as the single source of truth for "is this a built-in
+// role", independent of the per-role BuiltIn/SchemeManaged flags.
+var builtInRoleSet map[string]bool
+
+// IsBuiltInRole reports whether roleName is a built-in role, using
+// BuiltInSchemeManagedRoleIDs as the source of truth. This is the predicate shared by
+// IsValidChannelMemberRoles and the app-layer channel member role validation so both
+// layers agree on which roles are built-in.
+func IsBuiltInRole(roleName string) bool {
+	return builtInRoleSet[roleName]
+}
+
+// channelScopedBuiltInRoles are the built-in roles valid inside a channel-member role list.
+var channelScopedBuiltInRoles = []string{ChannelGuestRoleId, ChannelUserRoleId, ChannelAdminRoleId}
+
+// teamScopedBuiltInRoles are the built-in roles valid inside a team-member role list.
+var teamScopedBuiltInRoles = []string{TeamGuestRoleId, TeamUserRoleId, TeamAdminRoleId}
+
+// IsChannelScopedBuiltInRole returns true for the three built-in roles that are
+// valid inside a channel-member role list.
+func IsChannelScopedBuiltInRole(roleName string) bool {
+	return slices.Contains(channelScopedBuiltInRoles, roleName)
+}
+
+// IsValidChannelMemberRoles reports whether roles are valid for a channel member.
+func IsValidChannelMemberRoles(channelMemberRoles string) bool {
+	return IsValidMemberRoles(channelMemberRoles, channelScopedBuiltInRoles)
+}
+
+// IsValidTeamMemberRoles reports whether roles are valid for a team member.
+func IsValidTeamMemberRoles(teamMemberRoles string) bool {
+	return IsValidMemberRoles(teamMemberRoles, teamScopedBuiltInRoles)
+}
+
+// IsValidMemberRoles reports whether memberRoles are valid for a member. IsValidUserRoles
+// is format validation only; this additionally rejects any built-in role (per IsBuiltInRole)
+// that is not in validRoles.
+func IsValidMemberRoles(memberRoles string, validRoles []string) bool {
+	if !IsValidUserRoles(memberRoles) {
+		return false
+	}
+
+	for roleName := range strings.FieldsSeq(memberRoles) {
+		if IsBuiltInRole(roleName) && !slices.Contains(validRoles, roleName) {
+			return false
+		}
 	}
 
 	return true
@@ -999,7 +1084,6 @@ func MakeDefaultRoles() map[string]*Role {
 		Permissions: []string{
 			PermissionRemoveUserFromTeam.Id,
 			PermissionManageTeam.Id,
-			PermissionImportTeam.Id,
 			PermissionManageTeamRoles.Id,
 			PermissionManageTeamAccessRules.Id,
 			PermissionManageChannelRoles.Id,

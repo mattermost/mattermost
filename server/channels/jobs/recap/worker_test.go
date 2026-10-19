@@ -18,8 +18,8 @@ type MockAppIface struct {
 	mock.Mock
 }
 
-func (m *MockAppIface) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, agentID string) (*model.RecapChannelResult, *model.AppError) {
-	args := m.Called(rctx, recapID, channelID, userID, agentID)
+func (m *MockAppIface) ProcessRecapChannelWithOptions(rctx request.CTX, recapID, channelID, userID, agentID string, options model.RecapProcessingOptions) (*model.RecapChannelResult, *model.AppError) {
+	args := m.Called(rctx, recapID, channelID, userID, agentID, options)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(*model.AppError)
 	}
@@ -52,13 +52,13 @@ func TestProcessRecapJob(t *testing.T) {
 		mockRecapStore.On("UpdateRecapStatus", "recap1", model.RecapStatusProcessing).Return(nil)
 		mockApp.On("Publish", mock.Anything).Return()
 
-		mockApp.On("ProcessRecapChannel", mock.Anything, "recap1", "channel1", "user1", "agent1").Return(&model.RecapChannelResult{
+		mockApp.On("ProcessRecapChannelWithOptions", mock.Anything, "recap1", "channel1", "user1", "agent1", model.RecapProcessingOptions{}).Return(&model.RecapChannelResult{
 			ChannelID:    "channel1",
 			Success:      true,
 			MessageCount: 10,
 		}, nil)
 
-		mockApp.On("ProcessRecapChannel", mock.Anything, "recap1", "channel2", "user1", "agent1").Return(&model.RecapChannelResult{
+		mockApp.On("ProcessRecapChannelWithOptions", mock.Anything, "recap1", "channel2", "user1", "agent1", model.RecapProcessingOptions{}).Return(&model.RecapChannelResult{
 			ChannelID:    "channel2",
 			Success:      true,
 			MessageCount: 5,
@@ -84,13 +84,13 @@ func TestProcessRecapJob(t *testing.T) {
 		mockRecapStore.On("UpdateRecapStatus", "recap1", model.RecapStatusProcessing).Return(nil)
 		mockApp.On("Publish", mock.Anything).Return()
 
-		mockApp.On("ProcessRecapChannel", mock.Anything, "recap1", "channel1", "user1", "agent1").Return(&model.RecapChannelResult{
+		mockApp.On("ProcessRecapChannelWithOptions", mock.Anything, "recap1", "channel1", "user1", "agent1", model.RecapProcessingOptions{}).Return(&model.RecapChannelResult{
 			ChannelID:    "channel1",
 			Success:      true,
 			MessageCount: 10,
 		}, nil)
 
-		mockApp.On("ProcessRecapChannel", mock.Anything, "recap1", "channel2", "user1", "agent1").Return(nil, model.NewAppError("fail", "fail", nil, "", 500))
+		mockApp.On("ProcessRecapChannelWithOptions", mock.Anything, "recap1", "channel2", "user1", "agent1", model.RecapProcessingOptions{}).Return(nil, model.NewAppError("fail", "fail", nil, "", 500))
 
 		recap := &model.Recap{Id: "recap1"}
 		mockRecapStore.On("GetRecap", "recap1").Return(recap, nil)
@@ -112,8 +112,8 @@ func TestProcessRecapJob(t *testing.T) {
 		mockRecapStore.On("UpdateRecapStatus", "recap1", model.RecapStatusProcessing).Return(nil)
 		mockApp.On("Publish", mock.Anything).Return()
 
-		mockApp.On("ProcessRecapChannel", mock.Anything, "recap1", "channel1", "user1", "agent1").Return(nil, model.NewAppError("fail", "fail", nil, "", 500))
-		mockApp.On("ProcessRecapChannel", mock.Anything, "recap1", "channel2", "user1", "agent1").Return(nil, model.NewAppError("fail", "fail", nil, "", 500))
+		mockApp.On("ProcessRecapChannelWithOptions", mock.Anything, "recap1", "channel1", "user1", "agent1", model.RecapProcessingOptions{}).Return(nil, model.NewAppError("fail", "fail", nil, "", 500))
+		mockApp.On("ProcessRecapChannelWithOptions", mock.Anything, "recap1", "channel2", "user1", "agent1", model.RecapProcessingOptions{}).Return(nil, model.NewAppError("fail", "fail", nil, "", 500))
 
 		recap := &model.Recap{Id: "recap1"}
 		mockRecapStore.On("GetRecap", "recap1").Return(recap, nil)
@@ -124,5 +124,44 @@ func TestProcessRecapJob(t *testing.T) {
 		err := processRecapJob(logger, job, mockStore, mockApp, nil)
 		require.Error(t, err)
 		require.Equal(t, "all channels failed to process", err.Error())
+	})
+
+	t.Run("passes scheduled options to channel processing", func(t *testing.T) {
+		jobWithOptions := &model.Job{
+			Data: map[string]string{
+				"recap_id":            "recap1",
+				"user_id":             "user1",
+				"channel_ids":         "channel1",
+				"agent_id":            "agent1",
+				"time_period":         model.TimePeriodLastWeek,
+				"custom_instructions": "Focus on blockers",
+			},
+		}
+
+		mockStore := &mocks.Store{}
+		mockRecapStore := &mocks.RecapStore{}
+		mockStore.On("Recap").Return(mockRecapStore)
+
+		mockApp := &MockAppIface{}
+		mockRecapStore.On("UpdateRecapStatus", "recap1", model.RecapStatusProcessing).Return(nil)
+		mockApp.On("Publish", mock.Anything).Return()
+		mockApp.On("ProcessRecapChannelWithOptions", mock.Anything, "recap1", "channel1", "user1", "agent1", model.RecapProcessingOptions{
+			TimePeriod:         model.TimePeriodLastWeek,
+			CustomInstructions: "Focus on blockers",
+		}).Return(&model.RecapChannelResult{
+			ChannelID:    "channel1",
+			Success:      true,
+			MessageCount: 3,
+		}, nil)
+
+		recap := &model.Recap{Id: "recap1"}
+		mockRecapStore.On("GetRecap", "recap1").Return(recap, nil)
+		mockRecapStore.On("UpdateRecap", mock.MatchedBy(func(r *model.Recap) bool {
+			return r.TotalMessageCount == 3 && r.Status == model.RecapStatusCompleted
+		})).Return(recap, nil)
+
+		err := processRecapJob(logger, jobWithOptions, mockStore, mockApp, nil)
+		require.NoError(t, err)
+		mockApp.AssertExpectations(t)
 	})
 }

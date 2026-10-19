@@ -78,6 +78,15 @@ test('Verify Removed Flagged posts show appropriate status and do not show the p
     await secondContentReviewPage.confirmRemovePermanently();
     await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
 
+    // After the remove action succeeds, the reviewer's own view of the flagged
+    // post should be replaced with the moderation placeholder rather than the
+    // original message that is now cleared from the redux store (MM-69043).
+    // The placeholder appears both in the RHS detail view and in the report
+    // card shown in the @content-review center channel — assert each scope
+    // separately so a regression in either location is caught.
+    await secondContentReviewPage.verifyFlaggedPostMessageInRHS(contentModerationMessage);
+    await secondContentReviewPage.verifyFlaggedPostMessageInCenter(post.id, contentModerationMessage);
+
     const {channelsPage: channelsPageThird, contentReviewPage: contentReviewPageThird} =
         await pw.testBrowser.login(thirdUser);
     await verifyAuthorNotification(

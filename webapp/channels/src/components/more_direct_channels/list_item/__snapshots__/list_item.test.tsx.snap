@@ -4,6 +4,7 @@ exports[`ListItem should match snapshot when rendering GroupChannel 1`] = `
 <div>
   <div
     class="more-modal__row clickable"
+    data-testid="group-message-row"
   >
     <div
       class="more-modal__gm-icon"
@@ -41,12 +42,14 @@ exports[`ListItem should match snapshot when rendering user 1`] = `
 <div>
   <div
     class="more-modal__row clickable"
+    data-testid="direct-message-row"
   >
     <span
       class="status-wrapper style--none"
     >
       <span
         class="profile-icon "
+        data-testid="profile-icon"
       >
         <img
           alt="user profile image"

@@ -22,10 +22,8 @@ describe('components/admin_console/brand_image_setting', () => {
 
     const deleteButtonTestId = 'remove-image__btn';
 
-    let scope: nock.Scope;
-
     beforeAll(() => {
-        scope = nock(Client4.getBaseRoute()).persist().get('/brand/image').query(true).reply(200);
+        nock(Client4.getBaseRoute()).persist().get('/brand/image').query(true).reply(200);
     });
 
     afterAll(() => {
@@ -45,9 +43,7 @@ describe('components/admin_console/brand_image_setting', () => {
     test('should show delete button if brand image exists', async () => {
         renderWithContext(<BrandImageSetting {...baseProps}/>);
 
-        await waitFor(() => expect(scope.isDone()).toBe(true));
-
-        expect(screen.getByTestId(deleteButtonTestId)).toBeVisible();
+        expect(await screen.findByTestId(deleteButtonTestId)).toBeVisible();
     });
 
     test('should hide delete button if the setting is disabled', async () => {
@@ -64,6 +60,28 @@ describe('components/admin_console/brand_image_setting', () => {
         await userEvent.upload(screen.getByTestId('file__upload-input'), new File(['brand_image_file'], 'brand_image_file.png', {type: 'image/png'}));
 
         expect(baseProps.setSaveNeeded).toHaveBeenCalledTimes(1);
+    });
+
+    test('should clear the previous preview while a replacement image is still being read', async () => {
+        renderWithContext(<BrandImageSetting {...baseProps}/>);
+
+        const fileInput = screen.getByTestId('file__upload-input');
+
+        await userEvent.upload(fileInput, new File(['first_image'], 'first_image.png', {type: 'image/png'}));
+
+        expect(await screen.findByAltText('brand image')).toHaveAttribute('src', expect.stringContaining('data:image/png;base64'));
+
+        // Leave the second read pending so the intermediate render is observable.
+        const readAsDataURL = jest.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(() => {});
+
+        try {
+            await userEvent.upload(fileInput, new File(['second_image'], 'second_image.png', {type: 'image/png'}));
+
+            expect(readAsDataURL).toHaveBeenCalledTimes(1);
+            await waitFor(() => expect(screen.queryByAltText('brand image')).toBe(null));
+        } finally {
+            readAsDataURL.mockRestore();
+        }
     });
 
     test('should call setSaveNeeded when the delete button is pressed', async () => {

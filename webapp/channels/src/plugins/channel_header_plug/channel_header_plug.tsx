@@ -3,11 +3,12 @@
 
 /* eslint-disable react/no-multi-comp */
 
-import React from 'react';
+import {useMergeRefs} from '@floating-ui/react';
+import React, {useCallback, useRef} from 'react';
 import {Dropdown} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
-import {RootCloseWrapper} from 'react-overlays';
+import {useRootClose} from 'react-overlays';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {AppBinding} from '@mattermost/types/apps';
@@ -33,38 +34,33 @@ type CustomMenuProps = {
     //  A bsRole prop is required by React Bootstrap's Dropdown
     // eslint-disable-next-line react/no-unused-prop-types
     bsRole: string;
-}
+};
 
 export const maxComponentsBeforeDropdown = 15;
 
-class CustomMenu extends React.PureComponent<CustomMenuProps> {
-    handleRootClose = () => {
-        this.props.onClose();
-    };
+const CustomMenu = React.forwardRef<HTMLUListElement, CustomMenuProps>(({
+    children,
+    onClose,
+    open,
+    rootCloseEvent,
+}, ref) => {
+    const menuRef = useRef<HTMLUListElement>(null);
+    const handleRootClose = useCallback(() => {
+        onClose();
+    }, [onClose]);
 
-    render() {
-        const {
-            open,
-            rootCloseEvent,
-            children,
-        } = this.props;
+    useRootClose(menuRef as React.RefObject<Element>, handleRootClose, {disabled: !open, clickTrigger: rootCloseEvent});
 
-        return (
-            <RootCloseWrapper
-                disabled={!open}
-                onRootClose={this.handleRootClose}
-                event={rootCloseEvent}
-            >
-                <ul
-                    role='menu'
-                    className='dropdown-menu channel-header_plugin-dropdown'
-                >
-                    {children}
-                </ul>
-            </RootCloseWrapper>
-        );
-    }
-}
+    return (
+        <ul
+            ref={useMergeRefs([menuRef, ref])}
+            role='menu'
+            className='dropdown-menu channel-header_plugin-dropdown'
+        >
+            {children}
+        </ul>
+    );
+});
 
 type CustomToggleProps = {
     children?: React.ReactNode;
@@ -74,7 +70,7 @@ type CustomToggleProps = {
     //  A bsRole prop is required by React Bootstrap's Dropdown
     // eslint-disable-next-line react/no-unused-prop-types
     bsRole: string;
-}
+};
 
 class CustomToggle extends React.PureComponent<CustomToggleProps> {
     handleClick = (e: React.MouseEvent) => {
@@ -118,11 +114,11 @@ type ChannelHeaderPlugProps = {
         postEphemeralCallResponseForChannel: PostEphemeralCallResponseForChannel;
         openAppsModal: OpenAppsModal;
     };
-}
+};
 
 type ChannelHeaderPlugState = {
     dropdownOpen: boolean;
-}
+};
 
 class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, ChannelHeaderPlugState> {
     public static defaultProps: Partial<ChannelHeaderPlugProps> = {
@@ -185,12 +181,14 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
 
             if (typeof stringOrElement === 'object' && 'type' in stringOrElement && stringOrElement.type === FormattedMessage) {
                 // This is a FormattedMessage, so extract the props to translate the text manually
+                const props = (stringOrElement as React.ReactElement<any>).props;
+
                 return intl.formatMessage(
                     {
-                        id: stringOrElement.props.id,
-                        defaultMessage: stringOrElement.props.defaultMessage,
+                        id: props.id,
+                        defaultMessage: props.defaultMessage,
                     },
-                    stringOrElement.props.value,
+                    props.value,
                 );
             }
 

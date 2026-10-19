@@ -15,7 +15,6 @@ import {verifyEphemeralMessage} from './helper';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {getRandomId} from '@/utils';
 
-
 describe('Integrations', () => {
     let testUser;
     let otherUser;

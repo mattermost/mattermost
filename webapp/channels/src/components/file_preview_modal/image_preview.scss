@@ -1,11 +1,40 @@
+@keyframes image_preview-zoom-in {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 .image_preview {
+    user-select: none;
+
     &__image {
         max-height: calc(100vh - 168px);
         border-radius: 8px;
+        animation: image_preview-zoom-in 250ms ease-in-out;
         cursor: default;
+        transform-origin: center center;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
 
         @media screen and (max-width: 768px) {
             border-radius: 0;
         }
+
+        &--zoomed {
+            transition: transform 0.1s ease-out;
+            will-change: transform;
+        }
+    }
+
+    &--dragging &__image {
+        cursor: grabbing;
+        transition: none;
     }
 }

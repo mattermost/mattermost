@@ -520,7 +520,10 @@ export function submitInteractiveDialog(submission: DialogSubmission): ActionFun
 export function lookupInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<{items: Array<{text: string; value: string}>}> {
     return async (dispatch, getState) => {
         const state = getState();
-        submission.channel_id = getCurrentChannelId(state);
+
+        // Use the current channel as fallback, so a lookup resolves against the same
+        // channel the dialog will submit to.
+        submission.channel_id ||= getCurrentChannelId(state);
         submission.team_id = getCurrentTeamId(state);
         submission.user_id = getCurrentUserId(state);
 

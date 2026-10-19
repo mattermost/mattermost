@@ -21,30 +21,36 @@ permissions:
   contents: read
 
 jobs:
-  go:
-    name: Compute Go Version
+  buildenv:
+    name: Build Environment
     runs-on: ubuntu-22.04
     outputs:
-      version: ${{ steps.calculate.outputs.GO_VERSION }}
+      build-server-tag: ${{ steps.calculate.outputs.BUILD_SERVER_TAG }}
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Calculate version
+        with:
+          persist-credentials: false
+      - name: Calculate build image tag
         id: calculate
         working-directory: server/
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+        run: |
+          tag=$(./build/buildenv-tag.sh)
+          echo "BUILD_SERVER_TAG=${tag}" >> "${GITHUB_OUTPUT}"
 
   test-race:
     name: Race Detector
-    needs: go
+    needs: buildenv
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
     with:
       name: Race Detector
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: race-detector-server-test-logs
-      go-version: ${{ needs.go.outputs.version }}
+      build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
       fips-enabled: false
       fullyparallel: false
       race-enabled: true

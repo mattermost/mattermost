@@ -22,7 +22,7 @@
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {newTestPassword, getRandomId} from '@mattermost/playwright-lib';
+import {newTestPassword, getRandomId, type PlaywrightClient4} from '@mattermost/playwright-lib';
 
 import {assignChannelsToPolicy, deletePolicy, unassignChannelsFromPolicy} from '../team_settings/helpers';
 
@@ -134,14 +134,8 @@ export async function setUserAttributeById(client: Client4, userId: string, fiel
 /**
  * Create a public channel and register cleanup for it.
  */
-export async function createTrackedPublicChannel(client: Client4, teamId: string, ledger: CleanupLedger) {
-    const id = getRandomId();
-    const channel = await client.createChannel({
-        team_id: teamId,
-        name: `pub-${id}`,
-        display_name: `PUB-${id}`,
-        type: 'O',
-    } as any);
+export async function createTrackedPublicChannel(client: PlaywrightClient4, teamId: string, ledger: CleanupLedger) {
+    const channel = await client.createPublicChannel(teamId);
     ledger.add(() => client.deleteChannel(channel.id));
     return channel;
 }
@@ -202,13 +196,16 @@ export async function createPolicyAssignedToChannels(
 }
 
 /**
- * Flip the auto-add (Active) flag on a channel-scope ABAC policy. Channel-scope
- * policies share the channel's ID, so this is keyed by channelId. Active=true
- * is what makes the access-control sync job auto-add matching users.
+ * Flip the auto-add flag on a channel-scope ABAC policy. Channel-scope policies
+ * share the channel's ID, so this is keyed by channelId. Auto-add is what makes
+ * the access-control sync job add matching users.
  *
- * Children inherit the parent's Active flag at assign time, but the parent
- * default on a fresh `createPolicyAssignedToChannels` is false — flip the
- * child here when the test needs auto-add ON.
+ * The endpoint keeps its legacy `active` wire field, which the server now maps
+ * onto the policy's membership rule.
+ *
+ * A child copies the parent's auto-add setting at assign time, but the parent
+ * default on a fresh `createPolicyAssignedToChannels` is off — flip the child
+ * here when the test needs auto-add ON.
  */
 export async function setChannelPolicyActive(client: Client4, channelId: string, active: boolean): Promise<void> {
     await doFetchOrThrow(client, `${client.getBaseRoute()}/access_control_policies/activate`, {

@@ -148,6 +148,69 @@ func TestUploadFile(t *testing.T) {
 	assert.Equal(t, value, info1.Path, "Stored file at incorrect path")
 }
 
+func TestUploadFileSVGDimensions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	testCases := []struct {
+		name           string
+		svg            string
+		expectedWidth  int
+		expectedHeight int
+	}{
+		{
+			name:           "comma separated viewBox",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0,0,800,600"></svg>`,
+			expectedWidth:  800,
+			expectedHeight: 600,
+		},
+		{
+			name:           "absolute width and height",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" width="640px" height="480px"></svg>`,
+			expectedWidth:  640,
+			expectedHeight: 480,
+		},
+		{
+			// The upload still succeeds, it just carries no dimensions for the web app to use
+			name:           "relative width and height with no viewBox",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"></svg>`,
+			expectedWidth:  0,
+			expectedHeight: 0,
+		},
+		{
+			// FileInfo stores dimensions as a 32 bit integer, so a larger one would fail to save
+			name:           "width and height too large to store",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" width="3000000000" height="3000000000"></svg>`,
+			expectedWidth:  0,
+			expectedHeight: 0,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			info, appErr := th.App.UploadFileX(th.Context, th.BasicChannel.Id, "dimensions.svg",
+				bytes.NewReader([]byte(tc.svg)),
+				UploadFileSetTeamId(th.BasicTeam.Id),
+				UploadFileSetUserId(th.BasicUser.Id),
+				UploadFileSetTimestamp(time.Now()),
+				UploadFileSetContentLength(int64(len(tc.svg))))
+			require.Nil(t, appErr)
+
+			t.Cleanup(func() {
+				require.NoError(t, th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id))
+				require.Nil(t, th.App.RemoveFile(info.Path))
+			})
+
+			// Read the dimensions back, since they only reach the web app once they are stored
+			stored, err := th.App.Srv().Store().FileInfo().Get(info.Id)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.expectedWidth, stored.Width)
+			assert.Equal(t, tc.expectedHeight, stored.Height)
+		})
+	}
+}
+
 func TestParseOldFilenames(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -472,7 +535,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		fileInfos := make([]*model.FileInfo, 7)
-		for i := 0; i < cap(fileInfos); i++ {
+		for i := range cap(fileInfos) {
 			fileInfo, err := th.App.Srv().Store().FileInfo().Save(th.Context,
 				&model.FileInfo{
 					CreatorId: th.BasicUser.Id,
@@ -1205,5 +1268,55 @@ func TestFilterFilesByChannelPermissions_ABAC(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Empty(t, fileList.Order)
 		mockACS.AssertNotCalled(t, "AccessEvaluation")
+	})
+}
+
+func TestSendFileUploadRejectedEvent(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	info := &model.FileInfo{
+		Id:        model.NewId(),
+		Name:      "secret.tdf",
+		ChannelId: th.BasicChannel.Id,
+		CreatorId: th.BasicUser.Id,
+	}
+
+	t.Run("publishes the event with populated fields", func(t *testing.T) {
+		wsMessages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventFileUploadRejected})
+		defer closeWS()
+
+		th.App.sendFileUploadRejectedEvent(info, th.BasicUser.Id, "", "blocked by policy")
+
+		var received *model.WebSocketEvent
+		require.Eventually(t, func() bool {
+			select {
+			case received = <-wsMessages:
+				return true
+			default:
+				return false
+			}
+		}, 5*time.Second, 100*time.Millisecond, "did not receive file_upload_rejected event in time")
+
+		data := received.GetData()
+		assert.Equal(t, info.Name, data["file_name"])
+		assert.Equal(t, "blocked by policy", data["rejection_reason"])
+		assert.Equal(t, info.ChannelId, data["channel_id"])
+	})
+
+	t.Run("does not publish when userID is empty", func(t *testing.T) {
+		wsMessages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventFileUploadRejected})
+		defer closeWS()
+
+		th.App.sendFileUploadRejectedEvent(info, "", "", "blocked by policy")
+
+		require.Never(t, func() bool {
+			select {
+			case <-wsMessages:
+				return true
+			default:
+				return false
+			}
+		}, 1*time.Second, 100*time.Millisecond, "should not publish file_upload_rejected event when userID is empty")
 	})
 }

@@ -18,7 +18,6 @@ import {
 import {getRandomId} from '@/utils';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Toast', () => {
     let otherUser;
     let testTeam;

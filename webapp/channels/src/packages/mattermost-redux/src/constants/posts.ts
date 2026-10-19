@@ -28,6 +28,8 @@ export const PostTypes = {
     LEAVE_TEAM: 'system_leave_team' as PostType,
     ADD_TO_TEAM: 'system_add_to_team' as PostType,
     REMOVE_FROM_TEAM: 'system_remove_from_team' as PostType,
+    ACCESS_CONTROL_TEAM_REMOVAL: 'system_team_abac_removal' as PostType,
+    ACCESS_CONTROL_TEAM_ADDITION: 'system_team_abac_addition' as PostType,
 
     COMBINED_USER_ACTIVITY: 'system_combined_user_activity' as PostType,
     ME: 'me' as PostType,

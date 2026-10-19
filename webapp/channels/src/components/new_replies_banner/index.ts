@@ -21,7 +21,7 @@ type Props = {
     threadId: Post['id'];
     lastViewedBottom: number;
     canShow: boolean;
-}
+};
 
 function makeGetHasNewRepliesSince(): (state: GlobalState, threadId: string, lastViewed: number) => boolean {
     const getPostsForThread = makeGetPostsForThread();

@@ -19,7 +19,7 @@ import {rolesStrings} from './strings';
 
 type Props = {
     roles: Record<string, Role>;
-}
+};
 
 const columns: Column[] = [
     {

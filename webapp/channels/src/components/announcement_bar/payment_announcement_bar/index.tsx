@@ -41,6 +41,7 @@ export default function PaymentAnnouncementBar() {
     const mostRecentPaymentFailed = subscription?.last_invoice?.status === 'failed';
 
     if (
+
         // Prevents banner flashes if the subscription hasn't been loaded yet
         isEmpty(subscription) ||
         isStarterFree ||

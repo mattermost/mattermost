@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -33,6 +34,25 @@ func TestChannelPatch(t *testing.T) {
 	require.Equal(t, *p.Header, o.Header)
 	require.Equal(t, *p.Purpose, o.Purpose)
 	require.Equal(t, *p.GroupConstrained, *o.GroupConstrained)
+}
+
+func TestChannelPatchAttributeBannerOptOut(t *testing.T) {
+	channel := Channel{BannerInfo: &ChannelBannerInfo{Text: new(string)}}
+	channel.Patch(&ChannelPatch{BannerInfo: &ChannelBannerInfo{AttributeBannerDisabled: new(bool)}})
+	require.False(t, *channel.BannerInfo.AttributeBannerDisabled)
+	require.NotNil(t, channel.BannerInfo.Text)
+
+	disabled := true
+	channel.Patch(&ChannelPatch{BannerInfo: &ChannelBannerInfo{AttributeBannerDisabled: &disabled}})
+	require.True(t, *channel.BannerInfo.AttributeBannerDisabled)
+
+	serialized, err := json.Marshal(channel.BannerInfo)
+	require.NoError(t, err)
+	require.Contains(t, string(serialized), `"attribute_banner_disabled":true`)
+
+	var restored ChannelBannerInfo
+	require.NoError(t, json.Unmarshal(serialized, &restored))
+	require.True(t, *restored.AttributeBannerDisabled)
 }
 
 func TestChannelPatchDiscoverable(t *testing.T) {
@@ -93,6 +113,55 @@ func TestChannelIsValidDiscoverable(t *testing.T) {
 	})
 }
 
+func TestChannelSupportsGroupSync(t *testing.T) {
+	require.True(t, (&Channel{Type: ChannelTypeOpen}).SupportsGroupSync())
+	require.True(t, (&Channel{Type: ChannelTypePrivate}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypeDirect}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypeGroup}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypeOpenBoard}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypePrivateBoard}).SupportsGroupSync())
+}
+
+func TestChannelIsValidGroupConstrained(t *testing.T) {
+	base := Channel{
+		Id:          NewId(),
+		CreateAt:    GetMillis(),
+		UpdateAt:    GetMillis(),
+		DisplayName: "x",
+		Name:        "valid-name",
+		Header:      "h",
+		Purpose:     "p",
+	}
+
+	t.Run("group_constrained is allowed on public and private channels", func(t *testing.T) {
+		c := base
+		c.GroupConstrained = NewPointer(true)
+
+		c.Type = ChannelTypeOpen
+		require.Nil(t, c.IsValid())
+
+		c.Type = ChannelTypePrivate
+		require.Nil(t, c.IsValid())
+	})
+
+	t.Run("group_constrained is rejected on direct, group, and board channels", func(t *testing.T) {
+		c := base
+		c.GroupConstrained = NewPointer(true)
+
+		c.Type = ChannelTypeDirect
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypeGroup
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypeOpenBoard
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypePrivateBoard
+		require.NotNil(t, c.IsValid())
+	})
+}
+
 func TestChannelIsValid(t *testing.T) {
 	o := Channel{}
 
@@ -143,6 +212,21 @@ func TestChannelIsValid(t *testing.T) {
 
 	o.Name = "71b03afcbb2d503d49f87f057549c43db4e19f92"
 	require.NotNil(t, o.IsValid())
+}
+
+func TestChannelTypeSpace(t *testing.T) {
+	t.Run("IsValid accepts a space backing channel", func(t *testing.T) {
+		o := Channel{
+			Id:          NewId(),
+			CreateAt:    GetMillis(),
+			UpdateAt:    GetMillis(),
+			TeamId:      NewId(),
+			DisplayName: "Space",
+			Name:        "space-" + NewId(),
+			Type:        ChannelTypeSpace,
+		}
+		require.Nil(t, o.IsValid())
+	})
 }
 
 func TestChannelIsValidBoard(t *testing.T) {
@@ -311,4 +395,73 @@ func TestSanitize(t *testing.T) {
 	require.Equal(t, int64(0), s.TotalMsgCountRoot)
 	require.Nil(t, s.PolicyID)
 	require.Equal(t, int64(0), s.LastRootPostAt)
+}
+
+func TestShouldChannelExcludeMembershipSystemPosts(t *testing.T) {
+	t.Run("nil channel returns false", func(t *testing.T) {
+		require.False(t, ShouldChannelExcludeMembershipSystemPosts(nil))
+	})
+
+	t.Run("DM channel returns false even when flag is set", func(t *testing.T) {
+		ch := &Channel{Type: ChannelTypeDirect, DisableJoinLeaveMessages: true}
+		require.False(t, ShouldChannelExcludeMembershipSystemPosts(ch))
+	})
+
+	t.Run("GM channel returns false even when flag is set", func(t *testing.T) {
+		ch := &Channel{Type: ChannelTypeGroup, DisableJoinLeaveMessages: true}
+		require.False(t, ShouldChannelExcludeMembershipSystemPosts(ch))
+	})
+
+	t.Run("open channel returns false when flag is off", func(t *testing.T) {
+		ch := &Channel{Type: ChannelTypeOpen, DisableJoinLeaveMessages: false}
+		require.False(t, ShouldChannelExcludeMembershipSystemPosts(ch))
+	})
+
+	t.Run("open channel returns true when flag is on", func(t *testing.T) {
+		ch := &Channel{Type: ChannelTypeOpen, DisableJoinLeaveMessages: true}
+		require.True(t, ShouldChannelExcludeMembershipSystemPosts(ch))
+	})
+
+	t.Run("private channel returns true when flag is on", func(t *testing.T) {
+		ch := &Channel{Type: ChannelTypePrivate, DisableJoinLeaveMessages: true}
+		require.True(t, ShouldChannelExcludeMembershipSystemPosts(ch))
+	})
+}
+
+func TestChannelPatchDisableJoinLeaveMessages(t *testing.T) {
+	t.Run("nil patch field leaves value unchanged", func(t *testing.T) {
+		ch := &Channel{DisableJoinLeaveMessages: true}
+		ch.Patch(&ChannelPatch{})
+		require.True(t, ch.DisableJoinLeaveMessages)
+	})
+
+	t.Run("patch applies true", func(t *testing.T) {
+		ch := &Channel{DisableJoinLeaveMessages: false}
+		val := true
+		ch.Patch(&ChannelPatch{DisableJoinLeaveMessages: &val})
+		require.True(t, ch.DisableJoinLeaveMessages)
+	})
+
+	t.Run("patch applies false", func(t *testing.T) {
+		ch := &Channel{DisableJoinLeaveMessages: true}
+		val := false
+		ch.Patch(&ChannelPatch{DisableJoinLeaveMessages: &val})
+		require.False(t, ch.DisableJoinLeaveMessages)
+	})
+}
+
+func TestChannelAuditableIncludesDisableJoinLeaveMessages(t *testing.T) {
+	ch := &Channel{DisableJoinLeaveMessages: true}
+	m := ch.Auditable()
+	val, ok := m["disable_join_leave_messages"]
+	require.True(t, ok)
+	require.Equal(t, true, val)
+}
+
+func TestChannelPatchAuditableIncludesDisableJoinLeaveMessages(t *testing.T) {
+	val := true
+	cp := &ChannelPatch{DisableJoinLeaveMessages: &val}
+	m := cp.Auditable()
+	_, ok := m["disable_join_leave_messages"]
+	require.True(t, ok)
 }

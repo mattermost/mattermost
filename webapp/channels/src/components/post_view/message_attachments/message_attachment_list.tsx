@@ -31,7 +31,7 @@ type Props = {
      * Images object used for creating placeholders to prevent scroll popup
      */
     imagesMetadata?: Record<string, PostImage>;
-}
+};
 
 const EMPTY_METADATA: Record<string, PostImage> = {};
 

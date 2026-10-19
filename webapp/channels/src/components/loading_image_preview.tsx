@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -9,7 +9,7 @@ type Props = {
     loading?: React.ReactNode;
     progress?: number;
     containerClass?: string;
-}
+};
 
 const LoadingImagePreview: React.FC<Props> = ({
     loading,

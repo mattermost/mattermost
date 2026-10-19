@@ -15,7 +15,7 @@ const TIME_TO_DISMISS = 2000;
 
 type Props = {
     updateWaitForLoader: (v: boolean) => void;
-}
+};
 
 const InputLoading = ({
     updateWaitForLoader,

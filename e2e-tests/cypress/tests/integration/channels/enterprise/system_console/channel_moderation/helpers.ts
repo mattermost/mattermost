@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-import {Team} from '@mattermost/types/teams';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {Team} from '@mattermost/types/teams';
 
 import {checkBoxes} from './constants';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {getAdminAccount} from '@/support/env';
-
 
 // # Visits the channel configuration for a channel with channelName
 export const visitChannelConfigPage = (channel: Channel) => {

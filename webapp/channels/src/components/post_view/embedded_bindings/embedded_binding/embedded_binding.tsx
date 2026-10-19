@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {CSSProperties} from 'react';
+import type {CSSProperties, JSX} from 'react';
 
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Post} from '@mattermost/types/posts';
@@ -38,13 +38,13 @@ type Props = {
     options?: Partial<TextFormattingOptions>;
 
     currentRelativeTeamUrl: string;
-}
+};
 
 type State = {
     checkOverflow: number;
     embed: AppBinding;
     bindings: AppBinding[];
-}
+};
 
 export default class EmbeddedBinding extends React.PureComponent<Props, State> {
     private imageProps: Record<string, any>;

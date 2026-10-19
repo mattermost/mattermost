@@ -14,7 +14,6 @@ import {createPrivateChannel} from '../elasticsearch_autocomplete/helpers';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {getAdminAccount} from '@/support/env';
 
-
 describe('Profile popover', () => {
     let testTeam: Cypress.Team;
     let testUser: Cypress.UserProfile;

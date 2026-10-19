@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/mail"
 	"reflect"
 	"strings"
 
@@ -21,33 +22,35 @@ func marshalConfig(cfg *model.Config) ([]byte, error) {
 	return json.MarshalIndent(cfg, "", "    ")
 }
 
-// desanitize replaces fake settings with their actual values.
-func desanitize(actual, target *model.Config) {
-	if target.LdapSettings.BindPassword != nil && *target.LdapSettings.BindPassword == model.FakeSetting {
+// Desanitize replaces fake settings with their actual values. Safe to call on
+// partial configs: every pointer dereference is nil-guarded so callers do not
+// need to run SetDefaults() first.
+func Desanitize(actual, target *model.Config) {
+	if target.LdapSettings.BindPassword != nil && *target.LdapSettings.BindPassword == model.FakeSetting && actual.LdapSettings.BindPassword != nil {
 		*target.LdapSettings.BindPassword = *actual.LdapSettings.BindPassword
 	}
 
-	if *target.FileSettings.PublicLinkSalt == model.FakeSetting {
+	if target.FileSettings.PublicLinkSalt != nil && *target.FileSettings.PublicLinkSalt == model.FakeSetting && actual.FileSettings.PublicLinkSalt != nil {
 		*target.FileSettings.PublicLinkSalt = *actual.FileSettings.PublicLinkSalt
 	}
-	if *target.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting {
+	if target.FileSettings.AmazonS3SecretAccessKey != nil && *target.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting && actual.FileSettings.AmazonS3SecretAccessKey != nil {
 		target.FileSettings.AmazonS3SecretAccessKey = actual.FileSettings.AmazonS3SecretAccessKey
 	}
-	if target.FileSettings.ExportAmazonS3SecretAccessKey != nil && *target.FileSettings.ExportAmazonS3SecretAccessKey == model.FakeSetting {
+	if target.FileSettings.ExportAmazonS3SecretAccessKey != nil && *target.FileSettings.ExportAmazonS3SecretAccessKey == model.FakeSetting && actual.FileSettings.ExportAmazonS3SecretAccessKey != nil {
 		target.FileSettings.ExportAmazonS3SecretAccessKey = actual.FileSettings.ExportAmazonS3SecretAccessKey
 	}
-	if target.FileSettings.AzureAccessKey != nil && *target.FileSettings.AzureAccessKey == model.FakeSetting {
+	if target.FileSettings.AzureAccessKey != nil && *target.FileSettings.AzureAccessKey == model.FakeSetting && actual.FileSettings.AzureAccessKey != nil {
 		target.FileSettings.AzureAccessKey = actual.FileSettings.AzureAccessKey
 	}
-	if target.FileSettings.ExportAzureAccessKey != nil && *target.FileSettings.ExportAzureAccessKey == model.FakeSetting {
+	if target.FileSettings.ExportAzureAccessKey != nil && *target.FileSettings.ExportAzureAccessKey == model.FakeSetting && actual.FileSettings.ExportAzureAccessKey != nil {
 		target.FileSettings.ExportAzureAccessKey = actual.FileSettings.ExportAzureAccessKey
 	}
 
-	if *target.EmailSettings.SMTPPassword == model.FakeSetting {
+	if target.EmailSettings.SMTPPassword != nil && *target.EmailSettings.SMTPPassword == model.FakeSetting {
 		target.EmailSettings.SMTPPassword = actual.EmailSettings.SMTPPassword
 	}
 
-	if *target.GitLabSettings.Secret == model.FakeSetting {
+	if target.GitLabSettings.Secret != nil && *target.GitLabSettings.Secret == model.FakeSetting {
 		target.GitLabSettings.Secret = actual.GitLabSettings.Secret
 	}
 
@@ -63,14 +66,11 @@ func desanitize(actual, target *model.Config) {
 		target.OpenIdSettings.Secret = actual.OpenIdSettings.Secret
 	}
 
-	if *target.SqlSettings.DataSource == model.FakeSetting {
+	if target.SqlSettings.DataSource != nil && *target.SqlSettings.DataSource == model.FakeSetting && actual.SqlSettings.DataSource != nil {
 		*target.SqlSettings.DataSource = *actual.SqlSettings.DataSource
 	}
-	if *target.SqlSettings.AtRestEncryptKey == model.FakeSetting {
-		target.SqlSettings.AtRestEncryptKey = actual.SqlSettings.AtRestEncryptKey
-	}
 
-	if *target.ElasticsearchSettings.Password == model.FakeSetting {
+	if target.ElasticsearchSettings.Password != nil && *target.ElasticsearchSettings.Password == model.FakeSetting && actual.ElasticsearchSettings.Password != nil {
 		*target.ElasticsearchSettings.Password = *actual.ElasticsearchSettings.Password
 	}
 
@@ -90,11 +90,15 @@ func desanitize(actual, target *model.Config) {
 		}
 	}
 
-	if *target.MessageExportSettings.GlobalRelaySettings.SMTPPassword == model.FakeSetting {
+	if target.MessageExportSettings.GlobalRelaySettings != nil &&
+		target.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil &&
+		*target.MessageExportSettings.GlobalRelaySettings.SMTPPassword == model.FakeSetting &&
+		actual.MessageExportSettings.GlobalRelaySettings != nil &&
+		actual.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil {
 		*target.MessageExportSettings.GlobalRelaySettings.SMTPPassword = *actual.MessageExportSettings.GlobalRelaySettings.SMTPPassword
 	}
 
-	if *target.ServiceSettings.SplitKey == model.FakeSetting {
+	if target.ServiceSettings.SplitKey != nil && *target.ServiceSettings.SplitKey == model.FakeSetting && actual.ServiceSettings.SplitKey != nil {
 		*target.ServiceSettings.SplitKey = *actual.ServiceSettings.SplitKey
 	}
 
@@ -140,6 +144,179 @@ func fixConfig(cfg *model.Config) {
 	}
 
 	fixInvalidLocales(cfg)
+	fixLegacyImageProxyType(cfg)
+	fixRetiredFeatureFlags(cfg)
+	fixTLSMinVer(cfg)
+	fixWebserverMode(cfg)
+	fixEmailAddressDisplayNames(cfg)
+	fixOutOfRangeNumericSettings(cfg)
+}
+
+// fixOutOfRangeNumericSettings resets numeric settings that v12 began range-checking to
+// their defaults when they hold a value earlier versions accepted but v12 rejects.
+func fixOutOfRangeNumericSettings(cfg *model.Config) bool {
+	defaults := &model.Config{}
+	defaults.SetDefaults()
+
+	var changed bool
+	resetInt := func(setting string, value, defaultValue *int, minimum int) {
+		changed = resetBelowMinimum(setting, value, *defaultValue, minimum) || changed
+	}
+	resetInt64 := func(setting string, value, defaultValue *int64, minimum int64) {
+		changed = resetBelowMinimum(setting, value, *defaultValue, minimum) || changed
+	}
+
+	s, d := &cfg.ServiceSettings, &defaults.ServiceSettings
+	resetInt64("ServiceSettings.TLSStrictTransportMaxAge", s.TLSStrictTransportMaxAge, d.TLSStrictTransportMaxAge, 0)
+	resetInt("ServiceSettings.IdleTimeout", s.IdleTimeout, d.IdleTimeout, 1)
+	resetInt("ServiceSettings.SessionLengthMobileInDays", s.SessionLengthMobileInDays, d.SessionLengthMobileInDays, 1)
+	resetInt("ServiceSettings.SessionLengthMobileInHours", s.SessionLengthMobileInHours, d.SessionLengthMobileInHours, 1)
+	resetInt("ServiceSettings.SessionLengthSSOInDays", s.SessionLengthSSOInDays, d.SessionLengthSSOInDays, 1)
+	resetInt("ServiceSettings.SessionLengthSSOInHours", s.SessionLengthSSOInHours, d.SessionLengthSSOInHours, 1)
+	resetInt("ServiceSettings.SessionCacheInMinutes", s.SessionCacheInMinutes, d.SessionCacheInMinutes, 1)
+	resetInt("ServiceSettings.SessionIdleTimeoutInMinutes", s.SessionIdleTimeoutInMinutes, d.SessionIdleTimeoutInMinutes, 0)
+	resetInt("ServiceSettings.MinimumHashtagLength", s.MinimumHashtagLength, d.MinimumHashtagLength, 1)
+	resetInt("ServiceSettings.ClusterLogTimeoutMilliseconds", s.ClusterLogTimeoutMilliseconds, d.ClusterLogTimeoutMilliseconds, 1)
+	resetInt("ServiceSettings.AWSMeteringTimeoutSeconds", s.AWSMeteringTimeoutSeconds, d.AWSMeteringTimeoutSeconds, 1)
+	resetInt("ServiceSettings.FeatureFlagSyncIntervalSeconds", s.FeatureFlagSyncIntervalSeconds, d.FeatureFlagSyncIntervalSeconds, 1)
+	resetInt("ServiceSettings.BurnOnReadDurationSeconds", s.BurnOnReadDurationSeconds, d.BurnOnReadDurationSeconds, 1)
+	resetInt("ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds", s.BurnOnReadMaximumTimeToLiveSeconds, d.BurnOnReadMaximumTimeToLiveSeconds, 1)
+	resetInt("ServiceSettings.BurnOnReadSchedulerFrequencySeconds", s.BurnOnReadSchedulerFrequencySeconds, d.BurnOnReadSchedulerFrequencySeconds, 1)
+
+	resetInt("LogSettings.MaxFieldSize", cfg.LogSettings.MaxFieldSize, defaults.LogSettings.MaxFieldSize, 0)
+	resetInt("SupportSettings.CustomTermsOfServiceReAcceptancePeriod", cfg.SupportSettings.CustomTermsOfServiceReAcceptancePeriod, defaults.SupportSettings.CustomTermsOfServiceReAcceptancePeriod, 0)
+	resetInt("AnnouncementSettings.NoticesFetchFrequency", cfg.AnnouncementSettings.NoticesFetchFrequency, defaults.AnnouncementSettings.NoticesFetchFrequency, 1)
+	resetInt("EmailSettings.PushNotificationBuffer", cfg.EmailSettings.PushNotificationBuffer, defaults.EmailSettings.PushNotificationBuffer, 1)
+	resetInt("LdapSettings.QueryTimeout", cfg.LdapSettings.QueryTimeout, defaults.LdapSettings.QueryTimeout, 1)
+
+	cw, dcw := &cfg.ConnectedWorkspacesSettings, &defaults.ConnectedWorkspacesSettings
+	resetInt("ConnectedWorkspacesSettings.GlobalUserSyncBatchSize", cw.GlobalUserSyncBatchSize, dcw.GlobalUserSyncBatchSize, 1)
+	resetInt("ConnectedWorkspacesSettings.MaxPostsPerSync", cw.MaxPostsPerSync, dcw.MaxPostsPerSync, 1)
+	resetInt("ConnectedWorkspacesSettings.MemberSyncBatchSize", cw.MemberSyncBatchSize, dcw.MemberSyncBatchSize, 1)
+
+	resetInt("SqlSettings.MigrationsStatementTimeoutSeconds", cfg.SqlSettings.MigrationsStatementTimeoutSeconds, defaults.SqlSettings.MigrationsStatementTimeoutSeconds, 0)
+	resetInt("SqlSettings.ReplicaMonitorIntervalSeconds", cfg.SqlSettings.ReplicaMonitorIntervalSeconds, defaults.SqlSettings.ReplicaMonitorIntervalSeconds, 1)
+
+	f, df := &cfg.FileSettings, &defaults.FileSettings
+	resetInt64("FileSettings.MaxImageResolution", f.MaxImageResolution, df.MaxImageResolution, 1)
+	resetInt64("FileSettings.AmazonS3UploadPartSizeBytes", f.AmazonS3UploadPartSizeBytes, df.AmazonS3UploadPartSizeBytes, model.FileSettingsDefaultS3UploadPartSizeBytes)
+	resetInt64("FileSettings.ExportAmazonS3UploadPartSizeBytes", f.ExportAmazonS3UploadPartSizeBytes, df.ExportAmazonS3UploadPartSizeBytes, model.FileSettingsDefaultS3UploadPartSizeBytes)
+
+	es, des := &cfg.ElasticsearchSettings, &defaults.ElasticsearchSettings
+	resetInt("ElasticsearchSettings.PostIndexShards", es.PostIndexShards, des.PostIndexShards, 1)
+	resetInt("ElasticsearchSettings.ChannelIndexShards", es.ChannelIndexShards, des.ChannelIndexShards, 1)
+	resetInt("ElasticsearchSettings.UserIndexShards", es.UserIndexShards, des.UserIndexShards, 1)
+	resetInt("ElasticsearchSettings.PostIndexReplicas", es.PostIndexReplicas, des.PostIndexReplicas, 0)
+	resetInt("ElasticsearchSettings.ChannelIndexReplicas", es.ChannelIndexReplicas, des.ChannelIndexReplicas, 0)
+	resetInt("ElasticsearchSettings.UserIndexReplicas", es.UserIndexReplicas, des.UserIndexReplicas, 0)
+
+	dr, ddr := &cfg.DataRetentionSettings, &defaults.DataRetentionSettings
+	resetInt("DataRetentionSettings.BatchSize", dr.BatchSize, ddr.BatchSize, 1)
+	resetInt("DataRetentionSettings.TimeBetweenBatchesMilliseconds", dr.TimeBetweenBatchesMilliseconds, ddr.TimeBetweenBatchesMilliseconds, 0)
+	resetInt("DataRetentionSettings.RetentionIdsBatchSize", dr.RetentionIdsBatchSize, ddr.RetentionIdsBatchSize, 1)
+
+	return changed
+}
+
+func resetBelowMinimum[T int | int64](setting string, value *T, defaultValue, minimum T) bool {
+	if *value >= minimum {
+		return false
+	}
+
+	mlog.Warn("Setting is out of range. Resetting it to the default value.", mlog.String("setting", setting), mlog.Int("value", *value), mlog.Int("default", defaultValue))
+	*value = defaultValue
+	return true
+}
+
+// fixEmailAddressDisplayNames reduces email settings written as "Name <user@example.com>"
+// to the bare address, which is the only form v12 accepts. Values that do not parse as an
+// address are left for validation to reject.
+func fixEmailAddressDisplayNames(cfg *model.Config) bool {
+	var changed bool
+
+	for _, setting := range []struct {
+		name  string
+		value *string
+	}{
+		{"SupportSettings.SupportEmail", cfg.SupportSettings.SupportEmail},
+		{"EmailSettings.FeedbackEmail", cfg.EmailSettings.FeedbackEmail},
+		{"EmailSettings.ReplyToAddress", cfg.EmailSettings.ReplyToAddress},
+	} {
+		if *setting.value == "" {
+			continue
+		}
+
+		addr, err := mail.ParseAddress(*setting.value)
+		if err != nil || addr.Address == *setting.value {
+			continue
+		}
+
+		mlog.Warn("Email setting must be a plain email address. Removing the display name.", mlog.String("setting", setting.name), mlog.String("value", *setting.value), mlog.String("address", addr.Address))
+		*setting.value = addr.Address
+		changed = true
+	}
+
+	return changed
+}
+
+// fixWebserverMode replaces an unrecognized webserver mode with uncompressed, which servers
+// before v12 silently used for any value other than gzip or disabled.
+func fixWebserverMode(cfg *model.Config) bool {
+	switch *cfg.ServiceSettings.WebserverMode {
+	case "gzip", "uncompressed", "disabled":
+		return false
+	}
+
+	mlog.Warn("ServiceSettings.WebserverMode is not a supported mode. Setting WebserverMode to uncompressed.", mlog.String("webserver_mode", *cfg.ServiceSettings.WebserverMode))
+	*cfg.ServiceSettings.WebserverMode = "uncompressed"
+	return true
+}
+
+// fixTLSMinVer replaces an unrecognized TLS minimum version with 1.2, which servers
+// before v12 silently used for any value other than 1.0 or 1.1.
+func fixTLSMinVer(cfg *model.Config) bool {
+	switch *cfg.ServiceSettings.TLSMinVer {
+	case "1.0", "1.1", "1.2", "1.3":
+		return false
+	}
+
+	mlog.Warn("ServiceSettings.TLSMinVer is not a supported TLS version. Setting TLSMinVer to 1.2.", mlog.String("tls_min_ver", *cfg.ServiceSettings.TLSMinVer))
+	*cfg.ServiceSettings.TLSMinVer = "1.2"
+	return true
+}
+
+// fixRetiredFeatureFlags forces off feature flags whose features have been removed.
+func fixRetiredFeatureFlags(cfg *model.Config) bool {
+	if cfg.FeatureFlags == nil {
+		return false
+	}
+
+	var changed bool
+
+	if cfg.FeatureFlags.AppsEnabled {
+		mlog.Warn("The AppsEnabled feature flag is no longer supported. Setting AppsEnabled to false.")
+		cfg.FeatureFlags.AppsEnabled = false
+		changed = true
+	}
+
+	if cfg.FeatureFlags.MoveThreadsEnabled {
+		mlog.Warn("The MoveThreadsEnabled feature flag is no longer supported. Setting MoveThreadsEnabled to false.")
+		cfg.FeatureFlags.MoveThreadsEnabled = false
+		changed = true
+	}
+
+	return changed
+}
+
+// fixLegacyImageProxyType migrates the removed atmos/camo image proxy type to local.
+func fixLegacyImageProxyType(cfg *model.Config) bool {
+	if *cfg.ImageProxySettings.ImageProxyType != model.ImageProxyTypeLegacyAtmosCamo {
+		return false
+	}
+
+	mlog.Warn("The atmos/camo image proxy type is no longer supported. Setting ImageProxyType to local.")
+	*cfg.ImageProxySettings.ImageProxyType = model.ImageProxyTypeLocal
+	return true
 }
 
 // fixInvalidLocales checks and corrects the given config for invalid locale-related settings.

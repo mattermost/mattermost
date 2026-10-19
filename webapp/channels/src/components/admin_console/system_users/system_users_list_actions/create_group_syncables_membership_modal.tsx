@@ -16,7 +16,7 @@ type Props = {
     user: UserProfile;
     onExited: () => void;
     onError: (error: ServerError) => void;
-}
+};
 
 export default function CreateGroupSyncablesMembershipsModal({user, onExited, onError}: Props) {
     const dispatch = useDispatch();

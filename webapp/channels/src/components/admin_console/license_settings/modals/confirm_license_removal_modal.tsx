@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -23,7 +23,7 @@ type Props = {
     currentLicenseSKU: string;
     onExited?: () => void;
     handleRemove?: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
-}
+};
 
 const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element | null => {
     const dispatch = useDispatch();

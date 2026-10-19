@@ -8,11 +8,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
 	"slices"
-	"sort"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
@@ -184,7 +183,7 @@ func processProfileImagesDir(profileImagesPath, tmpDir, bulk string) ([]string, 
 		}
 	}
 
-	sort.Strings(profileImages)
+	slices.Sort(profileImages)
 	return profileImages, nil
 }
 
@@ -265,11 +264,12 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 	}
 
 	fake.Seed(seed)
-	rand.Seed(seed)
+	useed := uint64(seed)
+	r := rand.New(rand.NewPCG(useed, useed))
 
 	teamsAndChannels := make(map[string][]string, teams)
 	for i := range teams {
-		teamLine := createTeam(i)
+		teamLine := createTeam(r, i)
 		teamsAndChannels[*teamLine.Team.Name] = []string{}
 		if err := encoder.Encode(teamLine); err != nil {
 			return fmt.Errorf("could not encode team line: %w", err)
@@ -282,11 +282,11 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		teamsList[teamsListIndex] = teamName
 		teamsListIndex++
 	}
-	sort.Strings(teamsList)
+	slices.Sort(teamsList)
 
 	for _, teamName := range teamsList {
 		for i := range channelsPerTeam {
-			channelLine := createChannel(i, teamName)
+			channelLine := createChannel(r, i, teamName)
 			teamsAndChannels[teamName] = append(teamsAndChannels[teamName], *channelLine.Channel.Name)
 			if err := encoder.Encode(channelLine); err != nil {
 				return fmt.Errorf("could not encode channel line: %w", err)
@@ -297,7 +297,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 	allUsers := make([]string, users+guests+deactivatedUsers)
 	allUsersIndex := 0
 	for i := range users {
-		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, "")
+		userLine := createUser(r, i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, "")
 		if err := encoder.Encode(userLine); err != nil {
 			return fmt.Errorf("cannot encode user line: %w", err)
 		}
@@ -305,7 +305,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		allUsersIndex++
 	}
 	for i := range guests {
-		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, guestUser)
+		userLine := createUser(r, i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, guestUser)
 		if err := encoder.Encode(userLine); err != nil {
 			return fmt.Errorf("cannot encode user line: %w", err)
 		}
@@ -313,7 +313,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		allUsersIndex++
 	}
 	for i := range deactivatedUsers {
-		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, deactivatedUser)
+		userLine := createUser(r, i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, deactivatedUser)
 		if err := encoder.Encode(userLine); err != nil {
 			return fmt.Errorf("cannot encode user line: %w", err)
 		}
@@ -323,10 +323,10 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 
 	for team, channels := range teamsAndChannels {
 		for _, channel := range channels {
-			dates := sortedRandomDates(postsPerChannel)
+			dates := sortedRandomDates(r, postsPerChannel)
 
 			for i := range postsPerChannel {
-				postLine := createPost(team, channel, allUsers, dates[i])
+				postLine := createPost(r, team, channel, allUsers, dates[i])
 				if err := encoder.Encode(postLine); err != nil {
 					return fmt.Errorf("cannot encode post line: %w", err)
 				}
@@ -335,8 +335,8 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 	}
 
 	for range directChannels {
-		user1 := allUsers[rand.Intn(len(allUsers))]
-		user2 := allUsers[rand.Intn(len(allUsers))]
+		user1 := allUsers[r.IntN(len(allUsers))]
+		user2 := allUsers[r.IntN(len(allUsers))]
 		channelLine := createDirectChannel([]string{user1, user2})
 		if err := encoder.Encode(channelLine); err != nil {
 			return fmt.Errorf("cannot encode channel line: %w", err)
@@ -344,12 +344,12 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 	}
 
 	for range directChannels {
-		user1 := allUsers[rand.Intn(len(allUsers))]
-		user2 := allUsers[rand.Intn(len(allUsers))]
+		user1 := allUsers[r.IntN(len(allUsers))]
+		user2 := allUsers[r.IntN(len(allUsers))]
 
-		dates := sortedRandomDates(postsPerDirectChannel)
+		dates := sortedRandomDates(r, postsPerDirectChannel)
 		for j := range postsPerDirectChannel {
-			postLine := createDirectPost([]string{user1, user2}, dates[j])
+			postLine := createDirectPost(r, []string{user1, user2}, dates[j])
 			if err := encoder.Encode(postLine); err != nil {
 				return fmt.Errorf("cannot encode post line: %w", err)
 			}
@@ -358,9 +358,9 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 
 	for range groupChannels {
 		users := []string{}
-		totalUsers := 3 + rand.Intn(3)
+		totalUsers := 3 + r.IntN(3)
 		for len(users) < totalUsers {
-			user := allUsers[rand.Intn(len(allUsers))]
+			user := allUsers[r.IntN(len(allUsers))]
 			if !slices.Contains(users, user) {
 				users = append(users, user)
 			}
@@ -373,17 +373,17 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 
 	for range groupChannels {
 		users := []string{}
-		totalUsers := 3 + rand.Intn(3)
+		totalUsers := 3 + r.IntN(3)
 		for len(users) < totalUsers {
-			user := allUsers[rand.Intn(len(allUsers))]
+			user := allUsers[r.IntN(len(allUsers))]
 			if !slices.Contains(users, user) {
 				users = append(users, user)
 			}
 		}
 
-		dates := sortedRandomDates(postsPerGroupChannel)
+		dates := sortedRandomDates(r, postsPerGroupChannel)
 		for j := range postsPerGroupChannel {
-			postLine := createDirectPost(users, dates[j])
+			postLine := createDirectPost(r, users, dates[j])
 			if err := encoder.Encode(postLine); err != nil {
 				return fmt.Errorf("cannot encode post line: %w", err)
 			}

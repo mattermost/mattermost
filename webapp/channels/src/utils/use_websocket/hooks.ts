@@ -9,7 +9,7 @@ import {WebSocketContext} from './context';
 
 export type UseWebSocketOptions = {
     handler: (msg: WebSocketMessage) => void;
-}
+};
 
 export function useWebSocket({handler}: UseWebSocketOptions) {
     const wsClient = useWebSocketClient();

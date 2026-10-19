@@ -8,6 +8,7 @@ import {getUserByEmail} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 
 import {emitChannelClickEvent} from 'actions/global_actions';
+import {openModal} from 'actions/views/modals';
 
 import {
     goToChannelByChannelName,
@@ -21,6 +22,7 @@ import {
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import mockStore from 'tests/test_store';
 import {joinPrivateChannelPrompt} from 'utils/channel_utils';
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {Match} from './channel_identifier_router';
 
@@ -45,6 +47,10 @@ jest.mock('utils/channel_utils', () => ({
             return {data: {join: true}};
         };
     }),
+}));
+
+jest.mock('actions/views/modals', () => ({
+    openModal: jest.fn(() => ({type: 'MOCK_OPEN_MODAL'})),
 }));
 
 describe('Actions', () => {
@@ -234,6 +240,45 @@ describe('Actions', () => {
             expect(getChannelMember).toHaveBeenCalledWith(channel.id, 'current_user_id');
             expect(joinPrivateChannelPrompt).toHaveBeenCalled();
             expect(joinChannel).toHaveBeenCalledWith('current_user_id', 'team_id1', channel.id, channel.name);
+        });
+
+        test('opens the Request to Join modal for a discoverable private channel instead of the legacy join prompt', async () => {
+            (joinChannel as jest.Mock).mockClear();
+            (joinPrivateChannelPrompt as jest.Mock).mockClear();
+            (openModal as jest.Mock).mockClear();
+
+            const testStore = await mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {...initialState.entities.general, config: {FeatureFlagDiscoverableChannels: 'true'}},
+                    roles: {roles: {}},
+                    users: {
+                        ...initialState.entities.users,
+                        profiles: {
+                            ...initialState.entities.users.profiles,
+                            current_user_id: {roles: 'system_user'},
+                        },
+                    },
+                },
+            });
+
+            const channel = {id: 'channel_id7', name: 'disc-private', team_id: 'team_id1', type: 'P', display_name: 'Disc Private', discoverable: true};
+            (getChannelByNameAndTeamName as jest.Mock).mockReturnValueOnce({type: '', data: channel});
+            const history = {replace: jest.fn()};
+
+            await testStore.dispatch(goToChannelByChannelName({params: {team: 'team1', identifier: channel.name, path: '/'}, url: ''} as Match, history as any));
+
+            // The Request to Join modal opens; the legacy join prompt and direct
+            // join are never triggered, and the user is redirected off the
+            // inaccessible channel view.
+            expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+                modalId: ModalIdentifiers.REQUEST_JOIN_CHANNEL,
+                dialogProps: expect.objectContaining({channel: expect.objectContaining({id: 'channel_id7'})}),
+            }));
+            expect(joinPrivateChannelPrompt).not.toHaveBeenCalled();
+            expect(joinChannel).not.toHaveBeenCalled();
+            expect(history.replace).toHaveBeenCalled();
         });
     });
 

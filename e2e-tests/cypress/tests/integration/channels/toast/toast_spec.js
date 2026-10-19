@@ -17,7 +17,6 @@ import {
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('toasts', () => {
     let otherUser;
     let testTeam;

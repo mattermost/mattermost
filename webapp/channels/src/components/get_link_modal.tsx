@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
@@ -15,11 +15,11 @@ type Props = {
     title: string;
     helpText?: string;
     link: string;
-}
+};
 
 type State = {
     copiedLink: boolean;
-}
+};
 
 export default class GetLinkModal extends React.PureComponent<Props, State> {
     private textAreaRef = React.createRef<HTMLTextAreaElement>();
@@ -64,7 +64,7 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                 this.resetTimeout = setTimeout(() => {
                     this.setState({copiedLink: false});
                 }, 1000);
-            } catch (err) {
+            } catch {
                 this.setState({copiedLink: false});
             }
         }

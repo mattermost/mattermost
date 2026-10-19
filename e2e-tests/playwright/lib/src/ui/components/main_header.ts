@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class MainHeader {
     readonly container: Locator;
@@ -12,7 +13,7 @@ export default class MainHeader {
     constructor(container: Locator) {
         this.container = container;
 
-        this.logo = container.locator('.header-logo-link');
+        this.logo = container.getByTestId('header-logo-link');
         this.backButton = container.getByTestId('back_button');
     }
 

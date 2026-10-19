@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useMemo} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import ChannelTypeIcon from 'components/channel_type_icon';
 import Input from 'components/widgets/inputs/input/input';
-
-import {Constants} from 'utils/constants';
 
 type Props = {
     selectedChannelIds: string[];
@@ -49,27 +48,16 @@ const ChannelSelector = ({selectedChannelIds, setSelectedChannelIds, myChannels,
         return filteredChannels.filter((channel) => !recommendedIds.includes(channel.id));
     }, [filteredChannels, recommendedChannels]);
 
-    const getChannelIcon = (channel: Channel) => {
-        switch (channel.type) {
-        case Constants.OPEN_CHANNEL:
-            return 'icon-globe';
-        case Constants.PRIVATE_CHANNEL:
-            return 'icon-lock-outline';
-        case Constants.GM_CHANNEL:
-            return 'icon-account-multiple-outline';
-        case Constants.DM_CHANNEL:
-            return 'icon-account-outline';
-        default:
-            return 'icon-globe';
-        }
-    };
-
     const renderChannelItem = (channel: Channel) => {
         const isSelected = selectedChannelIds.includes(channel.id);
+
+        const icon: React.ReactNode = <ChannelTypeIcon channel={channel}/>;
+
         return (
             <div
                 key={channel.id}
                 className='channel-selector-item'
+                data-testid='channel-selector-item'
                 onClick={() => toggleChannel(channel.id)}
             >
                 <div className='channel-selector-checkbox'>
@@ -81,7 +69,7 @@ const ChannelSelector = ({selectedChannelIds, setSelectedChannelIds, myChannels,
                     />
                 </div>
                 <div className='channel-selector-channel-info'>
-                    <i className={`icon ${getChannelIcon(channel)}`}/>
+                    {icon}
                     <span className='channel-name'>{channel.display_name}</span>
                 </div>
             </div>
@@ -98,7 +86,7 @@ const ChannelSelector = ({selectedChannelIds, setSelectedChannelIds, myChannels,
                 <div className='channel-selector-search'>
                     <Input
                         type='text'
-                        placeholder={{id: 'recaps.modal.searchChannels', defaultMessage: 'Search and select channels'}}
+                        placeholder={defineMessage({id: 'recaps.modal.searchChannels', defaultMessage: 'Search and select channels'})}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         useLegend={false}

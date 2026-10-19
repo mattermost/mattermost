@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, type JSX} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
@@ -31,7 +31,7 @@ type Props = {
     };
     onExited: () => void;
     isChannelAutotranslated: boolean;
-}
+};
 
 const RestorePostModal = ({post, postHeader, actions, onExited, isChannelAutotranslated}: Props) => {
     const {formatMessage, locale} = useIntl();

@@ -79,4 +79,4 @@ const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default connect(mapStateToProps, mapDispatchToProps)(SystemUsers);
+export default connector(SystemUsers);

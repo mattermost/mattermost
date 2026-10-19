@@ -5,30 +5,23 @@ import type {Client4} from '@mattermost/client';
 
 // Canonical values: webapp/channels/src/components/admin_console/classification_markings/utils/index.ts
 // (cross-package import not feasible between e2e-tests and webapp)
-const PROPERTY_GROUP = 'classification_markings';
+const PROPERTY_GROUP = 'access_control';
 const OBJECT_TYPE = 'template';
 const LINKED_OBJECT_TYPE = 'system';
 const TARGET_TYPE = 'system';
 const SYSTEM_FIELD_TARGET_ID = ''; // target_type 'system' requires empty target_id on the field
 const CLASSIFICATION_FIELD_NAME = 'classification';
-const LINKED_CLASSIFICATION_FIELD_NAME = 'system_classification';
+const LINKED_CLASSIFICATION_FIELD_NAME = 'classification';
+// Classification levels are an ordered scale, so only a rank-typed field by this
+// name belongs to the feature. One of any other type is a different attribute that
+// happens to share the name, and the admin pages report it as a conflict rather
+// than adopting it — so seeding the wrong type here lands the test on that error
+// screen instead of the editor.
+const CLASSIFICATIONS_FIELD_TYPE = 'rank';
 const DISPLAY_BANNER_TOP = 'display_banner_top';
 const DISPLAY_BANNER_BOTTOM = 'display_banner_bottom';
 
 export const CLASSIFICATION_MARKINGS_ADMIN_PATH = '/admin_console/site_config/classification_markings';
-
-/**
- * Toggle via System Console config API. On servers without SplitKey, feature flags are
- * read-only from config (see server/config/store.go); effective values come from env
- * (e.g. MM_FEATUREFLAGS_CLASSIFICATIONMARKINGS). E2E docker sets that env in server.generate.sh.
- */
-export async function setClassificationMarkingsFeatureFlag(adminClient: Client4, enabled: boolean) {
-    await adminClient.patchConfig({
-        FeatureFlags: {
-            ClassificationMarkings: enabled,
-        },
-    } as any);
-}
 
 /**
  * Removes the classification property field and its linked system field if present
@@ -38,7 +31,7 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
     // Delete channel linked fields first (created by channel classification tests).
     try {
         const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', TARGET_TYPE, '');
-        for (const f of channelFields.filter((f) => f.name === 'channel_classification' && f.delete_at === 0)) {
+        for (const f of channelFields.filter((f) => f.name === 'classification' && f.delete_at === 0)) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, 'channel', f.id);
         }
     } catch {
@@ -96,16 +89,15 @@ export async function setupClassificationField(
 
     return adminClient.createPropertyField(PROPERTY_GROUP, OBJECT_TYPE, {
         name: CLASSIFICATION_FIELD_NAME,
-        type: 'select',
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: TARGET_TYPE,
         target_id: '',
         attrs: {
             options: levels.map((l) => ({id: l.id ?? '', name: l.name, color: l.color, rank: l.rank})),
-            managed: 'admin',
         },
-        permission_field: 'sysadmin',
-        permission_values: 'sysadmin',
-        permission_options: 'sysadmin',
+        permission_field: 'admin',
+        permission_values: 'admin',
+        permission_options: 'admin',
     } as Parameters<Client4['createPropertyField']>[2]);
 }
 
@@ -155,7 +147,7 @@ export async function setupClassificationFieldWithGlobalBanner(
     // type, options, and permissions are inherited from the source template by the server.
     const linkedField = await adminClient.createPropertyField(PROPERTY_GROUP, LINKED_OBJECT_TYPE, {
         name: LINKED_CLASSIFICATION_FIELD_NAME,
-        type: 'select',
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: TARGET_TYPE,
         target_id: SYSTEM_FIELD_TARGET_ID,
         linked_field_id: templateField.id,

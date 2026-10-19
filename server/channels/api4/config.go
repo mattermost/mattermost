@@ -308,6 +308,11 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Do not allow certificates to be changed through the API. Mirror the full
+	// update endpoint by silently preserving the existing value rather than
+	// rejecting the request.
+	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
+
 	// Do not allow import directory to be changed through the API
 	if cfg.ImportSettings.Directory != nil && *cfg.ImportSettings.Directory != *appCfg.ImportSettings.Directory {
 		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ImportSettings.Directory"}, "", http.StatusForbidden)
@@ -335,9 +340,13 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.HandleMessageExportConfig(cfg, appCfg)
 	}
 
-	// Treating an empty plugins map as nil preserves the existing configs.
-	if len(cfg.PluginSettings.Plugins) == 0 {
-		cfg.PluginSettings.Plugins = nil
+	// Preserve the existing configs for those not present in the patch.
+	if cfg.PluginSettings.Plugins != nil {
+		for id, storedSettings := range appCfg.PluginSettings.Plugins {
+			if _, present := cfg.PluginSettings.Plugins[id]; !present {
+				cfg.PluginSettings.Plugins[id] = storedSettings
+			}
+		}
 	}
 
 	updatedCfg, err := config.Merge(appCfg, cfg, &utils.MergeConfig{

@@ -16,7 +16,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;
-}
+};
 
 const UnarchiveChannel = ({
     channel,

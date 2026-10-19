@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useMemo, useEffect} from 'react';
+import React, {useState, useMemo, useEffect, useRef} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 
@@ -34,13 +34,14 @@ type Props = PreparingWorkspacePageProps & {
     inferredProtocol: 'http' | 'https' | null;
     isSelfHosted: boolean;
     show: boolean;
-}
+};
 
 const InviteMembers = (props: Props) => {
     const [email, setEmail] = useState('');
     const [showSkipButton, setShowSkipButton] = useState(false);
 
     const {formatMessage} = useIntl();
+    const nodeRef = useRef<HTMLDivElement>(null);
     let className = 'InviteMembers-body';
     if (props.className) {
         className += ' ' + props.className;
@@ -204,12 +205,16 @@ const InviteMembers = (props: Props) => {
     return (
         <CSSTransition
             in={props.show}
+            nodeRef={nodeRef}
             timeout={Animations.PAGE_SLIDE}
             classNames={mapAnimationReasonToClass('InviteMembers', props.transitionDirection)}
             mountOnEnter={true}
             unmountOnExit={true}
         >
-            <div className={className}>
+            <div
+                ref={nodeRef}
+                className={className}
+            >
                 <SingleColumnLayout style={{width: 547}}>
                     <PageLine
                         style={{

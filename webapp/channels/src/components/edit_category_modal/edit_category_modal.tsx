@@ -29,7 +29,7 @@ type Props = {
 
 type State = {
     categoryName: string;
-}
+};
 
 export default class EditCategoryModal extends React.PureComponent<Props, State> {
     timeoutId: NodeJS.Timeout | null = null;

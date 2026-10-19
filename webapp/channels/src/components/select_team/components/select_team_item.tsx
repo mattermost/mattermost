@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Team} from '@mattermost/types/teams';
@@ -76,6 +76,20 @@ const SelectTeamItem = ({
                 className={canJoin ? '' : 'disabled'}
             >
                 <span className='signup-team-dir__name'>{team.display_name}</span>
+                {team.recommended &&
+                    <span
+                        className='signup-team-dir__recommended'
+                        aria-label={intl.formatMessage({id: 'select_team.recommended.aria', defaultMessage: 'Recommended based on your attributes'})}
+                    >
+                        <i
+                            className='icon icon-lightbulb-outline'
+                            aria-hidden='true'
+                        />
+                        <FormattedMessage
+                            id='select_team.recommended'
+                            defaultMessage='Recommended'
+                        />
+                    </span>}
                 {!team.allow_open_invite &&
                     <i
                         className='fa fa-lock light'

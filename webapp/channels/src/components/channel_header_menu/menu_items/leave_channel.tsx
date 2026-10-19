@@ -21,7 +21,7 @@ import {Constants, ModalIdentifiers} from 'utils/constants';
 type Props = {
     channel: Channel;
     id?: string;
-}
+};
 
 const LeaveChannel = ({
     channel,

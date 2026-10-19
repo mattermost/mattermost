@@ -33,7 +33,7 @@ import EditPost from './edit_post';
 
 type Props = {
     scheduledPost?: ScheduledPost;
-}
+};
 
 function mapStateToProps(state: GlobalState, props: Props) {
     const config = getConfig(state);

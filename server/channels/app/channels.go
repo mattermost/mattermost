@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -41,14 +42,23 @@ type Channels struct {
 	filestore       filestore.FileBackend
 	exportFilestore filestore.FileBackend
 
-	postActionCookieSecret []byte
+	postActionCookieSecret   []byte
+	samlRelayStateSigningKey []byte
 
 	pluginCommandsLock            sync.RWMutex
 	pluginCommands                []*PluginCommand
 	pluginsLock                   sync.RWMutex
 	pluginsEnvironment            *plugin.Environment
 	pluginConfigListenerID        string
+	pluginLicenseListenerID       string
 	pluginClusterLeaderListenerID string
+
+	// guardCache caches ChannelGuards rows by ChannelId -> []*store.ChannelGuard.
+	guardCache atomic.Pointer[sync.Map]
+
+	// guardCacheRetryInFlight collapses concurrent reload-failure retries to a single goroutine.
+	// See scheduleGuardCacheReloadRetry.
+	guardCacheRetryInFlight atomic.Bool
 
 	imageProxy *imageproxy.ImageProxy
 
@@ -74,8 +84,9 @@ type Channels struct {
 	AccessControl    einterfaces.AccessControlServiceInterface
 	Intune           einterfaces.IntuneInterface
 
-	attributeViewRefreshMut  sync.Mutex
-	attributeViewRefreshLast time.Time
+	attributeViewRefreshMut   sync.Mutex
+	attributeViewRefreshLast  time.Time
+	attributeViewNeedsRefresh atomic.Bool
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -86,15 +97,13 @@ type Channels struct {
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
 
-	dndTaskMut sync.Mutex
-	dndTask    *model.ScheduledTask
+	dndTask           leaderTask
+	postReminderTask  leaderTask
+	scheduledPostTask leaderTask
 
-	postReminderMut  sync.Mutex
-	postReminderTask *model.ScheduledTask
+	healthCheckTask leaderTask
 
 	interruptQuitChan chan struct{}
-	scheduledPostMut  sync.Mutex
-	scheduledPostTask *model.ScheduledTask
 }
 
 func NewChannels(s *Server) (*Channels, error) {
@@ -107,6 +116,7 @@ func NewChannels(s *Server) (*Channels, error) {
 		cfgSvc:            s.Platform(),
 		interruptQuitChan: make(chan struct{}),
 	}
+	ch.guardCache.Store(&sync.Map{})
 
 	if s.agentsBridgeOverride != nil {
 		ch.agentsBridge = s.agentsBridgeOverride
@@ -213,7 +223,8 @@ func NewChannels(s *Server) (*Channels, error) {
 		decoderConcurrency = runtime.NumCPU()
 	}
 	ch.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
-		ConcurrencyLevel: decoderConcurrency,
+		ConcurrencyLevel:     decoderConcurrency,
+		MaxDecodedResolution: *ch.cfgSvc.Config().FileSettings.MaxImageResolution,
 	})
 	if imgErr != nil {
 		return nil, errors.Wrap(imgErr, "failed to create image decoder")
@@ -230,6 +241,15 @@ func NewChannels(s *Server) (*Channels, error) {
 	pluginsRoute.HandleFunc("", ch.ServePluginRequest)
 	pluginsRoute.HandleFunc("/public/{public_file:.*}", ch.ServePluginPublicRequest)
 	pluginsRoute.HandleFunc("/{anything:.*}", ch.ServePluginRequest)
+
+	if err := ch.reloadGuardCache(request.EmptyContext(s.Log()), s.Store()); err != nil {
+		s.Log().Warn(
+			"Failed to load channel guard cache at startup; retry scheduled",
+			mlog.Bool("clustered", s.platform.Cluster() != nil),
+			mlog.Err(err),
+		)
+		ch.scheduleGuardCacheReloadRetry()
+	}
 
 	return ch, nil
 }
@@ -285,6 +305,8 @@ func (ch *Channels) Start() error {
 		}
 	})
 
+	ch.AddConfigListener(ch.clearABACRenderCachesOnFlip)
+
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
@@ -294,17 +316,20 @@ func (ch *Channels) Start() error {
 		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
 
+	if err := ch.ensureSamlRelayStateSigningKey(); err != nil {
+		return errors.Wrapf(err, "unable to ensure SAML RelayState signing key")
+	}
+
 	return nil
 }
 
 func (ch *Channels) Stop() error {
 	ch.ShutDownPlugins()
 
-	ch.dndTaskMut.Lock()
-	if ch.dndTask != nil {
-		ch.dndTask.Cancel()
-	}
-	ch.dndTaskMut.Unlock()
+	ch.dndTask.stop()
+	ch.postReminderTask.stop()
+	ch.scheduledPostTask.stop()
+	ch.healthCheckTask.stop()
 
 	close(ch.interruptQuitChan)
 
@@ -322,6 +347,14 @@ func (ch *Channels) RemoveConfigListener(id string) {
 func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks, manifest *model.Manifest) bool, hookId int) {
 	if env := ch.GetPluginsEnvironment(); env != nil {
 		env.RunMultiPluginHook(hookRunnerFunc, hookId)
+	}
+}
+
+// RunMultiHookExcluding is like RunMultiHook but skips plugins whose IDs appear in excludePluginIDs.
+// Fail-open semantics are preserved.
+func (ch *Channels) RunMultiHookExcluding(excludePluginIDs []string, hookRunnerFunc func(plugin.Hooks, *model.Manifest) bool, hookId int) {
+	if env := ch.GetPluginsEnvironment(); env != nil {
+		env.RunMultiPluginHookExcluding(excludePluginIDs, hookRunnerFunc, hookId)
 	}
 }
 
@@ -350,4 +383,14 @@ func (ch *Channels) HooksForPlugin(id string) (plugin.Hooks, error) {
 	}
 
 	return hooks, nil
+}
+
+// HooksForPluginWithRPCErr returns the full *WithRPCErr hook surface for the named plugin.
+// Returns an error if the plugin environment is unavailable, the plugin is not found, or not active.
+func (ch *Channels) HooksForPluginWithRPCErr(id string) (plugin.HooksWithRPCErr, error) {
+	env := ch.GetPluginsEnvironment()
+	if env == nil {
+		return nil, errors.New("plugin environment not available")
+	}
+	return env.HooksForPluginWithRPCErr(id)
 }

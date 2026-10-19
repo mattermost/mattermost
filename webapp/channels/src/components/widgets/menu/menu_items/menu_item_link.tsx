@@ -13,7 +13,7 @@ type Props = {
     className?: string;
     disabled?: boolean;
     sibling?: React.ReactNode;
-}
+};
 
 export const MenuItemLinkImpl = ({to, text, className, disabled, sibling}: Props) => (
     <>

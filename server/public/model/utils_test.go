@@ -224,6 +224,20 @@ func TestAppErrorSerialize(t *testing.T) {
 		require.EqualError(t, berr, aerr.Error())
 	})
 
+	t.Run("Props survive WipeDetailed and round-trip to clients", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot).Wrap(errors.New("wrapped"))
+		aerr.Props = StringMap{"plugin_id": "com.example", "version_direction": "downgrade"}
+		aerr.WipeDetailed()
+		js := aerr.ToJSON()
+		err := AppErrorFromJSON(strings.NewReader(js))
+		berr, ok := err.(*AppError)
+		require.True(t, ok)
+		require.Equal(t, "message", berr.Id)
+		require.Empty(t, berr.DetailedError, "WipeDetailed must still discard the detailed error")
+		require.Equal(t, StringMap{"plugin_id": "com.example", "version_direction": "downgrade"}, berr.Props)
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+	})
+
 	t.Run("Where", func(t *testing.T) {
 		appErr := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
 		json := appErr.ToJSON()
@@ -238,6 +252,32 @@ func TestAppErrorSerialize(t *testing.T) {
 
 		err := AppErrorFromJSON(strings.NewReader(aerr))
 		require.EqualError(t, err, "The request was too large. Consider asking your System Admin to raise the FileSettings.MaxFileSize setting.")
+	})
+}
+
+func TestAsAppError(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		assert.Nil(t, AsAppError(nil))
+	})
+
+	t.Run("AppError", func(t *testing.T) {
+		appErr := NewAppError("TestAsAppError", "message", nil, "", http.StatusNotFound)
+		assert.Same(t, appErr, AsAppError(appErr))
+	})
+
+	t.Run("wrapped AppError", func(t *testing.T) {
+		appErr := NewAppError("TestAsAppError", "message", nil, "", http.StatusNotFound)
+		assert.Same(t, appErr, AsAppError(fmt.Errorf("context: %w", appErr)))
+	})
+
+	t.Run("plain error", func(t *testing.T) {
+		err := errors.New("plain")
+
+		appErr := AsAppError(err)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "model.app_error.internal_error", appErr.Id)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		assert.ErrorIs(t, appErr, err)
 	})
 }
 
@@ -315,7 +355,7 @@ func TestNonSortedArrayFromJSON(t *testing.T) {
 	t.Run("Duplicate keys, returns one", func(t *testing.T) {
 		var ids []string
 		id := NewId()
-		for i := 0; i <= 10; i++ {
+		for range 11 {
 			ids = append(ids, id)
 		}
 		b, _ := json.Marshal(ids)
@@ -1088,12 +1128,6 @@ func checkNowhereNil(t *testing.T, name string, value any) bool {
 	v := reflect.ValueOf(value)
 	switch v.Type().Kind() {
 	case reflect.Pointer:
-		// Ignoring these 2 settings.
-		// TODO: remove them completely in v8.0.
-		if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
-			name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
-			return true
-		}
 
 		if v.IsNil() {
 			t.Logf("%s was nil", name)
@@ -1113,7 +1147,7 @@ func checkNowhereNil(t *testing.T, name string, value any) bool {
 
 	case reflect.Struct:
 		nowhereNil := true
-		for i := 0; i < v.NumField(); i++ {
+		for i := range v.NumField() {
 			f := v.Field(i)
 			// Ignore unexported fields
 			if v.Type().Field(i).PkgPath != "" {

@@ -11,7 +11,7 @@ import ProfilePicture from 'components/profile_picture';
 
 type Props = {
     user: UserProfile;
-}
+};
 
 const UserGridName = ({
     user,
@@ -24,11 +24,17 @@ const UserGridName = ({
                 size='md'
             />
 
-            <div className='UserGrid_name'>
-                <span>
+            <div
+                className='UserGrid_name'
+                data-testid='userGrid-name'
+            >
+                <span data-testid='userGrid-displayName'>
                     {`${user.username} - ${user.first_name} ${user.last_name}`}
                 </span>
-                <span className='ug-email'>
+                <span
+                    className='ug-email'
+                    data-testid='userGrid-email'
+                >
                     {user.email}
                 </span>
             </div>

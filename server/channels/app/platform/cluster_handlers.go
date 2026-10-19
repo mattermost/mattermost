@@ -18,6 +18,7 @@ func (ps *PlatformService) RegisterClusterHandlers() {
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateAllCaches, ps.ClusterInvalidateAllCachesHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateWebConnCacheForUser, ps.clusterInvalidateWebConnSessionCacheForUserHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventBusyStateChanged, ps.clusterBusyStateChgHandler)
+	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventUpdateSessionAttributes, ps.ClusterUpdateSessionAttributesHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForUser, ps.clusterClearSessionCacheForUserHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForAllUsers, ps.clusterClearSessionCacheForAllUsersHandler)
 	for e, h := range ps.additionalClusterHandlers {
@@ -47,6 +48,18 @@ func (ps *PlatformService) ClusterUpdateStatusHandler(msg *model.ClusterMessage)
 
 	if err := ps.statusCache.SetWithDefaultExpiry(status.UserId, status); err != nil {
 		ps.logger.Warn("Failed to store the status in the cache", mlog.String("user_id", status.UserId), mlog.Err(err))
+	}
+}
+
+func (ps *PlatformService) ClusterUpdateSessionAttributesHandler(msg *model.ClusterMessage) {
+	var payload model.SessionAttributesClusterPayload
+	if err := json.Unmarshal(msg.Data, &payload); err != nil {
+		ps.logger.Warn("Failed to decode session attributes from JSON", mlog.Err(err))
+		return
+	}
+
+	if err := ps.Store.SessionAttribute().Refresh(payload.SessionID, payload.Attrs, payload.Timestamp); err != nil {
+		ps.logger.Warn("Failed to merge session attributes from cluster", mlog.String("session_id", payload.SessionID), mlog.Err(err))
 	}
 }
 
@@ -121,11 +134,23 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForAllUsersSkipClusterSe
 	}
 }
 
+// softInvalidateWebConnSessionCacheForAllUsersSkipClusterSend is like
+// invalidateWebConnSessionCacheForAllUsersSkipClusterSend but keeps session
+// tokens, so each WebConn reloads its session on next use.
+func (ps *PlatformService) softInvalidateWebConnSessionCacheForAllUsersSkipClusterSend() {
+	for _, hub := range ps.hubs {
+		if hub != nil {
+			hub.InvalidateAllCache()
+		}
+	}
+}
+
 func (ps *PlatformService) InvalidateAllCachesSkipSend() *model.AppError {
 	ps.logger.Info("Purging all caches")
 	if err := ps.ClearAllUsersSessionCacheLocal(); err != nil {
 		ps.logger.Error("Failed to purge session cache", mlog.Err(err))
 	}
+	ps.softInvalidateWebConnSessionCacheForAllUsersSkipClusterSend()
 	if err := ps.statusCache.Purge(); err != nil {
 		ps.logger.Warn("Failed to clear the status cache", mlog.Err(err))
 	}
@@ -135,6 +160,7 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() *model.AppError {
 	ps.Store.Post().ClearCaches()
 	ps.Store.FileInfo().ClearCaches()
 	ps.Store.Webhook().ClearCaches()
+	ps.Store.DeliveryTracking().ClearCaches()
 
 	if err := linkCache.Purge(); err != nil {
 		ps.logger.Warn("Failed to clear the link cache", mlog.Err(err))

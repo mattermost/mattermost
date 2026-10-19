@@ -539,7 +539,7 @@ func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []s
 
 func (s *SqlRetentionPolicyStore) GetTeams(policyId string, offset, limit int) ([]*model.Team, error) {
 	query := s.getQueryBuilder().
-		Select(teamSliceColumns()...).
+		Select(teamSliceColumns(true)...).
 		From("RetentionPoliciesTeams").
 		InnerJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
 		Where(sq.Eq{"RetentionPoliciesTeams.PolicyId": policyId}).

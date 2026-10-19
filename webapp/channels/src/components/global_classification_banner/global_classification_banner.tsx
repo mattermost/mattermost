@@ -8,6 +8,7 @@ import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermos
 import type {GlobalState} from '@mattermost/types/store';
 
 import {fetchPropertyFields, fetchSystemPropertyValues} from 'mattermost-redux/actions/properties';
+import {ACCESS_CONTROL_PROPERTY_GROUP, DISPLAY_BANNER_BOTTOM, DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getPropertyValueForTargetField} from 'mattermost-redux/selectors/entities/properties';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
@@ -15,16 +16,11 @@ import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 import {
     CLASSIFICATIONS_FIELD_TARGET_ID,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
     CLASSIFICATIONS_SYSTEM_FIELD_NAME,
     CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
     CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
-    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
-    DISPLAY_BANNER_BOTTOM,
-    DISPLAY_BANNER_TOP,
     findOptionById,
 } from 'components/admin_console/classification_markings/utils';
-import {selectClassificationTemplateField} from 'components/common/hooks/useClassificationMarkings';
 
 import './global_classification_banner.scss';
 
@@ -49,7 +45,6 @@ function selectLinkedSystemField(state: GlobalState): PropertyField | undefined 
 export default function GlobalClassificationBanner({position}: Props) {
     const dispatch = useDispatch();
     const featureEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ClassificationMarkings') === 'true');
-    const templateField = useSelector(selectClassificationTemplateField);
     const linkedField = useSelector(selectLinkedSystemField);
     const systemValue = useSelector((state: GlobalState) => {
         if (!linkedField) {
@@ -58,7 +53,7 @@ export default function GlobalClassificationBanner({position}: Props) {
         return getPropertyValueForTargetField(state, CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID, linkedField.id) as PropertyValue<string> | undefined;
     });
 
-    // Bootstrap: fetch template fields, the linked system field, and system property values.
+    // Bootstrap: fetch the linked system field and system property values.
     // WebSocket events (property_field_created/updated and property_values_updated) keep
     // the store current after the initial load.
     //
@@ -68,26 +63,18 @@ export default function GlobalClassificationBanner({position}: Props) {
         if (!featureEnabled) {
             return;
         }
-        if (!templateField) {
-            dispatch(fetchPropertyFields(
-                CLASSIFICATIONS_GROUP_NAME,
-                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_ID,
-            ));
-        }
         if (!linkedField) {
             dispatch(fetchPropertyFields(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
                 CLASSIFICATIONS_FIELD_TARGET_TYPE,
                 CLASSIFICATIONS_FIELD_TARGET_ID,
             ));
         }
         if (linkedField && !systemValue) {
-            dispatch(fetchSystemPropertyValues(CLASSIFICATIONS_GROUP_NAME));
+            dispatch(fetchSystemPropertyValues(ACCESS_CONTROL_PROPERTY_GROUP));
         }
-    }, [featureEnabled, templateField, linkedField, systemValue, dispatch]);
+    }, [featureEnabled, linkedField, systemValue, dispatch]);
 
     // Display conditions are encoded in the linked field's attrs.actions.
     const actions = (linkedField?.attrs?.actions as string[] | undefined) ?? [];

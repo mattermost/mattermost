@@ -39,10 +39,8 @@ func setupMembershipTest(t *testing.T) (*Service, *MockServerIface, *MockAppIfac
 	mockStore.On("User").Return(mockUserStore)
 	mockServer.On("GetStore").Return(mockStore)
 
-	// Enable membership sync feature flag
 	mockConfig := model.Config{}
 	mockConfig.SetDefaults()
-	mockConfig.FeatureFlags.EnableSharedChannelsMemberSync = true
 	mockServer.On("Config").Return(&mockConfig)
 
 	return scs, mockServer, mockApp, mockStore, mockSharedChannelStore, mockChannelStore, mockUserStore

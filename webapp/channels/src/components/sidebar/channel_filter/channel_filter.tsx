@@ -81,6 +81,7 @@ export class ChannelFilter extends React.PureComponent<Props> {
                         className={classNames('SidebarFilters_filterButton', {
                             active: unreadFilterEnabled,
                         })}
+                        data-testid='sidebar-unread-filter-button'
                         onClick={this.toggleUnreadFilter}
                         aria-label={unreadsAriaLabel}
                     >

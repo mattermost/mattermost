@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -26,6 +27,12 @@ const (
 	// the Mattermost instance itself rather than to a user/channel/post,
 	// so there is no 26-char entity ID available; this sentinel stands in.
 	PropertyValueSystemTargetID = "system"
+
+	// PropertyValueWithheldJSON replaces a value a websocket broadcast may
+	// not carry (see BroadcastValue). It is a JSON object so it cannot be
+	// read as a client's `null` clear or as an empty-id delete tombstone,
+	// the two meanings a real value's JSON already carries.
+	PropertyValueWithheldJSON = `{"withheld":true}`
 )
 
 type PropertyValue struct {
@@ -102,13 +109,26 @@ func (pv *PropertyValue) IsValid() error {
 	return nil
 }
 
+// PropertyValueSearchCursor carries two alternative pagination keys because
+// value listings serve two different read patterns:
+//
+//   - Directory listings (no since filter) page in creation order using
+//     CreateAt + PropertyValueID. CreateAt never changes, so the scan is
+//     stable across concurrent updates.
+//   - Delta sync (SinceUpdateAt > 0) pages in update order using UpdateAt +
+//     PropertyValueID, matching the ORDER BY the store applies in that mode.
+//
+// IsValid requires exactly one of CreateAt or UpdateAt to be positive
+// alongside a valid PropertyValueID. An empty cursor is also valid and means
+// "start from the beginning".
 type PropertyValueSearchCursor struct {
 	PropertyValueID string
 	CreateAt        int64
+	UpdateAt        int64
 }
 
 func (p PropertyValueSearchCursor) IsEmpty() bool {
-	return p.PropertyValueID == "" && p.CreateAt == 0
+	return p.PropertyValueID == "" && p.CreateAt == 0 && p.UpdateAt == 0
 }
 
 func (p PropertyValueSearchCursor) IsValid() error {
@@ -116,33 +136,67 @@ func (p PropertyValueSearchCursor) IsValid() error {
 		return nil
 	}
 
-	if p.CreateAt <= 0 {
-		return errors.New("create at cannot be negative or zero")
+	if !IsValidId(p.PropertyValueID) {
+		return errors.New("property value id is invalid")
 	}
 
-	if !IsValidId(p.PropertyValueID) {
-		return errors.New("property field id is invalid")
+	hasCreate := p.CreateAt > 0
+	hasUpdate := p.UpdateAt > 0
+	if hasCreate == hasUpdate {
+		return errors.New("cursor must have exactly one of create_at or update_at set")
 	}
 	return nil
 }
 
+// PropertyValueSearchOpts captures the filters accepted by SearchPropertyValues.
+//
+// SinceUpdateAt > 0 switches the endpoint to delta mode: rows are ordered by
+// UpdateAt, tombstones are included automatically, and pagination must use
+// Cursor.UpdateAt (Cursor.CreateAt is used in the default directory mode).
 type PropertyValueSearchOpts struct {
 	GroupID        string
 	TargetType     string
 	TargetIDs      []string
 	FieldID        string
-	SinceUpdateAt  int64 // UpdateAt after which to send the items
+	SinceUpdateAt  int64
 	IncludeDeleted bool
 	Cursor         PropertyValueSearchCursor
 	PerPage        int
 	Value          json.RawMessage
 }
 
+func (o PropertyValueSearchOpts) IsValid() error {
+	if err := o.Cursor.IsValid(); err != nil {
+		return err
+	}
+
+	// Cursor key must match the active ordering: delta mode (SinceUpdateAt>0)
+	// pages by UpdateAt; directory mode pages by CreateAt. A mismatch would
+	// silently skip rows because the WHERE clause references the wrong column.
+	if !o.Cursor.IsEmpty() {
+		deltaMode := o.SinceUpdateAt > 0
+		if deltaMode && o.Cursor.UpdateAt == 0 {
+			return errors.New("cursor_update_at required when since is set")
+		}
+		if !deltaMode && o.Cursor.CreateAt == 0 {
+			return errors.New("cursor_create_at required when since is not set")
+		}
+	}
+
+	return nil
+}
+
 // PropertyValueSearch captures the parameters provided by a client for
-// searching property values
+// searching property values.
+//
+// SinceUpdateAt > 0 switches the endpoint to delta mode: rows are ordered by
+// update_at, tombstones are included, and pagination must use CursorUpdateAt
+// (CursorCreateAt is used in the default directory mode).
 type PropertyValueSearch struct {
 	CursorID       string `json:"cursor_id,omitempty"`
 	CursorCreateAt int64  `json:"cursor_create_at,omitempty"`
+	CursorUpdateAt int64  `json:"cursor_update_at,omitempty"`
+	SinceUpdateAt  int64  `json:"since,omitempty"`
 	PerPage        int    `json:"per_page"`
 }
 
@@ -151,6 +205,22 @@ type PropertyValueSearch struct {
 type PropertyValuePatchItem struct {
 	FieldID string          `json:"field_id"`
 	Value   json.RawMessage `json:"value"`
+}
+
+// IsEmptyPropertyValue reports whether a raw value counts as unset. Mirrors the
+// webapp, which renders null, "" and [] alike as "Not set". Callers must
+// sanitize first: that is what turns ["  "] into [].
+func IsEmptyPropertyValue(raw json.RawMessage) bool {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return true
+	}
+
+	switch string(trimmed) {
+	case "null", `""`, "[]":
+		return true
+	}
+	return false
 }
 
 // SanitizePropertyValue normalizes a raw property value's JSON:
@@ -208,4 +278,19 @@ func SanitizePropertyValue(raw json.RawMessage) json.RawMessage {
 	}
 
 	return raw
+}
+
+// BroadcastValue returns what a websocket broadcast may carry in place of
+// value: the value itself for a public field, the withheld marker
+// otherwise.
+//
+// Accepted ceiling: a caller who writes the literal JSON
+// `{"withheld":true}` into a text field makes clients refetch that field
+// once and get the real value back. That is the worst outcome, so no
+// escaping scheme is built for it.
+func BroadcastValue(field *PropertyField, value json.RawMessage) json.RawMessage {
+	if field != nil && field.GetAccessMode() == PropertyAccessModePublic {
+		return value
+	}
+	return json.RawMessage(PropertyValueWithheldJSON)
 }

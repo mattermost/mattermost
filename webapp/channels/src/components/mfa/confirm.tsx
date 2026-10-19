@@ -18,7 +18,7 @@ const submit = (e: KeyboardEvent | React.FormEvent<HTMLFormElement>): void => {
     redirectUserToDefaultTeam();
 };
 
-const onKeyPress = (e: React.KeyboardEvent<HTMLFormElement>| KeyboardEvent) => {
+const onKeyPress = (e: React.KeyboardEvent<HTMLFormElement> | KeyboardEvent) => {
     if (isKeyPressed(e as KeyboardEvent, KeyCodes.ENTER)) {
         submit(e);
     }

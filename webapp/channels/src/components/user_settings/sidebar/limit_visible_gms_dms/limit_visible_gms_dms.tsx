@@ -29,13 +29,13 @@ type Props = OwnProps & {
     savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
     dmGmLimit: number;
     updateSection: (section: string) => void;
-}
+};
 
 type State = {
     active: boolean;
     limit: Limit;
     isSaving: boolean;
-}
+};
 
 const limits: Limit[] = [
     {value: 10, label: '10'},
@@ -45,7 +45,7 @@ const limits: Limit[] = [
 ];
 
 export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State> {
-    minRef: RefObject<SettingItemMinComponent>;
+    minRef: RefObject<SettingItemMinComponent | null>;
 
     constructor(props: Props) {
         super(props);

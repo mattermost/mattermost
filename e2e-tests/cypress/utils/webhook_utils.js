@@ -83,12 +83,35 @@ function createElement(type, config) {
     if (config.refresh) {
         baseElement.refresh = config.refresh;
     }
+    if (config.label_position) {
+        baseElement.label_position = config.label_position;
+    }
+    if (config.matrix_config) {
+        baseElement.matrix_config = config.matrix_config;
+    }
+    if (config.multiselect) {
+        baseElement.multiselect = true;
+    }
+    if (config.action_button) {
+        baseElement.action_button = config.action_button;
+    }
 
     return baseElement;
 }
 
 // Standard icon URL
 const STANDARD_ICON = 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png';
+
+const WAIVER_REASON_OPTIONS = [
+    {text: 'Reason 1', value: 'reason_1'},
+    {text: 'Reason 2', value: 'reason_2'},
+    {text: 'Reason 3', value: 'reason_3'},
+];
+
+const SEVERITY_MATRIX_COLUMNS = [
+    {text: 'High', value: 'high'},
+    {text: 'Severe', value: 'severe'},
+];
 
 // Dialog configurations
 const DIALOG_CONFIGS = {
@@ -119,6 +142,59 @@ const DIALOG_CONFIGS = {
         dialog_props: {state: 'somestate'},
     },
 
+    basic: {
+        callback_id: 'basic_dialog_callback',
+        title: 'Basic Dialog',
+        icon_url: STANDARD_ICON,
+        submit_label: 'Submit',
+        introduction_text: 'Required text, optional radio, single select, and optional multiselect.',
+        elements: [
+            createElement('text', {
+                display_name: 'Title',
+                name: 'title',
+                placeholder: 'Enter a title',
+                help_text: 'Required text field.',
+            }),
+            createElement('radio', {
+                display_name: 'Department',
+                name: 'department',
+                help_text: 'Optional.',
+                optional: true,
+                options: [
+                    {text: 'Engineering', value: 'engineering'},
+                    {text: 'Sales', value: 'sales'},
+                    {text: 'Support', value: 'support'},
+                ],
+            }),
+            createElement('select', {
+                display_name: 'Priority',
+                name: 'priority',
+                placeholder: 'Choose priority...',
+                help_text: 'Optional single select. Use the × control to clear.',
+                optional: true,
+                options: [
+                    {text: 'Low', value: 'low'},
+                    {text: 'Medium', value: 'medium'},
+                    {text: 'High', value: 'high'},
+                ],
+            }),
+            createElement('select', {
+                display_name: 'Categories',
+                name: 'categories',
+                multiselect: true,
+                placeholder: 'Select one or more...',
+                help_text: 'Optional multiselect (`type: select` + `multiselect: true`). Submits a string array.',
+                optional: true,
+                options: [
+                    {text: 'Bug', value: 'bug'},
+                    {text: 'Feature', value: 'feature'},
+                    {text: 'Documentation', value: 'docs'},
+                ],
+            }),
+        ],
+        dialog_props: {state: 'basic_dialog_state'},
+    },
+
     userAndChannel: {
         callback_id: 'somecallbackid',
         title: 'Title for Dialog Test with user and channel element',
@@ -140,6 +216,81 @@ const DIALOG_CONFIGS = {
             createElement('bool', {display_name: 'Boolean Selector', name: 'boolean_input', placeholder: 'Was this modal helpful?', default: 'True', optional: true, help_text: 'This is the help text'}),
         ],
         dialog_props: {state: 'somestate'},
+    },
+
+    checkboxGroup: {
+        callback_id: 'checkbox_group_callback',
+        title: 'Checkbox Dialog Feature Demo',
+        icon_url: STANDARD_ICON,
+        submit_label: 'Submit',
+        introduction_text: 'Two checkbox groups (label before vs after), plus related v1 dialog features for manual QA.',
+        elements: [
+            createElement('checkbox_group', {
+                display_name: 'Group A: label before',
+                name: 'waiver_group_label_before',
+                help_text: 'Required. Option text is left of each checkbox (`label_position: before`). Default: reason_1 + reason_3.',
+                default: 'reason_1,reason_3',
+                label_position: 'before',
+                options: WAIVER_REASON_OPTIONS,
+            }),
+            createElement('checkbox_group', {
+                display_name: 'Group B: label after',
+                name: 'waiver_group_label_after',
+                help_text: 'Optional. Option text is right of each checkbox (`label_position: after`, default). Clear all → submits [].',
+                default: 'reason_2',
+                label_position: 'after',
+                optional: true,
+                options: WAIVER_REASON_OPTIONS,
+            }),
+            createElement('radio', {
+                display_name: 'Department (optional)',
+                name: 'department',
+                help_text: 'Optional radio with default + Clear selection link.',
+                default: 'sales',
+                optional: true,
+                label_position: 'after',
+                options: [
+                    {text: 'Engineering', value: 'engineering'},
+                    {text: 'Sales', value: 'sales'},
+                    {text: 'Administration', value: 'administration'},
+                ],
+            }),
+            createElement('bool', {
+                display_name: 'Acknowledgement',
+                name: 'acknowledged',
+                placeholder: 'I understand the waiver terms',
+                help_text: 'Bool with label before the checkbox.',
+                label_position: 'before',
+                default: 'false',
+            }),
+            createElement('checkbox_matrix', {
+                display_name: 'Severity (multi per row)',
+                name: 'severity_multiple',
+                help_text: 'Matrix with row_selection: multiple — multiple columns per row allowed.',
+                optional: true,
+                matrix_config: {
+                    row_selection: 'multiple',
+                    rows: WAIVER_REASON_OPTIONS,
+                    columns: SEVERITY_MATRIX_COLUMNS,
+                },
+            }),
+            createElement('checkbox_matrix', {
+                display_name: 'Priority (one per row)',
+                name: 'priority_single',
+                help_text: 'Matrix with row_selection: single — radio-style, one column per row.',
+                optional: true,
+                matrix_config: {
+                    row_selection: 'single',
+                    rows: WAIVER_REASON_OPTIONS,
+                    columns: [
+                        {text: 'Low', value: 'low'},
+                        {text: 'Medium', value: 'medium'},
+                        {text: 'High', value: 'high'},
+                    ],
+                },
+            }),
+        ],
+        dialog_props: {state: 'checkbox_group_state'},
     },
 
     fieldRefresh: {
@@ -187,6 +338,20 @@ const DIALOG_CONFIGS = {
         ],
         form_props: {state: 'step3'},
     },
+
+    actionButtonParent: {
+        callback_id: 'action_button_parent_callback',
+        title: 'Parent Dialog with Action Button',
+        elements: [],
+    },
+
+    actionButtonChild: {
+        callback_id: 'child_callback',
+        title: 'Child Dialog',
+        elements: [
+            createElement('text', {display_name: 'Child Input', name: 'child_input', placeholder: 'Enter value', optional: true}),
+        ],
+    },
 };
 
 // Public API functions
@@ -198,12 +363,20 @@ function getSimpleDialog(triggerId, webhookBaseUrl) {
     return createDialog(triggerId, webhookBaseUrl, DIALOG_CONFIGS.simple);
 }
 
+function getBasicDialog(triggerId, webhookBaseUrl) {
+    return createDialog(triggerId, webhookBaseUrl, DIALOG_CONFIGS.basic);
+}
+
 function getUserAndChannelDialog(triggerId, webhookBaseUrl) {
     return createDialog(triggerId, webhookBaseUrl, DIALOG_CONFIGS.userAndChannel);
 }
 
 function getBooleanDialog(triggerId, webhookBaseUrl) {
     return createDialog(triggerId, webhookBaseUrl, DIALOG_CONFIGS.boolean);
+}
+
+function getCheckboxGroupDialog(triggerId, webhookBaseUrl) {
+    return createDialog(triggerId, webhookBaseUrl, DIALOG_CONFIGS.checkboxGroup);
 }
 
 function getFieldRefreshDialog(triggerId, webhookBaseUrl) {
@@ -420,7 +593,9 @@ function getBasicDateTimeDialog(triggerId, webhookBaseUrl) {
                     placeholder: 'Select date and time',
                     help_text: 'Select the date and time for your meeting',
                     optional: false,
-                    time_interval: 60,
+                    datetime_config: {
+                        time_interval: 60,
+                    },
                 },
             ],
             submit_label: 'Submit',
@@ -448,7 +623,9 @@ function getMinDateConstraintDialog(triggerId, webhookBaseUrl) {
                     placeholder: 'Select a future date',
                     help_text: 'Must be today or later',
                     optional: true,
-                    min_date: 'today',
+                    datetime_config: {
+                        min_date: 'today',
+                    },
                 },
             ],
             submit_label: 'Submit',
@@ -476,7 +653,9 @@ function getCustomIntervalDialog(triggerId, webhookBaseUrl) {
                     placeholder: 'Select time (30min intervals)',
                     help_text: 'Time picker with 30-minute intervals',
                     optional: true,
-                    time_interval: 30,
+                    datetime_config: {
+                        time_interval: 30,
+                    },
                 },
             ],
             submit_label: 'Submit',
@@ -570,11 +749,104 @@ function getTimezoneManualDialog(triggerId, webhookBaseUrl) {
     });
 }
 
+function getFileUploadDialog(triggerId, webhookBaseUrl) {
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/dialog_submit`,
+        dialog: {
+            callback_id: 'somecallbackid',
+            title: 'Title for Dialog Test with file upload element',
+            icon_url:
+                'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            submit_label: 'Submit File Upload Test',
+            notify_on_cancel: true,
+            state: 'somestate',
+            elements: [
+                {
+                    display_name: 'Upload Single Document',
+                    name: 'single_document',
+                    type: 'file',
+                    placeholder: 'Select one document...',
+                    help_text: 'Upload a single document (replaces previous selection).',
+                    optional: false,
+                },
+                {
+                    display_name: 'Upload Multiple Files',
+                    name: 'multiple_files',
+                    type: 'file',
+                    allow_multiple: true,
+                    placeholder: 'Select multiple files...',
+                    help_text: 'Upload multiple files (can select and add more).',
+                    optional: false,
+                },
+                {
+                    display_name: 'Description',
+                    name: 'description',
+                    type: 'textarea',
+                    subtype: '',
+                    default: '',
+                    placeholder: 'Describe the uploaded files...',
+                    help_text: 'Provide a description for the uploaded files.',
+                    optional: true,
+                    min_length: 0,
+                    max_length: 500,
+                    data_source: '',
+                    options: null,
+                },
+            ],
+        },
+    };
+}
+
+function getActionButtonParentDialog(triggerId, webhookBaseUrl) {
+    const config = {
+        ...DIALOG_CONFIGS.actionButtonParent,
+        elements: [
+            createElement('text', {display_name: 'Your Name', name: 'your_name', placeholder: 'Enter your name', optional: true}),
+
+            // Two action buttons on the same dialog. Each carries a distinct
+            // context.source so the child dialog can reflect which one was pressed.
+            createElement('action_button', {
+                display_name: 'Open Details',
+                name: 'open_details',
+                action_button: {
+                    url: `${webhookBaseUrl}/dialog/open_child`,
+                    context: {source: 'Details'},
+                },
+            }),
+            createElement('action_button', {
+                display_name: 'Open Summary',
+                name: 'open_summary',
+                action_button: {
+                    url: `${webhookBaseUrl}/dialog/open_child`,
+                    context: {source: 'Summary'},
+                },
+            }),
+        ],
+    };
+    return createDialog(triggerId, webhookBaseUrl, config);
+}
+
+// `source` comes from the pressed action button's context.source and is reflected
+// in the child dialog's title and introduction text, so a test can verify which
+// button opened it.
+function getActionButtonChildDialog(triggerId, webhookBaseUrl, source) {
+    const label = source || 'Unknown';
+    const config = {
+        ...DIALOG_CONFIGS.actionButtonChild,
+        title: `${label} Dialog`,
+        introduction_text: `This child dialog was opened from the "${label}" action button.`,
+    };
+    return createDialog(triggerId, webhookBaseUrl, config);
+}
+
 module.exports = {
     getFullDialog,
     getSimpleDialog,
+    getBasicDialog,
     getUserAndChannelDialog,
     getBooleanDialog,
+    getCheckboxGroupDialog,
     getFieldRefreshDialog,
     getMultistepStep1Dialog,
     getMultistepStep2Dialog,
@@ -588,4 +860,7 @@ module.exports = {
     getCustomIntervalDialog,
     getRelativeDateDialog,
     getTimezoneManualDialog,
+    getFileUploadDialog,
+    getActionButtonParentDialog,
+    getActionButtonChildDialog,
 };

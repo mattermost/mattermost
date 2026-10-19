@@ -102,6 +102,13 @@ func (c *ChannelService) Create(channel *model.Channel) error {
 
 	*channel = *createdChannel
 
+	// The replica wait polls the generic GetChannel, which excludes opaque backing channel
+	// types, so it could never observe a space channel. Space channels are also resolved via
+	// GetChannelOfType, which reads from the master DB, so there is no replica lag to wait out.
+	if channel.IsSpace() {
+		return nil
+	}
+
 	return c.waitForChannelCreation(channel.Id)
 }
 
@@ -124,6 +131,24 @@ func (c *ChannelService) Update(channel *model.Channel) error {
 // Minimum server version: 5.2
 func (c *ChannelService) Delete(channelID string) error {
 	return normalizeAppErr(c.api.DeleteChannel(channelID))
+}
+
+// Restore restores a previously deleted (archived) channel.
+//
+// Minimum server version: 11.10
+func (c *ChannelService) Restore(channelID string) error {
+	return normalizeAppErr(c.api.RestoreChannel(channelID))
+}
+
+// GetChannelOfType resolves a channel by ID, requiring it to be of the given type. The generic
+// Get excludes opaque backing channel types (e.g. space); a plugin that manages such a channel
+// resolves it by its exact type here.
+//
+// Minimum server version: 11.10
+func (c *ChannelService) GetChannelOfType(channelID string, channelType model.ChannelType) (*model.Channel, error) {
+	channel, appErr := c.api.GetChannelOfType(channelID, channelType)
+
+	return channel, normalizeAppErr(appErr)
 }
 
 // GetChannelStats gets statistics for a channel.

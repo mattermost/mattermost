@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"net/http"
-	"sort"
+	"slices"
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
@@ -167,7 +167,7 @@ type SharedChannelRemoteStatus struct {
 	DisplayName      string `json:"display_name"`
 	SiteURL          string `json:"site_url"`
 	LastPingAt       int64  `json:"last_ping_at"`
-	NextSyncAt       int64  `json:"next_sync_at"`
+	LastSyncAt       int64  `json:"last_sync_at"`
 	ReadOnly         bool   `json:"readonly"`
 	IsInviteAccepted bool   `json:"is_invite_accepted"`
 	Token            string `json:"token"`
@@ -377,7 +377,7 @@ func (sm *SyncMsg) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		for k := range sm.Users {
 			keys = append(keys, k)
 		}
-		sort.Strings(keys)
+		slices.Sort(keys)
 
 		for _, k := range keys {
 			entry := xmlSyncMsgUser{ID: k, User: sm.Users[k]}
@@ -402,7 +402,7 @@ func (sm *SyncMsg) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		for k := range sm.MentionTransforms {
 			keys = append(keys, k)
 		}
-		sort.Strings(keys)
+		slices.Sort(keys)
 
 		for _, k := range keys {
 			entry := xmlSyncMsgMentionTransform{Key: k, Value: sm.MentionTransforms[k]}

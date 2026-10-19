@@ -70,7 +70,7 @@ export function loginById(id: string, password: string): ActionFuncAsync {
     };
 }
 
-export function getUserLoginType(loginId: string): ActionFuncAsync<{auth_service: 'magic_link' | ''; is_deactivated: boolean }> {
+export function getUserLoginType(loginId: string): ActionFuncAsync<{auth_service: 'magic_link' | ''; is_deactivated: boolean}> {
     return async (dispatch) => {
         try {
             const response = await Client4.getUserLoginType(loginId);

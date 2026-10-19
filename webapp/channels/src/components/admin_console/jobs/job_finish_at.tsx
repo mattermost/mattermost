@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedTime, FormattedDate} from 'react-intl';
 
 import type {JobStatus} from '@mattermost/types/jobs';
@@ -11,7 +11,7 @@ import {JobStatuses} from 'utils/constants';
 type Props = {
     status: JobStatus;
     millis: number;
-}
+};
 
 const JobFinishAt = React.memo(({status, millis}: Props): JSX.Element => {
     if (millis === 0 || status === JobStatuses.PENDING || status === JobStatuses.IN_PROGRESS || status === JobStatuses.CANCEL_REQUESTED) {

@@ -98,7 +98,7 @@ describe('PostPreviewPropertyRenderer', () => {
     };
 
     it('should render PostMessagePreview when all data is available', async () => {
-        const {getByTestId, getByText} = renderWithContext(
+        const {container, getByTestId, getByText} = renderWithContext(
             <PostPreviewPropertyRenderer {...defaultProps}/>,
             baseState,
         );
@@ -109,6 +109,10 @@ describe('PostPreviewPropertyRenderer', () => {
 
         expect(getByText('Test post message')).toBeVisible();
         expect(getByText('Originally posted in ~Test Channel')).toBeVisible();
+
+        const previewAttachment = container.querySelector('.attachment');
+        expect(previewAttachment).toHaveClass('attachment--permalink', 'attachment--prevent-click');
+        expect(previewAttachment).not.toHaveAttribute('role');
     });
 
     it('should return null when post is not found', async () => {

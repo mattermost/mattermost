@@ -6,6 +6,10 @@ import {test} from '@mattermost/playwright-lib';
 const EMOJI_SIZE = 16;
 
 test('Should show channel banner when configured', async ({pw}) => {
+    // This suite exercises the legacy AdvancedTextbox banner editor, which only
+    // renders when ChannelAttributes is off.
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
@@ -21,7 +25,7 @@ test('Should show channel banner when configured', async ({pw}) => {
 
     await configurationTab.enableChannelBanner();
     await configurationTab.setChannelBannerText('Example channel banner text');
-    await configurationTab.setChannelBannerTextColor('77DD88');
+    await configurationTab.setChannelBannerBackgroundColor('77DD88');
 
     await configurationTab.save();
     await channelSettingsModal.close();
@@ -51,6 +55,8 @@ test('Should show channel banner when configured', async ({pw}) => {
 });
 
 test('Should show channel banner in thread view', async ({pw}) => {
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
@@ -67,7 +73,7 @@ test('Should show channel banner in thread view', async ({pw}) => {
 
     await configurationTab.enableChannelBanner();
     await configurationTab.setChannelBannerText('Thread banner text');
-    await configurationTab.setChannelBannerTextColor('AA33BB');
+    await configurationTab.setChannelBannerBackgroundColor('AA33BB');
 
     await configurationTab.save();
     await channelSettingsModal.close();
@@ -82,6 +88,8 @@ test('Should show channel banner in thread view', async ({pw}) => {
 });
 
 test('Should not show channel banner in thread view when disabled', async ({pw}) => {
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
@@ -105,6 +113,8 @@ test('Should not show channel banner in thread view when disabled', async ({pw})
 });
 
 test('Should render image emoticons without clipping', async ({pw}) => {
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
@@ -119,7 +129,7 @@ test('Should render image emoticons without clipping', async ({pw}) => {
     const configurationTab = await channelSettingsModal.openConfigurationTab();
 
     await configurationTab.enableChannelBanner();
-    await configurationTab.setChannelBannerTextColor('77DD88');
+    await configurationTab.setChannelBannerBackgroundColor('77DD88');
     // :dog: is in Mattermost's emoji map → renders as .emoticon (background-image).
     // Unicode emojis that are also in the map (e.g. 🐶) follow the same path.
     await configurationTab.setChannelBannerText('Hello :dog:');
@@ -130,6 +140,8 @@ test('Should render image emoticons without clipping', async ({pw}) => {
 });
 
 test('Should render unsupported unicode emoji without clipping', async ({pw}) => {
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
@@ -144,7 +156,7 @@ test('Should render unsupported unicode emoji without clipping', async ({pw}) =>
     const configurationTab = await channelSettingsModal.openConfigurationTab();
 
     await configurationTab.enableChannelBanner();
-    await configurationTab.setChannelBannerTextColor('77DD88');
+    await configurationTab.setChannelBannerBackgroundColor('77DD88');
     // 🫠 (U+1FAE0, Unicode 14.0) is above Mattermost's emoji map ceiling (1FAD6)
     // so it falls through to the .emoticon--unicode span path.
     await configurationTab.setChannelBannerText('Hello 🫠');
@@ -155,6 +167,8 @@ test('Should render unsupported unicode emoji without clipping', async ({pw}) =>
 });
 
 test('Should render text with descenders without clipping', async ({pw}) => {
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
@@ -169,7 +183,7 @@ test('Should render text with descenders without clipping', async ({pw}) => {
     const configurationTab = await channelSettingsModal.openConfigurationTab();
 
     await configurationTab.enableChannelBanner();
-    await configurationTab.setChannelBannerTextColor('77DD88');
+    await configurationTab.setChannelBannerBackgroundColor('77DD88');
     // Characters with descenders (parts that extend below the baseline).
     // Previously clipped because line-height equalled font-size (13px), leaving
     // no room below the baseline for g, j, p, q, y etc.
@@ -181,6 +195,8 @@ test('Should render text with descenders without clipping', async ({pw}) => {
 });
 
 test('Should render markdown', async ({pw}) => {
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
@@ -196,7 +212,7 @@ test('Should render markdown', async ({pw}) => {
 
     await configurationTab.enableChannelBanner();
     await configurationTab.setChannelBannerText('**bold** *italic* ~~strikethrough~~');
-    await configurationTab.setChannelBannerTextColor('77DD88');
+    await configurationTab.setChannelBannerBackgroundColor('77DD88');
 
     await configurationTab.save();
     await channelSettingsModal.close();

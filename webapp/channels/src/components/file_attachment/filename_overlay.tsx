@@ -48,7 +48,7 @@ type Props = {
     iconClass?: string;
 
     overrideGenerateFileDownloadUrl?: (fileId: string) => string;
-}
+};
 
 export default class FilenameOverlay extends React.PureComponent<Props> {
     render() {

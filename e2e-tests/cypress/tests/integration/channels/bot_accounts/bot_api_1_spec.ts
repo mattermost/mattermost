@@ -10,9 +10,9 @@
 // Stage: @prod
 // Group: @channels @bot_accounts @mfa
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
@@ -53,7 +53,7 @@ describe('Bot accounts ownership and API', () => {
 
     it('MM-T1862 Only system admin are able to create bots', () => {
         // # Open product switch menu and click "Integrations"
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
 
         // * Confirm integrations are visible
         cy.url().should('include', `/${newTeam.name}/integrations`);
@@ -65,10 +65,10 @@ describe('Bot accounts ownership and API', () => {
         cy.visit(`/${newTeam.name}/channels/town-square`);
 
         // # Click product switch button
-        cy.uiOpenProductMenu();
+        cy.uiOpenSwitchProductMenu();
 
         // * Confirm "Integrations" is not visible
-        cy.uiGetProductMenu().should('not.contain', 'Integrations');
+        cy.uiGetSwitchProductMenu().should('not.contain', 'Integrations');
     });
 
     it('MM-T1863 Only System Admin are able to create bots (API)', () => {

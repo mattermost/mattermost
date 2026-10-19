@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
@@ -198,7 +198,7 @@ export type Props = {
         getMissingProfilesByIds: (userIds: string[]) => void;
         getMissingProfilesByUsernames: (usernames: string[]) => void;
     };
-}
+};
 
 export class CombinedSystemMessage extends React.PureComponent<Props> {
     static defaultProps = {

@@ -1,0 +1,65 @@
+// The GenericModal gives every .form-control in its body a border and a fixed height,
+// which double-outlines the common Input widget (its fieldset already draws the border).
+// Unset them, same approach as bookmark_create_modal.scss.
+.app__body .modal .GenericModal .modal-body .MemberProfileInputs .form-control,
+.console__body .modal .GenericModal .modal-body .MemberProfileInputs .form-control {
+    height: 34px;
+    border: unset;
+}
+
+.MemberProfileInputs {
+    max-height: 40vh;
+    overflow-y: auto;
+
+    &__help {
+        margin-bottom: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+    }
+
+    &__row {
+        margin-bottom: 16px;
+    }
+
+    &__email {
+        overflow: hidden;
+        margin-bottom: 8px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__fields {
+        display: flex;
+        gap: 8px;
+
+        .Input_container {
+            min-width: 0;
+            flex: 1;
+        }
+    }
+
+    // Full-width under the field row — long username rules don't fit in one column.
+    &__error {
+        margin-top: 8px;
+
+        .Input___error {
+            display: flex;
+            color: var(--error-text);
+            font-size: 12px;
+            line-height: 16px;
+            text-align: left;
+
+            i {
+                height: 14px;
+                align-self: baseline;
+                margin-right: 7px;
+                font-size: 14px;
+
+                &::before {
+                    margin: 0;
+                }
+            }
+        }
+    }
+}

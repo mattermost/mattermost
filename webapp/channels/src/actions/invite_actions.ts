@@ -4,13 +4,15 @@
 import {defineMessage} from 'react-intl';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {TeamMemberWithError, TeamInviteWithError} from '@mattermost/types/teams';
+import type {TeamMemberWithError, TeamInviteWithError, MemberInviteProfile} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {joinChannel} from 'mattermost-redux/actions/channels';
 import * as TeamActions from 'mattermost-redux/actions/teams';
+import {Permissions} from 'mattermost-redux/constants';
 import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
+import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
@@ -21,10 +23,11 @@ import type {InviteResult} from 'components/invitation_modal/result_table';
 import type {InviteResults} from 'components/invitation_modal/result_view';
 
 import {ConsolePages} from 'utils/constants';
+import {filterProfilesForEmails} from 'utils/member_invite_profiles';
 
 import type {DispatchFunc, ActionFuncAsync} from 'types/store';
 
-export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[]): ActionFuncAsync<InviteResults> {
+export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[], profiles?: Record<string, MemberInviteProfile>): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
         if (users.length > 0) {
             await dispatch(TeamActions.getTeamMembersByIds(teamId, users.map((u) => u.id)));
@@ -85,8 +88,8 @@ export function sendMembersInvites(teamId: string, users: UserProfile[], emails:
         if (emails.length > 0) {
             let response;
             try {
-                response = await dispatch(TeamActions.sendEmailInvitesToTeamGracefully(teamId, emails));
-            } catch (e) {
+                response = await dispatch(TeamActions.sendEmailInvitesToTeamGracefully(teamId, emails, filterProfilesForEmails(profiles, emails)));
+            } catch {
                 response = {
                     data: emails.map((email) => ({
                         email,
@@ -158,14 +161,18 @@ export async function sendGuestInviteForUser(
     teamId: string,
     channels: Channel[],
     members: RelationOneToOne<Channel, Record<string, ChannelMembership>>,
+    canAddMembers: boolean,
 ): Promise<({sent: InviteResult} | {notSent: InviteResult})> {
     if (!isGuest(user.roles)) {
         return {
             notSent: {
                 user,
-                reason: defineMessage({
+                reason: canAddMembers ? defineMessage({
                     id: 'invite.members.user-is-not-guest',
                     defaultMessage: 'This person is already a member of the workspace. Invite them as a member instead of a guest.',
+                }) : defineMessage({
+                    id: 'invite.members.user-is-not-guest-no-permission',
+                    defaultMessage: 'This person is already a member of the workspace and cannot be invited as a guest. Please contact your system administrator to invite them as a member.',
                 }),
             },
         };
@@ -202,7 +209,7 @@ export async function sendGuestInviteForUser(
                 await dispatch(joinChannel(user.id, teamId, channel.id, channel.name)); // eslint-disable-line no-await-in-loop
             }
         }
-    } catch (e) {
+    } catch {
         return {
             notSent: {
                 user,
@@ -253,7 +260,8 @@ export function sendGuestsInvites(
         const sent = [];
         const notSent = [];
         const members = getChannelMembersInChannels(state);
-        const results = await Promise.all(users.map((user) => sendGuestInviteForUser(dispatch, user, teamId, channels, members)));
+        const canAddMembers = haveITeamPermission(state, teamId, Permissions.ADD_USER_TO_TEAM);
+        const results = await Promise.all(users.map((user) => sendGuestInviteForUser(dispatch, user, teamId, channels, members, canAddMembers)));
 
         for (const result of results) {
             if ('sent' in result && result.sent) {
@@ -268,7 +276,7 @@ export function sendGuestsInvites(
             let response;
             try {
                 response = await dispatch(TeamActions.sendEmailGuestInvitesToChannelsGracefully(teamId, channels.map((x) => x.id), emails, message, guestMagicLink));
-            } catch (e) {
+            } catch {
                 response = {
                     data: emails.map((email) => ({
                         email,
@@ -341,6 +349,7 @@ export function sendMembersInvitesToChannels(
     users: UserProfile[],
     emails: string[],
     message: string,
+    profiles?: Record<string, MemberInviteProfile>,
 ): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
         if (users.length > 0) {
@@ -413,9 +422,10 @@ export function sendMembersInvitesToChannels(
                         channels.map((x) => x.id),
                         emails,
                         message,
+                        filterProfilesForEmails(profiles, emails),
                     ),
                 );
-            } catch (e) {
+            } catch {
                 response = {
                     data: emails.map((email) => ({
                         email,

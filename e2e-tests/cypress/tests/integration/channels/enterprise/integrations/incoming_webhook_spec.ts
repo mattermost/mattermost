@@ -14,7 +14,6 @@ import {enableElasticSearch} from '../elasticsearch_autocomplete/helpers';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Incoming webhook', () => {
     let testTeam: Cypress.Team;
     let testChannel: Cypress.Channel;
@@ -70,9 +69,10 @@ describe('Incoming webhook', () => {
         // # Post webhook and wait for attachment to render
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload});
 
-        // # Verify the post appears in the channel with attachment
+        // # Verify the post appears in the channel with mm_blocks attachment text
         cy.getLastPost().within(() => {
-            cy.get('.attachment__body').should('be.visible').should('contain', 'Findme.');
+            cy.get('.mm-blocks').should('be.visible');
+            cy.contains('.mm-blocks-text', 'Findme.').should('be.visible');
         });
 
         // # Explicitly wait to give Elasticsearch time to index before searching
@@ -87,8 +87,8 @@ describe('Incoming webhook', () => {
             typeWithForce('{enter}');
 
         cy.get('#search-items-container').within(() => {
-            cy.get('.attachment__body').should('contain', id);
-            cy.get('.attachment__body').should('contain', 'Findme.');
+            cy.contains('.mm-blocks-text', id).should('exist');
+            cy.contains('.mm-blocks-text', 'Findme.').should('exist');
         });
     });
 });

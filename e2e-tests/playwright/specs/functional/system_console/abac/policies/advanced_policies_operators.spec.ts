@@ -3,10 +3,9 @@
 
 import {expect, test, navigateToABACPage, runSyncJob, verifyUserInChannel} from '@mattermost/playwright-lib';
 
-import {
-    CustomProfileAttribute,
-    setupCustomProfileAttributeFields,
-} from '../../../channels/custom_profile_attributes/helpers';
+import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
+import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
+import {waitForAttributeViewToInclude} from '../../../channels/team_settings/helpers';
 import {
     ensureUserAttributes,
     createUserForABAC,
@@ -69,14 +68,19 @@ test('MM-T5786 Test "is not" (!=) operator in Simple mode', async ({pw}) => {
         await navigateToABACPage(systemConsolePage.page);
     }
 
+    await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department != "Sales"', [engineerUser.id]);
     await activatePolicy(adminClient, policyId);
     await runSyncJob(systemConsolePage.page);
     await waitForPolicySyncJob(adminClient, policyId);
 
-    const engInChannel = await verifyUserInChannel(adminClient, engineerUser.id, channel.id);
-    const salesInChannel = await verifyUserInChannel(adminClient, salesUser.id, channel.id);
-    expect(engInChannel).toBe(true);
-    expect(salesInChannel).toBe(false);
+    await expect
+        .poll(() => verifyUserInChannel(adminClient, engineerUser.id, channel.id), {
+            timeout: 15_000,
+            intervals: [500, 1000, 2000],
+            message: 'engineerUser should be in channel after sync',
+        })
+        .toBe(true);
+    expect(await verifyUserInChannel(adminClient, salesUser.id, channel.id)).toBe(false);
 });
 
 /**
@@ -130,14 +134,21 @@ test('MM-T5786 Test "in" operator in Simple mode', async ({pw}) => {
         await navigateToABACPage(systemConsolePage.page);
     }
 
+    await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department in ["Engineering", "DevOps"]', [
+        engineerUser.id,
+    ]);
     await activatePolicy(adminClient, policyId);
     await runSyncJob(systemConsolePage.page);
     await waitForPolicySyncJob(adminClient, policyId);
 
-    const engInChannel = await verifyUserInChannel(adminClient, engineerUser.id, channel.id);
-    const salesInChannel = await verifyUserInChannel(adminClient, salesUser.id, channel.id);
-    expect(engInChannel).toBe(true);
-    expect(salesInChannel).toBe(false);
+    await expect
+        .poll(() => verifyUserInChannel(adminClient, engineerUser.id, channel.id), {
+            timeout: 15_000,
+            intervals: [500, 1000, 2000],
+            message: 'engineerUser should be in channel after sync',
+        })
+        .toBe(true);
+    expect(await verifyUserInChannel(adminClient, salesUser.id, channel.id)).toBe(false);
 });
 
 /**
@@ -191,12 +202,17 @@ test('MM-T5786 Test "starts with" operator in Simple mode', async ({pw}) => {
         await navigateToABACPage(systemConsolePage.page);
     }
 
+    await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department.startsWith("Eng")', [engineerUser.id]);
     await activatePolicy(adminClient, policyId);
     await runSyncJob(systemConsolePage.page);
     await waitForPolicySyncJob(adminClient, policyId);
 
-    const engInChannel = await verifyUserInChannel(adminClient, engineerUser.id, channel.id);
-    const salesInChannel = await verifyUserInChannel(adminClient, salesUser.id, channel.id);
-    expect(engInChannel).toBe(true);
-    expect(salesInChannel).toBe(false);
+    await expect
+        .poll(() => verifyUserInChannel(adminClient, engineerUser.id, channel.id), {
+            timeout: 15_000,
+            intervals: [500, 1000, 2000],
+            message: 'engineerUser should be in channel after sync',
+        })
+        .toBe(true);
+    expect(await verifyUserInChannel(adminClient, salesUser.id, channel.id)).toBe(false);
 });

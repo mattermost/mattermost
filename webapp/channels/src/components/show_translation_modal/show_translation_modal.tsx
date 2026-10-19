@@ -23,7 +23,7 @@ type Props = {
     postId: string;
     onExited?: () => void;
     onHide?: () => void;
-}
+};
 
 function ShowTranslationModal({postId, onExited, onHide}: Props) {
     const intl = useIntl();

@@ -18,6 +18,8 @@ import {
     convertDialogToAppForm,
     convertServerDialogResponseToAppForm,
     extractPrimitiveValues,
+    flattenAppFields,
+    flattenDialogElements,
     type ConversionOptions,
     type ValidationError,
 } from 'utils/dialog_conversion';
@@ -42,6 +44,10 @@ interface Props extends WrappedComponentProps {
     state?: string;
     notifyOnCancel?: boolean;
     onExited?: () => void;
+
+    // Channel the dialog's trigger was created in. Left undefined when the trigger's
+    // source did not record one, in which case the actions fall back to the current channel.
+    channelId?: string;
 
     // Enhanced functionality
     sourceUrl?: string; // Optional URL for form refresh functionality
@@ -145,7 +151,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
 
     private convertToAppForm = (): {form?: AppForm; error?: string} => {
         const {elements, title, introductionText, iconUrl, submitLabel, sourceUrl, state} = this.props;
-        this.currentDialogElements = elements;
+        this.currentDialogElements = flattenDialogElements(elements || []);
         const {form, errors} = convertDialogToAppForm(
             elements,
             title,
@@ -223,12 +229,12 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     private convertServerResponseToForm = (serverForm: any) => {
         const {form, errors} = convertServerDialogResponseToAppForm(serverForm, this.conversionContext);
 
-        // Update current elements for reference
-        this.currentDialogElements = form.fields?.map((field) => ({
+        // Update current elements for reference, flattening collapsible children
+        this.currentDialogElements = flattenAppFields(form.fields || []).map((field) => ({
             name: field.name,
             type: field.type === 'static_select' ? 'select' : field.type,
             display_name: field.label,
-        } as any)) || [];
+        } as any));
 
         // Handle validation errors if any
         if (errors.length > 0) {
@@ -270,15 +276,27 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 }
             }
 
+            // Collect file IDs from file-type elements for server-side validation
+            const fileIds: string[] = [];
+            if (this.currentDialogElements) {
+                this.currentDialogElements.forEach((elem) => {
+                    if (elem.type === 'file' && finalSubmission[elem.name]) {
+                        const ids = String(finalSubmission[elem.name]).split(',').filter(Boolean);
+                        fileIds.push(...ids);
+                    }
+                });
+            }
+
             const legacySubmission: DialogSubmission = {
                 url: this.props.url || '',
                 callback_id: this.props.callbackId || '',
                 state: dialogState, // Dialog state for multiform step tracking
                 submission: finalSubmission as {[x: string]: string},
                 user_id: '', // Populated by submitInteractiveDialog action
-                channel_id: '', // Populated by submitInteractiveDialog action
+                channel_id: this.props.channelId || '', // Falls back to the current channel in the action
                 team_id: '', // Populated by submitInteractiveDialog action
                 cancelled: false,
+                ...(fileIds.length > 0 && {file_ids: fileIds}),
             };
 
             const result = await this.props.actions.submitInteractiveDialog(legacySubmission);
@@ -352,7 +370,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             state: this.props.state || '',
             cancelled: true,
             user_id: '', // Populated by submitInteractiveDialog action
-            channel_id: '', // Populated by submitInteractiveDialog action
+            channel_id: this.props.channelId || '', // Falls back to the current channel in the action
             team_id: '', // Populated by submitInteractiveDialog action
             submission: {},
         };
@@ -394,7 +412,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
 
         // If the field has a lookup path defined, use that instead
         if (!lookupPath && call.selected_field) {
-            const field = this.props.elements?.find((element) => element.name === call.selected_field);
+            const field = flattenDialogElements(this.props.elements || []).find((element) => element.name === call.selected_field);
             if (field?.data_source === 'dynamic' && field?.data_source_url) {
                 lookupPath = field.data_source_url;
             }
@@ -447,7 +465,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             state: state ?? '',
             submission: convertedValues as {[x: string]: string},
             user_id: '',
-            channel_id: '',
+            channel_id: this.props.channelId || '',
             team_id: '',
             cancelled: false,
         };
@@ -548,7 +566,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 state: call.state || this.props.state || '',
                 submission: refreshPayload as {[x: string]: string}, // Send complete accumulated payload
                 user_id: '',
-                channel_id: '',
+                channel_id: this.props.channelId || '',
                 team_id: '',
                 cancelled: false,
                 type: 'refresh', // Indicate this is a field refresh request
@@ -677,6 +695,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         const context = createCallContext(
             'legacy-interactive-dialog', // app_id for legacy dialogs
             'interactive_dialog', // location
+            this.props.channelId,
         );
 
         return (

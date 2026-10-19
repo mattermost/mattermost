@@ -49,15 +49,11 @@ const AppsFormDateTimeField: React.FC<Props> = ({
 }) => {
     const userTimezone = useSelector(getCurrentTimezone);
 
-    // Resolve datetime config (datetime_config takes precedence over deprecated top-level fields)
+    // Resolve datetime config
     const locationTimezone = field.datetime_config?.location_timezone;
-    const timePickerInterval = field.datetime_config?.time_interval ?? field.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
+    const timePickerInterval = field.datetime_config?.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
 
-    // manual_time_entry supersedes the deprecated allow_manual_time_entry. Either enabling
-    // it turns it on (booleans can't distinguish explicit-false from not-set across the wire).
-    // The OR covers direct Apps Framework bindings that may still carry the deprecated key;
-    // dialog-sourced AppFields are pre-normalized by dialog_conversion and only carry manual_time_entry.
-    const manualTimeEntry = Boolean(field.datetime_config?.manual_time_entry) || Boolean(field.datetime_config?.allow_manual_time_entry);
+    const manualTimeEntry = Boolean(field.datetime_config?.manual_time_entry);
 
     // Use location_timezone if specified, otherwise fall back to user's timezone
     const timezone = locationTimezone || userTimezone;
@@ -87,9 +83,9 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         onChange(field.name, newValue);
     }, [field.name, onChange]);
 
-    // Resolve effective min/max dates (datetime_config takes precedence over deprecated top-level fields)
-    const effectiveMinDate = field.datetime_config?.min_date ?? field.min_date;
-    const effectiveMaxDate = field.datetime_config?.max_date ?? field.max_date;
+    // Resolve effective min/max dates
+    const effectiveMinDate = field.datetime_config?.min_date;
+    const effectiveMaxDate = field.datetime_config?.max_date;
 
     const {minDateTime, allowPastDates} = useMemo(() => {
         if (!effectiveMinDate) {

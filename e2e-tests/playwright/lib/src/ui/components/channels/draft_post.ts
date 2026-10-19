@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class DraftPost {
     readonly container: Locator;
@@ -21,12 +22,12 @@ export default class DraftPost {
     constructor(container: Locator) {
         this.container = container;
 
-        this.panelHeader = container.locator('.PanelHeader');
-        this.panelBody = container.locator('.DraftPanelBody');
+        this.panelHeader = container.getByTestId('draft-panel-header');
+        this.panelBody = container.getByTestId('draft-panel-body');
 
-        this.postBody = container.locator('.post__body');
-        this.postHeader = container.locator('.post__header');
-        this.postImage = container.locator('.post__img');
+        this.postBody = container.getByTestId('draft-post-body');
+        this.postHeader = container.getByTestId('draft-post-header');
+        this.postImage = container.getByTestId('draft-post-img');
 
         this.deleteButton = container.locator('#draft_icon-trash-can-outline_delete');
         this.editButton = container.locator('#draft_icon-pencil-outline_edit');

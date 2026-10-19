@@ -7,23 +7,19 @@ import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, KeyboardEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {FormattedMessage, defineMessage, injectIntl, useIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
-import ReactSelect from 'react-select';
 
-import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import {valueRefersToOptions} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
-import {isEmail, getInputTypeFromValueType} from 'mattermost-redux/utils/helpers';
-
-import {getPluginDisplayName} from 'selectors/plugins';
+import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -32,6 +28,10 @@ import TeamList from 'components/admin_console/system_user_detail/team_list';
 import ConfirmManageUserSettingsModal from 'components/admin_console/system_users/system_users_list_actions/confirm_manage_user_settings_modal';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
+import {asGraphValueIds} from 'components/property_fields/graph';
+import {useGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
+import {UserAttributeField, getVisibleUserAttributeFields, isSameUserAttributeValue, validateUserAttributeValue} from 'components/property_fields/user_attribute_fields';
+import type {UserAttributeValue} from 'components/property_fields/user_attribute_fields';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
 import UserSettingsModal from 'components/user_settings/modal';
@@ -42,79 +42,31 @@ import EmailIcon from 'components/widgets/icons/email_icon';
 import ShieldOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import {getUserPropertyFieldLabel} from 'utils/properties';
-import {validHttpUrl} from 'utils/url';
-import {toTitleCase} from 'utils/utils';
-
-import type {GlobalState} from 'types/store';
+import {AcceptedProfileImageTypes, Constants, ModalIdentifiers} from 'utils/constants';
+import {fileSizeToString, toTitleCase} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
 
 import './system_user_detail.scss';
 
-// Private component for CPA multiselect fields
-type CPAMultiSelectProps = {
-    options: Array<{id: string; name: string}>;
-    selectedValues: string[];
-    onChange: (values: string[]) => void;
-    disabled: boolean;
-    placeholder: string;
-    noOptionsMessage: string;
-};
+function GraphConfirmLabels({field, ids}: {field: UserPropertyField; ids: string[]}) {
+    const {formatMessage, formatList} = useIntl();
+    const {labelForId} = useGraphOptionNames(field, ids, {walk: true});
 
-const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
-    options,
-    selectedValues,
-    onChange,
-    disabled,
-    placeholder,
-    noOptionsMessage,
-}) => {
-    // Transform options to ReactSelect format
-    const selectOptions = options.map((option) => ({
-        value: option.id,
-        label: option.name,
+    return formatList(ids.map((id) => {
+        const label = labelForId(id);
+        if (label.kind === 'name') {
+            return label.text;
+        }
+        if (label.kind === 'id') {
+            return id;
+        }
+        return formatMessage({
+            id: 'property_fields.hierarchical_value_menu.unavailable_value',
+            defaultMessage: 'Value unavailable',
+        });
     }));
-
-    // Transform selected values to ReactSelect format
-    const selectedOptions = selectedValues.map((selectedId) => {
-        const option = options.find((opt) => opt.id === selectedId);
-        return option ? {value: option.id, label: option.name} : null;
-    }).filter((opt): opt is {value: string; label: string} => opt !== null);
-
-    return (
-        <ReactSelect
-            isMulti={true}
-            options={selectOptions}
-            value={selectedOptions}
-            onChange={(selectedOptions) => {
-                const selectedIds = selectedOptions ? selectedOptions.map((opt) => opt.value) : [];
-                onChange(selectedIds);
-            }}
-            isDisabled={disabled}
-            isClearable={false}
-            placeholder={placeholder}
-            noOptionsMessage={() => noOptionsMessage}
-            styles={{
-                container: (provided) => ({
-                    ...provided,
-                    maxWidth: '320px',
-                }),
-            }}
-        />
-    );
-};
-
-// Private component to get plugin display name
-type PluginDisplayNameProps = {
-    pluginId?: string;
-};
-
-const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
-    const displayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
-    return <>{displayName}</>;
-};
+}
 
 export type Params = {
     user_id?: UserProfile['id'];
@@ -126,6 +78,8 @@ export type State = {
     user?: UserProfile;
     usernameField: string;
     usernameError: string | null;
+    firstNameField: string;
+    lastNameField: string;
     emailField: string;
     emailError: string | null;
     authDataField: string;
@@ -139,6 +93,8 @@ export type State = {
     isLoading: boolean;
     error: string | null;
     isSaving: boolean;
+    isUploadingPicture: boolean;
+    pictureError: string | null;
     teams: TeamMembership[];
     teamIds: Array<Team['id']>;
     refreshTeams: boolean;
@@ -154,6 +110,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         this.state = {
             usernameField: '',
             usernameError: null,
+            firstNameField: '',
+            lastNameField: '',
             emailField: '',
             emailError: null,
             authDataField: '',
@@ -167,6 +125,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             isLoading: false,
             error: null,
             isSaving: false,
+            isUploadingPicture: false,
+            pictureError: null,
             teams: [],
             teamIds: [],
             refreshTeams: true,
@@ -192,6 +152,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     user: userResult.data,
                     emailField: userResult.data.email, // Set emailField to the email of the user for editing purposes
                     usernameField: userResult.data.username,
+                    firstNameField: userResult.data.first_name,
+                    lastNameField: userResult.data.last_name,
                     authDataField: userResult.data.auth_data || '',
                     customProfileAttributeValues: cpaValues,
                     originalCpaValues: {...cpaValues}, // Deep copy for change tracking
@@ -214,7 +176,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
     getCustomProfileAttributeValues = async (userId: UserProfile['id']) => {
         return this.props.getCustomProfileAttributeValues(userId).
-            then((result: { data?: Record<string, string | string[]> }) => result.data || {});
+            then((result: {data?: Record<string, string | string[]>}) => result.data || {});
     };
 
     componentDidMount() {
@@ -265,10 +227,18 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         const emailChanged = state.emailField !== state.user.email;
         const usernameChanged = state.usernameField !== state.user.username;
+        const nameChanged = this.hasNameChanges(state);
         const authDataChanged = state.authDataField !== (state.user.auth_data || '');
         const cpaChanged = this.hasCpaChanges(state);
 
-        return emailChanged || usernameChanged || authDataChanged || cpaChanged;
+        return emailChanged || usernameChanged || nameChanged || authDataChanged || cpaChanged;
+    };
+
+    private hasNameChanges = (state: State = this.state): boolean => {
+        if (!state.user) {
+            return false;
+        }
+        return state.firstNameField !== state.user.first_name || state.lastNameField !== state.user.last_name;
     };
 
     private hasCpaChanges = (state: State = this.state): boolean => {
@@ -289,6 +259,20 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         return false;
     };
 
+    private canEditPicture = (state: State = this.state): boolean => {
+        if (!state.user) {
+            return false;
+        }
+
+        // Profile pictures synced from a login provider cannot be changed here;
+        // they would be overwritten on the next sync.
+        const authService = state.user.auth_service;
+        const isManagedByProvider = (authService === Constants.LDAP_SERVICE || authService === Constants.SAML_SERVICE) &&
+            this.props.ldapPictureAttributeSet;
+
+        return !isManagedByProvider;
+    };
+
     private isEditingOwnEmail = (state: State = this.state): boolean => {
         return Boolean(
             state.user &&
@@ -305,29 +289,32 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         return currentValue !== originalValue;
     };
 
-    // Resolves option IDs to display names for select/multiselect CPA fields.
+    private formatEmptyValue = (): string => {
+        return this.props.intl.formatMessage({
+            id: 'admin.userDetail.saveChangesModal.empty',
+            defaultMessage: '(empty)',
+        });
+    };
+
+    // Resolves option IDs to display names for option-backed CPA fields.
     private resolveOptionNames = (field: UserPropertyField, value: string | string[] | undefined): string => {
         if (!value) {
-            return '(empty)';
+            return this.formatEmptyValue();
         }
 
         const options = field.attrs?.options || [];
-        if (field.type === 'select' || field.type === 'multiselect') {
+        if (valueRefersToOptions(field)) {
             if (!Array.isArray(value)) {
-                // Select: resolve single ID to its name
                 const option = options.find((opt) => opt.id === value);
                 return option ? option.name : value;
             }
 
             // Multiselect: resolve each ID to its name
             if (value.length === 0) {
-                return '(empty)';
+                return this.formatEmptyValue();
             }
 
-            const names = value.map((id) => {
-                const option = options.find((opt) => opt.id === id);
-                return option ? option.name : id;
-            });
+            const names = value.map((id) => options.find((opt) => opt.id === id)?.name ?? id);
             return names.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '}));
         }
 
@@ -443,26 +430,14 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         });
     };
 
-    handleCpaValueChange = (fieldId: string, value: string | string[]) => {
-        // Validate CPA values if changed
+    handleCpaValueChange = (fieldId: string, value: UserAttributeValue) => {
         let cpaError;
         const field = this.props.customProfileAttributeFields.find((f) => f.id === fieldId);
 
-        if (field) {
-            const valueType = field.attrs?.value_type;
-            const originalValue = this.state.originalCpaValues[fieldId];
-            if (valueType && value !== originalValue) {
-                if (valueType === 'email') {
-                    const stringValue = String(value);
-                    if (!isEmail(stringValue)) {
-                        cpaError = this.props.intl.formatMessage({id: 'admin.user_item.invalidEmail', defaultMessage: 'Invalid email address'});
-                    }
-                } else if (valueType === 'url') {
-                    const stringValue = String(value);
-                    if (validHttpUrl(stringValue) === null) {
-                        cpaError = this.props.intl.formatMessage({id: 'admin.user_item.invalidUrl', defaultMessage: 'Invalid URL'});
-                    }
-                }
+        if (field && !isSameUserAttributeValue(value, this.state.originalCpaValues[fieldId])) {
+            const message = validateUserAttributeValue(field, value);
+            if (message) {
+                cpaError = this.props.intl.formatMessage(message);
             }
         }
 
@@ -498,6 +473,88 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         });
     };
 
+    handleFirstNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+        if (!this.state.user) {
+            return;
+        }
+
+        this.setState({
+            firstNameField: event.target.value,
+            error: null, // Clear any errors when user starts editing
+        });
+    };
+
+    handleLastNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+        if (!this.state.user) {
+            return;
+        }
+
+        this.setState({
+            lastNameField: event.target.value,
+            error: null, // Clear any errors when user starts editing
+        });
+    };
+
+    handleUploadPicture = async (file: File) => {
+        if (!this.state.user || this.state.isUploadingPicture) {
+            return;
+        }
+
+        const {formatMessage} = this.props.intl;
+
+        if (!AcceptedProfileImageTypes.includes(file.type)) {
+            this.setState({pictureError: formatMessage({
+                id: 'admin.userManagement.userDetail.picture.wrongType',
+                defaultMessage: 'Only BMP, JPG, JPEG, or PNG images are supported.',
+            })});
+            return;
+        }
+
+        if (this.props.maxFileSize && file.size > this.props.maxFileSize) {
+            this.setState({pictureError: formatMessage({
+                id: 'admin.userManagement.userDetail.picture.tooLarge',
+                defaultMessage: 'Unable to upload profile image. File is too large. Maximum file size: {max}',
+            }, {max: fileSizeToString(this.props.maxFileSize)})});
+            return;
+        }
+
+        const userId = this.state.user.id;
+        this.setState({isUploadingPicture: true, pictureError: null});
+
+        const {error} = await this.props.uploadProfileImage(userId, file);
+        if (error) {
+            this.setState({isUploadingPicture: false, pictureError: error.message});
+            return;
+        }
+
+        this.setState((prevState) => ({
+            isUploadingPicture: false,
+            pictureError: null,
+            user: prevState.user ? {...prevState.user, last_picture_update: Date.now()} : prevState.user,
+        }));
+    };
+
+    handleRemovePicture = async () => {
+        if (!this.state.user || this.state.isUploadingPicture || this.state.user.last_picture_update <= 0) {
+            return;
+        }
+
+        const userId = this.state.user.id;
+        this.setState({isUploadingPicture: true, pictureError: null});
+
+        const {error} = await this.props.setDefaultProfileImage(userId);
+        if (error) {
+            this.setState({isUploadingPicture: false, pictureError: error.message});
+            return;
+        }
+
+        this.setState((prevState) => ({
+            isUploadingPicture: false,
+            pictureError: null,
+            user: prevState.user ? {...prevState.user, last_picture_update: 0} : prevState.user,
+        }));
+    };
+
     handleAuthDataChange = (event: ChangeEvent<HTMLInputElement>) => {
         if (!this.state.user) {
             return;
@@ -531,140 +588,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             }
         }
         return res;
-    };
-
-    renderCpaField = (field: UserPropertyField, error: string | undefined) => {
-        const value = this.state.customProfileAttributeValues[field.id] || '';
-        const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
-        const isProtected = Boolean(field.attrs?.protected);
-        const isLockedFromEditing = isSynced || isProtected;
-        const isDisabled = this.state.isSaving || this.state.isLoading || isLockedFromEditing;
-
-        // Render indicator if field is synced or protected
-        const syncIndicator = isLockedFromEditing ? (
-            <div className='user-property-field-values__sync-indicator'>
-                {isSynced ? <SyncIcon size={18}/> : <PowerPlugOutlineIcon size={18}/>}
-                <span>
-                    {isSynced ? (
-                        <FormattedMessage
-                            id='admin.userManagement.userDetail.syncedWith'
-                            defaultMessage='Synced with: {source}'
-                            values={{
-                                source: field.attrs?.ldap ? this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.ldap', defaultMessage: 'AD/LDAP: {propertyName}'}, {propertyName: field.attrs.ldap}) : this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.saml', defaultMessage: 'SAML: {propertyName}'}, {propertyName: field.attrs?.saml}),
-                            }}
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='admin.userManagement.userDetail.managedByPlugin'
-                            defaultMessage='Managed by plugin: {pluginId}'
-                            values={{
-                                pluginId: <PluginDisplayName pluginId={field.attrs?.source_plugin_id}/>,
-                            }}
-                        />
-                    )}
-                </span>
-            </div>
-        ) : null;
-
-        const fieldContent = (() => {
-            switch (field.type) {
-            case 'select': {
-                const options = field.attrs?.options || [];
-                return (
-                    <select
-                        className='form-control'
-                        value={Array.isArray(value) ? value[0] || '' : value}
-                        onChange={(e) => this.handleCpaValueChange(field.id, e.target.value)}
-                        disabled={isDisabled}
-                    >
-                        <option value=''>
-                            {this.props.intl.formatMessage({
-                                id: 'admin.userManagement.userDetail.selectOption',
-                                defaultMessage: 'Select an option',
-                            })}
-                        </option>
-                        {options.map((option) => (
-                            <option
-                                key={option.id}
-                                value={option.id}
-                            >
-                                {option.name}
-                            </option>
-                        ))}
-                    </select>
-                );
-            }
-            case 'multiselect': {
-                const options = field.attrs?.options || [];
-                const selectedValues = Array.isArray(value) ? value : [];
-
-                return (
-                    <CPAMultiSelect
-                        options={options}
-                        selectedValues={selectedValues}
-                        onChange={(values) => this.handleCpaValueChange(field.id, values)}
-                        disabled={isDisabled}
-                        placeholder={this.props.intl.formatMessage({
-                            id: 'admin.user.selectOptions',
-                            defaultMessage: 'Select options...',
-                        })}
-                        noOptionsMessage={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.noOptions',
-                            defaultMessage: 'No options available',
-                        })}
-                    />
-                );
-            }
-
-            // Only text elements can have errors
-            case 'text':
-            default: {
-                const inputType = getInputTypeFromValueType(field.attrs?.value_type);
-
-                return (
-                    <>
-                        <input
-                            className={classNames('form-control', {
-                                error,
-                            })}
-                            type={inputType}
-                            value={Array.isArray(value) ? value.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '})) : value}
-                            onChange={(e) => this.handleCpaValueChange(field.id, e.target.value)}
-                            disabled={isDisabled}
-                            aria-describedby={field.id + '-error'}
-                            aria-invalid={error ? 'true' : 'false'}
-                        />
-                        {error && (
-                            <div
-                                id={field.id + '-error'}
-                                className='field-error'
-                                role='alert'
-                                aria-live='polite'
-                            >
-                                {error}
-                            </div>
-                        )}
-                    </>
-                );
-            }
-            }
-        })();
-
-        return (
-            <label
-                key={field.id}
-                className='cpa-field'
-                data-testid={`user-detail-custom-attribute-label-${field.id}`}
-            >
-                <FormattedMessage
-                    id='admin.userManagement.userDetail.cpaField'
-                    defaultMessage='{fieldName}'
-                    values={{fieldName: getUserPropertyFieldLabel(field)}}
-                />
-                {fieldContent}
-                {syncIndicator}
-            </label>
-        );
     };
 
     renderTwoColumnLayout = () => {
@@ -725,6 +648,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             <div
                                 id='username-error'
                                 className='field-error'
+                                data-testid='fieldError'
                                 role='alert'
                                 aria-live='polite'
                             >
@@ -782,6 +706,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             <div
                                 id='email-error'
                                 className='field-error'
+                                data-testid='fieldError'
                                 role='alert'
                                 aria-live='polite'
                             >
@@ -793,6 +718,73 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             </label>,
         );
 
+        const nameField = (fieldKey: 'firstNameField' | 'lastNameField', label: React.ReactNode, onChange: (event: ChangeEvent<HTMLInputElement>) => void, placeholder: string, maxLength: number) => (
+            <label key={fieldKey}>
+                {label}
+                {this.state.user?.auth_service ? (
+                    <WithTooltip
+                        title={this.props.intl.formatMessage({
+                            id: 'admin.userManagement.userDetail.managedByProvider.title',
+                            defaultMessage: 'Managed by login provider',
+                        })}
+                        hint={this.props.intl.formatMessage({
+                            id: 'admin.userManagement.userDetail.managedByProvider.name',
+                            defaultMessage: 'This name is managed by the {authService} login provider and cannot be changed here.',
+                        }, {
+                            authService: this.state.user.auth_service.toUpperCase(),
+                        })}
+                    >
+                        <input
+                            className='form-control'
+                            type='text'
+                            value={this.state[fieldKey]}
+                            disabled={true}
+                            readOnly={true}
+                            placeholder={placeholder}
+                        />
+                    </WithTooltip>
+                ) : (
+                    <input
+                        className='form-control'
+                        type='text'
+                        value={this.state[fieldKey]}
+                        onChange={onChange}
+                        disabled={this.state.isSaving}
+                        maxLength={maxLength}
+                        placeholder={placeholder}
+                    />
+                )}
+            </label>
+        );
+
+        fields.push(nameField(
+            'firstNameField',
+            <FormattedMessage
+                id='admin.userManagement.userDetail.firstName'
+                defaultMessage='First Name'
+            />,
+            this.handleFirstNameChange,
+            this.props.intl.formatMessage({
+                id: 'admin.userManagement.userDetail.firstName.input',
+                defaultMessage: 'Enter first name',
+            }),
+            Constants.MAX_FIRSTNAME_LENGTH,
+        ));
+
+        fields.push(nameField(
+            'lastNameField',
+            <FormattedMessage
+                id='admin.userManagement.userDetail.lastName'
+                defaultMessage='Last Name'
+            />,
+            this.handleLastNameChange,
+            this.props.intl.formatMessage({
+                id: 'admin.userManagement.userDetail.lastName.input',
+                defaultMessage: 'Enter last name',
+            }),
+            Constants.MAX_LASTNAME_LENGTH,
+        ));
+
         fields.push(
             <label key='authMethod'>
                 <FormattedMessage
@@ -800,7 +792,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     defaultMessage='Authentication Method'
                 />
                 <ShieldOutlineIcon/>
-                <span>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
+                <span data-testid='authenticationMethodValue'>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
             </label>,
         );
 
@@ -831,6 +823,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         <div
                             id='authdata-error'
                             className='field-error'
+                            data-testid='fieldError'
                             role='alert'
                             aria-live='polite'
                         >
@@ -848,12 +841,19 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         // Add CPA fields separately
         const cpaFields: Array<React.ReactNode | null> = [];
-        const sortedCpaFields = [...this.props.customProfileAttributeFields].
-            filter((field) => field.attrs?.access_mode !== 'source_only').
-            sort((a, b) => (a.attrs?.sort_order || 0) - (b.attrs?.sort_order || 0));
         const cpaErrors = this.state.customProfileAttributeErrors;
-        for (const field of sortedCpaFields) {
-            cpaFields.push(this.renderCpaField(field, cpaErrors[field.id]));
+        for (const field of getVisibleUserAttributeFields(this.props.customProfileAttributeFields)) {
+            cpaFields.push(
+                <UserAttributeField
+                    key={field.id}
+                    field={field}
+                    value={this.state.customProfileAttributeValues[field.id]}
+                    error={cpaErrors[field.id]}
+                    onChange={this.handleCpaValueChange}
+                    disabled={this.state.isSaving || this.state.isLoading}
+                    canEditAdminManaged={this.props.canEditAdminManaged}
+                />,
+            );
         }
 
         // Pad CPA fields for even number
@@ -868,11 +868,18 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         <div
                             key={`${keyPrefix}-row-${Math.trunc(index / 2)}`}
                             className='field-row'
+                            data-testid='fieldRow'
                         >
-                            <div className='field-column left'>
+                            <div
+                                className='field-column left'
+                                data-testid='fieldColumn'
+                            >
                                 {field}
                             </div>
-                            <div className='field-column right'>
+                            <div
+                                className='field-column right'
+                                data-testid='fieldColumn'
+                            >
                                 {fieldList[index + 1]}
                             </div>
                         </div>
@@ -883,7 +890,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         };
 
         return (
-            <div className='two-column-layout'>
+            <div
+                className='two-column-layout'
+                data-testid='twoColumnLayout'
+            >
                 {renderFieldRows(fields, 'standard-field')}
                 {cpaFields.length > 0 && (
                     <>
@@ -947,14 +957,40 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             );
         }
 
+        if (this.state.user && this.state.firstNameField !== this.state.user.first_name) {
+            fields.push(
+                <FormattedMessage
+                    id='admin.userDetail.saveChangesModal.firstNameChange'
+                    defaultMessage='First Name: {oldFirstName} → {newFirstName}'
+                    values={{
+                        oldFirstName: this.state.user.first_name || this.formatEmptyValue(),
+                        newFirstName: this.state.firstNameField || this.formatEmptyValue(),
+                    }}
+                />,
+            );
+        }
+
+        if (this.state.user && this.state.lastNameField !== this.state.user.last_name) {
+            fields.push(
+                <FormattedMessage
+                    id='admin.userDetail.saveChangesModal.lastNameChange'
+                    defaultMessage='Last Name: {oldLastName} → {newLastName}'
+                    values={{
+                        oldLastName: this.state.user.last_name || this.formatEmptyValue(),
+                        newLastName: this.state.lastNameField || this.formatEmptyValue(),
+                    }}
+                />,
+            );
+        }
+
         if (this.state.user && this.state.authDataField !== (this.state.user.auth_data || '')) {
             fields.push(
                 <FormattedMessage
                     id='admin.userDetail.saveChangesModal.authDataChange'
                     defaultMessage='Auth Data: {oldAuthData} → {newAuthData}'
                     values={{
-                        oldAuthData: this.state.user.auth_data || '(empty)',
-                        newAuthData: this.state.authDataField || '(empty)',
+                        oldAuthData: this.state.user.auth_data || this.formatEmptyValue(),
+                        newAuthData: this.state.authDataField || this.formatEmptyValue(),
                     }}
                 />,
             );
@@ -967,9 +1003,21 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 if (field.id === fieldId) {
                     const fieldName = field.name;
                     const originalValue = this.state.originalCpaValues[fieldId];
-
-                    const oldValue = this.resolveOptionNames(field, originalValue);
-                    const newValue = this.resolveOptionNames(field, changes[1]);
+                    const nextValue = changes[1];
+                    const graphConfirm = (v: string | string[] | undefined) => {
+                        const ids = asGraphValueIds(v);
+                        if (!ids.length) {
+                            return this.formatEmptyValue();
+                        }
+                        return (
+                            <GraphConfirmLabels
+                                field={field}
+                                ids={ids}
+                            />
+                        );
+                    };
+                    const oldValue = field.type === 'graph' ? graphConfirm(originalValue) : this.resolveOptionNames(field, originalValue);
+                    const newValue = field.type === 'graph' ? graphConfirm(nextValue) : this.resolveOptionNames(field, nextValue);
 
                     fields.push(
                         <FormattedMessage
@@ -995,7 +1043,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         username: this.state.user?.username ?? '',
                     }}
                 />
-                <ul className='changes-list'>
+                <ul
+                    className='changes-list'
+                    data-testid='changesList'
+                >
                     {fields.map((field, index) => {
                         return (
                             <li key={index}>
@@ -1031,6 +1082,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                 <div
                                     id='confirm-password-error'
                                     className='field-error'
+                                    data-testid='fieldError'
                                     role='alert'
                                     aria-live='polite'
                                 >
@@ -1053,6 +1105,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({
             usernameField: this.state?.user?.username || '',
             usernameError: null,
+            firstNameField: this.state.user?.first_name || '',
+            lastNameField: this.state.user?.last_name || '',
             emailField: this.state.user?.email || '',
             emailError: null,
             authDataField: this.state.user?.auth_data || '',
@@ -1108,17 +1162,23 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             // Track what changes are being made
             const emailChanged = !this.state.user.auth_service && this.state.emailField !== this.state.user.email;
             const usernameChanged = !this.state.user.auth_service && this.state.usernameField !== this.state.user.username;
+            const nameChanged = !this.state.user.auth_service && this.hasNameChanges();
             const authDataChanged = this.state.authDataField !== (this.state.user.auth_data || '');
             const cpaChanged = this.hasCpaChanges();
 
-            // Update user profile if email or username changed
-            if (usernameChanged || emailChanged) {
+            // Update user profile if email, username or name changed
+            if (usernameChanged || emailChanged || nameChanged) {
                 if (emailChanged) {
                     updatedUser.email = this.state.emailField.trim().toLowerCase();
                 }
 
                 if (usernameChanged) {
                     updatedUser.username = this.state.usernameField.trim();
+                }
+
+                if (nameChanged) {
+                    updatedUser.first_name = this.state.firstNameField.trim();
+                    updatedUser.last_name = this.state.lastNameField.trim();
                 }
 
                 // If editing own email, include password for verification
@@ -1159,8 +1219,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             // Handle results
             let resultIndex = 0;
 
-            // Handle user update result if email or username changed
-            if (emailChanged || usernameChanged) {
+            // Handle user update result if email, username or name changed
+            if (emailChanged || usernameChanged || nameChanged) {
                 const userResult = results[resultIndex] as ActionResult<UserProfile, ServerError>;
                 if (userResult.data) {
                     updatedUser = userResult.data;
@@ -1221,6 +1281,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 user: updatedUser,
                 usernameField: updatedUser.username,
                 usernameError: null,
+                firstNameField: updatedUser.first_name,
+                lastNameField: updatedUser.last_name,
                 emailField: updatedUser.email,
                 emailError: null,
                 authDataField: updatedUser.auth_data || '',
@@ -1335,12 +1397,16 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
     render() {
         return (
-            <div className='SystemUserDetail wrapper--fixed'>
+            <div
+                className='SystemUserDetail wrapper--fixed'
+                data-testid='systemUserDetail'
+            >
                 <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/user_management/users'
                             className='fa fa-angle-left back'
+                            data-testid='adminHeader-backLink'
                         />
                         <FormattedMessage
                             id='admin.systemUserDetail.title'
@@ -1355,8 +1421,20 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         <AdminUserCard
                             user={this.state.user}
                             isLoading={this.state.isLoading}
+                            onUploadPicture={this.canEditPicture() ? this.handleUploadPicture : undefined}
+                            onRemovePicture={this.handleRemovePicture}
+                            canRemovePicture={(this.state.user?.last_picture_update ?? 0) > 0}
+                            isUploadingPicture={this.state.isUploadingPicture}
                             body={
                                 <>
+                                    {this.state.pictureError && (
+                                        <div
+                                            className='SystemUserDetail__pictureError'
+                                            role='alert'
+                                        >
+                                            <FormError error={this.state.pictureError}/>
+                                        </div>
+                                    )}
                                     <span>{this.state.user?.position ?? ''}</span>
                                     {this.renderTwoColumnLayout()}
                                 </>
@@ -1468,6 +1546,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
                         {/* User's team details */}
                         <AdminPanel
+                            id='teamMembershipPanel'
                             title={defineMessage({
                                 id: 'admin.userManagement.userDetail.teamsTitle',
                                 defaultMessage: 'Team Membership',

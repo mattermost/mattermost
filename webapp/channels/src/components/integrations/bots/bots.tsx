@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -12,13 +12,22 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import AlertBanner from 'components/alert_banner';
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
 
+import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import Bot, {matchesFilter} from './bot';
+import type {BotCreateWarnings} from './bot_create_warnings';
+import {parseBotCreateWarnings, stripBotCreateWarningsParam} from './bot_create_warnings';
+import BotCreateWarningsBanner from './bot_create_warnings_banner';
+
+// The server clamps per_page to PerPageMaximum (200), so bots must be fetched
+// in pages of that size and accumulated rather than in a single large request.
+const BOTS_PER_PAGE = 200;
 
 type Props = {
 
@@ -51,7 +60,9 @@ type Props = {
     *  Map from botUserId to user.
     */
     users: Record<string, UserProfile>;
+    pluginDisplayNames?: Record<string, string>;
     createBots?: boolean;
+    maxLifetimeDays: number;
 
     actions: {
 
@@ -68,11 +79,12 @@ type Props = {
         /**
         * Access token managment
         */
-        createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
+        createUserAccessToken: (userId: string, description: string, expiresAt?: number) => Promise<ActionResult<UserAccessToken>>;
 
         revokeUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         enableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        rotateUserAccessToken: (tokenId: string, expiresAt?: number) => Promise<ActionResult<UserAccessToken>>;
 
         /**
         * Load owner of bot account
@@ -99,11 +111,22 @@ type Props = {
     *  Only used for routing since backstage is team based.
     */
     team: Team;
-}
+
+    /**
+     * From react-router. `search` may carry create warnings from the Add Bot page.
+     */
+    location?: {pathname: string; search: string};
+};
+
+// Distinguishes a clean load from a total failure (no bots fetched) and a
+// partial failure (a later page failed, so the list is incomplete).
+type LoadError = 'none' | 'full' | 'partial';
 
 type State = {
     loading: boolean;
-}
+    loadError: LoadError;
+    createWarnings?: BotCreateWarnings;
+};
 
 export default class Bots extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
@@ -111,36 +134,116 @@ export default class Bots extends React.PureComponent<Props, State> {
 
         this.state = {
             loading: true,
+            loadError: 'none',
+            createWarnings: props.location ? parseBotCreateWarnings(props.location.search) : undefined,
         };
     }
 
     public componentDidMount(): void {
-        this.props.actions.loadBots(
-            Constants.Integrations.START_PAGE_NUM,
-            Constants.Integrations.PAGE_SIZE,
-        ).then(
-            (result) => {
-                if (result.data) {
-                    const promises = [];
+        this.loadAllBots();
 
-                    for (const bot of result.data) {
-                        // We don't need to wait for this and we need to accept failure in the case where bot.owner_id is a plugin id
-                        this.props.actions.getUser(bot.owner_id);
-
-                        // We want to wait for these.
-                        promises.push(this.props.actions.getUser(bot.user_id));
-                        promises.push(this.props.actions.getUserAccessTokensForUser(bot.user_id));
-                    }
-
-                    Promise.all(promises).then(() => {
-                        this.setState({loading: false});
-                    });
-                }
-            },
-        );
         if (this.props.appsEnabled) {
             this.props.actions.fetchAppsBotIDs();
         }
+
+        const {location} = this.props;
+        const search = location ? stripBotCreateWarningsParam(location.search) : undefined;
+        if (location && search !== undefined) {
+            getHistory().replace(location.pathname + search);
+        }
+    }
+
+    private async loadAllBots(): Promise<void> {
+        const allBots: BotType[] = [];
+        let page = Constants.Integrations.START_PAGE_NUM;
+        let loadError: LoadError = 'none';
+
+        // Fetch successive pages until one comes back short, since the server
+        // caps each request at BOTS_PER_PAGE and never returns every bot at once.
+        for (;;) {
+            // eslint-disable-next-line no-await-in-loop
+            const result = await this.props.actions.loadBots(page, BOTS_PER_PAGE);
+
+            // A failed fetch returns an error rather than data. Surface it so the
+            // user knows the list failed to load (first page) or is incomplete
+            // (a later page), instead of silently showing an empty/truncated list.
+            if (result.error) {
+                loadError = allBots.length > 0 ? 'partial' : 'full';
+                break;
+            }
+
+            if (!result.data) {
+                break;
+            }
+
+            allBots.push(...result.data);
+
+            if (result.data.length < BOTS_PER_PAGE) {
+                break;
+            }
+            page++;
+        }
+
+        const promises = [];
+        for (const bot of allBots) {
+            // A resolved owner is what marks a bot user-owned, so the row would render as
+            // plugin-owned (no expiry control) while this is still in flight.
+            promises.push(this.props.actions.getUser(bot.owner_id));
+
+            promises.push(this.props.actions.getUser(bot.user_id));
+            promises.push(this.props.actions.getUserAccessTokensForUser(bot.user_id));
+        }
+
+        await Promise.all(promises);
+        this.setState({loading: false, loadError});
+    }
+
+    private renderLoadError(): JSX.Element | null {
+        if (this.state.loadError === 'none') {
+            return null;
+        }
+
+        if (this.state.loadError === 'partial') {
+            return (
+                <AlertBanner
+                    mode='warning'
+                    message={
+                        <FormattedMessage
+                            id='bots.manage.load_error.partial'
+                            defaultMessage='Some bot accounts could not be loaded, so this list may be incomplete. Refresh the page to try again.'
+                        />
+                    }
+                />
+            );
+        }
+
+        return (
+            <AlertBanner
+                mode='danger'
+                message={
+                    <FormattedMessage
+                        id='bots.manage.load_error.full'
+                        defaultMessage='Bot accounts could not be loaded. Refresh the page to try again.'
+                    />
+                }
+            />
+        );
+    }
+
+    private dismissCreateWarnings = (): void => {
+        this.setState({createWarnings: undefined});
+    };
+
+    private renderBanners(): JSX.Element {
+        return (
+            <>
+                <BotCreateWarningsBanner
+                    warnings={this.state.createWarnings}
+                    onDismiss={this.dismissCreateWarnings}
+                />
+                {this.renderLoadError()}
+            </>
+        );
     }
 
     DisabledSection(props: {hasDisabled: boolean; disabledBots: JSX.Element[]; filter?: string}): JSX.Element | null {
@@ -183,10 +286,12 @@ export default class Bots extends React.PureComponent<Props, State> {
                 bot={bot}
                 owner={this.props.owners[bot.user_id]}
                 user={this.props.users[bot.user_id]}
+                pluginDisplayName={this.props.pluginDisplayNames?.[bot.user_id]}
                 accessTokens={(this.props.accessTokens && this.props.accessTokens[bot.user_id]) || {}}
                 actions={this.props.actions}
                 team={this.props.team}
                 fromApp={this.props.appsBotIDs.includes(bot.user_id)}
+                maxLifetimeDays={this.props.maxLifetimeDays}
             />
         );
     };
@@ -274,6 +379,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                 }
                 searchPlaceholder={Utils.localizeMessage({id: 'bots.manage.search', defaultMessage: 'Search Bot Accounts'})}
                 loading={this.state.loading}
+                error={this.renderBanners()}
             >
                 {this.bots}
             </BackstageList>

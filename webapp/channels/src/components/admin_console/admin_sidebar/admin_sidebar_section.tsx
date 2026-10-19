@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 
@@ -19,7 +19,7 @@ type Props = {
     subsection?: boolean;
     tag?: string | JSX.Element;
     restrictedIndicator?: string | JSX.Element;
-}
+};
 
 const AdminSidebarSection = ({name, title, action, children = [], definitionKey, type, parentLink = '', subsection = false, tag, restrictedIndicator}: Props) => {
     const getLink = () => parentLink + '/' + name;

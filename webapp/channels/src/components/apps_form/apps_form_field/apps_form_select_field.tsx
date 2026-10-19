@@ -38,7 +38,7 @@ export type Props = {
 export type State = {
     refreshNonce: string;
     field: AppField;
-}
+};
 
 const reactStyles = {
     menuPortal: (provided) => ({
@@ -48,7 +48,7 @@ const reactStyles = {
 } satisfies StylesConfig<AppSelectOption | UserProfile | Channel >;
 
 const commonComponents = {
-    MultiValueLabel: (props: { data: { label: string } }) => (
+    MultiValueLabel: (props: {data: {label: string}}) => (
         <div className='react-select__padded-component'>
             {props.data.label}
         </div>

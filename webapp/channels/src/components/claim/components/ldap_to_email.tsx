@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -24,7 +24,7 @@ type Props = {
     email: string | null;
     switchLdapToEmail: (ldapPassword: string, email: string, password: string, token: string) => Promise<ActionResult<AuthChangeResponse>>;
     passwordConfig?: PasswordConfig;
-}
+};
 
 const LDAPToEmail = (props: Props) => {
     const [passwordError, setPasswordError] = useState<string | JSX.Element>('');

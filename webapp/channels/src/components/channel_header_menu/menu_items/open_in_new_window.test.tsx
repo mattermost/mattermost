@@ -13,11 +13,8 @@ import {TestHelper} from 'utils/test_helper';
 
 import MenuItemOpenInNewWindow from './open_in_new_window';
 
-jest.mock('components/channel_popout/channel_popout', () => ({
-    getPopoutChannelTitle: jest.fn(() => ({id: 'test.title', defaultMessage: 'Test Title'})),
-}));
-
 jest.mock('utils/popouts/popout_windows', () => ({
+    getPopoutChannelTitle: jest.fn(() => ({id: 'test.title', defaultMessage: 'Test Title'})),
     isChannelPopoutWindow: jest.fn(() => false),
     popoutChannel: jest.fn(),
     canPopout: jest.fn(() => true),

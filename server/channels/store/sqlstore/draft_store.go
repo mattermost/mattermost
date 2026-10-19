@@ -39,6 +39,13 @@ func draftSliceColumns() []string {
 	}
 }
 
+func draftSelectColumns() []string {
+	cols := make([]string, len(draftSliceColumns()))
+	copy(cols, draftSliceColumns())
+	cols[len(cols)-1] = "COALESCE(Type, '') AS Type"
+	return cols
+}
+
 func draftToSlice(draft *model.Draft) []any {
 	return []any{
 		draft.CreateAt,
@@ -65,7 +72,7 @@ func newSqlDraftStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) 
 
 func (s *SqlDraftStore) Get(userId, channelId, rootId string, includeDeleted bool) (*model.Draft, error) {
 	query := s.getQueryBuilder().
-		Select(draftSliceColumns()...).
+		Select(draftSelectColumns()...).
 		From("Drafts").
 		Where(sq.Eq{
 			"UserId":    userId,

@@ -22,7 +22,7 @@ type Props = {
     onExited: () => void;
     onSuccess: () => void;
     onError: (error: ServerError) => void;
-}
+};
 
 export default function DeactivateMemberModal({user, onExited, onSuccess, onError}: Props) {
     const dispatch = useDispatch();

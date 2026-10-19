@@ -2,25 +2,32 @@
 // See LICENSE.txt for license information.
 
 // Server-side definitions for the post.props.mm_blocks_actions registry that
-// underpins the markdown-actions feature. Mirrors the canonical model
-// landing in the broader mm_blocks framework PR; cookie transport
-// (MmBlocksActionCookie, AddMmBlocksActionCookies, ParseDecryptedActionCookiePayload)
-// is intentionally omitted here and will be filled in by that PR. Until then,
-// mm_blocks_actions is resolved on click via DB lookup
-// (GetMmBlocksActionSpec) and stripped from ephemeral broadcasts so dead
-// buttons don't render.
-
+// underpins the markdown-actions feature.
 package model
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
 	"net/url"
 )
 
+var (
+	// ErrMmBlocksActionNotFound is returned when the action id is missing or not an executable mm_blocks action.
+	ErrMmBlocksActionNotFound = errors.New("mm_blocks action not found")
+)
+
+// MmBlocksActionResolved is the outcome of resolving an mm_blocks action for execution.
+type MmBlocksActionResolved struct {
+	OpenURLGoto string
+	ExternalURL string
+	Context     map[string]any
+}
+
 const (
 	MmBlocksActionTypeExternal = "external"
+	MmBlocksActionTypeOpenURL  = "openURL"
 )
 
 // MmBlocksActionSpec is the server-side definition for one entry in props.mm_blocks_actions.
@@ -58,14 +65,71 @@ func mmBlocksEntryMapToSpec(entryMap map[string]any) *MmBlocksActionSpec {
 	if typ == "" {
 		return nil
 	}
-	if typ != MmBlocksActionTypeExternal {
+	spec := &MmBlocksActionSpec{Type: typ}
+	switch typ {
+	case MmBlocksActionTypeExternal:
+		spec.URL, _ = entryMap["url"].(string)
+		spec.Context = contextMapFromProp(entryMap["context"])
+		spec.Query = stringMapFromPropValue(entryMap["query"])
+		return spec
+	case MmBlocksActionTypeOpenURL:
+		spec.URL, _ = entryMap["url"].(string)
+		spec.Query = stringMapFromPropValue(entryMap["query"])
+		return spec
+	default:
 		return nil
 	}
-	spec := &MmBlocksActionSpec{Type: typ}
-	spec.URL, _ = entryMap["url"].(string)
-	spec.Context = contextMapFromProp(entryMap["context"])
-	spec.Query = stringMapFromPropValue(entryMap["query"])
-	return spec
+}
+
+// ActionSpec returns the server-side spec for one action id from the cookie actions map.
+func (m *MmBlocksActionCookie) ActionSpec(actionID string) *MmBlocksActionSpec {
+	if m == nil || actionID == "" || m.Actions == nil {
+		return nil
+	}
+	entry, ok := m.Actions[actionID]
+	if !ok || entry == nil {
+		return nil
+	}
+	entryMap, ok := coerceToStringAnyMap(entry)
+	if !ok {
+		return nil
+	}
+	return mmBlocksEntryMapToSpec(entryMap)
+}
+
+// ResolveMmBlocksAction resolves spec for execution: openURL returns OpenURLGoto; external returns ExternalURL and Context.
+func ResolveMmBlocksAction(spec *MmBlocksActionSpec, actionID string, clientQuery map[string]string) (*MmBlocksActionResolved, error) {
+	if spec == nil {
+		return nil, fmt.Errorf("mm_blocks action_id=%s: %w", actionID, ErrMmBlocksActionNotFound)
+	}
+	switch spec.Type {
+	case MmBlocksActionTypeOpenURL:
+		if spec.URL == "" {
+			return nil, fmt.Errorf("mm_blocks action_id=%s: %w", actionID, ErrMmBlocksActionNotFound)
+		}
+		gotoURL, err := MergeQueryIntoURL(spec.URL, spec.Query)
+		if err != nil {
+			return nil, err
+		}
+		return &MmBlocksActionResolved{OpenURLGoto: gotoURL}, nil
+
+	case MmBlocksActionTypeExternal:
+		if spec.URL == "" {
+			return nil, fmt.Errorf("mm_blocks action_id=%s: %w", actionID, ErrMmBlocksActionNotFound)
+		}
+		upstreamURL, err := MergeQueryIntoURL(spec.URL, spec.Query)
+		if err != nil {
+			return nil, err
+		}
+		upstreamURL, err = MergeQueryIntoURL(upstreamURL, clientQuery)
+		if err != nil {
+			return nil, err
+		}
+		return &MmBlocksActionResolved{ExternalURL: upstreamURL, Context: spec.Context}, nil
+
+	default:
+		return nil, fmt.Errorf("mm_blocks action_id=%s: %w", actionID, ErrMmBlocksActionNotFound)
+	}
 }
 
 // MmBlocksContextMap parses a context JSON string or treats a non-JSON string as a single context value.
@@ -97,12 +161,92 @@ func MergeQueryIntoURL(rawURL string, q map[string]string) (string, error) {
 	return u.String(), nil
 }
 
-// StripMmBlocksActionSecrets removes server-only fields from
-// props.mm_blocks_actions for wire serialization. The current
-// implementation deletes the prop wholesale; the cookie-transport PR will
-// extend this to preserve encrypted-string cookie payloads in place.
+// ParseDecryptedActionCookiePayload unmarshals decrypted cookie JSON from the client.
+// Exactly one of legacy or mmBlocks is non-nil when err is nil (legacy attachment cookie vs mm_blocks cookie).
+func ParseDecryptedActionCookiePayload(decrypted string) (legacy *PostActionCookie, mmBlocks *MmBlocksActionCookie, err error) {
+	var probe struct {
+		Kind string `json:"kind"`
+	}
+	if err := json.Unmarshal([]byte(decrypted), &probe); err != nil {
+		return nil, nil, err
+	}
+	if probe.Kind == MmBlocksActionCookieKind {
+		var mm MmBlocksActionCookie
+		if err := json.Unmarshal([]byte(decrypted), &mm); err != nil {
+			return nil, nil, err
+		}
+		return nil, &mm, nil
+	}
+	var c PostActionCookie
+	if err := json.Unmarshal([]byte(decrypted), &c); err != nil {
+		return nil, nil, err
+	}
+	return &c, nil, nil
+}
+
+// AddMmBlocksActionCookies encrypts the full mm_blocks_actions map into one cookie string stored in PostPropsMmBlocksActions.
+func AddMmBlocksActionCookies(p *Post, secret []byte) {
+	raw := p.GetProp(PostPropsMmBlocksActions)
+	if raw == nil {
+		return
+	}
+	actionsTop, ok := coerceToStringAnyMap(raw)
+	if !ok || len(actionsTop) == 0 {
+		return
+	}
+
+	retainProps := map[string]any{}
+	removeProps := []string{}
+	for _, key := range PostActionRetainPropKeys {
+		value, ok := p.GetProps()[key]
+		if ok {
+			retainProps[key] = value
+		} else {
+			removeProps = append(removeProps, key)
+		}
+	}
+
+	actionsForEnc := make(map[string]map[string]any, len(actionsTop))
+	for actionID, val := range actionsTop {
+		entryMap, ok := coerceToStringAnyMap(val)
+		if !ok {
+			continue
+		}
+		actionsForEnc[actionID] = entryMap
+	}
+
+	rootPostID := p.Id
+	if p.RootId != "" {
+		rootPostID = p.RootId
+	}
+	mmCookie := MmBlocksActionCookie{
+		Kind:        MmBlocksActionCookieKind,
+		PostId:      p.Id,
+		RootPostId:  rootPostID,
+		ChannelId:   p.ChannelId,
+		RetainProps: retainProps,
+		RemoveProps: removeProps,
+		Actions:     actionsForEnc,
+	}
+	b, err := json.Marshal(mmCookie)
+	if err != nil {
+		return
+	}
+	enc, err := EncryptPostActionCookie(string(b), secret)
+	if err != nil {
+		return
+	}
+	p.AddProp(PostPropsMmBlocksActions, enc)
+}
+
+// StripMmBlocksActionSecrets removes server-only fields from props.mm_blocks_actions for wire serialization.
 func (o *Post) StripMmBlocksActionSecrets() {
-	if o.GetProp(PostPropsMmBlocksActions) == nil {
+	raw := o.GetProp(PostPropsMmBlocksActions)
+	if raw == nil {
+		return
+	}
+	if _, ok := raw.(string); ok {
+		// Already replaced with a single opaque encrypted cookie by AddMmBlocksActionCookies.
 		return
 	}
 	o.DelProp(PostPropsMmBlocksActions)

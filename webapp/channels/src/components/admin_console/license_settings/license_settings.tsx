@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {StatusOK} from '@mattermost/types/client4';
@@ -55,7 +55,6 @@ type Props = {
         isAllowedToUpgradeToEnterprise: () => Promise<ActionResult>;
         restartServer: () => Promise<StatusOK>;
         ping: () => Promise<{status: string}>;
-        requestTrialLicense: (users: number, termsAccepted: boolean, receiveEmailsAccepted: boolean, featureName: string) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
         getServerLimits: () => Promise<ActionResult<ServerLimits, ServerError>>;
         getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
@@ -63,7 +62,7 @@ type Props = {
             error?: ServerError;
         }>;
     };
-}
+};
 
 const messages = defineMessages({
     title: {id: 'admin.license.title', defaultMessage: 'Edition and License'},
@@ -92,7 +91,7 @@ type State = {
 };
 export default class LicenseSettings extends React.PureComponent<Props, State> {
     private interval: ReturnType<typeof setInterval> | null;
-    private fileInputRef: React.RefObject<HTMLInputElement>;
+    private fileInputRef: React.RefObject<HTMLInputElement | null>;
     constructor(props: Props) {
         super(props);
 
@@ -167,6 +166,9 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
         const element = this.fileInputRef.current;
         if (element?.files?.length) {
             this.setState({fileSelected: true, file: element.files[0]});
+
+            // Reset the input value so re-selecting the same file re-fires onChange.
+            element.value = '';
         }
     };
 

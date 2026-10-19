@@ -1,0 +1,56 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.BoardAttributesTable {
+    table.adminConsoleListTable {
+
+        td, th {
+            &:after, &:before {
+                display: none;
+            }
+        }
+
+        thead {
+            border-top: none;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            tr {
+                th.pinned {
+                    background: rgba(var(--center-channel-color-rgb), 0.04);
+                    padding-block-end: 8px;
+                    padding-block-start: 8px;
+                }
+            }
+        }
+
+        tbody {
+            tr {
+                border-top: none;
+                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+                border-bottom-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+                td {
+                    padding-block-end: 0;
+                    padding-block-start: 0;
+
+                    &:not(:first-child):not(:last-child) {
+                        padding-inline-end: 0;
+                        padding-inline-start: 0;
+                    }
+
+                    &:last-child {
+                        padding-inline-end: 12px;
+                    }
+                    &.pinned {
+                        background: none;
+                    }
+                }
+            }
+        }
+
+        tfoot {
+            border-top: none;
+        }
+    }
+    .adminConsoleListTableContainer {
+        padding: 2px 0px;
+    }
+}

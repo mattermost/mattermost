@@ -25,12 +25,12 @@ export type InstalledOutgoingOAuthConnectionProps = {
     filter?: string | null;
 
     onDelete: (outgoingOAuthConnection: OutgoingOAuthConnection) => void;
-}
+};
 
 export type InstalledOutgoingOAuthConnectionState = {
     clientSecret: string;
     error?: string | null;
-}
+};
 
 const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectionProps) => {
     const handleDelete = (): void => {
@@ -107,7 +107,7 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                 }
                 modalMessage={
                     <FormattedMessage
-                        id='installed_outgoing_oauth_connections.delete.wanring'
+                        id='installed_outgoing_oauth_connections.delete.warning'
                         defaultMessage='Deleting this connection will break any integrations using it'
                     />
                 }

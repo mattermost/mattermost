@@ -34,12 +34,12 @@ type Props = {
         getDataRetentionCustomPolicyTeams: (id: string, page: number, perPage: number) => Promise<ActionResult>;
         setTeamListSearch: (term: string) => ActionResult;
     };
-}
+};
 
 type State = {
     loading: boolean;
     page: number;
-}
+};
 const PAGE_SIZE = 10;
 export default class TeamList extends React.PureComponent<Props, State> {
     private pageLoaded = 0;

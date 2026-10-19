@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 
@@ -17,7 +17,7 @@ import type {InviteResult} from './result_table';
 export type InviteResults = {
     sent: InviteResult[];
     notSent: InviteResult[];
-}
+};
 
 export type ResultState = {
     sent: InviteResult[];
@@ -41,6 +41,7 @@ type Props = {
 } & ResultState;
 
 export default function ResultView(props: Props) {
+    const {formatMessage} = useIntl();
     let inviteType;
     if (props.inviteType === InviteType.MEMBER) {
         inviteType = (
@@ -104,8 +105,8 @@ export default function ResultView(props: Props) {
                     onClick={props.onDone}
                     emphasis='primary'
                     data-testid='confirm-done'
-                    aria-label='Close'
-                    title='Close'
+                    aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
+                    title={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                 >
                     <FormattedMessage
                         id='invitation_modal.confirm.done'

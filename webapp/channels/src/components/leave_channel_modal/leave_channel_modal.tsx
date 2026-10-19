@@ -21,7 +21,7 @@ type Props = {
         leaveChannel: (channelId: string) => any;
         muteChannel?: (userId: string, channelId: string) => any;
     };
-}
+};
 
 const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, onExited}: Props) => {
     const [show, setShow] = useState(true);

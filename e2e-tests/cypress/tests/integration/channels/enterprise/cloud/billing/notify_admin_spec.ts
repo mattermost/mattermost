@@ -15,7 +15,7 @@ import {newTestPassword} from '@/utils';
 
 const admin = getAdminAccount();
 
-interface Subscription{
+interface Subscription {
     id: string;
     product_id: string;
     is_free_trial: string;
@@ -23,9 +23,9 @@ interface Subscription{
 }
 
 interface Limits {
-    messages?: { history: number };
-    teams?: { active: number; teamsLoaded: boolean };
-    files?: { total_storage: number };
+    messages?: {history: number};
+    teams?: {active: number; teamsLoaded: boolean};
+    files?: {total_storage: number};
 }
 
 function simulateFilesLimitReached(fileStorageUsageBytes: number) {
@@ -85,7 +85,7 @@ function simulateSubscription(subscription: Partial<Subscription>, withLimits = 
     }
 }
 
-function createUsersProcess(team: { id: string }, channel: { id: string }, times: number) {
+function createUsersProcess(team: {id: string}, channel: {id: string}, times: number) {
     const users: Cypress.UserProfile[] = [];
     for (let i = 0; i < times; i++) {
         cy.apiCreateUser({prefix: 'other'}).then(({user}) => {

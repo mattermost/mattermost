@@ -14,7 +14,6 @@ import {verifyPostNextToNewMessageSeparator, switchToChannel} from './helpers';
 
 import {beUnread} from '@/support/assertions';
 
-
 describe('Mark post with mentions as unread', () => {
     let userA;
     let userB;

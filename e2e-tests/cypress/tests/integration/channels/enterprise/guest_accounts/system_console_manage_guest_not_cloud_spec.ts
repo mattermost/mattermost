@@ -14,7 +14,6 @@ import {verifyGuest} from './helpers';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Guest Account - Verify Manage Guest Users', () => {
     let guestUser: Cypress.UserProfile;
     let testTeam: Cypress.Team;

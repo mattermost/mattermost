@@ -10,6 +10,7 @@ import ProfilePopover from 'components/profile_popover';
 import SharedUserIndicator from 'components/shared_user_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
+import ImportedInactiveTag from 'components/widgets/tag/imported_inactive_tag';
 
 import {imageURLForUser, getUsername} from 'utils/utils';
 
@@ -23,6 +24,8 @@ export default function UserProfile({
     disablePopover = false,
     displayUsername = false,
     hideStatus = false,
+    hideGuestTag = false,
+    fromWebhook = false,
     overwriteName = '',
     colorize = false,
     user,
@@ -87,6 +90,7 @@ export default function UserProfile({
                 src={profileImg}
                 channelId={channelId}
                 hideStatus={hideStatus}
+                fromWebhook={fromWebhook}
                 overwriteIcon={overwriteIcon}
                 overwriteName={overwriteName}
             >
@@ -100,7 +104,8 @@ export default function UserProfile({
             />
             }
             {(user && user.is_bot) && <BotTag/>}
-            {(user && isGuest(user.roles)) && <GuestTag/>}
+            {(user && !hideGuestTag && isGuest(user.roles)) && <GuestTag/>}
+            {(user && user.props?.importedInactive === 'true') && <ImportedInactiveTag/>}
         </>
     );
 }

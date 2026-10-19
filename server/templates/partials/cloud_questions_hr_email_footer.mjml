@@ -1,6 +1,6 @@
 <mj-section padding-top="0px" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
   <mj-column padding="0">
-    <mj-text font-size="16px" font-family="Open Sans, sans-serif" font-weight="600" align="left" padding="0px" padding-bottom="0px" padding-left="48px" >
+    <mj-text font-size="16px" font-family="sans-serif" font-weight="600" align="left" padding="0px" padding-bottom="0px" padding-left="48px" >
       {{.Props.QuestionTitle}}
     </mj-text>
     <mj-text color="#3F4350" font-size="14px" align="left" padding-left="48px" padding-bottom="0px">

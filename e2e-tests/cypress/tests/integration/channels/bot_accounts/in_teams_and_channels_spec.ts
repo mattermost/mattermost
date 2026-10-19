@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
-import {Team} from '@mattermost/types/teams';
-import {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {Channel} from '@mattermost/types/channels';
 
 import {createBotPatch} from '@/support/api/bots';
 import {createChannelPatch} from '@/support/api/channel';
@@ -27,6 +27,21 @@ describe('Managing bots in Teams and Channels', () => {
         });
         cy.apiInitSetup({loginAfter: true}).then((out) => {
             team = out.team;
+        });
+    });
+
+    it('MM-T1814 Add a BOT to a team', () => {
+        cy.makeClient().then(async (client) => {
+            // # Go to channel
+            const channel = await client.getChannelByName(team.id, 'town-square');
+            cy.visit(`/${team.name}/channels/${channel.name}`);
+
+            // # Invite bot to team (asserts the modal success message)
+            const bot = await client.createBot(createBotPatch());
+            cy.uiInviteMemberToCurrentTeam(bot.username);
+
+            // * Verify system message in-channel
+            cy.uiWaitUntilMessagePostedIncludes(`@${bot.username} added to the team by you.`);
         });
     });
 

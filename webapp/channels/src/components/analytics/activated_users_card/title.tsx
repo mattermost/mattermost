@@ -15,7 +15,7 @@ export const messages = defineMessages({
 
 type TitleProps = {
     guestAccountsEnabled: boolean;
-}
+};
 
 const Title = ({guestAccountsEnabled}: TitleProps) => {
     const intl = useIntl();

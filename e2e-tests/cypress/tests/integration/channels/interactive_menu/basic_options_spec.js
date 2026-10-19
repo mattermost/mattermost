@@ -77,16 +77,16 @@ describe('Interactive Menu', () => {
         const payload = getMessageMenusPayload({options});
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload, waitFor: 'attachment-pretext'});
 
-        // # Get message attachment from the last post
+        // # Get mm_blocks from the last post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#messageAttachmentList_${postId}`).as('messageAttachmentList');
+            cy.getPostMmBlocks(postId).as('postMmBlocks');
         });
 
-        // * Verify each element of message attachment list
-        cy.get('@messageAttachmentList').scrollIntoView().within(() => {
-            cy.get('.attachment__thumb-pretext').should('be.visible').and('have.text', payload.attachments[0].pretext);
-            cy.get('.post-message__text-container').should('be.visible').and('have.text', payload.attachments[0].text);
-            cy.get('.attachment-actions').should('be.visible');
+        // * Verify each element of the interactive message
+        cy.get('@postMmBlocks').scrollIntoView().within(() => {
+            cy.contains('.mm-blocks-text', payload.attachments[0].pretext).should('be.visible');
+            cy.contains('.mm-blocks-text', payload.attachments[0].text).should('be.visible');
+            cy.findByTestId('autoCompleteSelector').should('be.visible');
             cy.get('.select-suggestion-container').should('be.visible');
 
             // * Suggestion list should not be visible before dropdown is clicked
@@ -112,9 +112,9 @@ describe('Interactive Menu', () => {
         const payload = getMessageMenusPayload({options});
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload, waitFor: 'attachment-pretext'});
 
-        // # Get message attachment from the last post
+        // # Get mm_blocks from the last post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#messageAttachmentList_${postId}`).within(() => {
+            cy.getPostMmBlocks(postId).within(() => {
                 // # Select option 1 by typing exact text and press enter
                 cy.findByPlaceholderText('Select an option...').scrollIntoView().click().clear({force: true}).type(`${options[0].text}{enter}`);
 
@@ -179,10 +179,10 @@ describe('Interactive Menu', () => {
 
         // # Get message attachment from the last post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#messageAttachmentList_${postId}`).as('messageAttachmentList');
+            cy.getPostMmBlocks(postId).as('postMmBlocks');
         });
 
-        cy.get('@messageAttachmentList').within(() => {
+        cy.get('@postMmBlocks').within(() => {
             cy.findByPlaceholderText('Select an option...').scrollIntoView().click().clear({force: true}).type('sea');
 
             // * Message attachment menu dropdown should now be open
@@ -204,9 +204,9 @@ describe('Interactive Menu', () => {
         // # Post an incoming webhook for interactive menu with user options
         cy.postIncomingWebhook({url: incomingWebhook.url, data: userOptions, waitFor: 'attachment-pretext'});
 
-        // # Get message attachment from the last post
+        // # Get mm_blocks from the last post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#messageAttachmentList_${postId}`).within(() => {
+            cy.getPostMmBlocks(postId).within(() => {
                 // # Type the missing user in the select input
                 cy.findByPlaceholderText('Select an option...').scrollIntoView().click().clear({force: true}).type(missingUser);
 
@@ -226,10 +226,10 @@ describe('Interactive Menu', () => {
 
         // # Get message attachment from the last post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#messageAttachmentList_${postId}`).as('messageAttachmentList');
+            cy.getPostMmBlocks(postId).as('postMmBlocks');
         });
 
-        cy.get('@messageAttachmentList').within(() => {
+        cy.get('@postMmBlocks').within(() => {
             cy.findByPlaceholderText('Select an option...').scrollIntoView().as('optionInputField');
             cy.get('@optionInputField').click();
             cy.get('#suggestionList').should('be.visible');
@@ -294,7 +294,7 @@ describe('Interactive Menu', () => {
         // # Get the last posted message id
         cy.getLastPostId().then((lastPostId) => {
             // # Get the last messages attachment container
-            cy.get(`#messageAttachmentList_${lastPostId}`).within(() => {
+            cy.getPostMmBlocks(lastPostId).within(() => {
                 // * Message attachment menu dropdown should be closed
                 cy.get('#suggestionList').should('not.exist');
 
@@ -327,7 +327,7 @@ describe('Interactive Menu', () => {
         // # Get the last posted message id
         cy.getLastPostId().then((lastPostId) => {
             // # Get the last messages attachment container
-            cy.get(`#messageAttachmentList_${lastPostId}`).within(() => {
+            cy.getPostMmBlocks(lastPostId).within(() => {
                 // # Find the message attachment menu and assign it to a variable for later use
                 cy.findByPlaceholderText('Select an option...').scrollIntoView().as('optionInputField');
 
@@ -384,7 +384,7 @@ describe('Interactive Menu', () => {
         // # Get the last posted message id
         cy.getLastPostId().then((lastPostId) => {
             // # Get the last messages attachment container
-            cy.get(`#messageAttachmentList_${lastPostId}`).within(() => {
+            cy.getPostMmBlocks(lastPostId).within(() => {
                 // * Message attachment menu dropdown should be closed
                 cy.get('#suggestionList').should('not.exist');
 
@@ -436,7 +436,7 @@ describe('Interactive Menu', () => {
         // # Get the last posted message id
         cy.getLastPostId().then((lastPostId) => {
             // # Get the last messages attachment container
-            cy.get(`#messageAttachmentList_${lastPostId}`).within(() => {
+            cy.getPostMmBlocks(lastPostId).within(() => {
                 // # Start typing only first few letters in the input
                 cy.findByPlaceholderText('Select an option...').scrollIntoView().clear({force: true}).type(firstFewLettersOfSelectedItem).wait(TIMEOUTS.ONE_SEC);
 
@@ -464,7 +464,7 @@ describe('Interactive Menu', () => {
             cy.get('#rhsContainer').should('exist');
 
             // # Same id as parent post in center, only opened in RHS
-            cy.get(`#rhsPost_${webhookMessageId}`).within(() => {
+            cy.getRhsPostMmBlocks(webhookMessageId).within(() => {
                 // * Verify the input has the selected value same as that of Center
                 cy.findByDisplayValue(selectedItem).should('exist');
             });
@@ -486,7 +486,7 @@ describe('Interactive Menu', () => {
         // # Verify the webhook posted the message
         cy.getLastPostId().then((parentPostId) => {
             // # Get the last messages attachment container
-            cy.get(`#messageAttachmentList_${parentPostId}`).within(() => {
+            cy.getPostMmBlocks(parentPostId).within(() => {
                 // # Open the message attachment menu dropdown by clicking on input
                 cy.findByPlaceholderText('Select an option...').scrollIntoView().click();
 
@@ -510,7 +510,7 @@ describe('Interactive Menu', () => {
             cy.get('#rhsContainer').should('exist');
 
             // # Same id as parent post in center should be opened in RHS since we clicked reply button
-            cy.get(`#rhsPost_${parentPostId}`).within(() => {
+            cy.getRhsPostMmBlocks(parentPostId).within(() => {
                 // * Verify the input has the selected value same as that of Center and open dropdown to make new selection
                 cy.findByDisplayValue(firstSelectedItem).should('exist').click();
 
@@ -525,7 +525,7 @@ describe('Interactive Menu', () => {
             });
 
             // * Verify the original message with attacment's selection is also changed
-            cy.get(`#messageAttachmentList_${parentPostId}`).within(() => {
+            cy.getPostMmBlocks(parentPostId).within(() => {
                 // * Verify the input in center has the new selected value i.e secondSelectedItem
                 cy.findByDisplayValue(secondSelectedItem).should('exist');
             });
@@ -545,7 +545,7 @@ describe('Interactive Menu', () => {
         // # Go to last webhook message with users list
         cy.getLastPostId().then((lastPostId) => {
             // # Get the last messages attachment container
-            cy.get(`#messageAttachmentList_${lastPostId}`).within(() => {
+            cy.getPostMmBlocks(lastPostId).within(() => {
                 // # Find and select the user, we just added
                 cy.findByPlaceholderText('Select an option...').scrollIntoView().clear({force: true}).type(longUser.username);
 
@@ -565,7 +565,7 @@ describe('Interactive Menu', () => {
             cy.get('#rhsContainer').should('exist');
 
             // # Same id as parent post in center, only opened in RHS
-            cy.get(`#rhsPost_${lastPostId}`).within(() => {
+            cy.getRhsPostMmBlocks(lastPostId).within(() => {
                 // * Verify the input has the selected value same as that of Center
                 //   and verify that it has truncation css applied
                 cy.findByDisplayValue(longUser.username).should('exist').and('have.css', 'text-overflow', 'ellipsis');
@@ -577,52 +577,61 @@ describe('Interactive Menu', () => {
     });
 });
 
-function verifyMessageAttachmentList(postId, isRhs, text) {
-    cy.get(`#messageAttachmentList_${postId}`).within(() => {
-        cy.findByTestId('autoCompleteSelector').should('be.visible');
+// Matches `.mm-blocks-select` in block_renderer.scss (interactive menus render as mm_blocks).
+const MM_BLOCKS_SELECT_HEIGHT = '36px';
+const MM_BLOCKS_SELECT_WIDTH = '220px';
+const MM_BLOCKS_SELECT_PADDING_RIGHT = '24px';
 
-        if (isRhs) {
-            // * Verify that the selected option from center view matches the one in RHS
-            cy.findByPlaceholderText('Select an option...').scrollIntoView().should('have.value', text);
-        } else {
-            // # Select an option (long) in center view
-            cy.findByPlaceholderText('Select an option...').scrollIntoView().should('be.visible').click();
-            cy.get('#suggestionList').should('be.visible').children().first().click({force: true});
-        }
+function verifyMessageAttachmentListContent(isRhs, text) {
+    cy.findByTestId('autoCompleteSelector').should('be.visible');
 
-        // * Verify exact height, width and padding of suggestion container and its input
-        cy.get('.select-suggestion-container').
-            should('be.visible').
-            and('have.css', 'height', '32px').
-            and('have.css', 'width', '220px');
+    if (isRhs) {
+        // * Verify that the selected option from center view matches the one in RHS
+        cy.findByPlaceholderText('Select an option...').scrollIntoView().should('have.value', text);
+    } else {
+        // # Select an option (long) in center view
+        cy.findByPlaceholderText('Select an option...').scrollIntoView().should('be.visible').click();
+        cy.get('#suggestionList').should('be.visible').children().first().click({force: true});
+    }
 
-        cy.findByPlaceholderText('Select an option...').scrollIntoView().
-            and('have.css', 'height', '32px').
-            and('have.css', 'width', '220px').
-            and('have.css', 'padding-right', '30px');
+    // * Verify exact height, width and padding of suggestion container and its input
+    cy.get('.select-suggestion-container').
+        should('be.visible').
+        and('have.css', 'height', MM_BLOCKS_SELECT_HEIGHT).
+        and('have.css', 'width', MM_BLOCKS_SELECT_WIDTH);
 
+    cy.findByPlaceholderText('Select an option...').scrollIntoView().
+        and('have.css', 'height', MM_BLOCKS_SELECT_HEIGHT).
+        and('have.css', 'width', MM_BLOCKS_SELECT_WIDTH).
+        and('have.css', 'padding-right', MM_BLOCKS_SELECT_PADDING_RIGHT);
+
+    if (!isRhs) {
         cy.findByPlaceholderText('Select an option...').scrollIntoView().invoke('attr', 'value').then((value) => {
             cy.wrap(value).as('optionValue');
         });
-    });
+    }
 }
 
 function verifyLastPost() {
-    // # Get message attachment from the last post, and
-    // * Verify its content in center view
-    cy.getLastPostId().then((postId) => {
-        verifyMessageAttachmentList(postId, false);
+    // Anchor on the webhook post row that waitFor already matched (avoids stale id lookup).
+    cy.getLastPost().scrollIntoView().as('webhookPost');
 
-        // # Open the same post in RHS, and
-        // * Verify its content in RHS
+    cy.get('@webhookPost').then((post) => {
+        const postId = post.attr('id').replace(/^[^_]*_/, '');
+
+        cy.get('@webhookPost').find('.mm-blocks').within(() => {
+            verifyMessageAttachmentListContent(false);
+        });
+
         cy.clickPostCommentIcon(postId);
-        cy.get(`#rhsPost_${postId}`).within(() => {
+        cy.get('#rhsContainer').should('exist');
+
+        cy.getRhsPostMmBlocks(postId).within(() => {
             cy.get('@optionValue').then((value) => {
-                verifyMessageAttachmentList(postId, true, value);
+                verifyMessageAttachmentListContent(true, value);
             });
         });
 
-        // # Close the RHS
         cy.uiCloseRHS();
     });
 }

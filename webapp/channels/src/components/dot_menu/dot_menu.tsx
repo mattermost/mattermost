@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
@@ -175,12 +175,12 @@ type Props = {
     isChannelAutotranslated: boolean;
     isBurnOnReadPost: boolean;
     isUnrevealedBurnOnReadPost: boolean;
-}
+};
 
 type State = {
     canEdit: boolean;
     canDelete: boolean;
-}
+};
 
 export class DotMenuClass extends React.PureComponent<Props, State> {
     public static defaultProps: Partial<Props> = {

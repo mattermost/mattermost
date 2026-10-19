@@ -37,7 +37,7 @@ import MoreDirectChannels from './more_direct_channels';
 
 type OwnProps = {
     isExistingChannel: boolean;
-}
+};
 
 export const makeMapStateToProps = () => {
     const searchProfilesStartingWithTerm = makeSearchProfilesStartingWithTerm();

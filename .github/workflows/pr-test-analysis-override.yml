@@ -9,6 +9,8 @@ concurrency:
   group: test-analyzer-${{ github.event.issue.number }}
   cancel-in-progress: false
 
+permissions: {}
+
 jobs:
   override:
     permissions:

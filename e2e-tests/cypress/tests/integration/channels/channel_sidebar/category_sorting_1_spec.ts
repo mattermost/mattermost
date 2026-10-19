@@ -15,7 +15,6 @@ import {clickSortCategoryMenuItem} from './helpers';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {getRandomId} from '@/utils';
 
-
 let testTeam: Cypress.Team;
 let testUser: Cypress.UserProfile;
 

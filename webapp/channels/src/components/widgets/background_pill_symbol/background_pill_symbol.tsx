@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 
 type Props = {
     id?: string;
-}
+};
 
 // NOTE: this SVG Symbol component needs to be included inside an <SVG /> container
 const BackgroundPillSymbol = ({id = 'pill'}: Props): JSX.Element => (

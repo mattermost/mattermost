@@ -16,51 +16,55 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
         class="permission-check checked"
         data-testid="uniqId-checkbox"
       >
-        <svg
-          height="18px"
-          viewBox="0 0 18 18"
-          width="18px"
+        <span
+          data-testid="permissionCheckbox-checked"
         >
-          <g
-            fill-rule="evenodd"
-            id="Developer-Export"
-            stroke="none"
-            stroke-width="1"
+          <svg
+            height="18px"
+            viewBox="0 0 18 18"
+            width="18px"
           >
             <g
-              id="All-Team-Members"
-              transform="translate(-285.000000, -933.000000)"
+              fill-rule="evenodd"
+              id="Developer-Export"
+              stroke="none"
+              stroke-width="1"
             >
               <g
-                transform="translate(245.000000, 698.000000)"
+                id="All-Team-Members"
+                transform="translate(-285.000000, -933.000000)"
               >
                 <g
-                  id="Channel-Administrators"
-                  transform="translate(0.000000, 106.000000)"
+                  transform="translate(245.000000, 698.000000)"
                 >
                   <g
-                    id="data-table/column-1"
-                    transform="translate(11.000000, 86.000000)"
+                    id="Channel-Administrators"
+                    transform="translate(0.000000, 106.000000)"
                   >
                     <g
-                      id="row-checkbox---Public-Channels"
-                      transform="translate(12.000000, 35.000000)"
+                      id="data-table/column-1"
+                      transform="translate(11.000000, 86.000000)"
                     >
                       <g
-                        id="Stacked-Group"
-                        transform="translate(0.000000, 5.000000)"
+                        id="row-checkbox---Public-Channels"
+                        transform="translate(12.000000, 35.000000)"
                       >
                         <g
-                          id="data-table/1st/row-checkbox-label-base"
+                          id="Stacked-Group"
+                          transform="translate(0.000000, 5.000000)"
                         >
                           <g
-                            id="check-on-copy-11"
-                            transform="translate(14.000000, 0.000000)"
+                            id="data-table/1st/row-checkbox-label-base"
                           >
-                            <path
-                              d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                              id="checkbox---checked"
-                            />
+                            <g
+                              id="check-on-copy-11"
+                              transform="translate(14.000000, 0.000000)"
+                            >
+                              <path
+                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                id="checkbox---checked"
+                              />
+                            </g>
                           </g>
                         </g>
                       </g>
@@ -69,8 +73,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
                 </g>
               </g>
             </g>
-          </g>
-        </svg>
+          </svg>
+        </span>
       </div>
       <span
         class="permission-name"
@@ -86,57 +90,62 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check checked"
           data-testid="uniqId-invite_user-checkbox"
         >
-          <svg
-            height="18px"
-            viewBox="0 0 18 18"
-            width="18px"
+          <span
+            data-testid="permissionCheckbox-checked"
           >
-            <g
-              fill-rule="evenodd"
-              id="Developer-Export"
-              stroke="none"
-              stroke-width="1"
+            <svg
+              height="18px"
+              viewBox="0 0 18 18"
+              width="18px"
             >
               <g
-                id="All-Team-Members"
-                transform="translate(-285.000000, -933.000000)"
+                fill-rule="evenodd"
+                id="Developer-Export"
+                stroke="none"
+                stroke-width="1"
               >
                 <g
-                  transform="translate(245.000000, 698.000000)"
+                  id="All-Team-Members"
+                  transform="translate(-285.000000, -933.000000)"
                 >
                   <g
-                    id="Channel-Administrators"
-                    transform="translate(0.000000, 106.000000)"
+                    transform="translate(245.000000, 698.000000)"
                   >
                     <g
-                      id="data-table/column-1"
-                      transform="translate(11.000000, 86.000000)"
+                      id="Channel-Administrators"
+                      transform="translate(0.000000, 106.000000)"
                     >
                       <g
-                        id="row-checkbox---Public-Channels"
-                        transform="translate(12.000000, 35.000000)"
+                        id="data-table/column-1"
+                        transform="translate(11.000000, 86.000000)"
                       >
                         <g
-                          id="Stacked-Group"
-                          transform="translate(0.000000, 5.000000)"
+                          id="row-checkbox---Public-Channels"
+                          transform="translate(12.000000, 35.000000)"
                         >
                           <g
-                            id="data-table/1st/row-checkbox-label-base"
+                            id="Stacked-Group"
+                            transform="translate(0.000000, 5.000000)"
                           >
                             <g
-                              id="check-on-copy-11"
-                              transform="translate(14.000000, 0.000000)"
+                              id="data-table/1st/row-checkbox-label-base"
                             >
-                              <path
-                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                id="checkbox---checked"
-                              />
+                              <g
+                                id="check-on-copy-11"
+                                transform="translate(14.000000, 0.000000)"
+                              >
+                                <path
+                                  d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                  id="checkbox---checked"
+                                />
+                              </g>
                             </g>
                           </g>
                         </g>
@@ -145,8 +154,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
                   </g>
                 </g>
               </g>
-            </g>
-          </svg>
+            </svg>
+          </span>
         </div>
         <span
           class="permission-name"
@@ -159,57 +168,62 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
           class="permission-check checked"
           data-testid="uniqId-add_user_to_team-checkbox"
         >
-          <svg
-            height="18px"
-            viewBox="0 0 18 18"
-            width="18px"
+          <span
+            data-testid="permissionCheckbox-checked"
           >
-            <g
-              fill-rule="evenodd"
-              id="Developer-Export"
-              stroke="none"
-              stroke-width="1"
+            <svg
+              height="18px"
+              viewBox="0 0 18 18"
+              width="18px"
             >
               <g
-                id="All-Team-Members"
-                transform="translate(-285.000000, -933.000000)"
+                fill-rule="evenodd"
+                id="Developer-Export"
+                stroke="none"
+                stroke-width="1"
               >
                 <g
-                  transform="translate(245.000000, 698.000000)"
+                  id="All-Team-Members"
+                  transform="translate(-285.000000, -933.000000)"
                 >
                   <g
-                    id="Channel-Administrators"
-                    transform="translate(0.000000, 106.000000)"
+                    transform="translate(245.000000, 698.000000)"
                   >
                     <g
-                      id="data-table/column-1"
-                      transform="translate(11.000000, 86.000000)"
+                      id="Channel-Administrators"
+                      transform="translate(0.000000, 106.000000)"
                     >
                       <g
-                        id="row-checkbox---Public-Channels"
-                        transform="translate(12.000000, 35.000000)"
+                        id="data-table/column-1"
+                        transform="translate(11.000000, 86.000000)"
                       >
                         <g
-                          id="Stacked-Group"
-                          transform="translate(0.000000, 5.000000)"
+                          id="row-checkbox---Public-Channels"
+                          transform="translate(12.000000, 35.000000)"
                         >
                           <g
-                            id="data-table/1st/row-checkbox-label-base"
+                            id="Stacked-Group"
+                            transform="translate(0.000000, 5.000000)"
                           >
                             <g
-                              id="check-on-copy-11"
-                              transform="translate(14.000000, 0.000000)"
+                              id="data-table/1st/row-checkbox-label-base"
                             >
-                              <path
-                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                id="checkbox---checked"
-                              />
+                              <g
+                                id="check-on-copy-11"
+                                transform="translate(14.000000, 0.000000)"
+                              >
+                                <path
+                                  d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                  id="checkbox---checked"
+                                />
+                              </g>
                             </g>
                           </g>
                         </g>
@@ -218,8 +232,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
                   </g>
                 </g>
               </g>
-            </g>
-          </svg>
+            </svg>
+          </span>
         </div>
         <span
           class="permission-name"
@@ -251,51 +265,55 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
         class="permission-check checked"
         data-testid="uniqId-checkbox"
       >
-        <svg
-          height="18px"
-          viewBox="0 0 18 18"
-          width="18px"
+        <span
+          data-testid="permissionCheckbox-checked"
         >
-          <g
-            fill-rule="evenodd"
-            id="Developer-Export"
-            stroke="none"
-            stroke-width="1"
+          <svg
+            height="18px"
+            viewBox="0 0 18 18"
+            width="18px"
           >
             <g
-              id="All-Team-Members"
-              transform="translate(-285.000000, -933.000000)"
+              fill-rule="evenodd"
+              id="Developer-Export"
+              stroke="none"
+              stroke-width="1"
             >
               <g
-                transform="translate(245.000000, 698.000000)"
+                id="All-Team-Members"
+                transform="translate(-285.000000, -933.000000)"
               >
                 <g
-                  id="Channel-Administrators"
-                  transform="translate(0.000000, 106.000000)"
+                  transform="translate(245.000000, 698.000000)"
                 >
                   <g
-                    id="data-table/column-1"
-                    transform="translate(11.000000, 86.000000)"
+                    id="Channel-Administrators"
+                    transform="translate(0.000000, 106.000000)"
                   >
                     <g
-                      id="row-checkbox---Public-Channels"
-                      transform="translate(12.000000, 35.000000)"
+                      id="data-table/column-1"
+                      transform="translate(11.000000, 86.000000)"
                     >
                       <g
-                        id="Stacked-Group"
-                        transform="translate(0.000000, 5.000000)"
+                        id="row-checkbox---Public-Channels"
+                        transform="translate(12.000000, 35.000000)"
                       >
                         <g
-                          id="data-table/1st/row-checkbox-label-base"
+                          id="Stacked-Group"
+                          transform="translate(0.000000, 5.000000)"
                         >
                           <g
-                            id="check-on-copy-11"
-                            transform="translate(14.000000, 0.000000)"
+                            id="data-table/1st/row-checkbox-label-base"
                           >
-                            <path
-                              d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                              id="checkbox---checked"
-                            />
+                            <g
+                              id="check-on-copy-11"
+                              transform="translate(14.000000, 0.000000)"
+                            >
+                              <path
+                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                id="checkbox---checked"
+                              />
+                            </g>
                           </g>
                         </g>
                       </g>
@@ -304,8 +322,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
                 </g>
               </g>
             </g>
-          </g>
-        </svg>
+          </svg>
+        </span>
       </div>
       <span
         class="permission-name"
@@ -321,57 +339,62 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check checked"
           data-testid="uniqId-invite_user-checkbox"
         >
-          <svg
-            height="18px"
-            viewBox="0 0 18 18"
-            width="18px"
+          <span
+            data-testid="permissionCheckbox-checked"
           >
-            <g
-              fill-rule="evenodd"
-              id="Developer-Export"
-              stroke="none"
-              stroke-width="1"
+            <svg
+              height="18px"
+              viewBox="0 0 18 18"
+              width="18px"
             >
               <g
-                id="All-Team-Members"
-                transform="translate(-285.000000, -933.000000)"
+                fill-rule="evenodd"
+                id="Developer-Export"
+                stroke="none"
+                stroke-width="1"
               >
                 <g
-                  transform="translate(245.000000, 698.000000)"
+                  id="All-Team-Members"
+                  transform="translate(-285.000000, -933.000000)"
                 >
                   <g
-                    id="Channel-Administrators"
-                    transform="translate(0.000000, 106.000000)"
+                    transform="translate(245.000000, 698.000000)"
                   >
                     <g
-                      id="data-table/column-1"
-                      transform="translate(11.000000, 86.000000)"
+                      id="Channel-Administrators"
+                      transform="translate(0.000000, 106.000000)"
                     >
                       <g
-                        id="row-checkbox---Public-Channels"
-                        transform="translate(12.000000, 35.000000)"
+                        id="data-table/column-1"
+                        transform="translate(11.000000, 86.000000)"
                       >
                         <g
-                          id="Stacked-Group"
-                          transform="translate(0.000000, 5.000000)"
+                          id="row-checkbox---Public-Channels"
+                          transform="translate(12.000000, 35.000000)"
                         >
                           <g
-                            id="data-table/1st/row-checkbox-label-base"
+                            id="Stacked-Group"
+                            transform="translate(0.000000, 5.000000)"
                           >
                             <g
-                              id="check-on-copy-11"
-                              transform="translate(14.000000, 0.000000)"
+                              id="data-table/1st/row-checkbox-label-base"
                             >
-                              <path
-                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                id="checkbox---checked"
-                              />
+                              <g
+                                id="check-on-copy-11"
+                                transform="translate(14.000000, 0.000000)"
+                              >
+                                <path
+                                  d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                  id="checkbox---checked"
+                                />
+                              </g>
                             </g>
                           </g>
                         </g>
@@ -380,8 +403,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
                   </g>
                 </g>
               </g>
-            </g>
-          </svg>
+            </svg>
+          </span>
         </div>
         <span
           class="permission-name"
@@ -394,57 +417,62 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
           class="permission-check checked"
           data-testid="uniqId-add_user_to_team-checkbox"
         >
-          <svg
-            height="18px"
-            viewBox="0 0 18 18"
-            width="18px"
+          <span
+            data-testid="permissionCheckbox-checked"
           >
-            <g
-              fill-rule="evenodd"
-              id="Developer-Export"
-              stroke="none"
-              stroke-width="1"
+            <svg
+              height="18px"
+              viewBox="0 0 18 18"
+              width="18px"
             >
               <g
-                id="All-Team-Members"
-                transform="translate(-285.000000, -933.000000)"
+                fill-rule="evenodd"
+                id="Developer-Export"
+                stroke="none"
+                stroke-width="1"
               >
                 <g
-                  transform="translate(245.000000, 698.000000)"
+                  id="All-Team-Members"
+                  transform="translate(-285.000000, -933.000000)"
                 >
                   <g
-                    id="Channel-Administrators"
-                    transform="translate(0.000000, 106.000000)"
+                    transform="translate(245.000000, 698.000000)"
                   >
                     <g
-                      id="data-table/column-1"
-                      transform="translate(11.000000, 86.000000)"
+                      id="Channel-Administrators"
+                      transform="translate(0.000000, 106.000000)"
                     >
                       <g
-                        id="row-checkbox---Public-Channels"
-                        transform="translate(12.000000, 35.000000)"
+                        id="data-table/column-1"
+                        transform="translate(11.000000, 86.000000)"
                       >
                         <g
-                          id="Stacked-Group"
-                          transform="translate(0.000000, 5.000000)"
+                          id="row-checkbox---Public-Channels"
+                          transform="translate(12.000000, 35.000000)"
                         >
                           <g
-                            id="data-table/1st/row-checkbox-label-base"
+                            id="Stacked-Group"
+                            transform="translate(0.000000, 5.000000)"
                           >
                             <g
-                              id="check-on-copy-11"
-                              transform="translate(14.000000, 0.000000)"
+                              id="data-table/1st/row-checkbox-label-base"
                             >
-                              <path
-                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                id="checkbox---checked"
-                              />
+                              <g
+                                id="check-on-copy-11"
+                                transform="translate(14.000000, 0.000000)"
+                              >
+                                <path
+                                  d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                  id="checkbox---checked"
+                                />
+                              </g>
                             </g>
                           </g>
                         </g>
@@ -453,8 +481,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
                   </g>
                 </g>
               </g>
-            </g>
-          </svg>
+            </svg>
+          </span>
         </div>
         <span
           class="permission-name"
@@ -486,51 +514,55 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
         class="permission-check checked"
         data-testid="uniqId-checkbox"
       >
-        <svg
-          height="18px"
-          viewBox="0 0 18 18"
-          width="18px"
+        <span
+          data-testid="permissionCheckbox-checked"
         >
-          <g
-            fill-rule="evenodd"
-            id="Developer-Export"
-            stroke="none"
-            stroke-width="1"
+          <svg
+            height="18px"
+            viewBox="0 0 18 18"
+            width="18px"
           >
             <g
-              id="All-Team-Members"
-              transform="translate(-285.000000, -933.000000)"
+              fill-rule="evenodd"
+              id="Developer-Export"
+              stroke="none"
+              stroke-width="1"
             >
               <g
-                transform="translate(245.000000, 698.000000)"
+                id="All-Team-Members"
+                transform="translate(-285.000000, -933.000000)"
               >
                 <g
-                  id="Channel-Administrators"
-                  transform="translate(0.000000, 106.000000)"
+                  transform="translate(245.000000, 698.000000)"
                 >
                   <g
-                    id="data-table/column-1"
-                    transform="translate(11.000000, 86.000000)"
+                    id="Channel-Administrators"
+                    transform="translate(0.000000, 106.000000)"
                   >
                     <g
-                      id="row-checkbox---Public-Channels"
-                      transform="translate(12.000000, 35.000000)"
+                      id="data-table/column-1"
+                      transform="translate(11.000000, 86.000000)"
                     >
                       <g
-                        id="Stacked-Group"
-                        transform="translate(0.000000, 5.000000)"
+                        id="row-checkbox---Public-Channels"
+                        transform="translate(12.000000, 35.000000)"
                       >
                         <g
-                          id="data-table/1st/row-checkbox-label-base"
+                          id="Stacked-Group"
+                          transform="translate(0.000000, 5.000000)"
                         >
                           <g
-                            id="check-on-copy-11"
-                            transform="translate(14.000000, 0.000000)"
+                            id="data-table/1st/row-checkbox-label-base"
                           >
-                            <path
-                              d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                              id="checkbox---checked"
-                            />
+                            <g
+                              id="check-on-copy-11"
+                              transform="translate(14.000000, 0.000000)"
+                            >
+                              <path
+                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                id="checkbox---checked"
+                              />
+                            </g>
                           </g>
                         </g>
                       </g>
@@ -539,8 +571,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
                 </g>
               </g>
             </g>
-          </g>
-        </svg>
+          </svg>
+        </span>
       </div>
       <span
         class="permission-name"
@@ -556,57 +588,62 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check checked"
           data-testid="uniqId-invite_user-checkbox"
         >
-          <svg
-            height="18px"
-            viewBox="0 0 18 18"
-            width="18px"
+          <span
+            data-testid="permissionCheckbox-checked"
           >
-            <g
-              fill-rule="evenodd"
-              id="Developer-Export"
-              stroke="none"
-              stroke-width="1"
+            <svg
+              height="18px"
+              viewBox="0 0 18 18"
+              width="18px"
             >
               <g
-                id="All-Team-Members"
-                transform="translate(-285.000000, -933.000000)"
+                fill-rule="evenodd"
+                id="Developer-Export"
+                stroke="none"
+                stroke-width="1"
               >
                 <g
-                  transform="translate(245.000000, 698.000000)"
+                  id="All-Team-Members"
+                  transform="translate(-285.000000, -933.000000)"
                 >
                   <g
-                    id="Channel-Administrators"
-                    transform="translate(0.000000, 106.000000)"
+                    transform="translate(245.000000, 698.000000)"
                   >
                     <g
-                      id="data-table/column-1"
-                      transform="translate(11.000000, 86.000000)"
+                      id="Channel-Administrators"
+                      transform="translate(0.000000, 106.000000)"
                     >
                       <g
-                        id="row-checkbox---Public-Channels"
-                        transform="translate(12.000000, 35.000000)"
+                        id="data-table/column-1"
+                        transform="translate(11.000000, 86.000000)"
                       >
                         <g
-                          id="Stacked-Group"
-                          transform="translate(0.000000, 5.000000)"
+                          id="row-checkbox---Public-Channels"
+                          transform="translate(12.000000, 35.000000)"
                         >
                           <g
-                            id="data-table/1st/row-checkbox-label-base"
+                            id="Stacked-Group"
+                            transform="translate(0.000000, 5.000000)"
                           >
                             <g
-                              id="check-on-copy-11"
-                              transform="translate(14.000000, 0.000000)"
+                              id="data-table/1st/row-checkbox-label-base"
                             >
-                              <path
-                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                id="checkbox---checked"
-                              />
+                              <g
+                                id="check-on-copy-11"
+                                transform="translate(14.000000, 0.000000)"
+                              >
+                                <path
+                                  d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                  id="checkbox---checked"
+                                />
+                              </g>
                             </g>
                           </g>
                         </g>
@@ -615,8 +652,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
                   </g>
                 </g>
               </g>
-            </g>
-          </svg>
+            </svg>
+          </span>
         </div>
         <span
           class="permission-name"
@@ -629,57 +666,62 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
           class="permission-check checked"
           data-testid="uniqId-add_user_to_team-checkbox"
         >
-          <svg
-            height="18px"
-            viewBox="0 0 18 18"
-            width="18px"
+          <span
+            data-testid="permissionCheckbox-checked"
           >
-            <g
-              fill-rule="evenodd"
-              id="Developer-Export"
-              stroke="none"
-              stroke-width="1"
+            <svg
+              height="18px"
+              viewBox="0 0 18 18"
+              width="18px"
             >
               <g
-                id="All-Team-Members"
-                transform="translate(-285.000000, -933.000000)"
+                fill-rule="evenodd"
+                id="Developer-Export"
+                stroke="none"
+                stroke-width="1"
               >
                 <g
-                  transform="translate(245.000000, 698.000000)"
+                  id="All-Team-Members"
+                  transform="translate(-285.000000, -933.000000)"
                 >
                   <g
-                    id="Channel-Administrators"
-                    transform="translate(0.000000, 106.000000)"
+                    transform="translate(245.000000, 698.000000)"
                   >
                     <g
-                      id="data-table/column-1"
-                      transform="translate(11.000000, 86.000000)"
+                      id="Channel-Administrators"
+                      transform="translate(0.000000, 106.000000)"
                     >
                       <g
-                        id="row-checkbox---Public-Channels"
-                        transform="translate(12.000000, 35.000000)"
+                        id="data-table/column-1"
+                        transform="translate(11.000000, 86.000000)"
                       >
                         <g
-                          id="Stacked-Group"
-                          transform="translate(0.000000, 5.000000)"
+                          id="row-checkbox---Public-Channels"
+                          transform="translate(12.000000, 35.000000)"
                         >
                           <g
-                            id="data-table/1st/row-checkbox-label-base"
+                            id="Stacked-Group"
+                            transform="translate(0.000000, 5.000000)"
                           >
                             <g
-                              id="check-on-copy-11"
-                              transform="translate(14.000000, 0.000000)"
+                              id="data-table/1st/row-checkbox-label-base"
                             >
-                              <path
-                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                id="checkbox---checked"
-                              />
+                              <g
+                                id="check-on-copy-11"
+                                transform="translate(14.000000, 0.000000)"
+                              >
+                                <path
+                                  d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                  id="checkbox---checked"
+                                />
+                              </g>
                             </g>
                           </g>
                         </g>
@@ -688,8 +730,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
                   </g>
                 </g>
               </g>
-            </g>
-          </svg>
+            </svg>
+          </span>
         </div>
         <span
           class="permission-name"
@@ -791,57 +833,62 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check checked"
           data-testid="uniqId-invite_user-checkbox"
         >
-          <svg
-            height="18px"
-            viewBox="0 0 18 18"
-            width="18px"
+          <span
+            data-testid="permissionCheckbox-checked"
           >
-            <g
-              fill-rule="evenodd"
-              id="Developer-Export"
-              stroke="none"
-              stroke-width="1"
+            <svg
+              height="18px"
+              viewBox="0 0 18 18"
+              width="18px"
             >
               <g
-                id="All-Team-Members"
-                transform="translate(-285.000000, -933.000000)"
+                fill-rule="evenodd"
+                id="Developer-Export"
+                stroke="none"
+                stroke-width="1"
               >
                 <g
-                  transform="translate(245.000000, 698.000000)"
+                  id="All-Team-Members"
+                  transform="translate(-285.000000, -933.000000)"
                 >
                   <g
-                    id="Channel-Administrators"
-                    transform="translate(0.000000, 106.000000)"
+                    transform="translate(245.000000, 698.000000)"
                   >
                     <g
-                      id="data-table/column-1"
-                      transform="translate(11.000000, 86.000000)"
+                      id="Channel-Administrators"
+                      transform="translate(0.000000, 106.000000)"
                     >
                       <g
-                        id="row-checkbox---Public-Channels"
-                        transform="translate(12.000000, 35.000000)"
+                        id="data-table/column-1"
+                        transform="translate(11.000000, 86.000000)"
                       >
                         <g
-                          id="Stacked-Group"
-                          transform="translate(0.000000, 5.000000)"
+                          id="row-checkbox---Public-Channels"
+                          transform="translate(12.000000, 35.000000)"
                         >
                           <g
-                            id="data-table/1st/row-checkbox-label-base"
+                            id="Stacked-Group"
+                            transform="translate(0.000000, 5.000000)"
                           >
                             <g
-                              id="check-on-copy-11"
-                              transform="translate(14.000000, 0.000000)"
+                              id="data-table/1st/row-checkbox-label-base"
                             >
-                              <path
-                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                id="checkbox---checked"
-                              />
+                              <g
+                                id="check-on-copy-11"
+                                transform="translate(14.000000, 0.000000)"
+                              >
+                                <path
+                                  d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                  id="checkbox---checked"
+                                />
+                              </g>
                             </g>
                           </g>
                         </g>
@@ -850,8 +897,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
                   </g>
                 </g>
               </g>
-            </g>
-          </svg>
+            </svg>
+          </span>
         </div>
         <span
           class="permission-name"
@@ -864,6 +911,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
@@ -970,57 +1018,62 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check checked"
           data-testid="uniqId-invite_user-checkbox"
         >
-          <svg
-            height="18px"
-            viewBox="0 0 18 18"
-            width="18px"
+          <span
+            data-testid="permissionCheckbox-checked"
           >
-            <g
-              fill-rule="evenodd"
-              id="Developer-Export"
-              stroke="none"
-              stroke-width="1"
+            <svg
+              height="18px"
+              viewBox="0 0 18 18"
+              width="18px"
             >
               <g
-                id="All-Team-Members"
-                transform="translate(-285.000000, -933.000000)"
+                fill-rule="evenodd"
+                id="Developer-Export"
+                stroke="none"
+                stroke-width="1"
               >
                 <g
-                  transform="translate(245.000000, 698.000000)"
+                  id="All-Team-Members"
+                  transform="translate(-285.000000, -933.000000)"
                 >
                   <g
-                    id="Channel-Administrators"
-                    transform="translate(0.000000, 106.000000)"
+                    transform="translate(245.000000, 698.000000)"
                   >
                     <g
-                      id="data-table/column-1"
-                      transform="translate(11.000000, 86.000000)"
+                      id="Channel-Administrators"
+                      transform="translate(0.000000, 106.000000)"
                     >
                       <g
-                        id="row-checkbox---Public-Channels"
-                        transform="translate(12.000000, 35.000000)"
+                        id="data-table/column-1"
+                        transform="translate(11.000000, 86.000000)"
                       >
                         <g
-                          id="Stacked-Group"
-                          transform="translate(0.000000, 5.000000)"
+                          id="row-checkbox---Public-Channels"
+                          transform="translate(12.000000, 35.000000)"
                         >
                           <g
-                            id="data-table/1st/row-checkbox-label-base"
+                            id="Stacked-Group"
+                            transform="translate(0.000000, 5.000000)"
                           >
                             <g
-                              id="check-on-copy-11"
-                              transform="translate(14.000000, 0.000000)"
+                              id="data-table/1st/row-checkbox-label-base"
                             >
-                              <path
-                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                id="checkbox---checked"
-                              />
+                              <g
+                                id="check-on-copy-11"
+                                transform="translate(14.000000, 0.000000)"
+                              >
+                                <path
+                                  d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                  id="checkbox---checked"
+                                />
+                              </g>
                             </g>
                           </g>
                         </g>
@@ -1029,8 +1082,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
                   </g>
                 </g>
               </g>
-            </g>
-          </svg>
+            </svg>
+          </span>
         </div>
         <span
           class="permission-name"
@@ -1043,6 +1096,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
@@ -1149,57 +1203,62 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check checked"
           data-testid="uniqId-invite_user-checkbox"
         >
-          <svg
-            height="18px"
-            viewBox="0 0 18 18"
-            width="18px"
+          <span
+            data-testid="permissionCheckbox-checked"
           >
-            <g
-              fill-rule="evenodd"
-              id="Developer-Export"
-              stroke="none"
-              stroke-width="1"
+            <svg
+              height="18px"
+              viewBox="0 0 18 18"
+              width="18px"
             >
               <g
-                id="All-Team-Members"
-                transform="translate(-285.000000, -933.000000)"
+                fill-rule="evenodd"
+                id="Developer-Export"
+                stroke="none"
+                stroke-width="1"
               >
                 <g
-                  transform="translate(245.000000, 698.000000)"
+                  id="All-Team-Members"
+                  transform="translate(-285.000000, -933.000000)"
                 >
                   <g
-                    id="Channel-Administrators"
-                    transform="translate(0.000000, 106.000000)"
+                    transform="translate(245.000000, 698.000000)"
                   >
                     <g
-                      id="data-table/column-1"
-                      transform="translate(11.000000, 86.000000)"
+                      id="Channel-Administrators"
+                      transform="translate(0.000000, 106.000000)"
                     >
                       <g
-                        id="row-checkbox---Public-Channels"
-                        transform="translate(12.000000, 35.000000)"
+                        id="data-table/column-1"
+                        transform="translate(11.000000, 86.000000)"
                       >
                         <g
-                          id="Stacked-Group"
-                          transform="translate(0.000000, 5.000000)"
+                          id="row-checkbox---Public-Channels"
+                          transform="translate(12.000000, 35.000000)"
                         >
                           <g
-                            id="data-table/1st/row-checkbox-label-base"
+                            id="Stacked-Group"
+                            transform="translate(0.000000, 5.000000)"
                           >
                             <g
-                              id="check-on-copy-11"
-                              transform="translate(14.000000, 0.000000)"
+                              id="data-table/1st/row-checkbox-label-base"
                             >
-                              <path
-                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                id="checkbox---checked"
-                              />
+                              <g
+                                id="check-on-copy-11"
+                                transform="translate(14.000000, 0.000000)"
+                              >
+                                <path
+                                  d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                  id="checkbox---checked"
+                                />
+                              </g>
                             </g>
                           </g>
                         </g>
@@ -1208,8 +1267,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
                   </g>
                 </g>
               </g>
-            </g>
-          </svg>
+            </svg>
+          </span>
         </div>
         <span
           class="permission-name"
@@ -1222,6 +1281,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
@@ -1272,6 +1332,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
@@ -1289,6 +1350,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
@@ -1339,6 +1401,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
@@ -1356,6 +1419,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
@@ -1406,6 +1470,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
@@ -1423,6 +1488,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
@@ -1473,6 +1539,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
@@ -1490,6 +1557,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div

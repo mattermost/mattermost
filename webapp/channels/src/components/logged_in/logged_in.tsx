@@ -46,7 +46,7 @@ export type Props = {
         pathname: string;
         search: string;
     };
-}
+};
 
 export default class LoggedIn extends React.PureComponent<Props> {
     private cleanupDesktopListeners?: () => void;

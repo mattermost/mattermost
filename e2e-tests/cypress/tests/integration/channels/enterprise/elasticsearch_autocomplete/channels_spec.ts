@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @enterprise @elasticsearch @autocomplete @not_cloud
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {
     createPrivateChannel,
@@ -21,7 +21,6 @@ import {
 } from './helpers';
 
 import {getAdminAccount} from '@/support/env';
-
 
 describe('Autocomplete with Elasticsearch - Channel', () => {
     let testTeam: Team;

@@ -15,6 +15,7 @@ import (
 func TestPropertyGroupStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("RegisterAndGetPropertyGroup", func(t *testing.T) { testRegisterAndGetPropertyGroup(t, rctx, ss) })
 	t.Run("IncrementVersion", func(t *testing.T) { testIncrementVersion(t, rctx, ss) })
+	t.Run("SchemaVersionPersistence", func(t *testing.T) { testSchemaVersionPersistence(t, rctx, ss) })
 }
 
 func testRegisterAndGetPropertyGroup(t *testing.T, _ request.CTX, ss store.Store) {
@@ -118,6 +119,57 @@ func testRegisterAndGetPropertyGroup(t *testing.T, _ request.CTX, ss store.Store
 	t.Run("should return error for non-existent ID", func(t *testing.T) {
 		_, err := ss.PropertyGroup().GetByID(model.NewId())
 		require.Error(t, err)
+	})
+}
+
+func testSchemaVersionPersistence(t *testing.T, _ request.CTX, ss store.Store) {
+	t.Run("explicit SchemaVersion is persisted and returned", func(t *testing.T) {
+		group, err := ss.PropertyGroup().Register(&model.PropertyGroup{
+			Name:          "schema_version_explicit_test",
+			Version:       model.PropertyGroupVersionV1,
+			SchemaVersion: 5,
+		})
+		require.NoError(t, err)
+		require.Equal(t, 5, group.SchemaVersion)
+
+		fetched, err := ss.PropertyGroup().Get("schema_version_explicit_test")
+		require.NoError(t, err)
+		require.Equal(t, 5, fetched.SchemaVersion)
+	})
+
+	t.Run("SchemaVersion defaults to 1 when not set", func(t *testing.T) {
+		group, err := ss.PropertyGroup().Register(&model.PropertyGroup{
+			Name:    "schema_version_default_test",
+			Version: model.PropertyGroupVersionV1,
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, group.SchemaVersion)
+
+		fetched, err := ss.PropertyGroup().Get("schema_version_default_test")
+		require.NoError(t, err)
+		require.Equal(t, 1, fetched.SchemaVersion)
+	})
+
+	t.Run("SchemaVersion is not updated on re-registration", func(t *testing.T) {
+		original, err := ss.PropertyGroup().Register(&model.PropertyGroup{
+			Name:          "schema_version_immutable_test",
+			Version:       model.PropertyGroupVersionV1,
+			SchemaVersion: 2,
+		})
+		require.NoError(t, err)
+		require.Equal(t, 2, original.SchemaVersion)
+
+		reregistered, err := ss.PropertyGroup().Register(&model.PropertyGroup{
+			Name:          "schema_version_immutable_test",
+			Version:       model.PropertyGroupVersionV1,
+			SchemaVersion: 99,
+		})
+		require.NoError(t, err)
+		require.Equal(t, 2, reregistered.SchemaVersion)
+
+		fetched, err := ss.PropertyGroup().Get("schema_version_immutable_test")
+		require.NoError(t, err)
+		require.Equal(t, 2, fetched.SchemaVersion)
 	})
 }
 

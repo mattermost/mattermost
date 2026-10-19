@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -30,24 +30,24 @@ type Props = {
         link: (key: string) => Promise<ActionResult>;
         unlink: (key: string) => Promise<ActionResult>;
     };
-}
+};
 
 type FilterOption = {
     is_configured?: boolean;
     is_linked?: boolean;
-}
+};
 
 type FilterConfig = {
     filter: string;
     option: FilterOption;
-}
+};
 
 type FilterSearchMap = {
     filterIsConfigured: FilterConfig;
     filterIsUnconfigured: FilterConfig;
     filterIsLinked: FilterConfig;
     filterIsUnlinked: FilterConfig;
-}
+};
 
 type State = {
     checked?: any;
@@ -60,7 +60,7 @@ type State = {
     filterIsUnconfigured?: boolean;
     filterIsLinked?: boolean;
     filterIsUnlinked?: boolean;
-}
+};
 
 type FilterUpdates = [string, boolean];
 

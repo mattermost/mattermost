@@ -3,16 +3,21 @@
 
 import React from 'react';
 
+import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import NewMessageSeparator from './new_message_separator';
 
 describe('components/post_view/new_message_separator', () => {
+    const baseProps = {
+        separatorId: '1234',
+        newMessagesSeparatorActions: [],
+    };
+
     test('should render new_message_separator', () => {
         renderWithContext(
             <NewMessageSeparator
-                separatorId='1234'
-                newMessagesSeparatorActions={[]}
+                {...baseProps}
             />,
         );
 
@@ -24,5 +29,14 @@ describe('components/post_view/new_message_separator', () => {
 
         expect(separator).toBeInTheDocument();
         expect(separator).toHaveClass('Separator NotificationSeparator');
+    });
+
+    testPluginComponentErrorHandling((pluginComponent) => {
+        renderWithContext(
+            <NewMessageSeparator
+                {...baseProps}
+                newMessagesSeparatorActions={[pluginComponent]}
+            />,
+        );
     });
 });

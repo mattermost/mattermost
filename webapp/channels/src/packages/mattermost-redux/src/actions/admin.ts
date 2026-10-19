@@ -121,9 +121,23 @@ export function testSiteURL(siteURL: string) {
     });
 }
 
+/**
+ * @deprecated Use testFileStoreConnection instead. The /file/s3_test
+ * endpoint is kept for backwards compatibility but is no longer
+ * backend-specific.
+ */
 export function testS3Connection(config?: AdminConfig) {
     return bindClientFunc({
         clientFunc: Client4.testS3Connection,
+        params: [
+            config,
+        ],
+    });
+}
+
+export function testFileStoreConnection(config?: AdminConfig) {
+    return bindClientFunc({
+        clientFunc: Client4.testFileStoreConnection,
         params: [
             config,
         ],
@@ -421,6 +435,15 @@ export function purgeElasticsearchIndexes(indexes?: string[]) {
 export function uploadLicense(fileData: File) {
     return bindClientFunc({
         clientFunc: Client4.uploadLicense,
+        params: [
+            fileData,
+        ],
+    });
+}
+
+export function previewLicense(fileData: File) {
+    return bindClientFunc({
+        clientFunc: Client4.previewLicense,
         params: [
             fileData,
         ],

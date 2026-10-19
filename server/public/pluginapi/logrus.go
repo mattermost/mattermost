@@ -60,10 +60,14 @@ func (lh *LogrusHook) Fire(entry *logrus.Entry) error {
 // discarding the default output to avoid duplicating the events across the standard STDOUT proxy.
 func ConfigureLogrus(logger *logrus.Logger, client *Client) {
 	hook := NewLogrusHook(client.Log)
-	logger.Hooks.Add(hook)
+
+	// AddHook (not Hooks.Add) takes the logger mutex, so registering the hook is
+	// safe against goroutines logging through the same logger concurrently.
+	logger.AddHook(hook)
 	logger.SetOutput(io.Discard)
-	logrus.SetReportCaller(true)
+
+	logger.SetReportCaller(true)
 
 	// By default, log everything to the server, and let it decide what gets through.
-	logrus.SetLevel(logrus.TraceLevel)
+	logger.SetLevel(logrus.TraceLevel)
 }

@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Generate token for a user
+Generate token for a user. Use --expires-in to set an expiry, which may be required by the server's MaximumPersonalAccessTokenLifetimeDays setting.
 
 ::
 
@@ -21,13 +21,16 @@ Examples
 ::
 
     generate testuser test-token
+    generate testuser ci-token --expires-in 90d
+    generate testuser short-lived --expires-in 12h
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for generate
+      --expires-in string   Duration after which the token expires (e.g. 90d, 12h, 30m). Accepts the standard Go duration syntax plus a 'd' (days) suffix. If empty, the token does not expire.
+  -h, --help                help for generate
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

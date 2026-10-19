@@ -16,7 +16,7 @@ type Props = {
     currentUser: UserProfile;
     userDisplayName: string;
     userStatus: UserStatus['status'];
-}
+};
 
 export default function DraftList(props: Props) {
     const draftRemotes = useSelector(getDraftRemotes);

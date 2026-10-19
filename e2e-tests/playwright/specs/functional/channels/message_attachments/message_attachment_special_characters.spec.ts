@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Locator} from '@playwright/test';
+
 import {expect, test, testConfig} from '@mattermost/playwright-lib';
 
 /**
@@ -17,6 +19,21 @@ async function postToWebhook(webhookId: string, payload: Record<string, unknown>
     if (!resp.ok) {
         throw new Error(`Webhook POST failed: ${resp.status} ${await resp.text()}`);
     }
+}
+
+/** Legacy attachments are translated to mm_blocks; author/title live in markdown text blocks. */
+function mmBlocks(lastPost: {container: Locator}) {
+    return lastPost.container.locator('.mm-blocks');
+}
+
+async function expectMmBlocksAuthorName(lastPost: {container: Locator}, name: string) {
+    const blocks = mmBlocks(lastPost);
+    // Attachment translation renders author before title; title <p> also contains the link text via hasText.
+    await expect(blocks.locator('p').first()).toHaveText(name);
+}
+
+async function expectMmBlocksTitleLink(lastPost: {container: Locator}, title: string) {
+    await expect(mmBlocks(lastPost).getByRole('link', {name: title})).toBeVisible();
 }
 
 test.describe('Message attachment special character decoding', () => {
@@ -64,13 +81,13 @@ test.describe('Message attachment special character decoding', () => {
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
 
+            await expect(mmBlocks(lastPost)).toBeVisible();
+
             // * Verify the author name has decoded entities: &#40; → (, &#41; → ), &amp; → &
-            const authorName = lastPost.container.locator('.attachment__author-name');
-            await expect(authorName).toHaveText('Bot (v2.1) & Integrations');
+            await expectMmBlocksAuthorName(lastPost, 'Bot (v2.1) & Integrations');
 
             // * Verify the title has decoded entities
-            const titleLink = lastPost.container.locator('.attachment__title-link');
-            await expect(titleLink).toHaveText('Future Plan for Plugins (3rd party & core)');
+            await expectMmBlocksTitleLink(lastPost, 'Future Plan for Plugins (3rd party & core)');
         },
     );
 
@@ -109,9 +126,10 @@ test.describe('Message attachment special character decoding', () => {
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
 
+            await expect(mmBlocks(lastPost)).toBeVisible();
+
             // * Verify the numeric entities are decoded in the title link
-            const titleLink = lastPost.container.locator('.attachment__title-link');
-            await expect(titleLink).toHaveText('"All Hands" Meeting [Q1] - 9:00');
+            await expectMmBlocksTitleLink(lastPost, '"All Hands" Meeting [Q1] - 9:00');
         },
     );
 
@@ -148,9 +166,10 @@ test.describe('Message attachment special character decoding', () => {
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
 
+            await expect(mmBlocks(lastPost)).toBeVisible();
+
             // * Verify named entities are decoded in the author name
-            const authorName = lastPost.container.locator('.attachment__author-name');
-            await expect(authorName).toHaveText('CI <Build> "System" \'Owner\'');
+            await expectMmBlocksAuthorName(lastPost, 'CI <Build> "System" \'Owner\'');
         },
     );
 
@@ -190,12 +209,11 @@ test.describe('Message attachment special character decoding', () => {
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
 
-            // * Should show &lt;safe&gt; literally, not <safe>
-            const authorName = lastPost.container.locator('.attachment__author-name');
-            await expect(authorName).toHaveText('&lt;safe&gt;');
+            await expect(mmBlocks(lastPost)).toBeVisible();
 
-            const titleLink = lastPost.container.locator('.attachment__title-link');
-            await expect(titleLink).toHaveText('&lt;safe&gt;');
+            // * Should show &lt;safe&gt; literally, not <safe>
+            await expectMmBlocksAuthorName(lastPost, '&lt;safe&gt;');
+            await expectMmBlocksTitleLink(lastPost, '&lt;safe&gt;');
         },
     );
 
@@ -234,12 +252,11 @@ test.describe('Message attachment special character decoding', () => {
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
 
-            // * Verify text passes through unchanged
-            const authorName = lastPost.container.locator('.attachment__author-name');
-            await expect(authorName).toHaveText('Simple Bot Name');
+            await expect(mmBlocks(lastPost)).toBeVisible();
 
-            const titleLink = lastPost.container.locator('.attachment__title-link');
-            await expect(titleLink).toHaveText('A normal title with no special chars');
+            // * Verify text passes through unchanged
+            await expectMmBlocksAuthorName(lastPost, 'Simple Bot Name');
+            await expectMmBlocksTitleLink(lastPost, 'A normal title with no special chars');
         },
     );
 
@@ -279,12 +296,11 @@ test.describe('Message attachment special character decoding', () => {
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
 
-            // * Verify realistic plugin content is properly decoded
-            const authorName = lastPost.container.locator('.attachment__author-name');
-            await expect(authorName).toHaveText('Google Calendar | via Plugin (v1.0)');
+            await expect(mmBlocks(lastPost)).toBeVisible();
 
-            const titleLink = lastPost.container.locator('.attachment__title-link');
-            await expect(titleLink).toHaveText('Team Standup (Daily) - 9:00 AM');
+            // * Verify realistic plugin content is properly decoded
+            await expectMmBlocksAuthorName(lastPost, 'Google Calendar | via Plugin (v1.0)');
+            await expectMmBlocksTitleLink(lastPost, 'Team Standup (Daily) - 9:00 AM');
         },
     );
 });

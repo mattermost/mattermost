@@ -4,6 +4,7 @@ exports[`components/drafts/panel/panel_header should match snapshot 1`] = `
 <div>
   <div
     class="PanelHeader"
+    data-testid="draft-panel-header"
   >
     <div
       class="PanelHeader__left"
@@ -49,6 +50,7 @@ exports[`components/drafts/panel/panel_header should show sync icon when draft i
 <div>
   <div
     class="PanelHeader"
+    data-testid="draft-panel-header"
   >
     <div
       class="PanelHeader__left"

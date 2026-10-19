@@ -16,6 +16,7 @@ import type {GlobalState} from 'types/store';
 jest.mock('utils/utils', () => {
     return {
         localizeMessage: jest.fn().mockReturnValue(''),
+        makeIsEligibleForClick: jest.fn(),
     };
 });
 

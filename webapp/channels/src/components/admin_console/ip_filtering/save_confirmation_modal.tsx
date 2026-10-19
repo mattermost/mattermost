@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
@@ -19,7 +19,7 @@ type Props = {
     subtitle: JSX.Element | string;
     buttonText?: string;
     includeDisclaimer?: boolean;
-}
+};
 
 export default function SaveConfirmationModal({onExited, onConfirm, title, subtitle, includeDisclaimer, buttonText}: Props) {
     const {formatMessage} = useIntl();

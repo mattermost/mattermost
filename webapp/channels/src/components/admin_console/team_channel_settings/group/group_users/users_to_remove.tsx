@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {ChannelMembership} from '@mattermost/types/channels';
@@ -28,7 +28,7 @@ export type Filters = {
     roles?: string[];
     channel_roles?: string[];
     team_roles?: string[];
-}
+};
 
 export type Memberships = RelationOneToOne<UserProfile, TeamMembership> | RelationOneToOne<UserProfile, ChannelMembership>;
 

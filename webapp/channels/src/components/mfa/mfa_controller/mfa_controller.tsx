@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Route, Switch} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -18,7 +18,7 @@ import Setup from '../setup';
 
 type Location = {
     search: string;
-}
+};
 
 type Props = {
     location: Location;
@@ -33,7 +33,7 @@ type Props = {
     match: {
         url: string;
     };
-}
+};
 
 export default class MFAController extends React.PureComponent<Props & RouteComponentProps> {
     public componentDidMount(): void {

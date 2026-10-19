@@ -75,7 +75,7 @@ export function loadRolesIfNeeded(roles: Iterable<string>): ActionFuncAsync<Reco
 
         try {
             pendingRoles = new Set<string>(state.entities.roles.pending);
-        } catch (e) {
+        } catch {
             // do nothing
         }
 

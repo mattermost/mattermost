@@ -17,7 +17,7 @@ import {getNavigationBlocked} from '../../selectors/views/admin';
 type Props = MenuItemProps & {
     to: string;
     onClick?: MenuItemProps['onClick'];
-}
+};
 
 export function MenuItemLink({
     to,

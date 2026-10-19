@@ -723,8 +723,8 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.NoError(t, pf.IsValid())
 		})
 
-		t.Run("non-protected field with admin or member field permission is valid", func(t *testing.T) {
-			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember} {
+		t.Run("non-protected field with non-none field permission is valid", func(t *testing.T) {
+			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember, PermissionLevelAdmin} {
 				pf := baseField()
 				pf.Protected = false
 				pf.PermissionField = new(level)
@@ -759,22 +759,15 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.Error(t, pf.IsValid())
 		})
 
-		t.Run("protected field with field=admin is invalid", func(t *testing.T) {
-			pf := baseField()
-			pf.Protected = true
-			pf.PermissionField = new(PermissionLevelSysadmin)
-			pf.PermissionValues = new(PermissionLevelMember)
-			pf.PermissionOptions = new(PermissionLevelMember)
-			require.Error(t, pf.IsValid())
-		})
-
-		t.Run("protected field with field=member is invalid", func(t *testing.T) {
-			pf := baseField()
-			pf.Protected = true
-			pf.PermissionField = new(PermissionLevelMember)
-			pf.PermissionValues = new(PermissionLevelMember)
-			pf.PermissionOptions = new(PermissionLevelMember)
-			require.Error(t, pf.IsValid())
+		t.Run("protected field with non-none field permission is invalid", func(t *testing.T) {
+			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember, PermissionLevelAdmin} {
+				pf := baseField()
+				pf.Protected = true
+				pf.PermissionField = new(level)
+				pf.PermissionValues = new(PermissionLevelMember)
+				pf.PermissionOptions = new(PermissionLevelMember)
+				require.Error(t, pf.IsValid(), "should be invalid with field permission %s", level)
+			}
 		})
 
 		t.Run("invalid permission_field value is rejected", func(t *testing.T) {
@@ -796,6 +789,275 @@ func TestPropertyField_IsValid(t *testing.T) {
 			pf.PermissionValues = new(PermissionLevelMember)
 			pf.PermissionOptions = new(PermissionLevel("bogus"))
 			require.Error(t, pf.IsValid())
+		})
+	})
+
+	t.Run("admin permission level", func(t *testing.T) {
+		baseField := func(target PropertyFieldTargetLevel) *PropertyField {
+			pf := &PropertyField{
+				ID:         NewId(),
+				GroupID:    NewId(),
+				Name:       "test field",
+				Type:       PropertyFieldTypeText,
+				ObjectType: PropertyFieldObjectTypePost,
+				TargetType: string(target),
+				CreateAt:   GetMillis(),
+				UpdateAt:   GetMillis(),
+			}
+			if target != PropertyFieldTargetLevelSystem {
+				pf.TargetID = NewId()
+			}
+			return pf
+		}
+
+		for _, target := range []PropertyFieldTargetLevel{
+			PropertyFieldTargetLevelSystem,
+			PropertyFieldTargetLevelTeam,
+			PropertyFieldTargetLevelChannel,
+		} {
+			t.Run("admin is valid on "+string(target)+" target", func(t *testing.T) {
+				pf := baseField(target)
+				pf.PermissionField = new(PermissionLevelAdmin)
+				pf.PermissionValues = new(PermissionLevelAdmin)
+				pf.PermissionOptions = new(PermissionLevelAdmin)
+				require.NoError(t, pf.IsValid())
+			})
+		}
+
+		t.Run("PSAv1 field rejects admin permission level", func(t *testing.T) {
+			pf := baseField(PropertyFieldTargetLevelChannel)
+			pf.ObjectType = ""
+			pf.PermissionField = new(PermissionLevelAdmin)
+			require.Error(t, pf.IsValid())
+		})
+	})
+
+	t.Run("graph options", func(t *testing.T) {
+		graphField := func(options ...any) *PropertyField {
+			return &PropertyField{
+				ID:         NewId(),
+				GroupID:    NewId(),
+				Name:       "programs",
+				Type:       PropertyFieldTypeGraph,
+				ObjectType: PropertyFieldObjectTypeTemplate,
+				TargetType: string(PropertyFieldTargetLevelSystem),
+				CreateAt:   GetMillis(),
+				UpdateAt:   GetMillis(),
+				Attrs:      StringInterface{PropertyFieldAttributeOptions: options},
+			}
+		}
+
+		t.Run("graph is an accepted type", func(t *testing.T) {
+			pf := graphField(map[string]any{"id": NewId(), "name": "Air Program"})
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("no options at all is valid", func(t *testing.T) {
+			pf := graphField()
+			pf.Attrs = nil
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("rejects an option carrying a rank", func(t *testing.T) {
+			pf := graphField(
+				map[string]any{"id": NewId(), "name": "Air Program"},
+				map[string]any{"id": NewId(), "name": "Fighter Jet Program", "rank": 2},
+			)
+			err := pf.IsValid()
+			require.Error(t, err)
+
+			var appErr *AppError
+			require.ErrorAs(t, err, &appErr)
+			// The offending option's position is reported, so a caller sending a
+			// long list knows which entry to fix.
+			require.Equal(t, "attrs.options[1].rank", appErr.params["FieldName"])
+		})
+
+		t.Run("a null rank is treated as absent", func(t *testing.T) {
+			pf := graphField(map[string]any{"id": NewId(), "name": "Air Program", "rank": nil})
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("rejects a rank whatever shape it arrives in", func(t *testing.T) {
+			for _, rank := range []any{1, int64(1), 1.0, "1"} {
+				pf := graphField(map[string]any{"id": NewId(), "name": "Air Program", "rank": rank})
+				require.Error(t, pf.IsValid(), "rank %#v should be rejected", rank)
+			}
+		})
+
+		t.Run("other option-bearing types keep their ranks", func(t *testing.T) {
+			pf := graphField(map[string]any{"id": NewId(), "name": "LOW", "rank": 1})
+			pf.Type = PropertyFieldTypeRank
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("a field may carry as many options as the limit and no more", func(t *testing.T) {
+			// The options themselves do not matter here, only how many there are:
+			// what bounds a hierarchy is the number of options in it.
+			pf := graphField(make([]any, PropertyGraphMaxOptions)...)
+			require.NoError(t, pf.IsValid())
+
+			pf = graphField(make([]any, PropertyGraphMaxOptions+1)...)
+			err := pf.IsValid()
+			require.Error(t, err)
+
+			var appErr *AppError
+			require.ErrorAs(t, err, &appErr)
+			require.Equal(t, "attrs.options", appErr.params["FieldName"])
+
+			// A type whose options are a flat list has no such limit: its options are
+			// bounded by the response size rules alone.
+			pf.Type = PropertyFieldTypeMultiselect
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("rejects two options answering to one name", func(t *testing.T) {
+			pf := graphField(
+				map[string]any{"id": NewId(), "name": "Air Program"},
+				map[string]any{"id": NewId(), "name": "F-18 Program"},
+				map[string]any{"id": NewId(), "name": "F-18 Program"},
+			)
+			err := pf.IsValid()
+			require.Error(t, err)
+
+			var appErr *AppError
+			require.ErrorAs(t, err, &appErr)
+			// The second of the two is reported, not the first: the first is the one
+			// the name already belonged to.
+			require.Equal(t, "attrs.options[2].name", appErr.params["FieldName"])
+			require.Contains(t, appErr.params["Reason"], `"F-18 Program"`)
+		})
+
+		t.Run("options with no name are not two answers to one name", func(t *testing.T) {
+			pf := graphField(
+				map[string]any{"id": NewId()},
+				map[string]any{"id": NewId(), "name": ""},
+				map[string]any{"id": NewId(), "name": "Air Program"},
+			)
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("a type whose options form no hierarchy keeps its repeated names", func(t *testing.T) {
+			// A field already holding two options of one name has to stay
+			// writable for the name to be fixable.
+			pf := graphField(
+				map[string]any{"id": NewId(), "name": "Air Program"},
+				map[string]any{"id": NewId(), "name": "Air Program"},
+			)
+			pf.Type = PropertyFieldTypeMultiselect
+			require.NoError(t, pf.IsValid())
+		})
+	})
+
+	t.Run("creator permission level", func(t *testing.T) {
+		baseField := func(objectType string) *PropertyField {
+			return &PropertyField{
+				ID:         NewId(),
+				GroupID:    NewId(),
+				Name:       "test field",
+				Type:       PropertyFieldTypeText,
+				ObjectType: objectType,
+				TargetType: string(PropertyFieldTargetLevelChannel),
+				TargetID:   NewId(),
+				CreateAt:   GetMillis(),
+				UpdateAt:   GetMillis(),
+			}
+		}
+
+		// requireRejectedForSlot asserts IsValid rejected the field over the
+		// creator level and named the offending slot. Checking the name matters:
+		// a rule that always reported permission_field would pass a bare
+		// require.Error.
+		requireRejectedForSlot := func(t *testing.T, pf *PropertyField, slotName string) {
+			t.Helper()
+
+			err := pf.IsValid()
+			require.Error(t, err)
+
+			appErr, ok := err.(*AppError)
+			require.True(t, ok)
+			require.Equal(t, slotName, appErr.params["FieldName"])
+			require.Contains(t, appErr.params["Reason"].(string), "creator")
+		}
+
+		for _, objectType := range []string{PropertyFieldObjectTypePost, PropertyFieldObjectTypeChannel} {
+			t.Run("valid on "+objectType+" object type", func(t *testing.T) {
+				t.Run("permission_field", func(t *testing.T) {
+					pf := baseField(objectType)
+					pf.PermissionField = new(PermissionLevelCreator)
+					require.NoError(t, pf.IsValid())
+				})
+
+				t.Run("permission_values", func(t *testing.T) {
+					pf := baseField(objectType)
+					pf.PermissionValues = new(PermissionLevelCreator)
+					require.NoError(t, pf.IsValid())
+				})
+
+				t.Run("permission_options", func(t *testing.T) {
+					pf := baseField(objectType)
+					pf.PermissionOptions = new(PermissionLevelCreator)
+					require.NoError(t, pf.IsValid())
+				})
+			})
+		}
+
+		// user/session/template have no entity creator, so creator is rejected
+		// rather than silently aliased to admin. (system is canonicalized to
+		// sysadmin before validation — see TestCanonicalizeSystemObjectField.)
+		for _, objectType := range []string{
+			PropertyFieldObjectTypeUser,
+			PropertyFieldObjectTypeSession,
+			PropertyFieldObjectTypeTemplate,
+		} {
+			t.Run("rejected on "+objectType+" object type", func(t *testing.T) {
+				t.Run("permission_field", func(t *testing.T) {
+					pf := baseField(objectType)
+					pf.PermissionField = new(PermissionLevelCreator)
+					requireRejectedForSlot(t, pf, "permission_field")
+				})
+
+				t.Run("permission_values", func(t *testing.T) {
+					pf := baseField(objectType)
+					pf.PermissionValues = new(PermissionLevelCreator)
+					requireRejectedForSlot(t, pf, "permission_values")
+				})
+
+				t.Run("permission_options", func(t *testing.T) {
+					pf := baseField(objectType)
+					pf.PermissionOptions = new(PermissionLevelCreator)
+					requireRejectedForSlot(t, pf, "permission_options")
+				})
+			})
+		}
+
+		t.Run("protected field rejects creator on the protected rule, not the creator rule", func(t *testing.T) {
+			// Protected fields must have permission_field=none, and that check
+			// must win: otherwise the operator gets a confusing message about
+			// object types when the real problem is the protected flag.
+			pf := baseField(PropertyFieldObjectTypePost)
+			pf.Protected = true
+			pf.PermissionField = new(PermissionLevelCreator)
+
+			err := pf.IsValid()
+			require.Error(t, err)
+			appErr, ok := err.(*AppError)
+			require.True(t, ok)
+			require.Equal(t, "permission_field", appErr.params["FieldName"])
+			require.Contains(t, appErr.params["Reason"].(string), "none")
+		})
+
+		t.Run("unknown level is reported as an invalid level, not a creator problem", func(t *testing.T) {
+			// The membership check must run before the creator object-type
+			// check, so a typo'd level gets the generic message.
+			pf := baseField(PropertyFieldObjectTypeUser)
+			pf.PermissionValues = new(PermissionLevel("owner"))
+
+			err := pf.IsValid()
+			require.Error(t, err)
+			appErr, ok := err.(*AppError)
+			require.True(t, ok)
+			require.Equal(t, "invalid permission level", appErr.params["Reason"])
 		})
 	})
 }
@@ -830,6 +1092,14 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 		patch := &PropertyFieldPatch{
 			Name: nil,
 			Type: nil,
+		}
+		require.NoError(t, patch.IsValid())
+	})
+
+	t.Run("graph is an accepted type", func(t *testing.T) {
+		patch := &PropertyFieldPatch{
+			Name: new("programs"),
+			Type: new(PropertyFieldTypeGraph),
 		}
 		require.NoError(t, patch.IsValid())
 	})
@@ -895,6 +1165,26 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 		patch := &PropertyFieldPatch{
 			TargetType: &targetType,
 		}
+		require.NoError(t, patch.IsValid())
+	})
+
+	t.Run("valid PermissionValues level", func(t *testing.T) {
+		patch := &PropertyFieldPatch{
+			PermissionValues: new(PermissionLevelMember),
+		}
+		require.NoError(t, patch.IsValid())
+	})
+
+	t.Run("invalid PermissionValues level", func(t *testing.T) {
+		invalidLevel := PermissionLevel("invalid")
+		patch := &PropertyFieldPatch{
+			PermissionValues: &invalidLevel,
+		}
+		require.Error(t, patch.IsValid())
+	})
+
+	t.Run("nil PermissionValues is valid", func(t *testing.T) {
+		patch := &PropertyFieldPatch{}
 		require.NoError(t, patch.IsValid())
 	})
 }
@@ -1083,6 +1373,40 @@ func TestPropertyField_Patch(t *testing.T) {
 		require.NotNil(t, pf.LinkedFieldID)
 		assert.Equal(t, linkedID, *pf.LinkedFieldID)
 	})
+
+	t.Run("patch with PermissionValues updates it", func(t *testing.T) {
+		pf := &PropertyField{
+			Name:             "test",
+			Type:             PropertyFieldTypeText,
+			PermissionValues: new(PermissionLevelSysadmin),
+		}
+
+		patch := &PropertyFieldPatch{
+			PermissionValues: new(PermissionLevelMember),
+		}
+
+		pf.Patch(patch, false)
+
+		require.NotNil(t, pf.PermissionValues)
+		assert.Equal(t, PermissionLevelMember, *pf.PermissionValues)
+	})
+
+	t.Run("patch with nil PermissionValues does not change it", func(t *testing.T) {
+		pf := &PropertyField{
+			Name:             "test",
+			Type:             PropertyFieldTypeText,
+			PermissionValues: new(PermissionLevelSysadmin),
+		}
+
+		patch := &PropertyFieldPatch{
+			Name: new("renamed"),
+		}
+
+		pf.Patch(patch, false)
+
+		require.NotNil(t, pf.PermissionValues)
+		assert.Equal(t, PermissionLevelSysadmin, *pf.PermissionValues)
+	})
 }
 
 func TestPropertyField_IsPSAv1(t *testing.T) {
@@ -1211,6 +1535,229 @@ func TestPropertyFieldSearchCursor_IsValid(t *testing.T) {
 			CreateAt:        -1,
 		}
 		assert.Error(t, cursor.IsValid())
+	})
+
+	t.Run("valid cursor with UpdateAt only", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{
+			PropertyFieldID: NewId(),
+			UpdateAt:        GetMillis(),
+		}
+		assert.NoError(t, cursor.IsValid())
+	})
+
+	t.Run("both CreateAt and UpdateAt set is invalid", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{
+			PropertyFieldID: NewId(),
+			CreateAt:        1,
+			UpdateAt:        1,
+		}
+		err := cursor.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exactly one")
+	})
+
+	t.Run("invalid PropertyFieldID with UpdateAt set", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{
+			PropertyFieldID: "invalid",
+			UpdateAt:        GetMillis(),
+		}
+		assert.Error(t, cursor.IsValid())
+	})
+
+	t.Run("ID set but neither CreateAt nor UpdateAt is invalid", func(t *testing.T) {
+		// The cursor is non-empty but cannot be paginated against either
+		// ordering — IsValid must reject it rather than fall through to a
+		// silent miss in the store.
+		cursor := PropertyFieldSearchCursor{
+			PropertyFieldID: NewId(),
+		}
+		err := cursor.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exactly one")
+	})
+
+	t.Run("IsEmpty returns true when UpdateAt is also zero", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{}
+		assert.True(t, cursor.IsEmpty())
+	})
+
+	t.Run("IsEmpty returns false when UpdateAt is set", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{UpdateAt: 1}
+		assert.False(t, cursor.IsEmpty())
+	})
+}
+
+func TestPropertyFieldSearchOpts_IsValid(t *testing.T) {
+	validID := NewId()
+
+	t.Run("zero-value opts is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("ObjectType alone is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{ObjectType: PropertyFieldObjectTypeChannel}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("ObjectTypes alone is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{ObjectTypes: []string{PropertyFieldObjectTypeChannel, PropertyFieldObjectTypeSystem}}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("ObjectType and ObjectTypes both set is invalid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			ObjectType:  PropertyFieldObjectTypeChannel,
+			ObjectTypes: []string{PropertyFieldObjectTypeChannel},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "mutually exclusive")
+	})
+
+	t.Run("ObjectTypes containing an invalid value mentions that value", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			ObjectTypes: []string{PropertyFieldObjectTypeChannel, "garbage"},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "garbage")
+	})
+
+	t.Run("legacy ObjectType containing an invalid value is rejected", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{ObjectType: "garbage"}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "garbage")
+	})
+
+	t.Run("ChannelID combined with TargetType is invalid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			ChannelID:  validID,
+			TeamID:     NewId(),
+			TargetType: "channel",
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "channel_id/team_id")
+	})
+
+	t.Run("TeamID combined with TargetIDs is invalid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			TeamID:    NewId(),
+			TargetIDs: []string{NewId()},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "channel_id/team_id")
+	})
+
+	t.Run("ChannelID without TeamID is valid (DM/GM scope)", func(t *testing.T) {
+		// DM/GM channels have no parent team. IsValid must not reject
+		// them; the store layer handles the system → channel hierarchy
+		// when TeamID is empty.
+		opts := PropertyFieldSearchOpts{ChannelID: NewId()}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("TeamID alone is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{TeamID: NewId()}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("ChannelID + TeamID is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{ChannelID: NewId(), TeamID: NewId()}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("TargetType + TargetIDs is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			TargetType: string(PropertyFieldTargetLevelChannel),
+			TargetIDs:  []string{NewId(), NewId()},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("SinceUpdateAt negative is valid (treated as no filter)", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{SinceUpdateAt: -1}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("SinceUpdateAt zero is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{SinceUpdateAt: 0}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("SinceUpdateAt positive is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{SinceUpdateAt: 123}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("delegates to Cursor.IsValid - invalid cursor surfaces", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: NewId(),
+				CreateAt:        1,
+				UpdateAt:        1,
+			},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exactly one")
+	})
+
+	t.Run("delegates to Cursor.IsValid - empty cursor is fine", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			TeamID: NewId(),
+			Cursor: PropertyFieldSearchCursor{},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("cursor key must match active ordering: delta mode requires UpdateAt", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			SinceUpdateAt: 100,
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: validID,
+				CreateAt:        1,
+			},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cursor_update_at")
+	})
+
+	t.Run("cursor key must match active ordering: directory mode requires CreateAt", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: validID,
+				UpdateAt:        1,
+			},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cursor_create_at")
+	})
+
+	t.Run("cursor key match: delta + UpdateAt is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			SinceUpdateAt: 100,
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: validID,
+				UpdateAt:        50,
+			},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("cursor key match: directory + CreateAt is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: validID,
+				CreateAt:        50,
+			},
+		}
+		assert.NoError(t, opts.IsValid())
 	})
 }
 
@@ -1421,6 +1968,87 @@ func TestPluginPropertyOption(t *testing.T) {
 	})
 }
 
+func TestPropertyOptions_IsValid(t *testing.T) {
+	t.Run("a repeated option id is refused and named", func(t *testing.T) {
+		id := NewId()
+		options := PropertyOptions[*PropertyFieldOption]{
+			{ID: id, Name: "Option 1"},
+			{ID: id, Name: "Option 2"},
+		}
+
+		err := options.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), id)
+	})
+
+	t.Run("a repeated id is named even when the names also collide", func(t *testing.T) {
+		id := NewId()
+		options := PropertyOptions[*PropertyFieldOption]{
+			{ID: id, Name: "Option"},
+			{ID: id, Name: "Option"},
+		}
+
+		err := options.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "duplicate option id")
+		assert.Contains(t, err.Error(), id)
+	})
+
+	t.Run("distinct ids pass", func(t *testing.T) {
+		options := PropertyOptions[*PropertyFieldOption]{
+			{ID: NewId(), Name: "Option 1"},
+			{ID: NewId(), Name: "Option 2"},
+		}
+
+		assert.NoError(t, options.IsValid())
+	})
+
+	t.Run("blank ids are not duplicates", func(t *testing.T) {
+		options := PropertyOptions[*PropertyFieldOption]{
+			{Name: "Option 1"},
+			{Name: "Option 2"},
+		}
+
+		assert.NoError(t, options.IsValid())
+	})
+}
+
+func TestPropertyFieldType_SupportsOptions(t *testing.T) {
+	cases := map[PropertyFieldType]bool{
+		PropertyFieldTypeSelect:      true,
+		PropertyFieldTypeMultiselect: true,
+		PropertyFieldTypeRank:        true,
+		PropertyFieldTypeGraph:       true,
+		PropertyFieldTypeText:        false,
+		PropertyFieldTypeDate:        false,
+		PropertyFieldTypeUser:        false,
+		PropertyFieldTypeMultiuser:   false,
+		PropertyFieldType("bogus"):   false,
+	}
+
+	for fieldType, expected := range cases {
+		assert.Equal(t, expected, fieldType.SupportsOptions(), "SupportsOptions for %q", fieldType)
+	}
+}
+
+func TestPropertyFieldType_SupportsExternalSync(t *testing.T) {
+	cases := map[PropertyFieldType]bool{
+		PropertyFieldTypeText:        true,
+		PropertyFieldTypeSelect:      true,
+		PropertyFieldTypeMultiselect: true,
+		PropertyFieldTypeRank:        false,
+		PropertyFieldTypeGraph:       false,
+		PropertyFieldTypeDate:        false,
+		PropertyFieldTypeUser:        false,
+		PropertyFieldTypeMultiuser:   false,
+		PropertyFieldType("bogus"):   false,
+	}
+
+	for fieldType, expected := range cases {
+		assert.Equal(t, expected, fieldType.SupportsExternalSync(), "SupportsExternalSync for %q", fieldType)
+	}
+}
+
 func TestPropertyField_EnsureOptionIDs(t *testing.T) {
 	t.Run("generates IDs for multiselect options without IDs", func(t *testing.T) {
 		pf := &PropertyField{
@@ -1576,5 +2204,238 @@ func TestPropertyField_EnsureOptionIDs(t *testing.T) {
 		err := pf.EnsureOptionIDs()
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "field456")
+	})
+}
+
+// TestPropertyField_WithheldOptions covers the two states a read leaves behind
+// for a field with more than PropertyFieldMaxHydratedOptions options — no
+// options key, plus options_count and options_omitted — and what a patch on top
+// of them is allowed to do.
+func TestPropertyField_WithheldOptions(t *testing.T) {
+	withheldAttrs := func() StringInterface {
+		return StringInterface{
+			PropertyFieldAttributeOptionsCount:   1500,
+			PropertyFieldAttributeOptionsOmitted: true,
+			"visibility":                         "when_set",
+		}
+	}
+
+	t.Run("PropertyFieldOptionsOmitted distinguishes withheld from absent", func(t *testing.T) {
+		assert.True(t, PropertyFieldOptionsOmitted(withheldAttrs()))
+		assert.False(t, PropertyFieldOptionsOmitted(StringInterface{}), "a field with no options is not a field with withheld options")
+		assert.False(t, PropertyFieldOptionsOmitted(nil), "nil attrs must not panic")
+		assert.False(t, PropertyFieldOptionsOmitted(StringInterface{PropertyFieldAttributeOptionsOmitted: "true"}),
+			"only a real bool counts, so a stray string cannot flip a consumer into hiding")
+	})
+
+	t.Run("HideOptions leaves an empty list and no count", func(t *testing.T) {
+		pf := &PropertyField{Type: PropertyFieldTypeSelect, Attrs: withheldAttrs()}
+
+		pf.HideOptions()
+
+		assert.Equal(t, []any{}, pf.Attrs[PropertyFieldAttributeOptions])
+		assert.NotContains(t, pf.Attrs, PropertyFieldAttributeOptionsCount, "the option count is itself controlled information")
+		assert.NotContains(t, pf.Attrs, PropertyFieldAttributeOptionsOmitted)
+		assert.Equal(t, "when_set", pf.Attrs["visibility"], "unrelated attrs are untouched")
+	})
+
+	t.Run("HideOptions allocates attrs when there are none", func(t *testing.T) {
+		pf := &PropertyField{Type: PropertyFieldTypeSelect}
+
+		pf.HideOptions()
+
+		assert.Equal(t, []any{}, pf.Attrs[PropertyFieldAttributeOptions])
+	})
+
+	t.Run("PropertyFieldSuppliesOptions tells an asserted list from an echoed-back one", func(t *testing.T) {
+		assert.True(t, PropertyFieldSuppliesOptions(StringInterface{
+			PropertyFieldAttributeOptions: []any{map[string]any{"id": "opt1", "name": "Option 1"}},
+		}))
+		assert.True(t, PropertyFieldSuppliesOptions(StringInterface{
+			PropertyFieldAttributeOptions: []map[string]any{{"id": "opt1"}},
+		}), "a Go caller's slice shape counts too")
+
+		assert.False(t, PropertyFieldSuppliesOptions(withheldAttrs()), "no key at all")
+		assert.False(t, PropertyFieldSuppliesOptions(StringInterface{PropertyFieldAttributeOptions: []any{}}),
+			"an empty list asserts nothing; it is what a caller echoes back when the list it read was withheld")
+		assert.False(t, PropertyFieldSuppliesOptions(StringInterface{PropertyFieldAttributeOptions: nil}))
+		assert.False(t, PropertyFieldSuppliesOptions(StringInterface{PropertyFieldAttributeOptions: "not a list"}))
+
+		var typedNil PropertyOptions[*PluginPropertyOption]
+		assert.False(t, PropertyFieldSuppliesOptions(StringInterface{PropertyFieldAttributeOptions: typedNil}),
+			"a typed nil slice is still an empty list")
+	})
+
+	t.Run("Patch leaves the withheld markers alone", func(t *testing.T) {
+		// Patch is deliberately dumb about them: whether a supplied option list may
+		// be applied at all is decided by the property service, which can see the
+		// stored field. Patch clearing them here would let the store take a list
+		// built on nothing at face value.
+		for name, patchAttrs := range map[string]StringInterface{
+			"a non-empty list": {PropertyFieldAttributeOptions: []any{map[string]any{"id": "opt1", "name": "Option 1"}}},
+			"an empty list":    {PropertyFieldAttributeOptions: []any{}},
+			"another attr":     {"visibility": "always"},
+		} {
+			t.Run(name, func(t *testing.T) {
+				pf := &PropertyField{Type: PropertyFieldTypeSelect, Attrs: withheldAttrs()}
+
+				pf.Patch(&PropertyFieldPatch{Attrs: &patchAttrs}, true)
+
+				assert.True(t, PropertyFieldOptionsOmitted(pf.Attrs))
+				assert.Equal(t, 1500, pf.Attrs[PropertyFieldAttributeOptionsCount])
+			})
+		}
+	})
+}
+
+func TestPropertyField_OptionParentLinks(t *testing.T) {
+	fieldID := NewId()
+	graphField := func(options ...map[string]any) *PropertyField {
+		list := make([]any, 0, len(options))
+		for _, option := range options {
+			list = append(list, option)
+		}
+		return &PropertyField{
+			ID:    fieldID,
+			Type:  PropertyFieldTypeGraph,
+			Attrs: StringInterface{PropertyFieldAttributeOptions: list},
+		}
+	}
+
+	t.Run("resolves names within the list, in either shape a caller sends them", func(t *testing.T) {
+		air, jet, f18 := NewId(), NewId(), NewId()
+		// The list refers forwards to Air, and states its parents as []any of string
+		// on one option -- what JSON produces -- and as []string on the other, which
+		// is what a Go caller builds.
+		field := graphField(
+			map[string]any{"id": jet, "name": "Fighter Jet", "parents": []any{"Air"}},
+			map[string]any{"id": air, "name": "Air"},
+			map[string]any{"id": f18, "name": "F-18", "parents": []string{"Fighter Jet", "Air"}},
+		)
+
+		add, replacing, err := field.OptionParentLinks()
+		require.NoError(t, err)
+		assert.Equal(t, []string{jet, f18}, replacing, "only the options that stated parents")
+		assert.Equal(t, []*PropertyOptionEdge{
+			{FieldID: fieldID, ChildOptionID: jet, ParentOptionID: air},
+			{FieldID: fieldID, ChildOptionID: f18, ParentOptionID: jet},
+			{FieldID: fieldID, ChildOptionID: f18, ParentOptionID: air},
+		}, add)
+	})
+
+	t.Run("an option that states nothing is left out of both answers", func(t *testing.T) {
+		field := graphField(
+			map[string]any{"id": NewId(), "name": "Air"},
+			map[string]any{"id": NewId(), "name": "Sea"},
+		)
+
+		add, replacing, err := field.OptionParentLinks()
+		require.NoError(t, err)
+		assert.Empty(t, add)
+		assert.Empty(t, replacing)
+	})
+
+	t.Run("an empty parent list replaces with nothing, which is how an option is detached", func(t *testing.T) {
+		air := NewId()
+		field := graphField(map[string]any{"id": air, "name": "Air", "parents": []any{}})
+
+		add, replacing, err := field.OptionParentLinks()
+		require.NoError(t, err)
+		assert.Empty(t, add)
+		assert.Equal(t, []string{air}, replacing)
+	})
+
+	t.Run("refuses what it cannot resolve unambiguously", func(t *testing.T) {
+		for _, tc := range []struct {
+			name    string
+			options []map[string]any
+			reason  string
+		}{
+			{
+				name: "a name no option in the list has",
+				options: []map[string]any{
+					{"id": NewId(), "name": "Air"},
+					{"id": NewId(), "name": "Sea", "parents": []any{"Land"}},
+				},
+				reason: `index 1 is put under "Land", which the field has no option called`,
+			},
+			{
+				name:    "an option under itself",
+				options: []map[string]any{{"id": NewId(), "name": "Air", "parents": []any{"Air"}}},
+				reason:  "is put under itself",
+			},
+			{
+				name: "a name two options answer to",
+				options: []map[string]any{
+					{"id": NewId(), "name": "Air"},
+					{"id": NewId(), "name": "Air"},
+					{"id": NewId(), "name": "Sea", "parents": []any{"Air"}},
+				},
+				reason: "two of the field's options are called that",
+			},
+			{
+				name:    "the same parent named twice",
+				options: []map[string]any{{"id": NewId(), "name": "Air"}, {"id": NewId(), "name": "Sea", "parents": []any{"Air", "Air"}}},
+				reason:  `names "Air" as a parent more than once`,
+			},
+			{
+				name:    "a parent with no name",
+				options: []map[string]any{{"id": NewId(), "name": "Air", "parents": []any{""}}},
+				reason:  "under an option with no name",
+			},
+			{
+				name:    "parents that are not a list of names",
+				options: []map[string]any{{"id": NewId(), "name": "Air", "parents": "Sea"}},
+				reason:  "not a list of option names",
+			},
+			{
+				name:    "an option with no identifier to link",
+				options: []map[string]any{{"name": "Air"}, {"name": "Sea", "parents": []any{"Air"}}},
+				reason:  "has no id",
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				_, _, err := graphField(tc.options...).OptionParentLinks()
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.reason)
+			})
+		}
+	})
+
+	t.Run("a type whose options form no hierarchy cannot state parents at all", func(t *testing.T) {
+		field := graphField(
+			map[string]any{"id": NewId(), "name": "Air"},
+			map[string]any{"id": NewId(), "name": "Sea", "parents": []any{"Air"}},
+		)
+		field.Type = PropertyFieldTypeMultiselect
+
+		_, _, err := field.OptionParentLinks()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "the options of a multiselect field form no hierarchy")
+
+		// A list that says nothing about parents is fine on any type, including the
+		// ones with no option list at all.
+		field.Attrs[PropertyFieldAttributeOptions] = []any{map[string]any{"id": NewId(), "name": "Air"}}
+		add, replacing, err := field.OptionParentLinks()
+		require.NoError(t, err)
+		assert.Empty(t, add)
+		assert.Empty(t, replacing)
+
+		add, replacing, err = (&PropertyField{ID: fieldID, Type: PropertyFieldTypeText}).OptionParentLinks()
+		require.NoError(t, err)
+		assert.Empty(t, add)
+		assert.Empty(t, replacing)
+	})
+
+	t.Run("a list in a shape EnsureOptionIDs would have normalized is refused", func(t *testing.T) {
+		field := &PropertyField{
+			ID:    fieldID,
+			Type:  PropertyFieldTypeGraph,
+			Attrs: StringInterface{PropertyFieldAttributeOptions: []map[string]any{{"name": "Air"}}},
+		}
+
+		_, _, err := field.OptionParentLinks()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not a list")
 	})
 }

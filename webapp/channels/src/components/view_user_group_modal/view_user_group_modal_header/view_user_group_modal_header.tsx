@@ -40,7 +40,7 @@ export type Props = {
         archiveGroup: (groupId: string) => Promise<ActionResult>;
         restoreGroup: (groupId: string) => Promise<ActionResult>;
     };
-}
+};
 
 const ViewUserGroupModalHeader = ({
     groupId,
@@ -88,7 +88,7 @@ const ViewUserGroupModalHeader = ({
             return (
                 <Modal.Title
                     componentClass='h1'
-                    id='userGroupsModalLabel'
+                    id='viewUserGroupModalLabel'
                 >
                     {group.display_name}
                     {

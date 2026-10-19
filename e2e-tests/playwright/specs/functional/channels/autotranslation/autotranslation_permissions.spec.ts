@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {SystemConsolePage} from '@mattermost/playwright-lib';
 import {
     enableAutotranslationConfig,
     disableAutotranslationConfig,
     hasAutotranslationLicense,
     expect,
     test,
-    SystemConsolePage,
 } from '@mattermost/playwright-lib';
 
 test(

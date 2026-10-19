@@ -369,7 +369,7 @@ export interface LoadPostsReturnValue {
     moreToLoad: boolean;
 }
 
-export type CanLoadMorePosts = typeof PostRequestTypes[keyof typeof PostRequestTypes] | undefined
+export type CanLoadMorePosts = typeof PostRequestTypes[keyof typeof PostRequestTypes] | undefined;
 
 export interface LoadPostsParameters {
     channelId: string;

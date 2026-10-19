@@ -32,7 +32,7 @@ func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
 	}
 
 	s.sessionSelectQuery = s.getQueryBuilder().
-		Select("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
+		Select("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "VoIPDeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
 		From("Sessions")
 
 	return s
@@ -59,8 +59,8 @@ func (me SqlSessionStore) Save(rctx request.CTX, session *model.Session) (*model
 
 	query, args, err := me.getQueryBuilder().
 		Insert("Sessions").
-		Columns("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
-		Values(session.Id, session.Token, session.CreateAt, session.ExpiresAt, session.LastActivityAt, session.UserId, session.DeviceId, session.Roles, session.IsOAuth, session.ExpiredNotify, jsonProps).
+		Columns("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "VoIPDeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
+		Values(session.Id, session.Token, session.CreateAt, session.ExpiresAt, session.LastActivityAt, session.UserId, session.DeviceId, session.VoIPDeviceId, session.Roles, session.IsOAuth, session.ExpiredNotify, jsonProps).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "sessions_tosql")
@@ -179,20 +179,39 @@ func (me SqlSessionStore) GetLRUSessions(rctx request.CTX, userId string, limit 
 func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
 	now := model.GetMillis()
 
-	// Start with the base query
+	// Include sessions where EITHER token (standard or VoIP) is live.
+	// The per-session dispatch picks the transport based on which is usable.
 	builder := me.sessionSelectQuery.
 		Where(sq.Eq{"UserId": userId}).
 		Where(sq.NotEq{"ExpiresAt": 0}).
 		Where(sq.GtOrEq{"ExpiresAt": now}).
-		Where(sq.NotEq{"DeviceId": ""})
-
-	// Add the last_removed_device_id condition
-	builder = builder.Where("DeviceId != COALESCE(Props->>'last_removed_device_id', '')")
+		Where(sq.Or{
+			sq.And{
+				sq.NotEq{"DeviceId": ""},
+				sq.Expr("DeviceId != COALESCE(Props->>'last_removed_device_id', '')"),
+			},
+			sq.And{
+				sq.NotEq{"VoIPDeviceId": ""},
+				sq.Expr("VoIPDeviceId != COALESCE(Props->>'last_removed_voip_device_id', '')"),
+			},
+		})
 
 	sessions := []*model.Session{}
 
 	if err := me.GetReplica().SelectBuilder(&sessions, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
+	}
+	return sessions, nil
+}
+
+func (me SqlSessionStore) GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error) {
+	builder := me.sessionSelectQuery.
+		Where(sq.NotEq{"DeviceId": ""}).
+		Where("DeviceId != COALESCE(Props->>'last_removed_device_id', '')")
+
+	sessions := []*model.Session{}
+	if err := me.GetReplica().SelectBuilder(&sessions, builder); err != nil {
+		return nil, errors.Wrap(err, "failed to find all sessions with active device IDs")
 	}
 	return sessions, nil
 }
@@ -321,14 +340,14 @@ func (me SqlSessionStore) UpdateRoles(userId, roles string) (string, error) {
 	return userId, nil
 }
 
-func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, error) {
-	query := "UPDATE Sessions SET DeviceId = ?, ExpiresAt = ?, ExpiredNotify = false WHERE Id = ?"
+func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, voIPDeviceId string, expiresAt int64) error {
+	query := "UPDATE Sessions SET DeviceId = ?, VoIPDeviceId = ?, ExpiresAt = ?, ExpiredNotify = false WHERE Id = ?"
 
-	_, err := me.GetMaster().Exec(query, deviceId, expiresAt, id)
+	_, err := me.GetMaster().Exec(query, deviceId, voIPDeviceId, expiresAt, id)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to update Session with id=%s", id)
+		return errors.Wrapf(err, "failed to update Session with id=%s", id)
 	}
-	return deviceId, nil
+	return nil
 }
 
 func (me SqlSessionStore) UpdateProps(session *model.Session) error {

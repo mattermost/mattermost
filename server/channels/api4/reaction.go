@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -15,7 +16,6 @@ func (api *API) InitReaction() {
 	api.BaseRoutes.Reactions.Handle("", api.APISessionRequired(saveReaction)).Methods(http.MethodPost)
 	api.BaseRoutes.Post.Handle("/reactions", api.APISessionRequired(getReactions)).Methods(http.MethodGet)
 	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.APISessionRequired(deleteReaction)).Methods(http.MethodDelete)
-	api.BaseRoutes.Posts.Handle("/ids/reactions", api.APISessionRequired(getBulkReactions)).Methods(http.MethodPost)
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -24,6 +24,8 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("reaction", jsonErr)
 		return
 	}
+
+	reaction.EmojiName = strings.ToLower(reaction.EmojiName)
 
 	if !model.IsValidId(reaction.UserId) || !model.IsValidId(reaction.PostId) || reaction.EmojiName == "" || len(reaction.EmojiName) > model.EmojiNameMaxLength {
 		c.Err = model.NewAppError("saveReaction", "api.reaction.save_reaction.invalid.app_error", nil, "", http.StatusBadRequest)
@@ -85,6 +87,8 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	emojiName := strings.ToLower(c.Params.EmojiName)
+
 	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionRemoveReaction) {
 		c.SetPermissionError(model.PermissionRemoveReaction)
 		return
@@ -98,7 +102,7 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	reaction := &model.Reaction{
 		UserId:    c.Params.UserId,
 		PostId:    c.Params.PostId,
-		EmojiName: c.Params.EmojiName,
+		EmojiName: emojiName,
 	}
 
 	err := c.App.DeleteReactionForPost(c.AppContext, reaction)
@@ -108,32 +112,4 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
-}
-
-func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
-	postIds, err := model.SortedArrayFromJSON(r.Body)
-	if err != nil {
-		c.Err = model.NewAppError("getBulkReactions", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
-	for _, postId := range postIds {
-		if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), postId); !ok {
-			c.SetPermissionError(model.PermissionReadChannelContent)
-			return
-		}
-	}
-	reactions, appErr := c.App.GetBulkReactionsForPosts(postIds)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	js, err := json.Marshal(reactions)
-	if err != nil {
-		c.Err = model.NewAppError("getBulkReactions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-	if _, err := w.Write(js); err != nil {
-		c.Logger.Warn("Error while writing js response", mlog.Err(err))
-	}
 }

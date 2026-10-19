@@ -70,7 +70,7 @@ const ProfilePopoverOtherUserRow = ({
                 } else {
                     setCanMessage(false);
                 }
-            } catch (error) {
+            } catch {
                 // Error checking DM permissions
                 setCanMessage(false);
             } finally {
@@ -174,6 +174,7 @@ const ProfilePopoverOtherUserRow = ({
                     fullname={fullname}
                     userId={user.id}
                     username={user.username}
+                    hide={hide}
                 />
             </div>
         </div>

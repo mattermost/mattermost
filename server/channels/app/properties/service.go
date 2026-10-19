@@ -7,6 +7,7 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -15,21 +16,27 @@ import (
 // This avoids circular dependency between the properties and app packages.
 type CallerIDExtractor func(rctx request.CTX) string
 
+// RequestOptionsExtractor extracts the caller's per-call PropertyRequestOptions
+// from a request context.
+type RequestOptionsExtractor func(rctx request.CTX) model.PropertyRequestOptions
+
 type PropertyService struct {
-	groupStore        store.PropertyGroupStore
-	fieldStore        store.PropertyFieldStore
-	valueStore        store.PropertyValueStore
-	hooks             []PropertyHook
-	callerIDExtractor CallerIDExtractor
-	groupCache        sync.Map // name -> *model.PropertyGroup
-	groupIDCache      sync.Map // id -> *model.PropertyGroup
+	groupStore              store.PropertyGroupStore
+	fieldStore              store.PropertyFieldStore
+	valueStore              store.PropertyValueStore
+	hooks                   []PropertyHook
+	callerIDExtractor       CallerIDExtractor
+	requestOptionsExtractor RequestOptionsExtractor
+	groupCache              sync.Map // name -> *model.PropertyGroup
+	groupIDCache            sync.Map // id -> *model.PropertyGroup
 }
 
 type ServiceConfig struct {
-	PropertyGroupStore store.PropertyGroupStore
-	PropertyFieldStore store.PropertyFieldStore
-	PropertyValueStore store.PropertyValueStore
-	CallerIDExtractor  CallerIDExtractor
+	PropertyGroupStore      store.PropertyGroupStore
+	PropertyFieldStore      store.PropertyFieldStore
+	PropertyValueStore      store.PropertyValueStore
+	CallerIDExtractor       CallerIDExtractor
+	RequestOptionsExtractor RequestOptionsExtractor
 }
 
 func New(c ServiceConfig) (*PropertyService, error) {
@@ -38,10 +45,11 @@ func New(c ServiceConfig) (*PropertyService, error) {
 	}
 
 	return &PropertyService{
-		groupStore:        c.PropertyGroupStore,
-		fieldStore:        c.PropertyFieldStore,
-		valueStore:        c.PropertyValueStore,
-		callerIDExtractor: c.CallerIDExtractor,
+		groupStore:              c.PropertyGroupStore,
+		fieldStore:              c.PropertyFieldStore,
+		valueStore:              c.PropertyValueStore,
+		callerIDExtractor:       c.CallerIDExtractor,
+		requestOptionsExtractor: c.RequestOptionsExtractor,
 	}, nil
 }
 
@@ -58,4 +66,13 @@ func (ps *PropertyService) extractCallerID(rctx request.CTX) string {
 		return ""
 	}
 	return ps.callerIDExtractor(rctx)
+}
+
+// extractRequestOptions gets the caller's per-call options from a request context
+// using the configured extractor.
+func (ps *PropertyService) extractRequestOptions(rctx request.CTX) model.PropertyRequestOptions {
+	if ps.requestOptionsExtractor == nil || rctx == nil {
+		return model.PropertyRequestOptions{}
+	}
+	return ps.requestOptionsExtractor(rctx)
 }

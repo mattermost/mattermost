@@ -237,7 +237,10 @@ func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap,
 
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role, roleMap, migrationMap)
-		if _, err := s.Store().Role().Save(role); err != nil {
+		// Use SavePreservingUnknownPermissions so a server that was downgraded from a
+		// newer release (which wrote permissions this binary doesn't recognize) does
+		// not fail fatally here. Unknown permissions are logged and preserved (MM-68830).
+		if _, err := s.Store().Role().SavePreservingUnknownPermissions(role); err != nil {
 			var invErr *store.ErrInvalidInput
 			switch {
 			case errors.As(err, &invErr):
@@ -1184,6 +1187,15 @@ func (a *App) removeGetAnalyticsPermissionMigration() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) removeImportTeamPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:     permissionExists("import_team"),
+			Remove: []string{"import_team"},
+		},
+	}, nil
+}
+
 func (a *App) addSysConsoleMobileSecurityPermission() (permissionsMap, error) {
 	transformations := []permissionTransformation{}
 
@@ -1342,6 +1354,18 @@ func (a *App) getAddDiscoverableChannelPermissionsMigration() (permissionsMap, e
 	}, nil
 }
 
+func (a *App) getAddAIRecapsPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: isExactRole(model.SystemAdminRoleId),
+			Add: []string{
+				model.PermissionSysconsoleReadAiRecaps.Id,
+				model.PermissionSysconsoleWriteAiRecaps.Id,
+			},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1405,6 +1429,8 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
 		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
 		{Key: model.MigrationKeyAddDiscoverableChannelPermissions, Migration: a.getAddDiscoverableChannelPermissionsMigration},
+		{Key: model.MigrationRemoveImportTeamPermission, Migration: a.removeImportTeamPermissionMigration},
+		{Key: model.MigrationKeyAddAIRecapsPermissions, Migration: a.getAddAIRecapsPermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

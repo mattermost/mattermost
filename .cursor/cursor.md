@@ -5,8 +5,9 @@ These instructions apply to Cursor Cloud Agents after `.cursor/scripts/cloud-age
 ## Environment
 
 - Docker must be available. If `docker info` fails, inspect `/tmp/docker-service-start.log` and `/tmp/dockerd.log`; do not assume a snapshot will provide Docker.
-- The image includes Go, Node/npm, Docker Compose, AWS CLI v2, and `agent-browser`.
-- Cursor should provide `mattermost/enterprise` through the multi-repo environment. The expected layout is sibling repositories, such as `/agent/repos/mattermost` and `/agent/repos/enterprise`; this matches `server/Makefile`'s default `../../enterprise` path.
+- The image includes Go, Node/npm, Docker Compose, and AWS CLI v2.
+- Prefer Cursor's multi-repo layout for `mattermost/enterprise` when it is available: sibling repositories such as `/agent/repos/mattermost` and `/agent/repos/enterprise`, matching `server/Makefile`'s default `../../enterprise` path.
+- Git-triggered automations start as a single-repo checkout. If enterprise is missing, `cloud-agent-install.sh` clones it with the token scoped by `repositoryDependencies`, preferring an exact like-named branch and falling back to Enterprise's default branch. If that clone lands somewhere other than `../enterprise`, `BUILD_ENTERPRISE_DIR` is written to `server/config.override.mk`, which `server/Makefile` reads before Enterprise detection.
 
 ## Running Mattermost
 
@@ -81,17 +82,34 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
 - Playwright dependencies are installed with `cd e2e-tests/playwright && npm ci`.
 - For full Playwright compose flows, use the existing `e2e-tests` Makefile and scripts. Docker Compose is available in the Cloud Agent image.
 
-## Browser Screenshots
+### Playwright rolling-upgrade tests
 
-Use `agent-browser` for browser automation and screenshots. If the CLI is missing or browsers are unavailable, run:
+Rolling-upgrade coverage lives in its own CI pipeline (`e2e-tests-playwright-rolling-upgrades.yml`),
+not in `e2e-tests-playwright-template.yml`. Locally, only the harness runs, and `upgrade-to` adopts
+the stack `upgrade-from` created, so Testcontainers reuse must be on
+(`echo testcontainers.reuse.enable=true >> ~/.testcontainers.properties`; see
+`e2e-tests/playwright/lib/README.md`):
 
 ```bash
-npm install -g agent-browser@0.27.0
-agent-browser install
+cd e2e-tests/playwright
+npm run testcontainers:down
+MM_LICENSE='<your-license-key>' PW_UPGRADE_FROM_SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:release-11.9 npm run test:upgrade:from
+SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:master npm run test:upgrade:to
+npm run testcontainers:down
 ```
 
-- Chrome is available in the Cloud image, and `agent-browser skills get core --full` is a quick check that the CLI and bundled skills are working.
-Prefer verifying UI changes against the running local Mattermost instance before opening or updating a PR.
+- `script/resolve_upgrade_matrix.mjs` prints the from-version matrix (`dockerTag`, `isESR`,
+  `contextLabel`), or `[]` when none are supported.
+- CI runs on release cut and on demand via the workflow's **Run workflow** button — not on merge. A
+  PR runs it by enabling `run_rolling_upgrades` on a manual `e2e-tests-ci.yml` dispatch, or
+  automatically when it touches the harness.
+- The entry workflow calls the template once per from-version. Each worker upgrades, then continues
+  into the full suite with no re-preparation, so the suite runs against an upgraded server. One
+  commit status per from-version.
+
+## Browser Verification
+
+Use the `computerUse` subagent's desktop (Chrome is preinstalled) for browser automation and screenshots. Prefer verifying UI changes against the running local Mattermost instance before opening or updating a PR.
 
 ## AWS And PR Artifacts
 

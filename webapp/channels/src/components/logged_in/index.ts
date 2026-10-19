@@ -9,7 +9,7 @@ import {updateApproximateViewTime} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {getChannel, getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
-import {getLicense, getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, shouldShowTermsOfService} from 'mattermost-redux/selectors/entities/users';
 
 import {getChannelURL} from 'selectors/urls';
@@ -41,7 +41,7 @@ export function mapStateToProps(state: GlobalState, ownProps: Props) {
         isCurrentChannelManuallyUnread: isManuallyUnread(state, currentChannelId),
         mfaRequired: checkIfMFARequired(getCurrentUser(state), license, config, ownProps.match.url),
         showTermsOfService,
-        customProfileAttributesEnabled: isEnterpriseLicense(license) && getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true',
+        customProfileAttributesEnabled: isEnterpriseLicense(license),
     };
 }
 

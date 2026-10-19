@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -34,7 +34,7 @@ import {
     formatGithubCodePaste,
     formatMarkdownMessage,
     getHtmlTable,
-    hasHtmlLink,
+    hasMarkdownFormatting,
     isGitHubCodeBlock,
 } from 'utils/paste';
 import {postMessageOnKeyPress, splitMessageBasedOnCaretPosition} from 'utils/post_utils';
@@ -50,13 +50,13 @@ import './style.scss';
 
 export type Actions = {
     addMessageIntoHistory: (message: string) => void;
-    editPost: (input: Partial<Post>) => Promise<Post>;
+    editPost: (input: Post) => Promise<ActionResult<Post>>;
     setDraft: (name: string, value: PostDraft | null) => void;
     unsetEditingPost: () => void;
     scrollPostListToBottom: () => void;
     runMessageWillBeUpdatedHooks: (newPost: Partial<Post>, oldPost: Post) => Promise<ActionResult>;
     updateScheduledPost: (scheduledPost: ScheduledPost, connectionId: string) => Promise<ActionResult>;
-}
+};
 
 export type Props = {
     canEditPost?: boolean;
@@ -126,7 +126,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     // If we would just use the editText value from the state it would be a stale since it is encapsuled in the
     // function closure on initial render
     const draftRef = useRef<PostDraft>(draft);
-    const saveDraftFrame = useRef<number|null>();
+    const saveDraftFrame = useRef<number | null>(undefined);
 
     const id = scheduledPost ? scheduledPost.id : editingPost.postId;
     const draftStorageId = `${StoragePrefixes.EDIT_DRAFT}${id}`;
@@ -185,7 +185,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         caretPosition.current = target.selectionEnd;
     };
 
-    const handlePaste = useCallback((e: ClipboardEvent) => {
+    const handlePaste = useCallback((e: React.ClipboardEvent<TextboxElement>) => {
         const {clipboardData, target} = e;
         if (
             !clipboardData ||
@@ -196,9 +196,8 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             return;
         }
 
-        const hasLinks = hasHtmlLink(clipboardData);
         const table = getHtmlTable(clipboardData);
-        if (!table && !hasLinks) {
+        if (!hasMarkdownFormatting(clipboardData)) {
             return;
         }
 
@@ -246,7 +245,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         setSelectionRange({start: res.selectionStart, end: res.selectionEnd});
     };
 
-    const handleRefocusAndExit = (refocusId: string|null) => {
+    const handleRefocusAndExit = (refocusId: string | null) => {
         if (refocusId) {
             const element = document.getElementById(refocusId);
             element?.focus();

@@ -15,7 +15,7 @@ import {getDefaultSelectedValueFromList} from '../../utils';
 type OptionType = {
     label: string;
     value: RoleFilters;
-}
+};
 
 type Props = {
     initialValue: AdminConsoleUserManagementTableProperties['filterRole'];

@@ -12,21 +12,16 @@ import {patchChannel, updateChannelPrivacy} from 'mattermost-redux/actions/chann
 import {General} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {areManagedCategoriesEnabled, getChannelManagedCategoryName, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
+import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-
-import {
-    setShowPreviewOnChannelSettingsHeaderModal,
-    setShowPreviewOnChannelSettingsPurposeModal,
-} from 'actions/views/textbox';
-import {
-    showPreviewOnChannelSettingsHeaderModal,
-    showPreviewOnChannelSettingsPurposeModal,
-} from 'selectors/views/textbox';
 
 import ConvertConfirmModal from 'components/admin_console/team_channel_settings/convert_confirm_modal';
 import CategorySelector from 'components/category_selector/category_selector';
+import ChannelInfoAttributes from 'components/channel_attributes/channel_info_attributes';
+import type {ChannelInfoAttributesHandle} from 'components/channel_attributes/channel_info_attributes';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import type {TextboxElement} from 'components/textbox';
+import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
@@ -43,6 +38,15 @@ type ChannelSettingsInfoTabProps = {
     showTabSwitchError?: boolean;
 };
 
+// The form seeds each field from the raw channel record and trims only when
+// building the save payload, so change detection compares the raw values. That
+// keeps an untouched channel clean on open (local value equals the stored one)
+// while still letting a user save the removal of stored leading/trailing
+// whitespace.
+function hasTextChanged(value: string, savedValue?: string): boolean {
+    return value !== (savedValue ?? '');
+}
+
 function ChannelSettingsInfoTab({
     channel,
     onCancel,
@@ -54,8 +58,8 @@ function ChannelSettingsInfoTab({
 
     const getSidebarCategoryNamesForTeam = useRef(makeGetSidebarCategoryNamesForTeam());
 
-    const shouldShowPreviewPurpose = useSelector(showPreviewOnChannelSettingsPurposeModal);
-    const shouldShowPreviewHeader = useSelector(showPreviewOnChannelSettingsHeaderModal);
+    const [shouldShowPreviewPurpose, setShouldShowPreviewPurpose] = useState(false);
+    const [shouldShowPreviewHeader, setShouldShowPreviewHeader] = useState(false);
 
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
     const isDirect = channel.type === Constants.DM_CHANNEL;
@@ -77,6 +81,20 @@ function ChannelSettingsInfoTab({
             return false;
         }
         return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC);
+    });
+
+    // Discoverable Private Channels — gated by FeatureFlagDiscoverableChannels
+    // server flag AND the per-channel manage_private_channel_discoverability
+    // permission. We surface the toggle as read-only when the FF is on but
+    // the user lacks permission, and hide it entirely when the FF is off
+    // (otherwise it would expose the existence of a feature the server
+    // refuses to honor).
+    const discoverableFeatureEnabled = useSelector(isDiscoverableChannelsEnabled);
+    const canManageDiscoverability = useSelector((state: GlobalState) => {
+        if (isDMorGroupChannel) {
+            return false;
+        }
+        return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_DISCOVERABILITY);
     });
 
     // Permissions for managing channel (name, header, purpose)
@@ -143,12 +161,29 @@ function ChannelSettingsInfoTab({
     const [channelPurpose, setChannelPurpose] = useState(channel.purpose ?? '');
     const [channelHeader, setChannelHeader] = useState(channel?.header ?? '');
     const [channelType, setChannelType] = useState<ChannelType>(channel?.type as ChannelType ?? Constants.OPEN_CHANNEL as ChannelType);
+    const [discoverable, setDiscoverable] = useState<boolean>(channel?.discoverable ?? false);
+
+    // Render condition: feature flag on, the in-progress type selection is
+    // private (gating on channelType rather than channel.type so the toggle
+    // appears immediately during a Public->Private conversion, matching the
+    // New Channel modal), and the channel is not archived or shared (the
+    // server rejects discoverable patches on those anyway).
+    const showDiscoverableToggle = discoverableFeatureEnabled &&
+        !isDMorGroupChannel &&
+        channelType === Constants.PRIVATE_CHANNEL &&
+        channel.delete_at === 0 &&
+        !channel.shared;
 
     // UI Feedback: errors, states
     const [formError, setFormError] = useState('');
 
     // SaveChangesPanel state
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
+
+    // Channel attributes stage their own edits and flush/discard through this
+    // ref, on the tab's Save/Reset, rather than saving on every change.
+    const attributesRef = useRef<ChannelInfoAttributesHandle>(null);
+    const [hasAttributeChanges, setHasAttributeChanges] = useState(false);
 
     // Handler for channel name validation errors
     const handleChannelNameError = useCallback((isError: boolean, errorMessage?: string) => {
@@ -163,21 +198,28 @@ function ChannelSettingsInfoTab({
         }
     }, [channelNameError, formError, setFormError]);
 
-    // Update parent component when changes occur
-    useEffect(() => {
-        // Calculate unsaved changes directly
-        const unsavedChanges = channel ? (
-            displayName.trim() !== channel.display_name ||
-            channelUrl.trim() !== channel.name ||
-            channelPurpose.trim() !== channel.purpose ||
-            channelHeader.trim() !== channel.header ||
+    const hasUnsavedChanges = useMemo(() => {
+        if (hasTextChanged(channelHeader, channel.header)) {
+            return true;
+        }
+
+        if (isDMorGroupChannel) {
+            return false;
+        }
+
+        return hasAttributeChanges ||
+            hasTextChanged(displayName, channel.display_name) ||
+            hasTextChanged(channelUrl, channel.name) ||
+            hasTextChanged(channelPurpose, channel.purpose) ||
             channelType !== channel.type ||
             (defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '') ||
-            managedCategoryName !== serverManagedCategoryName
-        ) : false;
+            managedCategoryName !== serverManagedCategoryName ||
+            (showDiscoverableToggle && discoverable !== Boolean(channel.discoverable));
+    }, [channel, isDMorGroupChannel, hasAttributeChanges, displayName, channelUrl, channelPurpose, channelHeader, channelType, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, showDiscoverableToggle]);
 
-        setAreThereUnsavedChanges?.(unsavedChanges);
-    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, setAreThereUnsavedChanges]);
+    useEffect(() => {
+        setAreThereUnsavedChanges?.(hasUnsavedChanges);
+    }, [hasUnsavedChanges, setAreThereUnsavedChanges]);
 
     const handleURLChange = useCallback((newURL: string) => {
         if (internalUrlError) {
@@ -189,14 +231,33 @@ function ChannelSettingsInfoTab({
     }, [internalUrlError]);
 
     const togglePurposePreview = useCallback(() => {
-        dispatch(setShowPreviewOnChannelSettingsPurposeModal(!shouldShowPreviewPurpose));
-    }, [dispatch, shouldShowPreviewPurpose]);
+        setShouldShowPreviewPurpose((prev) => !prev);
+    }, []);
 
     const toggleHeaderPreview = useCallback(() => {
-        dispatch(setShowPreviewOnChannelSettingsHeaderModal(!shouldShowPreviewHeader));
-    }, [dispatch, shouldShowPreviewHeader]);
+        setShouldShowPreviewHeader((prev) => !prev);
+    }, []);
 
-    const handleChannelTypeChange = (type: ChannelType) => {
+    const discoverableTitle = formatMessage({
+        id: 'channel_settings.discoverable.title',
+        defaultMessage: 'Discoverable (Users can request to join)',
+    });
+    const discoverableDescription = formatMessage({
+        id: 'channel_settings.discoverable.description',
+        defaultMessage: 'Non-members can see this channel in Browse Channels, the channel switcher, and shared permalinks. Message contents stay hidden until they join.',
+    });
+
+    const handleDiscoverableToggle = useCallback(() => {
+        if (!canManageDiscoverability) {
+            return;
+        }
+        setDiscoverable((prev) => !prev);
+    }, [canManageDiscoverability]);
+
+    const handleChannelTypeChange = (selected: string) => {
+        // This consumer doesn't pass pluginOptions, so the selector only fires built-in channel
+        // type values (OPEN_CHANNEL / PRIVATE_CHANNEL).
+        const type = selected as ChannelType;
         if (channelTypeLockedByMembershipPolicy) {
             return;
         }
@@ -295,17 +356,30 @@ function ChannelSettingsInfoTab({
             }
         }
 
+        // Flushed before the channel patch: an attribute-only change (nothing
+        // else in `updated` below) must still reach the server on this Save.
+        const attributesSaved = await attributesRef.current?.flush() ?? true;
+        if (!attributesSaved) {
+            handleServerError({
+                message: formatMessage({
+                    id: 'channel_settings.error_attributes_save_failed',
+                    defaultMessage: "Couldn't save one or more channel attributes. Try again.",
+                }),
+            } as ServerError);
+            return false;
+        }
+
         const updated: Partial<Channel> = {};
-        if (!isDMorGroupChannel && displayName.trim() !== channel.display_name) {
+        if (!isDMorGroupChannel && hasTextChanged(displayName, channel.display_name)) {
             updated.display_name = displayName.trim();
         }
-        if (!isDMorGroupChannel && channelUrl.trim() !== channel.name) {
+        if (!isDMorGroupChannel && hasTextChanged(channelUrl, channel.name)) {
             updated.name = channelUrl.trim();
         }
-        if (!isDMorGroupChannel && channelPurpose.trim() !== channel.purpose) {
+        if (!isDMorGroupChannel && hasTextChanged(channelPurpose, channel.purpose)) {
             updated.purpose = channelPurpose.trim();
         }
-        if (channelHeader.trim() !== channel.header) {
+        if (hasTextChanged(channelHeader, channel.header)) {
             updated.header = channelHeader.trim();
         }
         if ((defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '')) {
@@ -313,6 +387,15 @@ function ChannelSettingsInfoTab({
         }
         if (managedCategoryName !== serverManagedCategoryName) {
             updated.managed_category_name = managedCategoryName ?? '';
+        }
+
+        // Only include `discoverable` in the patch when (a) the toggle is
+        // actually rendered for this channel (private, FF on, not archived/
+        // shared) AND (b) the value has changed. We never send `discoverable`
+        // for a public channel — the server would 400 with
+        // model.channel.is_valid.discoverable.app_error.
+        if (showDiscoverableToggle && discoverable !== Boolean(channel.discoverable)) {
+            updated.discoverable = discoverable;
         }
 
         if (Object.keys(updated).length === 0) {
@@ -336,9 +419,12 @@ function ChannelSettingsInfoTab({
         setChannelHeader(data?.header ?? updated.header ?? channel.header);
         setServerDefaultCategoryName(defaultCategoryName);
         setServerManagedCategoryName(managedCategoryName);
+        if (data && 'discoverable' in data) {
+            setDiscoverable(Boolean(data.discoverable));
+        }
 
         return true;
-    }, [channel, displayName, channelType, isDMorGroupChannel, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName]);
+    }, [channel, displayName, channelType, isDMorGroupChannel, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, showDiscoverableToggle]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
@@ -381,6 +467,9 @@ function ChannelSettingsInfoTab({
         setChannelType(channel?.type as ChannelType ?? Constants.OPEN_CHANNEL as ChannelType);
         setDefaultCategoryName(serverDefaultCategoryName);
         setManagedCategoryName(serverManagedCategoryName);
+        setDiscoverable(Boolean(channel?.discoverable));
+        attributesRef.current?.discard();
+        setHasAttributeChanges(false);
 
         // Clear errors
         setUrlError('');
@@ -401,26 +490,13 @@ function ChannelSettingsInfoTab({
                      Boolean(showTabSwitchError) ||
                      Boolean(internalUrlError);
 
-    // Memoize the calculation for whether to show the save changes panel
-    const shouldShowPanel = useMemo(() => {
-        let unsavedChanges = false;
-        if (channel) {
-            unsavedChanges = unsavedChanges || channelHeader.trim() !== channel.header;
-            if (!isDMorGroupChannel) {
-                unsavedChanges = unsavedChanges || displayName.trim() !== channel.display_name;
-                unsavedChanges = unsavedChanges || channelUrl.trim() !== channel.name;
-                unsavedChanges = unsavedChanges || channelPurpose.trim() !== channel.purpose;
-                unsavedChanges = unsavedChanges || channelType !== channel.type;
-                unsavedChanges = unsavedChanges || (defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '');
-                unsavedChanges = unsavedChanges || managedCategoryName !== serverManagedCategoryName;
-            }
-        }
-
-        return unsavedChanges || saveChangesPanelState === 'saved';
-    }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName]);
+    const shouldShowPanel = hasUnsavedChanges || saveChangesPanelState === 'saved';
 
     return (
-        <div className='ChannelSettingsModal__infoTab'>
+        <div
+            className='ChannelSettingsModal__infoTab'
+            data-testid='channel-settings-info-tab'
+        >
             {/* ConvertConfirmModal for channel privacy changes */}
             <ConvertConfirmModal
                 show={showConvertConfirmModal}
@@ -461,6 +537,7 @@ function ChannelSettingsInfoTab({
                     currentUrl={channelUrl}
                     readOnly={!canManageChannelProperties}
                     isEditingExistingChannel={true}
+                    isDefaultChannel={channel.name === Constants.DEFAULT_CHANNEL}
                 />
             )}
             {/* Channel Type Section*/}
@@ -484,6 +561,52 @@ function ChannelSettingsInfoTab({
                     }}
                     onChange={handleChannelTypeChange}
                 />
+            )}
+
+            {/* Discoverable Section — only renders for private, non-archived,
+                non-shared channels when the feature flag is on. Read-only
+                presentation when the user lacks permission so the setting is
+                still visible (transparency) but not editable. */}
+            {showDiscoverableToggle && (
+                <div className='ChannelSettingsModal__discoverableSection'>
+                    <div className='channel_banner_header'>
+                        <div className='channel_banner_header__text'>
+                            <label
+                                className='Input_legend'
+                                aria-label={discoverableTitle}
+                            >
+                                {discoverableTitle}
+                            </label>
+                            <label
+                                className='Input_subheading'
+                                aria-label={discoverableDescription}
+                            >
+                                {discoverableDescription}
+                            </label>
+                        </div>
+                        <div className='channel_banner_header__toggle'>
+                            <Toggle
+                                id='channel-settings-discoverable-toggle'
+                                overrideTestId={true}
+                                ariaLabel={discoverableTitle}
+                                size='btn-md'
+                                disabled={!canManageDiscoverability}
+                                onToggle={handleDiscoverableToggle}
+                                toggled={discoverable}
+                                tabIndex={0}
+                                toggleClassName='btn-toggle-primary'
+                            />
+                        </div>
+                    </div>
+                    {!canManageDiscoverability && (
+                        <p className='ChannelSettingsModal__discoverableReadOnly'>
+                            {formatMessage({
+                                id: 'channel_settings.discoverable.read_only',
+                                defaultMessage: 'Only channel admins can change this.',
+                            })}
+                        </p>
+                    )}
+                </div>
             )}
             {/* Default Sidebar Category Selector */}
             {showDefaultCategoryField && (
@@ -574,6 +697,20 @@ function ChannelSettingsInfoTab({
                 readOnly={!canManageChannelProperties}
                 name={formatMessage({id: 'channel_settings.header.label', defaultMessage: 'Channel Header'})}
             />
+
+            {/* Same attribute editor as Channel Info RHS, but staged here: edits
+                flush together with the rest of this tab on Save, through the
+                SaveChangesPanel below, instead of saving on every change. */}
+            {!isDMorGroupChannel && (
+                <div className='ChannelSettingsModal__attributesSection'>
+                    <ChannelInfoAttributes
+                        ref={attributesRef}
+                        channelId={channel.id}
+                        deferred={true}
+                        onPendingChange={setHasAttributeChanges}
+                    />
+                </div>
+            )}
 
             {/* SaveChangesPanel for unsaved changes */}
             {((canManageChannelProperties || canManageChannelRoles) && shouldShowPanel) && (

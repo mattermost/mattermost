@@ -48,11 +48,11 @@ type Props = {
         setUserGridSearch: (term: string) => void;
         setUserGridFilters: (filters: GetFilteredUsersStatsOpts) => void;
     };
-}
+};
 
 type State = {
     loading: boolean;
-}
+};
 
 const PROFILE_CHUNK_SIZE = 10;
 

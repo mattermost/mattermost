@@ -24,7 +24,7 @@ export const isAppBinding = (x: Record<string, any> | undefined): x is AppBindin
 
 type BindingComponentProps = {
     binding: AppBinding;
-}
+};
 
 const AppBarBinding = (props: BindingComponentProps) => {
     const {binding} = props;

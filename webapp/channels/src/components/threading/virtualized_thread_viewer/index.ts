@@ -25,7 +25,7 @@ type OwnProps = {
     selected: Post | FakePost;
     useRelativeTimestamp: boolean;
     onCardClick: (post: Post) => void;
-}
+};
 
 function makeMapStateToProps() {
     const getRepliesListWithSeparators = makePrepareReplyIdsForThreadViewer();

@@ -12,13 +12,14 @@ type Props = {
     message?: ReactNode;
     className?: string;
     centered?: boolean;
-}
+};
 
 function LoadingScreen({message, position = 'relative', style, className = '', centered = false}: Props) {
     const {formatMessage} = useIntl();
 
     return (
         <div
+            data-testid='loading-screen'
             className={classNames('loading-screen', className, {
                 'loading-screen--in-middle': centered,
             })}

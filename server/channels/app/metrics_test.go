@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/enterprise/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 	prometheusModels "github.com/prometheus/client_model/go"
@@ -99,4 +100,110 @@ func TestMobileMetrics(t *testing.T) {
 			require.InDelta(t, tc.elapsed/1000, m.Histogram.GetSampleSum(), 0.001, "not equal value in %s", tc.name)
 		}
 	}
+}
+
+func TestCountNotificationMetrics(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupEnterprise(t, StartMetrics)
+
+	configureMetrics(th)
+	mi := th.App.Metrics()
+
+	miImpl, ok := mi.(*metrics.MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", mi))
+
+	counterValue := func() float64 {
+		counter, err := miImpl.NotificationTotalCounters.GetMetricWith(prometheus.Labels{
+			"type":     string(model.NotificationTypePush),
+			"platform": "ios",
+		})
+		require.NoError(t, err)
+		m := &prometheusModels.Metric{}
+		require.NoError(t, counter.Write(m))
+		return m.Counter.GetValue()
+	}
+
+	t.Run("counts when notification metrics are enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MetricsSettings.EnableNotificationMetrics = true
+		})
+
+		before := counterValue()
+		th.App.CountNotification(model.NotificationTypePush, "ios")
+		require.Equal(t, before+1, counterValue())
+	})
+
+	t.Run("does not count when notification metrics are disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MetricsSettings.EnableNotificationMetrics = false
+		})
+
+		before := counterValue()
+		th.App.CountNotification(model.NotificationTypePush, "ios")
+		require.Equal(t, before, counterValue())
+	})
+}
+
+func TestWebsocketNotificationCounter(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupEnterprise(t, StartMetrics)
+
+	configureMetrics(th)
+	mi := th.App.Metrics()
+
+	miImpl, ok := mi.(*metrics.MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", mi))
+
+	counterValue := func() float64 {
+		counter, err := miImpl.NotificationTotalCounters.GetMetricWith(prometheus.Labels{
+			"type":     string(model.NotificationTypeWebsocket),
+			"platform": model.NotificationNoPlatform,
+		})
+		require.NoError(t, err)
+		m := &prometheusModels.Metric{}
+		require.NoError(t, counter.Write(m))
+		return m.Counter.GetValue()
+	}
+
+	hook := &postedAckBroadcastHook{}
+	userID := model.NewId()
+	webConn := &platform.WebConn{
+		UserId:    userID,
+		Platform:  th.Server.Platform(),
+		PostedAck: true,
+	}
+	webConn.Active.Store(true)
+	webConn.SetSession(&model.Session{})
+
+	// Process an acked broadcast that reaches incrementWebsocketCounter.
+	ackPostedBroadcast := func() {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+		err := hook.Process(msg, webConn, map[string]any{
+			"posted_user_id": model.NewId(),
+			"channel_type":   model.ChannelTypeOpen,
+			"users":          []string{userID},
+		})
+		require.NoError(t, err)
+		require.True(t, msg.Event().GetData()["should_ack"].(bool))
+	}
+
+	t.Run("counts when notification metrics are enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MetricsSettings.EnableNotificationMetrics = true
+		})
+
+		before := counterValue()
+		ackPostedBroadcast()
+		require.Equal(t, before+1, counterValue())
+	})
+
+	t.Run("does not count when notification metrics are disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MetricsSettings.EnableNotificationMetrics = false
+		})
+
+		before := counterValue()
+		ackPostedBroadcast()
+		require.Equal(t, before, counterValue())
+	})
 }

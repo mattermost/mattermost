@@ -24,6 +24,7 @@ exports[`plugins/PostMessageView should match snapshot with no extended post typ
       >
         <div
           class="post-message__text"
+          data-testid="post-message-text"
           dir="auto"
           id="postMessageText_post_id"
         >

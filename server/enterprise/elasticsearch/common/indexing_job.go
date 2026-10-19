@@ -448,7 +448,7 @@ func (worker *IndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, prog
 		}
 
 		if post.DeleteAt == 0 {
-			searchPost := ESPostFromPostForIndexing(post)
+			searchPost := ESPostFromPostForIndexing(post, worker.jobServer.Config().FeatureFlags.MmBlocksEnabled)
 
 			data, err := json.Marshal(searchPost)
 			if err != nil {
@@ -458,12 +458,12 @@ func (worker *IndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, prog
 
 			err = worker.addItemToBulkProcessor(indexName, indexOp, searchPost.Id, bytes.NewReader(data))
 			if err != nil {
-				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
+				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("index_name", indexName), mlog.Err(err))
 			}
 		} else {
 			err := worker.addItemToBulkProcessor(indexName, deleteOp, post.Id, nil)
 			if err != nil {
-				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
+				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("index_name", indexName), mlog.Err(err))
 			}
 		}
 	}
@@ -534,12 +534,12 @@ func (worker *IndexerWorker) BulkIndexFiles(files []*model.FileForIndexing, prog
 
 			err = worker.addItemToBulkProcessor(indexName, indexOp, searchFile.Id, bytes.NewReader(data))
 			if err != nil {
-				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
+				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("index_name", indexName), mlog.Err(err))
 			}
 		} else {
 			err := worker.addItemToBulkProcessor(indexName, deleteOp, file.Id, nil)
 			if err != nil {
-				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
+				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("index_name", indexName), mlog.Err(err))
 			}
 		}
 	}
@@ -629,7 +629,7 @@ func BulkIndexChannels(config *model.Config,
 
 		err = addItemToBulkProcessorFn(indexName, indexOp, searchChannel.Id, bytes.NewReader(data))
 		if err != nil {
-			logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
+			logger.Warn("Failed to add item to bulk processor", mlog.String("index_name", indexName), mlog.Err(err))
 		}
 	}
 
@@ -697,7 +697,7 @@ func (worker *IndexerWorker) BulkIndexUsers(users []*model.UserForIndexing, prog
 
 		err = worker.addItemToBulkProcessor(indexName, indexOp, searchUser.Id, bytes.NewReader(data))
 		if err != nil {
-			worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
+			worker.logger.Warn("Failed to add item to bulk processor", mlog.String("index_name", indexName), mlog.Err(err))
 		}
 	}
 
@@ -855,7 +855,7 @@ func setEntityCount(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress
 		// on with the indexing job anyway. The only issue is that the progress % reporting will be inaccurate.
 		if count, err := jobServer.Store.Post().AnalyticsPostCount(&model.PostCountOptions{}); err != nil {
 			fallback := entityCountFallback(job, "total_posts_count", estimatedPostCount, progress.DonePostsCount)
-			logger.Warn("Worker: Failed to fetch total post count for job. A fallback value will be used for progress reporting.", mlog.Int("fallbackPostCount", fallback), mlog.Err(err))
+			logger.Warn("Worker: Failed to fetch total post count for job. A fallback value will be used for progress reporting.", mlog.Int("fallback_post_count", fallback), mlog.Err(err))
 			progress.TotalPostsCount = fallback
 		} else {
 			progress.TotalPostsCount = count
@@ -867,7 +867,7 @@ func setEntityCount(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress
 		// Same possible fail as above can happen when counting channels
 		if count, err := jobServer.Store.Channel().AnalyticsTypeCount("", ""); err != nil {
 			fallback := entityCountFallback(job, "total_channels_count", estimatedChannelCount, progress.DoneChannelsCount)
-			logger.Warn("Worker: Failed to fetch total channel count for job. A fallback value will be used for progress reporting.", mlog.Int("fallbackChannelCount", fallback), mlog.Err(err))
+			logger.Warn("Worker: Failed to fetch total channel count for job. A fallback value will be used for progress reporting.", mlog.Int("fallback_channel_count", fallback), mlog.Err(err))
 			progress.TotalChannelsCount = fallback
 		} else {
 			progress.TotalChannelsCount = count
@@ -882,7 +882,7 @@ func setEntityCount(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress
 			// since ExcludeRegularUsers is set to false
 		}); err != nil {
 			fallback := entityCountFallback(job, "total_users_count", estimatedUserCount, progress.DoneUsersCount)
-			logger.Warn("Worker: Failed to fetch total user count for job. A fallback value will be used for progress reporting.", mlog.Int("fallbackUserCount", fallback), mlog.Err(err))
+			logger.Warn("Worker: Failed to fetch total user count for job. A fallback value will be used for progress reporting.", mlog.Int("fallback_user_count", fallback), mlog.Err(err))
 			progress.TotalUsersCount = fallback
 		} else {
 			progress.TotalUsersCount = count
@@ -894,7 +894,7 @@ func setEntityCount(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress
 		// Same possible fail as above can happen when counting files
 		if count, err := jobServer.Store.FileInfo().CountAll(); err != nil {
 			fallback := entityCountFallback(job, "total_files_count", estimatedFilesCount, progress.DoneFilesCount)
-			logger.Warn("Worker: Failed to fetch total files count for job. A fallback value will be used for progress reporting.", mlog.Int("fallbackFilesCount", fallback), mlog.Err(err))
+			logger.Warn("Worker: Failed to fetch total files count for job. A fallback value will be used for progress reporting.", mlog.Int("fallback_files_count", fallback), mlog.Err(err))
 			progress.TotalFilesCount = fallback
 		} else {
 			progress.TotalFilesCount = count

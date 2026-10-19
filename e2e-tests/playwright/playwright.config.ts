@@ -3,7 +3,29 @@
 
 import {defineConfig, devices} from '@playwright/test';
 
-import {duration, testConfig} from '@mattermost/playwright-lib';
+import {
+    assertUpgradeFromFreshStart,
+    assertUpgradeToRequiresPriorFromRun,
+    duration,
+    exportUpgradePathProjectSelection,
+    isUpgradeFromProjectSelected,
+    isUpgradeToPhaseProjectSelected,
+    logUpgradeFromServerImage,
+    logUpgradeToServerImage,
+    testConfig,
+} from '@mattermost/playwright-lib';
+
+if (isUpgradeFromProjectSelected()) {
+    assertUpgradeFromFreshStart();
+    logUpgradeFromServerImage();
+}
+
+if (isUpgradeToPhaseProjectSelected()) {
+    assertUpgradeToRequiresPriorFromRun();
+    logUpgradeToServerImage();
+}
+
+exportUpgradePathProjectSelection();
 
 const chromeUse = {
     browserName: 'chromium' as const,
@@ -45,7 +67,7 @@ export default defineConfig({
             slowMo: testConfig.slowMo,
         },
         screenshot: 'only-on-failure',
-        timezoneId: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timezoneId: new Intl.DateTimeFormat().resolvedOptions().timeZone,
         trace: 'retain-on-failure',
         video: 'retain-on-failure',
         actionTimeout: duration.half_min,
@@ -74,6 +96,23 @@ export default defineConfig({
                 viewport: {width: 1280, height: 1024},
             },
             dependencies: ['setup'],
+        },
+        // Upgrade-path specs live under upgrade-specs/ (outside testDir) so Test System IO
+        // dispatch-begin does not register them in the full Playwright queue.
+        {
+            name: 'upgrade-from',
+            testDir: 'upgrade-specs/from',
+            dependencies: ['setup'],
+            fullyParallel: false,
+            workers: 1,
+        },
+        {name: 'upgrade-swap-to', testDir: 'upgrade-specs', testMatch: /upgrade_swap_to\.ts/},
+        {
+            name: 'upgrade-to',
+            testDir: 'upgrade-specs/to',
+            dependencies: ['upgrade-swap-to'],
+            fullyParallel: false,
+            workers: 1,
         },
     ],
     reporter: [

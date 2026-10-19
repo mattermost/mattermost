@@ -1,0 +1,243 @@
+---
+title: "Compliance monitoring"
+---
+<PlanAvailability slug="ent-plus" />
+
+This feature enables compliance exports to be produced from the System Console, with all query and download actions logged in an audit history to enable oversight and prevent unauthorized queries.
+
+Compliance exports can be filtered to date range, user account, and keyword list. Requests from queries can be downloaded from the user interface in `.csv` format, with a `.json` metafile documenting the query, as well as placed in a directory set by the system admin.
+
+Daily compliance reports may also be generated, supporting integration with compliance solutions like [Global Relay](#global-relay-support).
+
+By default, all Mattermost deployments retain all messages, including edits and deletes, along with all files uploaded.
+
+## Enable compliance reporting
+
+To enable the option to generate daily compliance reports:
+
+1.  Go to **System Console \> Compliance \> Compliance Monitoring** and set the **Enable Compliance Reporting** value to **true**.
+2.  (Optional) In **Compliance Report Directory** specify the directory in which to place completed compliance reports. Defaults to `./data/` if left blank.
+3.  Select **Save**.
+
+## Turn on daily compliance reports
+
+After enabling compliance reporting:
+
+1.  Go to **System Console \> Compliance \> Compliance Monitoring** and set the **Enable Daily Report** value to **true**.
+2.  Select **Save**.
+
+Your system will now export all new messages posted within a 24-hour period as a `.csv` file to the location specified in **Compliance Report Directory**. This feature can be used in conjunction with centralized compliance reporting systems that move.
+
+## Run compliance reports
+
+Compliance reports are exports of all messages in Mattermost that match the report criteria. To run a report:
+
+1.  Go to **System Console \> Compliance \> Compliance Monitoring**.
+
+2.  Fill in the following:
+
+    > - **Job Name:** Name the compliance report you are about to run (e.g. "HR Audit 455").
+    > - **From:** Start date for search in YYYY-MM-DD format (e.g. "2016-03-11").
+    > - **To:** End date of search in YYYY-MM-DD format (e.g. "2016-05-11").
+    > - **Emails:** Comma-separated list of email addresses of users whose posted messages you want to search (e.g. `bill@example.com, bob@example.com`).
+    > - **Keywords:** Indicate the words that would be contained in a message for it to be included in the compliance report results.
+
+3.  Select **Run Compliance Report**.
+
+The report will be queued in the display below the fields described above. The properties of each compliance report run is explained as follows:
+
+- **Timestamp:** Time at which the report was requested.
+- **Status:** `running` indicates the report is being run; `finished` indicates the report is complete and ready for download.
+- **Records:** Shows the number of search results.
+- **Type:** `adhoc` indicates the report was requested by completing query fields; `daily` indicates the report is a daily export.
+- **Description:** Job Name indicated in request.
+- **Requested by:** Email of person requesting the report.
+- **Params:** Parameters of the compliance report request.
+
+Each compliance report includes a **Download** link which downloads a compressed file named `adhoc-[UNIQUE_ID].zip`. Inside the file is `meta.json`, which includes the parameters of the search executed and `posts.csv` which includes the contents of messages found by the request.
+
+### Compliance query definition stored in `meta.json`
+
+The `meta.json` file contains the following information about the compliance query:
+
+<table style={{width: '99%'}}>
+<colgroup>
+<col style={{width: '17%'}} />
+<col style={{width: '52%'}} />
+<col style={{width: '29%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>Unique identifier for compliance query</td>
+<td>ja8z8egap7nq9kqetz3rt98khe</td>
+</tr>
+<tr>
+<td>create_at</td>
+<td>Timestamp at which compliance query was executed</td>
+<td>1463637842478</td>
+</tr>
+<tr>
+<td>user_id</td>
+<td>Mattermost User ID for person creating query</td>
+<td>3bq1shta93yztg3i6aiu1tzi5h</td>
+</tr>
+<tr>
+<td>status</td>
+<td>Status of query: <em>finished</em> or <em>failed</em></td>
+<td>"finished"</td>
+</tr>
+<tr>
+<td>count</td>
+<td>Count of messages found matching keyword</td>
+<td>36</td>
+</tr>
+<tr>
+<td>desc</td>
+<td>User entered description of compliance query</td>
+<td>Example Compliance Report</td>
+</tr>
+<tr>
+<td>type</td>
+<td>Type of compliance query: <em>adhoc</em> or <em>daily</em></td>
+<td>"adhoc"</td>
+</tr>
+<tr>
+<td>start_at</td>
+<td>Timestamp at which query began to run</td>
+<td>1451606400000</td>
+</tr>
+<tr>
+<td>end_at</td>
+<td>Timestamp at which query ended</td>
+<td>1463529600000</td>
+</tr>
+<tr>
+<td>keywords</td>
+<td>Comma-separated, case insensitive keywords to match in query</td>
+<td>"drinking"</td>
+</tr>
+<tr>
+<td>emails</td>
+<td>Comma-separated emails of users to search. Blank returns all</td>
+<td><code>frank.yu@ha.ca, mary.li@hi.co</code></td>
+</tr>
+</tbody>
+</table>
+
+### Compliance query results stored in `posts.csv` file
+
+`posts.csv` contains the following information about the compliance query results, one search result per row:
+
+<table style={{width: '98%'}}>
+<colgroup>
+<col style={{width: '18%'}} />
+<col style={{width: '53%'}} />
+<col style={{width: '26%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TeamName</td>
+<td>URL name of team</td>
+<td>contosi</td>
+</tr>
+<tr>
+<td>TeamDisplayName</td>
+<td>Display name of team</td>
+<td>Contosi Corporation</td>
+</tr>
+<tr>
+<td>ChannelDisplayName</td>
+<td>Display name of channel where keyword was found</td>
+<td>Community Heartbeat</td>
+</tr>
+<tr>
+<td>ChannelName</td>
+<td>URL name of channel</td>
+<td>community-heartbeat</td>
+</tr>
+<tr>
+<td>UserUsername</td>
+<td>Username of user posting the message containing keyword</td>
+<td>frank.yu</td>
+</tr>
+<tr>
+<td>UserEmail</td>
+<td>Email of user posting the message containing keyword</td>
+<td>"frank.yu@contosi.com"</td>
+</tr>
+<tr>
+<td>UserNickname</td>
+<td>Nickname of user posting the message containing keyword</td>
+<td>fan du</td>
+</tr>
+<tr>
+<td>UserType</td>
+<td>Type of user posting the message ("user" or "bot")</td>
+<td>user</td>
+</tr>
+<tr>
+<td>PostId</td>
+<td>Unique ID of message post containing keyword</td>
+<td>xt9anyx6x3fx9y84aehgakdpze</td>
+</tr>
+<tr>
+<td>PostCreateAt</td>
+<td>Timestamp at which post was created</td>
+<td>2016-03-02T16:01:59Z</td>
+</tr>
+<tr>
+<td>PostDeletedAt</td>
+<td>Timestamp at which post was deleted (if applicable)</td>
+<td>2016-03-02T16:01:59Z</td>
+</tr>
+<tr>
+<td>PostUpdatedAt</td>
+<td>Timestamp at which post was last edited (if applicable)</td>
+<td>2016-03-02T16:01:59Z</td>
+</tr>
+<tr>
+<td>PostParentId</td>
+<td>Unique ID of parent post if post is a comment</td>
+<td>xt9anyx6x3fx9y84aehgakdpze</td>
+</tr>
+<tr>
+<td>PostOriginalId</td>
+<td>Unique ID of post if deleted or edited</td>
+<td>xt9anyx6x3fx9y84aehgakdpze</td>
+</tr>
+<tr>
+<td>PostMessage</td>
+<td>Message containing keyword</td>
+<td>Drinking from the fire hose</td>
+</tr>
+<tr>
+<td>PostFilenames</td>
+<td>Comma separated list of filesnames attached to post</td>
+<td>["/f../ho.png","/f../hi.png"]</td>
+</tr>
+</tbody>
+</table>
+
+## Global Relay support
+
+Mattermost daily compliance reports are compatible with Global Relay compliance solutions through the conversion of Mattermost `.CSV` exports into Global Relay `EML` files.
+
+- This conversion can be done by in-house developers who have previously written scripts to convert other communication systems into Global Relay format based on your organization's specific needs.
+- You can also contact your Global Relay account manager about a services project to establish this conversion.
+
+We recommend using the new [Compliance Export feature](/administration-guide/comply/compliance-export) for Global Relay exports.

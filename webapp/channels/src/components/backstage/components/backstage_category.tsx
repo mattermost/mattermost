@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {ReactNode} from 'react';
+import type {JSX, ReactNode} from 'react';
 import {Route, NavLink} from 'react-router-dom';
 
 type Props = {
@@ -12,7 +12,7 @@ type Props = {
     icon: string;
     parentLink?: string;
     children?: ReactNode[];
-}
+};
 
 const BackstageCategory = ({name, title, icon, parentLink, children = []}: Props) => {
     const link = parentLink + '/' + name;

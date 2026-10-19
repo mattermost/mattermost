@@ -1,6 +1,12 @@
 name: "Web app setup"
 description: "Set up NPM and dependencies"
 
+inputs:
+  read-only:
+    description: "Restore from cache without saving"
+    required: false
+    default: "false"
+
 runs:
   using: "composite"
   steps:
@@ -9,8 +15,9 @@ runs:
       with:
         node-version-file: ".nvmrc"
     - name: ci/cache-node-modules
+      if: inputs.read-only != 'true'
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-      id: cache-node-modules
+      id: cache-node-modules-rw
       with:
         path: |
           webapp/node_modules
@@ -20,16 +27,40 @@ runs:
           webapp/platform/shared/node_modules
           webapp/platform/types/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json') }}
+        # fall back to most recent cache for this OS if package-lock.json changed
+        restore-keys: |
+          node-modules-${{ runner.os }}-
+    - name: ci/restore-node-modules
+      if: inputs.read-only == 'true'
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      id: cache-node-modules-ro
+      with:
+        path: |
+          webapp/node_modules
+          webapp/channels/node_modules
+          webapp/platform/client/node_modules
+          webapp/platform/components/node_modules
+          webapp/platform/shared/node_modules
+          webapp/platform/types/node_modules
+        key: node-modules-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json') }}
+        # fall back to most recent cache for this OS if package-lock.json changed
+        restore-keys: |
+          node-modules-${{ runner.os }}-
+    - name: ci/resolve-cache-hit
+      id: cache-hit
+      shell: bash
+      run: |
+        echo "cache-hit=${{ steps.cache-node-modules-rw.outputs.cache-hit || steps.cache-node-modules-ro.outputs.cache-hit }}" >> $GITHUB_OUTPUT
     - name: ci/get-node-modules
-      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      if: steps.cache-hit.outputs.cache-hit != 'true'
       shell: bash
       working-directory: webapp
       run: |
         make node_modules
     - name: ci/build-platform-packages
-      # These are built automatically when depenedencies are installed, but they aren't cached properly, so we need to
+      # These are built automatically when dependencies are installed, but they aren't cached properly, so we need to
       # manually build them when the cache is hit. They aren't worth caching because they have too many dependencies.
-      if: steps.cache-node-modules.outputs.cache-hit == 'true'
+      if: steps.cache-hit.outputs.cache-hit == 'true'
       shell: bash
       working-directory: webapp
       run: |

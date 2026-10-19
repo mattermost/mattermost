@@ -23,7 +23,7 @@ export type Props = {
     actions: {
         autocompleteUsers: (username: string) => Promise<UserAutocomplete>;
     };
-}
+};
 
 const UserAutocompleteSetting = ({id, label, placeholder, helpText, value, onChange, disabled, actions}: Props) => {
     const userSuggestionProvidersRef = useRef([new GenericUserProvider(actions.autocompleteUsers)]);

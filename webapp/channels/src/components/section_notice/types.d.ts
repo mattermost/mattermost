@@ -7,4 +7,4 @@ type SectionNoticeButton = {
     trailingIcon?: string;
     leadingIcon?: string;
     loading?: boolean;
-}
+};

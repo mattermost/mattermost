@@ -15,9 +15,7 @@ const {LayoutModes, splitFormattingBarControls} = jest.requireActual('./hooks');
 
 describe('FormattingBar', () => {
     const baseProps = {
-        getCurrentMessage: jest.fn(() => ''),
-        getCurrentSelection: jest.fn(() => ({start: 0, end: 0})),
-        applyMarkdown: jest.fn(),
+        applyFormatting: jest.fn(),
         disableControls: false,
         location: Locations.CENTER,
     };

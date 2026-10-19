@@ -17,7 +17,7 @@ export const SCROLL_TO_BOTTOM_DISMISS_BUTTON_TESTID = 'scroll-to-bottom-toast--d
 type ScrollToBottomToastProps = {
     onDismiss: () => void;
     onClick: () => void;
-}
+};
 
 export const ScrollToBottomToast = ({onDismiss, onClick}: ScrollToBottomToastProps) => {
     const {formatMessage} = useIntl();

@@ -11,6 +11,7 @@ exports[`components/post_view/PostAttachment should match snapshot 1`] = `
     >
       <div
         class="post-message__text"
+        data-testid="post-message-text"
         dir="auto"
         id="postMessageText_post_id"
       >
@@ -39,6 +40,7 @@ exports[`components/post_view/PostAttachment should match snapshot, on Show Less
     >
       <div
         class="post-message__text"
+        data-testid="post-message-text"
         dir="auto"
         id="postMessageText_post_id"
       >
@@ -90,6 +92,7 @@ exports[`components/post_view/PostAttachment should match snapshot, on Show More
     >
       <div
         class="post-message__text"
+        data-testid="post-message-text"
         dir="auto"
         id="postMessageText_post_id"
       >
@@ -149,6 +152,7 @@ exports[`components/post_view/PostAttachment should match snapshot, on edited po
     >
       <div
         class="post-message__text"
+        data-testid="post-message-text"
         dir="auto"
         id="postMessageText_post_id"
       >
@@ -177,6 +181,7 @@ exports[`components/post_view/PostAttachment should match snapshot, on ephemeral
     >
       <div
         class="post-message__text"
+        data-testid="post-message-text"
         dir="auto"
         id="postMessageText_post_id"
       >

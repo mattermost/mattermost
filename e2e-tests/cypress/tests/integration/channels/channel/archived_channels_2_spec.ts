@@ -10,9 +10,9 @@
 // Stage: @prod
 // Group: @channels @channel
 
-import {Channel, ServerChannel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel, ServerChannel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getAdminAccount} from '@/support/env';
 import {getRandomId} from '@/utils';

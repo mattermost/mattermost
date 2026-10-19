@@ -7,7 +7,6 @@ import {
     disableChannelAutotranslation,
     enableAutotranslationConfig,
     enableChannelAutotranslation,
-    ensureAutotranslationPermissions,
     getAdminClient,
     hasAutotranslationLicense,
     setMockSourceLanguage,
@@ -137,7 +136,7 @@ test(
             mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
-        await ensureAutotranslationPermissions(adminClient);
+        await pw.resetRoles();
 
         const channelName = `autotranslation-admin-${pw.random.id()}`;
         const created = await adminClient.createChannel({
@@ -194,7 +193,7 @@ test(
             mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
-        await ensureAutotranslationPermissions(adminClient);
+        await pw.resetRoles();
 
         const channelName = `autotranslation-system-msg-${pw.random.id()}`;
         const created = await adminClient.createChannel({
@@ -282,7 +281,9 @@ test.fixme(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         const oldMessage = 'Old message before enable';
         await posterClient.createPost({
@@ -439,7 +440,9 @@ test(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         // Re-apply config before the post that needs to be translated.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
@@ -514,7 +517,9 @@ test.fixme(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         // Set Spanish source to ensure translation happens for new member
         await setMockSourceLanguage(translationUrl, 'es');
@@ -623,7 +628,9 @@ test.fixme(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         const originalText = 'Solo texto original';
         // Set Spanish to ensure translation
@@ -701,7 +708,9 @@ test.fixme(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         // Create a second poster to test translation indicators (only show with multiple users)
         const poster2 = await pw.random.user('poster2');
@@ -712,7 +721,9 @@ test.fixme(
             username: poster2.username,
             password: poster2.password,
         });
-        if (!posterClient2) throw new Error('Failed to create second poster client');
+        if (!posterClient2) {
+            throw new Error('Failed to create second poster client');
+        }
 
         // Set source language for mock/real server before creating posts
         // For mock: controls which language is detected; for real: auto-detection is used
@@ -804,7 +815,9 @@ test.fixme(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         // Create a second poster to test translation indicators (only show with multiple users)
         const poster2 = await pw.random.user('poster2');
@@ -815,7 +828,9 @@ test.fixme(
             username: poster2.username,
             password: poster2.password,
         });
-        if (!posterClient2) throw new Error('Failed to create second poster client');
+        if (!posterClient2) {
+            throw new Error('Failed to create second poster client');
+        }
 
         // Set source language before creating posts
         // Post Spanish first so it gets the translation indicator (first message from posterClient)
@@ -905,7 +920,9 @@ test.fixme(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         // Create a second poster to show translation indicator (only visible with multiple users)
         const poster2 = await pw.random.user('poster2');
@@ -916,7 +933,9 @@ test.fixme(
             username: poster2.username,
             password: poster2.password,
         });
-        if (!posterClient2) throw new Error('Failed to create second poster client');
+        if (!posterClient2) {
+            throw new Error('Failed to create second poster client');
+        }
 
         // Post Spanish message that's long enough for reliable detection
         await posterClient.createPost({
@@ -999,7 +1018,9 @@ test.fixme(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         // Create a second poster to show translation indicator (only visible with multiple users)
         const poster2 = await pw.random.user('poster2');
@@ -1010,7 +1031,9 @@ test.fixme(
             username: poster2.username,
             password: poster2.password,
         });
-        if (!posterClient2) throw new Error('Failed to create second poster client');
+        if (!posterClient2) {
+            throw new Error('Failed to create second poster client');
+        }
 
         // Set Spanish source to ensure translation happens
         await setMockSourceLanguage(translationUrl, 'es');
@@ -1160,7 +1183,7 @@ test(
         tag: ['@autotranslation'],
     },
     async ({pw}) => {
-        const {adminClient, user, userClient, team} = await pw.initSetup();
+        const {adminClient, user, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(
@@ -1168,9 +1191,13 @@ test(
             'Skipping test - server does not have Entry or Advanced license',
         );
         const translationUrl = process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010';
+        // Target languages intentionally exclude 'en' so the test user's default locale is
+        // unsupported. Changing the user's own locale instead (e.g. to 'fr') would also switch
+        // the webapp UI language, breaking the literal English text assertions below as soon as
+        // that locale gets a translation for these strings.
         await enableAutotranslationConfig(adminClient, {
             mockBaseUrl: translationUrl,
-            targetLanguages: ['en', 'es'],
+            targetLanguages: ['es', 'de'],
         });
 
         const channelName = `autotranslation-unsupported-${pw.random.id()}`;
@@ -1183,10 +1210,24 @@ test(
         await enableChannelAutotranslation(adminClient, created.id);
         await adminClient.addToChannel(user.id, created.id);
 
-        await userClient.patchMe({locale: 'fr'});
-
         const {channelsPage, page} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
+        await channelsPage.toBeVisible();
+
+        // Re-apply config + reload to counter concurrent initSetup() resets, re-applying again
+        // right as the page reloads so a CONFIG_CHANGED WebSocket event firing during load
+        // carries our config rather than a stale reset from another parallel worker.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['es', 'de']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
+        await channelsPage.page.reload();
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['es', 'de']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
         await channelsPage.toBeVisible();
 
         await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible();

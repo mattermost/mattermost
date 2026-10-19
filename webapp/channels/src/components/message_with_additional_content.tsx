@@ -21,7 +21,7 @@ type Props = {
     isRHS: boolean;
     compactDisplay?: boolean;
     isChannelAutotranslated: boolean;
-}
+};
 
 export default function MessageWithAdditionalContent({
     post,

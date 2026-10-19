@@ -16,8 +16,8 @@ import DataGrid from 'components/admin_console/data_grid/data_grid';
 import type {Column, Row} from 'components/admin_console/data_grid/data_grid';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import TeamFilterDropdown from 'components/admin_console/filter/team_filter_dropdown';
+import {ChannelIcon} from 'components/channel_type_icon';
 
-import {getChannelIconComponent} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
 
 import './channel_list.scss';
@@ -25,7 +25,7 @@ import './channel_list.scss';
 type PolicyActiveStatus = {
     id: string;
     active: boolean;
-}
+};
 
 type Props = WrappedComponentProps & {
     channels: ChannelWithTeamData[];
@@ -45,14 +45,14 @@ type Props = WrappedComponentProps & {
         setChannelListSearch: (term: string) => void;
         setChannelListFilters: (filters: ChannelSearchOpts) => void;
     };
-}
+};
 
 type State = {
     loading: boolean;
     page: number;
     after: string;
     cursorHistory: string[];
-}
+};
 
 const PAGE_SIZE = 10;
 
@@ -147,7 +147,7 @@ class ChannelList extends React.PureComponent<Props, State> {
                 after: lastChannelId,
                 loading: false,
             });
-        } catch (error) {
+        } catch {
             this.setState({loading: false});
         }
     };
@@ -252,12 +252,10 @@ class ChannelList extends React.PureComponent<Props, State> {
             return change.active;
         }
 
-        // Find the channel to get its current policy_is_active status
         const allChannels = [...channels, ...Object.values(channelsToAdd)];
         const channel = allChannels.find((ch) => ch.id === channelId);
 
-        // Use the channel's policy_is_active value, defaulting to false if undefined
-        return channel?.policy_is_active ?? false;
+        return channel?.policy_auto_add ?? false;
     };
 
     private getAllChannelsAutoAddStatus = (): {allActive: boolean; allInactive: boolean; mixed: boolean} => {
@@ -427,9 +425,9 @@ class ChannelList extends React.PureComponent<Props, State> {
         ].slice(startCount - 1, endCount);
 
         return channelsToDisplay.map((channel) => {
-            const ChannelIconComponent = getChannelIconComponent(channel);
             const iconToDisplay = (
-                <ChannelIconComponent
+                <ChannelIcon
+                    channel={channel}
                     className='channel-icon'
                     data-testid={`${channel.name}-archive-icon`}
                 />

@@ -17,18 +17,18 @@ type Props = {
     file?: FileInfo;
     enableSVGs: boolean;
     isFileRejected?: boolean;
-}
+};
 
 type FileProps = FileInfo & {
     enableSVGs: boolean;
     isFileRejected?: boolean;
-}
+};
 
 type CardProps = {
     children?: React.ReactElement<typeof Image>;
     title: string;
     size?: number;
-}
+};
 
 function File({
     id,

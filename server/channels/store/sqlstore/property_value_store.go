@@ -6,11 +6,13 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"slices"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -134,30 +136,45 @@ func (s *SqlPropertyValueStore) GetMany(groupID string, ids []string) ([]*model.
 	return values, nil
 }
 
-func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	if err := opts.Cursor.IsValid(); err != nil {
-		return nil, fmt.Errorf("cursor is invalid: %w", err)
+func (s *SqlPropertyValueStore) SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	if err := opts.IsValid(); err != nil {
+		return nil, fmt.Errorf("opts is invalid: %w", err)
 	}
 
 	if opts.PerPage < 1 {
 		return nil, errors.New("per page must be positive integer greater than zero")
 	}
 
-	builder := s.tableSelectQuery.
-		OrderBy("CreateAt ASC, Id ASC").
-		Limit(uint64(opts.PerPage))
+	deltaMode := opts.SinceUpdateAt > 0
 
-	if !opts.Cursor.IsEmpty() {
-		builder = builder.Where(sq.Or{
-			sq.Gt{"CreateAt": opts.Cursor.CreateAt},
-			sq.And{
-				sq.Eq{"CreateAt": opts.Cursor.CreateAt},
-				sq.Gt{"Id": opts.Cursor.PropertyValueID},
-			},
-		})
+	builder := s.tableSelectQuery.Limit(uint64(opts.PerPage))
+	if deltaMode {
+		builder = builder.OrderBy("UpdateAt ASC, Id ASC")
+	} else {
+		builder = builder.OrderBy("CreateAt ASC, Id ASC")
 	}
 
-	if !opts.IncludeDeleted {
+	if !opts.Cursor.IsEmpty() {
+		if deltaMode {
+			builder = builder.Where(sq.Or{
+				sq.Gt{"UpdateAt": opts.Cursor.UpdateAt},
+				sq.And{
+					sq.Eq{"UpdateAt": opts.Cursor.UpdateAt},
+					sq.Gt{"Id": opts.Cursor.PropertyValueID},
+				},
+			})
+		} else {
+			builder = builder.Where(sq.Or{
+				sq.Gt{"CreateAt": opts.Cursor.CreateAt},
+				sq.And{
+					sq.Eq{"CreateAt": opts.Cursor.CreateAt},
+					sq.Gt{"Id": opts.Cursor.PropertyValueID},
+				},
+			})
+		}
+	}
+
+	if !deltaMode && !opts.IncludeDeleted {
 		builder = builder.Where(sq.Eq{"DeleteAt": 0})
 	}
 
@@ -177,8 +194,11 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 		builder = builder.Where(sq.Eq{"FieldID": opts.FieldID})
 	}
 
-	if opts.SinceUpdateAt > 0 {
-		builder = builder.Where(sq.Gt{"UpdateAt": opts.SinceUpdateAt})
+	if deltaMode {
+		// Inclusive boundary so rows updated at exactly `since` are
+		// returned on the first page. The cursor clause above then
+		// disambiguates same-millisecond rows by Id across pages.
+		builder = builder.Where(sq.GtOrEq{"UpdateAt": opts.SinceUpdateAt})
 	}
 
 	if opts.Value != nil {
@@ -186,7 +206,7 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 	}
 
 	var values []*model.PropertyValue
-	if err := s.GetReplica().SelectBuilder(&values, builder); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&values, builder); err != nil {
 		return nil, errors.Wrap(err, "property_value_search_query")
 	}
 
@@ -363,6 +383,42 @@ func (s *SqlPropertyValueStore) DeleteForField(groupID, fieldID string) error {
 	}
 
 	return nil
+}
+
+func (s *SqlPropertyValueStore) GetReferencedOptionIDs(groupID string, fieldIDs []string) ([]string, error) {
+	if len(fieldIDs) == 0 || slices.Contains(fieldIDs, "") {
+		return nil, store.NewErrInvalidInput("PropertyValue", "fieldIDs", fieldIDs)
+	}
+
+	// A select value is a JSON string and a multiselect value a JSON string
+	// array; both are normalized to an array so one expansion covers them.
+	// Anything else (null, objects) expands to nothing.
+	builder := s.getQueryBuilder().
+		Select("DISTINCT opt").
+		From("PropertyValues pv").
+		CrossJoin(`LATERAL jsonb_array_elements_text(
+			CASE jsonb_typeof(pv.Value)
+				WHEN 'array' THEN pv.Value
+				WHEN 'string' THEN jsonb_build_array(pv.Value)
+				ELSE '[]'::jsonb
+			END
+		) AS opt`).
+		Where(sq.Eq{"pv.FieldID": fieldIDs, "pv.DeleteAt": 0}).
+		Where("opt <> ''").
+		OrderBy("opt")
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"pv.GroupID": groupID})
+	}
+
+	// Read from master: the caller decides whether to remove an option based
+	// on this, so a lagging replica must not hide a value that was just written.
+	ids := []string{}
+	if err := s.GetMaster().SelectBuilder(&ids, builder); err != nil {
+		return nil, errors.Wrap(err, "property_value_get_referenced_option_ids_select")
+	}
+
+	return ids, nil
 }
 
 func (s *SqlPropertyValueStore) DeleteForTarget(groupID string, targetType string, targetID string) error {

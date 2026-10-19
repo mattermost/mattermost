@@ -24,10 +24,10 @@ export type Props = {
     group: GroupValue;
     isSelected: boolean;
     rowSelected: string;
-    selectedItemRef: React.RefObject<HTMLDivElement>;
+    selectedItemRef: React.RefObject<HTMLDivElement | null>;
     onMouseMove: (group: GroupValue) => void;
     addUserProfile: (profile: UserProfileValue) => void;
-}
+};
 
 const displayNameGetter = makeDisplayNameGetter();
 
@@ -41,7 +41,7 @@ const GroupOption = (props: Props) => {
         addUserProfile,
     } = props;
 
-    const getProfilesByIdsAndUsernames = useMemo(makeGetProfilesByIdsAndUsernames, []);
+    const getProfilesByIdsAndUsernames = useMemo(() => makeGetProfilesByIdsAndUsernames(), []);
 
     const profiles = useSelector((state: GlobalState) => getProfilesByIdsAndUsernames(state, {allUserIds: group.member_ids}) as UserProfileValue[]);
     const overflowNames = useSelector((state: GlobalState) => {

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useState, type JSX} from 'react';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
@@ -37,7 +37,7 @@ type Props = {
         };
     };
     focusOnMount?: boolean;
-}
+};
 
 export default function SearchableUserListContainer(props: Props) {
     const [term, setTerm] = useState('');

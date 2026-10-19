@@ -4,7 +4,7 @@
 import os from 'node:os';
 
 import {expect, test} from '@playwright/test';
-import {PluginManifest} from '@mattermost/types/plugins';
+import type {PluginManifest} from '@mattermost/types/plugins';
 
 import {callsPluginId} from './constant';
 import {getAdminClient} from './server/init';
@@ -82,13 +82,6 @@ export async function skipIfNoLicense() {
     test.skip(license.IsLicensed === 'false', 'Skipping test - server not licensed');
 }
 
-export async function skipIfFeatureFlagNotSet(name: string, value: string | boolean) {
-    const {adminClient} = await getAdminClient();
-    const cfg = await adminClient.getConfig();
-
-    test.skip(cfg.FeatureFlags[name] !== value, `Skipping test - Feature Flag ${name} needs to be set to ${value}`);
-}
-
 // ensureServerDeployment is used to ensure server deployment type is as expected.
 // If server is not deployed as expected, test will fail.
 export async function ensureServerDeployment() {
@@ -145,14 +138,14 @@ export async function ensurePluginsLoaded(pluginIds: string[] = []) {
             expect(isInstalled, `${pluginId} is not installed. Related test will fail.`).toBe(true);
 
             const isActive = plugins.active.some((plugin: PluginManifest) => plugin.id === pluginId);
-            if (!isActive) {
+            if (isActive) {
+                // eslint-disable-next-line no-console
+                console.log(`${pluginId} is installed and active.`);
+            } else {
                 await adminClient.enablePlugin(pluginId);
 
                 // eslint-disable-next-line no-console
                 console.log(`${pluginId} is installed and has been activated.`);
-            } else {
-                // eslint-disable-next-line no-console
-                console.log(`${pluginId} is installed and active.`);
             }
         });
 }

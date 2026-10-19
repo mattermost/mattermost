@@ -13,7 +13,7 @@ import './data_spillage_download_report.scss';
 
 type Props = {
     flaggedPostId: string;
-}
+};
 
 type Status = 'idle' | 'generating' | 'error';
 

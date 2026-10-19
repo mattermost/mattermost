@@ -36,7 +36,7 @@ type Props = {
      * Content protected by the permissions gate
      */
     children: React.ReactNode;
-}
+};
 
 const ChannelPermissionGate = ({channelId, teamId, permissions, children, invert = false}: Props) => {
     const hasPermission = useSelector((state: GlobalState) => {

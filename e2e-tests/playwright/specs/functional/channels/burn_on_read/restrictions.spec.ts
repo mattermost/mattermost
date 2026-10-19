@@ -21,7 +21,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -50,7 +50,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -72,9 +72,10 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        await senderPage.postMessage(`No edit test ${pw.random.id()}`);
+        const message = `No edit test ${pw.random.id()}`;
+        await senderPage.postMessage(message);
 
-        const borPost = await senderPage.getLastPost();
+        const borPost = await senderPage.centerView.getPostByText(message);
 
         await borPost.hover();
         await borPost.postMenu.openDotMenu();
@@ -100,7 +101,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -128,7 +129,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -156,7 +157,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -178,9 +179,10 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        await senderPage.postMessage(`Sender copy link test ${pw.random.id()}`);
+        const message = `Sender copy link test ${pw.random.id()}`;
+        await senderPage.postMessage(message);
 
-        const borPost = await senderPage.getLastPost();
+        const borPost = await senderPage.centerView.getPostByText(message);
 
         await borPost.hover();
         await borPost.postMenu.openDotMenu();
@@ -206,7 +208,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -235,7 +237,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -266,7 +268,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
-        const borPost = await receiverPage.getLastPost();
+        const borPost = await receiverPage.centerView.getConcealedBorPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -278,4 +280,42 @@ test.describe('Burn-on-Read Restrictions', () => {
 
         await receiverPage.page.keyboard.press('Escape');
     });
+
+    /**
+     * @objective Verify a burn-on-read message cannot be scheduled to repeat weekly.
+     *
+     * @precondition
+     * A test server with valid license and the RecurringScheduledPosts feature flag enabled
+     */
+    test(
+        'withholds weekly recurrence from a burn-on-read draft while offering it for a plain draft',
+        {tag: '@burn_on_read'},
+        async ({pw}) => {
+            await pw.ensureFeatureFlag('RecurringScheduledPosts', true);
+
+            const {user, team} = await setupBorTest(pw);
+
+            const {channelsPage} = await pw.testBrowser.login(user);
+            await channelsPage.goto(team.name);
+            await channelsPage.toBeVisible();
+
+            // # Draft a plain message and open the custom schedule time modal
+            await channelsPage.centerView.postCreate.writeMessage(`Plain draft ${pw.random.id()}`);
+            const plainDraftModal = await channelsPage.openScheduleMessageModal();
+
+            // * Verify recurrence is offered here, so the assertion below cannot pass merely
+            // * because the flag was off or the modal never rendered
+            await expect(plainDraftModal.repeatWeeklyCheckbox).toBeEnabled();
+
+            // # Discard the modal and turn the same draft into a burn-on-read message
+            await plainDraftModal.cancelButton.click();
+            await channelsPage.centerView.postCreate.toggleBurnOnRead();
+
+            // # Reopen the custom schedule time modal
+            const burnOnReadModal = await channelsPage.openScheduleMessageModal();
+
+            // * Verify recurrence is withheld now that the draft is burn-on-read
+            await expect(burnOnReadModal.repeatWeeklyCheckbox).toBeDisabled();
+        },
+    );
 });

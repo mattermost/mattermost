@@ -10,10 +10,10 @@ import Tag from 'components/widgets/tag/tag';
 import type {TagSize} from 'components/widgets/tag/tag';
 
 type Props = {
-    priority?: PostPriority|'';
+    priority?: PostPriority | '';
     size?: TagSize;
     uppercase?: boolean;
-}
+};
 
 export default function PriorityLabel({
     priority,

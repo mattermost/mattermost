@@ -20,7 +20,7 @@ import PostAddChannelMember from './post_add_channel_member';
 type OwnProps = {
     postId: string;
     userIds: string[];
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const post = getPost(state, ownProps.postId) || {};

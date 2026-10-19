@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
@@ -52,13 +52,13 @@ type Props = {
     isPaidSubscription: boolean;
     customer?: CloudCustomer;
     showSkuTag?: boolean;
-}
+};
 
 type State = {
     gettingTrial: boolean;
     gettingTrialError: string | null;
     gettingTrialResponseCode: number | null;
-}
+};
 
 export default class FeatureDiscovery extends React.PureComponent<Props, State> {
     constructor(props: Props) {

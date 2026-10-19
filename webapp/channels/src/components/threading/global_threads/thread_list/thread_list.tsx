@@ -34,7 +34,7 @@ import './thread_list.scss';
 
 export enum ThreadFilter {
     none = '',
-    unread = 'unread'
+    unread = 'unread',
 }
 
 export const FILTER_STORAGE_KEY = 'globalThreads_filter';
@@ -73,6 +73,10 @@ const ThreadList = ({
         const target = e.target as HTMLElement;
         const tagName = target?.tagName?.toLowerCase();
         if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') {
+            return;
+        }
+        const editableHost = target?.closest?.('[contenteditable]');
+        if (editableHost && editableHost.getAttribute('contenteditable') !== 'false') {
             return;
         }
         const comboKeyPressed = e.altKey || e.metaKey || e.shiftKey || e.ctrlKey;
@@ -301,9 +305,9 @@ function useTabs<TabName extends string>({
         panelId: string;
     }>;
 }): {
-        tabListProps: React.HTMLAttributes<HTMLElement>;
-        tabProps: Array<React.HTMLAttributes<HTMLElement>>;
-    } {
+    tabListProps: React.HTMLAttributes<HTMLElement>;
+    tabProps: Array<React.HTMLAttributes<HTMLElement>>;
+} {
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         let delta = 0;
         if (Keyboard.isKeyPressed(e, Constants.KeyCodes.RIGHT)) {

@@ -15,7 +15,7 @@ export const messages = defineMessages({
 
 type TitleProps = {
     isOverLimit: boolean;
-}
+};
 
 const Title = ({isOverLimit}: TitleProps) => {
     const intl = useIntl();
@@ -52,7 +52,7 @@ const Title = ({isOverLimit}: TitleProps) => {
 type SingleChannelGuestsCardProps = {
     singleChannelGuestsCount: number | undefined;
     singleChannelGuestLimit: number;
-}
+};
 
 const SingleChannelGuestsCard = ({singleChannelGuestsCount, singleChannelGuestLimit}: SingleChannelGuestsCardProps) => {
     const isOverLimit = singleChannelGuestsCount !== undefined && singleChannelGuestLimit > 0 && singleChannelGuestsCount > singleChannelGuestLimit;

@@ -20,6 +20,15 @@ describe('Messaging', () => {
         });
     });
 
+    // These tests share a page (testIsolation is off) and each one assumes the RHS is closed. A test
+    // that fails before its own uiCloseRHS() would otherwise leave it open over the center channel
+    // and take the rest of the file down with it, including its own retry.
+    beforeEach(() => {
+        cy.get('body').type('{esc}');
+        cy.uiCloseRHS();
+        cy.get('#post_textbox').should('be.visible');
+    });
+
     it('MM-T2189 Emoji reaction - type +:+1:', () => {
         // # Post a message
         cy.postMessage('Hello');
@@ -62,7 +71,7 @@ describe('Messaging', () => {
             // * Emoji reaction is added to the post
             cy.get(`#${postId}_message`).within(() => {
                 cy.findByLabelText('reactions').should('exist');
-            cy.findByLabelText('You reacted with :upside_down_face:. Click to remove.').should('exist');
+                cy.findByLabelText('You reacted with :upside_down_face:. Click to remove.').should('exist');
             });
 
             // * Reaction appears in recently used section of emoji picker
@@ -102,8 +111,8 @@ describe('Messaging', () => {
                 // * Two reactions are added to the message in the expanded RHS
                 cy.get(`#rhsPost_${postId}`).within(() => {
                     cy.findByLabelText('reactions').should('be.visible');
-            cy.findByLabelText('You reacted with :smiley:. Click to remove.').should('be.visible');
-            cy.findByLabelText('You reacted with :upside_down_face:. Click to remove.').should('be.visible');
+                    cy.findByLabelText('You reacted with :smiley:. Click to remove.').should('be.visible');
+                    cy.findByLabelText('You reacted with :upside_down_face:. Click to remove.').should('be.visible');
                 });
 
                 // # Close RHS

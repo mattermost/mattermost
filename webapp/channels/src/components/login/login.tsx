@@ -64,7 +64,7 @@ const MOBILE_SCREEN_WIDTH = 1200;
 
 type LoginProps = {
     onCustomizeHeader?: CustomizeHeaderType;
-}
+};
 
 const Login = ({onCustomizeHeader}: LoginProps) => {
     const {formatMessage} = useIntl();
@@ -80,6 +80,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const {
         EnableLdap,
         EnableSaml,
+        EnableGuestAccounts,
         EnableGuestMagicLink,
         EnableSignInWithEmail,
         EnableSignInWithUsername,
@@ -104,7 +105,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         ForgotPasswordLink,
         PasswordEnableForgotLink,
     } = useSelector(getConfig);
-    const {IsLicensed} = useSelector(getLicense);
+    const {IsLicensed, GuestAccounts} = useSelector(getLicense);
     const initializing = useSelector((state: GlobalState) => state.requests.users.logout.status === RequestStatus.SUCCESS || !state.storage.initialized);
     const currentUser = useSelector(getCurrentUser);
     const experimentalPrimaryTeam = useSelector((state: GlobalState) => (ExperimentalPrimaryTeam ? getTeamByName(state, ExperimentalPrimaryTeam) : undefined));
@@ -113,7 +114,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const loginIdInput = useRef<HTMLInputElement>(null);
     const passwordInput = useRef<HTMLInputElement>(null);
-    const closeSessionExpiredNotification = useRef<() => void>();
+    const closeSessionExpiredNotification = useRef<() => void>(undefined);
 
     const [loginId, setLoginId] = useState(extraParam === Constants.SIGNIN_VERIFIED && emailParam ? emailParam : '');
     const [password, setPassword] = useState('');
@@ -128,7 +129,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const [requiresPassword, setRequiresPassword] = useState(false);
 
     const enableCustomBrand = EnableCustomBrand === 'true';
-    const enableGuestMagicLink = EnableGuestMagicLink === 'true';
+
+    // The server only answers the login type pre-check while guest accounts are licensed and enabled
+    const enableGuestMagicLink = GuestAccounts === 'true' && EnableGuestAccounts === 'true' && EnableGuestMagicLink === 'true';
     const enableLdap = EnableLdap === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
     const enableUserCreation = EnableUserCreation === 'true';
@@ -968,6 +971,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     {!isMobileView && getAlternateLink()}
                     <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
+                            data-testid='login-body-card'
                             className='login-body-card-content'
                         >
                             {magicLinkSuccessful ? (

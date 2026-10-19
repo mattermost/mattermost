@@ -59,7 +59,7 @@ func (*LeaveProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Comman
 		return &model.CommandResponse{GotoLocation: args.SiteURL + "/"}
 	}
 
-	user, err := a.GetUser(args.UserId)
+	user, err := a.GetUser(rctx, args.UserId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}

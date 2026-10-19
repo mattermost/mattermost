@@ -45,7 +45,7 @@ export type InstalledOAuthAppProps = {
     /**
      * The function to call when Regenerate Secret link is clicked
      */
-    onRegenerateSecret: (oauthAppId: string) => Promise<{ error?: { message: string } }>;
+    onRegenerateSecret: (oauthAppId: string) => Promise<{error?: {message: string}}>;
 
     /**
      * The function to call when Delete link is clicked
@@ -56,12 +56,12 @@ export type InstalledOAuthAppProps = {
      * Set to filter OAuthApp
      */
     filter?: string | null;
-}
+};
 
 export type InstalleOAuthAppState = {
     clientSecret: string;
     error?: string | null;
-}
+};
 
 export default class InstalledOAuthApp extends React.PureComponent<InstalledOAuthAppProps, InstalleOAuthAppState> {
     constructor(props: InstalledOAuthAppProps) {

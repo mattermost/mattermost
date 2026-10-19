@@ -8,6 +8,7 @@ exports[`components/sidebar/channel_filter should match snapshot 1`] = `
     <a
       aria-label="unreads filter"
       class="SidebarFilters_filterButton"
+      data-testid="sidebar-unread-filter-button"
       href="#"
     >
       <i
@@ -26,6 +27,7 @@ exports[`components/sidebar/channel_filter should match snapshot if the unread f
     <a
       aria-label="unreads filter"
       class="SidebarFilters_filterButton active"
+      data-testid="sidebar-unread-filter-button"
       href="#"
     >
       <i

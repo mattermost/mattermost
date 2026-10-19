@@ -9,195 +9,192 @@ exports[`components/TeamMembersModal should match snapshot 1`] = `
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="teamMemberModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    id="teamMembersModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="teamMemberModalLabel"
-      aria-modal="true"
-      class="fade in modal"
-      id="teamMembersModal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="GenericModal__location--top a11y__modal GenericModal GenericModal__compassDesign more-modal modal-dialog"
     >
       <div
-        class="GenericModal__location--top a11y__modal GenericModal GenericModal__compassDesign more-modal modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
         >
           <div
-            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+            class="modal-header"
           >
             <div
-              class="modal-header"
+              class="GenericModal__header__text_container"
             >
               <div
-                class="GenericModal__header__text_container"
+                class="GenericModal__header"
               >
-                <div
-                  class="GenericModal__header"
+                <h1
+                  class="modal-title"
+                  id="teamMemberModalLabel"
                 >
-                  <h1
-                    class="modal-title"
-                    id="teamMemberModalLabel"
-                  >
-                    display name Members
-                  </h1>
-                </div>
+                  display name Members
+                </h1>
               </div>
-              <button
-                aria-label="Close"
-                class="close"
-                type="button"
-              >
-                <span
-                  aria-hidden="true"
-                >
-                  ×
-                </span>
-                <span
-                  class="sr-only"
-                >
-                  Close
-                </span>
-              </button>
             </div>
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+          </div>
+          <div
+            class="modal-body"
+          >
             <div
-              class="modal-body"
+              class="GenericModal__body"
             >
               <div
-                class="GenericModal__body"
+                class="filtered-user-list"
               >
                 <div
-                  class="filtered-user-list"
+                  class="filter-row"
                 >
                   <div
-                    class="filter-row"
+                    class="col-xs-12"
                   >
-                    <div
-                      class="col-xs-12"
+                    <label
+                      class="hidden-label"
+                      for="searchUsersInput"
                     >
-                      <label
-                        class="hidden-label"
-                        for="searchUsersInput"
-                      >
-                        Search users
-                      </label>
-                      <div
-                        class="input-wrapper"
-                      >
-                        <input
-                          aria-label="Search users"
-                          class="form-control filter-textbox"
-                          id="searchUsersInput"
-                          placeholder="Search users"
-                          value=""
-                        />
-                      </div>
-                    </div>
+                      Search users
+                    </label>
                     <div
-                      class="col-sm-12"
+                      class="input-wrapper"
                     >
-                      <span
-                        aria-live="polite"
-                        class="member-count pull-left"
-                        id="searchableUserListTotal"
+                      <input
+                        aria-label="Search users"
+                        class="form-control filter-textbox"
+                        id="searchUsersInput"
+                        placeholder="Search users"
+                        value=""
                       />
                     </div>
                   </div>
                   <div
-                    class="more-modal__list"
+                    class="col-sm-12"
+                  >
+                    <span
+                      aria-live="polite"
+                      class="member-count pull-left"
+                      id="searchableUserListTotal"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="more-modal__list"
+                >
+                  <div
+                    data-simplebar="init"
+                    style="--scrollbar-color: var(undefined);"
                   >
                     <div
-                      data-simplebar="init"
-                      style="--scrollbar-color: var(undefined);"
+                      class="simplebar-wrapper"
                     >
                       <div
-                        class="simplebar-wrapper"
+                        class="simplebar-height-auto-observer-wrapper"
                       >
                         <div
-                          class="simplebar-height-auto-observer-wrapper"
-                        >
-                          <div
-                            class="simplebar-height-auto-observer"
-                          />
-                        </div>
+                          class="simplebar-height-auto-observer"
+                        />
+                      </div>
+                      <div
+                        class="simplebar-mask"
+                      >
                         <div
-                          class="simplebar-mask"
+                          class="simplebar-offset"
+                          style="right: 0px; bottom: 0px;"
                         >
                           <div
-                            class="simplebar-offset"
-                            style="right: 0px; bottom: 0px;"
+                            aria-label="scrollable content"
+                            class="simplebar-content-wrapper"
+                            role="region"
+                            style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+                            tabindex="-1"
                           >
                             <div
-                              aria-label="scrollable content"
-                              class="simplebar-content-wrapper"
-                              role="region"
-                              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
-                              tabindex="-1"
+                              class="simplebar-content"
                             >
                               <div
-                                class="simplebar-content"
+                                class="loading-screen"
+                                data-testid="loading-screen"
+                                style="position: relative;"
                               >
                                 <div
-                                  class="loading-screen"
-                                  style="position: relative;"
+                                  class="loading__content"
                                 >
+                                  <p>
+                                    Loading
+                                  </p>
                                   <div
-                                    class="loading__content"
-                                  >
-                                    <p>
-                                      Loading
-                                    </p>
-                                    <div
-                                      class="round round-1"
-                                    />
-                                    <div
-                                      class="round round-2"
-                                    />
-                                    <div
-                                      class="round round-3"
-                                    />
-                                  </div>
+                                    class="round round-1"
+                                  />
+                                  <div
+                                    class="round round-2"
+                                  />
+                                  <div
+                                    class="round round-3"
+                                  />
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                        <div
-                          class="simplebar-placeholder"
-                          style="width: 0px; height: 0px;"
-                        />
                       </div>
                       <div
-                        class="simplebar-track simplebar-horizontal"
-                        style="visibility: hidden;"
-                      >
-                        <div
-                          class="simplebar-scrollbar"
-                          style="width: 0px; display: none;"
-                        />
-                      </div>
+                        class="simplebar-placeholder"
+                        style="width: 0px; height: 0px;"
+                      />
+                    </div>
+                    <div
+                      class="simplebar-track simplebar-horizontal"
+                      style="visibility: hidden;"
+                    >
                       <div
-                        class="simplebar-track simplebar-vertical"
-                        style="visibility: hidden;"
-                      >
-                        <div
-                          class="simplebar-scrollbar"
-                          style="height: 0px; display: none;"
-                        />
-                      </div>
+                        class="simplebar-scrollbar"
+                        style="width: 0px; display: none;"
+                      />
+                    </div>
+                    <div
+                      class="simplebar-track simplebar-vertical"
+                      style="visibility: hidden;"
+                    >
+                      <div
+                        class="simplebar-scrollbar"
+                        style="height: 0px; display: none;"
+                      />
                     </div>
                   </div>
-                  <div
-                    class="filter-controls"
-                  />
                 </div>
+                <div
+                  class="filter-controls"
+                />
               </div>
             </div>
           </div>

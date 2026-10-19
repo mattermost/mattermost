@@ -1,21 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 
-import {getArchiveIconClassName} from 'utils/channel_utils';
+import type {Channel} from '@mattermost/types/channels';
+
+import ChannelTypeIcon from 'components/channel_type_icon';
 
 type Props = {
+    channel: Channel;
     icon: JSX.Element | null;
-    isDeleted: boolean;
-    channelType?: string;
 };
 
-function SidebarChannelIcon({isDeleted, icon, channelType}: Props) {
-    if (isDeleted) {
-        return (
-            <i className={`icon ${getArchiveIconClassName(channelType)}`}/>
-        );
+function SidebarChannelIcon({channel, icon}: Props) {
+    if (channel.delete_at !== 0) {
+        return <ChannelTypeIcon channel={channel}/>;
     }
     return icon;
 }

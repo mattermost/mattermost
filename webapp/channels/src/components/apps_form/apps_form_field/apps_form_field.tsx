@@ -14,15 +14,21 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import type AutocompleteSelector from 'components/autocomplete_selector';
 import Markdown from 'components/markdown';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import BoolSetting from 'components/widgets/settings/bool_setting';
+import CheckboxGroupSetting from 'components/widgets/settings/checkbox_group_setting';
+import CheckboxMatrixSetting from 'components/widgets/settings/checkbox_matrix_setting';
 import RadioSetting from 'components/widgets/settings/radio_setting';
 import TextSetting from 'components/widgets/settings/text_setting';
 import type {InputTypes} from 'components/widgets/settings/text_setting';
 
 import AppsFormSelectField from './apps_form_select_field';
 
+import AppsFormActionButton from '../apps_form_action_button';
 import AppsFormDateField from '../apps_form_date_field';
 import AppsFormDateTimeField from '../apps_form_datetime_field';
+
+const AppsFormFileUpload = React.lazy(() => import('components/apps_form/apps_form_file_upload'));
 
 const TEXT_DEFAULT_MAX_LENGTH = 150;
 const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
@@ -30,12 +36,14 @@ const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
 export interface Props {
     field: AppField;
     name: string;
+    channelId?: string;
     errorText?: React.ReactNode;
     teammateNameDisplay?: string;
 
     value: AppFormValue;
     onChange: (name: string, value: any) => void;
     setIsInteracting?: (isInteracting: boolean) => void;
+    setFieldUploading?: (fieldName: string, uploading: boolean) => void;
     autoFocus?: boolean;
     listComponent?: React.ComponentProps<typeof AutocompleteSelector>['listComponent'];
     performLookup: (name: string, userInput: string) => Promise<AppSelectOption[]>;
@@ -48,6 +56,22 @@ export interface Props {
 export default class AppsFormField extends React.PureComponent<Props> {
     static defaultProps = {
         listComponent: ModalSuggestionList,
+    };
+
+    componentWillUnmount() {
+        // Clear this field's pending-upload flag if it unmounts mid-upload (e.g. a
+        // multi-step form drops the field) so submit isn't left blocked.
+        this.props.setFieldUploading?.(this.props.name, false);
+    }
+
+    handleFileSelected = (fileIds: string[]) => {
+        this.props.onChange(this.props.name, fileIds.join(','));
+    };
+
+    // Stable per-field handler (class property → same reference across renders) so the
+    // file component's onPendingChange effect dependency doesn't change every render.
+    handlePendingChange = (uploading: boolean) => {
+        this.props.setFieldUploading?.(this.props.name, uploading);
     };
 
     handleSelected = (selected: AppSelectOption | AppSelectOption[]) => {
@@ -114,6 +138,23 @@ export default class AppsFormField extends React.PureComponent<Props> {
         }
 
         switch (field.type) {
+        case AppFieldTypes.FILE: {
+            return (
+                <React.Suspense fallback={<LoadingSpinner/>}>
+                    <AppsFormFileUpload
+                        id={name}
+                        label={displayNameContent}
+                        helpText={helpTextContent}
+                        placeholder={placeholder}
+                        onFileSelected={this.handleFileSelected}
+                        onPendingChange={this.handlePendingChange}
+                        disabled={field.readonly}
+                        value={value ? (value as string).split(',').filter(Boolean) : []}
+                        allowMultiple={field.allow_multiple}
+                    />
+                </React.Suspense>
+            );
+        }
         case AppFieldTypes.TEXT: {
             const subtype = field.subtype || 'text';
 
@@ -172,13 +213,14 @@ export default class AppsFormField extends React.PureComponent<Props> {
                     helpText={helpTextContent}
                     placeholder={placeholder}
                     onChange={onChange}
+                    labelPosition={field.label_position}
                 />
             );
         }
         case AppFieldTypes.RADIO: {
             // Radio values may be stored as AppSelectOption objects (from initial default)
             // or plain strings (after user interaction via RadioSetting.onChange)
-            const radioValue = isAppSelectOption(value) ? value.value : (value as string) ?? '';
+            const radioValue = isAppSelectOption(value) ? value.value : (value as string | null) ?? '';
             return (
                 <RadioSetting
                     id={name}
@@ -187,6 +229,41 @@ export default class AppsFormField extends React.PureComponent<Props> {
                     options={field.options?.map((o) => ({text: o.label, value: o.value}))}
                     value={radioValue}
                     onChange={onChange}
+                    labelPosition={field.label_position}
+                    isOptional={!field.is_required}
+                    disabled={field.readonly}
+                />
+            );
+        }
+        case AppFieldTypes.CHECKBOX_GROUP: {
+            const groupValue = Array.isArray(value) ? value as string[] : [];
+            return (
+                <CheckboxGroupSetting
+                    id={name}
+                    label={displayNameContent}
+                    helpText={helpTextContent}
+                    options={field.options?.map((o) => ({text: o.label, value: o.value}))}
+                    value={groupValue}
+                    onChange={onChange}
+                    labelPosition={field.label_position}
+                    disabled={field.readonly}
+                />
+            );
+        }
+        case AppFieldTypes.CHECKBOX_MATRIX: {
+            const matrixValue = Array.isArray(value) ? value as string[] : [];
+            if (!field.matrix_config) {
+                return null;
+            }
+            return (
+                <CheckboxMatrixSetting
+                    id={name}
+                    label={displayNameContent}
+                    helpText={helpTextContent}
+                    matrixConfig={field.matrix_config}
+                    value={matrixValue}
+                    onChange={onChange}
+                    disabled={field.readonly}
                 />
             );
         }
@@ -239,6 +316,16 @@ export default class AppsFormField extends React.PureComponent<Props> {
                         </div>
                     )}
                 </div>
+            );
+        }
+        case AppFieldTypes.ACTION_BUTTON: {
+            return (
+                <AppsFormActionButton
+                    label={field.label || field.name}
+                    url={field.action_button_url || ''}
+                    context={field.action_button_context}
+                    channelId={this.props.channelId}
+                />
             );
         }
         }

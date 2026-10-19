@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect, Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import ChannelsHeader from './header';
 import ChannelsPostCreate from './post_create';
@@ -26,23 +27,29 @@ export default class ChannelsCenterView {
     readonly channelBanner;
     readonly autotranslationBadge;
     readonly flagPostConfirmationDialog;
+    readonly notificationSeparator;
+    readonly postViews;
+    readonly channelIntro;
 
     constructor(container: Locator, page: Page) {
         this.container = container;
         this.page = page;
 
-        this.header = new ChannelsHeader(this.container.locator('.channel-header'));
+        this.header = new ChannelsHeader(this.container.locator('#channel-header'));
         this.postCreate = new ChannelsPostCreate(container.getByTestId('post-create'));
         this.scheduledDraftOptions = new ChannelsPostCreate(container.locator('#dropdown_send_post_options'));
-        this.postEdit = new ChannelsPostEdit(container.locator('.post-edit__container'));
+        this.postEdit = new ChannelsPostEdit(container.getByTestId('post-edit-container'));
         this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
         this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
         this.channelBanner = container.getByTestId('channel_banner_container');
         this.autotranslationBadge = container.getByTestId('autotranslation-badge');
         this.flagPostConfirmationDialog = new FlagPostConfirmationDialog(
-            page.locator('#FlagPostModal div.modal-content'),
+            page.getByRole('dialog', {name: 'Quarantine for Review'}),
             page,
         );
+        this.notificationSeparator = container.locator('.NotificationSeparator');
+        this.postViews = container.getByTestId('postView');
+        this.channelIntro = container.locator('#channelIntro');
     }
 
     async toBeVisible() {
@@ -73,14 +80,30 @@ export default class ChannelsCenterView {
     }
 
     /**
+     * Return the Center post whose body contains the given text.
+     */
+    async getPostByText(text: string) {
+        const post = this.container.getByTestId('postView').filter({hasText: text}).last();
+        await expect(post).toBeVisible();
+        return new ChannelsPost(post);
+    }
+
+    /**
+     * Return the concealed BoR post, pinned by post id so the locator survives reveal.
+     */
+    async getConcealedBorPost() {
+        const placeholder = this.container.getByTestId(/^burn-on-read-concealed-/).last();
+        await expect(placeholder).toBeVisible();
+        const testId = await placeholder.getAttribute('data-testid');
+        return this.getPostById((testId || '').replace('burn-on-read-concealed-', ''));
+    }
+
+    /**
      * Return the ID of the last post in the Center
      */
     async getLastPostID() {
-        return this.container
-            .getByTestId('postView')
-            .last()
-            .getAttribute('id')
-            .then((id) => (id ? id.split('_')[1] : null));
+        const lastPost = await this.getLastPost();
+        return lastPost.getId();
     }
 
     /**
@@ -99,10 +122,14 @@ export default class ChannelsCenterView {
      * @param postId Just the ID without the prefix
      * Note: Handles both simple posts (post_id) and combined posts (post_id:timestamp)
      */
-    async getPostById(id: string) {
+    postById(id: string) {
         // Match either exact ID or ID with timestamp suffix (for combined posts)
         // Use CSS selector that matches: post_id OR post_id:*
-        const postById = this.container.locator(`[id="post_${id}"], [id^="post_${id}:"]`).first();
+        return this.container.locator(`[id="post_${id}"], [id^="post_${id}:"]`).first();
+    }
+
+    async getPostById(id: string) {
+        const postById = this.postById(id);
         await postById.waitFor();
         return new ChannelsPost(postById);
     }
@@ -119,15 +146,15 @@ export default class ChannelsCenterView {
     }
 
     async waitUntilPostWithIdContains(id: string, text: string, timeout = duration.ten_sec) {
-        await waitUntil(
-            async () => {
-                const post = await this.getPostById(id);
-                const content = await post.container.textContent();
+        // A single retrying assertion, rather than polling around getPostById(): that helper waits
+        // on the locator itself, so a post that has not rendered yet consumes the whole budget in
+        // one iteration and the outer timeout reports nothing about what the post actually held.
+        await expect(this.postById(id)).toContainText(text, {timeout});
+    }
 
-                return content?.includes(text);
-            },
-            {timeout},
-        );
+    async toHaveNewMessagesSeparator() {
+        await expect(this.notificationSeparator).toBeVisible();
+        await expect(this.notificationSeparator).toContainText('New Messages');
     }
 
     async clickOnLastEditedPost(postID: string | null) {
@@ -184,7 +211,7 @@ export default class ChannelsCenterView {
     }
 
     async assertChannelBannerHasEmoticon() {
-        const emoji = this.channelBanner.locator('.emoticon:not(.emoticon--unicode)').first();
+        const emoji = this.channelBanner.getByTestId(/^postEmoji\./).first();
         await expect(emoji).toBeVisible();
 
         const backgroundImage = await emoji.evaluate((el) => {
@@ -195,7 +222,7 @@ export default class ChannelsCenterView {
     }
 
     async assertChannelBannerImageEmojiSize(expectedSizePx: number) {
-        const emoji = this.channelBanner.locator('.emoticon:not(.emoticon--unicode)').first();
+        const emoji = this.channelBanner.getByTestId(/^postEmoji\./).first();
         await expect(emoji).toBeVisible();
 
         const {width, height} = await emoji.evaluate((el) => {
@@ -213,7 +240,7 @@ export default class ChannelsCenterView {
     }
 
     async assertChannelBannerUnicodeEmojiSize(expectedSizePx: number) {
-        const emoji = this.channelBanner.locator('.emoticon--unicode').first();
+        const emoji = this.channelBanner.getByTestId('channel-banner-unicode-emoji').first();
         await expect(emoji).toBeVisible();
 
         const fontSize = await emoji.evaluate((el) => {

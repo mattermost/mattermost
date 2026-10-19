@@ -5,6 +5,7 @@ exports[`components/threading/channel_threads/thread_footer should match snapsho
   <div>
     <div
       class="ThreadFooter"
+      data-testid="thread-footer"
     >
       <div
         class="indicator"
@@ -25,6 +26,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
   <div>
     <div
       class="ThreadFooter"
+      data-testid="thread-footer"
     >
       <div
         class="indicator"
@@ -34,6 +36,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
       />
       <button
         class="Button Button___transparent ReplyButton separated"
+        data-testid="thread-footer-reply-button"
       >
         <span
           class="Button_prepended"
@@ -71,6 +74,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
   <div>
     <div
       class="ThreadFooter"
+      data-testid="thread-footer"
     >
       <div
         class="indicator"
@@ -85,6 +89,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
       />
       <button
         class="Button Button___transparent ReplyButton separated"
+        data-testid="thread-footer-reply-button"
       >
         <span
           class="Button_prepended"

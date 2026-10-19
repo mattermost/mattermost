@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
@@ -79,7 +79,7 @@ type Props = {
      *     const renderRow = (item, listModal) => <div>{item.id}</div>;
      */
     renderRow: (item: Group, listModal: ListModal) => JSX.Element;
-}
+};
 
 type State = {
     show: boolean;
@@ -88,7 +88,7 @@ type State = {
     totalCount: number;
     loading: boolean;
     searchTerm: string;
-}
+};
 
 export default class ListModal extends React.PureComponent<Props, State> {
     static defaultProps = {

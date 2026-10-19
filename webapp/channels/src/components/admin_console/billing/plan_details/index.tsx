@@ -23,7 +23,7 @@ import './plan_details.scss';
 type Props = {
     isFreeTrial: boolean;
     subscriptionPlan: string | undefined;
-}
+};
 const PlanDetails = ({isFreeTrial, subscriptionPlan}: Props) => {
     const subscription = useSelector(getCloudSubscription);
     const product = useSelector(getSubscriptionProduct);

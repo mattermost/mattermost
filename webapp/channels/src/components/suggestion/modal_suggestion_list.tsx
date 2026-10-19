@@ -8,7 +8,7 @@ import SuggestionList from 'components/suggestion/suggestion_list';
 import type {SuggestionResults} from './suggestion_results';
 
 type SuggestionListProps = {
-    ariaLiveRef?: React.RefObject<HTMLDivElement>;
+    ariaLiveRef?: React.RefObject<HTMLDivElement | null>;
     renderNoResults?: boolean;
     preventClose?: () => void;
     onItemHover: (term: string) => void;
@@ -24,12 +24,12 @@ type SuggestionListProps = {
         pixelsToMoveX: number;
         pixelsToMoveY: number;
     };
-}
+};
 
 type Props = SuggestionListProps & {
     open: boolean;
     cleared: boolean;
-    inputRef: React.RefObject<HTMLInputElement>;
+    inputRef: React.RefObject<HTMLInputElement | null>;
     onLoseVisibility: () => void;
     position?: 'top' | 'bottom';
 };
@@ -41,10 +41,10 @@ type State = {
     position: 'top' | 'bottom' | undefined;
     open?: boolean;
     cleared?: boolean;
-}
+};
 
 export default class ModalSuggestionList extends React.PureComponent<Props, State> {
-    container: React.RefObject<HTMLDivElement>;
+    container: React.RefObject<HTMLDivElement | null>;
     latestHeight: number;
     suggestionList: React.RefObject<any>;
 
@@ -144,7 +144,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
         return inputBounds;
     };
 
-    updatePosition = (newInputBounds: { top: number; bottom: number; width: number}) => {
+    updatePosition = (newInputBounds: {top: number; bottom: number; width: number}) => {
         let inputBounds = newInputBounds;
         if (!newInputBounds) {
             inputBounds = this.state.inputBounds;

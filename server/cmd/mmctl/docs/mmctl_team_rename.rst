@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Rename an existing team
+Rename an existing team. The team's name (the URL slug) and/or its display name can be changed.
 
 ::
 
@@ -20,15 +20,16 @@ Examples
 
 ::
 
-    team rename old-team --display-name 'New Display Name'
+    team rename old-team --name new-team --display-name 'New Display Name'
 
 Options
 ~~~~~~~
 
 ::
 
-      --display-name string   Team Display Name
+      --display-name string   New team display name
   -h, --help                  help for rename
+      --name string           New team name (the URL slug)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

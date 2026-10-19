@@ -67,7 +67,11 @@ test(
         await pw.skipIfNoLicense();
 
         // # Initialize setup
-        const {team, user} = await pw.initSetup();
+        const {team, user, adminClient} = await pw.initSetup();
+
+        // # Turn off email invitations, which change the invite input's placeholder from
+        // # "Add members" to "Enter a name or email address" in the snapshot below
+        await adminClient.patchConfig({ServiceSettings: {EnableEmailInvitations: false}});
 
         // # Log in as user
         const {page, channelsPage} = await pw.testBrowser.login(user);

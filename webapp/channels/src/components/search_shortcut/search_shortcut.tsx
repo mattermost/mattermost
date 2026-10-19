@@ -12,7 +12,7 @@ import './search_shortcut.scss';
 export type SearchShortcutProps = {
     className?: string;
     variant?: ShortcutKeyVariant;
-}
+};
 
 export const SearchShortcut = ({className, variant}: SearchShortcutProps) => {
     const controlKey = isMac() ? '⌘' : 'Ctrl';

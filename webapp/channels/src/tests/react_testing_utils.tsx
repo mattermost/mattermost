@@ -31,7 +31,7 @@ export {userEvent};
 export type IntlOptions = {
     messages?: Record<string, string>;
     locale?: string;
-}
+};
 
 export type FullContextOptions = {
     intlMessages?: Record<string, string>;
@@ -39,10 +39,10 @@ export type FullContextOptions = {
     useMockedStore?: boolean;
     pluginReducers?: string[];
     history?: History<unknown>;
-}
+};
 
 export const renderWithContext = (
-    component: React.ReactElement,
+    component: React.ReactElement<any>,
     initialState: DeepPartial<GlobalState> = {},
     partialOptions?: FullContextOptions,
 ) => {
@@ -73,7 +73,7 @@ export const renderWithContext = (
 
     return {
         ...results,
-        rerender: (newComponent: React.ReactElement) => {
+        rerender: (newComponent: React.ReactElement<any>) => {
             renderState.component = newComponent;
 
             results.rerender(renderState.component);
@@ -176,9 +176,9 @@ type Opts = {
     intlMessages: Record<string, string> | undefined;
     locale: string;
     useMockedStore: boolean;
-}
+};
 
-type RenderStateProps = {children: React.ReactNode; store: any; history: History<unknown>; options: Opts}
+type RenderStateProps = {children: React.ReactNode; store: any; history: History<unknown>; options: Opts};
 
 // This should wrap the component in roughly the same providers used in App and RootProvider
 const Providers = ({children, store, history, options}: RenderStateProps) => {

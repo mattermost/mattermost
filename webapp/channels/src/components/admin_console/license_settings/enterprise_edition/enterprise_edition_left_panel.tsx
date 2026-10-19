@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
-import type {RefObject} from 'react';
+import type {JSX, RefObject} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -23,6 +23,7 @@ import ExternalLink from 'components/external_link';
 import Tag from 'components/widgets/tag/tag';
 
 import {FileTypes, LicenseLinks, LicenseSkus} from 'utils/constants';
+import {getMonthLong} from 'utils/i18n';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 import {getSkuDisplayName} from 'utils/subscription';
 import {getRemainingDaysFromFutureTimestamp, toTitleCase} from 'utils/utils';
@@ -40,7 +41,7 @@ export interface EnterpriseEditionProps {
     handleRemove: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
     isDisabled: boolean;
     removing: boolean;
-    fileInputRef: RefObject<HTMLInputElement>;
+    fileInputRef: RefObject<HTMLInputElement | null>;
     handleChange: () => void;
     statsActiveUsers: number;
     isLicenseSetByEnvVar: boolean;
@@ -64,7 +65,7 @@ const EnterpriseEditionLeftPanel = ({
     statsActiveUsers,
     isLicenseSetByEnvVar,
 }: EnterpriseEditionProps) => {
-    const {formatMessage} = useIntl();
+    const {formatMessage, locale} = useIntl();
     const [unsanitizedLicense, setUnsanitizedLicense] = useState(license);
     const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const [openContactSales] = useOpenSalesLink();
@@ -245,6 +246,7 @@ const EnterpriseEditionLeftPanel = ({
                         expirationDays,
                         isLicenseSetByEnvVar,
                         enableMattermostEntry,
+                        locale,
                         singleChannelGuestCount,
                         singleChannelGuestLimit,
                     )
@@ -274,7 +276,7 @@ const EnterpriseEditionLeftPanel = ({
     );
 };
 
-type LegendValues = 'START DATE:' | 'EXPIRES:' | 'LICENSED SEATS:' | 'ACTIVE USERS:' | 'SINGLE-CHANNEL GUESTS:' | 'EDITION:' | 'LICENSE ISSUED:' | 'NAME:' | 'COMPANY / ORG:'
+type LegendValues = 'START DATE:' | 'EXPIRES:' | 'LICENSED SEATS:' | 'ACTIVE USERS:' | 'SINGLE-CHANNEL GUESTS:' | 'EDITION:' | 'LICENSE ISSUED:' | 'NAME:' | 'COMPANY / ORG:';
 
 const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expirationDays: number, singleChannelGuestCount: number, singleChannelGuestLimit: number) => ({legend, value}: {legend: LegendValues; value: string | JSX.Element | null}, index: number): React.ReactNode => {
     if (legend === 'SINGLE-CHANNEL GUESTS:') {
@@ -373,12 +375,13 @@ const renderLicenseContent = (
     isDisabled: boolean,
     removing: boolean,
     skuName: string,
-    fileInputRef: RefObject<HTMLInputElement>,
+    fileInputRef: RefObject<HTMLInputElement | null>,
     handleChange: () => void,
     statsActiveUsers: number,
     expirationDays: number,
     isLicenseSetByEnvVar: boolean,
     enableMattermostEntry: string | undefined,
+    locale: string,
     singleChannelGuestCount: number,
     singleChannelGuestLimit: number,
 ) => {
@@ -389,14 +392,36 @@ const renderLicenseContent = (
     const users = <FormattedNumber value={parseInt(license.Users, 10)}/>;
     const activeUsers = <FormattedNumber value={statsActiveUsers}/>;
     const singleChannelGuestsValue = <FormattedNumber value={singleChannelGuestCount}/>;
-    const startsAt = <FormattedDate value={new Date(parseInt(license.StartsAt, 10))}/>;
-    const expiresAt = <FormattedDate value={new Date(parseInt(license.ExpiresAt, 10))}/>;
+    const startsDate = new Date(parseInt(license.StartsAt, 10));
+    const startsAt = (
+        <FormattedDate
+            value={startsDate}
+            day='2-digit'
+            month={getMonthLong(locale)}
+            year='numeric'
+        />
+    );
+    const expiresDate = new Date(parseInt(license.ExpiresAt, 10));
+    const expiresAt = (
+        <FormattedDate
+            value={expiresDate}
+            day='2-digit'
+            month={getMonthLong(locale)}
+            year='numeric'
+        />
+    );
 
+    const issuedDate = new Date(parseInt(license.IssuedAt, 10));
     const issued = (
         <>
-            <FormattedDate value={new Date(parseInt(license.IssuedAt, 10))}/>
+            <FormattedDate
+                value={issuedDate}
+                day='2-digit'
+                month={getMonthLong(locale)}
+                year='numeric'
+            />
             {' '}
-            <FormattedTime value={new Date(parseInt(license.IssuedAt, 10))}/>
+            <FormattedTime value={issuedDate}/>
         </>
     );
 
@@ -429,7 +454,7 @@ const renderLicenseContent = (
 };
 
 const renderAddNewLicenseButton = (
-    fileInputRef: RefObject<HTMLInputElement>,
+    fileInputRef: RefObject<HTMLInputElement | null>,
     handleChange: () => void,
     isLicenseSetByEnvVar: boolean,
 ) => {

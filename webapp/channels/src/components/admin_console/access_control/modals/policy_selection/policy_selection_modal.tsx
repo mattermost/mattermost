@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
@@ -14,7 +14,7 @@ import PolicyList from 'components/admin_console/access_control/policies';
 type Props = {
     show: boolean;
     onHide: () => void;
-    onPolicySelected: (policy: AccessControlPolicy) => void;
+    onPolicySelected: (policy: AccessControlPolicy, autoAdd?: boolean) => void;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
     };

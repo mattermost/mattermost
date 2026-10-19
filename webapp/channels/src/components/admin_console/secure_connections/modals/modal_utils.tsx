@@ -179,7 +179,7 @@ export const useSharedChannelsRemove = (remoteId: string) => {
 export type SharedChannelsAddResult = {
     data: {[channel_id: string]: PromiseSettledResult<StatusOK>};
     errors: {[channel_id: string]: ServerError};
-}
+};
 export const useSharedChannelsAdd = (remoteId: string) => {
     const dispatch = useDispatch();
     const promptAdd = () => {

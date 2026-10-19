@@ -60,6 +60,26 @@ type IncomingWebhookRequest struct {
 	Type        string               `json:"type"`
 	IconEmoji   string               `json:"icon_emoji"`
 	Priority    *PostPriority        `json:"priority"`
+	// Silent requests notification-suppressed delivery; persisted as PostPropsSilentNotification.
+	Silent bool `json:"silent"`
+}
+
+// HasInteractiveMessageProps reports whether props contain post content beyond the
+// message field. Legacy props.attachments always count. mm_blocks, blocks, and cards
+// count only when mmBlocksEnabled is true (Interactive Messages feature flag).
+func (r *IncomingWebhookRequest) HasInteractiveMessageProps(mmBlocksEnabled bool) bool {
+	if r == nil || len(r.Props) == 0 {
+		return false
+	}
+	if interactivePropJSONArrayNonEmpty(r.Props[PostPropsAttachments]) {
+		return true
+	}
+	if !mmBlocksEnabled {
+		return false
+	}
+	return interactivePropJSONArrayNonEmpty(r.Props[PostPropsMmBlocks]) ||
+		interactivePropJSONArrayNonEmpty(r.Props[PostPropsBlockKitBlocks]) ||
+		interactivePropJSONArrayNonEmpty(r.Props[PostPropsAdaptiveCards])
 }
 
 type IncomingWebhooksWithCount struct {

@@ -28,7 +28,6 @@ describe('components/ClusterSettings', () => {
                 EnableGossipEncryption: false,
                 EnableGossipCompression: false,
                 GossipPort: 8074,
-                SteamingPort: 8075,
             },
         };
         const {container} = renderWithContext(
@@ -56,7 +55,6 @@ describe('components/ClusterSettings', () => {
                 EnableGossipEncryption: true,
                 EnableGossipCompression: false,
                 GossipPort: 8074,
-                SteamingPort: 8075,
             },
         };
         const {container} = renderWithContext(
@@ -84,7 +82,6 @@ describe('components/ClusterSettings', () => {
                 EnableGossipEncryption: false,
                 EnableGossipCompression: true,
                 GossipPort: 8074,
-                SteamingPort: 8075,
             },
         };
         const {container} = renderWithContext(
@@ -112,7 +109,6 @@ describe('components/ClusterSettings', () => {
                 EnableGossipEncryption: false,
                 EnableGossipCompression: false,
                 GossipPort: 8074,
-                SteamingPort: 8075,
             },
         };
         const {container} = renderWithContext(

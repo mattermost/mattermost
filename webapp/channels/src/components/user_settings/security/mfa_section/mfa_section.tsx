@@ -30,14 +30,14 @@ type Props = {
 
     updateSection: (section: string) => void;
     actions: {deactivateMfa: () => Promise<{error?: {message: string}}>};
-}
+};
 
 type State = {
-    serverError: string|null;
-}
+    serverError: string | null;
+};
 
 export default class MfaSection extends React.PureComponent<Props, State> {
-    minRef: RefObject<SettingItemMinComponent>;
+    minRef: RefObject<SettingItemMinComponent | null>;
 
     public constructor(props: Props) {
         super(props);

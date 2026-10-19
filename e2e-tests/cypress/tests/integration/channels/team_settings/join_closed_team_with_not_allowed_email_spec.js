@@ -107,10 +107,8 @@ describe('Team Settings', () => {
             // # Go to Access section
             cy.get('#accessButton').click();
 
-            cy.get('.access-invite-domains-section').should('exist').within(() => {
-                // # Enable any user with an account on the server to join the team
-                cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
-            });
+            // # Click 'Public Team' card to allow any user to join the team
+            cy.get('#public-private-selector-button-O').should('exist').click();
 
             // # Click on the 'Allow only users with a specific email domain to join this team' edit button
             cy.get('.access-allowed-domains-section').should('exist').within(() => {

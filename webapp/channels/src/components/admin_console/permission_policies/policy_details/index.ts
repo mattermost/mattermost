@@ -7,8 +7,9 @@ import type {Dispatch} from 'redux';
 
 import {getAccessControlPolicy as fetchPolicy, createAccessControlPolicy as createPolicy, deleteAccessControlPolicy as deletePolicy} from 'mattermost-redux/actions/access_control';
 import {getAccessControlSettings, getAccessControlPolicy as getPolicy} from 'mattermost-redux/selectors/entities/access_control';
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
+import {setNavigationBlocked} from 'actions/admin_actions';
 
 import type {GlobalState} from 'types/store';
 
@@ -20,7 +21,7 @@ type OwnProps = {
             policy_id: string;
         };
     };
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const policyId = ownProps.match.params.policy_id;
@@ -30,6 +31,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         policy,
         policyId,
         accessControlSettings: config,
+        sessionAttributesEnabled: getFeatureFlagValue(state, 'SessionAttributes') === 'true',
     };
 }
 

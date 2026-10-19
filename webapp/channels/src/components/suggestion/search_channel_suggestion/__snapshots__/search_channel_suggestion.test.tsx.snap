@@ -14,7 +14,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot 1
       class="suggestion-list__icon suggestion-list__icon--large"
     >
       <i
-        class="icon icon--standard icon--no-spacing icon-globe"
+        class="icon icon-globe icon--standard icon--no-spacing"
       />
     </span>
     <div
@@ -22,6 +22,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot 1
     >
       <span
         class="suggestion-list__main"
+        data-testid="suggestion-list__main"
         id="test-suggestion-name"
       >
         name
@@ -38,6 +39,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     aria-describedby="test-suggestion-botTag"
     aria-labelledby="test-suggestion-name"
     class="suggestion-list__item suggestion--selected"
+    data-testid="suggestion-selected"
     id="test-suggestion"
     role="option"
     tabindex="-1"
@@ -53,6 +55,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     >
       <span
         class="suggestion-list__main"
+        data-testid="suggestion-list__main"
         id="test-suggestion-name"
       >
         @name
@@ -68,6 +71,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     aria-describedby="test-suggestion-botTag"
     aria-labelledby="test-suggestion-name"
     class="suggestion-list__item suggestion--selected"
+    data-testid="suggestion-selected"
     id="test-suggestion"
     role="option"
     tabindex="-1"
@@ -86,6 +90,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     >
       <span
         class="suggestion-list__main"
+        data-testid="suggestion-list__main"
         id="test-suggestion-name"
       >
         @name
@@ -101,6 +106,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     aria-describedby="test-suggestion-botTag"
     aria-labelledby="test-suggestion-name"
     class="suggestion-list__item suggestion--selected"
+    data-testid="suggestion-selected"
     id="test-suggestion"
     role="option"
     tabindex="-1"
@@ -109,7 +115,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
       class="suggestion-list__icon suggestion-list__icon--large"
     >
       <i
-        class="icon icon--standard icon--no-spacing icon-globe"
+        class="icon icon-globe icon--standard icon--no-spacing"
       />
     </span>
     <div
@@ -117,6 +123,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     >
       <span
         class="suggestion-list__main"
+        data-testid="suggestion-list__main"
         id="test-suggestion-name"
       >
         name
@@ -133,6 +140,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     aria-describedby="test-suggestion-botTag"
     aria-labelledby="test-suggestion-name"
     class="suggestion-list__item suggestion--selected"
+    data-testid="suggestion-selected"
     id="test-suggestion"
     role="option"
     tabindex="-1"
@@ -141,7 +149,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
       class="suggestion-list__icon suggestion-list__icon--large"
     >
       <i
-        class="icon icon--standard icon--no-spacing icon-lock-outline"
+        class="icon icon-lock-outline icon--standard icon--no-spacing"
       />
     </span>
     <div
@@ -149,6 +157,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     >
       <span
         class="suggestion-list__main"
+        data-testid="suggestion-list__main"
         id="test-suggestion-name"
       >
         name
@@ -173,7 +182,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
       class="suggestion-list__icon suggestion-list__icon--large"
     >
       <i
-        class="icon icon--standard icon--no-spacing icon-globe"
+        class="icon icon-globe icon--standard icon--no-spacing"
       />
     </span>
     <div
@@ -181,6 +190,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     >
       <span
         class="suggestion-list__main"
+        data-testid="suggestion-list__main"
         id="test-suggestion-name"
       >
         name
@@ -197,6 +207,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     aria-describedby="test-suggestion-botTag"
     aria-labelledby="test-suggestion-name"
     class="suggestion-list__item suggestion--selected"
+    data-testid="suggestion-selected"
     id="test-suggestion"
     role="option"
     tabindex="-1"
@@ -205,7 +216,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
       class="suggestion-list__icon suggestion-list__icon--large"
     >
       <i
-        class="icon icon--standard icon--no-spacing icon-globe"
+        class="icon icon-globe icon--standard icon--no-spacing"
       />
     </span>
     <div
@@ -213,6 +224,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     >
       <span
         class="suggestion-list__main"
+        data-testid="suggestion-list__main"
         id="test-suggestion-name"
       >
         name

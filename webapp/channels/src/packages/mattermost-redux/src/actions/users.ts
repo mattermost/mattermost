@@ -102,7 +102,7 @@ export function logout(): ActionFuncAsync {
 
         try {
             await Client4.logout();
-        } catch (error) {
+        } catch {
             // nothing to do here
         }
 
@@ -1002,6 +1002,26 @@ export function saveCustomProfileAttribute(userID: string, attributeID: string, 
     };
 }
 
+export function updateUserCustomProfileAttributeValues(userID: string, values: Record<string, string | string[]>): ActionFuncAsync<Record<string, string | string[]>> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.updateUserCustomProfileAttributesValues(userID, values);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: UserTypes.RECEIVED_CPA_VALUES,
+            data: {userID, customAttributeValues: data},
+        });
+
+        return {data};
+    };
+}
+
 export function patchUser(user: UserProfile): ActionFuncAsync<UserProfile> {
     return async (dispatch) => {
         let data: UserProfile;
@@ -1054,7 +1074,7 @@ export function updateUserRoles(userId: string, roles: string): ActionFuncAsync 
     };
 }
 
-export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFuncAsync {
+export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
             await Client4.updateUserMfa(userId, activate, code);
@@ -1247,12 +1267,12 @@ export function switchLdapToEmail(ldapPassword: string, email: string, emailPass
     });
 }
 
-export function createUserAccessToken(userId: string, description: string): ActionFuncAsync<UserAccessToken> {
+export function createUserAccessToken(userId: string, description: string, expiresAt?: number): ActionFuncAsync<UserAccessToken> {
     return async (dispatch, getState) => {
         let data;
 
         try {
-            data = await Client4.createUserAccessToken(userId, description);
+            data = await Client4.createUserAccessToken(userId, description, expiresAt);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -1404,6 +1424,41 @@ export function enableUserAccessToken(tokenId: string): ActionFuncAsync {
     };
 }
 
+export function rotateUserAccessToken(tokenId: string, expiresAt?: number): ActionFuncAsync<UserAccessToken> {
+    return async (dispatch, getState) => {
+        let data;
+
+        try {
+            data = await Client4.rotateUserAccessToken(tokenId, expiresAt);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        const actions: AnyAction[] = [{
+            type: AdminTypes.RECEIVED_USER_ACCESS_TOKEN,
+            data: {...data,
+                token: '',
+            },
+        }];
+
+        const {currentUserId} = getState().entities.users;
+        if (data.user_id === currentUserId) {
+            actions.push(
+                {
+                    type: UserTypes.RECEIVED_MY_USER_ACCESS_TOKEN,
+                    data: {...data, token: ''},
+                },
+            );
+        }
+
+        dispatch(batchActions(actions));
+
+        return {data};
+    };
+}
+
 export function getKnownUsers() {
     return bindClientFunc({
         clientFunc: Client4.getKnownUsers,
@@ -1476,5 +1531,6 @@ export default {
     revokeUserAccessToken,
     disableUserAccessToken,
     enableUserAccessToken,
+    rotateUserAccessToken,
     checkForModifiedUsers,
 };

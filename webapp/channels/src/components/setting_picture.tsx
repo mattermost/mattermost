@@ -31,22 +31,22 @@ type Props = {
     updateSection?: (e: MouseEvent<HTMLButtonElement>) => void;
     imageContext?: string;
     helpText?: ReactNode;
-}
+};
 
 type State = {
     image: string | null;
     removeSrc: boolean;
     setDefaultSrc: boolean;
     orientationStyles?: CSSProperties;
-}
+};
 
 export default class SettingPicture extends Component<Props, State> {
     static defaultProps = {
         imageContext: 'profile',
     };
-    private readonly settingList: RefObject<HTMLDivElement>;
-    private readonly selectInput: RefObject<HTMLInputElement>;
-    private readonly confirmButton: RefObject<HTMLButtonElement>;
+    private readonly settingList: RefObject<HTMLDivElement | null>;
+    private readonly selectInput: RefObject<HTMLInputElement | null>;
+    private readonly confirmButton: RefObject<HTMLButtonElement | null>;
     private previewBlob: string | null;
 
     constructor(props: Props) {

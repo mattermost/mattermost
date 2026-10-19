@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
-import type {ChangeEvent, ReactNode} from 'react';
+import type {ChangeEvent, JSX, ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -24,6 +24,7 @@ type Props = {
     emptyText?: ReactNode;
     emptyTextSearch?: JSX.Element;
     helpText?: ReactNode;
+    error?: ReactNode;
     loading: boolean;
     searchPlaceholder?: string;
     nextPage?: () => void;
@@ -153,6 +154,7 @@ const BackstageList = (remainingProps: Props) => {
                 </h1>
                 {addLink}
             </div>
+            {remainingProps.error}
             <div className='backstage-filters'>
                 <div className='backstage-filter__search'>
                     <SearchIcon/>

@@ -27,7 +27,7 @@ jest.mock('components/loading_screen', () => ({
     ),
 }));
 
-jest.mock('actions/telemetry_actions.jsx', () => ({
+jest.mock('actions/telemetry_actions', () => ({
     clearMarks: jest.fn(),
     mark: jest.fn(),
 }));

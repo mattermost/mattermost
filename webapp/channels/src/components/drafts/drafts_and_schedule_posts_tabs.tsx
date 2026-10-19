@@ -36,7 +36,7 @@ type Props = {
     currentUser: UserProfile;
     userDisplayName: string;
     userStatus: UserStatus['status'];
-}
+};
 
 export default function DraftsAndSchedulePostsTabs(props: Props) {
     const history = useHistory();
@@ -70,6 +70,7 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
                     <Badge
                         className='badge'
                         badgeContent={scheduledPosts.length}
+                        slotProps={{badge: {'data-testid': 'scheduled-posts-tab-counter-badge'} as React.HTMLAttributes<HTMLSpanElement>}}
                     />
                 )}
             </div>
@@ -87,6 +88,7 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
                     <Badge
                         className='badge'
                         badgeContent={props.drafts.length}
+                        slotProps={{badge: {'data-testid': 'drafts-tab-counter-badge'} as React.HTMLAttributes<HTMLSpanElement>}}
                     />
                 )}
             </div>

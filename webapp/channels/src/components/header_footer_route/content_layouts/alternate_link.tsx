@@ -12,7 +12,7 @@ type AlternateLinkProps = {
     alternateMessage?: string;
     alternateLinkPath?: string;
     alternateLinkLabel?: string;
-}
+};
 
 const AlternateLink = ({className, alternateMessage, alternateLinkPath, alternateLinkLabel}: AlternateLinkProps) => {
     if (!alternateMessage && !alternateLinkPath && !alternateLinkLabel) {

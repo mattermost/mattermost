@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @enterprise @accessibility
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 

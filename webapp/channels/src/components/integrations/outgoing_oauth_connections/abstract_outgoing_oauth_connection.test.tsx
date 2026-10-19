@@ -121,17 +121,13 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
             state,
         );
 
-        await act(async () => {
-            const nameInput = container.querySelector('#name') as HTMLInputElement;
-            if (nameInput) {
-                nameInput.value = 'name';
-                nameInput.dispatchEvent(new Event('change', {bubbles: true}));
-            }
+        await userEvent.type(container.querySelector('#client_secret') as HTMLInputElement, 'secret');
 
-            const submitButton = container.querySelector('button.btn-primary') as HTMLButtonElement;
-            submitButton?.click();
+        await userEvent.click(container.querySelector('button.btn-primary') as HTMLButtonElement);
 
-            expect(submitAction).toHaveBeenCalled();
-        });
+        // Changing the secret marks the form unvalidated, so submitting prompts to save anyway.
+        await userEvent.click(document.querySelector('#confirmModalButton') as HTMLButtonElement);
+
+        expect(submitAction).toHaveBeenCalledWith(expect.objectContaining({client_secret: 'secret'}));
     });
 });

@@ -187,4 +187,32 @@ func TestSummarizePosts(t *testing.T) {
 		assert.Empty(t, summary.ActionItems)
 		assert.Len(t, bridge.completeCalls, 0)
 	})
+
+	t.Run("custom instructions are included in prompt", func(t *testing.T) {
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				return `{"highlights":["Highlight 1"],"action_items":[]}`, nil
+			},
+		}
+
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		posts := []*model.Post{{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Important update",
+			CreateAt:  model.GetMillis(),
+			Props: model.StringInterface{
+				"username": th.BasicUser.Username,
+			},
+		}}
+
+		_, appErr := th.App.SummarizePostsWithInstructions(ctx, th.BasicUser.Id, posts, th.BasicChannel.DisplayName, th.BasicTeam.Name, model.NewId(), "Focus on launch risks")
+		require.Nil(t, appErr)
+		require.Len(t, bridge.completeCalls, 1)
+		require.Len(t, bridge.completeCalls[0].request.Messages, 2)
+		assert.Contains(t, bridge.completeCalls[0].request.Messages[1].Message, "Additional user instructions:")
+		assert.Contains(t, bridge.completeCalls[0].request.Messages[1].Message, "Focus on launch risks")
+	})
 }

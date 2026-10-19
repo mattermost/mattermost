@@ -13,7 +13,8 @@ type PostMetadata struct {
 	// for links in the post.
 	Embeds []*PostEmbed `json:"embeds,omitempty"`
 
-	// Emojis holds all custom emojis used in the post or used in reaction to the post.
+	// Emojis holds all custom emojis used in the post, reactions, message attachments, and
+	// interactive payloads (mm_blocks, Block Kit blocks, Adaptive Cards) where applicable.
 	Emojis []*Emoji `json:"emojis,omitempty"`
 
 	// Files holds information about the file attachments on the post.
@@ -43,6 +44,16 @@ type PostMetadata struct {
 
 	ExpireAt   int64    `json:"expire_at,omitempty"`
 	Recipients []string `json:"recipients,omitempty"`
+
+	// PropertyValues holds the post's property values for the group requested via
+	// propertyGroup. Transient: populated on read, never persisted on the post.
+	PropertyValues []*PropertyValue `json:"property_values,omitempty"`
+
+	// PropertyValuesUnavailable is set when hydration was requested for this post but the
+	// lookup failed. It distinguishes "this post has no values" from "the values could not
+	// be loaded", so a client never renders a post as unmarked when the marking is merely
+	// missing.
+	PropertyValuesUnavailable bool `json:"property_values_unavailable,omitempty"`
 }
 
 // PostTranslation represents a translation of a post in a specific language
@@ -73,6 +84,7 @@ func (p *PostMetadata) Auditable() map[string]any {
 		"acknowledgements":    p.Acknowledgements,
 		"translations":        p.Translations,
 		"redacted_file_count": p.RedactedFileCount,
+		"property_values":     p.PropertyValues,
 	}
 }
 
@@ -107,6 +119,12 @@ func (p *PostMetadata) Copy() *PostMetadata {
 	acknowledgementsCopy := make([]*PostAcknowledgement, len(p.Acknowledgements))
 	copy(acknowledgementsCopy, p.Acknowledgements)
 
+	var propertyValuesCopy []*PropertyValue
+	if p.PropertyValues != nil {
+		propertyValuesCopy = make([]*PropertyValue, len(p.PropertyValues))
+		copy(propertyValuesCopy, p.PropertyValues)
+	}
+
 	translationsCopy := map[string]*PostTranslation{}
 	maps.Copy(translationsCopy, p.Translations)
 
@@ -122,14 +140,16 @@ func (p *PostMetadata) Copy() *PostMetadata {
 	}
 
 	return &PostMetadata{
-		Embeds:            embedsCopy,
-		Emojis:            emojisCopy,
-		Files:             filesCopy,
-		Images:            imagesCopy,
-		Reactions:         reactionsCopy,
-		Priority:          postPriorityCopy,
-		Acknowledgements:  acknowledgementsCopy,
-		Translations:      translationsCopy,
-		RedactedFileCount: p.RedactedFileCount,
+		Embeds:                    embedsCopy,
+		Emojis:                    emojisCopy,
+		Files:                     filesCopy,
+		Images:                    imagesCopy,
+		Reactions:                 reactionsCopy,
+		Priority:                  postPriorityCopy,
+		Acknowledgements:          acknowledgementsCopy,
+		Translations:              translationsCopy,
+		RedactedFileCount:         p.RedactedFileCount,
+		PropertyValues:            propertyValuesCopy,
+		PropertyValuesUnavailable: p.PropertyValuesUnavailable,
 	}
 }

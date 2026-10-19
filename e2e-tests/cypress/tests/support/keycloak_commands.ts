@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
 import * as TIMEOUTS from '../fixtures/timeouts';
 
-import {LdapUser} from './ldap_server_commands';
+import type {LdapUser} from './ldap_server_commands';
 
-import {ChainableT} from '@/types';
+import type {ChainableT} from '@/types';
 
 const {
     keycloakBaseUrl,
@@ -37,7 +36,7 @@ function keycloakGetAccessTokenAPI(): ChainableT<string> {
         path: '',
         method: 'post',
         headers: {'Content-type': 'application/x-www-form-urlencoded'},
-        data: 'grant_type=password&username=mmuser&password=mostest&client_id=admin-cli',
+        data: 'grant_type=password&username=mmuser&password=mostest_password&client_id=admin-cli',
     // cy.task() returns untyped data
     }).then((response: any) => {
         expect(response.status).to.equal(200);

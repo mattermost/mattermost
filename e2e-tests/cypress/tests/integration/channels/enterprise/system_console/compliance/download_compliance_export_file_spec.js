@@ -121,6 +121,39 @@ describe('Compliance Export', () => {
         });
     });
 
+    it('MM-T3436 - Download Compliance Export Files - Actiance XML Format', () => {
+        // # Go to compliance page and enable export in Actiance XML format
+        cy.uiGoToCompliancePage();
+        cy.uiEnableComplianceExport(ExportFormatActiance);
+
+        // # Navigate to a team and post a message with an attachment
+        cy.visit(`/${newTeam.name}/channels/town-square`);
+        gotoTeamAndPostImage();
+
+        // # Go to compliance page and start export
+        cy.uiGoToCompliancePage();
+        cy.uiExportCompliance();
+
+        // * Verify the Download option is provided for the export job
+        cy.get('@firstRow').findByText('Download').should('exist');
+
+        // # Download and extract exported zip file
+        const targetFolder = `${downloadsFolder}/${Date.now().toString()}`;
+        downloadAndUnzipExportFile(targetFolder);
+
+        // * Verifying if export file contains the posted message content
+        verifyActianceXMLFile(
+            targetFolder,
+            'have.string',
+            'file uploaded-image-400x400.jpg',
+        );
+
+        // * Verifying if the attached file is included in the export
+        cy.shellFind(targetFolder, /image-400x400.jpg/).then((files) => {
+            expect(files.length).not.to.equal(0);
+        });
+    });
+
     it('MM-T1176 - Compliance export should include updated post after editing', () => {
         // # Go to compliance page and enable export
         cy.uiGoToCompliancePage();

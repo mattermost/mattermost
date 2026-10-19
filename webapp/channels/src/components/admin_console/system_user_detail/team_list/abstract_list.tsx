@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
@@ -35,18 +35,18 @@ type Props = {
         getTeamsData: (userId: string) => Promise<ActionResult<Team[]>>;
         removeGroup?: () => void;
     };
-}
+};
 
 type State = {
     loading: boolean;
     page: number;
-}
+};
 
 type Paging = {
     startCount: number;
     endCount: number;
     total: number;
-}
+};
 
 export default class AbstractList extends React.PureComponent<Props, State> {
     public static defaultProps = {

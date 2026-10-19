@@ -10,9 +10,9 @@
 // Stage: @prod
 // Group: @channels @collapsed_reply_threads @not_cloud
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {interceptFileUpload} from '../files_and_attachments/helpers';
 
@@ -62,20 +62,24 @@ describe('Collapsed Reply Threads', () => {
         cy.postMessage('/poll "Do you like https://mattermost.com?"');
 
         cy.getLastPostId().then((pollId) => {
+            const threadAuthorName = user1.nickname || user1.username;
+
             // # Post a reply on the POLL to create a thread and follow
             cy.postMessageAs({sender: user1, message: MESSAGES.SMALL, channelId: testChannel.id, rootId: pollId});
 
-            // # Click "Yes" or "No"
-            cy.findByText('Yes').click();
+            // # Click "Yes" or "No" on the poll post
+            cy.get(`#post_${pollId}`).within(() => {
+                cy.findByText('Yes').click();
+            });
 
             // # Visit global threads
             cy.uiClickSidebarItem('threads');
 
             // * Text in ThreadItem should say 'username: Do you like https://mattermost.com?'
-            cy.get('.attachment__truncated').first().should('have.text', user1.nickname + ': Do you like https://mattermost.com?');
-
-            // * Text in ThreadItem should say 'Total votes: 1'
-            cy.get('.attachment__truncated').last().should('have.text', 'Total votes: 1');
+            cy.get('.ThreadItem').last().within(() => {
+                cy.contains(threadAuthorName + ': Do you like https://mattermost.com?').should('be.visible');
+                cy.contains('Total votes: 1').should('be.visible');
+            });
 
             // # Open the thread
             cy.get('.ThreadItem').last().click();
@@ -84,17 +88,19 @@ describe('Collapsed Reply Threads', () => {
             cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
             // # End the poll
-            cy.findByText('End Poll').click();
+            cy.get(`#post_${pollId}`).within(() => {
+                cy.findByText('End Poll').click();
+            });
             cy.findByText('End').click();
 
             // # Visit global threads
             cy.uiClickSidebarItem('threads');
 
             // * Text in ThreadItem should say 'username: Do you like https://mattermost.com?'
-            cy.get('.attachment__truncated').first().should('have.text', user1.nickname + ': Do you like https://mattermost.com?');
-
-            // * Text in ThreadItem should say 'This poll has ended. The results are:'
-            cy.get('.attachment__truncated').last().should('have.text', 'This poll has ended. The results are:');
+            cy.get('.ThreadItem').last().within(() => {
+                cy.contains(threadAuthorName + ': Do you like https://mattermost.com?').should('be.visible');
+                cy.contains('This poll has ended. The results are:').should('be.visible');
+            });
 
             // # Cleanup
             cy.apiDeletePost(pollId);

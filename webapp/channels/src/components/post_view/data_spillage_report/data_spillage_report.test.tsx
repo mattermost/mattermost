@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {act} from '@testing-library/react';
+import {createMemoryHistory} from 'history';
 import React from 'react';
 
 import type {Post} from '@mattermost/types/posts';
@@ -431,11 +432,62 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         expect(screen.queryByTestId('data-spillage-action-keep-message')).toBeVisible();
     });
 
+    it('should render in short mode in the global threads view even when isRHS is true', async () => {
+        const history = createMemoryHistory({initialEntries: ['/myteam/threads/abcdefghijklmnopqrstuvwxyz']});
+
+        renderWithContext(
+            <DataSpillageReport
+                post={post}
+                isRHS={true}
+            />,
+            baseState,
+            {history},
+        );
+
+        await act(async () => {});
+
+        const card = screen.getByTestId('data-spillage-report');
+        expect(card).toHaveClass('mode_short');
+        expect(card).not.toHaveClass('mode_full');
+
+        // short mode renders only the short field set
+        expect(screen.queryAllByTestId('property-card-row')).toHaveLength(4);
+
+        // action rows are gated on mode === 'full', so they must not render here
+        expect(screen.queryByTestId('data-spillage-action')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('data-spillage-action-download-report')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('data-spillage-exposure-report')).not.toBeInTheDocument();
+    });
+
+    it('renders the exposure report row above the report row in RHS mode', async () => {
+        renderWithContext(
+            <DataSpillageReport
+                post={post}
+                isRHS={true}
+            />,
+            baseState,
+        );
+
+        await act(async () => {});
+
+        const exposureRow = screen.getByTestId('data-spillage-exposure-report-row');
+        expect(exposureRow).toBeVisible();
+        expect(exposureRow).toHaveTextContent('Exposure report');
+
+        const exposureButton = screen.getByTestId('data-spillage-action-download-exposure-report');
+        expect(exposureButton).toHaveTextContent('Download exposure report');
+
+        // eslint-disable-next-line no-bitwise
+        const reportFollowsExposure = exposureButton.compareDocumentPosition(screen.getByTestId('data-spillage-action-download-report')) & Node.DOCUMENT_POSITION_FOLLOWING;
+        expect(reportFollowsExposure).toBeTruthy();
+    });
+
     describe.each([
         ['Pending', true],
+        ['Assigned', true],
         ['Retained', false],
         ['Removed', false],
-    ])('Download Report button when status is %s', (status, expectActions) => {
+    ])('Download Report button when status is %s', (status, reviewIsOpen) => {
         it('is rendered in action rows in RHS mode', async () => {
             usePostContentFlaggingValues.mockReturnValue(
                 postContentFlaggingValues.map((v) =>
@@ -456,7 +508,13 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             expect(screen.getByTestId('data-spillage-action-download-report')).toBeVisible();
             expect(screen.getByTestId('data-spillage-action-download-report')).toHaveTextContent('Download Report');
 
-            if (expectActions) {
+            // the exposure report is downloadable in every status, including once the review is closed
+            expect(screen.getByTestId('data-spillage-exposure-report-row')).toBeVisible();
+            expect(screen.getByTestId('data-spillage-action-download-exposure-report')).toBeVisible();
+            expect(screen.getByTestId('data-spillage-action-download-exposure-report')).toHaveTextContent('Download exposure report');
+
+            // the Remove/Keep actions, in contrast, are only offered while the review is open
+            if (reviewIsOpen) {
                 expect(screen.queryByTestId('data-spillage-action')).toBeVisible();
             } else {
                 expect(screen.queryByTestId('data-spillage-action')).not.toBeInTheDocument();

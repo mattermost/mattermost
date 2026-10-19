@@ -22,13 +22,19 @@ on:
         description: "Commit SHA to test (for Argo Events)"
         type: string
         required: false
+      run_rolling_upgrades:
+        description: "Also run Playwright rolling-upgrade coverage (upgrade-from/to matrix, then the full suite on each upgraded server)"
+        type: boolean
+        required: false
+        default: false
 
-permissions:
-  contents: read
-  statuses: write
+permissions: {}
 
 jobs:
   resolve-pr:
+    permissions:
+      contents: read
+      pull-requests: read
     runs-on: ubuntu-24.04
     outputs:
       PR_NUMBER: "${{ steps.resolve.outputs.PR_NUMBER }}"
@@ -39,12 +45,14 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: ci/resolve-pr-and-commit
         id: resolve
         env:
           GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
           INPUT_COMMIT_SHA: ${{ inputs.commit_sha }}
         run: |
@@ -61,7 +69,7 @@ jobs:
           # Manual trigger: PR number provided, resolve commit SHA from PR head
           if [ -n "$INPUT_PR_NUMBER" ]; then
             echo "Manual trigger: resolving commit SHA from PR #${INPUT_PR_NUMBER}"
-            PR_DATA=$(gh api "repos/${{ github.repository }}/pulls/${INPUT_PR_NUMBER}")
+            PR_DATA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${INPUT_PR_NUMBER}")
             COMMIT_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
 
             if [ -z "$COMMIT_SHA" ] || [ "$COMMIT_SHA" = "null" ]; then
@@ -78,7 +86,7 @@ jobs:
           # Argo Events trigger: commit SHA provided, resolve PR number
           if [ -n "$INPUT_COMMIT_SHA" ]; then
             echo "Automated trigger: resolving PR number from commit ${INPUT_COMMIT_SHA}"
-            PR_DATA=$(gh api "repos/${{ github.repository }}/commits/${INPUT_COMMIT_SHA}/pulls" \
+            PR_DATA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${INPUT_COMMIT_SHA}/pulls" \
               --jq '.[0] // empty' 2>/dev/null || echo "")
             PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number // empty' 2>/dev/null || echo "")
             if [ -z "$PR_NUMBER" ]; then
@@ -121,29 +129,36 @@ jobs:
 
 
   check-changes:
+    permissions:
+      contents: read
+      pull-requests: read
     needs: resolve-pr
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     runs-on: ubuntu-24.04
     outputs:
       should_run: "${{ steps.check.outputs.should_run }}"
       should_run_fips: "${{ steps.check.outputs.should_run_fips }}"
+      should_run_rolling_upgrades: "${{ steps.check.outputs.should_run_rolling_upgrades }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
           fetch-depth: 0
       - name: ci/check-relevant-changes
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ needs.resolve-pr.outputs.PR_NUMBER }}
           COMMIT_SHA: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
           HEAD_REF: ${{ needs.resolve-pr.outputs.HEAD_REF }}
+          INPUT_RUN_ROLLING_UPGRADES: ${{ inputs.run_rolling_upgrades }}
         run: |
           # Get the base branch of the PR and changed files
-          BASE_SHA=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}" --jq '.base.sha')
+          BASE_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.base.sha')
           CHANGED_FILES=$(git diff --name-only "${BASE_SHA}...${COMMIT_SHA}")
 
           echo "Changed files:"
@@ -204,6 +219,27 @@ jobs:
           echo "should_run_fips=${SHOULD_RUN_FIPS}" >> $GITHUB_OUTPUT
           echo "Should run FIPS E2E tests: ${SHOULD_RUN_FIPS}"
 
+          # Rolling upgrades: opt-in on manual dispatch, or auto when the PR touches the harness.
+          SHOULD_RUN_ROLLING_UPGRADES="false"
+          if [ "$INPUT_RUN_ROLLING_UPGRADES" = "true" ]; then
+            echo "Manual rolling-upgrades opt-in detected"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^e2e-tests/playwright/(upgrade-specs/|script/resolve_upgrade_matrix\.mjs)'; then
+            echo "Found Playwright upgrade-path harness changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-tests-playwright-rolling-upgrades'; then
+            echo "Found Playwright rolling-upgrade workflow changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          # Server-side surfaces an upgrade has to survive: schema and config migrations, the
+          # app-layer data migrations, and the version list the from-version matrix is derived from.
+          elif echo "$CHANGED_FILES" | grep -qE '^server/(channels/db/migrations/|config/migrations/|channels/app/(migrations|permissions_migrations)\.go$|public/model/version\.go$)'; then
+            echo "Found server migration or version changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          fi
+
+          echo "should_run_rolling_upgrades=${SHOULD_RUN_ROLLING_UPGRADES}" >> $GITHUB_OUTPUT
+          echo "Should run rolling upgrades: ${SHOULD_RUN_ROLLING_UPGRADES}"
+
   e2e-cypress:
     needs:
       - resolve-pr
@@ -251,10 +287,9 @@ jobs:
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
       should_run: "${{ needs.check-changes.outputs.should_run }}"
+      run_rolling_upgrades: "${{ needs.check-changes.outputs.should_run_rolling_upgrades }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
-      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
-      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
 
   # Enterprise FIPS Edition
@@ -305,8 +340,7 @@ jobs:
       enable_reporting: true
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+      run_rolling_upgrades: "${{ needs.check-changes.outputs.should_run_rolling_upgrades }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
-      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
-      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"

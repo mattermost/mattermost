@@ -7,6 +7,8 @@ import type {OptionProps} from 'react-select';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import ChannelTypeIcon from 'components/channel_type_icon';
+
 const {Option} = components;
 export const SelectChannelOption = (props: OptionProps<Channel>) => {
     const item = props.data;
@@ -16,7 +18,10 @@ export const SelectChannelOption = (props: OptionProps<Channel>) => {
 
     const icon = (
         <span className='select-option-icon select-option-icon--large'>
-            <i className='icon icon--standard icon--no-spacing icon-globe'/>
+            <ChannelTypeIcon
+                channel={item}
+                className='icon--standard icon--no-spacing'
+            />
         </span>
     );
 

@@ -220,10 +220,18 @@ func TestPropertyValueSearchCursor_IsValid(t *testing.T) {
 		assert.NoError(t, cursor.IsValid())
 	})
 
-	t.Run("valid cursor", func(t *testing.T) {
+	t.Run("valid cursor with CreateAt", func(t *testing.T) {
 		cursor := PropertyValueSearchCursor{
 			PropertyValueID: NewId(),
 			CreateAt:        GetMillis(),
+		}
+		assert.NoError(t, cursor.IsValid())
+	})
+
+	t.Run("valid cursor with UpdateAt", func(t *testing.T) {
+		cursor := PropertyValueSearchCursor{
+			PropertyValueID: NewId(),
+			UpdateAt:        GetMillis(),
 		}
 		assert.NoError(t, cursor.IsValid())
 	})
@@ -236,10 +244,18 @@ func TestPropertyValueSearchCursor_IsValid(t *testing.T) {
 		assert.Error(t, cursor.IsValid())
 	})
 
-	t.Run("zero CreateAt", func(t *testing.T) {
+	t.Run("neither CreateAt nor UpdateAt set", func(t *testing.T) {
 		cursor := PropertyValueSearchCursor{
 			PropertyValueID: NewId(),
-			CreateAt:        0,
+		}
+		assert.Error(t, cursor.IsValid())
+	})
+
+	t.Run("both CreateAt and UpdateAt set", func(t *testing.T) {
+		cursor := PropertyValueSearchCursor{
+			PropertyValueID: NewId(),
+			CreateAt:        GetMillis(),
+			UpdateAt:        GetMillis(),
 		}
 		assert.Error(t, cursor.IsValid())
 	})
@@ -250,6 +266,79 @@ func TestPropertyValueSearchCursor_IsValid(t *testing.T) {
 			CreateAt:        -1,
 		}
 		assert.Error(t, cursor.IsValid())
+	})
+}
+
+func TestPropertyValueSearchOpts_IsValid(t *testing.T) {
+	t.Run("empty opts is valid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("since without cursor is valid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{SinceUpdateAt: 1000}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("delta mode with matching cursor_update_at is valid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{
+			SinceUpdateAt: 1000,
+			Cursor: PropertyValueSearchCursor{
+				PropertyValueID: NewId(),
+				UpdateAt:        1500,
+			},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("directory mode with matching cursor_create_at is valid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{
+			Cursor: PropertyValueSearchCursor{
+				PropertyValueID: NewId(),
+				CreateAt:        1500,
+			},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("delta mode with cursor_create_at is invalid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{
+			SinceUpdateAt: 1000,
+			Cursor: PropertyValueSearchCursor{
+				PropertyValueID: NewId(),
+				CreateAt:        1500,
+			},
+		}
+		assert.Error(t, opts.IsValid())
+	})
+
+	t.Run("directory mode with cursor_update_at is invalid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{
+			Cursor: PropertyValueSearchCursor{
+				PropertyValueID: NewId(),
+				UpdateAt:        1500,
+			},
+		}
+		assert.Error(t, opts.IsValid())
+	})
+
+	t.Run("invalid cursor surfaces error", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{
+			Cursor: PropertyValueSearchCursor{
+				PropertyValueID: "invalid",
+				CreateAt:        1500,
+			},
+		}
+		assert.Error(t, opts.IsValid())
+	})
+
+	t.Run("cursor with ID but neither create_at nor update_at is invalid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{
+			Cursor: PropertyValueSearchCursor{
+				PropertyValueID: NewId(),
+			},
+		}
+		assert.Error(t, opts.IsValid())
 	})
 }
 
@@ -285,5 +374,39 @@ func TestSanitizePropertyValue(t *testing.T) {
 		raw := json.RawMessage(`"hello"`)
 		got := SanitizePropertyValue(raw)
 		assert.Equal(t, &raw[0], &got[0], "expected same backing array when unchanged")
+	})
+}
+
+func TestBroadcastValue(t *testing.T) {
+	value := json.RawMessage(`"secret"`)
+
+	publicField := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModePublic}}
+	sourceOnlyField := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSourceOnly}}
+	sharedOnlyField := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSharedOnly}}
+	noAttrsField := &PropertyField{}
+
+	cases := []struct {
+		name  string
+		field *PropertyField
+		want  json.RawMessage
+	}{
+		{"public field returns value unchanged", publicField, value},
+		{"source_only field returns the marker", sourceOnlyField, json.RawMessage(PropertyValueWithheldJSON)},
+		{"shared_only field returns the marker", sharedOnlyField, json.RawMessage(PropertyValueWithheldJSON)},
+		{"nil field returns the marker", nil, json.RawMessage(PropertyValueWithheldJSON)},
+		{"field with no Attrs counts as public", noAttrsField, value},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := BroadcastValue(tc.field, value)
+			assert.Equal(t, string(tc.want), string(got))
+		})
+	}
+
+	t.Run("marker is valid JSON that unmarshals to a non-null object", func(t *testing.T) {
+		got := BroadcastValue(sourceOnlyField, value)
+		var obj map[string]any
+		require.NoError(t, json.Unmarshal(got, &obj))
+		assert.NotNil(t, obj)
 	})
 }

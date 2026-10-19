@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
@@ -85,6 +85,9 @@ describe('Collapsed Reply Threads', () => {
     it('MM-T4843_1 should go to threads view when switching a team if that was the last view on that team', () => {
         // # Go to the ‘Threads’ view on Team A
         cy.uiGetSidebarThreadsButton().click();
+
+        // * Wait for the view to mount, since that is what records threads as the team's last viewed type
+        cy.get('.GlobalThreads').should('be.visible');
 
         // # Switch to Team B
         cy.get(`#${teamB.name}TeamButton`, {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').click();

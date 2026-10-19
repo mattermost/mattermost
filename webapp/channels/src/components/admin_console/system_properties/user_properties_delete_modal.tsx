@@ -6,7 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {openModal} from 'actions/views/modals';
 
@@ -20,7 +20,7 @@ type Props = {
     onExited: () => void;
     isOrphaned?: boolean;
     sourcePluginId?: string;
-}
+};
 
 const noop = () => {};
 

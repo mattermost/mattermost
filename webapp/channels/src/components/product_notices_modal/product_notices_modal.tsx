@@ -23,7 +23,7 @@ type Props = PropsFromRedux;
 type State = {
     presentNoticeIndex: number;
     noticesData: ProductNotices;
-}
+};
 
 export default class ProductNoticesModal extends React.PureComponent<Props, State> {
     clearDataTimer?: number;

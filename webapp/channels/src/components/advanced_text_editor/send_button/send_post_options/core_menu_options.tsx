@@ -18,7 +18,7 @@ import RecentUsedCustomDate from './recent_used_custom_date';
 type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
     channelId: string;
-}
+};
 
 /**
  * Formats a timestamp in the teammate's timezone using the current user's locale.
@@ -161,7 +161,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         />
     );
 
-    let options: React.ReactElement[] = [];
+    let options: Array<React.ReactElement<any>> = [];
 
     switch (now.weekday) {
     // Sunday

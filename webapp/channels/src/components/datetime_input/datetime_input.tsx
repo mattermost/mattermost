@@ -119,7 +119,7 @@ type TimeInputManualProps = {
     onTimeChange: (time: Moment) => void;
     minDateTime?: Moment;
     maxDateTime?: Moment;
-}
+};
 
 const TimeInputManual: React.FC<TimeInputManualProps> = ({
     time,
@@ -232,7 +232,7 @@ type Props = {
     manualTimeEntry?: boolean;
     minDateTime?: Moment;
     maxDateTime?: Moment;
-}
+};
 
 const DateTimeInputContainer: React.FC<Props> = ({
     time,

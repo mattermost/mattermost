@@ -129,6 +129,7 @@ exports[`components/post_edit_history/edited_post_item should match snapshot whe
               >
                 <div
                   class="post-message__text"
+                  data-testid="post-message-text"
                   dir="auto"
                   id="rhsPostMessageText_post_id"
                 >

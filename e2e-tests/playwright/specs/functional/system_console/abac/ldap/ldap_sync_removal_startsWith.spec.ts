@@ -60,8 +60,8 @@ test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true
     // Sync: user has qualifying attribute → gets auto-added.
     // Capture exact job ID so we poll the right job, not the most-recent row
     // (which may belong to a concurrent shard's sync job under PW_WORKERS >= 2).
-    const __syncJob5799a1 = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob5799a1);
+    const syncJob5799a1 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob5799a1);
 
     // Poll: the sync job marks itself success before the channel_members write
     // is fully committed.  Give the server up to 15 s to catch up.
@@ -77,8 +77,8 @@ test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true
     await updateUserAttributes(adminClient, user1.id, {Department: 'Sales'});
 
     // Sync: user no longer qualifies → gets removed.
-    const __syncJob5799a2 = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob5799a2);
+    const syncJob5799a2 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob5799a2);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user1.id, channel1.id), {

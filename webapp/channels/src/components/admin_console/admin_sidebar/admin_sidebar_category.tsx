@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {isValidElement} from 'react';
+import React, {isValidElement, type JSX} from 'react';
 import {NavLink} from 'react-router-dom';
 
 type Props = {
@@ -13,13 +12,15 @@ type Props = {
     definitionKey?: string;
     name?: string;
     parentLink?: string;
-    sectionClass?: string;
-}
+};
 
-const AdminSidebarCategory = ({icon, title, action, children, definitionKey, name, parentLink = '', sectionClass}: Props) => {
+const AdminSidebarCategory = ({icon, title, action, children, definitionKey, name, parentLink = ''}: Props) => {
     let link = parentLink;
     let titleDiv = (
-        <div className='category-title category-title--active'>
+        <div
+            className='category-title category-title--active'
+            data-testid='sidebar-category-title'
+        >
             <span className='category-icon'>{icon}</span>
             <span className='category-title__text'>
                 {title}
@@ -35,6 +36,7 @@ const AdminSidebarCategory = ({icon, title, action, children, definitionKey, nam
                 to={link}
                 className='category-title'
                 activeClassName='category-title category-title--active'
+                data-testid='sidebar-category-title'
             >
                 {title}
             </NavLink>
@@ -42,10 +44,12 @@ const AdminSidebarCategory = ({icon, title, action, children, definitionKey, nam
     }
 
     let clonedChildren = null;
-    const sectionsClassName = classNames('sections', sectionClass);
     if (children) {
         clonedChildren = (
-            <ul className={sectionsClassName}>
+            <ul
+                className='sections'
+                data-testid='sidebar-category-sections'
+            >
                 {
                     React.Children.map(children, (child) => {
                         if (!isValidElement(child)) {

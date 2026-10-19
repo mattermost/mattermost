@@ -73,7 +73,7 @@ describe('ChannelPropertyRenderer', () => {
             display_name: 'Direct Message',
         };
 
-        renderWithContext(
+        const {container} = renderWithContext(
             <ChannelPropertyRenderer
                 value={mockValue}
                 metadata={{channel: dmChannel}}
@@ -81,5 +81,56 @@ describe('ChannelPropertyRenderer', () => {
         );
 
         expect(screen.getByText('Direct Message')).toBeInTheDocument();
+        expect(container.querySelector('i.icon')).toBeNull();
+    });
+
+    it('should not render icon for group message channels', () => {
+        const gmChannel = {
+            ...mockChannel,
+            type: 'G' as const,
+            display_name: 'Group Message',
+        };
+
+        const {container} = renderWithContext(
+            <ChannelPropertyRenderer
+                value={mockValue}
+                metadata={{channel: gmChannel}}
+            />,
+        );
+
+        expect(screen.getByText('Group Message')).toBeInTheDocument();
+        expect(container.querySelector('i.icon')).toBeNull();
+    });
+
+    it('should render override icon when matcher matches', () => {
+        const overrideState = {plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'shield-outline'}]}}} as any;
+
+        const {container} = renderWithContext(
+            <ChannelPropertyRenderer
+                value={mockValue}
+                metadata={{channel: mockChannel}}
+            />,
+            overrideState,
+        );
+
+        const icon = container.querySelector('i');
+        expect(icon).toHaveClass('icon', 'icon-shield-outline');
+        expect(icon).not.toHaveClass('icon-globe');
+    });
+
+    it('falls back to icon-globe when no matcher matches for an open channel', () => {
+        const noMatchState = {plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'mbe', matcher: () => false, iconName: 'shield-outline'}]}}} as any;
+
+        const {container} = renderWithContext(
+            <ChannelPropertyRenderer
+                value={mockValue}
+                metadata={{channel: mockChannel}}
+            />,
+            noMatchState,
+        );
+
+        const icon = container.querySelector('i');
+        expect(icon).toHaveClass('icon', 'icon-globe');
+        expect(icon).not.toHaveClass('icon-shield-outline');
     });
 });

@@ -51,7 +51,7 @@ type RouteViewParams = {
     postid?: string;
 };
 
-type Props = {channelId: string} & RouteComponentProps<RouteViewParams>
+type Props = {channelId: string} & RouteComponentProps<RouteViewParams>;
 
 function makeMapStateToProps() {
     return function mapStateToProps(state: GlobalState, ownProps: Props) {

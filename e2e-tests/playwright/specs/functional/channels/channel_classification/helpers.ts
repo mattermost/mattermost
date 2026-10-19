@@ -3,12 +3,20 @@
 
 import type {Client4} from '@mattermost/client';
 
-const PROPERTY_GROUP = 'classification_markings';
+// Canonical values: webapp/channels/src/components/admin_console/classification_markings/utils/index.ts
+// (cross-package import not feasible between e2e-tests and webapp)
+const PROPERTY_GROUP = 'access_control';
 const TEMPLATE_OBJECT_TYPE = 'template';
 const CHANNEL_OBJECT_TYPE = 'channel';
 const TARGET_TYPE = 'system';
 const CLASSIFICATION_FIELD_NAME = 'classification';
-const CHANNEL_LINKED_FIELD_NAME = 'channel_classification';
+const CHANNEL_LINKED_FIELD_NAME = 'classification';
+// Classification levels are an ordered scale, so only a rank-typed field by this
+// name belongs to the feature. One of any other type is a different attribute that
+// happens to share the name, and the admin pages report it as a conflict rather
+// than adopting it — so seeding the wrong type here lands the test on that error
+// screen instead of the editor.
+const CLASSIFICATIONS_FIELD_TYPE = 'rank';
 
 export const TEST_LEVELS = [
     {name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
@@ -16,20 +24,6 @@ export const TEST_LEVELS = [
     {name: 'SECRET', color: '#C8102E', rank: 3},
     {name: 'TOP SECRET', color: '#FF8C00', rank: 4},
 ];
-
-/**
- * Sets the ClassificationMarkings feature flag via server config.
- */
-export async function setClassificationMarkingsFeatureFlag(adminClient: Client4, enabled: boolean) {
-    const config = await adminClient.getConfig();
-    await adminClient.updateConfig({
-        ...config,
-        FeatureFlags: {
-            ...config.FeatureFlags,
-            ClassificationMarkings: enabled,
-        },
-    } as Awaited<ReturnType<Client4['getConfig']>>);
-}
 
 /**
  * Deletes existing classification fields (channel linked, system linked, and template)
@@ -51,7 +45,7 @@ export async function deleteClassificationFieldsIfExist(adminClient: Client4) {
         try {
             const linkedFields = await adminClient.getPropertyFields(PROPERTY_GROUP, objectType, TARGET_TYPE, '');
             for (const f of linkedFields.filter(
-                (f) => f.name === 'system_classification' && f.delete_at === 0 && f.linked_field_id,
+                (f) => f.name === 'classification' && f.delete_at === 0 && f.linked_field_id,
             )) {
                 await adminClient.deletePropertyField(PROPERTY_GROUP, objectType, f.id);
             }
@@ -97,25 +91,28 @@ export async function setupClassificationWithChannelField(
     // Create template field
     const templateField = await adminClient.createPropertyField(PROPERTY_GROUP, TEMPLATE_OBJECT_TYPE, {
         name: CLASSIFICATION_FIELD_NAME,
-        type: 'select',
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: TARGET_TYPE,
         target_id: '',
         attrs: {
             options: levels.map((l) => ({id: '', name: l.name, color: l.color, rank: l.rank})),
-            managed: 'admin',
         },
-        permission_field: 'sysadmin',
-        permission_values: 'sysadmin',
-        permission_options: 'sysadmin',
+        permission_field: 'admin',
+        permission_values: 'admin',
+        permission_options: 'admin',
     } as Parameters<Client4['createPropertyField']>[2]);
 
-    // Create channel linked field
+    // Create channel linked field. permission_values must be set (matching how
+    // the admin console creates it) or the server refuses to let anyone,
+    // including the creator, set a value on it.
     const channelField = await adminClient.createPropertyField(PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, {
         name: CHANNEL_LINKED_FIELD_NAME,
-        type: 'select',
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: TARGET_TYPE,
         target_id: '',
         linked_field_id: templateField.id,
+        permission_field: 'admin',
+        permission_values: 'admin',
     } as Parameters<Client4['createPropertyField']>[2]);
 
     // Resolve levels with server-assigned IDs

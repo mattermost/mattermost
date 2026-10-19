@@ -1,0 +1,78 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import path from 'node:path';
+
+// Fixed values every container/helper agrees on: network aliases and throwaway test
+// credentials. Not overridable, unlike test_config.ts.
+
+export const POSTGRES_ALIAS = 'postgres';
+export const POSTGRES_PORT = 5432;
+export const POSTGRES_DB = 'mattermost_test';
+export const POSTGRES_USER = 'mmuser';
+export const POSTGRES_PASSWORD = 'mostest_password';
+
+export const INBUCKET_ALIAS = 'inbucket';
+export const INBUCKET_WEB_PORT = 9001;
+export const INBUCKET_SMTP_PORT = 10025;
+export const INBUCKET_POP3_PORT = 10110;
+
+export const MATTERMOST_ALIAS = 'server';
+export const MATTERMOST_PORT = 8065;
+// Host port the container publishes MATTERMOST_PORT to; fixed and distinct from 8065 so a
+// testcontainers run doesn't collide with a locally-run dev server on the same machine.
+export const MATTERMOST_FIXED_HOST_PORT = 8055;
+
+// Interactive-message/dialog callback sidecar shared with Cypress. Always started, like
+// postgres/inbucket — not gated behind testcontainersServices.
+export const WEBHOOK_ALIAS = 'webhook';
+export const WEBHOOK_PORT = 3000;
+
+export const OPENLDAP_ALIAS = 'openldap';
+export const OPENLDAP_PORT = 389;
+export const OPENLDAP_ADMIN_DN = 'cn=admin,dc=mm,dc=test,dc=com';
+export const OPENLDAP_ADMIN_PASSWORD = 'mostest_password';
+export const OPENLDAP_BASE_DN = 'dc=mm,dc=test,dc=com';
+
+export const KEYCLOAK_ALIAS = 'keycloak';
+export const KEYCLOAK_PORT = 8080;
+export const KEYCLOAK_REALM = 'mattermost';
+export const KEYCLOAK_ADMIN_USER = 'admin';
+export const KEYCLOAK_ADMIN_PASSWORD = 'admin';
+
+// Matches the `mattermost-openid` client's clientId/secret in keycloak-realm-export.json.
+export const KEYCLOAK_OPENID_CLIENT_ID = 'mattermost-openid';
+export const KEYCLOAK_OPENID_CLIENT_SECRET = '9Y7dykcoA9luTC77XtXxOu9UbNx3rhj6';
+
+export const ELASTICSEARCH_ALIAS = 'elasticsearch';
+export const ELASTICSEARCH_PORT = 9200;
+
+export const MINIO_ALIAS = 'minio';
+export const MINIO_PORT = 9000;
+export const MINIO_ACCESS_KEY = 'minioaccesskey';
+export const MINIO_SECRET_KEY = 'miniosecretkey';
+export const MINIO_BUCKET = 'mattermost-test';
+
+// Alternative to Minio for blob storage.
+export const AZURITE_ALIAS = 'azurite';
+export const AZURITE_BLOB_PORT = 10000;
+// Azurite's well-known default emulator account — published by Microsoft's own docs, not a secret.
+export const AZURITE_ACCOUNT_NAME = 'devstoreaccount1';
+export const AZURITE_ACCOUNT_KEY =
+    'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==';
+export const AZURITE_CONTAINER = 'mattermost-test';
+
+// Alternative to Elasticsearch for search.
+export const OPENSEARCH_ALIAS = 'opensearch';
+export const OPENSEARCH_PORT = 9201;
+export const OPENSEARCH_ADMIN_PASSWORD = 'Test@dmin_123';
+
+// Applied to every container this module starts, so `npm run testcontainers:down` can find and
+// remove them from a fresh process, since stack.ts's in-memory `started` state doesn't persist.
+export const TESTCONTAINERS_LABEL_KEY = 'mm-playwright-testcontainers';
+export const TESTCONTAINERS_LABEL_VALUE = 'true';
+export const TESTCONTAINERS_LABELS = {[TESTCONTAINERS_LABEL_KEY]: TESTCONTAINERS_LABEL_VALUE};
+
+// Fixed and repo-relative (not os.tmpdir()) so every process resolves the same path; bind-mounted
+// to /mattermost/data so local-disk file storage survives restartMattermostContainer()'s docker rm -f.
+export const MATTERMOST_DATA_DIR = path.resolve(process.cwd(), '.mattermost_data');

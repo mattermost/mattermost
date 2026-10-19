@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"regexp"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -49,6 +50,22 @@ var (
 	urlRe          = regexp.MustCompile(URLRegexpRE)
 	markdownLinkRe = regexp.MustCompile(URLMarkdownLinkRE)
 )
+
+// analysisPluginPrefixes lists the prefixes a managed service can prepend to the component name of
+// an analysis plugin. AWS OpenSearch Service reports a plugin installed through associate-package
+// as "opensearch-analysis-nori", while the plugins it bundles keep their unprefixed names.
+var analysisPluginPrefixes = []string{"", "opensearch-"}
+
+// HasAnalysisPlugin reports whether the named analysis plugin is present in the plugin list
+// reported by the cluster, accepting both the bundled and the prefixed component names.
+func HasAnalysisPlugin(plugins []string, name string) bool {
+	for _, prefix := range analysisPluginPrefixes {
+		if slices.Contains(plugins, prefix+name) {
+			return true
+		}
+	}
+	return false
+}
 
 type ESPost struct {
 	Id          string   `json:"id"`
@@ -95,7 +112,7 @@ type ESUser struct {
 	ChannelsIds                []string `json:"channel_id"`
 }
 
-func ESPostFromPost(post *model.Post, teamId string, channelType string) (*ESPost, error) {
+func ESPostFromPost(post *model.Post, teamId string, channelType string, mmBlocksEnabled bool) (*ESPost, error) {
 	p := &model.PostForIndexing{
 		TeamId:      teamId,
 		ChannelType: channelType,
@@ -104,10 +121,10 @@ func ESPostFromPost(post *model.Post, teamId string, channelType string) (*ESPos
 	if err != nil {
 		return nil, err
 	}
-	return ESPostFromPostForIndexing(p), nil
+	return ESPostFromPostForIndexing(p, mmBlocksEnabled), nil
 }
 
-func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
+func ESPostFromPostForIndexing(post *model.PostForIndexing, mmBlocksEnabled bool) *ESPost {
 	searchPost := ESPost{
 		Id:          post.Id,
 		TeamId:      post.TeamId,
@@ -120,82 +137,22 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 		ChannelType: post.ChannelType,
 	}
 
-	var searchAttachments []string
-
-	if attachments := post.GetProp(model.PostPropsAttachments); attachments != nil {
-		attachmentsInterfaceArray, ok := attachments.([]any)
-		if ok {
-			for _, attachment := range attachmentsInterfaceArray {
-				if attachment == nil {
-					continue
-				}
-				m, mOk := attachment.(map[string]any)
-				if !mOk {
-					continue
-				}
-				for _, key := range []string{"text", "title", "pretext", "fallback", "footer", "author_name"} {
-					if s, _ := m[key].(string); s != "" {
-						searchAttachments = append(searchAttachments, s)
-					}
-				}
-				if fields, fOk := m["fields"].([]any); fOk {
-					for _, f := range fields {
-						if fm, fmOk := f.(map[string]any); fmOk {
-							if s, _ := fm["title"].(string); s != "" {
-								searchAttachments = append(searchAttachments, s)
-							}
-							if v := fm["value"]; v != nil {
-								if s, vOk := v.(string); vOk {
-									if s != "" {
-										searchAttachments = append(searchAttachments, s)
-									}
-								} else {
-									searchAttachments = append(searchAttachments, fmt.Sprint(v))
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		attachmentsArray, ok := attachments.([]*model.MessageAttachment)
-		if ok {
-			for _, attachment := range attachmentsArray {
-				if attachment == nil {
-					continue
-				}
-				for _, s := range []string{attachment.Text, attachment.Title, attachment.Pretext, attachment.Fallback, attachment.Footer, attachment.AuthorName} {
-					if s != "" {
-						searchAttachments = append(searchAttachments, s)
-					}
-				}
-				for _, field := range attachment.Fields {
-					if field == nil {
-						continue
-					}
-					if field.Title != "" {
-						searchAttachments = append(searchAttachments, field.Title)
-					}
-					if field.Value != nil {
-						if s, ok := field.Value.(string); ok {
-							if s != "" {
-								searchAttachments = append(searchAttachments, s)
-							}
-						} else {
-							searchAttachments = append(searchAttachments, fmt.Sprint(field.Value))
-						}
-					}
-				}
-			}
-		}
+	// Message stays in its own field; everything else searchable (attachments, mm_blocks, Block Kit blocks,
+	// Adaptive cards) comes from model.Post.AllStrings (attachment Fallback is omitted), omitting the leading message segment when it is
+	// the same bytes as post.Message so it is not duplicated in the ES "attachments" text field.
+	allStrings := post.AllStrings(model.AllStringsOptions{OmitInteractiveBlocks: !mmBlocksEnabled})
+	allStringsButMessage := allStrings
+	if len(allStringsButMessage) > 0 && strings.TrimSpace(post.Message) != "" && allStringsButMessage[0] == post.Message {
+		allStringsButMessage = allStringsButMessage[1:]
 	}
+	searchPost.Attachments = strings.Join(allStringsButMessage, " ")
 
-	searchPost.Attachments = strings.Join(searchAttachments, " ")
-
-	urls := extractURLsFromMessage(post.Message)
-	if len(urls) > 0 {
-		searchPost.URLs = urls
+	var urlAccum []string
+	for _, s := range allStrings {
+		urlAccum = append(urlAccum, extractURLsFromMessage(s)...)
+	}
+	if len(urlAccum) > 0 {
+		searchPost.URLs = model.RemoveDuplicateStringsNonSort(urlAccum)
 	}
 
 	if searchPost.Type == "" {

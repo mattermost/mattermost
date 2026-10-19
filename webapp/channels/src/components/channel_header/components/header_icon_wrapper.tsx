@@ -26,7 +26,7 @@ type Props = {
     tooltipShortcut?: ShortcutDefinition;
     isRhsOpen?: boolean;
     pluginId?: string;
-}
+};
 
 const HeaderIconWrapper = (props: Props) => {
     const {

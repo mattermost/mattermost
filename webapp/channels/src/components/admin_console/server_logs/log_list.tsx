@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {ArrowDownIcon, ArrowUpIcon} from '@mattermost/compass-icons/components';
@@ -30,7 +30,7 @@ type State = {
     modalOpen: boolean;
     page: number;
     dateAsc: boolean;
-}
+};
 
 const PAGE_SIZE = 50;
 

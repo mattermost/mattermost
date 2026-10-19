@@ -35,11 +35,11 @@ type Props = {
         loadTeamMembersForProfilesList: (profiles: any, teamId: string, reloadAllMembers: boolean) => Promise<ActionResult>;
         setModalSearchTerm: (term: string) => ActionResult;
     };
-}
+};
 
 type State = {
     loading: boolean;
-}
+};
 
 export default class MemberListTeam extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;

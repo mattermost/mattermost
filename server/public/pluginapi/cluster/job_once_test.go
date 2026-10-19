@@ -300,9 +300,13 @@ func TestScheduleOnceSequential(t *testing.T) {
 
 		_, err = s.ScheduleOnce("anything", time.Now().Add(50*time.Millisecond), nil)
 		require.NoError(t, err)
-		time.Sleep(70*time.Millisecond + scheduleOnceJitter)
-		assert.Equal(t, int32(0), atomic.LoadInt32(newCount2))
-		assert.Equal(t, int32(1), atomic.LoadInt32(newCount3))
+
+		// Poll for the scheduled callback. A fixed sleep is flaky under the race
+		// detector and on loaded CI because job.run adds up to scheduleOnceJitter
+		// on top of the scheduled delay.
+		require.Eventually(t, func() bool {
+			return atomic.LoadInt32(newCount2) == int32(0) && atomic.LoadInt32(newCount3) == int32(1)
+		}, 5*time.Second, 50*time.Millisecond, "timed out waiting for scheduled callback")
 	})
 
 	t.Run("test paging keys from the db by inserting 3 pages of jobs and starting scheduler", func(t *testing.T) {

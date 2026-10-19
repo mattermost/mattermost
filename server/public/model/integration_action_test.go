@@ -280,7 +280,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		require.NoError(t, err)
 
 		userId := NewId()
-		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, key)
+		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, NewId(), key)
 		assert.Nil(t, appErr)
 		assert.NotEmpty(t, clientTriggerId)
 		assert.NotEmpty(t, triggerId)
@@ -291,7 +291,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		badSigner := &failingSigner{err: assert.AnError}
 
 		userId := NewId()
-		_, _, appErr := GenerateTriggerId(userId, badSigner)
+		_, _, appErr := GenerateTriggerId(userId, NewId(), badSigner)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
 		assert.NotEmpty(t, appErr.Error())
@@ -310,7 +310,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		}
 
 		userId := NewId()
-		_, _, appErr := GenerateTriggerId(userId, invalidKey)
+		_, _, appErr := GenerateTriggerId(userId, NewId(), invalidKey)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
 		assert.Contains(t, appErr.Error(), "invalid signing key")
@@ -326,7 +326,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		}
 
 		userId := NewId()
-		_, _, appErr := GenerateTriggerId(userId, invalidKey)
+		_, _, appErr := GenerateTriggerId(userId, NewId(), invalidKey)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
 	})
@@ -338,63 +338,83 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 
 	t.Run("should succeed decoding and validation", func(t *testing.T) {
 		userId := NewId()
-		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, key)
+		channelId := NewId()
+		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, channelId, key)
 		require.Nil(t, appErr)
-		decodedClientTriggerId, decodedUserId, appErr := DecodeAndVerifyTriggerId(triggerId, key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		decodedClientTriggerId, decodedUserId, decodedChannelId, appErr := DecodeAndVerifyTriggerId(triggerId, key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		assert.Nil(t, appErr)
 		assert.Equal(t, clientTriggerId, decodedClientTriggerId)
 		assert.Equal(t, userId, decodedUserId)
+		assert.Equal(t, channelId, decodedChannelId)
 	})
 
 	t.Run("should succeed decoding and validation through request structs", func(t *testing.T) {
 		actionReq := &PostActionIntegrationRequest{
-			UserId: NewId(),
+			UserId:    NewId(),
+			ChannelId: NewId(),
 		}
 		clientTriggerId, triggerId, appErr := actionReq.GenerateTriggerId(key)
 		require.Nil(t, appErr)
 		dialogReq := &OpenDialogRequest{TriggerId: triggerId}
-		decodedClientTriggerId, decodedUserId, appErr := dialogReq.DecodeAndVerifyTriggerId(key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		decodedClientTriggerId, decodedUserId, decodedChannelId, appErr := dialogReq.DecodeAndVerifyTriggerId(key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		assert.Nil(t, appErr)
 		assert.Equal(t, clientTriggerId, decodedClientTriggerId)
 		assert.Equal(t, actionReq.UserId, decodedUserId)
+		assert.Equal(t, actionReq.ChannelId, decodedChannelId)
+	})
+
+	t.Run("should reject a trigger whose channel was tampered with", func(t *testing.T) {
+		_, triggerId, appErr := GenerateTriggerId(NewId(), NewId(), key)
+		require.Nil(t, appErr)
+
+		raw, decErr := base64.StdEncoding.DecodeString(triggerId)
+		require.NoError(t, decErr)
+		parts := strings.Split(string(raw), ":")
+		require.Len(t, parts, 5)
+		parts[3] = NewId() // swap the channel, leave the signature alone
+
+		tampered := base64.StdEncoding.EncodeToString([]byte(strings.Join(parts, ":")))
+		_, _, _, appErr = DecodeAndVerifyTriggerId(tampered, key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "interactive_message.decode_trigger_id.verify_signature_failed", appErr.Id)
 	})
 
 	t.Run("should fail on base64 decode", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId("junk!", key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId("junk!", key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.base64_decode_failed", appErr.Id)
 	})
 
 	t.Run("should fail on trigger parsing", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.missing_data", appErr.Id)
 	})
 
 	t.Run("should fail on expired timestamp", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:1234567890:junksignature")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:1234567890:some-channel-id:junksignature")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.expired", appErr.Id)
 	})
 
 	t.Run("should fail on base64 decoding signature", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:some-channel-id:junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.base64_decode_failed_signature", appErr.Id)
 	})
 
 	t.Run("should fail on bad signature", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:junk")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:some-channel-id:junk")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.signature_decode_failed", appErr.Id)
 	})
 
 	t.Run("should fail on bad key", func(t *testing.T) {
-		_, triggerId, appErr := GenerateTriggerId(NewId(), key)
+		_, triggerId, appErr := GenerateTriggerId(NewId(), NewId(), key)
 		require.Nil(t, appErr)
 		newKey, keyErr := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 		require.NoError(t, keyErr)
-		_, _, appErr = DecodeAndVerifyTriggerId(triggerId, newKey, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr = DecodeAndVerifyTriggerId(triggerId, newKey, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.verify_signature_failed", appErr.Id)
 	})
@@ -589,7 +609,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 	t.Run("should fail on wrong subtype and long dialog title", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		request.Dialog.Elements[0].SubType = "wrong SubType"
-		request.Dialog.Title = "Very very long Dialog Name"
+		request.Dialog.Title = strings.Repeat("Very very long Dialog Name ", 5)
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "invalid subtype")
 		assert.ErrorContains(t, err, "invalid dialog title")
@@ -619,7 +639,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		request.Dialog.Elements[0].MaxLength = 9
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "field is not valid")
-		assert.ErrorContains(t, err, "min length should be less then max length")
+		assert.ErrorContains(t, err, "min length should be less than max length")
 	})
 
 	t.Run("should fail on wrong element type", func(t *testing.T) {
@@ -1122,6 +1142,20 @@ func TestIsMultiSelectDefaultInOptions(t *testing.T) {
 		assert.True(t, result)
 	})
 
+	t.Run("should preserve internal spaces in option values", func(t *testing.T) {
+		spacedOptions := []*PostActionOptions{
+			{Text: "High risk", Value: "high risk"},
+			{Text: "Low risk", Value: "low risk"},
+		}
+
+		// A default matching an option value that legitimately contains a space
+		// must validate — the trim only strips whitespace around the comma
+		// separators, not inside a value.
+		assert.True(t, isMultiSelectDefaultInOptions("high risk", spacedOptions))
+		assert.True(t, isMultiSelectDefaultInOptions("high risk, low risk", spacedOptions))
+		assert.False(t, isMultiSelectDefaultInOptions("highrisk", spacedOptions))
+	})
+
 	t.Run("should return false for single invalid default", func(t *testing.T) {
 		result := isMultiSelectDefaultInOptions("invalid", options)
 		assert.False(t, result)
@@ -1391,9 +1425,11 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			DisplayName: "Test Date",
 			Name:        "test_date",
 			Type:        "date",
-			MinDate:     "2025-01-01",
-			MaxDate:     "2025-12-31",
-			Optional:    false,
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate: "2025-01-01",
+				MaxDate: "2025-12-31",
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
@@ -1401,13 +1437,15 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should validate DialogElement with datetime type and time properties", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			MinDate:      "2025-01-01T00:00:00Z",
-			MaxDate:      "2025-12-31T23:59:59Z",
-			TimeInterval: 30,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate:      "2025-01-01T00:00:00Z",
+				MaxDate:      "2025-12-31T23:59:59Z",
+				TimeInterval: 30,
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
@@ -1415,13 +1453,15 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should validate DialogElement with datetime type and relative min/max", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			MinDate:      "+2H",
-			MaxDate:      "+7d",
-			TimeInterval: 30,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate:      "+2H",
+				MaxDate:      "+7d",
+				TimeInterval: 30,
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
@@ -1429,13 +1469,15 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should accept datetime DialogElement with date-only min/max for backward compatibility", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			MinDate:      "2025-01-01",
-			MaxDate:      "2025-12-31",
-			TimeInterval: 30,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate:      "2025-01-01",
+				MaxDate:      "2025-12-31",
+				TimeInterval: 30,
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
@@ -1446,8 +1488,10 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			DisplayName: "Test Date",
 			Name:        "test_date",
 			Type:        "date",
-			MinDate:     "invalid-date",
-			Optional:    false,
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate: "invalid-date",
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.Error(t, err)
@@ -1456,11 +1500,13 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should reject DialogElement with invalid time_interval", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			TimeInterval: -1, // Invalid
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: -1, // Invalid
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.Error(t, err)
@@ -1469,11 +1515,13 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should reject DialogElement with time_interval that is not a divisor of 1440", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			TimeInterval: 729, // Invalid - not a divisor of 1440
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: 729, // Invalid - not a divisor of 1440
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.Error(t, err)
@@ -1485,11 +1533,13 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 		for _, interval := range validIntervals {
 			element := DialogElement{
-				DisplayName:  "Test DateTime",
-				Name:         "test_datetime",
-				Type:         "datetime",
-				TimeInterval: interval,
-				Optional:     false,
+				DisplayName: "Test DateTime",
+				Name:        "test_datetime",
+				Type:        "datetime",
+				DateTimeConfig: &DialogDateTimeConfig{
+					TimeInterval: interval,
+				},
+				Optional: false,
 			}
 			err := element.IsValid()
 			assert.NoError(t, err, "time_interval %d should be valid", interval)
@@ -1501,11 +1551,13 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 		for _, interval := range invalidIntervals {
 			element := DialogElement{
-				DisplayName:  "Test DateTime",
-				Name:         "test_datetime",
-				Type:         "datetime",
-				TimeInterval: interval,
-				Optional:     false,
+				DisplayName: "Test DateTime",
+				Name:        "test_datetime",
+				Type:        "datetime",
+				DateTimeConfig: &DialogDateTimeConfig{
+					TimeInterval: interval,
+				},
+				Optional: false,
 			}
 			err := element.IsValid()
 			assert.Error(t, err, "time_interval %d should be invalid", interval)
@@ -1516,22 +1568,26 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 	t.Run("should use default time_interval of 60 minutes when zero", func(t *testing.T) {
 		// Valid with explicit 60-minute interval
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			TimeInterval: DefaultTimeIntervalMinutes,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: DefaultTimeIntervalMinutes,
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
 
 		// time_interval=0 means omitted — treated as default, should pass validation
 		element = DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			TimeInterval: 0,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: 0,
+			},
+			Optional: false,
 		}
 		err = element.IsValid()
 		assert.NoError(t, err)
@@ -1594,64 +1650,6 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		assert.Contains(t, err.Error(), "divisor of 1440")
 	})
 
-	t.Run("DateTimeConfig should take precedence over legacy fields", func(t *testing.T) {
-		element := DialogElement{
-			DisplayName: "Test Date",
-			Name:        "test_date",
-			Type:        "date",
-			MinDate:     "invalid-date",
-			DateTimeConfig: &DialogDateTimeConfig{
-				MinDate: "2025-01-01",
-			},
-		}
-		cfg := element.EffectiveDateTimeConfig()
-		assert.Equal(t, "2025-01-01", cfg.MinDate)
-	})
-
-	t.Run("legacy fields used when DateTimeConfig not provided", func(t *testing.T) {
-		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			MinDate:      "2025-01-01T00:00:00Z",
-			MaxDate:      "2025-12-31T23:59:59Z",
-			TimeInterval: 30,
-		}
-		cfg := element.EffectiveDateTimeConfig()
-		assert.Equal(t, "2025-01-01T00:00:00Z", cfg.MinDate)
-		assert.Equal(t, "2025-12-31T23:59:59Z", cfg.MaxDate)
-		assert.Equal(t, 30, cfg.TimeInterval)
-	})
-
-	t.Run("ManualTimeEntry resolves via OR across new and deprecated fields", func(t *testing.T) {
-		cases := []struct {
-			name     string
-			newField bool
-			oldField bool
-			expected bool
-		}{
-			{"both false", false, false, false},
-			{"only new true", true, false, true},
-			{"only deprecated true", false, true, true},
-			{"both true", true, true, true},
-		}
-		for _, tc := range cases {
-			t.Run(tc.name, func(t *testing.T) {
-				element := DialogElement{
-					DisplayName: "Test DateTime",
-					Name:        "test_datetime",
-					Type:        "datetime",
-					DateTimeConfig: &DialogDateTimeConfig{
-						ManualTimeEntry:      tc.newField,
-						AllowManualTimeEntry: tc.oldField,
-					},
-				}
-				cfg := element.EffectiveDateTimeConfig()
-				assert.Equal(t, tc.expected, cfg.ManualTimeEntry)
-			})
-		}
-	})
-
 	t.Run("ManualTimeEntry marshals under manual_time_entry JSON key", func(t *testing.T) {
 		cfg := DialogDateTimeConfig{ManualTimeEntry: true}
 		b, err := json.Marshal(cfg)
@@ -1659,23 +1657,77 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		assert.Contains(t, string(b), `"manual_time_entry":true`)
 	})
 
-	t.Run("deprecated allow_manual_time_entry payload still enables manual entry end-to-end", func(t *testing.T) {
-		// Simulate a legacy integrator sending only the deprecated field.
-		payload := []byte(`{"allow_manual_time_entry":true}`)
+	t.Run("removed legacy top-level fields are silently ignored on unmarshal", func(t *testing.T) {
+		// MM-68396: min_date, max_date, and time_interval are no longer DialogElement
+		// fields (moved to DateTimeConfig). This documents the intended breaking-change
+		// behavior for integrations still sending them at the top level: encoding/json
+		// drops unrecognized keys, so the element ends up with no date/datetime config
+		// and IsValid() no longer applies constraints derived from them.
+		payload := []byte(`{
+			"display_name": "Test Date",
+			"name": "test_date",
+			"type": "date",
+			"min_date": "invalid-date",
+			"max_date": "2025-12-31"
+		}`)
+		var element DialogElement
+		require.NoError(t, json.Unmarshal(payload, &element))
+
+		assert.Nil(t, element.DateTimeConfig, "legacy top-level fields must not populate DateTimeConfig")
+		assert.NoError(t, element.IsValid(), "an invalid legacy min_date must no longer fail validation since the field is unrecognized")
+	})
+
+	t.Run("removed deprecated AllowManualTimeEntry is silently ignored on unmarshal", func(t *testing.T) {
+		payload := []byte(`{"allow_manual_time_entry": true}`)
 		var cfg DialogDateTimeConfig
 		require.NoError(t, json.Unmarshal(payload, &cfg))
-		require.False(t, cfg.ManualTimeEntry, "new field should remain zero-value after unmarshal")
-		require.True(t, cfg.AllowManualTimeEntry, "deprecated field should unmarshal under its legacy tag")
-
-		element := DialogElement{
-			DisplayName:    "Test",
-			Name:           "t",
-			Type:           "datetime",
-			DateTimeConfig: &cfg,
-		}
-		effective := element.EffectiveDateTimeConfig()
-		assert.True(t, effective.ManualTimeEntry, "deprecated field alone should enable manual entry after EffectiveDateTimeConfig")
+		assert.False(t, cfg.ManualTimeEntry, "the deprecated key must no longer populate ManualTimeEntry")
 	})
+}
+
+func TestPost_PostActionPreserveState(t *testing.T) {
+	t.Run("top-level post", func(t *testing.T) {
+		p := &Post{
+			Id:           "postid",
+			IsPinned:     true,
+			HasReactions: true,
+			Props:        StringInterface{PostPropsFromWebhook: "true", "other": "x"},
+		}
+		state := p.PostActionPreserveState()
+		assert.Equal(t, "true", state.Retain[PostPropsFromWebhook])
+		assert.Contains(t, state.Remove, PostPropsOverrideUsername)
+		assert.Contains(t, state.Remove, PostPropsOverrideIconURL)
+		assert.Equal(t, "true", state.OriginalProps[PostPropsFromWebhook])
+		assert.Equal(t, "x", state.OriginalProps["other"])
+		assert.True(t, state.OriginalIsPinned)
+		assert.True(t, state.OriginalHasReactions)
+		assert.Equal(t, "postid", state.RootPostId)
+	})
+
+	t.Run("thread reply uses root id", func(t *testing.T) {
+		p := &Post{Id: "replyid", RootId: "rootid"}
+		assert.Equal(t, "rootid", p.PostActionPreserveState().RootPostId)
+	})
+
+	t.Run("original props snapshot", func(t *testing.T) {
+		p := &Post{Props: StringInterface{"k": "v"}}
+		state := p.PostActionPreserveState()
+		p.Props["k"] = "mutated"
+		p.Props["new"] = "y"
+		assert.Equal(t, "v", state.OriginalProps["k"])
+		assert.NotContains(t, state.OriginalProps, "new")
+	})
+}
+
+func TestNormalizePostActionIntegrationFormat(t *testing.T) {
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat(""))
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat("  "))
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat("ATTACHMENT"))
+	assert.Equal(t, PostActionIntegrationFormatMmBlock, NormalizePostActionIntegrationFormat("mm_block"))
+	assert.Equal(t, PostActionIntegrationFormatBlock, NormalizePostActionIntegrationFormat("block"))
+	assert.Equal(t, PostActionIntegrationFormatCard, NormalizePostActionIntegrationFormat("card"))
+	assert.Equal(t, PostActionIntegrationFormatAppsBinding, NormalizePostActionIntegrationFormat("apps_binding"))
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat("unknown-thing"))
 }
 
 func TestValidateActionQuery(t *testing.T) {
@@ -1758,6 +1810,32 @@ func mmBlocksExternalEntry(url string, context map[string]any) map[string]any {
 		entry["context"] = context
 	}
 	return entry
+}
+
+func mmBlocksOpenURLEntry(url string, query map[string]any) map[string]any {
+	entry := map[string]any{
+		"type": MmBlocksActionTypeOpenURL,
+		"url":  url,
+	}
+	if query != nil {
+		entry["query"] = query
+	}
+	return entry
+}
+
+// ensureMmBlocksReferenceActions adds mm_blocks buttons so each mm_blocks_actions key is referenced.
+func ensureMmBlocksReferenceActions(p *Post) {
+	actions, ok := coerceToStringAnyMap(p.GetProp(PostPropsMmBlocksActions))
+	if !ok {
+		return
+	}
+	blocks := make([]any, 0, len(actions))
+	for id := range actions {
+		blocks = append(blocks, map[string]any{
+			"type": "button", "text": "Btn", "action_id": id,
+		})
+	}
+	p.AddProp(PostPropsMmBlocks, blocks)
 }
 
 func TestGetMmBlocksActionSpec(t *testing.T) {
@@ -1854,6 +1932,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 			"btn2": mmBlocksExternalEntry("/plugins/myplugin/action", nil),
 			"btn3": mmBlocksExternalEntry("plugins/myplugin/action", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		assert.NoError(t, ValidateMmBlocksActions(p))
 	})
 
@@ -1864,19 +1943,19 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		}
 		p := &Post{}
 		p.AddProp(PostPropsMmBlocksActions, actions)
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "exceeds maximum")
 	})
 
-	t.Run("action id with hyphen is rejected", func(t *testing.T) {
+	t.Run("action id with hyphen is allowed", func(t *testing.T) {
 		p := &Post{}
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"foo-bar": mmBlocksExternalEntry("http://example.com/hook", nil),
 		})
-		err := ValidateMmBlocksActions(p)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "must be alphanumeric")
+		ensureMmBlocksReferenceActions(p)
+		assert.NoError(t, ValidateMmBlocksActions(p))
 	})
 
 	t.Run("action id at MaxMmBlocksActionKeyLength is allowed", func(t *testing.T) {
@@ -1885,6 +1964,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			key: mmBlocksExternalEntry("http://example.com/hook", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		assert.NoError(t, ValidateMmBlocksActions(p))
 	})
 
@@ -1899,14 +1979,13 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		assert.Contains(t, err.Error(), "exceeds")
 	})
 
-	t.Run("action id with underscore is rejected", func(t *testing.T) {
+	t.Run("action id with underscore is allowed", func(t *testing.T) {
 		p := &Post{}
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"foo_bar": mmBlocksExternalEntry("http://example.com/hook", nil),
 		})
-		err := ValidateMmBlocksActions(p)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "must be alphanumeric")
+		ensureMmBlocksReferenceActions(p)
+		assert.NoError(t, ValidateMmBlocksActions(p))
 	})
 
 	t.Run("action id with space is rejected", func(t *testing.T) {
@@ -1916,7 +1995,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		})
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "must be alphanumeric")
+		assert.Contains(t, err.Error(), "underscores, or hyphens")
 	})
 
 	t.Run("empty URL is rejected", func(t *testing.T) {
@@ -1924,6 +2003,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": mmBlocksExternalEntry("", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "non-empty URL")
@@ -1937,6 +2017,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": mmBlocksExternalEntry("/plugins/../../../etc/passwd", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "path traversal")
@@ -1947,6 +2028,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": mmBlocksExternalEntry("/plugins/myplugin/..", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "path traversal")
@@ -1968,6 +2050,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 			p.AddProp(PostPropsMmBlocksActions, map[string]any{
 				"btn1": mmBlocksExternalEntry(encoded, nil),
 			})
+			ensureMmBlocksReferenceActions(p)
 			err := ValidateMmBlocksActions(p)
 			require.Error(t, err, "url=%q must be rejected", encoded)
 			assert.Contains(t, err.Error(), "path traversal", "url=%q", encoded)
@@ -1979,6 +2062,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": map[string]any{"url": "http://example.com/hook"},
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid type or shape")
@@ -1992,6 +2076,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 				"url":  "http://example.com/hook",
 			},
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid type or shape")
@@ -2002,6 +2087,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": "not-an-object",
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "must be an object")
@@ -2012,6 +2098,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": mmBlocksExternalEntry("javascript://alert(1)", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "valid integration URL")
@@ -2022,6 +2109,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": mmBlocksExternalEntry("http://legit.com", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		assert.NoError(t, ValidateMmBlocksActions(p))
 	})
 
@@ -2030,6 +2118,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": mmBlocksExternalEntry("/plugins/foo", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		assert.NoError(t, ValidateMmBlocksActions(p))
 	})
 
@@ -2054,6 +2143,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 				"query": query,
 			},
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "static query")
@@ -2068,6 +2158,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 				"query": map[string]any{"k": strings.Repeat("a", MaxActionQueryValueLength+1)},
 			},
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "static query")
@@ -2086,6 +2177,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 				"context": ctx,
 			},
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "context exceeds maximum")
@@ -2100,9 +2192,137 @@ func TestValidateMmBlocksActions(t *testing.T) {
 				"context": map[string]any{strings.Repeat("a", MaxActionQueryKeyLength+1): "v"},
 			},
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "context key exceeds")
+	})
+
+	t.Run("orphan mm_blocks_actions entry is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocks, []any{
+			map[string]any{"type": "button", "text": "Go", "action_id": "needed"},
+		})
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"needed": mmBlocksExternalEntry("http://example.com/hook", nil),
+			"unused": mmBlocksExternalEntry("http://example.com/other", nil),
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not referenced")
+	})
+
+	t.Run("missing mm_blocks_actions entry is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocks, []any{
+			map[string]any{"type": "button", "text": "Go", "action_id": "needed"},
+		})
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"other": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "missing entry")
+	})
+
+	t.Run("mm_blocks_actions without interactive references is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must only define actions referenced")
+	})
+
+	t.Run("interactive control without mm_blocks_actions is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocks, []any{
+			map[string]any{"type": "button", "text": "Go", "action_id": "act"},
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "requires mm_blocks_actions")
+	})
+
+	t.Run("valid openURL entries return no error", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("https://example.com/page", nil),
+			"open2": mmBlocksOpenURLEntry("/team/channels/town-square", map[string]any{"q": "1"}),
+		})
+		ensureMmBlocksReferenceActions(p)
+		assert.NoError(t, ValidateMmBlocksActions(p))
+	})
+
+	t.Run("openURL empty URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "non-empty URL")
+	})
+
+	t.Run("openURL javascript URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("javascript://alert(1)", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "http or https")
+	})
+
+	t.Run("openURL protocol-relative URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("//evil.example/phish", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "protocol-relative")
+	})
+
+	t.Run("openURL path traversal is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("/team/../admin", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "path traversal")
+	})
+
+	t.Run("openURL /plugins/ path is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("/plugins/myplugin/handler", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "plugin paths are not allowed")
+	})
+
+	t.Run("openURL static query exceeding entry cap is rejected", func(t *testing.T) {
+		query := make(map[string]any, MaxActionQueryEntries+1)
+		for i := range MaxActionQueryEntries + 1 {
+			query["k"+strconv.Itoa(i)] = "v"
+		}
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("https://example.com", query),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "static query")
 	})
 }
 
@@ -2272,63 +2492,6 @@ func TestGetAction_MmBlocksFallback(t *testing.T) {
 	})
 }
 
-func TestMergeQueryIntoURL(t *testing.T) {
-	t.Run("empty query returns rawURL unchanged", func(t *testing.T) {
-		got, err := MergeQueryIntoURL("http://example.com/hook", nil)
-		require.NoError(t, err)
-		assert.Equal(t, "http://example.com/hook", got)
-
-		got, err = MergeQueryIntoURL("http://example.com/hook", map[string]string{})
-		require.NoError(t, err)
-		assert.Equal(t, "http://example.com/hook", got)
-	})
-
-	t.Run("URL without existing query gets query appended", func(t *testing.T) {
-		got, err := MergeQueryIntoURL("http://example.com/hook", map[string]string{"a": "1"})
-		require.NoError(t, err)
-		assert.Equal(t, "http://example.com/hook?a=1", got)
-	})
-
-	t.Run("URL with existing query merges non-overlapping keys", func(t *testing.T) {
-		got, err := MergeQueryIntoURL("http://example.com/hook?team=alpha", map[string]string{"source": "fleet"})
-		require.NoError(t, err)
-		// Encode() sorts keys alphabetically.
-		assert.Contains(t, got, "team=alpha")
-		assert.Contains(t, got, "source=fleet")
-	})
-
-	t.Run("query map overrides existing key on overlap", func(t *testing.T) {
-		got, err := MergeQueryIntoURL("http://example.com/hook?tail=999", map[string]string{"tail": "214"})
-		require.NoError(t, err)
-		assert.Equal(t, "http://example.com/hook?tail=214", got)
-	})
-
-	t.Run("URL fragment is preserved", func(t *testing.T) {
-		got, err := MergeQueryIntoURL("http://example.com/hook#anchor", map[string]string{"a": "1"})
-		require.NoError(t, err)
-		assert.Equal(t, "http://example.com/hook?a=1#anchor", got)
-	})
-
-	t.Run("special characters in values are URL-encoded", func(t *testing.T) {
-		got, err := MergeQueryIntoURL("http://example.com/hook", map[string]string{"q": "a b&c=d"})
-		require.NoError(t, err)
-		// space → +, & and = → %26 / %3D
-		assert.Contains(t, got, "q=a+b%26c%3Dd")
-	})
-
-	t.Run("relative URL with empty path accepts query merge", func(t *testing.T) {
-		got, err := MergeQueryIntoURL("/plugins/myplugin/action", map[string]string{"a": "1"})
-		require.NoError(t, err)
-		assert.Equal(t, "/plugins/myplugin/action?a=1", got)
-	})
-
-	t.Run("malformed URL returns parse error", func(t *testing.T) {
-		_, err := MergeQueryIntoURL("://not-a-url", map[string]string{"a": "1"})
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "parse url")
-	})
-}
-
 func TestMmBlocksContextMap(t *testing.T) {
 	t.Run("empty string returns nil", func(t *testing.T) {
 		assert.Nil(t, MmBlocksContextMap(""))
@@ -2373,46 +2536,490 @@ func TestMmBlocksContextMap(t *testing.T) {
 	})
 }
 
-func TestStripMmBlocksActionSecrets(t *testing.T) {
-	t.Run("absent prop is a no-op", func(t *testing.T) {
-		p := &Post{}
-		assert.NotPanics(t, func() {
-			p.StripMmBlocksActionSecrets()
-		})
-		assert.Nil(t, p.GetProp(PostPropsMmBlocksActions))
+// TestDialogElement_Collapsible_IsValid covers the "collapsible" element type and
+// the recursive depth/child validation added in validateCollapsible.
+func TestDialogElement_Collapsible_IsValid(t *testing.T) {
+	// validText returns a minimal valid leaf element usable as a collapsible child.
+	validText := func(name string) DialogElement {
+		return DialogElement{
+			DisplayName: "Text " + name,
+			Name:        name,
+			Type:        "text",
+		}
+	}
+
+	// collapsible builds a collapsible element wrapping the given children.
+	collapsible := func(name string, children ...DialogElement) DialogElement {
+		return DialogElement{
+			DisplayName: "Section " + name,
+			Name:        name,
+			Type:        "collapsible",
+			CollapsibleConfig: &DialogElementCollapsibleConfig{
+				Elements: children,
+			},
+		}
+	}
+
+	t.Run("valid collapsible with one child passes", func(t *testing.T) {
+		oneChildEx := collapsible("s1", validText("a"))
+		assert.NoError(t, oneChildEx.IsValid(), "collapsible with one child should be valid")
 	})
 
-	t.Run("map-form prop is deleted", func(t *testing.T) {
-		p := &Post{}
-		p.AddProp(PostPropsMmBlocksActions, map[string]any{
-			"btn1": mmBlocksExternalEntry("http://example.com/hook", nil),
-		})
-		p.StripMmBlocksActionSecrets()
-		assert.Nil(t, p.GetProp(PostPropsMmBlocksActions))
+	t.Run("collapsible with no children fails", func(t *testing.T) {
+		noElementsEx := collapsible("s1")
+		err := noElementsEx.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "at least one child element")
 	})
 
-	t.Run("string-form prop is deleted (cookie transport not yet supported)", func(t *testing.T) {
-		// Until the cookie-transport PR ships proper handling, any string
-		// value is treated as opaque garbage and stripped wholesale —
-		// matches the validator's reject-strings policy.
-		p := &Post{}
-		p.AddProp(PostPropsMmBlocksActions, "encrypted-cookie-blob")
-		p.StripMmBlocksActionSecrets()
-		assert.Nil(t, p.GetProp(PostPropsMmBlocksActions))
+	t.Run("nesting at max depth (3) passes", func(t *testing.T) {
+		threeLevels := collapsible("d1", collapsible("d2", collapsible("d3", validText("a"))))
+		assert.NoError(t, threeLevels.IsValid(), "collapsible at max depth should be valid")
 	})
 
-	t.Run("other props on the post are not touched", func(t *testing.T) {
-		p := &Post{}
-		p.AddProp(PostPropsMmBlocksActions, map[string]any{
-			"btn1": mmBlocksExternalEntry("http://example.com/hook", nil),
+	t.Run("nesting beyond max depth (4) fails", func(t *testing.T) {
+		exceedDepth := collapsible("d1", collapsible("d2", collapsible("d3", collapsible("d4", validText("a")))))
+		err := exceedDepth.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "d4")
+	})
+
+	t.Run("invalid child propagates wrapped error", func(t *testing.T) {
+		invalidChild := collapsible("s1", collapsible("s2", DialogElement{DisplayName: "Bogus", Name: "b1", Type: "bogus"}))
+		err := invalidChild.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "child element is not valid")
+	})
+
+	t.Run("collapsed/borderless default and explicit values validate", func(t *testing.T) {
+		defaults := collapsible("s1", validText("a"))
+		assert.NoError(t, defaults.IsValid(), "collapsible with default Collapsed/Borderless should be valid")
+
+		collapsed := collapsible("s2", validText("b"))
+		collapsed.CollapsibleConfig.Collapsed = true
+		assert.NoError(t, collapsed.IsValid(), "collapsible with Collapsed=true should be valid")
+
+		borderless := collapsible("s3", validText("c"))
+		borderless.CollapsibleConfig.Borderless = true
+		assert.NoError(t, borderless.IsValid(), "collapsible with Borderless=true should be valid")
+	})
+}
+
+func TestDialogElementCheckboxGroupValidation(t *testing.T) {
+	validOptions := []*PostActionOptions{
+		{Text: "Reason 1", Value: "reason_1"},
+		{Text: "Reason 2", Value: "reason_2"},
+	}
+
+	t.Run("valid checkbox_group", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:   "Reasons",
+			Name:          "reasons",
+			Type:          "checkbox_group",
+			Options:       validOptions,
+			Default:       "reason_1,reason_2",
+			LabelPosition: DialogLabelPositionBefore,
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("checkbox_group accepts default value with internal spaces", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Risk",
+			Name:        "risk",
+			Type:        "checkbox_group",
+			Options: []*PostActionOptions{
+				{Text: "High risk", Value: "high risk"},
+				{Text: "Low risk", Value: "low risk"},
+			},
+			Default: "high risk,low risk",
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("checkbox_group rejects matrix_config", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Reasons",
+			Name:        "reasons",
+			Type:        "checkbox_group",
+			Options:     validOptions,
+			MatrixConfig: &DialogMatrixConfig{
+				Rows: validOptions,
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "matrix_config can only be used with checkbox_matrix")
+	})
+
+	t.Run("checkbox_group rejects invalid label_position on select", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:   "Department",
+			Name:          "department",
+			Type:          "select",
+			Options:       validOptions,
+			LabelPosition: DialogLabelPositionBefore,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "label_position cannot be used with type")
+	})
+}
+
+func TestDialogElementCheckboxMatrixValidation(t *testing.T) {
+	matrixConfig := &DialogMatrixConfig{
+		Rows: []*PostActionOptions{
+			{Text: "Reason 1", Value: "reason_1"},
+			{Text: "Reason 2", Value: "reason_2"},
+		},
+		Columns: []*PostActionOptions{
+			{Text: "High", Value: "high"},
+			{Text: "Severe", Value: "severe"},
+		},
+		RowSelection: DialogMatrixRowSelectionMultiple,
+	}
+
+	t.Run("valid checkbox_matrix", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:high,severe;reason_2:high",
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("checkbox_matrix rejects colon in row value", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Severity",
+			Name:        "severity",
+			Type:        "checkbox_matrix",
+			MatrixConfig: &DialogMatrixConfig{
+				Rows: []*PostActionOptions{
+					{Text: "Bad", Value: "bad:row"},
+				},
+				Columns: matrixConfig.Columns,
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "must not contain")
+	})
+
+	t.Run("checkbox_matrix rejects default column not in columns", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:nonexistent",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "is not in matrix_config.columns")
+	})
+
+	t.Run("checkbox_matrix rejects duplicate row in default string", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:high;reason_1:severe",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "duplicate row")
+	})
+
+	t.Run("checkbox_matrix rejects multiple columns in one row when row_selection is single", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Severity",
+			Name:        "severity",
+			Type:        "checkbox_matrix",
+			MatrixConfig: &DialogMatrixConfig{
+				Rows:         matrixConfig.Rows,
+				Columns:      matrixConfig.Columns,
+				RowSelection: DialogMatrixRowSelectionSingle,
+			},
+			Default: "reason_1:high,severe",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "row_selection is single")
+	})
+
+	t.Run("checkbox_matrix rejects semicolon in row value", func(t *testing.T) {
+		// ";" separates row entries in the default string, so a row value
+		// containing it would corrupt default parsing and must be rejected.
+		element := DialogElement{
+			DisplayName: "Severity",
+			Name:        "severity",
+			Type:        "checkbox_matrix",
+			MatrixConfig: &DialogMatrixConfig{
+				Rows: []*PostActionOptions{
+					{Text: "Bad", Value: "a;b"},
+				},
+				Columns: matrixConfig.Columns,
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "must not contain")
+	})
+
+	t.Run("checkbox_matrix rejects top-level options", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Options:      matrixConfig.Rows,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot have options")
+	})
+}
+
+func TestDialogElementFileValidation(t *testing.T) {
+	validFileId := NewId()
+	validFileId2 := NewId()
+	validFileId3 := NewId()
+
+	tests := map[string]struct {
+		element *DialogElement
+		wantErr string
+	}{
+		"valid file element with allow_multiple=false and single default ID": {
+			element: &DialogElement{
+				DisplayName:   "File Upload",
+				Name:          "file_element",
+				Type:          "file",
+				AllowMultiple: false,
+				Default:       validFileId,
+			},
+			wantErr: "",
+		},
+
+		"valid file element with allow_multiple=true and multiple comma-separated IDs": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default:       validFileId + "," + validFileId2 + "," + validFileId3,
+			},
+			wantErr: "",
+		},
+
+		"allow_multiple=false with multiple default IDs returns error": {
+			element: &DialogElement{
+				DisplayName:   "Single File Upload",
+				Name:          "single_file_element",
+				Type:          "file",
+				AllowMultiple: false,
+				Default:       validFileId + "," + validFileId2,
+			},
+			wantErr: "default may not contain more than one file ID when allow_multiple is false",
+		},
+
+		"invalid-format file ID in default returns error": {
+			element: &DialogElement{
+				DisplayName:   "File Upload",
+				Name:          "file_element",
+				Type:          "file",
+				AllowMultiple: false,
+				Default:       "invalid-id-format",
+			},
+			wantErr: "is not a valid ID",
+		},
+
+		"more than MaxDialogFileIds (10) default IDs returns error": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default: NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," +
+					NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId(),
+			},
+			wantErr: "default may not contain more than 10 file IDs",
+		},
+
+		"file element with Options set returns error": {
+			element: &DialogElement{
+				DisplayName: "File Upload",
+				Name:        "file_element",
+				Type:        "file",
+				Options: []*PostActionOptions{
+					{Text: "Option 1", Value: "opt1"},
+				},
+			},
+			wantErr: "file elements cannot have options",
+		},
+
+		"file element with DataSource set returns error": {
+			element: &DialogElement{
+				DisplayName: "File Upload",
+				Name:        "file_element",
+				Type:        "file",
+				DataSource:  "users",
+			},
+			wantErr: "file elements cannot have a data source",
+		},
+
+		"allow_multiple=true on non-file element returns error": {
+			element: &DialogElement{
+				DisplayName:   "Text Element",
+				Name:          "text_element",
+				Type:          "text",
+				AllowMultiple: true,
+			},
+			wantErr: "allow_multiple can only be used with file elements",
+		},
+
+		"placeholder exceeding DialogElementFileMaxLength returns error": {
+			element: &DialogElement{
+				DisplayName: "File Upload",
+				Name:        "file_element",
+				Type:        "file",
+				Placeholder: strings.Repeat("x", DialogElementFileMaxLength+1),
+			},
+			wantErr: "Placeholder cannot be longer than 300 characters",
+		},
+
+		"empty default passes validation": {
+			element: &DialogElement{
+				DisplayName:   "File Upload",
+				Name:          "file_element",
+				Type:          "file",
+				AllowMultiple: false,
+				Default:       "",
+			},
+			wantErr: "",
+		},
+
+		"multiple file IDs with spaces around commas passes": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default:       validFileId + " , " + validFileId2 + " , " + validFileId3,
+			},
+			wantErr: "",
+		},
+
+		"placeholder at exactly DialogElementFileMaxLength passes": {
+			element: &DialogElement{
+				DisplayName: "File Upload",
+				Name:        "file_element",
+				Type:        "file",
+				Placeholder: strings.Repeat("x", DialogElementFileMaxLength),
+			},
+			wantErr: "",
+		},
+
+		"exactly MaxDialogFileIds (10) default IDs passes": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default: NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," +
+					NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId(),
+			},
+			wantErr: "",
+		},
+
+		"empty strings in comma-separated list are skipped": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default:       "," + validFileId + ",,",
+			},
+			wantErr: "",
+		},
+
+		"mixed valid and invalid IDs returns error": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default:       validFileId + ",invalid-id-format",
+			},
+			wantErr: "is not a valid ID",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tc.element.IsValid()
+			if tc.wantErr == "" {
+				assert.NoError(t, err, name)
+			} else {
+				assert.ErrorContains(t, err, tc.wantErr, name)
+			}
 		})
-		p.AddProp(PostPropsAttachments, []*MessageAttachment{{Text: "keep me"}})
-		p.AddProp(PostPropsFromBot, "true")
+	}
+}
 
-		p.StripMmBlocksActionSecrets()
+func TestDialogElementIsValid_ActionButton(t *testing.T) {
+	t.Run("should pass validation with valid action_button element", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Action Button",
+			Name:        "action_button_element",
+			Type:        "action_button",
+			ActionButton: &DialogActionButton{
+				URL: "https://example.com/action",
+			},
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
 
-		assert.Nil(t, p.GetProp(PostPropsMmBlocksActions))
-		assert.NotNil(t, p.GetProp(PostPropsAttachments))
-		assert.Equal(t, "true", p.GetProp(PostPropsFromBot))
+	t.Run("should fail when ActionButton config is nil", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Action Button",
+			Name:         "action_button_element",
+			Type:         "action_button",
+			ActionButton: nil,
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "action_button configuration")
+	})
+
+	t.Run("should fail when ActionButton URL is empty", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Action Button",
+			Name:        "action_button_element",
+			Type:        "action_button",
+			ActionButton: &DialogActionButton{
+				URL: "",
+			},
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "non-empty URL")
+	})
+
+	t.Run("should fail when ActionButton URL is invalid", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Action Button",
+			Name:        "action_button_element",
+			Type:        "action_button",
+			ActionButton: &DialogActionButton{
+				URL: "not-a-url",
+			},
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid action_button URL")
 	})
 }

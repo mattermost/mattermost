@@ -28,6 +28,15 @@ touch results/junit/empty.xml
 echo '<?xml version="1.0" encoding="UTF-8"?>' > results/junit/empty.xml
 EOF
 
+  # Install dependencies
+  mme2e_log "Prepare Cypress: install dependencies"
+  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress bash <<EOF
+cd webapp/
+npm install --cache /tmp/empty-cache
+cd ../e2e-tests/cypress
+npm install --cache /tmp/empty-cache
+EOF
+
   # Run cypress with specific spec files and mochawesome reporter
   LOGFILE_SUFFIX="${CI_BASE_URL//\//_}_specs"
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress npx cypress run \

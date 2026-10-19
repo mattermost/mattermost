@@ -13,7 +13,7 @@ import {isSendOnCtrlEnter} from 'selectors/preferences';
 type Props = {
     onSave: () => void;
     onCancel?: () => void;
-}
+};
 
 export default function EditPostFooter(props: Props) {
     const dispatch = useDispatch();

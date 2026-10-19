@@ -19,7 +19,6 @@ import {
 
 import {getRandomId} from '@/utils';
 
-
 describe('Handle removed user - new sidebar', () => {
     const sidebarItemClass = '.SidebarChannel';
 

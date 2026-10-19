@@ -11,7 +11,7 @@ import {formatAsComponent} from 'utils/i18n';
 type Props = {
     text?: React.ReactNode | MessageDescriptor;
     style?: React.CSSProperties;
-}
+};
 const LoadingSpinner = ({text, style}: Props) => {
     const {formatMessage} = useIntl();
 

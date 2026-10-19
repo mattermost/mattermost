@@ -50,25 +50,25 @@ type Props = {
     suppressNoOptionsMessage?: boolean;
     onPaste?: (e: ClipboardEvent) => void;
     intl: IntlShape;
-}
+};
 
 export type EmailInvite = {
     value: string;
     label: string;
-}
+};
 
 type State = {
     options: UserProfile[];
     prevValue: string;
-}
+};
 
 const typedInputDelimiter = /[,;]+/;
 const pasteDelimiter = /[\n\r,;]+/;
 const spaceSeparatedPasteDelimiter = /\s+/;
 
 type PasteHandling =
-    | {mode: 'draft'}
-    | {mode: 'bulk'; delimiter: RegExp};
+    {mode: 'draft'} |
+    {mode: 'bulk'; delimiter: RegExp};
 
 const getPasteHandling = (value: string): PasteHandling => {
     const trimmedValue = value.trim();
@@ -122,7 +122,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         loadingMessage: messages.loadingDefault,
         showError: false,
     };
-    private selectRef: RefObject<SelectInstance<UserProfile | EmailInvite, true>>;
+    private selectRef: RefObject<SelectInstance<UserProfile | EmailInvite, true> | null>;
 
     constructor(props: Props) {
         super(props);
@@ -552,7 +552,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         let data;
         try {
             data = await Client4.getUserByEmail(value);
-        } catch (error) {
+        } catch {
             return null;
         }
         return data?.delete_at === 0 ? data : null;
@@ -562,7 +562,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         let data;
         try {
             data = await Client4.getUserByUsername(value);
-        } catch (error) {
+        } catch {
             return null;
         }
         return data?.delete_at === 0 ? data : null;

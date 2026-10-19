@@ -89,6 +89,7 @@ const BurnOnReadTimerChip = ({expireAt, onClick}: Props) => {
                 <button
                     type='button'
                     className={`BurnOnReadTimerChip ${isWarning ? 'BurnOnReadTimerChip--warning' : ''} ${isExpired ? 'BurnOnReadTimerChip--expired' : ''}`}
+                    data-testid='burn-on-read-timer-chip'
                     onClick={handleClick}
                     onKeyDown={handleKeyDown}
                     aria-label={ariaLabel}

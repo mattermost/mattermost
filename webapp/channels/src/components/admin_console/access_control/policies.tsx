@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useState, useEffect, useMemo, useCallback, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
+import {getAutoAddFromRules} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -17,21 +18,20 @@ import SectionNotice from 'components/section_notice';
 
 import {getHistory} from 'utils/browser_history';
 
-import './policies.scss';
+import {MASKED_VALUE_TOKEN_LITERAL} from './editors/shared';
 
-// The server emits the eight-dash masked-token sentinel inside raw CEL expressions
-// when masking values the caller cannot see (e.g. `attr == "--------"`). The full
-// visual AST carries a typed `has_masked_values` flag per condition, but on the
-// policies list page we only have the raw expression strings — so we detect masking
-// by the quoted token substring.
-const MASKED_VALUE_TOKEN_LITERAL = '"--------"';
+import './policies.scss';
 
 function policyHasMaskedValues(policy: AccessControlPolicy): boolean {
     return policy.rules?.some((rule) => rule.expression?.includes(MASKED_VALUE_TOKEN_LITERAL)) ?? false;
 }
 
 type Props = {
-    onPolicySelected?: (policy: AccessControlPolicy) => void;
+
+    // The second argument reports the policy's own auto-add setting so the team
+    // assignment flow can seed the team child's auto-add from the parent policy.
+    // Callers that don't need it can ignore the argument.
+    onPolicySelected?: (policy: AccessControlPolicy, autoAdd?: boolean) => void;
     onPoliciesLoaded?: (count: number) => void;
     simpleMode?: boolean;
     hideHeader?: boolean;
@@ -103,7 +103,7 @@ export default function PolicyList(props: Props): JSX.Element {
             }
             props.onPoliciesLoaded?.(newTotal);
             return true;
-        } catch (error) {
+        } catch {
             setLoading(false);
             setSearchErrored(true);
             return false;
@@ -151,8 +151,10 @@ export default function PolicyList(props: Props): JSX.Element {
     };
 
     const getResources = (policy: AccessControlPolicy) => {
-        const childIds = policy.props?.child_ids as string[];
-        if (!childIds || childIds.length === 0) {
+        const channelCount = (policy.props?.channel_count as unknown as number) || 0;
+        const teamCount = (policy.props?.team_count as unknown as number) || 0;
+
+        if (channelCount === 0 && teamCount === 0) {
             return (
                 <FormattedMessage
                     id='admin.access_control.policies.resources.none'
@@ -161,14 +163,37 @@ export default function PolicyList(props: Props): JSX.Element {
             );
         }
 
+        const parts: React.ReactNode[] = [];
+        if (channelCount > 0) {
+            parts.push(
+                <FormattedMessage
+                    key='channels'
+                    id='admin.access_control.policies.resources.channels'
+                    defaultMessage='{count, number} {count, plural, one {channel} other {channels}}'
+                    values={{count: channelCount}}
+                />,
+            );
+        }
+        if (teamCount > 0) {
+            parts.push(
+                <FormattedMessage
+                    key='teams'
+                    id='admin.access_control.policies.resources.teams'
+                    defaultMessage='{count, number} {count, plural, one {team} other {teams}}'
+                    values={{count: teamCount}}
+                />,
+            );
+        }
+
         return (
-            <FormattedMessage
-                id='admin.access_control.policies.resources.channels'
-                defaultMessage='{count, number} {count, plural, one {channel} other {channels}}'
-                values={{
-                    count: childIds.length,
-                }}
-            />
+            <>
+                {parts.map((part, index) => (
+                    <React.Fragment key={index}>
+                        {index > 0 && ', '}
+                        {part}
+                    </React.Fragment>
+                ))}
+            </>
         );
     };
 
@@ -250,9 +275,9 @@ export default function PolicyList(props: Props): JSX.Element {
                                         id={`policy-menu-edit-${policy.id}`}
                                         onClick={() => {
                                             if (props.onPolicySelected) {
-                                                props.onPolicySelected(policy);
+                                                props.onPolicySelected(policy, getAutoAddFromRules(policy.rules));
                                             } else {
-                                                history.push(`/admin_console/system_attributes/attribute_based_access_control/edit_policy/${policy.id}`);
+                                                history.push(`/admin_console/system_attributes/membership_policies/edit_policy/${policy.id}`);
                                             }
                                         }}
                                         leadingElement={<i className='icon icon-pencil-outline'/>}
@@ -290,7 +315,7 @@ export default function PolicyList(props: Props): JSX.Element {
                 },
                 onClick: () => {
                     if (props.onPolicySelected) {
-                        props.onPolicySelected(policy);
+                        props.onPolicySelected(policy, getAutoAddFromRules(policy.rules));
                     } else {
                         history.push(`/admin_console/system_attributes/membership_policies/edit_policy/${policy.id}`);
                     }
@@ -300,7 +325,7 @@ export default function PolicyList(props: Props): JSX.Element {
     };
 
     const getColumns = (): Column[] => {
-        return [
+        const columns: Column[] = [
             {
                 name: (
                     <FormattedMessage
@@ -322,15 +347,18 @@ export default function PolicyList(props: Props): JSX.Element {
                 textAlign: 'center',
                 width: 4,
             },
-            {
-                name: (
-                    <span/>
-                ),
-                field: 'actions',
-                className: 'actions-column',
-                width: 1,
-            },
         ];
+
+        columns.push({
+            name: (
+                <span/>
+            ),
+            field: 'actions',
+            className: 'actions-column',
+            width: 1,
+        });
+
+        return columns;
     };
 
     const getPaginationProps = () => {

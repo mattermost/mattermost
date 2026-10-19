@@ -104,6 +104,7 @@ describe('component/view_user_group_modal', () => {
             initialState as any,
             {useMockedStore: true},
         );
+        expect(screen.getByRole('dialog', {name: group.display_name})).toBeInTheDocument();
         expect(baseElement).toMatchSnapshot();
     });
 

@@ -143,8 +143,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should support terms with dash",
 		Fn:   testSupportTermsWithDash,
-		Tags: []string{EngineAll},
-		Skip: true,
+		Tags: []string{EnginePostgres},
 	},
 	{
 		Name: "Should support terms with underscore",
@@ -222,11 +221,14 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EnginePostgres},
 	},
 	{
-		Name:        "Should be able to search terms with dashes",
-		Fn:          testSearchTermsWithDashes,
-		Tags:        []string{EngineAll},
-		Skip:        true,
-		SkipMessage: "Not working",
+		Name: "Should be able to search terms with dashes",
+		Fn:   testSearchTermsWithDashes,
+		Tags: []string{EnginePostgres},
+	},
+	{
+		Name: "Should be able to search the number part of a hyphenated term",
+		Fn:   testSearchNumberInHyphenatedTerm,
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search terms with dots",
@@ -1985,6 +1987,126 @@ func testSearchTermsWithDashes(t *testing.T, th *SearchTestHelper) {
 
 		require.Len(t, results.Posts, 2)
 		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+	})
+
+	t.Run("Search for terms excluding a dashed term", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "message", ExcludedTerms: "with-dash-term"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+	})
+
+	t.Run("Search for a dashed term with a wildcard", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "with-dash-term*"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+
+	t.Run("Search for a letters-digits dashed term", func(t *testing.T) {
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "the code is FX-042", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+
+		params := &model.SearchParams{Terms: "FX-042"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
+	})
+}
+
+func testSearchNumberInHyphenatedTerm(t *testing.T, th *SearchTestHelper) {
+	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "check out flight-12345 today", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "the t-shirt order is ready", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "the invoice total is $67890", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	t.Run("Search for the number alone", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "12345"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+
+	t.Run("Search for the number with a wildcard", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "1234*"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+
+	t.Run("Search for the number as one of several OR terms", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "12345 67890", OrTerms: true}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 2)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
+	})
+
+	t.Run("Search excluding the number", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "flight", ExcludedTerms: "12345"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 0)
+	})
+
+	t.Run("Search for the number while excluding another term", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "12345", ExcludedTerms: "invoice"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+
+	t.Run("Search for a number the hyphenated term only contains part of", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "1234"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 0)
+	})
+
+	t.Run("Search for a number preceded by a symbol", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "$67890"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
+	})
+
+	t.Run("Search for the whole hyphenated term", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "flight-12345"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+
+	t.Run("Search for a hyphenated compound word", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "t-shirt"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
 		th.checkPostInSearchResults(t, p2.Id, results.Posts)
 	})
 }

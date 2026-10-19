@@ -625,7 +625,9 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.NotEqual(t, newChannelId, updatedScheduledPost.ChannelId)
 		require.NotEqual(t, newCreateAt, updatedScheduledPost.CreateAt)
 		require.Equal(t, 2, len(updatedScheduledPost.FileIds))
-		require.Equal(t, model.ScheduledPostErrorUnknownError, createdScheduledPost.ErrorCode)
+		require.Empty(t, createdScheduledPost.ErrorCode)
+		require.Empty(t, updatedScheduledPost.ErrorCode)
+		require.Zero(t, updatedScheduledPost.ProcessedAt)
 	})
 
 	t.Run("should be able to update scheduled posts for channels user does not belong to", func(t *testing.T) {
@@ -716,7 +718,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 
 		require.Equal(t, model.PostTypeBurnOnRead, createdScheduledPost.Type)
 
-		fetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(createdScheduledPost.Id)
+		fetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		require.NotNil(t, fetchedScheduledPost)
 		require.Equal(t, model.PostTypeBurnOnRead, fetchedScheduledPost.Type)
@@ -735,13 +737,13 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Equal(t, "Updated burn on read message", updatedScheduledPost.Message)
 
 		// Fetch again from store to verify the type is still burn on read in the database
-		reFetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(createdScheduledPost.Id)
+		reFetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		require.NotNil(t, reFetchedScheduledPost)
 		require.Equal(t, model.PostTypeBurnOnRead, reFetchedScheduledPost.Type)
 
 		// Try another update with a different type value - verify the type is still NOT changed
-		existingPost, err := th.Server.Store().ScheduledPost().Get(createdScheduledPost.Id)
+		existingPost, err := th.Server.Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		existingPost.Message = "Another update attempt"
 		existingPost.ScheduledAt = model.GetMillis() + 300000
@@ -756,7 +758,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Equal(t, model.PostTypeBurnOnRead, updatedScheduledPost2.Type)
 
 		// Final verification from store
-		finalFetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(createdScheduledPost.Id)
+		finalFetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		require.NotNil(t, finalFetchedScheduledPost)
 		require.Equal(t, model.PostTypeBurnOnRead, finalFetchedScheduledPost.Type)
@@ -784,7 +786,7 @@ func TestDeleteScheduledPost(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
 
-		fetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(scheduledPost.Id)
+		fetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(th.Context, scheduledPost.Id)
 		require.NoError(t, err)
 		require.NotNil(t, fetchedScheduledPost)
 		require.Equal(t, createdScheduledPost.Id, fetchedScheduledPost.Id)
@@ -800,7 +802,7 @@ func TestDeleteScheduledPost(t *testing.T) {
 		require.Equal(t, scheduledPost.Message, deletedScheduledPost.Message)
 
 		// try to fetch it again
-		reFetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(scheduledPost.Id)
+		reFetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(th.Context, scheduledPost.Id)
 		require.Error(t, err) // This will produce error as the row doesn't exist
 		require.Nil(t, reFetchedScheduledPost)
 	})

@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 
@@ -200,5 +201,150 @@ func (s *MmctlUnitTestSuite) TestUpdateJobCmdF() {
 
 		err := updateJobCmdF(s.client, cmd, []string{id, model.JobStatusPending})
 		s.Require().Nil(err)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestCreateJobCmdF() {
+	s.Run("create job with data", func() {
+		printer.Clean()
+		data := map[string]string{"batch_size": "1000"}
+		mockJob := &model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeMessageExport,
+			Data: data,
+		}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringToString("data", nil, "")
+		err := cmd.Flags().Set("data", "batch_size=1000")
+		s.Require().NoError(err)
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), &model.Job{Type: model.JobTypeMessageExport, Data: data}).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		err = createJobCmdF(s.client, cmd, []string{model.JobTypeMessageExport})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("forwards type not in AllJobTypes to the server", func() {
+		printer.Clean()
+		mockJob := &model.Job{Id: model.NewId(), Type: model.JobTypeAccessControlSync}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringToString("data", nil, "")
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), &model.Job{Type: model.JobTypeAccessControlSync, Data: map[string]string{}}).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		err := createJobCmdF(s.client, cmd, []string{model.JobTypeAccessControlSync})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+	})
+
+	s.Run("create job returns server error", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringToString("data", nil, "")
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), &model.Job{Type: model.JobTypeLdapSync, Data: map[string]string{}}).
+			Return(nil, &model.Response{}, errors.New("some-error")).
+			Times(1)
+
+		err := createJobCmdF(s.client, cmd, []string{model.JobTypeLdapSync})
+		s.Require().NotNil(err)
+		s.Empty(printer.GetLines())
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestJobTypeCompletionF() {
+	s.Run("suggests all job types for the first argument", func() {
+		suggestions, directive := jobTypeCompletionF(&cobra.Command{}, []string{}, "")
+		s.Equal(cobra.ShellCompDirectiveNoFileComp, directive)
+		s.ElementsMatch(model.AllJobTypes[:], suggestions)
+	})
+
+	s.Run("suggests nothing once the type is provided", func() {
+		suggestions, directive := jobTypeCompletionF(&cobra.Command{}, []string{model.JobTypeLdapSync}, "")
+		s.Equal(cobra.ShellCompDirectiveNoFileComp, directive)
+		s.Empty(suggestions)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestShowJobCmdF() {
+	s.Run("show job", func() {
+		printer.Clean()
+		id := model.NewId()
+		mockJob := &model.Job{Id: id}
+
+		s.client.
+			EXPECT().
+			GetJob(context.TODO(), id).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		err := showJobCmdF(s.client, &cobra.Command{}, []string{id})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("show job with invalid ID", func() {
+		printer.Clean()
+
+		err := showJobCmdF(s.client, &cobra.Command{}, []string{"invalid-id"})
+		s.Require().NotNil(err)
+		s.Empty(printer.GetLines())
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestCancelJobCmdF() {
+	s.Run("cancel job", func() {
+		printer.Clean()
+		id := model.NewId()
+
+		s.client.
+			EXPECT().
+			CancelJob(context.TODO(), id).
+			Return(&model.Response{}, nil).
+			Times(1)
+
+		err := cancelJobCmdF(s.client, &cobra.Command{}, []string{id})
+		s.Require().Nil(err)
+		s.Empty(printer.GetErrorLines())
+	})
+
+	s.Run("cancel job with invalid ID", func() {
+		printer.Clean()
+
+		err := cancelJobCmdF(s.client, &cobra.Command{}, []string{"invalid-id"})
+		s.Require().NotNil(err)
+	})
+
+	s.Run("cancel job returns server error", func() {
+		printer.Clean()
+		id := model.NewId()
+
+		s.client.
+			EXPECT().
+			CancelJob(context.TODO(), id).
+			Return(&model.Response{}, errors.New("some-error")).
+			Times(1)
+
+		err := cancelJobCmdF(s.client, &cobra.Command{}, []string{id})
+		s.Require().NotNil(err)
 	})
 }

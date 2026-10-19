@@ -5,7 +5,7 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {FileGenericOutlineIcon, BookOutlineIcon} from '@mattermost/compass-icons/components';
+import {FileGenericOutlineIcon, BookOutlineIcon, ProductBoardsIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -26,7 +26,7 @@ type Props = {
     imageUrl?: string;
     fileInfo?: FileInfo | FilePreviewInfo;
     size?: 16 | 24;
-}
+};
 
 const BookmarkIcon = ({
     type,
@@ -35,7 +35,12 @@ const BookmarkIcon = ({
     fileInfo,
     size = 16,
 }: Props) => {
-    let icon = type === 'link' ? <BookOutlineIcon size={size}/> : <FileGenericOutlineIcon size={size}/>;
+    let icon = <BookOutlineIcon size={size}/>;
+    if (type === 'file') {
+        icon = <FileGenericOutlineIcon size={size}/>;
+    } else if (type === 'board') {
+        icon = <ProductBoardsIcon size={size}/>;
+    }
     const emojiName = emoji && trimmedEmojiName(emoji);
     const hasImageProxy = useSelector((state: GlobalState) => getConfig(state).HasImageProxy === 'true');
 
@@ -63,8 +68,21 @@ const BookmarkIcon = ({
         );
     }
 
+    let iconKind = `${type}-fallback`;
+    if (emojiName) {
+        iconKind = 'emoji';
+    } else if (imageUrl) {
+        iconKind = 'favicon';
+    } else if (fileInfo) {
+        iconKind = 'file-thumbnail';
+    }
+
     return (
-        <Icon $size={size}>
+        <Icon
+            $size={size}
+            data-testid='bookmark-icon'
+            data-icon-kind={iconKind}
+        >
             {icon}
         </Icon>
     );

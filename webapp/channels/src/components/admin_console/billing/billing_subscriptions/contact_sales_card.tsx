@@ -17,7 +17,7 @@ type Props = {
     isFreeTrial: boolean;
     subscriptionPlan: string | undefined;
     onUpgradeMattermostCloud: () => void;
-}
+};
 
 const ContactSalesCard = (props: Props) => {
     const [openSalesLink, contactSalesLink] = useOpenSalesLink();

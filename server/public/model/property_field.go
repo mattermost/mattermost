@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"slices"
 	"unicode/utf8"
 )
@@ -28,6 +29,20 @@ const (
 	PropertyFieldTypeDate        PropertyFieldType = "date"
 	PropertyFieldTypeUser        PropertyFieldType = "user"
 	PropertyFieldTypeMultiuser   PropertyFieldType = "multiuser"
+	PropertyFieldTypeRank        PropertyFieldType = "rank"
+	// PropertyFieldTypeGraph is a multi-value select whose options are meant to
+	// form a hierarchy: one option can stand above another, and access rules are
+	// to reason over that relation rather than over exact option equality. An
+	// object holds several options at once, as it does for multiselect; there is
+	// no single-value variant, which is why the name is unqualified.
+	//
+	// The hierarchy is held as parent links between options, in
+	// PropertyOptionEdges. A graph field's options are served inline like a
+	// multiselect field's and read back without any parent information: an
+	// option's place in the hierarchy is reported by the endpoints that address
+	// options one at a time. A write may state it, though -- see
+	// PropertyField.OptionParentLinks.
+	PropertyFieldTypeGraph PropertyFieldType = "graph"
 
 	PropertyFieldNameMaxRunes       = 255
 	PropertyFieldTargetIDMaxRunes   = 255
@@ -41,20 +56,42 @@ const (
 	PermissionLevelNone     PermissionLevel = "none"
 	PermissionLevelSysadmin PermissionLevel = "sysadmin"
 	PermissionLevelMember   PermissionLevel = "member"
+	// PermissionLevelAdmin resolves to the admin of the field's target: sysadmin
+	// for system targets, team admin for team targets, channel admin for
+	// channel targets. The specific permission checked per scope is documented
+	// at hasPropertyFieldPermissionLevel in the app package.
+	PermissionLevelAdmin PermissionLevel = "admin"
+	// PermissionLevelCreator grants access to the creator of the entity the
+	// action concerns, plus everyone PermissionLevelAdmin grants. For values
+	// the entity is the value's target object: the post's UserId for
+	// post-object fields, the channel's CreatorId for channel-object fields.
+	// For the field and options slots the entity is the field itself, so the
+	// creator is its CreatedBy, and the creator must also still have access to
+	// the field's own scope — creating a field does not keep it editable once
+	// its creator is removed from the channel or team it is scoped to.
+	// Only valid on post- and channel-object fields; see IsValid. The specific
+	// checks per scope are documented at
+	// hasPropertyFieldPermissionLevel and hasPropertyFieldValuePermissionLevel
+	// in the app package.
+	PermissionLevelCreator PermissionLevel = "creator"
 
 	PropertyFieldObjectTypePost     = "post"
 	PropertyFieldObjectTypeChannel  = "channel"
 	PropertyFieldObjectTypeUser     = "user"
 	PropertyFieldObjectTypeTemplate = "template"
+	PropertyFieldObjectTypeSession  = "session"
 
 	PropertyFieldObjectTypeSystem = "system"
-
-	// NOTE: Temporarily using this until CPA is migrated to v2
-	ClassificationMarkingsPropertyGroupName = "classification_markings"
 )
 
 // validPermissionLevels contains all valid PermissionLevel values.
-var validPermissionLevels = []PermissionLevel{PermissionLevelNone, PermissionLevelSysadmin, PermissionLevelMember}
+var validPermissionLevels = []PermissionLevel{
+	PermissionLevelNone,
+	PermissionLevelSysadmin,
+	PermissionLevelMember,
+	PermissionLevelAdmin,
+	PermissionLevelCreator,
+}
 
 // validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
 var validPSAv2TargetTypes = []string{
@@ -69,7 +106,59 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypeChannel,
 	PropertyFieldObjectTypeUser,
 	PropertyFieldObjectTypeTemplate,
+	PropertyFieldObjectTypeSession,
 	PropertyFieldObjectTypeSystem,
+}
+
+// optionFieldTypes are the property field types whose `options` attribute is
+// meaningful: each stores a list of selectable options. Kept as a single
+// allow-list so the "does this field carry options?" check stays consistent
+// across the model, API, and access-control layers.
+var optionFieldTypes = []PropertyFieldType{
+	PropertyFieldTypeSelect,
+	PropertyFieldTypeMultiselect,
+	PropertyFieldTypeRank,
+	PropertyFieldTypeGraph,
+}
+
+// SupportsOptions reports whether the field type carries a list of options
+// (select, multiselect, rank, graph). Mirrors the webapp's supportsOptions
+// helper, which does not list graph: that helper also gates the admin
+// console's "at least one option" save requirement, which a graph field
+// whose options the server withheld cannot meet.
+func (t PropertyFieldType) SupportsOptions() bool {
+	return slices.Contains(optionFieldTypes, t)
+}
+
+var externallySyncableFieldTypes = []PropertyFieldType{
+	PropertyFieldTypeText,
+	PropertyFieldTypeSelect,
+	PropertyFieldTypeMultiselect,
+}
+
+// SupportsExternalSync reports whether values of this field type can be
+// populated from an external identity source (AD/LDAP, SAML). Text and select
+// store the first value the source delivers; multiselect stores all of them.
+// Rank and graph are excluded because their option order and hierarchy are
+// authored by an admin, and the remaining types have no meaningful mapping
+// from an attribute value.
+func (t PropertyFieldType) SupportsExternalSync() bool {
+	return slices.Contains(externallySyncableFieldTypes, t)
+}
+
+// creatorPermissionObjectTypes are the object types whose target entity has an
+// established creator, and therefore the only ones on which
+// PermissionLevelCreator is meaningful. Fields of any other object type reject
+// the level at validation rather than silently aliasing it to admin.
+var creatorPermissionObjectTypes = []string{
+	PropertyFieldObjectTypePost,
+	PropertyFieldObjectTypeChannel,
+}
+
+// SupportsCreatorPermissionLevel reports whether a field's object type can
+// carry PermissionLevelCreator in any of its permission slots.
+func (pf *PropertyField) SupportsCreatorPermissionLevel() bool {
+	return slices.Contains(creatorPermissionObjectTypes, pf.ObjectType)
 }
 
 type PropertyField struct {
@@ -131,7 +220,7 @@ func (pf *PropertyField) PreSave() {
 // EnsureOptionIDs generates IDs for any options that don't have them in select/multiselect fields.
 // This ensures option IDs are always set, similar to how field IDs are auto-generated.
 func (pf *PropertyField) EnsureOptionIDs() error {
-	if pf.Type != PropertyFieldTypeSelect && pf.Type != PropertyFieldTypeMultiselect {
+	if !pf.Type.SupportsOptions() {
 		return nil
 	}
 
@@ -169,6 +258,152 @@ func (pf *PropertyField) EnsureOptionIDs() error {
 	pf.Attrs[PropertyFieldAttributeOptions] = optionsAny
 
 	return nil
+}
+
+// PropertyFieldOptionKeyParents is the key an inline option carries the options
+// directly above it under. Its value is a list of option *names*: an identifier
+// is assigned when an option is created, so a list that creates a hierarchy in
+// one write has no identifier to refer to yet, while a name is something the
+// caller chose and can refer forwards to.
+const PropertyFieldOptionKeyParents = "parents"
+
+// OptionParentLinks returns the parent links the field's inline option list asks
+// for, and the options whose parents that list states in full.
+//
+// A name resolves within the list itself, and nowhere else: the list is the whole
+// of the field's option set once the write lands, so an option outside it is
+// either about to be removed or belongs to another field. That is also what lets
+// one write build a hierarchy, naming an option that appears further down the
+// list.
+//
+// An option with no "parents" key is absent from replacing, because a write that
+// says nothing about an option's parents leaves them as they are. The alternative
+// -- treating an absent key as "no parents" -- would make an unrelated edit, or a
+// read-modify-write of a field read back without parent information, silently turn
+// options into roots: an option covered by nothing but itself, which every rule
+// that reached it through an option above stops matching.
+//
+// Run EnsureOptionIDs first. Every option's identifier is taken as given here,
+// and so is the field's, which the returned links belong to.
+func (pf *PropertyField) OptionParentLinks() (add []*PropertyOptionEdge, replacing []string, err error) {
+	options, err := pf.inlineOptions()
+	if err != nil || len(options) == 0 {
+		return nil, nil, err
+	}
+
+	// Two options answering to the same name make every reference to it
+	// ambiguous. Only a name actually referenced is refused, so a field whose
+	// options are not uniquely named -- which nothing has ever stopped for a type
+	// with no hierarchy -- stays writable.
+	idsByName := make(map[string]string, len(options))
+	ambiguous := make(map[string]bool)
+	for _, option := range options {
+		name, _ := option["name"].(string)
+		if name == "" {
+			continue
+		}
+		if _, taken := idsByName[name]; taken {
+			ambiguous[name] = true
+			continue
+		}
+		idsByName[name], _ = option["id"].(string)
+	}
+
+	for i, option := range options {
+		raw, ok := option[PropertyFieldOptionKeyParents]
+		if !ok || raw == nil {
+			continue
+		}
+		if pf.Type != PropertyFieldTypeGraph {
+			return nil, nil, fmt.Errorf("the option at index %d carries parents, and the options of a %s field form no hierarchy", i, pf.Type)
+		}
+
+		parents, ok := optionParentNames(raw)
+		if !ok {
+			return nil, nil, fmt.Errorf("the parents of the option at index %d are not a list of option names", i)
+		}
+		optionID, _ := option["id"].(string)
+		if optionID == "" {
+			return nil, nil, fmt.Errorf("the option at index %d carries parents but has no id", i)
+		}
+		replacing = append(replacing, optionID)
+
+		named, _ := option["name"].(string)
+		if len(parents) > PropertyGraphMaxParentsPerOption {
+			return nil, nil, fmt.Errorf("the option at index %d would have %d options directly above it, and no option may have more than %d", i, len(parents), PropertyGraphMaxParentsPerOption)
+		}
+		// Duplicate names in this list would write the same parent edge twice.
+		seen := make(map[string]bool, len(parents))
+		for _, parent := range parents {
+			switch {
+			case parent == "":
+				return nil, nil, fmt.Errorf("the option at index %d is put under an option with no name", i)
+			case seen[parent]:
+				return nil, nil, fmt.Errorf("the option at index %d names %q as a parent more than once", i, parent)
+			case ambiguous[parent]:
+				return nil, nil, fmt.Errorf("the option at index %d is put under %q, and two of the field's options are called that", i, parent)
+			case idsByName[parent] == "":
+				return nil, nil, fmt.Errorf("the option at index %d is put under %q, which the field has no option called", i, parent)
+			case idsByName[parent] == optionID:
+				return nil, nil, fmt.Errorf("the option at index %d, %q, is put under itself", i, named)
+			}
+			seen[parent] = true
+			add = append(add, &PropertyOptionEdge{
+				FieldID:        pf.ID,
+				ChildOptionID:  optionID,
+				ParentOptionID: idsByName[parent],
+			})
+		}
+	}
+	return add, replacing, nil
+}
+
+// inlineOptions returns the field's option list as the objects it is made of.
+// The shape is the one EnsureOptionIDs normalizes any option list to, so a list
+// in any other shape is a caller that did not run it.
+func (pf *PropertyField) inlineOptions() ([]map[string]any, error) {
+	if pf.Attrs == nil {
+		return nil, nil
+	}
+	raw, ok := pf.Attrs[PropertyFieldAttributeOptions]
+	if !ok || raw == nil {
+		return nil, nil
+	}
+	list, ok := raw.([]any)
+	if !ok {
+		return nil, errors.New("the option list is not a list")
+	}
+
+	options := make([]map[string]any, 0, len(list))
+	for i, item := range list {
+		option, ok := item.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("the option at index %d is not an object", i)
+		}
+		options = append(options, option)
+	}
+	return options, nil
+}
+
+// optionParentNames reads an inline option's parents key. It arrives as []any of
+// string from JSON, and as []string from a Go caller building a field directly.
+func optionParentNames(raw any) ([]string, bool) {
+	switch value := raw.(type) {
+	case []string:
+		return value, true
+	case []any:
+		names := make([]string, 0, len(value))
+		for _, item := range value {
+			name, ok := item.(string)
+			if !ok {
+				return nil, false
+			}
+			names = append(names, name)
+		}
+		return names, true
+	default:
+		return nil, false
+	}
 }
 
 func (pf *PropertyField) IsValid() error {
@@ -249,8 +484,31 @@ func (pf *PropertyField) IsValid() error {
 		pf.Type != PropertyFieldTypeMultiselect &&
 		pf.Type != PropertyFieldTypeDate &&
 		pf.Type != PropertyFieldTypeUser &&
-		pf.Type != PropertyFieldTypeMultiuser {
+		pf.Type != PropertyFieldTypeMultiuser &&
+		pf.Type != PropertyFieldTypeRank &&
+		pf.Type != PropertyFieldTypeGraph {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if pf.Type == PropertyFieldTypeGraph {
+		// The list a field is written with is the whole of its option set, so its
+		// length is the count the limit is about. A field grown past the limit one
+		// option at a time is refused where those options are created instead.
+		// Checked before the scans below: this is a slice-length check through
+		// reflection, so an over-limit list is rejected before paying for the
+		// JSON round-trip those scans need.
+		if count := propertyFieldOptionCount(pf.Attrs); count > PropertyGraphMaxOptions {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "attrs.options", "Reason": fmt.Sprintf("a graph field cannot have more than %d options", PropertyGraphMaxOptions)}, "id="+pf.ID, http.StatusBadRequest)
+		}
+
+		options := decodedInlineOptions(pf.Attrs)
+		if i := optionIndexCarryingRank(options); i >= 0 {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": fmt.Sprintf("attrs.options[%d].rank", i), "Reason": "rank is not supported on a graph field"}, "id="+pf.ID, http.StatusBadRequest)
+		}
+
+		if i, name := optionIndexRepeatingName(options); i >= 0 {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": fmt.Sprintf("attrs.options[%d].name", i), "Reason": fmt.Sprintf("two options are called %q, and a name has to identify one option", name)}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	}
 
 	// LinkedFieldID validation: if set, must be a valid 26-char ID.
@@ -285,6 +543,27 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_options", "Reason": "invalid permission level"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
+	// PermissionLevelCreator requires an object type with an established
+	// creator.
+	//
+	// Runs after the membership checks above so an unrecognized level still
+	// reports "invalid permission level", and before the protected rules below
+	// so a protected field is rejected on the protected/none rule instead.
+	if !pf.SupportsCreatorPermissionLevel() {
+		for _, slot := range []struct {
+			name  string
+			level *PermissionLevel
+		}{
+			{"permission_field", pf.PermissionField},
+			{"permission_values", pf.PermissionValues},
+			{"permission_options", pf.PermissionOptions},
+		} {
+			if slot.level != nil && *slot.level == PermissionLevelCreator {
+				return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": slot.name, "Reason": "creator permission level requires a post or channel object type"}, "id="+pf.ID, http.StatusBadRequest)
+			}
+		}
+	}
+
 	// Cross-validation: protected fields must have field permission set to "none"
 	if pf.Protected {
 		if pf.PermissionField == nil {
@@ -310,16 +589,19 @@ type PropertyFieldPatch struct {
 	TargetID      *string            `json:"target_id"`
 	TargetType    *string            `json:"target_type"`
 	LinkedFieldID *string            `json:"linked_field_id,omitempty"`
+
+	PermissionValues *PermissionLevel `json:"permission_values,omitempty"`
 }
 
 func (pfp *PropertyFieldPatch) Auditable() map[string]any {
 	return map[string]any{
-		"name":            pfp.Name,
-		"type":            pfp.Type,
-		"attrs":           pfp.Attrs,
-		"target_id":       pfp.TargetID,
-		"target_type":     pfp.TargetType,
-		"linked_field_id": pfp.LinkedFieldID,
+		"name":              pfp.Name,
+		"type":              pfp.Type,
+		"attrs":             pfp.Attrs,
+		"target_id":         pfp.TargetID,
+		"target_type":       pfp.TargetType,
+		"linked_field_id":   pfp.LinkedFieldID,
+		"permission_values": pfp.PermissionValues,
 	}
 }
 
@@ -346,8 +628,14 @@ func (pfp *PropertyFieldPatch) IsValid() error {
 		*pfp.Type != PropertyFieldTypeMultiselect &&
 		*pfp.Type != PropertyFieldTypeDate &&
 		*pfp.Type != PropertyFieldTypeUser &&
-		*pfp.Type != PropertyFieldTypeMultiuser {
+		*pfp.Type != PropertyFieldTypeMultiuser &&
+		*pfp.Type != PropertyFieldTypeRank &&
+		*pfp.Type != PropertyFieldTypeGraph {
 		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "", http.StatusBadRequest)
+	}
+
+	if pfp.PermissionValues != nil && !slices.Contains(validPermissionLevels, *pfp.PermissionValues) {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_values", "Reason": "invalid permission level"}, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -398,6 +686,10 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch, mergeAttrs bool) {
 			pf.LinkedFieldID = patch.LinkedFieldID
 		}
 	}
+
+	if patch.PermissionValues != nil {
+		pf.PermissionValues = patch.PermissionValues
+	}
 }
 
 // IsPSAv1 returns true if this property field uses the legacy PSAv1 schema.
@@ -415,6 +707,15 @@ func (pf *PropertyField) IsPSAv2() bool {
 	return pf.ObjectType != ""
 }
 
+// LinkSourceID returns the template this field derives (inherits) its options
+// from, or an empty string when it derives none.
+func (pf *PropertyField) LinkSourceID() string {
+	if pf.LinkedFieldID == nil {
+		return ""
+	}
+	return *pf.LinkedFieldID
+}
+
 // IsValidPSAv2PropertyFieldTargetType checks if the given TargetType string is a valid
 // PSAv2 target level
 func IsValidPSAv2PropertyFieldTargetType(targetType string) bool {
@@ -427,13 +728,26 @@ func IsValidPropertyFieldObjectType(objectType string) bool {
 	return slices.Contains(validPropertyFieldObjectTypes, objectType)
 }
 
+// PropertyFieldSearchCursor carries two alternative pagination keys because
+// field listings serve two different read patterns:
+//
+//   - Directory listings (no since filter) page in creation order using
+//     CreateAt + PropertyFieldID. CreateAt never changes, so the scan is
+//     stable across concurrent patches.
+//   - Delta sync (SinceUpdateAt > 0) pages in update order using UpdateAt +
+//     PropertyFieldID, matching the ORDER BY the store applies in that mode.
+//
+// IsValid requires exactly one of CreateAt or UpdateAt to be positive
+// alongside a valid PropertyFieldID. An empty cursor is also valid and means
+// "start from the beginning".
 type PropertyFieldSearchCursor struct {
 	PropertyFieldID string
 	CreateAt        int64
+	UpdateAt        int64
 }
 
 func (p PropertyFieldSearchCursor) IsEmpty() bool {
-	return p.PropertyFieldID == "" && p.CreateAt == 0
+	return p.PropertyFieldID == "" && p.CreateAt == 0 && p.UpdateAt == 0
 }
 
 func (p PropertyFieldSearchCursor) IsValid() error {
@@ -441,36 +755,108 @@ func (p PropertyFieldSearchCursor) IsValid() error {
 		return nil
 	}
 
-	if p.CreateAt <= 0 {
-		return errors.New("create at cannot be negative or zero")
-	}
-
 	if !IsValidId(p.PropertyFieldID) {
 		return errors.New("property field id is invalid")
+	}
+
+	hasCreate := p.CreateAt > 0
+	hasUpdate := p.UpdateAt > 0
+	if hasCreate == hasUpdate {
+		return errors.New("cursor must have exactly one of create_at or update_at set")
 	}
 	return nil
 }
 
 // PropertyFieldSearch captures the parameters provided by a client for
-// searching property fields
+// searching property fields.
+//
+// Scope is specified one of two ways (mutually exclusive):
+//   - Hierarchical: ChannelID and/or TeamID — returns rows at the named scope
+//     plus every ancestor above it.
+//   - Single-target: TargetType + TargetID — returns rows for exactly one
+//     resource.
+//
+// SinceUpdateAt > 0 switches the endpoint to delta mode: rows are ordered by
+// update_at, tombstones are included, and pagination must use CursorUpdateAt
+// (CursorCreateAt is used in the default directory mode).
 type PropertyFieldSearch struct {
-	TargetType     string `json:"target_type,omitempty"`
-	TargetID       string `json:"target_id,omitempty"`
-	CursorID       string `json:"cursor_id,omitempty"`
-	CursorCreateAt int64  `json:"cursor_create_at,omitempty"`
-	PerPage        int    `json:"per_page"`
+	ObjectTypes    []string `json:"object_types,omitempty"`
+	TargetType     string   `json:"target_type,omitempty"`
+	TargetID       string   `json:"target_id,omitempty"`
+	ChannelID      string   `json:"channel_id,omitempty"`
+	TeamID         string   `json:"team_id,omitempty"`
+	SinceUpdateAt  int64    `json:"since,omitempty"`
+	CursorID       string   `json:"cursor_id,omitempty"`
+	CursorCreateAt int64    `json:"cursor_create_at,omitempty"`
+	CursorUpdateAt int64    `json:"cursor_update_at,omitempty"`
+	PerPage        int      `json:"per_page"`
 }
 
+// PropertyFieldSearchOpts captures the filters accepted by SearchPropertyFields.
+//
+// Invariants enforced by IsValid:
+//   - ObjectType and ObjectTypes are mutually exclusive.
+//   - Every entry in ObjectTypes must be a valid PSAv2 object type.
+//   - ChannelID/TeamID and TargetType/TargetIDs are mutually exclusive scope modes.
+//   - ChannelID requires TeamID (callers must resolve TeamID before search).
+//   - SinceUpdateAt <= 0 means "no filter".
 type PropertyFieldSearchOpts struct {
-	GroupID        string
+	GroupID string
+	// Deprecated: use ObjectTypes instead. Kept for backwards compatibility
+	// with existing callers; mutually exclusive with ObjectTypes.
 	ObjectType     string
+	ObjectTypes    []string
 	TargetType     string
 	TargetIDs      []string
+	ChannelID      string
+	TeamID         string
 	LinkedFieldID  string
-	SinceUpdateAt  int64 // UpdatedAt after which to send the items
+	SinceUpdateAt  int64
 	IncludeDeleted bool
 	Cursor         PropertyFieldSearchCursor
 	PerPage        int
+}
+
+// IsValid runs the cross-field invariants documented on PropertyFieldSearchOpts.
+func (o PropertyFieldSearchOpts) IsValid() error {
+	if o.ObjectType != "" && len(o.ObjectTypes) > 0 {
+		return errors.New("object_type and object_types are mutually exclusive")
+	}
+
+	if o.ObjectType != "" && !IsValidPropertyFieldObjectType(o.ObjectType) {
+		return fmt.Errorf("invalid object_type %q", o.ObjectType)
+	}
+
+	for _, ot := range o.ObjectTypes {
+		if !IsValidPropertyFieldObjectType(ot) {
+			return fmt.Errorf("invalid object_type %q", ot)
+		}
+	}
+
+	scopeByChanTeam := o.ChannelID != "" || o.TeamID != ""
+	scopeByTarget := o.TargetType != "" || len(o.TargetIDs) > 0
+	if scopeByChanTeam && scopeByTarget {
+		return errors.New("channel_id/team_id cannot be combined with target_type/target_id")
+	}
+
+	if err := o.Cursor.IsValid(); err != nil {
+		return err
+	}
+
+	// Cursor key must match the active ordering: delta mode (SinceUpdateAt>0)
+	// pages by UpdateAt; directory mode pages by CreateAt. A mismatch would
+	// silently skip rows because the WHERE clause references the wrong column.
+	if !o.Cursor.IsEmpty() {
+		deltaMode := o.SinceUpdateAt > 0
+		if deltaMode && o.Cursor.UpdateAt == 0 {
+			return errors.New("cursor_update_at required when since is set")
+		}
+		if !deltaMode && o.Cursor.CreateAt == 0 {
+			return errors.New("cursor_create_at required when since is not set")
+		}
+	}
+
+	return nil
 }
 
 func (pf *PropertyField) GetAttr(key string) any {
@@ -478,6 +864,141 @@ func (pf *PropertyField) GetAttr(key string) any {
 }
 
 const PropertyFieldAttributeOptions = "options"
+
+// A field's options are stored as rows and inlined into
+// Attrs[PropertyFieldAttributeOptions] when the field is read. Past
+// PropertyFieldMaxHydratedOptions that would be an unbounded amount of JSON on
+// every field listing, so the options are left out and replaced by these two
+// keys: the number of options the field actually has, and a marker saying the
+// list was withheld rather than empty. Never an error — a field with too many
+// options must still list.
+const (
+	PropertyFieldAttributeOptionsCount   = "options_count"
+	PropertyFieldAttributeOptionsOmitted = "options_omitted"
+
+	PropertyFieldMaxHydratedOptions = 1000
+)
+
+// PropertyFieldOptionsOmitted reports whether these attrs came from a read that
+// left the option list out because the field has more than
+// PropertyFieldMaxHydratedOptions of them. The options key is absent in that
+// case exactly as it is for a field with no options at all, so anything that
+// treats an absent list as "this field has none" has to ask this first.
+func PropertyFieldOptionsOmitted(attrs StringInterface) bool {
+	omitted, _ := attrs[PropertyFieldAttributeOptionsOmitted].(bool)
+	return omitted
+}
+
+// HideOptions empties the field's option list and removes the keys that report a
+// withheld one, so a masked field discloses neither option names nor how many
+// options exist. Mutates in place — call it on a copy, never on a field another
+// caller (or a cache) still holds.
+func (pf *PropertyField) HideOptions() {
+	if pf.Attrs == nil {
+		pf.Attrs = make(StringInterface, 1)
+	}
+	pf.Attrs[PropertyFieldAttributeOptions] = []any{}
+	delete(pf.Attrs, PropertyFieldAttributeOptionsCount)
+	delete(pf.Attrs, PropertyFieldAttributeOptionsOmitted)
+}
+
+// PropertyFieldSuppliesOptions reports whether these attrs carry a non-empty
+// option list — a caller asserting what the field's options should be, as
+// opposed to one that left the key out or echoed back an empty list because the
+// list it read was withheld.
+func PropertyFieldSuppliesOptions(attrs StringInterface) bool {
+	return propertyFieldOptionCount(attrs) > 0
+}
+
+// propertyFieldOptionCount reports how many options an option list carries.
+// Counted through reflection rather than a type switch because the key
+// legitimately holds any slice shape: []any from JSON, []map[string]any from Go
+// callers, or a typed PropertyOptions. Anything that is not a list carries no
+// options.
+func propertyFieldOptionCount(attrs StringInterface) int {
+	options, ok := attrs[PropertyFieldAttributeOptions]
+	if !ok || options == nil {
+		return 0
+	}
+	v := reflect.ValueOf(options)
+	switch v.Kind() {
+	case reflect.Slice, reflect.Array:
+		return v.Len()
+	default:
+		return 0
+	}
+}
+
+// decodedInlineOptions returns the field's inline option list as the objects it
+// is made of.
+//
+// Decoded through JSON because the options key legitimately holds several
+// shapes (see PropertyFieldSuppliesOptions). A list that will not decode comes
+// back empty rather than as an error, so the checks over it report nothing
+// wrong: the field-level callers run EnsureOptionIDs first, which rejects an
+// undecodable list with a message about the real problem.
+func decodedInlineOptions(attrs StringInterface) []map[string]any {
+	raw, ok := attrs[PropertyFieldAttributeOptions]
+	if !ok || raw == nil {
+		return nil
+	}
+
+	encoded, err := json.Marshal(raw)
+	if err != nil {
+		return nil
+	}
+	var options []map[string]any
+	if err := json.Unmarshal(encoded, &options); err != nil {
+		return nil
+	}
+	return options
+}
+
+// optionIndexCarryingRank returns the position of the first inline option that
+// carries a non-null "rank", or -1 if none does. Used to keep ranks off the
+// types they mean nothing for: the option store promotes the key into a column
+// of its own for every option-bearing type, so an unwanted rank does not stay
+// inert — it is persisted, served back, and reads as an ordering the field does
+// not have.
+func optionIndexCarryingRank(options []map[string]any) int {
+	for i, option := range options {
+		if rank, ok := option["rank"]; ok && rank != nil {
+			return i
+		}
+	}
+	return -1
+}
+
+// optionIndexRepeatingName returns the position of the first inline option whose
+// name an option earlier in the list already has, with that name, or -1 and "".
+//
+// A rule naming an option is stored as the identifier that name resolved to, and
+// a lookup over two rows answering to one name keeps whichever the query
+// returned last — so every holder of the other one is denied with nothing
+// reporting a problem. The options endpoints refuse a repeat within their own
+// payload; this is the same rule for the list a field is written with, which is
+// the whole of the field's option set.
+//
+// Only graph fields are held to it. The types with no hierarchy never have been,
+// and a field whose options are already named ambiguously has to stay writable
+// for the name to be fixable.
+//
+// An option is not required to carry a name, and two that do not are not two
+// answers to the same name.
+func optionIndexRepeatingName(options []map[string]any) (int, string) {
+	seen := make(map[string]bool, len(options))
+	for i, option := range options {
+		name, _ := option["name"].(string)
+		if name == "" {
+			continue
+		}
+		if seen[name] {
+			return i, name
+		}
+		seen[name] = true
+	}
+	return -1, ""
+}
 
 type PropertyOption interface {
 	GetID() string
@@ -514,10 +1035,20 @@ func (p PropertyOptions[T]) IsValid() error {
 		return errors.New("options list cannot be empty")
 	}
 
+	seenIDs := make(map[string]struct{})
 	seenNames := make(map[string]struct{})
 	for i, option := range p {
 		if err := option.IsValid(); err != nil {
 			return fmt.Errorf("invalid option at index %d: %w", i, err)
+		}
+
+		// Blank IDs are filled in before validation and are required to be
+		// blank on option-create payloads, so they are never duplicates.
+		if id := option.GetID(); id != "" {
+			if _, exists := seenIDs[id]; exists {
+				return fmt.Errorf("duplicate option id found at index %d: %s", i, id)
+			}
+			seenIDs[id] = struct{}{}
 		}
 
 		if _, exists := seenNames[option.GetName()]; exists {

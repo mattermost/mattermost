@@ -34,16 +34,10 @@
         }
 
         &--hover {
-            border: 1px solid transparent;
-
             &:hover {
                 box-shadow: 0 2px 2px 0 rgba(variables.$black, 0.1), 0 2px 2px 0 rgba(variables.$black, 0.1);
                 transition: all 0.1s linear;
             }
-        }
-
-        &--no-border {
-            border: unset;
         }
     }
 

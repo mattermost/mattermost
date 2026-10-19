@@ -5,7 +5,7 @@ import React from 'react';
 
 type ErrorBoundaryState = {
     hasError: boolean;
-}
+};
 
 export type FallbackProps = {
     clearError: (e: React.MouseEvent) => void;

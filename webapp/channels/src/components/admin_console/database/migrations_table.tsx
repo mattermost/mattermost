@@ -12,12 +12,12 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import './migrations_table.scss';
 
 type Props = {
-    createHelpText: React.ReactElement;
+    createHelpText: React.ReactElement<any>;
     className?: string;
     actions: {
         getAppliedSchemaMigrations: () => Promise<ActionResult>;
     };
-}
+};
 
 const MigrationsTable = ({
     createHelpText,

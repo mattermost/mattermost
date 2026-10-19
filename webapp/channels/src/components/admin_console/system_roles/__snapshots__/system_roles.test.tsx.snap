@@ -7,6 +7,7 @@ exports[`admin_console/system_roles should match snapshot 1`] = `
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Delegated Granular Administration
     </div>
@@ -39,15 +40,19 @@ exports[`admin_console/system_roles should match snapshot 1`] = `
           >
             <div
               class="DataGrid"
+              data-testid="dataGrid"
             >
               <div
                 class="DataGrid_header"
+                data-testid="dataGrid-header"
               />
               <div
                 class="DataGrid_rows"
+                data-testid="dataGrid-rows"
               >
                 <div
                   class="DataGrid_row"
+                  data-testid="dataGrid-row"
                 />
               </div>
             </div>

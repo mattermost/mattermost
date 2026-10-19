@@ -11,7 +11,8 @@
 // Group: @channels @autocomplete
 
 import {doTestPostextbox} from '../common_test';
-import {createSearchData, SimpleUser} from '../helpers';
+import type {SimpleUser} from '../helpers';
+import {createSearchData} from '../helpers';
 
 import {getRandomLetter} from '@/utils';
 

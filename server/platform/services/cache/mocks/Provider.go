@@ -7,7 +7,6 @@ package mocks
 import (
 	einterfaces "github.com/mattermost/mattermost/server/v8/einterfaces"
 	cache "github.com/mattermost/mattermost/server/v8/platform/services/cache"
-
 	mock "github.com/stretchr/testify/mock"
 )
 

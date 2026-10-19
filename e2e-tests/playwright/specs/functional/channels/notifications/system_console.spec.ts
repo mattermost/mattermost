@@ -1,23 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminConfig} from '@mattermost/types/config';
-import type {Locator} from '@playwright/test';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {expect, mergeWithOnPremServerConfig, test, TextInputSetting} from '@mattermost/playwright-lib';
+import type {TextInputSetting} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 /**
  * Patch the Notifications page required fields to known valid values so tests
  * that load the page always start with a saveable form state, regardless of
  * what other parallel tests may have left in the server config.
- *
- * Uses mergeWithOnPremServerConfig so shallow patchConfig does not drop sibling
- * EmailSettings/SupportSettings keys that the admin UI validates as required.
  */
 async function resetNotificationsConfig(adminClient: {
-    patchConfig: (config: Partial<AdminConfig>) => Promise<unknown>;
+    patchConfig: (config: DeepPartial<AdminConfig>) => Promise<unknown>;
 }) {
-    const merged = mergeWithOnPremServerConfig({
+    await adminClient.patchConfig({
         EmailSettings: {
             FeedbackName: 'Mattermost Notification',
             FeedbackEmail: 'notification@mattertest.com',
@@ -25,10 +23,6 @@ async function resetNotificationsConfig(adminClient: {
         SupportSettings: {
             SupportEmail: 'support@mattertest.com',
         },
-    } as Partial<AdminConfig>);
-    await adminClient.patchConfig({
-        EmailSettings: merged.EmailSettings,
-        SupportSettings: merged.SupportSettings,
     });
 }
 
@@ -48,13 +42,17 @@ async function waitForNotificationsServerPreconditions(adminClient: {getConfig: 
         .toBe(true);
 }
 
-/** Fill required notification text fields until Save enables (UI can lag behind API after reload). */
-async function waitForSaveableNotificationsForm(notifications: {
+/**
+ * Populate the required notification text fields so the form is valid before saving. This does not
+ * assert that Save becomes enabled: the admin console only enables it once the form is dirty, and
+ * these values may already be what the server holds (e.g. a reused server where this spec ran before).
+ * Assert on Save at the call sites that actually changed something.
+ */
+async function fillRequiredNotificationFields(notifications: {
     notificationDisplayName: TextInputSetting;
     notificationFromAddress: TextInputSetting;
     supportEmailAddress: TextInputSetting;
     notificationReplyToAddress: TextInputSetting;
-    saveButton: Locator;
 }) {
     await notifications.notificationDisplayName.container.scrollIntoViewIfNeeded();
     await notifications.notificationDisplayName.fill('Mattermost Notification');
@@ -64,7 +62,6 @@ async function waitForSaveableNotificationsForm(notifications: {
     await notifications.supportEmailAddress.fill('support@mattertest.com');
     await notifications.notificationReplyToAddress.container.scrollIntoViewIfNeeded();
     await notifications.notificationReplyToAddress.fill('notification@mattertest.com');
-    await expect(notifications.saveButton).not.toBeDisabled({timeout: 60_000});
 }
 
 test.describe('System Console Notifications', () => {
@@ -89,8 +86,8 @@ test.describe('System Console Notifications', () => {
         await resetNotificationsConfig(adminClient);
         await waitForNotificationsServerPreconditions(adminClient);
 
-        // # Update to default config (merged so SupportEmail / feedback fields are not cleared)
-        const withPush = mergeWithOnPremServerConfig({
+        // # Update to default config with required notification fields populated
+        await adminClient.patchConfig({
             EmailSettings: {
                 FeedbackName: 'Mattermost Notification',
                 FeedbackEmail: 'notification@mattertest.com',
@@ -99,10 +96,6 @@ test.describe('System Console Notifications', () => {
             SupportSettings: {
                 SupportEmail: 'support@mattertest.com',
             },
-        } as Partial<AdminConfig>);
-        await adminClient.patchConfig({
-            EmailSettings: withPush.EmailSettings,
-            SupportSettings: withPush.SupportSettings,
         });
         await waitForNotificationsServerPreconditions(adminClient);
 
@@ -127,7 +120,7 @@ test.describe('System Console Notifications', () => {
         await systemConsolePage.page.reload();
         await systemConsolePage.gotoNotificationsSettings();
         await notifications.toBeVisible();
-        await waitForSaveableNotificationsForm(notifications);
+        await fillRequiredNotificationFields(notifications);
 
         // * Verify that setting is visible and matches text content
         await notifications.pushNotificationContents.container.scrollIntoViewIfNeeded();
@@ -187,8 +180,9 @@ test.describe('System Console Notifications', () => {
                 await expect(loopDropdown).toBeVisible();
                 await loopDropdown.selectOption({label: option.label});
                 await expect(loopDropdown).toHaveValue(option.value);
-                await waitForSaveableNotificationsForm(notifications);
+                await fillRequiredNotificationFields(notifications);
 
+                // The dropdown change above dirties the form, so Save must become enabled here.
                 await expect(notifications.saveButton).not.toBeDisabled({timeout: 25000});
                 await notifications.save();
 

@@ -3,7 +3,6 @@
 
 import {
     expect,
-    getAdminClient,
     test,
     navigateToABACPage,
     verifyUserInChannel,
@@ -20,23 +19,7 @@ import {
     getPolicyIdByName,
     enableUserManagedAttributes,
 } from '../support';
-
-// Restore AccessControlSettings to the shared baseline expected by
-// `specs/test_setup.ts` (ABAC enabled) after this file's tests complete, so
-// later files on the same worker see the expected setup-state.
-test.afterAll(async () => {
-    try {
-        const {adminClient} = await getAdminClient({skipLog: true});
-        await adminClient.patchConfig({
-            AccessControlSettings: {
-                EnableAttributeBasedAccessControl: true,
-                EnableUserManagedAttributes: true,
-            },
-        } as any);
-    } catch {
-        // Best-effort cleanup.
-    }
-});
+import {deleteFieldFromDB} from '../masking/masking_db_setup';
 
 /**
  * MM-T5791: Editing existing access policy to add another attribute applies access control as specified (with auto-add)
@@ -62,13 +45,25 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
 
     const {adminUser, adminClient, team} = await pw.initSetup();
 
-    // Use ensure-exists pattern - non-destructive, safe for parallel test runs
+    // Ensure Office field exists with correct managed:admin permissions.
+    // Fields created by older server versions may lack permission_values, causing 403
+    // when setting attribute values — delete and recreate if permission_values is missing.
+    // Legacy fields with permission_field=null reject API deletion (403), so fall back to DB.
     const existingFields = await adminClient.getCustomProfileAttributeFields();
     const attributeFieldsMap: Record<string, any> = {};
     for (const field of existingFields) {
         attributeFieldsMap[field.id] = field;
     }
-    if (!existingFields.some((f: any) => f.name === 'Office')) {
+    const existingOffice = existingFields.find((f: any) => f.name === 'Office') as any;
+    if (!existingOffice || !(existingOffice as any).permission_values) {
+        if (existingOffice) {
+            try {
+                await adminClient.deleteCustomProfileAttributeField(existingOffice.id);
+            } catch {
+                await deleteFieldFromDB(existingOffice.id);
+            }
+            delete attributeFieldsMap[existingOffice.id];
+        }
         const officeField = await adminClient.createCustomProfileAttributeField({
             name: 'Office',
             type: 'text',
@@ -318,13 +313,25 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
 
     const {adminUser, adminClient, team} = await pw.initSetup();
 
-    // Use ensure-exists pattern - non-destructive, safe for parallel test runs
+    // Ensure Office field exists with correct managed:admin permissions.
+    // Fields created by older server versions may lack permission_values, causing 403
+    // when setting attribute values — delete and recreate if permission_values is missing.
+    // Legacy fields with permission_field=null reject API deletion (403), so fall back to DB.
     const existingFields = await adminClient.getCustomProfileAttributeFields();
     const attributeFieldsMap: Record<string, any> = {};
     for (const field of existingFields) {
         attributeFieldsMap[field.id] = field;
     }
-    if (!existingFields.some((f: any) => f.name === 'Office')) {
+    const existingOffice = existingFields.find((f: any) => f.name === 'Office') as any;
+    if (!existingOffice || !(existingOffice as any).permission_values) {
+        if (existingOffice) {
+            try {
+                await adminClient.deleteCustomProfileAttributeField(existingOffice.id);
+            } catch {
+                await deleteFieldFromDB(existingOffice.id);
+            }
+            delete attributeFieldsMap[existingOffice.id];
+        }
         const officeField = await adminClient.createCustomProfileAttributeField({
             name: 'Office',
             type: 'text',

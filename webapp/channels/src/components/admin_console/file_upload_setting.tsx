@@ -19,7 +19,7 @@ type Props = {
     disabled: boolean;
     fileType: string;
     error?: string;
-}
+};
 
 const FileUploadSetting = ({
     id,

@@ -45,6 +45,12 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 			callerID, _ := model.CallerIDFromContext(rctx.Context())
 			return callerID
 		},
+		RequestOptionsExtractor: func(rctx request.CTX) model.PropertyRequestOptions {
+			if rctx == nil {
+				return model.PropertyRequestOptions{}
+			}
+			return model.PropertyRequestOptionsFromContext(rctx.Context())
+		},
 	})
 	require.NoError(tb, err)
 
@@ -62,6 +68,14 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 // RequestContextWithCallerID adds the caller ID to a request.CTX for access control purposes.
 func RequestContextWithCallerID(rctx request.CTX, callerID string) request.CTX {
 	ctx := model.WithCallerID(rctx.Context(), callerID)
+	return rctx.WithContext(ctx)
+}
+
+// RequestContextWithCallerIDAndOptions adds the caller ID and per-call
+// declarations to a request.CTX for access control purposes.
+func RequestContextWithCallerIDAndOptions(rctx request.CTX, callerID string, options model.PropertyRequestOptions) request.CTX {
+	ctx := model.WithCallerID(rctx.Context(), callerID)
+	ctx = model.WithPropertyRequestOptions(ctx, options)
 	return rctx.WithContext(ctx)
 }
 

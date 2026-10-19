@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect, Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class FlagPostConfirmationDialog {
     readonly page: Page;
@@ -24,15 +25,14 @@ export default class FlagPostConfirmationDialog {
 
         this.flagPostReasonInput = container.locator('#FlagPostModal__reason');
         this.flagPostCommentInput = container.locator('#FlagPostModal__comment');
-        this.cancelButton = container.locator('button.btn.btn-tertiary');
-        this.submitButton = container.locator('button.btn-primary.confirm');
-        this.postContainer = container.locator('[data-testid="FlagPostModal__post-preview_container"]');
-        this.postText = container.locator('div.post-message__text');
-        this.flagReasonOption = page.locator('.react-select__menu-list');
-        this.flagReasonMenuItems = (reason: string) =>
-            this.flagReasonOption.locator(`div.react-select__option:has-text("${reason}")`);
-        this.cannotFlagPostErrorMessage = container.locator('div.FlagPostModal__request-error span');
-        this.requireCommentsErrorMessage = container.locator('div.AdvancedTextbox__error-message span');
+        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
+        this.submitButton = container.getByRole('button', {name: 'Submit'});
+        this.postContainer = container.getByTestId('FlagPostModal__post-preview_container');
+        this.postText = container.getByTestId('post-message-text');
+        this.flagReasonOption = page.getByRole('listbox');
+        this.flagReasonMenuItems = (reason: string) => this.flagReasonOption.getByRole('option', {name: reason});
+        this.cannotFlagPostErrorMessage = container.getByTestId('flag-post-request-error-text');
+        this.requireCommentsErrorMessage = container.getByTestId('advanced-textbox-error-text');
     }
 
     async fillFlagComment(comment: string) {

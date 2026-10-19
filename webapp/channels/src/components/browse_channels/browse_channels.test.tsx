@@ -140,6 +140,7 @@ describe('components/BrowseChannels', () => {
         teamName: 'team_name',
         channelsRequestStarted: false,
         shouldHideJoinedChannels: false,
+        shouldHideArchivedChannels: true,
         accessControlEnabled: false,
         myChannelMemberships: {
             'channel-id-3': TestHelper.getChannelMembershipMock({
@@ -147,6 +148,8 @@ describe('components/BrowseChannels', () => {
                 user_id: 'user-1',
             }),
         },
+        discoverableFeatureEnabled: false,
+        myPendingJoinRequests: {},
         actions: {
             getChannels: jest.fn(channelActions.getChannels),
             getArchivedChannels: jest.fn(channelActions.getArchivedChannels),
@@ -158,6 +161,8 @@ describe('components/BrowseChannels', () => {
             closeRightHandSide: jest.fn(),
             setGlobalItem: jest.fn(),
             getChannelsMemberCount: jest.fn(),
+            getMyChannelJoinRequests: jest.fn().mockResolvedValue({data: {requests: [], total_count: 0}}),
+            withdrawMyChannelJoinRequest: jest.fn().mockResolvedValue({data: {}}),
         },
     };
 
@@ -708,5 +713,411 @@ describe('components/BrowseChannels', () => {
         // `accessControlEnabled`. Lock that in so a future refactor doesn't
         // start fetching unconditionally and silently waste a round-trip.
         expect(baseProps.actions.getRecommendedChannelsForUser).not.toHaveBeenCalled();
+    });
+
+    test('hides archived channels from All search results when shouldHideArchivedChannels is true', async () => {
+        const searchAllChannels = jest.fn(channelActions.searchAllChannels);
+        const props = {...baseProps, shouldHideArchivedChannels: true, actions: {...baseProps.actions, searchAllChannels}};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        const searchInput = screen.getByPlaceholderText('Search channels');
+        await user.type(searchInput, 'channel');
+
+        await act(async () => {
+            jest.runOnlyPendingTimers();
+            await Promise.resolve();
+        });
+
+        // The active public and private channels are shown, but the archived
+        // channel returned by the search is filtered out under the default
+        // "All" filter — proving only archived rows are removed.
+        await waitFor(() => {
+            expect(screen.getByText('Channel 1')).toBeInTheDocument();
+            expect(screen.getByText('Private')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('Archived')).not.toBeInTheDocument();
+    });
+
+    test('hides archived channels from the browse list by default (no search)', async () => {
+        renderWithContext(<BrowseChannels {...baseProps}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        // baseProps.shouldHideArchivedChannels is true, so the archived channel
+        // ('channel-2') is absent from the default All browse list.
+        expect(screen.getByText('Default Channel')).toBeInTheDocument();
+        expect(screen.queryByText('channel-2')).not.toBeInTheDocument();
+    });
+
+    test('shows archived channels in the browse list when shouldHideArchivedChannels is false (no search)', async () => {
+        const props = {...baseProps, shouldHideArchivedChannels: false};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        // With the toggle off, the archived channel is mixed into the All list.
+        expect(screen.getByText('Default Channel')).toBeInTheDocument();
+        expect(screen.getByText('channel-2')).toBeInTheDocument();
+    });
+
+    test('shows archived channels in All search results when shouldHideArchivedChannels is false', async () => {
+        const searchAllChannels = jest.fn(channelActions.searchAllChannels);
+        const props = {...baseProps, shouldHideArchivedChannels: false, actions: {...baseProps.actions, searchAllChannels}};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        const searchInput = screen.getByPlaceholderText('Search channels');
+        await user.type(searchInput, 'channel');
+
+        await act(async () => {
+            jest.runOnlyPendingTimers();
+            await Promise.resolve();
+        });
+
+        // With the toggle off, archived channels are mixed back into the results.
+        await waitFor(() => {
+            expect(screen.getByText('Channel 1')).toBeInTheDocument();
+            expect(screen.getByText('Archived')).toBeInTheDocument();
+        });
+    });
+
+    // Regression: archived private channels used to leak in via the
+    // privateChannels list (which is not filtered by the Hide Archived toggle)
+    // and, with the toggle off, appear twice — once from privateChannels and
+    // once from archivedChannels. The container selector now returns only
+    // active private channels, so archived channels of both types come solely
+    // from `archivedChannels`.
+    const archivedPublicChannel = TestHelper.getChannelMock({
+        id: 'archived-public-id',
+        team_id: 'team_1',
+        display_name: 'Archived Public',
+        name: 'archived-public',
+        type: 'O',
+        delete_at: 123,
+    });
+
+    const archivedPrivateChannel = TestHelper.getChannelMock({
+        id: 'archived-private-id',
+        team_id: 'team_1',
+        display_name: 'Archived Private',
+        name: 'archived-private',
+        type: 'P',
+        delete_at: 456,
+    });
+
+    const bothTypesArchivedProps: Props = {
+        ...baseProps,
+        channels: [defaultChannel],
+        privateChannels: [privateChannel],
+        archivedChannels: [archivedPublicChannel, archivedPrivateChannel],
+    };
+
+    test('hides both archived public and private channels from the All list when the toggle is on', async () => {
+        const props = {...bothTypesArchivedProps, shouldHideArchivedChannels: true};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(screen.getByText('Default Channel')).toBeInTheDocument();
+        expect(screen.queryByText('Archived Public')).not.toBeInTheDocument();
+        expect(screen.queryByText('Archived Private')).not.toBeInTheDocument();
+    });
+
+    test('shows each archived channel exactly once in the All list when the toggle is off', async () => {
+        const props = {...bothTypesArchivedProps, shouldHideArchivedChannels: false};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(screen.getByText('Archived Public')).toBeInTheDocument();
+
+        // Exactly one row — previously the archived private channel rendered
+        // twice because it came from both privateChannels and archivedChannels.
+        expect(screen.getAllByText('Archived Private')).toHaveLength(1);
+    });
+
+    test('includes archived channels of the matching type under the Public and Private filters when the toggle is off', async () => {
+        const props = {...bothTypesArchivedProps, shouldHideArchivedChannels: false};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        await user.click(await screen.findByText('Public channels'));
+
+        // Wait on the private row being pruned — "Archived Public" is present in
+        // both the All and Public views, so it isn't a reliable settle signal.
+        await waitFor(() => {
+            expect(screen.queryByText('Archived Private')).not.toBeInTheDocument();
+        });
+        expect(screen.getByText('Archived Public')).toBeInTheDocument();
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        await user.click(await screen.findByText('Private channels'));
+
+        await waitFor(() => {
+            expect(screen.queryByText('Archived Public')).not.toBeInTheDocument();
+        });
+        expect(screen.getByText('Archived Private')).toBeInTheDocument();
+    });
+
+    test('still shows archived channels when the Archived filter is selected even if shouldHideArchivedChannels is true', async () => {
+        const searchAllChannels = jest.fn(channelActions.searchAllChannels);
+        const props = {...baseProps, shouldHideArchivedChannels: true, actions: {...baseProps.actions, searchAllChannels}};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        await user.click(await screen.findByText('Archived channels'));
+
+        const searchInput = screen.getByPlaceholderText('Search channels');
+        await user.type(searchInput, 'channel');
+
+        await act(async () => {
+            jest.runOnlyPendingTimers();
+            await Promise.resolve();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('Archived')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('Channel 1')).not.toBeInTheDocument();
+    });
+
+    test('toggling Hide Archived persists the preference', async () => {
+        const setGlobalItem = jest.fn();
+        const props = {...baseProps, shouldHideArchivedChannels: true, actions: {...baseProps.actions, setGlobalItem}};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        // Starts checked (hidden by default); unchecking persists 'false'.
+        const hideArchived = screen.getByLabelText('Hide archived channels');
+        expect(hideArchived).toHaveAttribute('aria-checked', 'true');
+
+        await user.click(hideArchived);
+
+        expect(setGlobalItem).toHaveBeenCalledWith('hideArchivedChannels', 'false');
+    });
+
+    test('Hide Archived checkbox is not shown when the Archived filter is selected', async () => {
+        renderWithContext(<BrowseChannels {...baseProps}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(screen.getByLabelText('Hide archived channels')).toBeInTheDocument();
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        await user.click(await screen.findByText('Archived channels'));
+
+        await waitFor(() => {
+            expect(screen.queryByLabelText('Hide archived channels')).not.toBeInTheDocument();
+        });
+    });
+
+    // ---------------------------------------------------------------
+    // Discoverable Private Channels — row state machine + filter chips
+    // ---------------------------------------------------------------
+
+    describe('Discoverable Private Channels', () => {
+        const discoverableChannel = TestHelper.getChannelMock({
+            id: 'discoverable-channel-id',
+            team_id: 'team_1',
+            display_name: 'Discoverable Ops',
+            name: 'discoverable-ops',
+            type: 'P',
+            discoverable: true,
+        });
+
+        const otherPrivateChannel = TestHelper.getChannelMock({
+            id: 'opaque-private-channel-id',
+            team_id: 'team_1',
+            display_name: 'Opaque Ops',
+            name: 'opaque-ops',
+            type: 'P',
+            discoverable: false,
+        });
+
+        const discoverablePropsBase: Props = {
+            ...baseProps,
+            channels: [],
+            privateChannels: [discoverableChannel, otherPrivateChannel],
+            discoverableFeatureEnabled: true,
+            myChannelMemberships: {},
+        };
+
+        test('fetches my pending join requests on mount when the FF is on', async () => {
+            renderWithContext(<BrowseChannels {...discoverablePropsBase}/>);
+            await act(async () => {
+                await Promise.resolve();
+            });
+            expect(discoverablePropsBase.actions.getMyChannelJoinRequests).toHaveBeenCalledWith({status: 'pending'});
+        });
+
+        test('fetches discoverable channels on mount and surfaces them without a search', async () => {
+            const fetchedDiscoverable = TestHelper.getChannelMock({
+                id: 'fetched-discoverable-id',
+                team_id: 'team_1',
+                display_name: 'Fetched Discoverable',
+                name: 'fetched-discoverable',
+                type: 'P',
+                discoverable: true,
+                delete_at: 0,
+            });
+            const searchAllChannels = jest.fn().mockResolvedValue({data: [fetchedDiscoverable]});
+            const props = {...discoverablePropsBase, privateChannels: [], actions: {...discoverablePropsBase.actions, searchAllChannels}};
+
+            renderWithContext(<BrowseChannels {...props}/>);
+
+            expect(searchAllChannels).toHaveBeenCalledWith('', {team_ids: ['team_1'], nonAdminSearch: true});
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ChannelRow-fetched-discoverable')).toBeInTheDocument();
+            });
+            expect(screen.getByTestId('ChannelRow-fetched-discoverable')).toHaveTextContent(/Request to join/);
+        });
+
+        test('does NOT fetch pending requests when the FF is off', async () => {
+            const offProps = {...discoverablePropsBase, discoverableFeatureEnabled: false};
+            renderWithContext(<BrowseChannels {...offProps}/>);
+            await act(async () => {
+                await Promise.resolve();
+            });
+            expect(offProps.actions.getMyChannelJoinRequests).not.toHaveBeenCalled();
+        });
+
+        test('renders the Discoverable badge + "Request to join" button on a non-member discoverable row', async () => {
+            renderWithContext(<BrowseChannels {...discoverablePropsBase}/>);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ChannelRow-discoverable-ops')).toBeInTheDocument();
+            });
+
+            const row = screen.getByTestId('ChannelRow-discoverable-ops');
+            expect(row).toHaveTextContent(/Discoverable/);
+            expect(row).toHaveTextContent(/Request to join/);
+            expect(row.querySelector('.more-modal__name .more-modal__discoverable-badge')).not.toBeInTheDocument();
+            expect(row.querySelector('.discoverableIndicatorContainer')).toBeInTheDocument();
+
+            // The non-discoverable private channel still renders on initial
+            // mount (filtering only kicks in on search), but it shows the
+            // default Join CTA and no Discoverable badge.
+            const opaqueRow = screen.getByTestId('ChannelRow-opaque-ops');
+            expect(opaqueRow).not.toHaveTextContent(/Discoverable/);
+            expect(opaqueRow).not.toHaveTextContent(/Request to join/);
+        });
+
+        test('shows a Withdraw button on hover when a pending request exists', async () => {
+            const propsWithPending: Props = {
+                ...discoverablePropsBase,
+                myPendingJoinRequests: {
+                    'discoverable-channel-id': {
+                        id: 'req1',
+                        channel_id: 'discoverable-channel-id',
+                        user_id: 'user-1',
+                        message: '',
+                        status: 'pending',
+                        denial_reason: '',
+                        create_at: 1,
+                        update_at: 1,
+                        reviewed_by: '',
+                        reviewed_at: 0,
+                    },
+                },
+            };
+            renderWithContext(<BrowseChannels {...propsWithPending}/>);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ChannelRow-discoverable-ops')).toBeInTheDocument();
+            });
+
+            const row = screen.getByTestId('ChannelRow-discoverable-ops');
+            expect(row.querySelector('.more-modal__requested-pill')).not.toBeInTheDocument();
+            const withdrawButton = row.querySelector('#withdrawRequestButton');
+            expect(withdrawButton).toBeInTheDocument();
+
+            // Pending rows do nothing on Enter, so the Withdraw button must stay
+            // keyboard-focusable (no tabindex=-1) to remain operable.
+            expect(withdrawButton).not.toHaveAttribute('tabindex', '-1');
+            expect(row).toHaveTextContent(/Withdraw/);
+            expect(row).not.toHaveTextContent(/Requested/);
+            expect(row.querySelector('#requestToJoinChannelButton')).not.toBeInTheDocument();
+        });
+
+        test('clicking Request to join opens the RequestJoinChannelModal with the right channel + team', async () => {
+            renderWithContext(<BrowseChannels {...discoverablePropsBase}/>);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ChannelRow-discoverable-ops')).toBeInTheDocument();
+            });
+
+            const row = screen.getByTestId('ChannelRow-discoverable-ops');
+            const requestButton = row.querySelector('#requestToJoinChannelButton') as HTMLButtonElement;
+            expect(requestButton).toBeInTheDocument();
+
+            await user.click(requestButton);
+
+            // The row no longer fires the request action directly. It opens
+            // the confirmation modal; the modal is what dispatches the request
+            // once the user confirms.
+            expect(discoverablePropsBase.actions.openModal).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    modalId: expect.any(String),
+                    dialogProps: expect.objectContaining({
+                        channel: expect.objectContaining({id: 'discoverable-channel-id'}),
+                        teamName: 'team_name',
+                    }),
+                }),
+            );
+        });
+
+        test('Discoverable + MyPendingRequests filter menu items appear when the FF is on', async () => {
+            renderWithContext(<BrowseChannels {...discoverablePropsBase}/>);
+
+            await waitFor(() => {
+                expect(screen.getByLabelText('Channel type filter')).toBeInTheDocument();
+            });
+
+            await user.click(screen.getByLabelText('Channel type filter'));
+            expect(screen.getByText('Discoverable private channels')).toBeInTheDocument();
+            expect(screen.getByText('My pending requests')).toBeInTheDocument();
+        });
+
+        test('Discoverable + MyPendingRequests filter menu items are hidden when the FF is off', async () => {
+            const offProps = {...discoverablePropsBase, discoverableFeatureEnabled: false};
+            renderWithContext(<BrowseChannels {...offProps}/>);
+
+            await waitFor(() => {
+                expect(screen.getByLabelText('Channel type filter')).toBeInTheDocument();
+            });
+
+            await user.click(screen.getByLabelText('Channel type filter'));
+            expect(screen.queryByText('Discoverable private channels')).not.toBeInTheDocument();
+            expect(screen.queryByText('My pending requests')).not.toBeInTheDocument();
+        });
     });
 });

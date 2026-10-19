@@ -14,6 +14,10 @@ import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch, Updat
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 import type {
     Channel,
+    ChannelJoinRequest,
+    ChannelJoinRequestApprovalResponse,
+    ChannelJoinRequestList,
+    ChannelJoinRequestPatch,
     ChannelMemberCountsByGroup,
     ChannelMembership,
     ChannelModeration,
@@ -24,6 +28,7 @@ import type {
     ChannelViewResponse,
     ChannelWithTeamData,
     ChannelSearchOpts,
+    GetChannelJoinRequestsOptions,
     ServerChannel,
 } from '@mattermost/types/channels';
 import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions, OptsSignalExt} from '@mattermost/types/client4';
@@ -62,6 +67,7 @@ import type {
     PatchDataRetentionCustomPolicy,
     GetDataRetentionCustomPoliciesRequest,
 } from '@mattermost/types/data_retention';
+import type {DeliveryTrackingConfig} from '@mattermost/types/delivery_tracking';
 import type {Draft} from '@mattermost/types/drafts';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
@@ -83,6 +89,7 @@ import type {
     GroupStats,
     GroupMember,
 } from '@mattermost/types/groups';
+import type {HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
 import type {PostActionResponse} from '@mattermost/types/integration_actions';
 import type {
     Command,
@@ -112,16 +119,12 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {
-    NameMappedPropertyFields,
-    PropertyField,
-    UserPropertyField,
-    UserPropertyFieldPatch,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyValue} from '@mattermost/types/properties';
+import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
-import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
+import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
+import type {ActionSearchRequest, ActionSearchResponse} from '@mattermost/types/render_permissions';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
@@ -132,6 +135,7 @@ import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import type {RemoteClusterInfo, SharedChannelRemote} from '@mattermost/types/shared_channels';
 import type {
     GetTeamMembersOpts,
+    MemberInviteProfile,
     Team,
     TeamInviteWithError,
     TeamMembership,
@@ -158,7 +162,7 @@ import type {
 import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
 
 import {cleanUrlForLogging} from './errors';
-import {buildQueryString} from './helpers';
+import {buildQueryString, extractFilenameFromContentDisposition} from './helpers';
 
 export enum LdapDiagnosticTestType {
     FILTERS = 'filters',
@@ -177,6 +181,13 @@ export const HEADER_X_VERSION_ID = 'X-Version-Id';
 const LOGS_PER_PAGE_DEFAULT = 10000;
 const AUTOCOMPLETE_LIMIT_DEFAULT = 25;
 const PER_PAGE_DEFAULT = 60;
+
+// The largest page the options endpoint serves (server
+// `model.PropertyFieldOptionsMaxPerRequest`). Sent on every options request:
+// the endpoint's own default is PER_PAGE_DEFAULT, which would page a hierarchy
+// 60 options at a time.
+const PROPERTY_FIELD_OPTIONS_PER_PAGE_DEFAULT = 200;
+
 export const DEFAULT_LIMIT_BEFORE = 30;
 export const DEFAULT_LIMIT_AFTER = 30;
 
@@ -337,6 +348,12 @@ export default class Client4 {
     getChannelBookmarkRoute(channelId: string, bookmarkId: string) {
         return `${this.getChannelRoute(channelId)}/bookmarks/${bookmarkId}`;
     }
+    getChannelJoinRequestRoute(channelId: string) {
+        return `${this.getChannelRoute(channelId)}/join_request`;
+    }
+    getChannelJoinRequestsRoute(channelId: string) {
+        return `${this.getChannelRoute(channelId)}/join_requests`;
+    }
 
     getChannelCategoriesRoute(userId: string, teamId: string) {
         return `${this.getBaseRoute()}/users/${userId}/teams/${teamId}/channels/categories`;
@@ -356,6 +373,10 @@ export default class Client4 {
 
     getPropertyFieldRoute(groupName: string, objectType: string, fieldId: string) {
         return `${this.getPropertyFieldsRoute(groupName, objectType)}/${fieldId}`;
+    }
+
+    getPropertyFieldOptionsRoute(groupName: string, objectType: string, fieldId: string) {
+        return `${this.getPropertyFieldRoute(groupName, objectType, fieldId)}/options`;
     }
 
     getCustomProfileAttributeFieldsRoute() {
@@ -466,6 +487,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/recaps`;
     }
 
+    getScheduledRecapsRoute() {
+        return `${this.getBaseRoute()}/scheduled_recaps`;
+    }
+
     getPluginsRoute() {
         return `${this.getBaseRoute()}/plugins`;
     }
@@ -564,6 +589,14 @@ export default class Client4 {
 
     getContentFlaggingRoute() {
         return `${this.getBaseRoute()}/content_flagging`;
+    }
+
+    getDeliveryTrackingRoute() {
+        return `${this.getBaseRoute()}/delivery_tracking`;
+    }
+
+    getHealthFindingsRoute() {
+        return `${this.getBaseRoute()}/health/findings`;
     }
 
     getCSRFFromCookie() {
@@ -875,7 +908,7 @@ export default class Client4 {
             login_id: loginId,
         };
 
-        return this.doFetch<{auth_service: 'magic_link' | ''; is_deactivated: boolean }>(
+        return this.doFetch<{auth_service: 'magic_link' | ''; is_deactivated: boolean}>(
             `${this.getUsersRoute()}/login/type`,
             {method: 'post', body: JSON.stringify(body)},
         );
@@ -1247,7 +1280,16 @@ export default class Client4 {
         );
     };
 
-    authorizeOAuthApp = (responseType: string, clientId: string, redirectUri: string, state: string, scope: string, resource?: string, codeChallenge?: string, codeChallengeMethod?: string) => {
+    authorizeOAuthApp = (
+        responseType: string | null,
+        clientId: string | null,
+        redirectUri: string | null,
+        state: string | null,
+        scope: string | null,
+        resource?: string | null,
+        codeChallenge?: string | null,
+        codeChallengeMethod?: string | null,
+    ) => {
         const body: any = {client_id: clientId, response_type: responseType, redirect_uri: redirectUri, state, scope};
 
         // Include resource parameter if provided
@@ -1263,7 +1305,7 @@ export default class Client4 {
             body.code_challenge_method = codeChallengeMethod;
         }
 
-        return this.doFetch<void>(
+        return this.doFetch<{redirect: string}>(
             `${this.url}/oauth/authorize`,
             {method: 'post', body: JSON.stringify(body)},
         );
@@ -1276,10 +1318,14 @@ export default class Client4 {
         );
     };
 
-    createUserAccessToken = (userId: string, description: string) => {
+    createUserAccessToken = (userId: string, description: string, expiresAt?: number) => {
+        const body: {description: string; expires_at?: number} = {description};
+        if (expiresAt !== undefined) {
+            body.expires_at = expiresAt;
+        }
         return this.doFetch<UserAccessToken>(
             `${this.getUserRoute(userId)}/tokens`,
-            {method: 'post', body: JSON.stringify({description})},
+            {method: 'post', body: JSON.stringify(body)},
         );
     };
 
@@ -1311,6 +1357,20 @@ export default class Client4 {
         );
     };
 
+    getNonCompliantUserAccessTokenCount = () => {
+        return this.doFetch<{count: number}>(
+            `${this.getUsersRoute()}/tokens/non_compliant/count`,
+            {method: 'get'},
+        );
+    };
+
+    revokeNonCompliantUserAccessTokens = () => {
+        return this.doFetch<{count: number}>(
+            `${this.getUsersRoute()}/tokens/non_compliant/revoke`,
+            {method: 'post'},
+        );
+    };
+
     disableUserAccessToken = (tokenId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getUsersRoute()}/tokens/disable`,
@@ -1322,6 +1382,17 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getUsersRoute()}/tokens/enable`,
             {method: 'post', body: JSON.stringify({token_id: tokenId})},
+        );
+    };
+
+    rotateUserAccessToken = (tokenId: string, expiresAt?: number) => {
+        const body: {token_id: string; expires_at?: number} = {token_id: tokenId};
+        if (expiresAt !== undefined) {
+            body.expires_at = expiresAt;
+        }
+        return this.doFetch<UserAccessToken>(
+            `${this.getUsersRoute()}/tokens/rotate`,
+            {method: 'post', body: JSON.stringify(body)},
         );
     };
 
@@ -1373,6 +1444,13 @@ export default class Client4 {
         );
     };
 
+    updateTeamPrivacy = (teamId: string, privacy: string) => {
+        return this.doFetch<Team>(
+            `${this.getTeamRoute(teamId)}/privacy`,
+            {method: 'put', body: JSON.stringify({privacy})},
+        );
+    };
+
     regenerateTeamInviteId = (teamId: string) => {
         return this.doFetch<Team>(
             `${this.getTeamRoute(teamId)}/regenerate_invite_id`,
@@ -1396,9 +1474,9 @@ export default class Client4 {
         );
     };
 
-    getTeams = (page = 0, perPage = PER_PAGE_DEFAULT, includeTotalCount = false, excludePolicyConstrained = false) => {
+    getTeams = (page = 0, perPage = PER_PAGE_DEFAULT, includeTotalCount = false, excludePolicyConstrained = false, forDirectory = false) => {
         return this.doFetch<Team[] | TeamsWithCount>(
-            `${this.getTeamsRoute()}${buildQueryString({page, per_page: perPage, include_total_count: includeTotalCount, exclude_policy_constrained: excludePolicyConstrained})}`,
+            `${this.getTeamsRoute()}${buildQueryString({page, per_page: perPage, include_total_count: includeTotalCount, exclude_policy_constrained: excludePolicyConstrained, for_directory: forDirectory})}`,
             {method: 'get'},
         );
     };
@@ -1602,10 +1680,12 @@ export default class Client4 {
         );
     };
 
-    sendEmailInvitesToTeamGracefully = (teamId: string, emails: string[]) => {
+    sendEmailInvitesToTeamGracefully = (teamId: string, emails: string[], profiles?: MemberInviteProfile[]) => {
+        // Keep the historical raw-array body unless profiles are provided.
+        const body = profiles?.length ? JSON.stringify({emails, profiles}) : JSON.stringify(emails);
         return this.doFetch<TeamInviteWithError[]>(
             `${this.getTeamRoute(teamId)}/invite/email?graceful=true`,
-            {method: 'post', body: JSON.stringify(emails)},
+            {method: 'post', body},
         );
     };
 
@@ -1614,10 +1694,11 @@ export default class Client4 {
         channelIds: string[],
         emails: string[],
         message: string,
+        profiles?: MemberInviteProfile[],
     ) => {
         return this.doFetch<TeamInviteWithError[]>(
             `${this.getTeamRoute(teamId)}/invite/email?graceful=true`,
-            {method: 'post', body: JSON.stringify({emails, channelIds, message})},
+            {method: 'post', body: JSON.stringify({emails, channelIds, message, profiles: profiles?.length ? profiles : undefined})},
         );
     };
 
@@ -1930,6 +2011,85 @@ export default class Client4 {
         return this.doFetch<ChannelMembership[]>(
             `${this.getChannelMembersRoute(channelId)}/ids`,
             {method: 'post', body: JSON.stringify(userIds)},
+        );
+    };
+
+    // ------------------------------------------------------------------
+    // Discoverable Private Channels — join request endpoints (FF gated)
+    // ------------------------------------------------------------------
+
+    // POST /channels/{id}/join_request
+    // Server returns either {status: 'approved'} (immediate add via the ABAC
+    // fast path) or the full ChannelJoinRequest row (pending admin review).
+    // The two shapes are discriminated by the `status` field; callers branch
+    // on whether `id` is present.
+    requestJoinChannel = (channelId: string, message = '') => {
+        return this.doFetch<ChannelJoinRequest | ChannelJoinRequestApprovalResponse>(
+            `${this.getChannelJoinRequestRoute(channelId)}`,
+            {method: 'post', body: JSON.stringify({message})},
+        );
+    };
+
+    // GET /channels/{id}/join_request — current user's pending request for
+    // this channel. The server returns 404 with no body when none exists;
+    // callers should treat 404 as "no pending request" rather than an error.
+    getMyChannelJoinRequest = (channelId: string) => {
+        return this.doFetch<ChannelJoinRequest>(
+            `${this.getChannelJoinRequestRoute(channelId)}`,
+            {method: 'get'},
+        );
+    };
+
+    // DELETE /channels/{id}/join_request — withdraw the current user's
+    // pending request. Returns the updated row.
+    withdrawMyChannelJoinRequest = (channelId: string) => {
+        return this.doFetch<ChannelJoinRequest>(
+            `${this.getChannelJoinRequestRoute(channelId)}`,
+            {method: 'delete'},
+        );
+    };
+
+    // GET /channels/{id}/join_requests — admin queue listing.
+    getChannelJoinRequests = (channelId: string, opts: GetChannelJoinRequestsOptions = {}) => {
+        const query = buildQueryString({
+            status: opts.status,
+            page: opts.page,
+            per_page: opts.per_page,
+        });
+        return this.doFetch<ChannelJoinRequestList>(
+            `${this.getChannelJoinRequestsRoute(channelId)}${query}`,
+            {method: 'get'},
+        );
+    };
+
+    // GET /channels/{id}/join_requests/count — pending count for the channel
+    // header / LHS / RHS indicator triad.
+    countPendingChannelJoinRequests = (channelId: string) => {
+        return this.doFetch<{count: number}>(
+            `${this.getChannelJoinRequestsRoute(channelId)}/count`,
+            {method: 'get'},
+        );
+    };
+
+    // PATCH /channels/{id}/join_requests/{request_id} — approve or deny.
+    patchChannelJoinRequest = (channelId: string, requestId: string, patch: ChannelJoinRequestPatch) => {
+        return this.doFetch<ChannelJoinRequest>(
+            `${this.getChannelJoinRequestsRoute(channelId)}/${requestId}`,
+            {method: 'PATCH', body: JSON.stringify(patch)},
+        );
+    };
+
+    // GET /users/me/channel_join_requests — the current user's requests
+    // across channels, used by the My Pending Requests tab.
+    getMyChannelJoinRequests = (opts: GetChannelJoinRequestsOptions = {}) => {
+        const query = buildQueryString({
+            status: opts.status,
+            page: opts.page,
+            per_page: opts.per_page,
+        });
+        return this.doFetch<ChannelJoinRequestList>(
+            `${this.getUserRoute('me')}/channel_join_requests${query}`,
+            {method: 'get'},
         );
     };
 
@@ -2395,6 +2555,32 @@ export default class Client4 {
         );
     };
 
+    // One page of a property field's options, in creation order. has_more is
+    // the only signal that ends a listing — a short page does not, and an
+    // empty page does not either. Resume from next_cursor_create_at and
+    // next_cursor_id, which name the last candidate examined, not the last
+    // option returned. The two request cursor halves go together — the
+    // server refuses a request carrying only one of them.
+    getPropertyFieldOptions = async (
+        groupName: string,
+        objectType: string,
+        fieldId: string,
+        options?: {perPage?: number; cursorId?: string; cursorCreateAt?: number},
+    ) => {
+        const params = new URLSearchParams();
+        params.set('per_page', String(options?.perPage ?? PROPERTY_FIELD_OPTIONS_PER_PAGE_DEFAULT));
+        if (options?.cursorId) {
+            params.set('cursor_id', options.cursorId);
+        }
+        if (options?.cursorCreateAt) {
+            params.set('cursor_create_at', String(options.cursorCreateAt));
+        }
+        return this.doFetch<PropertyFieldOptionPage>(
+            `${this.getPropertyFieldOptionsRoute(groupName, objectType, fieldId)}?${params.toString()}`,
+            {method: 'GET'},
+        );
+    };
+
     createPropertyField = async (groupName: string, objectType: string, field: Partial<PropertyField> & Record<string, unknown>) => {
         return this.doFetch<PropertyField>(
             `${this.getPropertyFieldsRoute(groupName, objectType)}`,
@@ -2455,9 +2641,9 @@ export default class Client4 {
         );
     };
 
-    getPost = (postId: string, includeDeleted?: boolean, retainContent?: boolean) => {
+    getPost = (postId: string, includeDeleted?: boolean, retainContent?: boolean, propertyGroup?: string) => {
         return this.doFetch<Post>(
-            `${this.getPostRoute(postId)}${buildQueryString({include_deleted: includeDeleted, retain_content: retainContent})}`,
+            `${this.getPostRoute(postId)}${buildQueryString({include_deleted: includeDeleted, retain_content: retainContent, propertyGroup})}`,
             {method: 'get'},
         );
     };
@@ -2490,9 +2676,9 @@ export default class Client4 {
         );
     };
 
-    getPostThread = (postId: string, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPostThread = (postId: string, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, propertyGroup?: string) => {
         // this is to ensure we have backwards compatibility for `getPostThread`
-        return this.getPaginatedPostThread(postId, {fetchThreads, collapsedThreads, collapsedThreadsExtended});
+        return this.getPaginatedPostThread(postId, {fetchThreads, collapsedThreads, collapsedThreadsExtended, propertyGroup});
     };
 
     getPaginatedPostThread = async (postId: string, options: FetchPaginatedThreadOptions): Promise<PaginatedPostList> => {
@@ -2513,37 +2699,37 @@ export default class Client4 {
         );
     };
 
-    getPosts = (channelId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPosts = (channelId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, propertyGroup?: string) => {
         return this.doFetch<PostList>(
-            `${this.getChannelRoute(channelId)}/posts${buildQueryString({page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended})}`,
+            `${this.getChannelRoute(channelId)}/posts${buildQueryString({page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended, propertyGroup})}`,
             {method: 'get'},
         );
     };
 
-    getPostsUnread = (channelId: string, userId: string, limitAfter = DEFAULT_LIMIT_AFTER, limitBefore = DEFAULT_LIMIT_BEFORE, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPostsUnread = (channelId: string, userId: string, limitAfter = DEFAULT_LIMIT_AFTER, limitBefore = DEFAULT_LIMIT_BEFORE, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, propertyGroup?: string) => {
         return this.doFetch<PostList>(
-            `${this.getUserRoute(userId)}/channels/${channelId}/posts/unread${buildQueryString({limit_after: limitAfter, limit_before: limitBefore, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended})}`,
+            `${this.getUserRoute(userId)}/channels/${channelId}/posts/unread${buildQueryString({limit_after: limitAfter, limit_before: limitBefore, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended, propertyGroup})}`,
             {method: 'get'},
         );
     };
 
-    getPostsSince = (channelId: string, since: number, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPostsSince = (channelId: string, since: number, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, propertyGroup?: string) => {
         return this.doFetch<PostList>(
-            `${this.getChannelRoute(channelId)}/posts${buildQueryString({since, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended})}`,
+            `${this.getChannelRoute(channelId)}/posts${buildQueryString({since, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended, propertyGroup})}`,
             {method: 'get'},
         );
     };
 
-    getPostsBefore = (channelId: string, postId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPostsBefore = (channelId: string, postId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, propertyGroup?: string) => {
         return this.doFetch<PostList>(
-            `${this.getChannelRoute(channelId)}/posts${buildQueryString({before: postId, page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended})}`,
+            `${this.getChannelRoute(channelId)}/posts${buildQueryString({before: postId, page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended, propertyGroup})}`,
             {method: 'get'},
         );
     };
 
-    getPostsAfter = (channelId: string, postId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPostsAfter = (channelId: string, postId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, propertyGroup?: string) => {
         return this.doFetch<PostList>(
-            `${this.getChannelRoute(channelId)}/posts${buildQueryString({after: postId, page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended})}`,
+            `${this.getChannelRoute(channelId)}/posts${buildQueryString({after: postId, page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended, propertyGroup})}`,
             {method: 'get'},
         );
     };
@@ -2612,6 +2798,13 @@ export default class Client4 {
     getFileInfosForPost = (postId: string) => {
         return this.doFetch<FileInfo[]>(
             `${this.getPostRoute(postId)}/files/info`,
+            {method: 'get'},
+        );
+    };
+
+    getFileInfo = (fileId: string) => {
+        return this.doFetch<FileInfo>(
+            `${this.getFileRoute(fileId)}/info`,
             {method: 'get'},
         );
     };
@@ -2733,26 +2926,25 @@ export default class Client4 {
     };
 
     doPostAction = (postId: string, actionId: string, selectedOption = '') => {
-        return this.doPostActionWithCookie(postId, actionId, '', selectedOption);
+        return this.doPostActionWithCookie(postId, actionId, '', selectedOption, undefined, '');
     };
 
-    doPostActionWithCookie = (postId: string, actionId: string, actionCookie: string, selectedOption = '') => {
+    doPostActionWithCookie = (postId: string, actionId: string, actionCookie: string, selectedOption = '', query?: Record<string, string>, integrationFormat = '') => {
         const msg: any = {
             selected_option: selectedOption,
         };
         if (actionCookie !== '') {
             msg.cookie = actionCookie;
         }
+        if (query && Object.keys(query).length > 0) {
+            msg.query = query;
+        }
+        if (integrationFormat) {
+            msg.integration_format = integrationFormat;
+        }
         return this.doFetch<PostActionResponse>(
             `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
             {method: 'post', body: JSON.stringify(msg)},
-        );
-    };
-
-    doPostActionWithQuery = (postId: string, actionId: string, query: Record<string, string>) => {
-        return this.doFetch<PostActionResponse>(
-            `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
-            {method: 'post', body: JSON.stringify({query})},
         );
     };
 
@@ -2852,7 +3044,7 @@ export default class Client4 {
 
     // General Routes
 
-    ping = (getServerStatus: boolean, deviceId?: string) => {
+    ping = (getServerStatus?: boolean, deviceId?: string) => {
         return this.doFetch<{
             status: string;
             ActiveSearchBackend: string;
@@ -2924,7 +3116,7 @@ export default class Client4 {
 
     getClientLicenseOld = () => {
         return this.doFetch<ClientLicense>(
-            `${this.getBaseRoute()}/license/client?format=old`,
+            `${this.getBaseRoute()}/license/client`,
             {method: 'get'},
         );
     };
@@ -3256,6 +3448,13 @@ export default class Client4 {
         );
     };
 
+    executeDialogAction = (url: string, context?: Record<string, string>, channelId?: string, teamId?: string) => {
+        return this.doFetch<PostActionResponse>(
+            `${this.getBaseRoute()}/actions/dialogs/execute`,
+            {method: 'post', body: JSON.stringify({url, context, channel_id: channelId, team_id: teamId})},
+        );
+    };
+
     lookupInteractiveDialog = (data: DialogSubmission) => {
         return this.doFetch<{items: Array<{text: string; value: string}>}>(
             `${this.getBaseRoute()}/actions/dialogs/lookup`,
@@ -3449,10 +3648,13 @@ export default class Client4 {
         );
     };
 
-    getJobsByType = (type: string, page = 0, perPage = PER_PAGE_DEFAULT, teamId?: string) => {
+    getJobsByType = (type: string, page = 0, perPage = PER_PAGE_DEFAULT, teamId?: string, policyId?: string) => {
         const params: Record<string, any> = {page, per_page: perPage};
         if (teamId) {
             params.team_id = teamId;
+        }
+        if (policyId) {
+            params.policy_id = policyId;
         }
         return this.doFetch<Job[]>(
             `${this.getJobsRoute()}/type/${type}${buildQueryString(params)}`,
@@ -3460,7 +3662,7 @@ export default class Client4 {
         );
     };
 
-    createJob = (job: JobTypeBase & { data?: any }) => {
+    createJob = (job: JobTypeBase & {data?: any}) => {
         return this.doFetch<Job>(
             `${this.getJobsRoute()}`,
             {method: 'post', body: JSON.stringify(job)},
@@ -3521,6 +3723,63 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getRecapsRoute()}/${recapId}`,
             {method: 'delete'},
+        );
+    };
+
+    getRecapLimitStatus = () => {
+        return this.doFetch<RecapLimitStatus>(
+            `${this.getRecapsRoute()}/limit_status`,
+            {method: 'get'},
+        );
+    };
+
+    // Scheduled Recaps Routes
+    createScheduledRecap = (input: ScheduledRecapInput) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}`,
+            {method: 'post', body: JSON.stringify(input)},
+        );
+    };
+
+    getScheduledRecaps = (page = 0, perPage = PER_PAGE_DEFAULT) => {
+        return this.doFetch<ScheduledRecap[]>(
+            `${this.getScheduledRecapsRoute()}${buildQueryString({page, per_page: perPage})}`,
+            {method: 'get'},
+        );
+    };
+
+    getScheduledRecap = (id: string) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}`,
+            {method: 'get'},
+        );
+    };
+
+    updateScheduledRecap = (id: string, input: ScheduledRecapInput) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}`,
+            {method: 'put', body: JSON.stringify(input)},
+        );
+    };
+
+    deleteScheduledRecap = (id: string) => {
+        return this.doFetch<void>(
+            `${this.getScheduledRecapsRoute()}/${id}`,
+            {method: 'delete'},
+        );
+    };
+
+    pauseScheduledRecap = (id: string) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}/pause`,
+            {method: 'post'},
+        );
+    };
+
+    resumeScheduledRecap = (id: string) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}/resume`,
+            {method: 'post'},
         );
     };
 
@@ -3625,9 +3884,21 @@ export default class Client4 {
         );
     };
 
+    /**
+     * @deprecated Use testFileStoreConnection instead. The /file/s3_test
+     * endpoint is kept for backwards compatibility but now routes through
+     * the same backend-agnostic handler.
+     */
     testS3Connection = (config?: AdminConfig) => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/file/s3_test`,
+            {method: 'post', body: JSON.stringify(config)},
+        );
+    };
+
+    testFileStoreConnection = (config?: AdminConfig) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/file/test`,
             {method: 'post', body: JSON.stringify(config)},
         );
     };
@@ -3912,6 +4183,21 @@ export default class Client4 {
 
         return this.doFetch<License>(
             `${this.getBaseRoute()}/license`,
+            request,
+        );
+    };
+
+    previewLicense = (fileData: File) => {
+        const formData = new FormData();
+        formData.append('license', fileData);
+
+        const request: any = {
+            method: 'post',
+            body: formData,
+        };
+
+        return this.doFetch<License>(
+            `${this.getBaseRoute()}/license/preview`,
             request,
         );
     };
@@ -4645,7 +4931,7 @@ export default class Client4 {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
-            } else if (contentType === 'application/zip') {
+            } else if (contentType === 'application/zip' || contentType?.startsWith('text/csv')) {
                 data = await response.blob();
             } else {
                 data = await response.text();
@@ -4690,6 +4976,7 @@ export default class Client4 {
             server_error_id: data.id,
             status_code: data.status_code,
             detailed_error: data.detailed_error,
+            props: data.props,
             url,
         });
     };
@@ -4882,6 +5169,17 @@ export default class Client4 {
         );
     };
 
+    searchAccessControlDecisionActions = (resourceType: string, resourceId: string, actions?: string[]) => {
+        const body: ActionSearchRequest = {resource: {type: resourceType, id: resourceId}};
+        if (actions && actions.length > 0) {
+            body.actions = actions;
+        }
+        return this.doFetch<ActionSearchResponse>(
+            `${this.getBaseRoute()}/access_control/decisions/actions/search`,
+            {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
     searchChildAccessControlPolicyChannels = (policyId: string, term: string, opts: ChannelSearchOpts, teamId?: string) => {
         const teamParam = teamId ? `?team_id=${encodeURIComponent(teamId)}` : '';
         return this.doFetch<ChannelsWithTotalCount>(
@@ -4904,6 +5202,56 @@ export default class Client4 {
         );
     };
 
+    assignTeamsToAccessControlPolicy = (policyId: string, teamIds: string[]) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/assign`,
+            {method: 'post', body: JSON.stringify({team_ids: teamIds})},
+        );
+    };
+
+    unassignTeamsFromAccessControlPolicy = (policyId: string, teamIds: string[]) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/unassign`,
+            {method: 'delete', body: JSON.stringify({team_ids: teamIds})},
+        );
+    };
+
+    getTeamAccessControlPolicy = (teamId: string) => {
+        return this.doFetch<{policy: AccessControlPolicy | null; enforced: boolean; parent_policies?: AccessControlPolicy[]}>(
+            `${this.getTeamRoute(teamId)}/access_control/policy`,
+            {method: 'get'},
+        );
+    };
+
+    getTeamAccessControlAttributes = (teamId: string) => {
+        return this.doFetch<AccessControlAttributes>(
+            `${this.getTeamRoute(teamId)}/access_control/attributes`,
+            {method: 'get'},
+        );
+    };
+
+    // getProfilesMatchingTeamPolicy returns only users who satisfy the team's
+    // ABAC membership policy and are not yet members, for the policy-filtered
+    // invite candidate list.
+    getProfilesMatchingTeamPolicy = (teamId: string, perPage = PER_PAGE_DEFAULT, cursorId = '', term = '') => {
+        const queryStringObj: any = {
+            not_in_team: teamId,
+            per_page: perPage,
+            abac_match_only: true,
+        };
+        if (cursorId) {
+            queryStringObj.cursor_id = cursorId;
+        }
+        if (term) {
+            queryStringObj.term = term;
+        }
+
+        return this.doFetch<UserProfile[]>(
+            `${this.getUsersRoute()}${buildQueryString(queryStringObj)}`,
+            {method: 'get'},
+        );
+    };
+
     createAccessControlSyncJob = (jobData: {[key: string]: string}) => {
         const job = {
             type: 'access_control_sync' as JobType,
@@ -4912,13 +5260,27 @@ export default class Client4 {
         return this.createJob(job);
     };
 
-    getAccessControlFields = (after: string, limit: number, channelId?: string, teamId?: string) => {
+    createAccessControlTeamSyncJob = (jobData: {[key: string]: string}) => {
+        const job = {
+            type: 'access_control_team_sync' as JobType,
+            data: jobData,
+        };
+        return this.createJob(job);
+    };
+
+    getAccessControlFields = (after: string, limit: number, channelId?: string, teamId?: string, includeResourceFields?: boolean) => {
         const params = new URLSearchParams({after, limit: limit.toString()});
         if (channelId) {
             params.append('channelId', channelId);
         }
         if (teamId) {
             params.append('team_id', teamId);
+        }
+
+        // Parent policies reference resource.attributes.* (channel-object-type
+        // fields) without a single channel to scope by; ask for them explicitly.
+        if (includeResourceFields) {
+            params.append('include_resource_fields', 'true');
         }
 
         return this.doFetch<UserPropertyField[]>(
@@ -5115,6 +5477,41 @@ export default class Client4 {
         );
     };
 
+    getDeliveryTrackingConfig = () => {
+        return this.doFetch<DeliveryTrackingConfig>(
+            `${this.getDeliveryTrackingRoute()}/config`,
+            {method: 'get'},
+        );
+    };
+
+    saveDeliveryTrackingConfig = (config: DeliveryTrackingConfig) => {
+        return this.doFetch<StatusOK>(
+            `${this.getDeliveryTrackingRoute()}/config`,
+            {method: 'put', body: JSON.stringify(config)},
+        );
+    };
+
+    getHealthFindings = (filter: HealthFindingFilter = {}) => {
+        return this.doFetch<HealthFindingList>(
+            `${this.getHealthFindingsRoute()}${buildQueryString(filter)}`,
+            {method: 'get'},
+        );
+    };
+
+    muteHealthFinding = (fingerprint: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getHealthFindingsRoute()}/${fingerprint}/mute`,
+            {method: 'post'},
+        );
+    };
+
+    unmuteHealthFinding = (fingerprint: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getHealthFindingsRoute()}/${fingerprint}/mute`,
+            {method: 'delete'},
+        );
+    };
+
     getFlaggedPostReportUrl = (postId: string) => {
         return `${this.getContentFlaggingRoute()}/post/${postId}/report`;
     };
@@ -5128,6 +5525,28 @@ export default class Client4 {
                 signal,
             },
         );
+    };
+
+    getPostExposureReportUrl = (postId: string) => {
+        return `${this.getContentFlaggingRoute()}/post/${postId}/exposure_report`;
+    };
+
+    generatePostExposureReport = async (postId: string, signal?: AbortSignal): Promise<{blob: Blob; filename: string}> => {
+        const {data, headers} = await this.doFetchWithResponse<Blob>(
+            this.getPostExposureReportUrl(postId),
+            {
+                method: 'post',
+                signal,
+            },
+        );
+
+        return {
+            blob: data,
+            filename: extractFilenameFromContentDisposition(
+                headers.get('Content-Disposition'),
+                `post-exposure-${postId}-${Date.now()}.csv`,
+            ),
+        };
     };
 }
 
@@ -5155,6 +5574,7 @@ export class ClientError extends Error implements ServerError {
     server_error_id?: string;
     status_code?: number;
     detailed_error?: string;
+    props?: Record<string, string>;
 
     constructor(baseUrl: string, data: ServerError, cause?: any) {
         super(data.message + ': ' + cleanUrlForLogging(baseUrl, data.url || ''), {cause});
@@ -5164,6 +5584,7 @@ export class ClientError extends Error implements ServerError {
         this.server_error_id = data.server_error_id;
         this.status_code = data.status_code;
         this.detailed_error = data.detailed_error;
+        this.props = data.props;
 
         // Ensure message is treated as a property of this class when object spreading. Without this,
         // copying the object by using `{...error}` would not include the message.

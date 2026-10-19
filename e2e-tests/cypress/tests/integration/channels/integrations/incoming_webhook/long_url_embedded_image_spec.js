@@ -15,8 +15,24 @@ describe('Integrations', () => {
     let testChannel;
     let newIncomingHook;
     let incomingWebhook;
+    const oldSettings = {};
 
     before(() => {
+        const newSettings = {
+            ServiceSettings: {
+                MaximumURLLength: 8192,
+            },
+        };
+
+        // # Raise the maximum URL length so the long image proxy URL used in this
+        // test is not rejected by the server's URL length security check.
+        cy.apiGetConfig((config) => {
+            Object.entries(newSettings).forEach(([key]) => {
+                oldSettings[key] = config[key];
+            });
+        });
+        cy.apiUpdateConfig(newSettings);
+
         // # Create new setup
         cy.apiInitSetup().then(({user}) => {
             testUser = user;
@@ -52,13 +68,21 @@ describe('Integrations', () => {
         });
     });
 
+    after(() => {
+        cy.apiAdminLogin().apiUpdateConfig(oldSettings);
+    });
+
     it('MM-T643 Incoming webhook:Long URL for embedded image', () => {
+        const baseUrl = Cypress.config('baseUrl');
         const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const queries = letters.split('').reduce((acc, letter) => {
             const newValue = acc + `&${letter}=${letters}`;
             return newValue;
         }, '');
-        const url = `http://via.placeholder.com/300.png?expires=213134234234234234234234${queries}`;
+
+        // Point at an image served by the Mattermost server itself so the test does not
+        // depend on an external placeholder service, while keeping the URL long.
+        const url = `${baseUrl}/static/icon_152x152.png?expires=213134234234234234234234${queries}`;
         const payload = getPayload(testChannel, url);
 
         // # Post the webhook message
@@ -66,24 +90,33 @@ describe('Integrations', () => {
 
         // * Assert that the message was posted
         cy.uiWaitUntilMessagePostedIncludes('Hey attachments');
-        cy.getLastPostId().then(() => {
-            const baseUrl = Cypress.config('baseUrl');
+        cy.getLastPostId().then((postId) => {
             const encodedUrl = `${baseUrl}/api/v4/image?url=${encodeURIComponent(url)}`;
+            const postSelector = `#post_${postId}`;
 
-            // * Assert that file image is present
-            cy.findByLabelText('file thumbnail').should('be.visible').and('have.attr', 'src', encodedUrl);
+            // * Assert that the embedded image renders through the image proxy and actually loads
+            cy.get(postSelector).findByLabelText('file thumbnail').
+                should('be.visible').
+                and('have.attr', 'src', encodedUrl).
+                and(($img) => {
+                    expect($img[0].naturalWidth).to.be.greaterThan(0);
+                });
 
-            // * Assert that the Show More button is visible
-            cy.findByText('Show more').should('be.visible').click();
+            // * Assert that the Show more button is visible, then expand the post
+            cy.get(postSelector).find('#showMoreButton').
+                scrollIntoView().should('be.visible').and('contain', 'Show more').click();
 
-            // * Assert that the Show less button is visible
-            cy.findByText('Show less').scrollIntoView().should('be.visible');
+            // * Assert that the button now shows Show less
+            cy.get(postSelector).find('#showMoreButton').
+                scrollIntoView().should('be.visible').and('contain', 'Show less');
         });
     });
 });
 
 function getPayload(channel, url) {
-    const text = `Hey attachments ![graph](${url}).${'Lorem ipsum dolor '.repeat(240)}.`;
+    // The repeated text makes the post tall enough to overflow and surface the
+    // Show more/Show less control regardless of the embedded image's height.
+    const text = `Hey attachments ![graph](${url}).${'Lorem ipsum dolor '.repeat(500)}.`;
 
     return {
         channel: channel.name,

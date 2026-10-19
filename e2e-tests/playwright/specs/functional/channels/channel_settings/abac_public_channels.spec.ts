@@ -194,10 +194,10 @@ test.describe('ABAC - Public channels', () => {
             ledger,
         );
 
-        // # Auto-add ON: flip the channel-scope (child) policy's Active flag.
-        //   The parent default is inactive, and children inherit Active=false at
-        //   assign time, so we activate the child directly here. The sync job
-        //   only auto-adds members for Active policies.
+        // # Auto-add ON: flip the channel-scope (child) policy's auto-add flag.
+        //   The parent default is off, and a child copies that at assign time, so
+        //   we turn it on for the child directly here. The sync job's add pass is
+        //   gated on this flag.
         await setChannelPolicyActive(adminClient, publicChannel.id, true);
 
         // # Two users:

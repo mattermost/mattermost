@@ -8,46 +8,33 @@ import type {PropertyField, PropertyFieldOption} from '@mattermost/types/propert
 import type {GlobalState} from '@mattermost/types/store';
 
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
+import {ACCESS_CONTROL_PROPERTY_GROUP} from 'mattermost-redux/constants/properties';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getChannelAttributeFields} from 'mattermost-redux/selectors/entities/properties';
 
 import {
     CLASSIFICATIONS_CHANNEL_FIELD_NAME,
     CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
     CLASSIFICATIONS_FIELD_TARGET_ID,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
-    CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
-    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     optionsToLevels,
 } from 'components/admin_console/classification_markings/utils';
 import type {ClassificationLevel} from 'components/admin_console/classification_markings/utils/presets';
 
 import {isEnterpriseLicense} from 'utils/license_utils';
 
-export function selectClassificationTemplateField(state: GlobalState): PropertyField | undefined {
-    const byId = state.entities.properties?.fields?.byId;
-    if (!byId) {
-        return undefined;
-    }
-    return Object.values(byId).find(
-        (f) => f.object_type === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE && f.name === CLASSIFICATIONS_TEMPLATE_FIELD_NAME && f.delete_at === 0,
-    );
-}
-
+// Scoped to the channel-object fields of this group rather than scanning every
+// field in the store. linked_field_id is what distinguishes the channel field
+// from the template it inherits its options from.
 function selectChannelClassificationField(state: GlobalState): PropertyField | undefined {
-    const byId = state.entities.properties?.fields?.byId;
-    if (!byId) {
-        return undefined;
-    }
-    return Object.values(byId).find(
-        (f) => f.object_type === CLASSIFICATIONS_CHANNEL_OBJECT_TYPE && f.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME && f.linked_field_id && f.delete_at === 0,
+    return getChannelAttributeFields(state).find(
+        (f) => f.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME && Boolean(f.linked_field_id),
     );
 }
 
 export type ClassificationMarkingsState = {
     available: boolean;
     loading: boolean;
-    templateField: PropertyField | null;
     channelField: PropertyField | null;
     levels: ClassificationLevel[];
 };
@@ -59,7 +46,7 @@ export type ClassificationMarkingsState = {
  * 2. Enterprise license is active
  * 3. Template classification field exists with at least one level configured
  *
- * Also fetches the channel_classification linked field for consumers that need it.
+ * Also fetches the channel-scoped classification linked field for consumers that need it.
  */
 export default function useClassificationMarkings(): ClassificationMarkingsState {
     const dispatch = useDispatch();
@@ -69,42 +56,33 @@ export default function useClassificationMarkings(): ClassificationMarkingsState
     );
     const license = useSelector(getLicense);
     const hasEnterpriseLicense = isEnterpriseLicense(license);
-    const templateField = useSelector(selectClassificationTemplateField) ?? null;
     const channelField = useSelector(selectChannelClassificationField) ?? null;
 
     useEffect(() => {
         if (!featureEnabled || !hasEnterpriseLicense) {
             return;
         }
-        if (!templateField) {
-            dispatch(fetchPropertyFields(
-                CLASSIFICATIONS_GROUP_NAME,
-                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_ID,
-            ));
-        }
         if (!channelField) {
             dispatch(fetchPropertyFields(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                 CLASSIFICATIONS_FIELD_TARGET_TYPE,
                 CLASSIFICATIONS_FIELD_TARGET_ID,
             ));
         }
-    }, [featureEnabled, hasEnterpriseLicense, templateField, channelField, dispatch]);
+    }, [featureEnabled, hasEnterpriseLicense, channelField, dispatch]);
 
     const levels = useMemo((): ClassificationLevel[] => {
-        if (!templateField) {
+        if (!channelField) {
             return [];
         }
-        const options = (templateField.attrs?.options as PropertyFieldOption[]) || [];
+        const options = (channelField.attrs?.options as PropertyFieldOption[]) || [];
         return optionsToLevels(options);
-    }, [templateField]);
+    }, [channelField]);
 
-    const loading = featureEnabled && hasEnterpriseLicense && !templateField;
+    const loading = featureEnabled && hasEnterpriseLicense && !channelField;
 
     const available = featureEnabled && hasEnterpriseLicense && levels.length > 0;
 
-    return {available, loading, templateField, channelField, levels};
+    return {available, loading, channelField, levels};
 }

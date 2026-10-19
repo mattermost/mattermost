@@ -14,7 +14,6 @@ import {verifyPluginMarketplaceVisibility} from './helpers';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Plugin Marketplace', () => {
     let townsquareLink;
     let pluginManagementPage;

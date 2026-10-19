@@ -18,6 +18,18 @@
           required: false
           schema:
             type: boolean
+        - name: silent
+          in: query
+          description: >
+            When `true`, the post is delivered silently: visible in the channel
+            and broadcast over WebSocket, but produces no desktop/push/email
+            notifications, no unread or mention count increments, and no
+            "New Messages" line. Only bot accounts, OAuth apps, incoming
+            webhooks, and plugins may set this; non-integration senders
+            receive HTTP 403. `force_notification` overrides `silent`.
+          required: false
+          schema:
+            type: boolean
       requestBody:
         content:
           application/json:
@@ -197,6 +209,16 @@
           schema:
             type: boolean
             default: false
+        - name: propertyGroup
+          in: query
+          description: >
+            The name of a single property group whose values should be hydrated onto each post's
+            metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
+            unrecognized name, returns 404. There is no support for requesting more than one group
+            per request.
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Post retrieval successful
@@ -215,6 +237,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
     delete:
       tags:
         - posts
@@ -447,7 +471,7 @@
             default: 0
         - name: fromUpdateAt
           in: query
-          description: The update_at timestamp to return the next page of posts from. You cannot set this flag with direction=down.
+          description: The update_at timestamp to return the next page of posts from. You cannot set this with fromCreateAt, and with updatesOnly you cannot use direction=up.
           schema:
             type: integer
             default: 0
@@ -477,10 +501,23 @@
             default: false
         - name: updatesOnly
           in: query
-          description: This flag is used to make the API work with the updateAt value. If you set this flag, you must set a value for fromUpdateAt.
+          description: >
+            This flag is used to make the API work with the updateAt value. If you set this flag, you must set a value for fromUpdateAt.
+            With direction=down, replies deleted since fromUpdateAt are included, with `delete_at` set, an empty message and an empty metadata object.
+            A deleted root post still returns 404. Minimum server version for deleted replies is 12.1.
           schema:
             type: boolean
             default: false
+        - name: propertyGroup
+          in: query
+          description: >
+            The name of a single property group whose values should be hydrated onto each post's
+            metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
+            unrecognized name, returns 404. There is no support for requesting more than one group
+            per request.
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Post list retrieval successful
@@ -494,6 +531,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/users/{user_id}/posts/flagged":
     get:
       tags:
@@ -725,6 +764,34 @@
           description: Filter posts by type.
           schema:
             type: string
+        - name: skipFetchThreads
+          in: query
+          description: Whether to skip fetching threads or not.
+          schema:
+            type: boolean
+            default: false
+        - name: collapsedThreads
+          in: query
+          description: Whether the client uses CRT or not.
+          schema:
+            type: boolean
+            default: false
+        - name: collapsedThreadsExtended
+          in: query
+          description: Whether to return the associated users as part of the response or not.
+          schema:
+            type: boolean
+            default: false
+        - name: propertyGroup
+          in: query
+          description: >
+            The name of a single property group whose values should be hydrated onto each post's
+            metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
+            unrecognized name, returns 404. There is no support for requesting more than one group
+            per request.
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Post list retrieval successful
@@ -738,6 +805,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/users/{user_id}/channels/{channel_id}/posts/unread":
     get:
       tags:
@@ -803,6 +872,16 @@
           schema:
             type: boolean
             default: false
+        - name: propertyGroup
+          in: query
+          description: >
+            The name of a single property group whose values should be hydrated onto each post's
+            metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
+            unrecognized name, returns 404. There is no support for requesting more than one group
+            per request.
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Post list retrieval successful
@@ -816,6 +895,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/teams/{team_id}/posts/search":
     post:
       tags:
@@ -988,6 +1069,28 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "429":
+          description: The upstream integration rate-limited the request. The
+            original status code is preserved so clients can honor retry
+            semantics.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "502":
+          description: The upstream integration returned a 5xx (other than 503).
+            Surfaced as Bad Gateway because the failure is upstream of Mattermost.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "503":
+          description: The upstream integration is unavailable. The original
+            status code is preserved so clients can honor retry semantics.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
   "/api/v4/posts/ids":
     post:
       tags:

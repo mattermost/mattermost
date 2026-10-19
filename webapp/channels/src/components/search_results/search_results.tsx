@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState, type JSX} from 'react';
 import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -24,12 +24,13 @@ import NoResultsIndicator from 'components/no_results_indicator/no_results_indic
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import DateSeparator from 'components/post_view/date_separator';
 import {getSearchPopoutTitle} from 'components/rhs_search_popout/title';
+import type {SearchFilterType} from 'components/search/types';
 import SearchHint from 'components/search_hint/search_hint';
 import SearchResultsHeader from 'components/search_results_header';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {searchHintOptions, DataSearchTypes, RHSStates} from 'utils/constants';
-import {isFileAttachmentsEnabled} from 'utils/file_utils';
+import {canSearchFiles} from 'utils/file_utils';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
 
 import type {RhsState, SearchType} from 'types/store/rhs';
@@ -38,11 +39,32 @@ import FilesFilterMenu from './files_filter_menu';
 import MessageOrFileSelector from './messages_or_files_selector';
 import PostSearchResultsItem from './post_search_results_item';
 import SearchLimitsBanner from './search_limits_banner';
-import type {Props} from './types';
+
+import type {OwnProps, PropsFromRedux} from './index';
 
 import './search_results.scss';
 
 const GET_MORE_BUFFER = 30;
+
+export type Props = OwnProps & PropsFromRedux & {
+    channelDisplayName?: string;
+    crossTeamSearchEnabled: boolean;
+    isCard?: boolean;
+    isChannelFiles: boolean;
+    isFlaggedPosts: boolean;
+    isMentionSearch: boolean;
+    isOpened?: boolean;
+    isSideBarExpanded: boolean;
+    searchFilterType: SearchFilterType;
+    searchType: SearchType;
+
+    getMoreFilesForSearch: () => void;
+    getMorePostsForSearch: () => void;
+    handleSearchHintSelection?: () => void;
+    setSearchFilterType: (filterType: SearchFilterType) => void;
+    updateSearchTeam: (teamId: string) => void;
+    updateSearchTerms: (terms: string) => void;
+};
 
 interface NoResultsProps {
     variant: NoResultsVariant;
@@ -331,7 +353,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             sortedResults = fileResults;
         }
 
-        contentItems = sortedResults.map((item: string|Post|FileSearchResultItemType, index: number) => {
+        contentItems = sortedResults.map((item: string | Post | FileSearchResultItemType, index: number) => {
             if (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && !props.isChannelFiles) {
                 if (typeof item === 'string' && isDateLine(item)) {
                     const date = getDateForDateLine(item);
@@ -396,7 +418,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 <MessageOrFileSelector
                     selected={searchType}
                     selectedFilter={searchFilterType}
-                    isFileAttachmentsEnabled={isFileAttachmentsEnabled(config)}
+                    isFilesTabEnabled={canSearchFiles(config)}
                     messagesCounter={isSearchAtEnd || props.searchPage === 0 ? `${messagesCount}` : `${messagesCount}+`}
                     filesCounter={isSearchFilesAtEnd || props.searchPage === 0 ? `${fileResults.length}` : `${fileResults.length}+`}
                     onChange={setSearchType}

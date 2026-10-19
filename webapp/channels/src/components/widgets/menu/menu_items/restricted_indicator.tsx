@@ -12,7 +12,7 @@ import FeatureRestrictedModal from 'components/feature_restricted_modal/feature_
 import ToggleModalButton from 'components/toggle_modal_button';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
-import {LicenseSkus, ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 import './restricted_indicator.scss';
 
@@ -33,7 +33,7 @@ type Props = {
     ctaExtraContent?: ReactNode;
     clickCallback?: () => void;
     customSecondaryButtonInModal?: {msg: string; action: () => void};
-}
+};
 
 function capitalizeFirstLetter(s: string) {
     return s?.charAt(0)?.toUpperCase() + s?.slice(1);
@@ -73,7 +73,6 @@ const RestrictedIndicator = ({
 
         return typeof tooltipMessageBlocked === 'string' ? tooltipMessageBlocked : formatMessage(tooltipMessageBlocked, {
             trialLength: FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS,
-            article: minimumPlanRequiredForFeature === LicenseSkus.Enterprise ? 'an' : 'a',
             minimumPlanRequiredForFeature,
         });
     }, [tooltipMessageBlocked]);
@@ -98,7 +97,7 @@ const RestrictedIndicator = ({
                             {blocked ? (
                                 getTooltipMessageBlocked()
                             ) : (
-                                tooltipMessage || formatMessage({id: 'restricted_indicator.tooltip.mesage', defaultMessage: 'During your trial you are able to use this feature.'})
+                                tooltipMessage || formatMessage({id: 'restricted_indicator.tooltip.message', defaultMessage: 'During your trial you are able to use this feature.'})
                             )}
                         </span>
                     </div>

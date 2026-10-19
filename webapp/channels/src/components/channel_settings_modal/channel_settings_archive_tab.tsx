@@ -15,7 +15,7 @@ import ConfirmationModal from 'components/confirm_modal';
 type ChannelSettingsArchiveTabProps = {
     channel: Channel;
     onHide: () => void;
-}
+};
 
 function ChannelSettingsArchiveTab({
     channel,

@@ -183,4 +183,92 @@ describe('Reducers.ContentFlagging', () => {
 
         expect(state.postValues['post-1']).toEqual([updatedValue]);
     });
+
+    describe('FLAGGED_POST_REMOVED', () => {
+        test('clears the flagged post and its property values for the given post id', () => {
+            const value = makeValue({field_id: 'review_status', value: 'pending'});
+            const otherValue = makeValue({id: 'value-2', target_id: 'post-2', field_id: 'review_status', value: 'pending'});
+
+            const flaggedPost = {id: 'post-1'} as any;
+            const otherFlaggedPost = {id: 'post-2'} as any;
+
+            const stateWithValues = contentFlaggingReducer(undefined, {
+                type: ContentFlaggingTypes.RECEIVED_POST_CONTENT_FLAGGING_VALUES,
+                data: {
+                    postId: 'post-1',
+                    values: [value],
+                },
+            });
+            const stateWithOtherValues = contentFlaggingReducer(stateWithValues, {
+                type: ContentFlaggingTypes.RECEIVED_POST_CONTENT_FLAGGING_VALUES,
+                data: {
+                    postId: 'post-2',
+                    values: [otherValue],
+                },
+            });
+            const stateWithFlaggedPost = contentFlaggingReducer(stateWithOtherValues, {
+                type: ContentFlaggingTypes.RECEIVED_FLAGGED_POST,
+                data: flaggedPost,
+            });
+            const stateWithBothFlaggedPosts = contentFlaggingReducer(stateWithFlaggedPost, {
+                type: ContentFlaggingTypes.RECEIVED_FLAGGED_POST,
+                data: otherFlaggedPost,
+            });
+
+            const state = contentFlaggingReducer(stateWithBothFlaggedPosts, {
+                type: ContentFlaggingTypes.FLAGGED_POST_REMOVED,
+                data: {postId: 'post-1'},
+            });
+
+            expect(state.postValues['post-1']).toBeUndefined();
+            expect(state.flaggedPosts['post-1']).toBeUndefined();
+            expect(state.postValues['post-2']).toEqual([otherValue]);
+            expect(state.flaggedPosts['post-2']).toEqual(otherFlaggedPost);
+        });
+
+        test('returns the same state reference when the post id is not present', () => {
+            const value = makeValue({field_id: 'review_status', value: 'pending'});
+
+            const stateWithValues = contentFlaggingReducer(undefined, {
+                type: ContentFlaggingTypes.RECEIVED_POST_CONTENT_FLAGGING_VALUES,
+                data: {
+                    postId: 'post-1',
+                    values: [value],
+                },
+            });
+
+            const state = contentFlaggingReducer(stateWithValues, {
+                type: ContentFlaggingTypes.FLAGGED_POST_REMOVED,
+                data: {postId: 'unknown-post'},
+            });
+
+            expect(state.postValues).toBe(stateWithValues.postValues);
+            expect(state.flaggedPosts).toBe(stateWithValues.flaggedPosts);
+        });
+
+        test('is a no-op when postId is missing from the action data', () => {
+            const value = makeValue({field_id: 'review_status', value: 'pending'});
+            const flaggedPost = {id: 'post-1'} as any;
+
+            const stateWithValues = contentFlaggingReducer(undefined, {
+                type: ContentFlaggingTypes.RECEIVED_POST_CONTENT_FLAGGING_VALUES,
+                data: {
+                    postId: 'post-1',
+                    values: [value],
+                },
+            });
+            const stateWithFlaggedPost = contentFlaggingReducer(stateWithValues, {
+                type: ContentFlaggingTypes.RECEIVED_FLAGGED_POST,
+                data: flaggedPost,
+            });
+
+            const state = contentFlaggingReducer(stateWithFlaggedPost, {
+                type: ContentFlaggingTypes.FLAGGED_POST_REMOVED,
+                data: {},
+            });
+
+            expect(state.postValues['post-1']).toEqual([value]);
+            expect(state.flaggedPosts['post-1']).toEqual(flaggedPost);
+        });
+    });
 });

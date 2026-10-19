@@ -18,7 +18,7 @@ type ToggleProps = {
     onClick: () => void;
     text: React.ReactNode;
     toggled: boolean;
-}
+};
 
 const Wrapper = styled(MenuItem)`
     cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};

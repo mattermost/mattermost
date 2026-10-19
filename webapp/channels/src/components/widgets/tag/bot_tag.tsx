@@ -11,7 +11,7 @@ import type {TagSize} from './tag';
 type Props = {
     className?: string;
     size?: TagSize;
-}
+};
 
 const BotTag = ({className = '', size = 'xs'}: Props) => {
     const {formatMessage} = useIntl();

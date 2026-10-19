@@ -45,6 +45,7 @@ describe('components/AdminSidebar', () => {
         navigationBlocked: false,
         siteName: 'test snap',
         subscriptionProduct: undefined,
+        isCurrentUserSystemAdmin: true,
         plugins: {
             plugin_0: {
                 active: false,
@@ -141,6 +142,38 @@ describe('components/AdminSidebar', () => {
         expect(screen.queryByText('Workspace Optimization')).not.toBeInTheDocument();
     });
 
+    describe('Site health and Workspace Optimization', () => {
+        const renderSidebar = (skuShortName: string, healthDashboard: boolean) => {
+            const props = {
+                ...defaultProps,
+                license: {IsLicensed: 'true', SkuShortName: skuShortName},
+                config: {
+                    ...defaultProps.config,
+                    FeatureFlags: {HealthDashboard: healthDashboard},
+                },
+            };
+            renderWithContext(<AdminSidebar {...props}/>);
+        };
+
+        test('shows Site health and not Workspace Optimization with the flag on and an Enterprise license', () => {
+            renderSidebar('enterprise', true);
+            expect(screen.getByText('Site health')).toBeInTheDocument();
+            expect(screen.queryByText('Workspace Optimization')).not.toBeInTheDocument();
+        });
+
+        test('shows Workspace Optimization and not Site health with the flag off', () => {
+            renderSidebar('enterprise', false);
+            expect(screen.getByText('Workspace Optimization')).toBeInTheDocument();
+            expect(screen.queryByText('Site health')).not.toBeInTheDocument();
+        });
+
+        test('shows Workspace Optimization and not Site health with the flag on below Enterprise', () => {
+            renderSidebar('professional', true);
+            expect(screen.getByText('Workspace Optimization')).toBeInTheDocument();
+            expect(screen.queryByText('Site health')).not.toBeInTheDocument();
+        });
+    });
+
     test('should match snapshot, no access', () => {
         const props = {
             ...defaultProps,
@@ -167,6 +200,7 @@ describe('components/AdminSidebar', () => {
             buildEnterpriseReady: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             navigationBlocked: false,
             plugins: {
                 plugin_0: {
@@ -213,6 +247,7 @@ describe('components/AdminSidebar', () => {
             buildEnterpriseReady: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             navigationBlocked: false,
             plugins: {
                 plugin_0: {
@@ -262,6 +297,7 @@ describe('components/AdminSidebar', () => {
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 plugin_0: {
                     active: false,
@@ -338,6 +374,7 @@ describe('components/AdminSidebar', () => {
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 plugin_0: {
                     active: false,
@@ -397,19 +434,14 @@ describe('components/AdminSidebar', () => {
                     Secret: 'office365Secret',
                     Scope: 'scope',
                 } as Office365Settings,
-                FeatureFlags: {
-                    AttributeBasedAccessControl: true,
-                    CustomProfileAttributes: true,
-                    CloudDedicatedExportUI: true,
-                    CloudIPFiltering: true,
-                    ExperimentalAuditSettingsSystemConsoleUI: true,
-                },
+                FeatureFlags: {},
             },
             adminDefinition: AdminDefinition,
             buildEnterpriseReady: true,
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 plugin_0: {
                     active: false,
@@ -474,6 +506,7 @@ describe('components/AdminSidebar', () => {
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 plugin_0: {
                     active: false,
@@ -533,19 +566,14 @@ describe('components/AdminSidebar', () => {
                     Secret: 'office365Secret',
                     Scope: 'scope',
                 } as Office365Settings,
-                FeatureFlags: {
-                    AttributeBasedAccessControl: true,
-                    CustomProfileAttributes: true,
-                    CloudDedicatedExportUI: true,
-                    CloudIPFiltering: true,
-                    ExperimentalAuditSettingsSystemConsoleUI: true,
-                },
+                FeatureFlags: {},
             },
             adminDefinition: AdminDefinition,
             buildEnterpriseReady: true,
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 plugin_0: {
                     active: false,
@@ -574,6 +602,33 @@ describe('components/AdminSidebar', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('places Session Attributes immediately after Attribute Management', () => {
+        const props = {
+            ...defaultProps,
+            license: {
+                IsLicensed: 'true',
+                SkuShortName: 'advanced',
+            },
+            config: {
+                ...defaultProps.config,
+                FeatureFlags: {
+                    SessionAttributes: true,
+                },
+            },
+            buildEnterpriseReady: true,
+        };
+
+        renderWithContext(<AdminSidebar {...props}/>);
+
+        const systemAttributes = screen.getByTestId('system_attributes');
+        const titles = Array.from(systemAttributes.querySelectorAll('.sidebar-section-title__text')).map((el) => el.textContent);
+        const attributeManagementIndex = titles.indexOf('Attribute Management');
+        const sessionAttributesIndex = titles.indexOf('Session Attributes');
+
+        expect(attributeManagementIndex).toBeGreaterThan(-1);
+        expect(sessionAttributesIndex).toBe(attributeManagementIndex + 1);
+    });
+
     describe('generateIndex', () => {
         const props: Props = {
             license: {},
@@ -592,6 +647,7 @@ describe('components/AdminSidebar', () => {
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 'mattermost-autolink': samplePlugin1,
             },
@@ -732,6 +788,7 @@ describe('components/AdminSidebar', () => {
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 'mattermost-autolink': samplePlugin1,
             },

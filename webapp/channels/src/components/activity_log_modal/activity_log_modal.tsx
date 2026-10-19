@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
@@ -47,7 +47,7 @@ export type Props = {
          */
         revokeSession: (userId: string, sessionId: string) => Promise<ActionResult>;
     };
-}
+};
 
 const ActivityLogModal = ({
     currentUserId,

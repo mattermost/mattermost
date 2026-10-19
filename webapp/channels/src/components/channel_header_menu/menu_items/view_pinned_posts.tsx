@@ -14,7 +14,7 @@ import {RHSStates} from 'utils/constants';
 
 type Props = {
     channelID: string;
-}
+};
 
 const ViewPinnedPosts = ({
     channelID,

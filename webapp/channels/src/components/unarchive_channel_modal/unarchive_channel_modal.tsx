@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
@@ -16,11 +16,11 @@ type Props = {
     onExited: () => void;
     channel: Channel;
     actions: ChannelDetailsActions;
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export type ChannelDetailsActions = {
     unarchiveChannel: (channelId: string) => Promise<ActionResult>;

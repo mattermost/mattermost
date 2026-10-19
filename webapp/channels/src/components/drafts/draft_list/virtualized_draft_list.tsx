@@ -25,7 +25,7 @@ type Props = {
     userDisplayName: string;
     userStatus: UserStatus['status'];
     draftRemotes: Record<string, boolean>;
-}
+};
 
 export default function VirtualizedDraftList(props: Props) {
     const listRef = useRef<VariableSizeList>(null);

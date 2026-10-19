@@ -205,6 +205,11 @@ describe('Messaging', () => {
             cy.uiSaveAndClose();
         });
 
+        // # Ensure the Settings modal is fully closed before navigating to Global Threads.
+        // Otherwise the closing modal races with the Threads navigation and the sidebar helper
+        // mistakes it for a tutorial modal.
+        cy.get('#accountSettingsModal').should('not.exist');
+
         // # Post a root message and a reply so a followed thread exists
         cy.apiGetChannelByName(testTeam.name, 'off-topic').then(({channel}) => {
             cy.apiCreatePost(channel.id, 'Root post for Global Threads emoji test', '', {}).then((rootResp) => {

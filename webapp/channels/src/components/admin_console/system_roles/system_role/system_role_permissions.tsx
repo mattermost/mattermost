@@ -24,11 +24,11 @@ type Props = {
     updatePermissions: (permissions: PermissionToUpdate[]) => void;
     readOnly?: boolean;
     isLicensedForCloud: boolean;
-}
+};
 
 type State = {
     visibleSections: Record<string, boolean>;
-}
+};
 
 // the actual permissions correlating to these values are of the format `sysconsole_(read|write)_name(.subsection.name)`
 const sectionsList: SystemSection[] = [
@@ -226,7 +226,7 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
                     <p>
                         <FormattedMessage
                             id='admin.permissions.roles.system_custom_group_admin.deauthorize_reminder'
-                            defaultMessage="Don't forget to deauthorize all other system users from administering Custom Groups by unchecking the associated permissions checkbox in System console > User Management > Permissions."
+                            defaultMessage="Don't forget to deauthorize all other system users from administering Custom Groups by unchecking the associated permissions checkbox in System Console > User Management > Permissions."
                         />
                     </p>
                     <p>

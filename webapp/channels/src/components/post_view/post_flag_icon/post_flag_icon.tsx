@@ -15,14 +15,14 @@ import {Locations, A11yCustomEventTypes} from 'utils/constants';
 export type Actions = {
     flagPost: (postId: string) => void;
     unflagPost: (postId: string) => void;
-}
+};
 
 type Props = {
     location?: keyof typeof Locations;
     postId: string;
     isFlagged: boolean;
     actions: Actions;
-}
+};
 
 const PostFlagIcon = ({
     actions: {

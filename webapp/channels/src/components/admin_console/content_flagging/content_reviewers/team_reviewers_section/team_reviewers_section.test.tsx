@@ -189,7 +189,7 @@ describe('TeamReviewersSection', () => {
             expect(teamNameCells[1]).toHaveTextContent('Team Two');
         });
 
-        const toggle = screen.getAllByRole('button', {name: /enable or disable content reviewers for this team/i})[0];
+        const toggle = screen.getByRole('button', {name: /enable or disable content reviewers for team Team One/i});
         await userEvent.click(toggle);
 
         expect(onChange).toHaveBeenCalledWith({
@@ -198,6 +198,17 @@ describe('TeamReviewersSection', () => {
                 ReviewerIds: [],
             },
         });
+    });
+
+    test('should label each team toggle with its team name', async () => {
+        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
+
+        await waitFor(() => {
+            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
+        });
+
+        expect(await screen.findByRole('button', {name: 'Enable or disable content reviewers for team Team One'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Enable or disable content reviewers for team Team Two'})).toBeInTheDocument();
     });
 
     test('should handle toggle functionality with existing settings', async () => {
@@ -230,7 +241,7 @@ describe('TeamReviewersSection', () => {
             expect(teamNameCells[1]).toHaveTextContent('Team Two');
         });
 
-        const toggle = screen.getAllByRole('button', {name: /enable or disable content reviewers for this team/i})[0];
+        const toggle = screen.getByRole('button', {name: /enable or disable content reviewers for team Team One/i});
         await userEvent.click(toggle);
 
         expect(onChange).toHaveBeenCalledWith({
@@ -384,7 +395,7 @@ describe('TeamReviewersSection', () => {
             expect(teamNameCells[1]).toHaveTextContent('Team Two');
         });
 
-        const toggle = screen.getAllByRole('button', {name: /enable or disable content reviewers for this team/i})[0];
+        const toggle = screen.getByRole('button', {name: /enable or disable content reviewers for team Team One/i});
 
         // First click - enable
         await userEvent.click(toggle);
@@ -412,7 +423,7 @@ describe('TeamReviewersSection', () => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
         });
 
-        const updatedToggle = screen.getAllByRole('button', {name: /enable or disable content reviewers for this team/i})[0];
+        const updatedToggle = screen.getAllByRole('button', {name: /enable or disable content reviewers for team Team One/i})[0];
 
         // Second click - disable
         await userEvent.click(updatedToggle);

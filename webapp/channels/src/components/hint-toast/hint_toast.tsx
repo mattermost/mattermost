@@ -12,7 +12,7 @@ export const HINT_TOAST_TESTID = 'hint-toast';
 type Props = {
     children: React.ReactNode;
     onDismiss: () => void;
-}
+};
 
 export const HintToast: React.FC<Props> = ({children, onDismiss}: Props) => {
     const handleDismiss = () => {

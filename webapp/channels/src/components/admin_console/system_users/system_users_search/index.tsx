@@ -16,12 +16,12 @@ import './system_users_search.scss';
 
 type Props = {
     searchTerm: AdminConsoleUserManagementTableProperties['searchTerm'];
-}
+};
 
 export function SystemUsersSearch(props: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const timeout = useRef<NodeJS.Timeout>();
+    const timeout = useRef<NodeJS.Timeout>(undefined);
 
     const [inputValue, setInputValue] = useState(props.searchTerm);
 

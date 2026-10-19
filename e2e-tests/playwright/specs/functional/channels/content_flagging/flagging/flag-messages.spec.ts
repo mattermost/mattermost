@@ -10,10 +10,13 @@ import {expect, test} from '@mattermost/playwright-lib';
 // below). Tests that need it enabled do the same via patchConfig/setupContentFlagging.
 
 // Constants for repeated strings
-const FLAG_REASON_CLASSIFICATION_MISMATCH: string = 'Classification Mismatch';
-const FLAG_REASON_CLASSIFICATION_MISMATCH_ALT: string = 'Classification mismatch';
+const FLAG_REASON_CLASSIFICATION_MISMATCH: string = 'Classification mismatch';
+
+// Sent by every patchConfig below: the reason list is server-wide and replaced as a whole, so a
+// test cannot rely on the one another test left behind.
+const FLAG_REASONS: string[] = ['Spam', FLAG_REASON_CLASSIFICATION_MISMATCH, 'Harassment', 'Hate Speech', 'Other'];
 const FLAG_COMMENT: string = 'This message contains misclassified data';
-const SYSTEM_MESSAGE = (username: string): string =>
+const systemMessageForUser = (username: string): string =>
     `The message from @${username} has been quarantined for review. You will be notified once it is reviewed by a Reviewer.`;
 
 // Helper to login and navigate to channel
@@ -81,6 +84,7 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
             EnableContentFlagging: true,
             AdditionalSettings: {
                 HideFlaggedContent: true,
+                Reasons: FLAG_REASONS,
             },
         },
     });
@@ -92,7 +96,7 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
-            AdditionalSettings: {HideFlaggedContent: true},
+            AdditionalSettings: {HideFlaggedContent: true, Reasons: FLAG_REASONS},
         },
     });
     await pw.waitUntil(async () => {
@@ -109,13 +113,13 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
     await channelsPage.centerView.flagPostConfirmationDialog.notToBeVisible();
 
     // Flag the message
-    await flagPostFlow(post, channelsPage, message, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT);
+    await flagPostFlow(post, channelsPage, message, FLAG_REASON_CLASSIFICATION_MISMATCH);
 
     // Verify the message is flagged
     const flaggedPost = await channelsPage.centerView.getPostById(postId);
     await flaggedPost.toContainText('(message deleted)');
     const systemMessage = await channelsPage.getLastPost();
-    await expect(systemMessage.body).toContainText(SYSTEM_MESSAGE(user.username));
+    await expect(systemMessage.body).toContainText(systemMessageForUser(user.username));
 });
 
 /**
@@ -134,6 +138,7 @@ test('Verify Post is not hidden after flagging if HideFlaggedContent is false', 
             EnableContentFlagging: true,
             AdditionalSettings: {
                 HideFlaggedContent: false,
+                Reasons: FLAG_REASONS,
             },
         },
     });
@@ -147,7 +152,7 @@ test('Verify Post is not hidden after flagging if HideFlaggedContent is false', 
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
-            AdditionalSettings: {HideFlaggedContent: false},
+            AdditionalSettings: {HideFlaggedContent: false, Reasons: FLAG_REASONS},
         },
     });
 
@@ -166,7 +171,7 @@ test('Verify Post is not hidden after flagging if HideFlaggedContent is false', 
     const originaltext = await channelsPage.centerView.getPostById(postId);
     await expect(originaltext.body).toContainText(message);
     const systemMessage = await channelsPage.getLastPost();
-    await expect(systemMessage.body).toContainText(SYSTEM_MESSAGE(user.username));
+    await expect(systemMessage.body).toContainText(systemMessageForUser(user.username));
 });
 
 /**
@@ -187,6 +192,7 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
             EnableContentFlagging: true,
             AdditionalSettings: {
                 HideFlaggedContent: false,
+                Reasons: FLAG_REASONS,
             },
             NotificationSettings: {
                 EventTargetMapping: {
@@ -204,7 +210,9 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
     await adminClient.addToTeam(team.id, secondUserID);
     const channels = await adminClient.getMyChannels(team.id);
     const townSquare = channels.find((channel) => channel.name === 'town-square');
-    if (!townSquare) throw new Error('Town Square channel not found');
+    if (!townSquare) {
+        throw new Error('Town Square channel not found');
+    }
 
     const message = `Post by @${user.username}, is flagged once`;
     const postToBeflagged = await adminClient.createPost({
@@ -212,7 +220,7 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
         message,
         user_id: user.id,
     });
-    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT, FLAG_COMMENT);
+    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH, FLAG_COMMENT);
 
     // Login as the second user
     const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
@@ -224,7 +232,7 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
-            AdditionalSettings: {HideFlaggedContent: false},
+            AdditionalSettings: {HideFlaggedContent: false, Reasons: FLAG_REASONS},
         },
     });
     await pw.waitUntil(async () => {
@@ -261,13 +269,16 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     await adminClient.addToTeam(team.id, secondUserID);
     const channels = await adminClient.getMyChannels(team.id);
     const townSquare = channels.find((channel) => channel.name === 'town-square');
-    if (!townSquare) throw new Error('Town Square channel not found');
+    if (!townSquare) {
+        throw new Error('Town Square channel not found');
+    }
 
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {
                 HideFlaggedContent: false,
+                Reasons: FLAG_REASONS,
             },
             NotificationSettings: {
                 EventTargetMapping: {
@@ -292,7 +303,7 @@ test('Verify user cannot flag a message that was previously retained', async ({p
         message,
         user_id: secondUserID,
     });
-    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT, FLAG_COMMENT);
+    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH, FLAG_COMMENT);
     await adminClient.keepFlaggedPost(postToBeflagged.id, 'Retaining this post after review');
 
     // Re-apply guard before UI interaction: a concurrent initSetup() may have reset
@@ -300,7 +311,7 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
-            AdditionalSettings: {HideFlaggedContent: false},
+            AdditionalSettings: {HideFlaggedContent: false, Reasons: FLAG_REASONS},
             NotificationSettings: {
                 EventTargetMapping: {
                     assigned: ['reviewers'],
@@ -386,7 +397,7 @@ test('Verify Flagging reason dropdown', async ({pw}) => {
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {
-                Reasons: ['Spam', FLAG_REASON_CLASSIFICATION_MISMATCH, 'Harassment', 'Hate Speech', 'Other'],
+                Reasons: FLAG_REASONS,
             },
         },
     });
@@ -400,7 +411,7 @@ test('Verify Flagging reason dropdown', async ({pw}) => {
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {
-                Reasons: ['Spam', FLAG_REASON_CLASSIFICATION_MISMATCH, 'Harassment', 'Hate Speech', 'Other'],
+                Reasons: FLAG_REASONS,
             },
         },
     });
@@ -426,7 +437,7 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {
-                Reasons: ['Spam', FLAG_REASON_CLASSIFICATION_MISMATCH, 'Harassment', 'Hate Speech', 'Other'],
+                Reasons: FLAG_REASONS,
                 ReporterCommentRequired: true,
             },
         },
@@ -441,7 +452,7 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {
-                Reasons: ['Spam', FLAG_REASON_CLASSIFICATION_MISMATCH, 'Harassment', 'Hate Speech', 'Other'],
+                Reasons: FLAG_REASONS,
                 ReporterCommentRequired: true,
             },
         },
@@ -481,13 +492,16 @@ test('Verify message is removed from channel if the reviewer removed the message
             },
             AdditionalSettings: {
                 HideFlaggedContent: false,
+                Reasons: FLAG_REASONS,
             },
         },
     });
 
     const channels = await adminClient.getMyChannels(team.id);
     const townSquare = channels.find((channel) => channel.name === 'town-square');
-    if (!townSquare) throw new Error('Town Square channel not found');
+    if (!townSquare) {
+        throw new Error('Town Square channel not found');
+    }
 
     const message = `Post by @${user.username}, is flagged once`;
     const postToBeflagged = await adminClient.createPost({
@@ -495,7 +509,7 @@ test('Verify message is removed from channel if the reviewer removed the message
         message,
         user_id: user.id,
     });
-    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT, FLAG_COMMENT);
+    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH, FLAG_COMMENT);
 
     // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false or
     // SystemAdminsAsReviewers: false between the initial patchConfig and the remove call.
@@ -507,6 +521,7 @@ test('Verify message is removed from channel if the reviewer removed the message
             },
             AdditionalSettings: {
                 HideFlaggedContent: false,
+                Reasons: FLAG_REASONS,
             },
         },
     });

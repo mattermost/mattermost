@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useState, type JSX} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -86,7 +87,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                                     >
                                         <i className='fa fa-external-link'/>
                                     </Link>
-                                    <button
+                                    <Button
                                         className='policy-remove-icon'
                                         aria-label={intl.formatMessage({
                                             id: 'admin.channel_settings.channel_detail.remove_policy.aria_label',
@@ -97,8 +98,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                                         }}
                                     >
                                         <i className='fa fa-trash'/>
-
-                                    </button>
+                                    </Button>
                                 </td>
                             </tr>
                         ))}

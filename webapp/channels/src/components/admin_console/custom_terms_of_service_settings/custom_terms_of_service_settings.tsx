@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -44,7 +44,7 @@ type State = BaseState & {
     saving: boolean;
     serverError: JSX.Element | string | null;
     errorTooltip: boolean;
-}
+};
 
 export const messages = defineMessages({
     termsOfServiceTitle: {id: 'admin.support.termsOfServiceTitle', defaultMessage: 'Custom Terms of Service'},

@@ -4,7 +4,7 @@
 import {screen} from '@testing-library/react';
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 

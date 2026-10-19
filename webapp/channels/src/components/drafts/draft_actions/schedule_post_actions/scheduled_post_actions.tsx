@@ -7,9 +7,11 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
-import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import {isRecurringScheduledPost} from '@mattermost/types/schedule_post';
+import type {ScheduledPost, SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {fetchMissingChannels} from 'mattermost-redux/actions/channels';
+import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isDeactivatedDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
@@ -19,12 +21,14 @@ import {openModal} from 'actions/views/modals';
 
 import ScheduledPostCustomTimeModal
     from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
+import {useCreateBurnOnReadAccess} from 'components/common/hooks/useCreateBurnOnReadAccess';
 import Action from 'components/drafts/draft_actions/action';
 import DeleteScheduledPostModal
     from 'components/drafts/draft_actions/schedule_post_actions/delete_scheduled_post_modal';
 import SendDraftModal from 'components/drafts/draft_actions/send_draft_modal';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {getScheduledPostRepeatDisabledReason} from 'utils/scheduled_post_repeat';
 
 import './style.scss';
 import type {GlobalState} from 'types/store';
@@ -67,18 +71,27 @@ const copyTextTooltipText = (
 type Props = {
     scheduledPost: ScheduledPost;
     channel?: Channel;
-    onReschedule: (timestamp: number) => Promise<{error?: string}>;
+    onReschedule: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
     onDelete: (scheduledPostId: string) => Promise<{error?: string}>;
     onSend: (scheduledPostId: string) => void;
     onEdit: () => void;
     onCopyText: () => void;
-}
+};
 
 function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, onSend, onEdit, onCopyText}: Props) {
     const dispatch = useDispatch();
     const userTimezone = useSelector(getCurrentTimezone);
     const myChannelsMemberships = useSelector((state: GlobalState) => getMyChannelMemberships(state));
     const isAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));
+    const isWeeklyRecurringScheduledPost = isRecurringScheduledPost(scheduledPost);
+
+    const isBurnOnRead = scheduledPost.type === PostTypes.BURN_ON_READ;
+
+    // No channel for an ordinary post: this page renders one row per scheduled post, so asking
+    // regardless would cost a decision per channel for nothing. The id comes off the post rather
+    // than the channel prop, which is undefined until the effect below loads a DM.
+    const burnOnReadAllowed = useCreateBurnOnReadAccess(isBurnOnRead ? scheduledPost.channel_id : undefined);
+    const invalidBurnOnRead = isBurnOnRead && !burnOnReadAllowed;
 
     useEffect(() => {
         // this ensures the DM is loaded in redux store and is available
@@ -101,9 +114,11 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
                 channelId: scheduledPost.channel_id,
                 onConfirm: onReschedule,
                 initialTime,
+                initialRepeatWeekly: isWeeklyRecurringScheduledPost,
+                repeatDisabledReason: getScheduledPostRepeatDisabledReason(scheduledPost),
             },
         }));
-    }, [dispatch, onReschedule, scheduledPost.channel_id, scheduledPost.scheduled_at, userTimezone]);
+    }, [dispatch, isWeeklyRecurringScheduledPost, onReschedule, scheduledPost, userTimezone]);
 
     const handleDelete = useCallback(() => {
         dispatch(openModal({
@@ -134,10 +149,16 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
     const userChannelMember = Boolean(channel && myChannelsMemberships[channel.id]);
     const isChannelArchived = Boolean(channel?.delete_at);
 
-    const showEditOption = !scheduledPost.error_code && userChannelMember && !isChannelArchived;
+    const canEdit = !scheduledPost.error_code && userChannelMember && !isChannelArchived;
     const isDeactivatedDM = useSelector((state: GlobalState) => isDeactivatedDirectChannel(state, scheduledPost.channel_id));
-    const showSendNowOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && channel && !isChannelArchived && !isDeactivatedDM && userChannelMember;
-    const showRescheduleOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && userChannelMember && !isChannelArchived;
+    const canSendNow = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && channel && !isChannelArchived && !isDeactivatedDM && userChannelMember;
+    const canReschedule = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && userChannelMember && !isChannelArchived && !isDeactivatedDM;
+
+    const showEditOption = !invalidBurnOnRead && (isAdmin || canEdit);
+    const showRescheduleOption = !invalidBurnOnRead && (isAdmin || canReschedule);
+
+    // Recurring scheduled posts can't be sent now: sending would either end the series or fork it.
+    const showSendNowOption = !isWeeklyRecurringScheduledPost && !invalidBurnOnRead && (isAdmin || canSendNow);
 
     return (
         <div className='ScheduledPostActions'>
@@ -150,7 +171,7 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
             />
 
             {
-                (isAdmin || showEditOption) &&
+                showEditOption &&
                 <Action
                     icon='icon-pencil-outline'
                     id='edit'
@@ -170,7 +191,7 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
             />
 
             {
-                (isAdmin || showRescheduleOption) &&
+                showRescheduleOption &&
                 <Action
                     icon='icon-clock-send-outline'
                     id='reschedule'
@@ -181,7 +202,7 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
             }
 
             {
-                (isAdmin || showSendNowOption) &&
+                showSendNowOption &&
                 <Action
                     icon='icon-send-outline'
                     id='sendNow'
