@@ -153,6 +153,24 @@ func TestExpiryRules(t *testing.T) {
 			want:     map[string]want{"LICENSE_EXPIRED": firing(-3), "LICENSE_EXPIRING": resolved},
 		},
 		{
+			name: "Entry expiring in 20 days",
+			snapshot: func() *healthcheck.Snapshot {
+				s := expiringIn(20 * day)
+				licenseOf(s).SkuShortName = model.LicenseShortSkuMattermostEntry
+				return s
+			},
+			want: map[string]want{"LICENSE_EXPIRED": resolved, "LICENSE_EXPIRING": resolved},
+		},
+		{
+			name: "Entry expired 3 days before collection",
+			snapshot: func() *healthcheck.Snapshot {
+				s := expiringIn(-3 * day)
+				licenseOf(s).SkuShortName = model.LicenseShortSkuMattermostEntry
+				return s
+			},
+			want: map[string]want{"LICENSE_EXPIRED": resolved, "LICENSE_EXPIRING": resolved},
+		},
+		{
 			name: "measured against collection, not now",
 			snapshot: func() *healthcheck.Snapshot {
 				now := time.Now().Truncate(time.Millisecond)
