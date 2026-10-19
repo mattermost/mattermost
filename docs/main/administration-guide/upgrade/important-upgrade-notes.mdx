@@ -23,7 +23,7 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </thead>
 <tbody>
 <tr>
-<td rowspan="28">v12.0</td>
+<td rowspan="27">v12.0</td>
 <td><p>This release includes a database migration that increases the maximum message length from 16,383 to 262,144 characters by widening the <code>message</code> column from <code>VARCHAR(65535)</code> to <code>VARCHAR(1048576)</code>. The message limit is a quarter of the column size, to allow for characters of up to four bytes. Widening <code>VARCHAR</code> is metadata-only on supported PostgreSQL versions, but the migration still takes a brief <code>ACCESS EXCLUSIVE</code> lock on each affected table, including <code>posts</code>. Acquiring this lock can be delayed by active or idle-in-transaction database sessions, and reads and writes on the table wait while it is pending. To keep the lock short, the full-text index on post messages (<code>idx_posts_message_txt</code>) is dropped before the column is widened and rebuilt concurrently by a later migration, so database full-text search of posts runs without that index until the rebuild completes. Large or busy deployments should test the migration and schedule a maintenance window.</p></td>
 </tr>
 <tr>
@@ -97,9 +97,6 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </tr>
 <tr>
 <td><p>A custom attribute field with more than 1000 options no longer returns its option list when the field is read. The response includes a count of the options and a flag indicating the list was withheld; integrations must fetch the options from the new property field options API endpoints instead. Updating such a field by writing back the response as received is refused, so don't round-trip the field without its options.</p></td>
-</tr>
-<tr>
-<td><p>If you use attribute-based access control and upgrade a cluster from v11.10 one server at a time (a rolling upgrade), servers still running v11.10 keep enforcing access policies while they share the upgraded database. The upgrade recreates the <code>AttributeView</code> materialized view that v11.10 reads user attributes from, so file access, joining policy-protected channels and teams, and the membership sync job keep working on those servers. While any server still runs v11.10, change the options of select, multi-select, and rank user attributes only from a server already running v12.0 or later. v12.0 stores options differently and never sees an option change made from a v11.10 server, even though the save appears to succeed there. Users given an option that exists only on the v11.10 side end up without a value for that attribute and can be removed from access-controlled channels. Other attribute changes from v11.10 servers, such as renaming a field, are seen by v12.0. The same applies if you roll a server back to v11.10 without restoring the database. The view will be removed in a future release.</p></td>
 </tr>
 <tr>
 <td><p>The <code>EmailLoginButtonColor</code>, <code>EmailLoginButtonBorderColor</code>, and <code>EmailLoginButtonTextColor</code> client configuration fields have been removed, along with the <code>EmailSettings</code> login button color settings. These fields were never applied by any client, so no action is required.</p></td>
