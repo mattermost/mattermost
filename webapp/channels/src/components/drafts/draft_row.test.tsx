@@ -114,6 +114,14 @@ describe('components/drafts/drafts_row', () => {
                 currentUserId: userId,
                 profiles: {[userId]: {id: userId, username: 'username'}},
             },
+
+            // 11.7's SINGLE_SCHEDULED_POST_RECEIVED reducer calls findIndex with no missing-key guard.
+            scheduledPosts: {
+                byId: {},
+                byTeamId: {[teamId]: []},
+                errorsByTeamId: {},
+                byChannelOrThreadId: {},
+            },
             preferences: {
                 myPreferences: {
                     [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_SYNC_DRAFTS)]: {value: 'true'},
