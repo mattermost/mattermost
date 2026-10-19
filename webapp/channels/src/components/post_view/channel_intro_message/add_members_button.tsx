@@ -104,6 +104,7 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
             dispatch(openModal({
                 modalId: ModalIdentifiers.ADD_GROUPS_TO_CHANNEL,
                 dialogType: AddGroupsToChannelModal,
+                dialogProps: {channel},
             }));
             return;
         }
