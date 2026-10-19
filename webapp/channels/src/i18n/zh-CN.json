@@ -4241,7 +4241,7 @@
   "admin.team_settings.team_details.specificDomains": "只有指定的邮箱地址域名可加入到此团队",
   "admin.team_settings.team_details.specificDomainsDescr": "用户只有在他们的邮箱地址匹配指定的域名才可加入到该团队",
   "admin.team_settings.team_details.syncGroupMembers": "同步用户组成员",
-  "admin.team_settings.team_details.syncGroupMembersDescr": "当启用时，从用户组添加或移除用户时将从此团队移除。添加用户到用户组将是唯一邀请成员到此团队的方法。<link>了解更多</link>",
+  "admin.team_settings.team_details.syncGroupMembersDescr": "当启用时，从用户组添加或移除用户将从此团队添加或移除。添加用户到用户组将是唯一邀请成员到此团队的方法。<link>了解更多</link>",
   "admin.team_settings.team_details.unarchiveTeam": "取消归档团队",
   "admin.team_settings.team_list.mappingHeader": "管理",
   "admin.team_settings.team_list.nameHeader": "名称",
