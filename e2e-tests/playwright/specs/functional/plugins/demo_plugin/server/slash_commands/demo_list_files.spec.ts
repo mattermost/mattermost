@@ -1,37 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
-import {demoPluginId, duration, expect, getFileFromAsset, test} from '@mattermost/playwright-lib';
+import {expect, getFileFromAsset, test} from '@mattermost/playwright-lib';
 
-async function sendSlashCommand(page: Page, send: () => Promise<void>, adminClient: Client4): Promise<void> {
-    // Slash commands hit POST /api/v4/commands/execute — not POST /posts (see web client executeCommand).
-    // Retry if the server returns 500 (plugin transiently inactive between setup and first use) or
-    // 404 (the plugin is up but its slash commands aren't registered yet).
-    for (let attempt = 0; attempt < 3; attempt++) {
-        const responsePromise = page.waitForResponse(
-            (r) => r.url().includes('/api/v4/commands/execute') && r.request().method() === 'POST',
-            {timeout: duration.half_min},
-        );
-        const [, response] = await Promise.all([send(), responsePromise]);
-        if (response.ok()) {
-            return;
-        }
-        if (attempt < 2 && (response.status() === 500 || response.status() === 404)) {
-            // Plugin may be transiently inactive or still registering commands — re-enable and retry.
-            try {
-                await adminClient.enablePlugin(demoPluginId);
-                await new Promise((r) => setTimeout(r, 1500));
-            } catch {
-                // Ignore; retry the slash command anyway.
-            }
-            continue;
-        }
-        expect(response.ok(), `slash command failed: HTTP ${response.status()}`).toBeTruthy();
-    }
-}
+import {sendDemoSlashCommand} from '../../helpers';
 
 /**
  * Uploads a batch of files to the channel via API and posts them as a single message.
@@ -79,14 +53,10 @@ test('should list uploaded files with running total via /list_files command', as
     const page = channelsPage.page;
 
     // # Send /list_files with no files
-    await sendSlashCommand(
-        page,
-        async () => {
-            await channelsPage.centerView.postCreate.input.fill('/list_files');
-            await channelsPage.centerView.postCreate.sendMessage();
-        },
-        adminClient,
-    );
+    await sendDemoSlashCommand(page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/list_files');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
 
     // * Verify the bot reply shows 0 files
     await expect(
@@ -98,14 +68,10 @@ test('should list uploaded files with running total via /list_files command', as
     await uploadAndPostFiles(adminClient, createdChannel.id, ['sample_text_file.txt', 'mattermost-icon_128x128.png']);
 
     // # Send /list_files again
-    await sendSlashCommand(
-        page,
-        async () => {
-            await channelsPage.centerView.postCreate.input.fill('/list_files');
-            await channelsPage.centerView.postCreate.sendMessage();
-        },
-        adminClient,
-    );
+    await sendDemoSlashCommand(page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/list_files');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
 
     // * Verify the bot reply shows a count of 2 and both file names
     const response2 = channelsPage.centerView.container
@@ -120,14 +86,10 @@ test('should list uploaded files with running total via /list_files command', as
     await uploadAndPostFiles(adminClient, createdChannel.id, ['mattermost.png', 'archive.zip']);
 
     // # Send /list_files again
-    await sendSlashCommand(
-        page,
-        async () => {
-            await channelsPage.centerView.postCreate.input.fill('/list_files');
-            await channelsPage.centerView.postCreate.sendMessage();
-        },
-        adminClient,
-    );
+    await sendDemoSlashCommand(page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/list_files');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
 
     // * Verify the bot reply shows a count of 4 and all file names
     const response4 = channelsPage.centerView.container

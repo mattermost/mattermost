@@ -1,20 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {duration, expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
-import {recoverDemoPlugin, sendDemoSlashCommand} from '../../helpers';
+import {sendDemoSlashCommand} from '../../helpers';
 
 test('should open /dialog and post submit confirmation on submit', async ({pw}) => {
-    // The submit hook has been observed to stop responding for the rest of a CI worker's
-    // run with no single confirmed trigger (reproduced without plugin_crash.spec.ts ever
-    // running first in the same worker — see recoverDemoPlugin's doc comment). The retry
-    // loop below forces a full plugin recovery cycle partway through, which is the one
-    // action known to clear it, so give it a generous timeout to leave room for that cycle.
-    test.setTimeout(duration.four_min);
-
     // # Setup
-    const {adminClient, user, team} = await pw.initSetup();
+    const {user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
 
     // # Login
@@ -26,23 +19,13 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Send /dialog command (with one retry if the dialog doesn't appear)
+    // # Send /dialog command
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 4; attempt++) {
-        await sendDemoSlashCommand(channelsPage.page, async () => {
-            await channelsPage.centerView.postCreate.input.fill('/dialog');
-            await channelsPage.centerView.postCreate.sendMessage();
-        });
-        try {
-            await expect(dialog).toBeVisible({timeout: duration.ten_sec});
-            break; // dialog appeared — proceed
-        } catch (err) {
-            if (attempt === 3) {
-                throw err; // exhausted retries — let the error surface naturally
-            }
-            // attempt timed out — retry the slash command
-        }
-    }
+    await sendDemoSlashCommand(channelsPage.page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/dialog');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
+    await expect(dialog).toBeVisible();
 
     // * Verify dialog opens with title "Test Title"
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
@@ -69,28 +52,8 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     // Radio Option Selector — required
     await dialog.getByRole('radio', {name: 'Option1'}).click();
 
-    // # Submit the dialog (with retries if the plugin is transiently unavailable, in which
-    // case the submit request can fail silently and the dialog never closes — re-clicking
-    // Submit is safe since the filled-in fields are retained). If plain retries don't clear
-    // it, force a full plugin recovery cycle once and keep retrying — see
-    // recoverDemoPlugin's doc comment for why that is the one action known to help.
-    for (let attempt = 0; attempt < 12; attempt++) {
-        if (!(await dialog.isVisible())) {
-            break;
-        }
-        if (attempt === 6) {
-            await recoverDemoPlugin(adminClient);
-        }
-        await dialog.getByRole('button', {name: 'Submit'}).click();
-        try {
-            await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
-            break;
-        } catch (err) {
-            if (attempt === 11) {
-                throw err;
-            }
-        }
-    }
+    // # Submit the dialog
+    await dialog.getByRole('button', {name: 'Submit'}).click();
 
     // * Verify the dialog closed and the submit post appears in the channel
     // Note: "Interative" is a typo in the demo plugin — not a test error
@@ -101,93 +64,6 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
 });
 
 test('should post cancellation notification when /dialog is cancelled', async ({pw}) => {
-    // See the submit test above for why this needs extra time.
-    test.setTimeout(duration.four_min);
-
-    // # Setup
-    const {adminClient, user, team} = await pw.initSetup();
-    await pw.ensureDemoPlugin();
-
-    // # Login
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
-
-    // # Navigate to Demo Plugin channel
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
-
-    // # Send /dialog command (with one retry if the dialog doesn't appear)
-    const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 4; attempt++) {
-        await sendDemoSlashCommand(channelsPage.page, async () => {
-            await channelsPage.centerView.postCreate.input.fill('/dialog');
-            await channelsPage.centerView.postCreate.sendMessage();
-        });
-        try {
-            await expect(dialog).toBeVisible({timeout: duration.ten_sec});
-            break;
-        } catch (err) {
-            if (attempt === 3) {
-                throw err;
-            }
-        }
-    }
-
-    // * Verify dialog opens
-    await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
-    await expect(dialog.getByRole('button', {name: 'Cancel'})).toBeVisible();
-    await expect(dialog.getByRole('button', {name: 'Submit'})).toBeVisible();
-
-    // # Cancel the dialog and verify the cancellation post appears (with retries if the
-    // plugin is transiently unavailable: the client-side dialog close can succeed while
-    // the server-side cancel notification silently fails, so reopen and cancel again on
-    // failure). If plain retries don't clear it, force a full plugin recovery cycle once —
-    // see recoverDemoPlugin's doc comment for why that is the one action known to help.
-    const cancellationPost = channelsPage.centerView.container
-        .locator('p')
-        .filter({hasText: 'canceled an Interative Dialog'});
-    const reopenDialog = () =>
-        sendDemoSlashCommand(channelsPage.page, async () => {
-            await channelsPage.centerView.postCreate.input.fill('/dialog');
-            await channelsPage.centerView.postCreate.sendMessage();
-        });
-
-    for (let attempt = 0; attempt < 12; attempt++) {
-        try {
-            if (attempt === 6) {
-                await recoverDemoPlugin(adminClient);
-                await reopenDialog();
-                await expect(dialog).toBeVisible({timeout: duration.ten_sec});
-            }
-            if (await dialog.isVisible()) {
-                await dialog.getByRole('button', {name: 'Cancel'}).click();
-            }
-            await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
-            // * Verify the cancellation post appears in the channel
-            // Note: "Interative" is a typo in the demo plugin — not a test error
-            await expect(cancellationPost).toBeVisible({timeout: duration.ten_sec});
-            break;
-        } catch (err) {
-            if (attempt === 11) {
-                throw err;
-            }
-            // Treat a failed reopen as a failed attempt so the loop can retry once the
-            // plugin recovers, instead of letting it abort the test.
-            try {
-                await reopenDialog();
-                await expect(dialog).toBeVisible({timeout: duration.ten_sec});
-            } catch {
-                // Reopen failed too — fall through and retry on the next attempt.
-            }
-        }
-    }
-});
-
-test('should show validation errors when required fields are submitted empty', async ({pw}) => {
-    // The dialog-open retries below can span a plugin recovery cycle; leave room for them.
-    test.setTimeout(duration.four_min);
-
     // # Setup
     const {user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
@@ -201,22 +77,51 @@ test('should show validation errors when required fields are submitted empty', a
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Send /dialog command (with one retry if the dialog doesn't appear)
+    // # Send /dialog command
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 4; attempt++) {
-        await sendDemoSlashCommand(channelsPage.page, async () => {
-            await channelsPage.centerView.postCreate.input.fill('/dialog');
-            await channelsPage.centerView.postCreate.sendMessage();
-        });
-        try {
-            await expect(dialog).toBeVisible({timeout: duration.ten_sec});
-            break;
-        } catch (err) {
-            if (attempt === 3) {
-                throw err;
-            }
-        }
-    }
+    await sendDemoSlashCommand(channelsPage.page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/dialog');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
+    await expect(dialog).toBeVisible();
+
+    // * Verify dialog opens
+    await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
+    await expect(dialog.getByRole('button', {name: 'Cancel'})).toBeVisible();
+    await expect(dialog.getByRole('button', {name: 'Submit'})).toBeVisible();
+
+    // # Cancel the dialog
+    await dialog.getByRole('button', {name: 'Cancel'}).click();
+
+    // * Verify the dialog closed and the cancellation post appears in the channel
+    // Note: "Interative" is a typo in the demo plugin — not a test error
+    await expect(dialog).not.toBeVisible();
+    await expect(
+        channelsPage.centerView.container.locator('p').filter({hasText: 'canceled an Interative Dialog'}),
+    ).toBeVisible();
+});
+
+test('should show validation errors when required fields are submitted empty', async ({pw}) => {
+    // # Setup
+    const {user, team} = await pw.initSetup();
+    await pw.ensureDemoPlugin();
+
+    // # Login
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto();
+    await channelsPage.toBeVisible();
+
+    // # Navigate to Demo Plugin channel
+    await channelsPage.goto(team.name, 'town-square');
+    await channelsPage.toBeVisible();
+
+    // # Send /dialog command
+    const dialog = channelsPage.page.getByRole('dialog');
+    await sendDemoSlashCommand(channelsPage.page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/dialog');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
+    await expect(dialog).toBeVisible();
 
     // * Verify dialog opens
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
@@ -232,9 +137,6 @@ test('should show validation errors when required fields are submitted empty', a
 });
 
 test('should show general error and keep dialog open on /dialog error submit', async ({pw}) => {
-    // The dialog-open retries below can span a plugin recovery cycle; leave room for them.
-    test.setTimeout(duration.four_min);
-
     // # Setup
     const {user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
@@ -248,22 +150,13 @@ test('should show general error and keep dialog open on /dialog error submit', a
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Send /dialog error command (with one retry if the dialog doesn't appear)
+    // # Send /dialog error command
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 4; attempt++) {
-        await sendDemoSlashCommand(channelsPage.page, async () => {
-            await channelsPage.centerView.postCreate.input.fill('/dialog error');
-            await channelsPage.centerView.postCreate.sendMessage();
-        });
-        try {
-            await expect(dialog).toBeVisible({timeout: duration.ten_sec});
-            break;
-        } catch (err) {
-            if (attempt === 3) {
-                throw err;
-            }
-        }
-    }
+    await sendDemoSlashCommand(channelsPage.page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/dialog error');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
+    await expect(dialog).toBeVisible();
 
     // * Verify dialog opens with title "Simple Dialog Test"
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Simple Dialog Test');
@@ -281,9 +174,6 @@ test('should show general error and keep dialog open on /dialog error submit', a
 });
 
 test('should show general error on /dialog error-no-elements confirm', async ({pw}) => {
-    // The dialog-open retries below can span a plugin recovery cycle; leave room for them.
-    test.setTimeout(duration.four_min);
-
     // # Setup
     const {user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
@@ -297,22 +187,13 @@ test('should show general error on /dialog error-no-elements confirm', async ({p
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Send /dialog error-no-elements command (with one retry if the dialog doesn't appear)
+    // # Send /dialog error-no-elements command
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 4; attempt++) {
-        await sendDemoSlashCommand(channelsPage.page, async () => {
-            await channelsPage.centerView.postCreate.input.fill('/dialog error-no-elements');
-            await channelsPage.centerView.postCreate.sendMessage();
-        });
-        try {
-            await expect(dialog).toBeVisible({timeout: duration.ten_sec});
-            break;
-        } catch (err) {
-            if (attempt === 3) {
-                throw err;
-            }
-        }
-    }
+    await sendDemoSlashCommand(channelsPage.page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/dialog error-no-elements');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
+    await expect(dialog).toBeVisible();
 
     // * Verify dialog opens with title "Sample Confirmation Dialog" and no form fields
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Sample Confirmation Dialog');

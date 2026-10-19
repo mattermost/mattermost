@@ -1,20 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {duration, expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
-import {recoverDemoPlugin} from '../../helpers';
+import {sendDemoSlashCommand} from '../../helpers';
 
 test('should open /dialog date and post submit confirmation after selecting dates', async ({pw}) => {
-    // The submit hook has been observed to stop responding for the rest of a CI worker's
-    // run with no single confirmed trigger (reproduced without plugin_crash.spec.ts ever
-    // running first in the same worker — see recoverDemoPlugin's doc comment). The retry
-    // loop below forces a full plugin recovery cycle partway through, which is the one
-    // action known to clear it, so give it a generous timeout to leave room for that cycle.
-    test.setTimeout(duration.four_min);
-
     // # Setup
-    const {adminClient, user, team} = await pw.initSetup();
+    const {user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
 
     // # Login
@@ -26,20 +19,13 @@ test('should open /dialog date and post submit confirmation after selecting date
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Send /dialog date command (retry once on a UI timing miss)
+    // # Send /dialog date command
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 3; attempt++) {
+    await sendDemoSlashCommand(channelsPage.page, async () => {
         await channelsPage.centerView.postCreate.input.fill('/dialog date');
         await channelsPage.centerView.postCreate.sendMessage();
-        try {
-            await expect(dialog).toBeVisible({timeout: duration.ten_sec});
-            break;
-        } catch (err) {
-            if (attempt === 2) {
-                throw err;
-            }
-        }
-    }
+    });
+    await expect(dialog).toBeVisible();
 
     // * Verify dialog opens with title "Date & DateTime Test Dialog"
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Date & DateTime Test Dialog');
@@ -75,29 +61,8 @@ test('should open /dialog date and post submit confirmation after selecting date
         .click();
     await channelsPage.page.getByRole('menuitem', {name: '3:00 PM'}).click();
 
-    // # Submit — button is labelled "Create Event" (with retries if the plugin is
-    // transiently unavailable, in which case the submit request can fail silently and the
-    // dialog never closes — re-clicking is safe since the filled-in fields are retained).
-    // If plain retries don't clear it, force a full plugin recovery cycle once and keep
-    // retrying — see recoverDemoPlugin's doc comment for why that is the one action known
-    // to help.
-    for (let attempt = 0; attempt < 12; attempt++) {
-        if (!(await dialog.isVisible())) {
-            break;
-        }
-        if (attempt === 6) {
-            await recoverDemoPlugin(adminClient);
-        }
-        await dialog.getByRole('button', {name: 'Create Event'}).click();
-        try {
-            await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
-            break;
-        } catch (err) {
-            if (attempt === 11) {
-                throw err;
-            }
-        }
-    }
+    // # Submit — button is labelled "Create Event"
+    await dialog.getByRole('button', {name: 'Create Event'}).click();
 
     // * Verify the dialog closes and submit post appears in the channel
     await expect(dialog).not.toBeVisible();

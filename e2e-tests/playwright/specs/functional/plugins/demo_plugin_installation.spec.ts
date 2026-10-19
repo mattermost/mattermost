@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {demoPluginId, demoPluginUrl, test, expect} from '@mattermost/playwright-lib';
+import {demoPluginId, demoPluginUrl, getPluginStatus, test, expect} from '@mattermost/playwright-lib';
 
 test('should install and enable demo plugin from URL', async ({pw}) => {
     // # Create and navigate to channels page
@@ -30,8 +30,17 @@ test('should install and enable demo plugin from URL', async ({pw}) => {
         },
     });
 
-    // # Install and enable
-    await pw.installAndEnablePlugin(adminClient, demoPluginUrl, demoPluginId);
+    // # Remove any existing install, so the install below really downloads from the URL.
+    // pw.installAndEnablePlugin is a no-op for an active plugin and only enables an installed
+    // one, and the setup project pre-installs the demo plugin, so it would never install here.
+    await adminClient.removePlugin(demoPluginId);
+
+    // * Verify the plugin is gone
+    await expect.poll(async () => (await getPluginStatus(adminClient, demoPluginId)).isInstalled).toBe(false);
+
+    // # Install from URL and enable
+    await adminClient.installPluginFromUrl(demoPluginUrl, true);
+    await adminClient.enablePlugin(demoPluginId);
 
     // * Verify it's active (API validation, no UI)
     await expect

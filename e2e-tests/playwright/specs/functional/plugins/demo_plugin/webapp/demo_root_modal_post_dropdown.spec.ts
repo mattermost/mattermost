@@ -28,23 +28,10 @@ test('should open Root Modal from post actions menu and all submenu items', asyn
         await post.postMenu.actionsButton.click();
     }
 
-    // Local helper: open the actions menu and click a plugin menu item, retrying the whole
-    // open-menu-and-click sequence if the plugin is transiently unavailable (e.g. during a
-    // concurrent plugin_crash.spec.ts recovery cycle, the item may not render in the menu at
-    // all, which times out the click rather than failing on an existing locator).
+    // Local helper: open the actions menu and click a plugin menu item
     async function clickPluginMenuItem(click: () => Promise<void>) {
-        for (let attempt = 0; attempt < 4; attempt++) {
-            await openActionsMenu();
-            try {
-                await click();
-                return;
-            } catch (err) {
-                if (attempt === 3) {
-                    throw err;
-                }
-                await channelsPage.page.keyboard.press('Escape');
-            }
-        }
+        await openActionsMenu();
+        await click();
     }
 
     // # Click the top-level "Demo Plugin" action

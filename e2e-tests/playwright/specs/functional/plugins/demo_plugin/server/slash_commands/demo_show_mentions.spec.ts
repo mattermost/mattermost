@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {duration, expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 test('should parse user and channel mentions from /show_mentions command text', async ({pw}) => {
     // # Setup
@@ -17,23 +17,14 @@ test('should parse user and channel mentions from /show_mentions command text', 
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Send /show_mentions (retry once on a UI timing miss)
+    // # Send /show_mentions
     const responsePost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'contains the following different mentions'})
         .last();
-    for (let attempt = 0; attempt < 2; attempt++) {
-        await channelsPage.centerView.postCreate.input.fill('/show_mentions @sysadmin ~town-square');
-        await channelsPage.centerView.postCreate.sendMessage();
-        try {
-            await expect(responsePost).toBeVisible({timeout: duration.ten_sec});
-            break;
-        } catch (err) {
-            if (attempt === 1) {
-                throw err;
-            }
-        }
-    }
+    await channelsPage.centerView.postCreate.input.fill('/show_mentions @sysadmin ~town-square');
+    await channelsPage.centerView.postCreate.sendMessage();
+    await expect(responsePost).toBeVisible();
 
     // * Verify user mentions section
     await expect(responsePost.getByRole('heading', {name: 'Mentions to users in the team'})).toBeVisible();

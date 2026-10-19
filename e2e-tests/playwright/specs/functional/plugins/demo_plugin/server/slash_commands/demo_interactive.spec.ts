@@ -1,20 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {duration, expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
-import {recoverDemoPlugin, sendDemoSlashCommand} from '../../helpers';
+import {sendDemoSlashCommand} from '../../helpers';
 
 test('should post interactive button and respond with click attribution via /interactive command', async ({pw}) => {
-    // The button-click hook has been observed to stop responding for the rest of a CI
-    // worker's run with no single confirmed trigger (reproduced without plugin_crash.spec.ts
-    // ever running first in the same worker — see recoverDemoPlugin's doc comment). The
-    // retry loop below forces a full plugin recovery cycle partway through, which is the one
-    // action known to clear it, so give it a generous timeout to leave room for that cycle.
-    test.slow();
-
     // # Setup
-    const {adminClient, user, team} = await pw.initSetup();
+    const {user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
 
     // # Login
@@ -26,54 +19,24 @@ test('should post interactive button and respond with click attribution via /int
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Send /interactive command (retry once on a UI timing miss)
+    // # Send /interactive command
     const interactivePost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Test interactive button'})
         .last();
-    for (let attempt = 0; attempt < 4; attempt++) {
-        await sendDemoSlashCommand(channelsPage.page, async () => {
-            await channelsPage.centerView.postCreate.input.fill('/interactive');
-            await channelsPage.centerView.postCreate.sendMessage();
-        });
-        try {
-            await expect(interactivePost).toBeVisible({timeout: duration.ten_sec});
-            break;
-        } catch (err) {
-            if (attempt === 3) {
-                throw err;
-            }
-        }
-    }
+    await sendDemoSlashCommand(channelsPage.page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/interactive');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
 
     // * Verify post appears with 'Test interactive button' and an 'Interactive Button' button
     await expect(interactivePost).toBeVisible();
     await expect(interactivePost.getByRole('button', {name: 'Interactive Button'})).toBeVisible();
 
-    // # Click the Interactive Button (with retries if the plugin is transiently
-    // unavailable, in which case the button-click action request can fail silently and no
-    // reply ever appears — re-clicking is safe since the button stays visible until a reply
-    // is posted). If plain retries don't clear it, force a full plugin recovery cycle once
-    // and keep retrying — see recoverDemoPlugin's doc comment for why that is the one
-    // action known to help.
+    // # Click the Interactive Button
+    await interactivePost.getByRole('button', {name: 'Interactive Button'}).click();
     const replyButton = interactivePost.getByRole('button', {name: /\d+ repl(y|ies)/});
-    for (let attempt = 0; attempt < 8; attempt++) {
-        if (await replyButton.isVisible()) {
-            break;
-        }
-        if (attempt === 4) {
-            await recoverDemoPlugin(adminClient);
-        }
-        await interactivePost.getByRole('button', {name: 'Interactive Button'}).click();
-        try {
-            await expect(replyButton).toBeVisible({timeout: duration.ten_sec});
-            break;
-        } catch (err) {
-            if (attempt === 7) {
-                throw err;
-            }
-        }
-    }
+    await expect(replyButton).toBeVisible();
 
     // # Open the thread
     await replyButton.click();
