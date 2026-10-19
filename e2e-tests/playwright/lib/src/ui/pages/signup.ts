@@ -67,7 +67,8 @@ export default class SignupPage {
         this.createAccountWithFollowing = page.getByText('Create your account with one of the following:');
         this.gitlabButton = page.getByRole('link', {name: 'GitLab'});
         this.emailAddressLabel = page.getByText('Email address');
-        this.choosePasswordPlaceholder = page.getByPlaceholder('Choose a Password');
+        // Compass PasswordInput uses a floating label (no placeholder when useLegend).
+        this.choosePasswordPlaceholder = page.getByLabel('Choose a Password');
         this.adminChosenUsernameMessage = page.getByText('Your username was chosen by your admin.');
         this.presetName = page.getByTestId('signup-body-card-preset-name');
 

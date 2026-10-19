@@ -10,6 +10,11 @@
     // resize:vertical. Call sites that need a fixed height pass
     // style={{resize:'none'}} (e.g. TextSetting resizable={false}).
 
+    // Compass TextInput label opacity (.64) is below WCAG AA on white (~4.5:1).
+    .Input label {
+        color: rgba(var(--center-channel-color-rgb), 0.8);
+    }
+
     // Used by CategorySelector / DropdownInput react-select shells that still
     // nest under .Input_wrapper inside Input_fieldset (not Compass TextInput).
     .Input {

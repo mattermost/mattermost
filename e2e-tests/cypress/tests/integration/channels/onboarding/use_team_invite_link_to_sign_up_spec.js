@@ -62,7 +62,7 @@ describe('Onboarding', () => {
 
         // * Verify it's on email signup page
         cy.findByText('Email address').should('be.visible');
-        cy.findByPlaceholderText('Choose a Password').should('be.visible');
+        cy.findByLabelText('Choose a Password').should('be.visible');
 
         // # Type email, username and password
         const user = generateRandomUser();

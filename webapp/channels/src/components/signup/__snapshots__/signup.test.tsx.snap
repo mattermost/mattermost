@@ -282,7 +282,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                       class="_password-input__input_d44ti_18"
                       id="input_password-input"
                       name="password-input"
-                      placeholder="Choose a Password"
                       type="password"
                       value=""
                     />
@@ -597,7 +596,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                       class="_password-input__input_d44ti_18"
                       id="input_password-input"
                       name="password-input"
-                      placeholder="Choose a Password"
                       type="password"
                       value=""
                     />
