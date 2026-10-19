@@ -267,6 +267,9 @@ export default class ClusterSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.overrideHandleChange}
                     setByEnv={this.isSetByEnv('ClusterSettings.GossipPort')}
                     disabled={this.props.isDisabled}
+                    type='number'
+                    min={1}
+                    max={65535}
                 />
             </SettingsGroup>
         );

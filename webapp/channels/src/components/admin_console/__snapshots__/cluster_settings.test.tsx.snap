@@ -493,12 +493,14 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
                     >
                       <input
                         class="_text-input__input_3inqk_42"
-                        data-testid="GossipPortinput"
+                        data-testid="GossipPortnumber"
                         dir="auto"
                         id="GossipPort"
+                        max="65535"
+                        min="1"
                         name="GossipPort"
                         placeholder="E.g.: \\"8074\\""
-                        type="text"
+                        type="number"
                         value="8074"
                       />
                     </div>
@@ -1031,12 +1033,14 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
                     >
                       <input
                         class="_text-input__input_3inqk_42"
-                        data-testid="GossipPortinput"
+                        data-testid="GossipPortnumber"
                         dir="auto"
                         id="GossipPort"
+                        max="65535"
+                        min="1"
                         name="GossipPort"
                         placeholder="E.g.: \\"8074\\""
-                        type="text"
+                        type="number"
                         value="8074"
                       />
                     </div>
@@ -1569,12 +1573,14 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
                     >
                       <input
                         class="_text-input__input_3inqk_42"
-                        data-testid="GossipPortinput"
+                        data-testid="GossipPortnumber"
                         dir="auto"
                         id="GossipPort"
+                        max="65535"
+                        min="1"
                         name="GossipPort"
                         placeholder="E.g.: \\"8074\\""
-                        type="text"
+                        type="number"
                         value="8074"
                       />
                     </div>
@@ -2107,12 +2113,14 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
                     >
                       <input
                         class="_text-input__input_3inqk_42"
-                        data-testid="GossipPortinput"
+                        data-testid="GossipPortnumber"
                         dir="auto"
                         id="GossipPort"
+                        max="65535"
+                        min="1"
                         name="GossipPort"
                         placeholder="E.g.: \\"8074\\""
-                        type="text"
+                        type="number"
                         value="8074"
                       />
                     </div>
