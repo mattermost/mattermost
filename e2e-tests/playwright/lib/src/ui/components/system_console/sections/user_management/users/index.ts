@@ -118,11 +118,17 @@ export default class Users {
      * Search for users by typing in the search input
      */
     async searchUsers(searchTerm: string) {
-        const responsePromise = waitForUsersReportResponse(this.page);
+        const responsePromise = waitForUsersReportResponse(this.page, searchTerm);
         await this.searchInput.fill(searchTerm);
         // SystemUsersSearch debounces dispatch by 500ms before fetching.
         await responsePromise;
         await expect(this.usersTable.getColumnHeader('User details')).toBeEnabled();
+    }
+
+    async openUserActions(searchTerm: string) {
+        await this.searchUsers(searchTerm);
+        const row = await this.usersTable.getRowByUsername(searchTerm);
+        return row.openActionMenu();
     }
 
     /**

@@ -3795,7 +3795,9 @@ func TestSearchAllChannels(t *testing.T) {
 		},
 		{
 			"Name search",
-			&model.ChannelSearch{Term: "what"},
+			// Prefix of Name "whatever". Term "what" also matches InitBasic DisplayNames
+			// ("dn_"+NewId()); z-base32 includes w/h/a/t but not v.
+			&model.ChannelSearch{Term: "whatev"},
 			[]string{openChannel.Id},
 		},
 		{

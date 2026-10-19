@@ -10,7 +10,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {closeRightHandSide, showMentions} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
-import IconButton from 'components/global_header/header_icon_button';
+import HeaderIconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 
 import {RHSStates} from 'utils/constants';
@@ -47,7 +47,7 @@ const AtMentionsButton = (): JSX.Element => {
                 </>
             }
         >
-            <IconButton
+            <HeaderIconButton
                 icon={'at'}
                 toggled={rhsState === RHSStates.MENTION}
                 onClick={mentionButtonClick}

@@ -180,6 +180,17 @@ type FeatureFlags struct {
 	// Gates post delivery audit logging. Enabling it requires a server restart, since it
 	// controls whether the /api/v4/delivery_tracking routes are registered.
 	PostDeliveryTracking bool
+
+	// FEATURE_FLAG_REMOVAL: EnforceLogPathRoot - remove this once every supported
+	// release carries the flag and enforcement becomes unconditional (MM-70595).
+	// When on, a log or audit file path resolving outside the logging root
+	// (MM_LOG_PATH, or the default logs dir) aborts server startup and is rejected
+	// on config save. When off, the same paths only produce an error log line.
+	EnforceLogPathRoot bool
+
+	// HealthDashboard replaces the Workspace Optimization dashboard with the rules-driven
+	// Health Dashboard. Off by default.
+	HealthDashboard bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -196,7 +207,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeValueMasking = true
 	f.PermissionPolicies = true
 	f.TeamMembershipAccessControl = true
-	f.ResourceAttributesInPolicies = false
+	f.ResourceAttributesInPolicies = true
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
 	f.ContentFlagging = true
@@ -227,7 +238,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.ManagedChannelCategories = false
 
-	f.SessionAttributes = false
+	f.SessionAttributes = true
 
 	f.PostAttributes = false
 
@@ -237,9 +248,9 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.PropertyFieldRank = true
 
-	f.PropertyFieldGraph = false
+	f.PropertyFieldGraph = true
 
-	f.ChannelAttributes = false
+	f.ChannelAttributes = true
 
 	f.ChannelAttributesRequired = false
 
@@ -252,6 +263,10 @@ func (f *FeatureFlags) SetDefaults() {
 	f.RecurringScheduledPosts = false
 
 	f.PostDeliveryTracking = false
+
+	f.EnforceLogPathRoot = false
+
+	f.HealthDashboard = false
 }
 
 // isValid rejects feature flag combinations that are no longer supported.

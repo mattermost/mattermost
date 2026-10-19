@@ -10,6 +10,7 @@ import {
     getPropertyFieldLabel,
     isPropertyFieldEditable,
     isPropertyFieldRequired,
+    isPropertyFieldSourceManaged,
     isPropertyValueSet,
     isPSAv1PropertyField,
 } from './property_utils';
@@ -80,6 +81,80 @@ describe('isPropertyFieldEditable', () => {
 
     test('ignores a non-boolean rather than locking the field', () => {
         expect(isPropertyFieldEditable(makeField({attrs: {editable: 'false'}}))).toBe(true);
+    });
+});
+
+describe('isPropertyFieldSourceManaged', () => {
+    test('reads a protected plugin field as source-managed', () => {
+        expect(isPropertyFieldSourceManaged(makeField({
+            attrs: {protected: true, source_plugin_id: 'com.example.markings'},
+        }))).toBe(true);
+    });
+
+    // The server refuses the write either way: a protected field with no source
+    // plugin has no caller that could satisfy it at all.
+    test('reads a protected field with no source plugin as source-managed', () => {
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {protected: true}}))).toBe(true);
+    });
+
+    test('reads an owner-managed field as source-managed', () => {
+        expect(isPropertyFieldSourceManaged(makeField({
+            attrs: {owners: [{id: 'com.example.scim', type: 'plugin', scopes: []}]},
+        }))).toBe(true);
+    });
+
+    // checkOwnerValueWriteAccess rejects a human caller before it reads the owner
+    // type, so a service or role owner locks the values just as a plugin does.
+    test('reads an owner of any type as source-managed', () => {
+        for (const type of ['service', 'role', 'user']) {
+            expect(isPropertyFieldSourceManaged(makeField({
+                attrs: {owners: [{id: 'ldap', type, scopes: []}]},
+            }))).toBe(true);
+        }
+    });
+
+    test('reads a synced field as source-managed', () => {
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {ldap: 'department'}}))).toBe(true);
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {saml: 'Department'}}))).toBe(true);
+    });
+
+    test('leaves an ordinary admin-authored field alone', () => {
+        expect(isPropertyFieldSourceManaged(makeField())).toBe(false);
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {}}))).toBe(false);
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {required: true}}))).toBe(false);
+    });
+
+    // A plugin may create a field it does not reserve; only protected locks the
+    // values, so source_plugin_id on its own must stay editable.
+    test('leaves a plugin-created field that is not protected alone', () => {
+        expect(isPropertyFieldSourceManaged(makeField({
+            attrs: {source_plugin_id: 'com.example.markings'},
+        }))).toBe(false);
+    });
+
+    test('does not read an off or empty flag as source-managed', () => {
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {protected: false}}))).toBe(false);
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {owners: []}}))).toBe(false);
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {ldap: '', saml: ''}}))).toBe(false);
+    });
+
+    // Anything non-boolean predates the server's validation of the key, and an
+    // owners blob that is not a list is not a list of owners.
+    test('ignores values of the wrong shape rather than guessing', () => {
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {protected: 'true'}}))).toBe(false);
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {owners: 'com.example.scim'}}))).toBe(false);
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {ldap: true}}))).toBe(false);
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {saml: 42}}))).toBe(false);
+    });
+
+    // Ownership is a property of the field, not of how its value is edited.
+    test('answers the same for every field type', () => {
+        for (const type of ['text', 'select', 'multiselect', 'rank', 'graph'] as const) {
+            expect(isPropertyFieldSourceManaged(makeField({
+                type,
+                attrs: {protected: true, source_plugin_id: 'com.example.markings'},
+            }))).toBe(true);
+        }
     });
 });
 

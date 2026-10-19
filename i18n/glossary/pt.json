@@ -1,0 +1,470 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Product edition name stays English. The existing catalog has 'Edição de Empresa' in a few 'about' strings; prefer the English name."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Stays English. The catalog has 'Edição de Equipa' once (about.teamEditiont0); prefer the English name."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud",
+    "note": "Product name stays English; the bare edition label 'Cloud' was once rendered 'Nuvem' in about.cloudEdition."
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "As a product name keep English. The common noun 'channels' is 'canais'."
+  },
+  "Playbooks": {
+    "target": "Playbooks",
+    "note": "Product name stays English. One server string renders it 'Manuais'; do not reuse that."
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls",
+    "note": "Product name stays English; the common noun 'call' is 'chamada'."
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth",
+    "note": "'OAuth 2.0' stays as-is; 'aplicação OAuth 2.0' (no 'de')."
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP",
+    "note": "'AD/LDAP' stays as-is."
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Gossip": {
+    "target": "Gossip",
+    "note": "Protocol name; never render literally ('mexerico', 'boato')."
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay",
+    "note": "'Global Relay EML' stays as-is."
+  },
+  "System Console": {
+    "target": "Consola do Sistema",
+    "note": "Feminine: a Consola do Sistema. Not yet rendered in the existing catalog; keep this form consistently."
+  },
+  "marketplace": {
+    "target": "Marketplace",
+    "note": "The existing catalog keeps 'Marketplace' in English (5 occurrences, 'Marketplace de plugins'). Masculine: o Marketplace."
+  },
+  "channel": {
+    "target": "canal",
+    "note": "Masculine: o canal, plural canais."
+  },
+  "team": {
+    "target": "equipa",
+    "note": "Feminine: a equipa. Never 'time' (pt-BR)."
+  },
+  "post": {
+    "target": "mensagem",
+    "note": "Same as message in user-facing strings. Admin/analytics strings use 'publicação' (e.g. 'Publicações de Robôs'); never 'artigo', which appears wrongly in a few channel-moderation strings."
+  },
+  "message": {
+    "target": "mensagem",
+    "note": "Feminine: a mensagem."
+  },
+  "thread": {
+    "target": "tópico",
+    "note": "Masculine: o tópico, plural tópicos; the Threads view is 'Tópicos'. Not rendered in the existing catalog yet; a handful of keys ('muteConversation', 'leaveConversation') refer to the conversation, which is 'conversa'."
+  },
+  "reply": {
+    "target": "resposta",
+    "note": "Verb: responder. Plural: respostas."
+  },
+  "direct message": {
+    "target": "mensagem direta",
+    "note": "Feminine; plural 'mensagens diretas'. The abbreviation DM is not used in Portuguese UI; spell it out."
+  },
+  "group message": {
+    "target": "mensagem de grupo",
+    "note": "Plural 'mensagens de grupo'. GM is spelled out."
+  },
+  "mention": {
+    "target": "menção",
+    "note": "Verb: mencionar. Plural: menções. '@mention' stays '@menção' or keeps the literal @nome."
+  },
+  "notification": {
+    "target": "notificação"
+  },
+  "pin": {
+    "target": "afixar",
+    "note": "Pinned messages = 'Mensagens afixadas'; unpin = 'desafixar'. Not 'fixar'."
+  },
+  "bookmark": {
+    "target": "marcador",
+    "note": "Masculine: o marcador. Established in channel_bookmarks and permissions strings ('Gerir Marcadores'). Verb usage: 'adicionar marcador'."
+  },
+  "saved messages": {
+    "target": "Mensagens guardadas",
+    "note": "save = guardar, unsave = 'remover dos guardados' / 'deixar de guardar'. Established in channel_header.flagged."
+  },
+  "draft": {
+    "target": "rascunho",
+    "note": "Masculine: o rascunho, plural rascunhos."
+  },
+  "scheduled post": {
+    "target": "mensagem agendada",
+    "note": "Plural 'mensagens agendadas'; verb 'agendar'."
+  },
+  "emoji": {
+    "target": "emoji",
+    "note": "Masculine: o emoji, plural emojis."
+  },
+  "custom emoji": {
+    "target": "emoji personalizado"
+  },
+  "reaction": {
+    "target": "reação",
+    "note": "Verb 'react' = reagir."
+  },
+  "status": {
+    "target": "estado",
+    "note": "Masculine: o estado. Never 'status'."
+  },
+  "custom status": {
+    "target": "estado personalizado",
+    "note": "Established in userAccountMenu.setCustomStatusMenuItem.clearTooltip."
+  },
+  "do not disturb": {
+    "target": "Não incomodar",
+    "note": "Status label; DND is spelled out."
+  },
+  "away": {
+    "target": "Ausente",
+    "note": "Established status label (userAccountMenu.awayMenuItem.label). Lowercase 'ausente' inside sentences."
+  },
+  "online": {
+    "target": "Online",
+    "note": "Kept as 'Online' in the existing catalog (webapp and server)."
+  },
+  "offline": {
+    "target": "Offline",
+    "note": "Kept as 'Offline' in the existing server catalog. 'desligado' is used only for a disconnected server."
+  },
+  "out of office": {
+    "target": "Fora do escritório"
+  },
+  "guest": {
+    "target": "convidado",
+    "note": "Masculine: o convidado, plural convidados. Guest access = 'Acesso de Convidado'. Note the same word is the past participle of 'convidar' (invited); rephrase if the sentence would be ambiguous."
+  },
+  "member": {
+    "target": "membro",
+    "note": "Masculine: o membro, plural membros."
+  },
+  "user": {
+    "target": "utilizador",
+    "note": "Never 'usuário' (pt-BR)."
+  },
+  "system admin": {
+    "target": "Administrador do Sistema",
+    "note": "Majority rendering (6 vs 2 'Administrador de Sistema' and one 'Administrador de Sistemas'); prefer 'do Sistema'."
+  },
+  "team admin": {
+    "target": "Administrador da Equipa",
+    "note": "Majority rendering (4 vs 2 'Administrador de Equipa')."
+  },
+  "channel admin": {
+    "target": "Administrador do Canal",
+    "note": "Catalog is split 2/2 with 'Administrador de Canal'; use 'do Canal' to parallel 'do Sistema' / 'da Equipa'."
+  },
+  "session": {
+    "target": "sessão",
+    "note": "Feminine; plural sessões."
+  },
+  "sign in": {
+    "target": "iniciar sessão",
+    "note": "Both 'sign in' and 'log in' = iniciar sessão (noun: início de sessão). The catalog addresses the user formally: 'Inicie sessão', never 'Entrar'/'Login'."
+  },
+  "sign out": {
+    "target": "terminar sessão",
+    "note": "Both 'sign out' and 'log out' = terminar sessão (button: 'Terminar sessão')."
+  },
+  "join": {
+    "target": "juntar-se a",
+    "note": "'juntar-se ao canal', 'juntou-se à equipa' (combined_system_message). Button label 'Juntar-se'. 'Aderir' appears in 'Qualquer Um Pode Aderir'."
+  },
+  "leave": {
+    "target": "sair de",
+    "note": "'Sair do canal', 'Sair da equipa'. Not 'abandonar'."
+  },
+  "archive": {
+    "target": "arquivar",
+    "note": "Adjective 'archived' = arquivado. Note 'arquivo' means archive, never 'file' (that is 'ficheiro')."
+  },
+  "unarchive": {
+    "target": "desarquivar",
+    "note": "Established: 'Desarquivar Canal', 'Desarquivar Equipa'."
+  },
+  "mute": {
+    "target": "silenciar",
+    "note": "'Silenciar canal'; unmute = 'Ativar som' / 'Deixar de silenciar'. Also used for microphone mute in Calls."
+  },
+  "follow": {
+    "target": "seguir",
+    "note": "'seguir o tópico'; following = 'a seguir'."
+  },
+  "unfollow": {
+    "target": "deixar de seguir"
+  },
+  "favorite": {
+    "target": "favorito",
+    "note": "Masculine: o favorito; sidebar category 'Favoritos'. Verb: 'adicionar aos favoritos'; unfavorite: 'remover dos favoritos'."
+  },
+  "search": {
+    "target": "procurar",
+    "note": "Verb and button label 'Procurar' (5 vs 1 'Pesquisar'); noun 'procura'. 'browse' = explorar ('Explorar canais')."
+  },
+  "integration": {
+    "target": "integração",
+    "note": "Feminine; plural integrações."
+  },
+  "slash command": {
+    "target": "comando da barra",
+    "note": "Established rendering (9 occurrences). Plural 'comandos da barra'."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Masculine: o webhook. Kept in English; the catalog wraps it in quotes in some strings ('webhook'), but plain 'webhook' is preferred."
+  },
+  "incoming webhook": {
+    "target": "webhook a receber",
+    "note": "Established: 'Webhooks a Receber' (add_incoming_webhook.doneHelp)."
+  },
+  "outgoing webhook": {
+    "target": "webhook de saída",
+    "note": "Established: 'Webhooks de Saída'."
+  },
+  "trigger word": {
+    "target": "palavra de ativação",
+    "note": "Plural 'palavras de ativação' (add_outgoing_webhook.triggerWords). A few strings have 'palavra de ativar'/'palavra de ação'; prefer 'palavra de ativação'."
+  },
+  "plugin": {
+    "target": "plugin",
+    "note": "Masculine: o plugin, plural plugins. Kept in English (150+ occurrences); never 'extensão'."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "Masculine: o bot. Majority keeps 'bot' (19 vs 2 'robô'). Bot account = 'conta de bot'."
+  },
+  "role": {
+    "target": "função",
+    "note": "Feminine; plural funções. Established in admin tables ('Função', 'Funções Permitidas'). Not 'papel'."
+  },
+  "permission": {
+    "target": "permissão",
+    "note": "Feminine; plural permissões."
+  },
+  "scheme": {
+    "target": "esquema",
+    "note": "Masculine: o esquema. Permission scheme = 'esquema de permissões'."
+  },
+  "license": {
+    "target": "licença"
+  },
+  "seat": {
+    "target": "lugar",
+    "note": "Plural 'lugares' in licensing strings. Not 'assento'."
+  },
+  "trial": {
+    "target": "versão de testes",
+    "note": "Majority rendering; free trial = 'versão de testes gratuita'. Noun form 'período de testes' when a period is meant. Not 'avaliação'."
+  },
+  "workspace": {
+    "target": "espaço de trabalho",
+    "note": "Masculine: o espaço de trabalho (9 occurrences)."
+  },
+  "subscription": {
+    "target": "subscrição",
+    "note": "Feminine. Never 'assinatura' (pt-BR)."
+  },
+  "deactivate": {
+    "target": "desativar",
+    "note": "Deactivated account = 'conta desativada'."
+  },
+  "invite": {
+    "target": "convidar",
+    "note": "Verb; as a noun use 'convite'."
+  },
+  "invitation": {
+    "target": "convite",
+    "note": "Masculine: o convite."
+  },
+  "sidebar": {
+    "target": "barra lateral"
+  },
+  "unread": {
+    "target": "por ler",
+    "note": "Established in accessibility.sidebar.types.unread. 'Unreads' filter = 'Por ler'. Not 'não lido'."
+  },
+  "attachment": {
+    "target": "anexo",
+    "note": "Masculine: o anexo, plural anexos."
+  },
+  "public channel": {
+    "target": "canal público",
+    "note": "Plural 'canais públicos'."
+  },
+  "private channel": {
+    "target": "canal privado",
+    "note": "Plural 'canais privados'."
+  },
+  "shared channel": {
+    "target": "canal partilhado",
+    "note": "Established: 'Canais Partilhados'. Never 'compartilhado' (pt-BR)."
+  },
+  "channel header": {
+    "target": "cabeçalho do canal",
+    "note": "Bare 'header' = cabeçalho."
+  },
+  "channel purpose": {
+    "target": "finalidade do canal",
+    "note": "Server catalog uses 'finalidade'; bare 'purpose' = finalidade. Not 'propósito'."
+  },
+  "system message": {
+    "target": "mensagem do sistema",
+    "note": "Plural 'mensagens do sistema'."
+  },
+  "persistent notification": {
+    "target": "notificação persistente",
+    "note": "Established: 'notificações persistentes' (admin.posts.persistentNotificationsMaxCount.title)."
+  },
+  "message priority": {
+    "target": "prioridade da mensagem"
+  },
+  "urgent": {
+    "target": "Urgente",
+    "note": "Priority label; lowercase 'urgente' in sentences. 'Important' = Importante."
+  },
+  "recap": {
+    "target": "resumo",
+    "note": "Masculine: o resumo, plural resumos. 'summary' is also 'resumo'; rely on context."
+  },
+  "agent": {
+    "target": "agente",
+    "note": "Masculine: o agente, plural agentes. 'AI agent' = 'agente de IA'."
+  },
+  "burn-on-read": {
+    "target": "destruir após leitura",
+    "note": "Message type: 'mensagem de destruição após leitura'; label 'DESTRUIR APÓS LEITURA'. Not rendered in the existing catalog yet."
+  },
+  "magic link": {
+    "target": "ligação mágica",
+    "note": "Feminine. 'link' is 'ligação'/'hiperligação' in this catalog (never 'link')."
+  },
+  "personal access token": {
+    "target": "código de acesso pessoal",
+    "note": "Established: 'Código de Acesso Pessoal' (user.settings.tokens). 'token' is rendered 'código' throughout the webapp catalog."
+  },
+  "announcement banner": {
+    "target": "faixa de anúncios",
+    "note": "Established in admin.customization.announcement strings; bare 'banner' = faixa. Note the server catalog keeps 'banner'; prefer 'faixa' in the webapp."
+  },
+  "channel banner": {
+    "target": "faixa do canal",
+    "note": "Established: 'Gerir Faixa do Canal'."
+  },
+  "keyword": {
+    "target": "palavra-chave",
+    "note": "Plural 'palavras-chave' (notification settings and compliance reports)."
+  },
+  "user group": {
+    "target": "grupo de utilizadores",
+    "note": "Bare 'group' = grupo."
+  },
+  "permalink": {
+    "target": "permalink",
+    "note": "Kept in English in the existing catalog (8 occurrences). Masculine: o permalink."
+  },
+  "profile": {
+    "target": "perfil"
+  },
+  "username": {
+    "target": "nome de utilizador"
+  },
+  "nickname": {
+    "target": "apelido",
+    "note": "Established in user.settings.general.nickname. Not 'alcunha'. Note 'apelido' also means surname in pt-PT; 'last name' is rendered 'apelido' too, so rely on context."
+  },
+  "display name": {
+    "target": "nome a exibir",
+    "note": "Established in webapp and server ('nome a exibir'). Not 'nome de exibição'."
+  },
+  "collapsed reply threads": {
+    "target": "Tópicos de resposta recolhidos",
+    "note": "Feature name; the Threads view itself is 'Tópicos'."
+  },
+  "auto-translation": {
+    "target": "tradução automática",
+    "note": "'auto-translated' = traduzido automaticamente."
+  },
+  "data retention": {
+    "target": "retenção de dados",
+    "note": "Policy = 'política de retenção de dados'."
+  },
+  "compliance export": {
+    "target": "exportação de conformidade",
+    "note": "Established: 'Exportação de Conformidade'."
+  },
+  "access control": {
+    "target": "controlo de acesso",
+    "note": "Attribute-based access control = 'controlo de acesso baseado em atributos'; policy = 'política de controlo de acesso'. Never 'controle' (pt-BR)."
+  },
+  "attribute": {
+    "target": "atributo",
+    "note": "Masculine: o atributo. Custom profile attribute = 'atributo de perfil personalizado'."
+  },
+  "onboarding": {
+    "target": "integração inicial",
+    "note": "The existing catalog leaves 'Onboarding' English twice; where a Portuguese noun is needed use 'integração inicial'. Prefer rephrasing ('primeiros passos', 'configuração inicial') when describing the first-run tour."
+  },
+  "Town Square": {
+    "target": "Praça Pública",
+    "note": "Established default-channel name in server i18n (api.channel.create_default_channels.town_square)."
+  },
+  "Off-Topic": {
+    "target": "Fora do Tópico",
+    "note": "Established default-channel name in server i18n (api.channel.create_default_channels.off_topic)."
+  },
+  "read-only": {
+    "target": "apenas de leitura",
+    "note": "Established: 'Canais de anúncio apenas de leitura'. Not 'somente leitura' (pt-BR)."
+  },
+  "server": {
+    "target": "servidor",
+    "note": "Masculine: o servidor, plural servidores."
+  }
+}

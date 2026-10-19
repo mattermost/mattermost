@@ -21,7 +21,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -7205,7 +7207,7 @@ func TestAppendABACEtag(t *testing.T) {
 	t.Run("returns the base ETag untouched and reads no store when ABAC is off", func(t *testing.T) {
 		th, mockACP, mockAttributes := setup(t, false)
 
-		assert.Equal(t, base, th.App.AppendABACEtag(base, model.NewId(), model.NewId()))
+		assert.Equal(t, base, th.App.AppendABACEtag(th.Context.WithSession(&model.Session{UserId: model.NewId()}), base, model.NewId()))
 
 		mockACP.AssertNotCalled(t, "GetEtagEpoch", mock.Anything, mock.Anything)
 		mockAttributes.AssertNotCalled(t, "GetUserPropertyValuesEpoch", mock.Anything, mock.Anything)
@@ -7219,19 +7221,19 @@ func TestAppendABACEtag(t *testing.T) {
 		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("111-2", nil).Once()
 		mockAttributes.On("GetUserPropertyValuesEpoch", mock.Anything, userID).Return("222-3", nil).Once()
 
-		assert.Equal(t, base+".111-2.222-3", th.App.AppendABACEtag(base, userID, channelID))
+		assert.Equal(t, base+".111-2.222-3."+unknownABACEtagEpoch, th.App.AppendABACEtag(th.Context.WithSession(&model.Session{UserId: userID}), base, channelID))
 
 		mockACP.AssertExpectations(t)
 		mockAttributes.AssertExpectations(t)
 	})
 
-	t.Run("skips the attribute epoch when there is no user in scope", func(t *testing.T) {
+	t.Run("skips the attribute and session epochs when there is no session in scope", func(t *testing.T) {
 		th, mockACP, mockAttributes := setup(t, true)
 		channelID := model.NewId()
 
 		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("111-2", nil).Once()
 
-		assert.Equal(t, base+".111-2."+unknownABACEtagEpoch, th.App.AppendABACEtag(base, "", channelID))
+		assert.Equal(t, base+".111-2."+unknownABACEtagEpoch+"."+unknownABACEtagEpoch, th.App.AppendABACEtag(th.Context, base, channelID))
 
 		mockAttributes.AssertNotCalled(t, "GetUserPropertyValuesEpoch", mock.Anything, mock.Anything)
 	})
@@ -7244,11 +7246,144 @@ func TestAppendABACEtag(t *testing.T) {
 		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("", errors.New("boom")).Twice()
 		mockAttributes.On("GetUserPropertyValuesEpoch", mock.Anything, userID).Return("222-3", nil).Twice()
 
-		etag := th.App.AppendABACEtag(base, userID, channelID)
+		etag := th.App.AppendABACEtag(th.Context.WithSession(&model.Session{UserId: userID}), base, channelID)
 
 		assert.NotEqual(t, base, etag, "a failed epoch lookup must not collapse back onto the ungated ETag")
 		assert.Contains(t, etag, unknownABACEtagEpoch)
-		assert.NotEqual(t, etag, th.App.AppendABACEtag(base, userID, channelID),
+		assert.NotEqual(t, etag, th.App.AppendABACEtag(th.Context.WithSession(&model.Session{UserId: userID}), base, channelID),
 			"two failed lookups must not produce the same ETag, or a policy change between them would 304")
+	})
+
+	t.Run("changes only when a session attribute value changes", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		noAttrs := th.App.AppendABACEtag(rctx, base, th.BasicChannel.Id)
+
+		require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(session.Id, map[string]any{
+			model.SessionAttributesPropertyFieldClientVersion: "6.2.0",
+		}, 1000))
+		first := th.App.AppendABACEtag(rctx, base, th.BasicChannel.Id)
+		assert.NotEqual(t, noAttrs, first)
+
+		require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(session.Id, map[string]any{
+			model.SessionAttributesPropertyFieldClientVersion: "6.2.0",
+		}, 2000))
+		assert.Equal(t, first, th.App.AppendABACEtag(rctx, base, th.BasicChannel.Id),
+			"refreshing with the same values must not change the ETag")
+
+		require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(session.Id, map[string]any{
+			model.SessionAttributesPropertyFieldClientVersion: "6.4.0",
+		}, 3000))
+		assert.NotEqual(t, first, th.App.AppendABACEtag(rctx, base, th.BasicChannel.Id))
+	})
+}
+
+// replicaLagPostStore simulates a read replica that has not yet received one specific
+// post. Any lookup of that post which is not pinned to the master DB fails with a
+// not-found, exactly as a lagging PostgreSQL hot standby would. Every other lookup
+// passes through to the real store.
+type replicaLagPostStore struct {
+	store.PostStore
+
+	mu            sync.Mutex
+	laggingPostID string
+}
+
+func (s *replicaLagPostStore) setLaggingPost(postID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.laggingPostID = postID
+}
+
+func (s *replicaLagPostStore) missesPost(rctx request.CTX, postID string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.laggingPostID != "" && s.laggingPostID == postID && !sqlstore.HasMaster(rctx.Context())
+}
+
+func (s *replicaLagPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
+	if s.missesPost(rctx, id) {
+		return nil, store.NewErrNotFound("Post", id)
+	}
+	return s.PostStore.GetSingle(rctx, id, inclDeleted)
+}
+
+func (s *replicaLagPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	if s.missesPost(rctx, id) {
+		return nil, store.NewErrNotFound("Post", id)
+	}
+	return s.PostStore.Get(rctx, id, opts, userID, sanitizeOptions)
+}
+
+// replicaLagStore decorates a real Store, swapping Post() for the lagging implementation
+// above. All other store calls pass through.
+type replicaLagStore struct {
+	store.Store
+	posts *replicaLagPostStore
+}
+
+func (s *replicaLagStore) Post() store.PostStore {
+	return s.posts
+}
+
+// TestPostMutationsReadFromMaster covers MM-70867 at the app layer. UpdatePost, PatchPost
+// and DeletePost each read the row they are about to mutate, and that read must come from
+// master: the post may have been written milliseconds earlier, so a lagging replica would
+// report it missing. These entry points are reached by callers that never pass through the
+// api4 handlers - the plugin API, interactive action responses, post restore - so they
+// cannot rely on the caller having pinned the context.
+func TestPostMutationsReadFromMaster(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	originalStore := th.App.Srv().Store()
+	lagging := &replicaLagPostStore{PostStore: originalStore.Post()}
+	th.App.Srv().SetStore(&replicaLagStore{Store: originalStore, posts: lagging})
+	t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
+
+	// createPostWithLaggingReplica creates a post and then makes every unpinned lookup
+	// of it miss, reproducing the read-after-write race.
+	createPostWithLaggingReplica := func(t *testing.T) *model.Post {
+		t.Helper()
+
+		post := th.CreatePost(t, th.BasicChannel)
+		lagging.setLaggingPost(post.Id)
+		t.Cleanup(func() { lagging.setLaggingPost("") })
+
+		return post
+	}
+
+	t.Run("UpdatePost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		edited := post.Clone()
+		edited.Message = "edited message"
+		updated, _, appErr := th.App.UpdatePost(th.Context, edited, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, appErr, "UpdatePost must not depend on its caller having pinned the context")
+		require.Equal(t, "edited message", updated.Message)
+	})
+
+	t.Run("PatchPost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		patched, _, appErr := th.App.PatchPost(th.Context, post.Id, &model.PostPatch{
+			Message: model.NewPointer("patched message"),
+		}, nil)
+		require.Nil(t, appErr, "PatchPost must not depend on its caller having pinned the context")
+		require.Equal(t, "patched message", patched.Message)
+	})
+
+	t.Run("DeletePost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		_, appErr := th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
+		require.Nil(t, appErr, "DeletePost must not depend on its caller having pinned the context")
 	})
 }

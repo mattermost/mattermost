@@ -66,6 +66,7 @@ func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) 
 	}
 	for targetID := range seen {
 		a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
+		a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
 	}
 }
 
@@ -82,6 +83,7 @@ func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
 		return
 	}
 	a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
+	a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
 }
 
 // invalidateAllUserAttributeCaches marks the AttributeView stale and drops every cached CPA epoch.
@@ -94,6 +96,7 @@ func (a *App) invalidateAllUserAttributeCaches() {
 		return
 	}
 	a.Srv().Store().Attributes().ClearUserPropertyValuesEpochCache()
+	a.Srv().Store().Attributes().ClearUserAttributesCache()
 }
 
 // CreatePropertyValue creates a new property value.
@@ -303,7 +306,7 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 		}
 		for _, v := range values {
 			f, ok := fieldByID[v.FieldID]
-			if !ok {
+			if !ok || f.DeleteAt != 0 {
 				return nil, model.NewAppError(
 					"UpsertPropertyValues",
 					"app.property_value.upsert.field_not_found.app_error",

@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
@@ -77,7 +78,10 @@ func (rp *RemoteProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Co
 		return response(args.T("api.command_remote.permission_required", map[string]any{"Permission": "manage_secure_connections"}))
 	}
 
-	margs := parseNamedArgs(args.Command)
+	margs, err := parseNamedArgs(args.T, args.Command)
+	if err != nil {
+		return response(err.Error())
+	}
 	action, ok := margs[ActionKey]
 	if !ok {
 		return response(args.T("api.command_remote.missing_command", map[string]any{"Actions": AvailableRemoteActions}))
@@ -135,19 +139,13 @@ func (rp *RemoteProvider) doCreate(a *app.App, args *model.CommandArgs, margs ma
 		Name:        name,
 		DisplayName: displayname,
 		SiteURL:     model.SiteURLPending + model.NewId(), // require a unique siteurl
-		Token:       model.NewId(),
 		CreatorId:   args.UserId,
 	}
 
-	rcSaved, appErr := a.AddRemoteCluster(rc)
+	_, inviteCode, appErr := a.CreateRemoteClusterWithInvite(rc, url, password)
 	if appErr != nil {
-		return response(args.T("api.command_remote.add_remote.error", map[string]any{"Error": appErr.Error()}))
-	}
-
-	// Display the encrypted invitation
-	inviteCode, err := a.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, password)
-	if err != nil {
-		return response(args.T("api.command_remote.encrypt_invitation.error", map[string]any{"Error": err.Error()}))
+		msg := translatedAppErrMessage(a, args, "Failed to add secure connection", appErr, mlog.String("name", name))
+		return response(args.T("api.command_remote.add_remote.error", map[string]any{"Error": msg}))
 	}
 
 	return response("##### " + args.T("api.command_remote.invitation_created") + "\n" +
@@ -179,7 +177,8 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 	// invite is encoded as base64 and encrypted
 	invite, dErr := a.DecryptRemoteClusterInvite(blob, password)
 	if dErr != nil {
-		return response(args.T("api.command_remote.decode_invitation.error", map[string]any{"Error": dErr.Error()}))
+		msg := translatedAppErrMessage(a, args, "Failed to decode secure connection invitation", dErr)
+		return response(args.T("api.command_remote.decode_invitation.error", map[string]any{"Error": msg}))
 	}
 
 	rcs, _ := a.GetRemoteClusterService()
@@ -192,9 +191,10 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 		return response(args.T("api.command_remote.site_url_not_set"))
 	}
 
-	rc, err := rcs.AcceptInvitation(invite, name, displayname, args.UserId, url, "")
-	if err != nil {
-		return response(args.T("api.command_remote.accept_invitation.error", map[string]any{"Error": err.Error()}))
+	rc, appErr := rcs.AcceptInvitation(invite, name, displayname, args.UserId, url, "")
+	if appErr != nil {
+		msg := translatedAppErrMessage(a, args, "Failed to accept secure connection invitation", appErr, mlog.String("remote_id", invite.RemoteId))
+		return response(args.T("api.command_remote.accept_invitation.error", map[string]any{"Error": msg}))
 	}
 
 	return response("##### " + args.T("api.command_remote.accept_invitation", map[string]any{"SiteURL": rc.GetSiteURL()}))
@@ -202,19 +202,23 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 
 // doRemove removes a remote cluster from the database, effectively revoking the trust relationship.
 func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
-	id, ok := margs["connectionID"]
-	if !ok {
-		return response(args.T("api.command_remote.missing_empty", map[string]any{"Arg": "remoteId"}))
+	id := margs["connectionID"]
+	if id == "" {
+		return response(args.T("api.command_remote.missing_empty", map[string]any{"Arg": "connectionID"}))
+	}
+	if !model.IsValidId(id) {
+		return response(args.T("api.command_remote.invalid_id", map[string]any{"Arg": "connectionID", "Value": id}))
 	}
 
 	deleted, err := a.DeleteRemoteCluster(id)
 	if err != nil {
-		response(args.T("api.command_remote.remove_remote.error", map[string]any{"Error": err.Error()}))
+		msg := translatedAppErrMessage(a, args, "Failed to remove secure connection", err, mlog.String("remote_id", id))
+		return response(args.T("api.command_remote.remove_remote.error", map[string]any{"Error": msg}))
 	}
 
-	result := "removed"
+	result := args.T("api.command_remote.cluster_removed.result_removed")
 	if !deleted {
-		result = "**NOT FOUND**"
+		result = args.T("api.command_remote.cluster_removed.result_not_found")
 	}
 	return response("##### " + args.T("api.command_remote.cluster_removed", map[string]any{"RemoteId": id, "Result": result}))
 }
@@ -223,7 +227,8 @@ func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs ma
 func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[string]string) *model.CommandResponse {
 	list, err := a.GetAllRemoteClusters(0, 999999, model.RemoteClusterQueryFilter{IncludeDeleted: true})
 	if err != nil {
-		return response(args.T("api.command_remote.fetch_status.error", map[string]any{"Error": err.Error()}))
+		msg := translatedAppErrMessage(a, args, "Failed to fetch secure connections", err)
+		return response(args.T("api.command_remote.fetch_status.error", map[string]any{"Error": msg}))
 	}
 
 	if len(list) == 0 {
@@ -257,6 +262,19 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[st
 		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s | %s | %s | %s |\n", rc.Name, rc.DisplayName, rc.RemoteId, rc.GetSiteURL(), rc.DefaultTeamId, accepted, online, lastPing, deleted)
 	}
 	return response(sb.String())
+}
+
+// translatedAppErrMessage logs appErr in full and returns only its message, translated for the caller.
+// It does not build the reply itself because i18n extract only finds ids passed to T as string literals.
+func translatedAppErrMessage(a *app.App, args *model.CommandArgs, logMsg string, appErr *model.AppError, fields ...mlog.Field) string {
+	level := mlog.LvlWarn
+	if appErr.StatusCode >= 400 && appErr.StatusCode < 500 {
+		level = mlog.LvlDebug
+	}
+	a.Log().Log(level, logMsg, append(fields, mlog.Err(appErr))...)
+
+	appErr.Translate(args.T)
+	return appErr.Message
 }
 
 func isOnline(lastPing int64) bool {
