@@ -15,7 +15,11 @@
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 10,
-        "MaxOpenConns": 100
+        "MaxOpenConns": 200,
+        "Trace": false,
+        "QueryTimeout": 30,
+        "DisableDatabaseSearch": false,
+        "ReplicaLagSettings": []
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -53,6 +57,17 @@
         "EnableGossipEncryption": true,
         "ReadOnlyConfig": true,
         "GossipPort": 8074
+    },
+    "ElasticsearchSettings": {
+        "ConnectionURL": "https://search.example.com:9200",
+        "Backend": "opensearch",
+        "Username": "mattermost",
+        "Password": "********************************",
+        "EnableIndexing": true,
+        "EnableSearching": true,
+        "EnableAutocomplete": true,
+        "SkipTLSVerification": false,
+        "LiveIndexingBatchSize": 1
     },
     "CacheSettings": {
         "CacheType": "lru",

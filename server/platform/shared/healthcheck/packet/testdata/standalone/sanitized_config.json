@@ -15,7 +15,11 @@
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 10,
-        "MaxOpenConns": 100
+        "MaxOpenConns": 100,
+        "Trace": false,
+        "QueryTimeout": 30,
+        "DisableDatabaseSearch": false,
+        "ReplicaLagSettings": []
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -53,6 +57,17 @@
         "EnableGossipEncryption": true,
         "ReadOnlyConfig": true,
         "GossipPort": 8074
+    },
+    "ElasticsearchSettings": {
+        "ConnectionURL": "http://localhost:9200",
+        "Backend": "elasticsearch",
+        "Username": "elastic",
+        "Password": "********************************",
+        "EnableIndexing": false,
+        "EnableSearching": false,
+        "EnableAutocomplete": false,
+        "SkipTLSVerification": false,
+        "LiveIndexingBatchSize": 10
     },
     "CacheSettings": {
         "CacheType": "lru",
