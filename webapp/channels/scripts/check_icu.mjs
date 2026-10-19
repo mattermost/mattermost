@@ -34,11 +34,15 @@
  *     or variable and everything after it. The message still parses, so this
  *     check is the only thing that catches it.
  *
- * The per-message checks live in icu_rules.mjs. One of its rules is a warning
- * rather than an error, because the catalogs already ship strings that break
- * it:
+ * The per-message checks live in icu_rules.mjs. Two of its rules are warnings
+ * rather than errors, because the catalogs already ship strings that break
+ * them:
  *
  *   - a horizontal arrow in a right-to-left locale, which points backwards
+ *   - a plural that shows its count but lacks a form the locale needs for
+ *     some integer, so ICU falls back to "other": "5 каналы" for "5 каналов".
+ *     A source plural that itself leaves out a form English needs is not held
+ *     against the translations that copy it.
  *
  * Key parity is a separate question from whether the entries that exist are
  * correct. An extra key, one en.json does not have, is only ever a warning:

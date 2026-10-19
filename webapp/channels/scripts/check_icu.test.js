@@ -315,13 +315,14 @@ describe('check_icu', () => {
             expect(stderr).toContain(`"count" is used as ${role}`);
         });
 
-        test('does not compare plural categories, which belong to the locale', () => {
-            const {code} = check(
+        test('accepts the plural forms the locale needs rather than the ones the source has', () => {
+            const {code, stderr} = check(
                 {'a.b': '{count, plural, one {# item} other {# items}}'},
                 {'ru.json': {'a.b': '{count, plural, one {# элемент} few {# элемента} many {# элементов} other {# элемента}}'}},
             );
 
             expect(code).toBe(0);
+            expect(stderr).toBe('');
         });
 
         test('does not treat # as a variable', () => {
@@ -331,6 +332,73 @@ describe('check_icu', () => {
             );
 
             expect(code).toBe(0);
+        });
+    });
+
+    describe('plural forms', () => {
+        const items = '{count, plural, one {# item} other {# items}}';
+
+        // ICU falls back to "other" for a missing form: it renders, in the wrong
+        // grammatical case. A warning, because the catalogs ship hundreds today.
+        test('warns about a form the locale needs for a count it shows', () => {
+            const {code, stderr} = check({'a.b': items}, {'ru.json': {'a.b': '{count, plural, one {# элемент} other {# элемента}}'}});
+
+            expect(code).toBe(0);
+            expect(stderr).toContain('ru.json:a.b: plural "count" has no few/many form, so counts such as 2, 5 render with "other"');
+        });
+
+        test('counts a variable rendered outside the plural as shown', () => {
+            const {stderr} = check(
+                {'a.b': '{count, number} {count, plural, one {channel} other {channels}}'},
+                {'ru.json': {'a.b': '{count, number} {count, plural, one {канал} other {каналы}}'}},
+            );
+
+            expect(stderr).toContain('plural "count" has no few/many form');
+        });
+
+        test('holds a promoted plural to the locale too', () => {
+            const {stderr} = check({'a.b': '{count} items'}, {'ru.json': {'a.b': '{count, plural, one {# элемент} other {# элемента}}'}});
+
+            expect(stderr).toContain('plural "count" has no few/many form');
+        });
+
+        test('takes an explicit =N arm as covering that count', () => {
+            const {stderr} = check(
+                {'a.b': '{count, plural, =1 {one item} other {# items}}'},
+                {'de.json': {'a.b': '{count, plural, =1 {ein Element} other {# Elemente}}'}},
+            );
+
+            expect(stderr).toBe('');
+        });
+
+        test('ignores a form only fractions or very large numbers select', () => {
+            const {stderr} = check({'a.b': items}, {'fr.json': {'a.b': '{count, plural, one {# élément} other {# éléments}}'}});
+
+            expect(stderr).toBe('');
+        });
+
+        test('ignores a plural whose count is not shown', () => {
+            const {stderr} = check(
+                {'a.b': '{count, plural, one {Delete file?} other {Delete files?}}'},
+                {'ru.json': {'a.b': '{count, plural, one {Удалить файл?} other {Удалить файлы?}}'}},
+            );
+
+            expect(stderr).toBe('');
+        });
+
+        test('does not hold a translation to more than an incomplete source', () => {
+            const {stderr} = check(
+                {'a.b': '{count, plural, =0 {} other {{count} Scheduled}}'},
+                {'ru.json': {'a.b': '{count, plural, =0 {} other {{count} запланировано}}'}},
+            );
+
+            expect(stderr).toBe('');
+        });
+
+        test('does not report a form the locale never selects', () => {
+            const {stderr} = check({'a.b': items}, {'ja.json': {'a.b': '{count, plural, one {# 件} other {# 件}}'}});
+
+            expect(stderr).toBe('');
         });
     });
 
