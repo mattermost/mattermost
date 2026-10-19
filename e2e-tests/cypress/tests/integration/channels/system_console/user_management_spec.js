@@ -273,7 +273,7 @@ describe('User Management', () => {
 
         // * Check for the error messages, if any.
         if (errorMsg.length > 0) {
-            cy.get('.Input___error').should('be.visible').and('contain', errorMsg);
+            cy.get('[class*="_field-message"]').should('be.visible').and('contain', errorMsg);
 
             // # Close the modal.
             cy.get('button.close').click();

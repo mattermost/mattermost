@@ -313,16 +313,21 @@
                         }
                     }
 
-                    .Input_fieldset {
-                        background: var(--center-channel-bg);
+                    .Input_container {
+                        [class*='_text-input__wrapper'],
+                        [class*='_text-area__wrapper'] {
+                            background: var(--center-channel-bg);
+                        }
 
-                        .Input_wrapper {
+                        [class*='_text-input__inner'],
+                        [class*='_text-area__inner'] {
                             padding: 0 12px;
+                        }
 
-                            .Input {
-                                height: 28px;
-                                border: none;
-                            }
+                        [class*='_text-input__input'],
+                        [class*='_text-area__input'] {
+                            height: 28px;
+                            border: none;
                         }
                     }
                 }

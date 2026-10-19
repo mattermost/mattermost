@@ -6,7 +6,9 @@
     }
 
     .description-section-input {
-        .Input_fieldset {
+        .Input_container,
+        [class*='_text-area'],
+        [class*='_text-input'] {
             height: 100%;
         }
     }

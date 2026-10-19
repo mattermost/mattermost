@@ -247,9 +247,11 @@ const Input = React.forwardRef((
     const message = customInputLabel?.value;
     const isInvalid = Boolean(hasError) || customInputLabel?.type === ItemStatus.ERROR;
 
+    // Floating label may fall back to placeholder when no label is passed. In that
+    // case omit the in-field placeholder so the same string is not shown twice.
     const floatingLabel = useLegend ? formatAsString(formatMessage, label || placeholder) : undefined;
     const compassPlaceholder = useLegend ?
-        formatAsString(formatMessage, placeholder) :
+        (label ? formatAsString(formatMessage, placeholder) : undefined) :
         formatAsString(formatMessage, focused ? (label && placeholder) || label : label || placeholder);
     const ariaLabel = useLegend ? undefined : formatAsString(formatMessage, label || placeholder);
     const clearLabel = clearLabelFallback || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'});

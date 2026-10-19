@@ -300,7 +300,11 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                             name='currentPassword'
                             autoFocus={true}
                             onChange={this.updateCurrentPassword}
-                            onBlur={this.validateCurrentPassword}
+                            onBlur={() => {
+                                // Defer so a mouseup on Save isn't displaced by the
+                                // FieldMessage layout shift from blur validation.
+                                window.setTimeout(() => this.validateCurrentPassword(), 0);
+                            }}
                             value={this.state.currentPassword}
                             label={defineMessage({
                                 id: 'user.settings.security.currentPassword',
@@ -320,7 +324,9 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                             id='newPassword'
                             name='newPassword'
                             onChange={this.updateNewPassword}
-                            onBlur={this.validateNewPassword}
+                            onBlur={() => {
+                                window.setTimeout(() => this.validateNewPassword(), 0);
+                            }}
                             value={this.state.newPassword}
                             label={defineMessage({
                                 id: 'user.settings.security.newPassword',
@@ -340,7 +346,9 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                             id='confirmPassword'
                             name='confirmPassword'
                             onChange={this.updateConfirmPassword}
-                            onBlur={this.validateConfirmPassword}
+                            onBlur={() => {
+                                window.setTimeout(() => this.validateConfirmPassword(), 0);
+                            }}
                             value={this.state.confirmPassword}
                             label={defineMessage({
                                 id: 'user.settings.security.retypePassword',

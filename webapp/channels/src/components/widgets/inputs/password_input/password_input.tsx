@@ -95,10 +95,15 @@ const PasswordInput = React.forwardRef((
         (labelProp ? formatAsString(formatMessage, labelProp) : defaultLabel) :
         undefined;
 
+    // Match legacy Input adapter: id defaults to input_${name} (login/signup Cypress
+    // and Playwright target #input_password-input). Reveal toggle stays #password_toggle.
+    const resolvedId = id ?? `input_${name}`;
+    const resolvedPlaceholder = placeholder ?? defaultLabel;
+
     return (
         <CompassPasswordInput
             ref={ref}
-            id={id}
+            id={resolvedId}
             className={classNames('password-input', className)}
             name={name}
             size={INPUT_SIZE_MAP[inputSize]}
@@ -107,7 +112,7 @@ const PasswordInput = React.forwardRef((
             onBlur={onBlur}
             onFocus={onFocus}
             label={label}
-            placeholder={placeholder}
+            placeholder={resolvedPlaceholder}
             maxLength={maxLength}
             invalid={Boolean(hasError) || Boolean(error)}
             message={message}
@@ -123,7 +128,7 @@ const PasswordInput = React.forwardRef((
                 id: 'widget.passwordInput.hidePassword',
                 defaultMessage: 'Hide password',
             })}
-            revealButtonProps={{id: `${name}_toggle`}}
+            revealButtonProps={{id: 'password_toggle'}}
             {...otherProps}
         />
     );

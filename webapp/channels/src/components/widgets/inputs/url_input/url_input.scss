@@ -30,10 +30,9 @@
 
             // Compact inline path editor: Compass small (32px) matches
             // .url-input-container min-height so Edit doesn't grow the row.
-            .url-input-editable-path {
-                [class*='_text-input--size-small'] {
-                    gap: 0;
-                }
+            // Size class is on the same node as url-input-editable-path (Input root).
+            .url-input-editable-path[class*='_text-input--size-small'] {
+                gap: 0;
             }
         }
 

@@ -2,7 +2,7 @@
     padding: 14px 0;
     font-size: 14px;
 
-    .Input___customMessage.Input___error {
+    [class*='_field-message'][class*='--tone-error'] {
         line-height: 14px;
     }
 
@@ -14,7 +14,7 @@
         padding-bottom: 12px;
         font-weight: 400;
 
-        .Input_fieldset {
+        .Input_container {
             max-width: 110px;
         }
 

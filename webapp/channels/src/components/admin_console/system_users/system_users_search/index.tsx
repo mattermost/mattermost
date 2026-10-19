@@ -36,6 +36,7 @@ export function SystemUsersSearch(props: Props) {
     }
 
     function handleClear() {
+        clearTimeout(timeout.current);
         setInputValue('');
         dispatch(setAdminConsoleUsersManagementTableProperties({searchTerm: ''}));
     }
@@ -43,6 +44,7 @@ export function SystemUsersSearch(props: Props) {
     return (
         <div className='system-users__filter'>
             <SearchInput
+                id='input_searchTerm'
                 name='searchTerm'
                 className='systemUsersSearch'
                 placeholder={formatMessage({id: 'admin.system_users.search.placeholder', defaultMessage: 'Search users'})}

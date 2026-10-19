@@ -7315,6 +7315,10 @@
     "defaultMessage": "No groups found",
     "description": "Empty-state text when the AD/LDAP groups list or search returns no groups."
   },
+  "admin.group_settings.groups_list.open_filters": {
+    "defaultMessage": "Open group filters",
+    "description": "Accessible label for the button that opens the AD/LDAP groups list filter panel next to search."
+  },
   "admin.group_settings.groups_list.paginatorCount": {
     "defaultMessage": "{startCount, number} - {endCount, number} of {total, number}",
     "description": "Pagination counter under group/user lists, e.g. '1 - 200 of 500'; placeholders are formatted numbers."
@@ -17339,10 +17343,6 @@
     "defaultMessage": "This name is managed by the {authService} login provider and cannot be changed here.",
     "description": "Tooltip hint on the disabled first/last name inputs on the admin user configuration page; {authService} is the SSO provider name in uppercase."
   },
-  "admin.userManagement.userDetail.managedByProvider.title": {
-    "defaultMessage": "Managed by login provider",
-    "description": "Tooltip title shown over disabled profile fields on the admin user configuration page when the account is managed by an SSO login provider."
-  },
   "admin.userManagement.userDetail.managedByProvider.username": {
     "defaultMessage": "This username is managed by the {authService} login provider and cannot be changed here.",
     "description": "Tooltip hint on the disabled username input on the admin user configuration page; {authService} is the SSO provider name in uppercase."
@@ -19254,6 +19254,10 @@
   "channel_bookmarks.create.file_input.label": {
     "defaultMessage": "Attachment",
     "description": "Field label above the file preview/picker in the bookmark modal for file-type bookmarks."
+  },
+  "channel_bookmarks.create.link_checking": {
+    "defaultMessage": "Checking link…",
+    "description": "Inline FieldMessage shown under the bookmark link field while the URL is being validated."
   },
   "channel_bookmarks.create.link_info": {
     "defaultMessage": "Add a link to any post, file, or any external link",
@@ -31970,6 +31974,10 @@
   "url_input.buttonLabel.edit": {
     "defaultMessage": "Edit",
     "description": "Button that switches the URL input widget into editing mode so the user can change the generated URL slug."
+  },
+  "url_input.inputLabel": {
+    "defaultMessage": "Channel URL",
+    "description": "Accessible name for the editable channel URL slug field shown after clicking Edit in the URL input widget."
   },
   "url_input.label.url": {
     "defaultMessage": "URL: ",
