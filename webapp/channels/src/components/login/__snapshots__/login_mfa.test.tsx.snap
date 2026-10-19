@@ -250,7 +250,6 @@ exports[`components/login/LoginMfa should match snapshot 1`] = `
                   data-testid="input-wrapper"
                   id="input_token"
                   name="token"
-                  placeholder="MFA Token"
                   type="text"
                   value=""
                 />

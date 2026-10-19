@@ -84,7 +84,6 @@ Object {
                       data-testid="input-wrapper"
                       id="input_name"
                       name="name"
-                      placeholder="Name"
                       type="text"
                       value=""
                     />
@@ -117,7 +116,6 @@ Object {
                       data-testid="input-wrapper"
                       id="input_email"
                       name="email"
-                      placeholder="Business Email"
                       type="text"
                       value="test@mattermost.com"
                     />
@@ -189,7 +187,6 @@ Object {
                       data-testid="input-wrapper"
                       id="input_company_name"
                       name="company_name"
-                      placeholder="Company Name"
                       type="text"
                       value=""
                     />

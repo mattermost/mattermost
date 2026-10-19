@@ -17,7 +17,6 @@ describe('components/ClusterSettings', () => {
     test('should match snapshot, encryption disabled', () => {
         const props = {
             ...baseProps,
-            value: [],
         };
         const config = {
             ClusterSettings: {
@@ -44,7 +43,6 @@ describe('components/ClusterSettings', () => {
     test('should match snapshot, encryption enabled', () => {
         const props = {
             ...baseProps,
-            value: [],
         };
         const config = {
             ClusterSettings: {
@@ -71,7 +69,6 @@ describe('components/ClusterSettings', () => {
     test('should match snapshot, compression enabled', () => {
         const props = {
             ...baseProps,
-            value: [],
         };
         const config = {
             ClusterSettings: {
@@ -98,7 +95,6 @@ describe('components/ClusterSettings', () => {
     test('should match snapshot, compression disabled', () => {
         const props = {
             ...baseProps,
-            value: [],
         };
         const config = {
             ClusterSettings: {
@@ -137,7 +133,6 @@ describe('components/ClusterSettings', () => {
         renderWithContext(
             <ClusterSettings
                 {...baseProps}
-                value={[]}
                 config={config}
             />,
         );

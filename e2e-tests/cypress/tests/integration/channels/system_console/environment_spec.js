@@ -159,8 +159,8 @@ describe('Environment', () => {
 
         const queryTimeoutValue = 100;
         const maxOpenConnsValue = 1000;
-        cy.findByTestId('queryTimeoutinput').clear().type(queryTimeoutValue);
-        cy.findByTestId('maxOpenConnsinput').clear().type(maxOpenConnsValue);
+        cy.findByTestId('queryTimeoutnumber').clear().type(queryTimeoutValue);
+        cy.findByTestId('maxOpenConnsnumber').clear().type(maxOpenConnsValue);
 
         // # Click Save button to save the settings
         cy.get('#saveSetting').click().wait(TIMEOUTS.ONE_SEC);
@@ -178,7 +178,7 @@ describe('Environment', () => {
         const minimumHashtagLength = 2;
 
         function setAndVerifyHashtagLength(length) {
-            cy.findByTestId('minimumHashtagLengthinput').clear().type(length);
+            cy.findByTestId('minimumHashtagLengthnumber').clear().type(length);
 
             // # Click Save button to save the settings
             cy.get('#saveSetting').click({force: true}).wait(TIMEOUTS.ONE_SEC);

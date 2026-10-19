@@ -23,8 +23,9 @@ export default class PasswordSettings {
     constructor(container: Locator) {
         this.container = container;
 
-        this.minimumLength = container.getByPlaceholder('E.g.: "5"');
-        this.maximumLoginAttempts = container.getByPlaceholder('E.g.: "10"');
+        // Compass number TextSettings use `${id}number` test ids (not placeholder-only).
+        this.minimumLength = container.getByTestId('passwordMinimumLengthnumber');
+        this.maximumLoginAttempts = container.getByTestId('maximumLoginAttemptsnumber');
         this.lowercase = container.getByRole('checkbox', {name: 'At least one lowercase letter'});
         this.uppercase = container.getByRole('checkbox', {name: 'At least one uppercase letter'});
         this.number = container.getByRole('checkbox', {name: 'At least one number'});

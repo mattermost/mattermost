@@ -281,6 +281,27 @@ describe('components/widgets/inputs/Input', () => {
         });
     });
 
+    describe('useLegend=false placeholder', () => {
+        test('should keep placeholder while focused when there is no floating label', async () => {
+            renderWithContext(
+                <Input
+                    name='project_name'
+                    useLegend={false}
+                    placeholder='Enter project name'
+                />,
+            );
+
+            const inputElement = screen.getByRole('textbox');
+            expect(inputElement).toHaveAttribute('placeholder', 'Enter project name');
+
+            await act(async () => {
+                inputElement.focus();
+            });
+
+            expect(inputElement).toHaveAttribute('placeholder', 'Enter project name');
+        });
+    });
+
     describe('interaction between validations', () => {
         test('should prioritize required validation over minLength on blur for empty input', async () => {
             renderWithContext(

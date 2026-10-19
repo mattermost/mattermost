@@ -16,14 +16,14 @@ import {DocLinks} from 'utils/constants';
 
 import BooleanSetting from './boolean_setting';
 import MigrationsTable from './database';
-import type {BaseState} from './old_admin_settings';
+import type {BaseProps, BaseState} from './old_admin_settings';
 import OLDAdminSettings from './old_admin_settings';
 import RequestButton from './request_button/request_button';
 import SettingSet from './setting_set';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
-type Props = {
+type Props = BaseProps & {
     license: {
         IsLicensed: string;
     };

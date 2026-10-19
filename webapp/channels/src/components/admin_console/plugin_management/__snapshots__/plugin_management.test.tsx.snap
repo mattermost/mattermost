@@ -509,14 +509,31 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"
@@ -1084,15 +1101,32 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    disabled=""
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container disabled"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            disabled=""
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"
@@ -1731,15 +1765,32 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    disabled=""
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container disabled"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            disabled=""
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"
@@ -2314,14 +2365,31 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"
@@ -2887,14 +2955,31 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"
@@ -3461,14 +3546,31 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"
@@ -4055,15 +4157,32 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    disabled=""
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container disabled"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            disabled=""
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"
@@ -4610,14 +4729,31 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"
@@ -5194,15 +5330,32 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    disabled=""
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container disabled"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            disabled=""
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"
@@ -5777,14 +5930,31 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"
@@ -6633,14 +6803,31 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"
@@ -7287,14 +7474,31 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"
@@ -7941,14 +8145,31 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"
@@ -8595,14 +8816,31 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <input
-                    class="form-control"
-                    data-testid="marketplaceUrlinput"
-                    id="marketplaceUrl"
-                    maxlength="-1"
-                    type="text"
-                    value="marketplace.example.com"
-                  />
+                  <div
+                    class="Input_container"
+                  >
+                    <div
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                    >
+                      <div
+                        class="_text-input__wrapper_3inqk_31"
+                      >
+                        <div
+                          class="_text-input__inner_3inqk_80"
+                        >
+                          <input
+                            class="_text-input__input_3inqk_42"
+                            data-testid="marketplaceUrlinput"
+                            dir="auto"
+                            id="marketplaceUrl"
+                            name="marketplaceUrl"
+                            type="text"
+                            value="marketplace.example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="help-text"
                     data-testid="marketplaceUrlhelp-text"

@@ -198,6 +198,6 @@ function saveConfig() {
 }
 
 function searchFor(searchTerm) {
-    cy.get('#channelMembers .DataGrid_search input').scrollIntoView().clear().type(searchTerm);
+    cy.get('#channelMembers .DataGrid_search input[type="search"]').scrollIntoView().clear().type(searchTerm);
     cy.wait(TIMEOUTS.HALF_SEC); // Timeout required to wait for timeout that happens when search input changes
 }

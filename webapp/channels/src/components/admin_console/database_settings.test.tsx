@@ -47,7 +47,6 @@ describe('components/DatabaseSettings', () => {
     test('should match snapshot', () => {
         const props = {
             ...baseProps,
-            value: [],
             config,
             isDisabled: false,
         };
@@ -63,7 +62,6 @@ describe('components/DatabaseSettings', () => {
         const {container} = renderWithContext(
             <DatabaseSettings
                 {...baseProps}
-                value={[]}
                 config={config}
                 isDisabled={false}
             />,
@@ -99,7 +97,6 @@ describe('components/DatabaseSettings', () => {
         renderWithContext(
             <DatabaseSettings
                 {...baseProps}
-                value={[]}
                 config={config}
                 isDisabled={false}
             />,

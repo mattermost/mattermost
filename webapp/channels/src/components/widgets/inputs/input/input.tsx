@@ -253,10 +253,11 @@ const Input = React.forwardRef((
     let compassPlaceholder: string | undefined;
     if (useLegend) {
         compassPlaceholder = label ? formatAsString(formatMessage, placeholder) : undefined;
-    } else if (focused) {
-        compassPlaceholder = formatAsString(formatMessage, (label && placeholder) || label);
     } else {
-        compassPlaceholder = formatAsString(formatMessage, label || placeholder);
+        // Classic left-column label (TextSetting / admin forms): keep the caller's
+        // placeholder on the control even while focused. The old focused branch
+        // cleared it when label was unset, which broke Apps Form / dialog e2e.
+        compassPlaceholder = formatAsString(formatMessage, placeholder);
     }
     const ariaLabel = useLegend ? undefined : formatAsString(formatMessage, label || placeholder);
     const clearLabel = clearLabelFallback || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'});

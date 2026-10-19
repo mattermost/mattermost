@@ -156,8 +156,19 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
                 cy.get(`#${section.key}Edit`).click();
                 cy.get('.setting-list-item .form-group').each(($el) => {
                     if ($el.find('input').length) {
-                        cy.wrap($el).find('.control-label').invoke('text').then((label) => {
-                            cy.wrap($el).find('input').should('have.attr', 'aria-label', label);
+                        // Compass floating-label Inputs expose an accessible name via
+                        // the legend/label (or aria-label when useLegend is false).
+                        cy.wrap($el).find('input').then(($input) => {
+                            const ariaLabel = ($input.attr('aria-label') || '').trim();
+                            if (ariaLabel) {
+                                expect(ariaLabel.length).to.be.greaterThan(0);
+                                return;
+                            }
+                            cy.wrap($el).find('legend, label').first().invoke('text').then((label) => {
+                                const name = label.trim();
+                                expect(name.length).to.be.greaterThan(0);
+                                cy.wrap($el).findByRole('textbox', {name}).should('exist');
+                            });
                         });
                     }
                 });

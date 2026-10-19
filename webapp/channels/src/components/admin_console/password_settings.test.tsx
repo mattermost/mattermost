@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {AdminConfig} from '@mattermost/types/config';
+
 import PasswordSettings from 'components/admin_console/password_settings';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -24,7 +26,7 @@ describe('components/PasswordSettings', () => {
         ExperimentalSettings: {
             RestrictSystemAdmin: false,
         },
-    };
+    } as AdminConfig;
 
     const baseProps = {
         config,

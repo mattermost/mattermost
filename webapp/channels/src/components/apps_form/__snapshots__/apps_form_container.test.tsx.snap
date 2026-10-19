@@ -96,15 +96,32 @@ exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
               <div
                 class=""
               >
-                <input
-                  class="form-control"
-                  data-testid="field1input"
-                  id="field1"
-                  maxlength="150"
-                  placeholder=""
-                  type="text"
-                  value="initial_value_1"
-                />
+                <div
+                  class="Input_container"
+                >
+                  <div
+                    class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+                  >
+                    <div
+                      class="_text-input__wrapper_3inqk_31"
+                    >
+                      <div
+                        class="_text-input__inner_3inqk_80"
+                      >
+                        <input
+                          class="_text-input__input_3inqk_42"
+                          data-testid="field1input"
+                          dir="auto"
+                          id="field1"
+                          maxlength="150"
+                          name="field1"
+                          type="text"
+                          value="initial_value_1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="help-text"
                   data-testid="field1help-text"

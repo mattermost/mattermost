@@ -93,7 +93,6 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
                         class="_text-input__input_3inqk_42"
                         data-testid="nameInput"
                         id="input_"
-                        placeholder="Name"
                         type="text"
                         value="Group Name"
                       />
@@ -127,7 +126,6 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
                         class="_text-input__input_3inqk_42"
                         data-testid="nameInput"
                         id="input_"
-                        placeholder="Mention"
                         type="text"
                         value="@group"
                       />

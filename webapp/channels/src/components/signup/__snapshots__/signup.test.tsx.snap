@@ -210,7 +210,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                         data-testid="input-wrapper"
                         id="input_email"
                         name="email"
-                        placeholder="Email address"
                         type="text"
                         value=""
                       />
@@ -242,7 +241,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                         data-testid="input-wrapper"
                         id="input_name"
                         name="name"
-                        placeholder="Choose a Username"
                         type="text"
                         value=""
                       />
@@ -272,7 +270,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 >
                   <label
                     class="_password-input__label_d44ti_28"
-                    for="_r_5_"
+                    for="input_password-input"
                   >
                     Choose a Password
                   </label>
@@ -280,10 +278,11 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                     class="_password-input__inner_d44ti_55"
                   >
                     <input
-                      aria-describedby="_r_5_-message"
+                      aria-describedby="input_password-input-message"
                       class="_password-input__input_d44ti_18"
-                      id="_r_5_"
+                      id="input_password-input"
                       name="password-input"
+                      placeholder="Choose a Password"
                       type="password"
                       value=""
                     />
@@ -323,7 +322,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 </div>
                 <div
                   class="_field-message_10eh8_2 _field-message--tone-info_10eh8_29"
-                  id="_r_5_-message"
+                  id="input_password-input-message"
                 >
                   <span
                     class="_field-message__text_10eh8_14"
@@ -526,7 +525,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                         data-testid="input-wrapper"
                         id="input_email"
                         name="email"
-                        placeholder="Email address"
                         type="text"
                         value=""
                       />
@@ -558,7 +556,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                         data-testid="input-wrapper"
                         id="input_name"
                         name="name"
-                        placeholder="Choose a Username"
                         type="text"
                         value=""
                       />
@@ -588,7 +585,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 >
                   <label
                     class="_password-input__label_d44ti_28"
-                    for="_r_2_"
+                    for="input_password-input"
                   >
                     Choose a Password
                   </label>
@@ -596,10 +593,11 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                     class="_password-input__inner_d44ti_55"
                   >
                     <input
-                      aria-describedby="_r_2_-message"
+                      aria-describedby="input_password-input-message"
                       class="_password-input__input_d44ti_18"
-                      id="_r_2_"
+                      id="input_password-input"
                       name="password-input"
+                      placeholder="Choose a Password"
                       type="password"
                       value=""
                     />
@@ -639,7 +637,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 </div>
                 <div
                   class="_field-message_10eh8_2 _field-message--tone-info_10eh8_29"
-                  id="_r_2_-message"
+                  id="input_password-input-message"
                 >
                   <span
                     class="_field-message__text_10eh8_14"

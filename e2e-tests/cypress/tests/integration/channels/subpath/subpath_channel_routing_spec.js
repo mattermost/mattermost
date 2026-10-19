@@ -90,8 +90,8 @@ describe('Subpath Channel routing', () => {
             cy.visit(dmChannelURL);
 
             // # Login
-            cy.findByPlaceholderText('Email or Username').clear().type(testUser.username);
-            cy.findByPlaceholderText('Password').clear().type(testUser.password);
+            cy.get('#input_loginId').clear().type(testUser.username);
+            cy.get('#input_password-input').clear().type(testUser.password);
             cy.get('#saveSetting').should('not.be.disabled').click();
 
             // * Check that we in are in DM channel
