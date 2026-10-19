@@ -16,6 +16,18 @@ The Site health dashboard is controlled by the `HealthDashboard` feature flag, w
 
 Go to **System Console \> Reporting \> Site health**. Only system administrators can access this page.
 
+<Note>
+
+Site health replaces the [Workspace Optimization](/administration-guide/configure/optimize-your-workspace) page. When Site health is available to you, **Reporting \> Workspace Optimization** no longer appears in the System Console. Delegated admins who can't access Site health continue to see Workspace Optimization.
+
+</Note>
+
+<Tip>
+
+The Site health dashboard is different from the [Mattermost Health Check](/administration-guide/manage/request-server-health-check), an in-depth review of your deployment that Enterprise customers can request from Mattermost.
+
+</Tip>
+
 ## What the dashboard checks
 
 The dashboard runs built-in checks against your configuration and the live state of your deployment. Checks are grouped into the following categories:
@@ -54,6 +66,7 @@ Each finding row shows its severity, title, category area, and how long the cond
 
 Checks run automatically about once an hour. In a high availability cluster, one node runs the checks on behalf of the whole cluster.
 
+- After the feature is enabled, the first check runs within an hour. Until then, the dashboard has no findings to show.
 - After you fix the cause of a finding, it moves to **Recently resolved** after the next check run, which can take up to an hour.
 - A finding becomes **Unknown** when the information needed to evaluate it isn't available, for example because a service the check depends on can't be reached, or because the check hasn't reported for longer than expected.
 
@@ -99,3 +112,23 @@ Each muted finding row shows:
 ### Unmute a finding
 
 Select **Unmute** on any row in the muted list. The finding returns to the open list immediately.
+
+## Check health from the command line
+
+Use the [mmctl](/administration-guide/manage/mmctl-command-line-tool) `health check` command to list the same findings shown on the dashboard. This is useful for scripting and for checking a server without opening the System Console.
+
+```sh
+mmctl health check
+```
+
+By default, only firing and unknown findings are shown. Use the following flags to include more:
+
+| Flag | Description |
+| --- | --- |
+| `--include-resolved` | Include resolved findings. |
+| `--include-muted` | Include muted findings. |
+| `--packet <file>` | Evaluate a [Support Packet](/administration-guide/manage/admin/generating-support-packet) zip file on your own machine instead of querying a server. No server connection is needed. |
+
+Add `--json` for machine-readable output.
+
+Findings from `--packet` describe the server at the time the Support Packet was generated, not its current state.
