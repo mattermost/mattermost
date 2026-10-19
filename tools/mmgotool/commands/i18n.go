@@ -810,6 +810,39 @@ func JSONMarshal(t any) ([]byte, error) {
 // against those the en.json source uses.
 var templateTokenRe = regexp.MustCompile(`\{\{\s*\.([A-Za-z0-9_]+)\s*\}\}`)
 
+// horizontalGlyphRe matches the same arrows and pointers as check_icu.mjs. They
+// are not bidi-mirrored, so in a right-to-left sentence one meaning "next" or
+// "leads to" points backwards.
+var horizontalGlyphRe = regexp.MustCompile(`[\x{2190}\x{2192}\x{21D0}\x{21D2}\x{27F5}\x{27F6}\x{2794}\x{279C}-\x{27BF}\x{2B05}\x{25B6}\x{25B8}\x{25BA}\x{25C0}\x{25C2}\x{25C4}]`)
+
+// rightToLeftLanguages are the base languages written right to left. The
+// webapp checker asks Intl.Locale instead; the module has no dependency that
+// could, and the list changes far less often than the catalogs.
+var rightToLeftLanguages = map[string]bool{
+	"ar": true, "ckb": true, "dv": true, "fa": true, "he": true,
+	"ps": true, "sd": true, "ug": true, "ur": true, "yi": true,
+}
+
+func isRightToLeft(locale string) bool {
+	base, _, _ := strings.Cut(locale, "-")
+	return rightToLeftLanguages[strings.ToLower(base)]
+}
+
+// translationTexts returns the text of a translation, or of each form of a
+// plural one.
+func translationTexts(raw json.RawMessage) []string {
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		return []string{s}
+	}
+	plural, _ := pluralForms(raw)
+	texts := make([]string, 0, len(plural))
+	for _, form := range plural {
+		texts = append(texts, form)
+	}
+	return texts
+}
+
 // pluralForms returns the category-to-string map of a pluralised translation,
 // and whether the translation is pluralised at all. A translation is either a
 // plain string or a map of plural category to string.
@@ -972,6 +1005,8 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 		problems = append(problems, fmt.Sprintf("%s: no CLDR plural spec for locale %q", name, locale))
 	}
 
+	rightToLeft := isRightToLeft(locale)
+
 	for id := range en {
 		if _, ok := items[id]; !ok {
 			msg := fmt.Sprintf("%s: %s: missing id", name, id)
@@ -998,6 +1033,15 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 		if isBlankTranslation(item.Translation) {
 			problems = append(problems, fmt.Sprintf("%s: %s: empty translation", name, id))
 			continue
+		}
+
+		if rightToLeft {
+			for _, text := range translationTexts(item.Translation) {
+				if horizontalGlyphRe.MatchString(text) {
+					warnings = append(warnings, fmt.Sprintf("%s: %s: horizontal arrow in a right-to-left locale points the opposite way to the reading direction", name, id))
+					break
+				}
+			}
 		}
 
 		// An unknown token renders as "<no value>" to the user; a dropped

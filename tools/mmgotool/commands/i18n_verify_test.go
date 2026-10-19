@@ -121,6 +121,34 @@ func TestVerifyLocale(t *testing.T) {
 			warning:    "z.z: extra id not in en.json",
 		},
 
+		// Right-to-left locales.
+		{
+			name:       "horizontal arrow in a right-to-left locale is a warning",
+			localeName: "fa.json",
+			en:         enPlain,
+			locale:     `[{"id":"a.b","translation":"{{.User}} → اینجاست"}]`,
+			warning:    "a.b: horizontal arrow in a right-to-left locale",
+		},
+		{
+			name:       "horizontal arrow in a plural form of a right-to-left locale is a warning",
+			localeName: "fa.json",
+			en:         `[{"id":"a.b","translation":{"one":"{{.Count}} item","other":"{{.Count}} items"}}]`,
+			locale:     `[{"id":"a.b","translation":{"one":"{{.Count}} مورد ←","other":"{{.Count}} مورد"}}]`,
+			warning:    "a.b: horizontal arrow in a right-to-left locale",
+		},
+		{
+			name:       "horizontal arrow in a left-to-right locale is fine",
+			localeName: "fr.json",
+			en:         enPlain,
+			locale:     `[{"id":"a.b","translation":"{{.User}} → ici"}]`,
+		},
+		{
+			name:       "vertical arrow in a right-to-left locale is fine",
+			localeName: "fa.json",
+			en:         enPlain,
+			locale:     `[{"id":"a.b","translation":"{{.User}} ↑ اینجاست"}]`,
+		},
+
 		// Template tokens. An unknown one renders "<no value>"; a dropped one
 		// quietly loses the value it was meant to show.
 		{
