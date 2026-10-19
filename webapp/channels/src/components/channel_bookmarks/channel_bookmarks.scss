@@ -48,25 +48,19 @@
     display: none;
 }
 
-// Overflow menu button styles
-.channelBookmarksBarMenuButton {
+// Empty-state labeled chip only — icon-only / overflow triggers use Compass IconButton.
+.channelBookmarksBarMenuButton.withLabel {
     display: flex;
     align-items: center;
-    padding: 4px;
+    padding: 4px 12px 4px 6px;
     border: none;
-    border-radius: 4px;
+    border-radius: 12px;
     background: transparent;
     color: rgba(var(--center-channel-color-rgb), 0.56);
     cursor: pointer;
     font-size: 12px;
     font-weight: 600;
-    gap: 1px;
-
-    &.withLabel {
-        padding: 4px 12px 4px 6px;
-        border-radius: 12px;
-        gap: 4px;
-    }
+    gap: 4px;
 
     &:hover:not(:disabled) {
         background: rgba(var(--center-channel-color-rgb), 0.12);

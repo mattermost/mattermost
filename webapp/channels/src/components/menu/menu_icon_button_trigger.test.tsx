@@ -91,4 +91,11 @@ describe('createMenuIconButtonTrigger', () => {
 
         expect(screen.queryByText('First item')).not.toBeInTheDocument();
     });
+
+    test('forwards count to IconButton', () => {
+        renderMenu({count: 3});
+
+        const button = screen.getByRole('button', {name: 'More options'});
+        expect(button).toHaveTextContent('3');
+    });
 });

@@ -30,7 +30,7 @@ export type MenuIconButtonTriggerOptions = {
  * <Menu.Container menuButton={{id, as: SidebarMenuTrigger, 'aria-label': label, children: <Icon glyph={<DotsVerticalIcon/>}/>}} .../>
  */
 export function createMenuIconButtonTrigger(options: MenuIconButtonTriggerOptions = {}): ComponentType<MenuButtonComponentProps> {
-    function MenuIconButtonTrigger({children, className, ...props}: MenuButtonComponentProps) {
+    function MenuIconButtonTrigger({children, className, count, ...props}: MenuButtonComponentProps) {
         const expanded = props['aria-expanded'] === true || props['aria-expanded'] === 'true';
 
         return (
@@ -43,6 +43,7 @@ export function createMenuIconButtonTrigger(options: MenuIconButtonTriggerOption
                 rounded={options.rounded}
                 destructive={options.destructive}
                 active={expanded}
+                count={count}
                 icon={children}
             />
         );

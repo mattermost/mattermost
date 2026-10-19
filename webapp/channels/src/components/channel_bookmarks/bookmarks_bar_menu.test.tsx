@@ -98,3 +98,54 @@ describe('BookmarksBarMenu — overflow drop target', () => {
         expect(config.canDrop({source: {data: {type: 'something-else'}}})).toBe(false);
     });
 });
+
+describe('BookmarksBarMenu — IconButton triggers', () => {
+    test('uses IconButton for the has-bookmarks add control', () => {
+        const {container} = renderWithContext(
+            <BookmarksBarMenu
+                {...baseProps}
+                overflowItems={[]}
+                hasBookmarks={true}
+            />,
+        );
+
+        const button = container.querySelector('#channelBookmarksBarMenuButton');
+        expect(button).toBeInTheDocument();
+        expect(button).toHaveAttribute('aria-label', 'Add a bookmark');
+        expect(button?.className).toContain('icon-button');
+        expect(button).not.toHaveClass('withLabel');
+    });
+
+    test('uses IconButton with count for the overflow control', () => {
+        const overflowItems = ['a', 'b'];
+        const bookmarks = {a: makeBookmark('a'), b: makeBookmark('b')};
+
+        const {container} = renderWithContext(
+            <BookmarksBarMenu
+                {...baseProps}
+                overflowItems={overflowItems}
+                bookmarks={bookmarks}
+            />,
+        );
+
+        const button = container.querySelector('#channelBookmarksBarMenuButton');
+        expect(button).toBeInTheDocument();
+        expect(button?.className).toContain('icon-button');
+        expect(button).toHaveTextContent('2');
+    });
+
+    test('keeps the labeled chip when there are no bookmarks', () => {
+        const {container} = renderWithContext(
+            <BookmarksBarMenu
+                {...baseProps}
+                overflowItems={[]}
+                hasBookmarks={false}
+            />,
+        );
+
+        const button = container.querySelector('#channelBookmarksBarMenuButton');
+        expect(button).toHaveClass('channelBookmarksBarMenuButton', 'withLabel');
+        expect(button).toHaveTextContent('Add a bookmark');
+        expect(button?.className).not.toContain('icon-button');
+    });
+});
