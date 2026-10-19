@@ -7,7 +7,7 @@ import Link from '@tiptap/extension-link';
 import {Markdown} from '@tiptap/markdown';
 import StarterKit from '@tiptap/starter-kit';
 
-import {isRedundantLinkText, parseMarkdownContent, serializeToMarkdown, stripRedundantLinkMarks} from './wysiwyg_markdown';
+import {isRedundantLinkText, parseMarkdownContent, restoreEscapedTaskMarkers, serializeToMarkdown, stripRedundantLinkMarks} from './wysiwyg_markdown';
 
 const paragraph = (...content: JSONContent[]): JSONContent => ({
     type: 'doc',
@@ -176,5 +176,15 @@ describe('markdown parsing', () => {
 
         expect(() => editor.schema.nodeFromJSON(content!).check()).not.toThrow();
         expect(roundTrip('- Task List\n  - [ ] To-do item')).toContain('- [ ] To-do item');
+    });
+});
+
+describe('restoreEscapedTaskMarkers', () => {
+    it('restores escaped task markers on list items', () => {
+        expect(restoreEscapedTaskMarkers('- \\[ \\] todo\n- \\[x\\] *done*')).toBe('- [ ] todo\n- [x] *done*');
+    });
+
+    it('leaves escaped markers inside fenced code unchanged', () => {
+        expect(restoreEscapedTaskMarkers('```\n- \\[ \\] example\n```')).toBe('```\n- \\[ \\] example\n```');
     });
 });

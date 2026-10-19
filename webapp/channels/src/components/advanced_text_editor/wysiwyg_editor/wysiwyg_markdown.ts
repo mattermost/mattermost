@@ -126,17 +126,35 @@ export const plainTextContent = (text: string): JSONContent[] => text.split(/\r?
     content: line ? [{type: 'text', text: line}] : [],
 }));
 
+const FENCE_LINE = /^(\s*)```/;
+const ESCAPED_TASK_MARKER = /^(\s*(?:[-+*]|\d+\.)\s+)\\\[([ xX])\\\]/;
+
+// The serializer backslash-escapes `[` / `]`, but list items that start with
+// `[ ]` / `[x]` still post as checkboxes. Skip fenced code so literal examples
+// there are left alone.
+export const restoreEscapedTaskMarkers = (markdown: string): string => {
+    let inFence = false;
+    return markdown.split('\n').map((line) => {
+        if (FENCE_LINE.test(line)) {
+            inFence = !inFence;
+            return line;
+        }
+        if (inFence) {
+            return line;
+        }
+        return line.replace(ESCAPED_TASK_MARKER, '$1[$2]');
+    }).join('\n');
+};
+
 export const serializeToMarkdown = (editor: Editor): string => {
     const markdown = editor.markdown ?
         editor.markdown.serialize(stripRedundantLinkMarks(editor.getJSON())) :
         editor.getMarkdown();
 
     // Strip &nbsp; artifacts the @tiptap/markdown serializer leaves around
-    // empty paragraphs at doc start/end. Restore `[ ]` / `[x]` task markers
-    // that the serializer now backslash-escapes; they still post as checkboxes.
-    return markdown.trimEnd().
+    // empty paragraphs at doc start/end.
+    return restoreEscapedTaskMarkers(markdown.trimEnd().
         replace(/\n\n&nbsp;\n/g, '\n').
         replace(/\n\n&nbsp;$/g, '').
-        replace(/^&nbsp;$/, '').
-        replace(/(^|\n)(\s*(?:[-+*]|\d+\.)\s+)\\\[([ xX])\\\]/g, '$1$2[$3]');
+        replace(/^&nbsp;$/, ''));
 };
