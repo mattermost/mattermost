@@ -52,14 +52,14 @@ exports[`plugin tab all props are properly passed to the children 1`] = `
         class="pluginActionContainer"
       >
         <div
-          class="_section-notice_1fkh6_2"
+          class="_section-notice_1x4j7_2"
         >
           <div
-            class="_section-notice__content_1fkh6_11"
+            class="_section-notice__content_1x4j7_11"
           >
             <span
               aria-hidden="true"
-              class="_section-notice__icon_1fkh6_18"
+              class="_section-notice__icon_1x4j7_18"
             >
               <div
                 aria-hidden="true"
@@ -84,22 +84,22 @@ exports[`plugin tab all props are properly passed to the children 1`] = `
               </div>
             </span>
             <div
-              class="_section-notice__body_1fkh6_25"
+              class="_section-notice__body_1x4j7_25"
             >
               <h4
-                class="_section-notice__title_1fkh6_34"
+                class="_section-notice__title_1x4j7_34"
               >
                 actionTitle
               </h4>
               <div
-                class="_section-notice__description_1fkh6_45"
+                class="_section-notice__description_1x4j7_47"
               >
                 <p>
                   actionText
                 </p>
               </div>
               <div
-                class="_section-notice__actions_1fkh6_51"
+                class="_section-notice__actions_1x4j7_53"
               >
                 <button
                   class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
