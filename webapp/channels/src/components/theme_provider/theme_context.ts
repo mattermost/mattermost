@@ -4,19 +4,12 @@
 import React, {useContext, useEffect} from 'react';
 import {useLocation} from 'react-router-dom';
 
-import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
+import {isBackstageRoute} from 'utils/path';
 
 export const ThemeContext = React.createContext({
     startUsingUserTheme: () => {},
     stopUsingUserTheme: () => {},
 });
-
-// Exclude System Console's integrations pages from team backstage routes.
-const BACKSTAGE_ROUTE_PATTERN = new RegExp(`^/(?!admin_console)${TEAM_NAME_PATH_PATTERN}/(?:integrations|emoji)(?:/|$)`);
-
-function isBackstageRoute(pathname: string): boolean {
-    return BACKSTAGE_ROUTE_PATTERN.test(pathname);
-}
 
 /**
  * useUserTheme makes it so that the app will apply the user's theme instead of the default one for as long as the
