@@ -28,21 +28,11 @@
             width: auto;
             margin-right: 6px;
 
-            .url-input-editable-wrapper {
-                padding: 0 12px;
-
-                // inputClassName is on the Compass TextInput root — size the
-                // control chrome, not the root (which may include a footer).
-                .url-input-editable-path {
-                    [class*='_text-input__wrapper'] {
-                        height: 26px;
-                        min-height: 26px;
-                    }
-
-                    [class*='_text-input__input'] {
-                        font-size: 12px;
-                        line-height: 16px;
-                    }
+            // Compact inline path editor: Compass small (32px) matches
+            // .url-input-container min-height so Edit doesn't grow the row.
+            .url-input-editable-path {
+                [class*='_text-input--size-small'] {
+                    gap: 0;
                 }
             }
         }

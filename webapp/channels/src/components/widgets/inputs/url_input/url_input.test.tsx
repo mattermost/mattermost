@@ -31,6 +31,8 @@ describe('URLInput', () => {
 
         const urlInput = screen.getByTestId('channelURLInput');
         expect(urlInput).toHaveValue('test-channel');
+        expect(document.querySelector('[class*="_text-input--size-small"]')).toBeInTheDocument();
+        expect(document.querySelector('legend')).not.toBeInTheDocument();
 
         // The path moves out of the label and into the input while editing.
         expect(screen.getByTestId('urlInputLabel')).toHaveTextContent('URL: http://localhost:8065/test-team/channels/');
