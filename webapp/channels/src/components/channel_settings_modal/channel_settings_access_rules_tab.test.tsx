@@ -1842,7 +1842,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department == "Engineering"'}],
                 },
             });
 
@@ -1884,7 +1884,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department == "Engineering"'}],
                 },
             });
 
@@ -1942,7 +1942,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department == "Engineering"'}],
                 },
             });
 
@@ -2002,7 +2002,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"', metadata: {auto_add: 'always'}}],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department == "Engineering"', metadata: {auto_add: 'always'}}],
                 },
             });
 
@@ -2071,7 +2071,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"', metadata: {auto_add: 'always'}}],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department == "Engineering"', metadata: {auto_add: 'always'}}],
                 },
             });
 
@@ -2124,7 +2124,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"', metadata: {auto_add: 'always'}}],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department == "Engineering"', metadata: {auto_add: 'always'}}],
                 },
             });
 
@@ -2259,6 +2259,90 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             await waitFor(() => {
                 expect(screen.getByText(serverMessage)).toBeInTheDocument();
             });
+        });
+    });
+
+    describe('Advanced rule lock', () => {
+        const complexRule = 'user.attributes.department == "Engineering" || user.attributes.location == "US"';
+
+        const mockLoadedRule = (expression: string) => {
+            mockActions.getChannelPolicy.mockResolvedValue({
+                data: {
+                    id: 'channel_id',
+                    type: 'channel',
+                    rules: [{actions: ['membership'], expression, metadata: {auto_add: 'never'}}],
+                },
+            });
+        };
+
+        const systemAdminState = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                users: {
+                    currentUserId: 'current_user_id',
+                    profiles: {
+                        current_user_id: TestHelper.getUserMock({id: 'current_user_id', roles: 'system_user system_admin'}),
+                    },
+                },
+            },
+        };
+
+        test('locks the tab for a complex rule and shows it read-only', async () => {
+            mockLoadedRule(complexRule);
+
+            renderWithContext(<ChannelSettingsAccessRulesTab {...baseProps}/>, initialState);
+
+            expect(await screen.findByTestId('channel-access-rules-locked-rules')).toBeInTheDocument();
+            expect(screen.getByRole('status')).toHaveTextContent('Contact a System Admin to change them.');
+            expect(screen.getByText(complexRule)).toBeInTheDocument();
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+            expect(screen.getByRole('checkbox', {name: /auto-add members/i})).toBeDisabled();
+        });
+
+        test('does not tell a system admin to contact a system admin', async () => {
+            mockLoadedRule(complexRule);
+
+            renderWithContext(<ChannelSettingsAccessRulesTab {...baseProps}/>, systemAdminState);
+
+            expect(await screen.findByRole('status')).toHaveTextContent("These rules use advanced logic and can't be edited here.");
+            expect(screen.getByRole('status')).not.toHaveTextContent('Contact a System Admin');
+        });
+
+        test('locks the tab when the table fails to parse the saved rule', async () => {
+            mockLoadedRule('user.attributes.department in ["Engineering"]');
+
+            renderWithContext(<ChannelSettingsAccessRulesTab {...baseProps}/>, initialState);
+
+            await waitFor(() => {
+                expect(MockedTableEditor.mock.calls.at(-1)?.[0].value).toBe('user.attributes.department in ["Engineering"]');
+            });
+            act(() => {
+                MockedTableEditor.mock.calls.at(-1)![0].onParseError!('could not parse');
+            });
+
+            expect(screen.getByTestId('channel-access-rules-locked-rules')).toBeInTheDocument();
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+            expect(screen.getByRole('checkbox', {name: /auto-add members/i})).toBeDisabled();
+        });
+
+        test('keeps the inline parse error, without locking, for an edited rule', async () => {
+            mockLoadedRule('user.attributes.department in ["Sales"]');
+
+            renderWithContext(<ChannelSettingsAccessRulesTab {...baseProps}/>, initialState);
+
+            await waitFor(() => {
+                expect(MockedTableEditor.mock.calls.at(-1)?.[0].value).toBe('user.attributes.department in ["Sales"]');
+            });
+            act(() => {
+                MockedTableEditor.mock.calls.at(-1)![0].onChange('user.attributes.department in ["Engineering"]');
+            });
+            act(() => {
+                MockedTableEditor.mock.calls.at(-1)![0].onParseError!('could not parse');
+            });
+
+            expect(screen.queryByTestId('channel-access-rules-locked-rules')).not.toBeInTheDocument();
+            expect(screen.getByText('Invalid expression format')).toBeInTheDocument();
         });
     });
 });
