@@ -330,8 +330,15 @@ func healthTestPacketFiles() map[string]string {
 	return map[string]string{
 		model.PacketMetadataFileName: "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
 		model.SupportPacketDiagnosticsFileName: `version: 2
+license:
+  sku_short_name: enterprise
+  features:
+    metrics: true
 server:
+  os: linux
   hostname: mm.example.com
+  open_file_descriptors: 120
+  max_file_descriptors: 65536
   version: 11.0.4
 database:
   type: postgres
@@ -339,13 +346,16 @@ database:
   master_connections_in_use: 1
 elastic:
   status: disabled
+file_store:
+  file_status: OK
 notifications:
   email:
     status: OK
 `,
-		model.SupportPacketStatsFileName:  "registered_users: 100\nposts: 1000\n",
-		model.SupportPacketJobsFileName:   "data_retention_jobs: []\n",
-		model.SupportPacketConfigFileName: healthTestPacketConfig(),
+		model.SupportPacketStatsFileName:   "registered_users: 100\nposts: 1000\n",
+		model.SupportPacketJobsFileName:    "data_retention_jobs: []\n",
+		model.SupportPacketConfigFileName:  healthTestPacketConfig(),
+		model.SupportPacketPluginsFileName: `{"enabled": [], "disabled": []}`,
 	}
 }
 
@@ -360,6 +370,7 @@ func healthTestPacketConfig() string {
 	cfg.SqlSettings.DataSource = model.NewPointer("postgres://****:****@db.example.com:5432/mattermost")
 	cfg.RateLimitSettings.Enable = model.NewPointer(true)
 	cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+	cfg.MetricsSettings.Enable = model.NewPointer(true)
 
 	b, err := json.Marshal(cfg)
 	if err != nil {

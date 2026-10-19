@@ -218,6 +218,7 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		cfg.SqlSettings.QueryTimeout = model.NewPointer(60)
 		cfg.ComplianceSettings.Enable = model.NewPointer(true)
 		cfg.ComplianceSettings.Directory = model.NewPointer("")
+		cfg.MetricsSettings.Enable = model.NewPointer(true)
 	})
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
 	license.Customer.Id = model.NewId()
@@ -255,6 +256,16 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	})
 	liveEvaluations := engine.Evaluate(live)
 	offlineEvaluations := engine.Evaluate(offline.Snapshot)
+
+	// Each collection samples the open file descriptor count separately.
+	for _, evaluations := range [][]healthcheck.Evaluation{liveEvaluations, offlineEvaluations} {
+		for i := range evaluations {
+			if evaluations[i].Code == "NODE_FD_EXHAUSTION" {
+				require.NotNil(t, evaluations[i].Result.Value)
+				evaluations[i].Result.Value = nil
+			}
+		}
+	}
 
 	require.NotEmpty(t, liveEvaluations)
 	assert.Equal(t, liveEvaluations, offlineEvaluations)

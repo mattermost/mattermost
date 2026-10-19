@@ -30,6 +30,21 @@
         "AdvancedLoggingJSON": {},
         "Certificate": ""
     },
+    "LogSettings": {
+        "EnableConsole": true,
+        "ConsoleLevel": "INFO",
+        "ConsoleJson": true,
+        "EnableFile": true,
+        "FileLevel": "INFO",
+        "FileJson": true,
+        "FileLocation": ""
+    },
+    "FileSettings": {
+        "DriverName": "local",
+        "Directory": "/mnt/mattermost/data/",
+        "AmazonS3Bucket": "",
+        "AmazonS3SSL": true
+    },
     "EmailSettings": {
         "SendEmailNotifications": true,
         "SMTPServer": "smtp.example.com",
@@ -109,6 +124,23 @@
             "SMTPServerTimeout": 10,
             "CustomSMTPServerName": "",
             "CustomSMTPPort": "25"
+        }
+    },
+    "MetricsSettings": {
+        "Enable": true,
+        "ListenAddress": ":8067"
+    },
+    "PluginSettings": {
+        "Enable": true,
+        "EnableUploads": false,
+        "EnableHealthCheck": true,
+        "PluginStates": {
+            "com.github.manland.mattermost-plugin-gitlab": {
+                "Enable": false
+            },
+            "com.mattermost.calls": {
+                "Enable": true
+            }
         }
     },
     "FeatureFlags": {

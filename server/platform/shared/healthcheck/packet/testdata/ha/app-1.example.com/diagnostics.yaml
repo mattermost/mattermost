@@ -8,6 +8,7 @@ license:
     data_retention: true
     id_loaded: true
     message_export: true
+    metrics: true
 server:
   # Machine
   os: linux
