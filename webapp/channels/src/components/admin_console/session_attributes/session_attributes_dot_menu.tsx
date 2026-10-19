@@ -19,7 +19,7 @@ import type {StagedAttrs} from './use_session_attribute_edits';
 import {DURATION_PRESETS_SECONDS, formatDuration, getSessionAttrs, getSessionDisplayName, isServerSourced} from './utils';
 import type {SessionAttributeField} from './utils';
 
-const SessionAttributesMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'medium'});
+const SessionAttributesMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 type Props = {
     field: SessionAttributeField;
