@@ -111,6 +111,13 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             class="form-group"
             data-testid="backend"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="backendlabel"
+              for="backend"
+            >
+              Backend type:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -123,12 +130,6 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="backend"
-                    >
-                      Backend type:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -159,6 +160,13 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             class="form-group"
             data-testid="connectionUrl"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="connectionUrllabel"
+              for="connectionUrl"
+            >
+              Server Connection Address:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -166,17 +174,11 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                 class="Input_container disabled"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="connectionUrl"
-                    >
-                      Server Connection Address:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -215,6 +217,13 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             class="form-group"
             data-testid="ca"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="calabel"
+              for="ca"
+            >
+              CA path:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -222,17 +231,11 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                 class="Input_container disabled"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="ca"
-                    >
-                      CA path:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -263,6 +266,13 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             class="form-group"
             data-testid="clientCert"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="clientCertlabel"
+              for="clientCert"
+            >
+              Client Certificate path:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -270,17 +280,11 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                 class="Input_container disabled"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="clientCert"
-                    >
-                      Client Certificate path:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -311,6 +315,13 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             class="form-group"
             data-testid="clientKey"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="clientKeylabel"
+              for="clientKey"
+            >
+              Client Certificate Key path:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -318,17 +329,11 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                 class="Input_container disabled"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="clientKey"
-                    >
-                      Client Certificate Key path:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -439,6 +444,13 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             class="form-group"
             data-testid="username"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="usernamelabel"
+              for="username"
+            >
+              Server Username:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -446,17 +458,11 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                 class="Input_container disabled"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="username"
-                    >
-                      Server Username:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -487,6 +493,13 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             class="form-group"
             data-testid="password"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="passwordlabel"
+              for="password"
+            >
+              Server Password:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -494,17 +507,11 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                 class="Input_container disabled"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="password"
-                    >
-                      Server Password:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -769,6 +776,13 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             class="form-group"
             data-testid="ignoredPurgeIndexes"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="ignoredPurgeIndexeslabel"
+              for="ignoredPurgeIndexes"
+            >
+              Indexes to skip while purging:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -781,12 +795,6 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="ignoredPurgeIndexes"
-                    >
-                      Indexes to skip while purging:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1269,6 +1277,13 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             class="form-group"
             data-testid="backend"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="backendlabel"
+              for="backend"
+            >
+              Backend type:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1281,12 +1296,6 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="backend"
-                    >
-                      Backend type:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1316,6 +1325,13 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             class="form-group"
             data-testid="connectionUrl"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="connectionUrllabel"
+              for="connectionUrl"
+            >
+              Server Connection Address:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1323,17 +1339,11 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="connectionUrl"
-                    >
-                      Server Connection Address:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1371,6 +1381,13 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             class="form-group"
             data-testid="ca"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="calabel"
+              for="ca"
+            >
+              CA path:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1378,17 +1395,11 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="ca"
-                    >
-                      CA path:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1418,6 +1429,13 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             class="form-group"
             data-testid="clientCert"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="clientCertlabel"
+              for="clientCert"
+            >
+              Client Certificate path:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1425,17 +1443,11 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="clientCert"
-                    >
-                      Client Certificate path:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1465,6 +1477,13 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             class="form-group"
             data-testid="clientKey"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="clientKeylabel"
+              for="clientKey"
+            >
+              Client Certificate Key path:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1472,17 +1491,11 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="clientKey"
-                    >
-                      Client Certificate Key path:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1590,6 +1603,13 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             class="form-group"
             data-testid="username"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="usernamelabel"
+              for="username"
+            >
+              Server Username:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1597,17 +1617,11 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="username"
-                    >
-                      Server Username:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1637,6 +1651,13 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             class="form-group"
             data-testid="password"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="passwordlabel"
+              for="password"
+            >
+              Server Password:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1644,17 +1665,11 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="password"
-                    >
-                      Server Password:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1912,6 +1927,13 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             class="form-group"
             data-testid="ignoredPurgeIndexes"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="ignoredPurgeIndexeslabel"
+              for="ignoredPurgeIndexes"
+            >
+              Indexes to skip while purging:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1924,12 +1946,6 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="ignoredPurgeIndexes"
-                    >
-                      Indexes to skip while purging:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -2403,6 +2419,13 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             class="form-group"
             data-testid="backend"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="backendlabel"
+              for="backend"
+            >
+              Backend type:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -2415,12 +2438,6 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="backend"
-                    >
-                      Backend type:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -2450,6 +2467,13 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             class="form-group"
             data-testid="connectionUrl"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="connectionUrllabel"
+              for="connectionUrl"
+            >
+              Server Connection Address:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -2457,17 +2481,11 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="connectionUrl"
-                    >
-                      Server Connection Address:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -2505,6 +2523,13 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             class="form-group"
             data-testid="ca"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="calabel"
+              for="ca"
+            >
+              CA path:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -2512,17 +2537,11 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="ca"
-                    >
-                      CA path:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -2552,6 +2571,13 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             class="form-group"
             data-testid="clientCert"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="clientCertlabel"
+              for="clientCert"
+            >
+              Client Certificate path:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -2559,17 +2585,11 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="clientCert"
-                    >
-                      Client Certificate path:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -2599,6 +2619,13 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             class="form-group"
             data-testid="clientKey"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="clientKeylabel"
+              for="clientKey"
+            >
+              Client Certificate Key path:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -2606,17 +2633,11 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="clientKey"
-                    >
-                      Client Certificate Key path:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -2724,6 +2745,13 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             class="form-group"
             data-testid="username"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="usernamelabel"
+              for="username"
+            >
+              Server Username:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -2731,17 +2759,11 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="username"
-                    >
-                      Server Username:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -2771,6 +2793,13 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             class="form-group"
             data-testid="password"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="passwordlabel"
+              for="password"
+            >
+              Server Password:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -2778,17 +2807,11 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="password"
-                    >
-                      Server Password:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -3055,6 +3078,13 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             class="form-group"
             data-testid="ignoredPurgeIndexes"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="ignoredPurgeIndexeslabel"
+              for="ignoredPurgeIndexes"
+            >
+              Indexes to skip while purging:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -3067,12 +3097,6 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="ignoredPurgeIndexes"
-                    >
-                      Indexes to skip while purging:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >

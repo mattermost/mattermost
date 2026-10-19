@@ -139,6 +139,13 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
             class="form-group"
             data-testid="ClusterName"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="ClusterNamelabel"
+              for="ClusterName"
+            >
+              Cluster Name:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -146,17 +153,11 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="ClusterName"
-                    >
-                      Cluster Name:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -186,6 +187,13 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
             class="form-group"
             data-testid="OverrideHostname"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="OverrideHostnamelabel"
+              for="OverrideHostname"
+            >
+              Override Hostname:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -198,12 +206,6 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="OverrideHostname"
-                    >
-                      Override Hostname:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -467,6 +469,13 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
             class="form-group"
             data-testid="GossipPort"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="GossipPortlabel"
+              for="GossipPort"
+            >
+              Gossip Port:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -474,17 +483,11 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="GossipPort"
-                    >
-                      Gossip Port:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -674,6 +677,13 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
             class="form-group"
             data-testid="ClusterName"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="ClusterNamelabel"
+              for="ClusterName"
+            >
+              Cluster Name:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -681,17 +691,11 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="ClusterName"
-                    >
-                      Cluster Name:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -721,6 +725,13 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
             class="form-group"
             data-testid="OverrideHostname"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="OverrideHostnamelabel"
+              for="OverrideHostname"
+            >
+              Override Hostname:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -733,12 +744,6 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="OverrideHostname"
-                    >
-                      Override Hostname:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1002,6 +1007,13 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
             class="form-group"
             data-testid="GossipPort"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="GossipPortlabel"
+              for="GossipPort"
+            >
+              Gossip Port:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1009,17 +1021,11 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="GossipPort"
-                    >
-                      Gossip Port:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1209,6 +1215,13 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
             class="form-group"
             data-testid="ClusterName"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="ClusterNamelabel"
+              for="ClusterName"
+            >
+              Cluster Name:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1216,17 +1229,11 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="ClusterName"
-                    >
-                      Cluster Name:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1256,6 +1263,13 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
             class="form-group"
             data-testid="OverrideHostname"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="OverrideHostnamelabel"
+              for="OverrideHostname"
+            >
+              Override Hostname:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1268,12 +1282,6 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="OverrideHostname"
-                    >
-                      Override Hostname:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1537,6 +1545,13 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
             class="form-group"
             data-testid="GossipPort"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="GossipPortlabel"
+              for="GossipPort"
+            >
+              Gossip Port:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1544,17 +1559,11 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="GossipPort"
-                    >
-                      Gossip Port:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1744,6 +1753,13 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
             class="form-group"
             data-testid="ClusterName"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="ClusterNamelabel"
+              for="ClusterName"
+            >
+              Cluster Name:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1751,17 +1767,11 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="ClusterName"
-                    >
-                      Cluster Name:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1791,6 +1801,13 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
             class="form-group"
             data-testid="OverrideHostname"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="OverrideHostnamelabel"
+              for="OverrideHostname"
+            >
+              Override Hostname:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1803,12 +1820,6 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="OverrideHostname"
-                    >
-                      Override Hostname:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -2072,6 +2083,13 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
             class="form-group"
             data-testid="GossipPort"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="GossipPortlabel"
+              for="GossipPort"
+            >
+              Gossip Port:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -2079,17 +2097,11 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="GossipPort"
-                    >
-                      Gossip Port:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >

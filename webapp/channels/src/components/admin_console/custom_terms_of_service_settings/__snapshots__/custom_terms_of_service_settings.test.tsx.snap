@@ -108,6 +108,13 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
             class="form-group"
             data-testid="SupportSettings.CustomTermsOfServiceText"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="SupportSettings.CustomTermsOfServiceTextlabel"
+              for="SupportSettings.CustomTermsOfServiceText"
+            >
+              Custom Terms of Service Text
+            </label>
             <div
               class="col-sm-8"
             >
@@ -115,17 +122,11 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
                 class="Input_container"
               >
                 <div
-                  class="_text-area_r07x5_2 _text-area--size-medium_r07x5_109 _text-area--label-floated_r07x5_44 Input"
+                  class="_text-area_r07x5_2 _text-area--size-medium_r07x5_109 Input"
                 >
                   <div
                     class="_text-area__wrapper_r07x5_8"
                   >
-                    <label
-                      class="_text-area__label_r07x5_25"
-                      for="SupportSettings.CustomTermsOfServiceText"
-                    >
-                      Custom Terms of Service Text
-                    </label>
                     <textarea
                       class="_text-area__input_r07x5_15"
                       data-testid="SupportSettings.CustomTermsOfServiceTextinput"

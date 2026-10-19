@@ -79,6 +79,13 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             class="form-group"
             data-testid="maxIdleConns"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="maxIdleConnslabel"
+              for="maxIdleConns"
+            >
+              Maximum Idle Connections:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -86,17 +93,11 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="maxIdleConns"
-                    >
-                      Maximum Idle Connections:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -126,6 +127,13 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             class="form-group"
             data-testid="maxOpenConns"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="maxOpenConnslabel"
+              for="maxOpenConns"
+            >
+              Maximum Open Connections:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -133,17 +141,11 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="maxOpenConns"
-                    >
-                      Maximum Open Connections:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -173,6 +175,13 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             class="form-group"
             data-testid="queryTimeout"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="queryTimeoutlabel"
+              for="queryTimeout"
+            >
+              Query Timeout:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -180,17 +189,11 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="queryTimeout"
-                    >
-                      Query Timeout:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -220,6 +223,13 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             class="form-group"
             data-testid="analyticsQueryTimeout"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="analyticsQueryTimeoutlabel"
+              for="analyticsQueryTimeout"
+            >
+              Analytics Query Timeout:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -227,17 +237,11 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="analyticsQueryTimeout"
-                    >
-                      Analytics Query Timeout:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -267,6 +271,13 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             class="form-group"
             data-testid="connMaxLifetimeMilliseconds"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="connMaxLifetimeMillisecondslabel"
+              for="connMaxLifetimeMilliseconds"
+            >
+              Maximum Connection Lifetime:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -274,17 +285,11 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="connMaxLifetimeMilliseconds"
-                    >
-                      Maximum Connection Lifetime:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -314,6 +319,13 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             class="form-group"
             data-testid="connMaxIdleTimeMilliseconds"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="connMaxIdleTimeMillisecondslabel"
+              for="connMaxIdleTimeMilliseconds"
+            >
+              Maximum Connection Idle Time:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -321,17 +333,11 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="connMaxIdleTimeMilliseconds"
-                    >
-                      Maximum Connection Idle Time:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -361,6 +367,13 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             class="form-group"
             data-testid="minimumHashtagLength"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="minimumHashtagLengthlabel"
+              for="minimumHashtagLength"
+            >
+              Minimum Hashtag Length:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -368,17 +381,11 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="minimumHashtagLength"
-                    >
-                      Minimum Hashtag Length:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >

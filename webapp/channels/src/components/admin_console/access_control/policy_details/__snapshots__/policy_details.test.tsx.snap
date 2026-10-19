@@ -30,6 +30,13 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             class="form-group"
             data-testid="admin.access_control.policy.edit_policy.policyName"
           >
+            <label
+              class="control-label col-sm-4 vertically-centered-label"
+              data-testid="admin.access_control.policy.edit_policy.policyNamelabel"
+              for="admin.access_control.policy.edit_policy.policyName"
+            >
+              Membership policy name:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -42,12 +49,6 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="admin.access_control.policy.edit_policy.policyName"
-                    >
-                      Membership policy name:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -482,6 +483,13 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             class="form-group"
             data-testid="admin.access_control.policy.edit_policy.policyName"
           >
+            <label
+              class="control-label col-sm-4 vertically-centered-label"
+              data-testid="admin.access_control.policy.edit_policy.policyNamelabel"
+              for="admin.access_control.policy.edit_policy.policyName"
+            >
+              Membership policy name:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -494,12 +502,6 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="admin.access_control.policy.edit_policy.policyName"
-                    >
-                      Membership policy name:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >

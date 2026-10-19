@@ -23,11 +23,12 @@ describe('components/admin_console/TextSetting', () => {
             />,
         );
 
-        screen.getByText('some label', {exact: false});
+        expect(screen.getByTestId('some.idlabel')).toHaveTextContent('some label');
         expect(screen.getByTestId('some.idinput')).toHaveProperty('id', 'some.id');
         expect(screen.getByTestId('some.idinput')).toHaveValue('some value');
         expect(container.querySelector('.Input_container')).toBeInTheDocument();
         expect(screen.getByTestId('some.idinput')).not.toHaveClass('form-control');
+        expect(container.querySelector('legend')).not.toBeInTheDocument();
     });
 
     test('disables input and shows SetByEnv when setByEnv', () => {

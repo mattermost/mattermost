@@ -112,6 +112,13 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
             class="form-group"
             data-testid="exportJobStartTime"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="exportJobStartTimelabel"
+              for="exportJobStartTime"
+            >
+              Compliance Export Time:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -119,17 +126,11 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
                 class="Input_container disabled"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="exportJobStartTime"
-                    >
-                      Compliance Export Time:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -400,6 +401,13 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
             class="form-group"
             data-testid="exportJobStartTime"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="exportJobStartTimelabel"
+              for="exportJobStartTime"
+            >
+              Compliance Export Time:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -407,17 +415,11 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
                 class="Input_container disabled"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="exportJobStartTime"
-                    >
-                      Compliance Export Time:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -620,6 +622,13 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
                 class="form-group"
                 data-testid="globalRelaySMTPUsername"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelaySMTPUsernamelabel"
+                  for="globalRelaySMTPUsername"
+                >
+                  SMTP Username:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -627,17 +636,11 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
                     class="Input_container disabled"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelaySMTPUsername"
-                        >
-                          SMTP Username:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -668,6 +671,13 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
                 class="form-group"
                 data-testid="globalRelaySMTPPassword"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelaySMTPPasswordlabel"
+                  for="globalRelaySMTPPassword"
+                >
+                  SMTP Password:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -675,17 +685,11 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
                     class="Input_container disabled"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelaySMTPPassword"
-                        >
-                          SMTP Password:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -716,6 +720,13 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
                 class="form-group"
                 data-testid="globalRelayEmailAddress"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelayEmailAddresslabel"
+                  for="globalRelayEmailAddress"
+                >
+                  Email Address:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -723,17 +734,11 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
                     class="Input_container disabled"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelayEmailAddress"
-                        >
-                          Email Address:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -764,6 +769,13 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
                 class="form-group"
                 data-testid="globalRelaySenderAddress"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelaySenderAddresslabel"
+                  for="globalRelaySenderAddress"
+                >
+                  Sender Address:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -776,12 +788,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelaySenderAddress"
-                        >
-                          Sender Address:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -1000,6 +1006,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
             class="form-group"
             data-testid="exportJobStartTime"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="exportJobStartTimelabel"
+              for="exportJobStartTime"
+            >
+              Compliance Export Time:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1007,17 +1020,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="exportJobStartTime"
-                    >
-                      Compliance Export Time:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1285,6 +1292,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
             class="form-group"
             data-testid="exportJobStartTime"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="exportJobStartTimelabel"
+              for="exportJobStartTime"
+            >
+              Compliance Export Time:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1292,17 +1306,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="exportJobStartTime"
-                    >
-                      Compliance Export Time:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -1500,6 +1508,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="form-group"
                 data-testid="globalRelaySMTPUsername"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelaySMTPUsernamelabel"
+                  for="globalRelaySMTPUsername"
+                >
+                  SMTP Username:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -1507,17 +1522,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                     class="Input_container"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelaySMTPUsername"
-                        >
-                          SMTP Username:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -1547,6 +1556,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="form-group"
                 data-testid="globalRelaySMTPPassword"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelaySMTPPasswordlabel"
+                  for="globalRelaySMTPPassword"
+                >
+                  SMTP Password:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -1554,17 +1570,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                     class="Input_container"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelaySMTPPassword"
-                        >
-                          SMTP Password:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -1594,6 +1604,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="form-group"
                 data-testid="globalRelayEmailAddress"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelayEmailAddresslabel"
+                  for="globalRelayEmailAddress"
+                >
+                  Email Address:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -1601,17 +1618,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                     class="Input_container"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelayEmailAddress"
-                        >
-                          Email Address:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -1641,6 +1652,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="form-group"
                 data-testid="globalRelaySenderAddress"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelaySenderAddresslabel"
+                  for="globalRelaySenderAddress"
+                >
+                  Sender Address:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -1653,12 +1671,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelaySenderAddress"
-                        >
-                          Sender Address:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -1875,6 +1887,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
             class="form-group"
             data-testid="exportJobStartTime"
           >
+            <label
+              class="control-label col-sm-4"
+              data-testid="exportJobStartTimelabel"
+              for="exportJobStartTime"
+            >
+              Compliance Export Time:
+            </label>
             <div
               class="col-sm-8"
             >
@@ -1882,17 +1901,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="Input_container"
               >
                 <div
-                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
                   <div
                     class="_text-input__wrapper_3inqk_31"
                   >
-                    <label
-                      class="_text-input__label_3inqk_53"
-                      for="exportJobStartTime"
-                    >
-                      Compliance Export Time:
-                    </label>
                     <div
                       class="_text-input__inner_3inqk_80"
                     >
@@ -2090,6 +2103,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="form-group"
                 data-testid="globalRelaySMTPUsername"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelaySMTPUsernamelabel"
+                  for="globalRelaySMTPUsername"
+                >
+                  SMTP Username:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -2097,17 +2117,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                     class="Input_container"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelaySMTPUsername"
-                        >
-                          SMTP Username:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -2137,6 +2151,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="form-group"
                 data-testid="globalRelaySMTPPassword"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelaySMTPPasswordlabel"
+                  for="globalRelaySMTPPassword"
+                >
+                  SMTP Password:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -2144,17 +2165,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                     class="Input_container"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelaySMTPPassword"
-                        >
-                          SMTP Password:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -2184,6 +2199,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="form-group"
                 data-testid="globalRelayEmailAddress"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelayEmailAddresslabel"
+                  for="globalRelayEmailAddress"
+                >
+                  Email Address:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -2191,17 +2213,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                     class="Input_container"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelayEmailAddress"
-                        >
-                          Email Address:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -2231,6 +2247,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="form-group"
                 data-testid="globalRelaySenderAddress"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelaySenderAddresslabel"
+                  for="globalRelaySenderAddress"
+                >
+                  Sender Address:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -2238,17 +2261,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                     class="Input_container"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelaySenderAddress"
-                        >
-                          Sender Address:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -2278,6 +2295,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="form-group"
                 data-testid="globalRelayCustomSMTPServerName"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelayCustomSMTPServerNamelabel"
+                  for="globalRelayCustomSMTPServerName"
+                >
+                  SMTP Server Name:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -2285,17 +2309,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                     class="Input_container"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelayCustomSMTPServerName"
-                        >
-                          SMTP Server Name:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -2325,6 +2343,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="form-group"
                 data-testid="globalRelayCustomSMTPPort"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelayCustomSMTPPortlabel"
+                  for="globalRelayCustomSMTPPort"
+                >
+                  SMTP Server Port:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -2332,17 +2357,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                     class="Input_container"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelayCustomSMTPPort"
-                        >
-                          SMTP Server Port:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -2372,6 +2391,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="form-group"
                 data-testid="globalRelayCustomHeaderName"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelayCustomHeaderNamelabel"
+                  for="globalRelayCustomHeaderName"
+                >
+                  Custom Header Name:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -2379,17 +2405,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                     class="Input_container"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelayCustomHeaderName"
-                        >
-                          Custom Header Name:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -2419,6 +2439,13 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 class="form-group"
                 data-testid="globalRelayCustomHeaderValue"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelayCustomHeaderValuelabel"
+                  for="globalRelayCustomHeaderValue"
+                >
+                  Custom Header Value:
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -2426,17 +2453,11 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                     class="Input_container"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="globalRelayCustomHeaderValue"
-                        >
-                          Custom Header Value:
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >

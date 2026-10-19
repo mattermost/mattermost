@@ -3,7 +3,6 @@
 
 import React from 'react';
 import type {ChangeEvent, ReactNode} from 'react';
-import type {MessageDescriptor} from 'react-intl';
 
 import Input from 'components/widgets/inputs/input/input';
 
@@ -32,35 +31,6 @@ export type Props = {
     multiple?: boolean;
 };
 
-/**
- * Extract a floating-label string/descriptor from TextSetting's ReactNode label.
- * Supports plain strings and FormattedMessage-shaped elements. Complex nodes
- * (e.g. apps form labels with required markers) return undefined so the
- * Setting column label is kept instead.
- */
-function toFloatingLabel(label: ReactNode): string | MessageDescriptor | undefined {
-    if (typeof label === 'string') {
-        return label;
-    }
-    if (typeof label === 'number') {
-        return String(label);
-    }
-    if (!React.isValidElement(label)) {
-        return undefined;
-    }
-
-    const props = label.props as Partial<MessageDescriptor> & {values?: Record<string, React.ReactNode>};
-    if (typeof props.id === 'string' && props.defaultMessage !== undefined) {
-        return {
-            id: props.id,
-            defaultMessage: props.defaultMessage,
-            values: props.values,
-        };
-    }
-
-    return undefined;
-}
-
 function TextSetting(props: Props) {
     const {labelClassName = '', inputClassName = '', maxLength = -1, resizable = true, type = 'text'} = props;
 
@@ -78,11 +48,10 @@ function TextSetting(props: Props) {
         }
     }
 
+    // Compass TextInput/TextArea for chrome only — keep the classic Setting
+    // left-column label (no floating legend). Account Settings and other
+    // call sites that want floating labels use Input with useLegend default.
     const useCompassField = type === 'text' || type === 'textarea';
-    const floatingLabel = useCompassField ? toFloatingLabel(props.label) : undefined;
-
-    // Avoid duplicating the Setting column label when Compass owns the floating label.
-    const settingLabel = floatingLabel !== undefined ? undefined : props.label;
 
     let input = null;
     if (useCompassField) {
@@ -98,14 +67,18 @@ function TextSetting(props: Props) {
                 data-testid={testId}
                 type={type}
                 value={inputValue}
-                label={floatingLabel}
                 placeholder={props.placeholder}
                 maxLength={resolvedMaxLength}
                 disabled={props.disabled}
                 autoFocus={props.autoFocus}
                 onChange={handleChange}
                 rows={type === 'textarea' ? 5 : undefined}
-                useLegend={floatingLabel !== undefined}
+                useLegend={false}
+
+                // Setting's left-column <label htmlFor> owns the accessible name.
+                // Override the adapter's useLegend=false fallback that would set
+                // aria-label from the placeholder and steal naming from that label.
+                aria-label={undefined}
                 dir='auto'
                 style={type === 'textarea' && resizable === false ? {resize: 'none'} : undefined}
             />
@@ -134,7 +107,7 @@ function TextSetting(props: Props) {
 
     return (
         <Setting
-            label={settingLabel}
+            label={props.label}
             labelClassName={labelClassName}
             inputClassName={inputClassName}
             helpText={props.helpText}

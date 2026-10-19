@@ -4,12 +4,12 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {render, screen, userEvent} from 'tests/react_testing_utils';
+import {render, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import TextSetting from './text_setting';
 
 describe('components/widgets/settings/TextSetting', () => {
-    test('should render Compass Input with floating label for text type', () => {
+    test('should render Compass Input without floating label for text type', () => {
         const onChange = jest.fn();
         const {container} = render(
             <TextSetting
@@ -20,7 +20,7 @@ describe('components/widgets/settings/TextSetting', () => {
             />,
         );
 
-        expect(screen.getByText('some label')).toBeInTheDocument();
+        expect(screen.getByTestId('string.idlabel')).toHaveTextContent('some label');
 
         const input = screen.getByTestId('string.idinput');
         expect(input).toBeInTheDocument();
@@ -30,8 +30,8 @@ describe('components/widgets/settings/TextSetting', () => {
         expect(input).not.toHaveClass('form-control');
         expect(container.querySelector('.Input_container')).toBeInTheDocument();
 
-        // Floating label replaces the Setting column label
-        expect(screen.queryByTestId('string.idlabel')).not.toBeInTheDocument();
+        // Non-floating: no legend/label inside the Compass field
+        expect(container.querySelector('legend')).not.toBeInTheDocument();
     });
 
     test('should render Compass TextArea for textarea type', () => {
@@ -46,7 +46,7 @@ describe('components/widgets/settings/TextSetting', () => {
             />,
         );
 
-        expect(screen.getByText('some label')).toBeInTheDocument();
+        expect(screen.getByTestId('string.idlabel')).toHaveTextContent('some label');
 
         const textarea = screen.getByTestId('string.idinput');
         expect(textarea).toBeInTheDocument();
@@ -54,11 +54,12 @@ describe('components/widgets/settings/TextSetting', () => {
         expect(textarea).toHaveValue('some value');
         expect(textarea).not.toHaveClass('form-control');
         expect(container.querySelector('.Input_container')).toBeInTheDocument();
+        expect(container.querySelector('legend')).not.toBeInTheDocument();
     });
 
-    test('should use FormattedMessage label as floating label', () => {
+    test('should keep Setting column label for FormattedMessage labels', () => {
         const onChange = jest.fn();
-        render(
+        renderWithContext(
             <TextSetting
                 id='policy.name'
                 label={
@@ -73,10 +74,9 @@ describe('components/widgets/settings/TextSetting', () => {
             />,
         );
 
-        expect(screen.getByText('Membership policy name:')).toBeInTheDocument();
+        expect(screen.getByTestId('policy.namelabel')).toHaveTextContent('Membership policy name:');
         expect(screen.getByTestId('policy.nameinput')).toHaveAttribute('id', 'policy.name');
         expect(screen.getByPlaceholderText('Add a unique policy name')).toBeInTheDocument();
-        expect(screen.queryByTestId('policy.namelabel')).not.toBeInTheDocument();
     });
 
     test('should keep Setting column label for complex ReactNode labels', () => {
@@ -155,5 +155,6 @@ describe('components/widgets/settings/TextSetting', () => {
         expect(input).toBeDisabled();
         expect(input).toHaveAttribute('maxLength', '10');
         expect(screen.getByTestId('string.idhelp-text')).toHaveTextContent('help me');
+        expect(screen.getByTestId('string.idlabel')).toHaveTextContent('some label');
     });
 });

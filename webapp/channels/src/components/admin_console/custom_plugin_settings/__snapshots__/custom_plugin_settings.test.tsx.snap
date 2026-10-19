@@ -56,6 +56,13 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 class="form-group"
                 data-testid="settinga"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="settingalabel"
+                  for="settinga"
+                >
+                  Setting One
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -63,17 +70,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     class="Input_container"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="settinga"
-                        >
-                          Setting One
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
@@ -579,6 +580,13 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 class="form-group"
                 data-testid="PluginSettings.Plugins.testplugin.settinga"
               >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="PluginSettings.Plugins.testplugin.settingalabel"
+                  for="PluginSettings.Plugins.testplugin.settinga"
+                >
+                  Setting One
+                </label>
                 <div
                   class="col-sm-8"
                 >
@@ -586,17 +594,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     class="Input_container"
                   >
                     <div
-                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
+                      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                     >
                       <div
                         class="_text-input__wrapper_3inqk_31"
                       >
-                        <label
-                          class="_text-input__label_3inqk_53"
-                          for="PluginSettings.Plugins.testplugin.settinga"
-                        >
-                          Setting One
-                        </label>
                         <div
                           class="_text-input__inner_3inqk_80"
                         >
