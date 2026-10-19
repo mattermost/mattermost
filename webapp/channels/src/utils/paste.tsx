@@ -161,6 +161,10 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
 }
 
 export function isKnownTargetForPaste(event: ClipboardEvent, location: string, isInEditMode?: boolean): boolean {
+    if ((event.target as HTMLElement)?.isContentEditable) {
+        return false;
+    }
+
     let isKnownTarget = false;
 
     if (isInEditMode) {

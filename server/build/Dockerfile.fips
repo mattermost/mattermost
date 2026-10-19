@@ -1,5 +1,5 @@
 # First stage - FIPS dev image with dependencies for building
-FROM cgr.dev/mattermost.com/glibc-openssl-fips:16-dev@sha256:e971e3eb6b5ffd227e17d0fa7944e3430d3e8e24e9587d5488a833139629ab0f AS builder
+FROM cgr.dev/mattermost.com/glibc-openssl-fips:16-dev@sha256:e630aa623f8b0f39c1a06354cdc3f07d8ea22b53e02e1ee9e0fce4c41b498801 AS builder
 # Setting bash as our shell, and enabling pipefail option
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 

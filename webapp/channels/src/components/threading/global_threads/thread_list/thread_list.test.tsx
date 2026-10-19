@@ -130,6 +130,53 @@ describe('components/threading/global_threads/thread_list', () => {
         expect(openModal).toHaveBeenCalledTimes(1);
     });
 
+    describe('arrow key navigation', () => {
+        const pressArrowDown = (target: HTMLElement) => {
+            target.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', code: 'ArrowDown', keyCode: 40, bubbles: true}));
+        };
+
+        beforeEach(() => {
+            props.selectedThreadId = '1';
+            mockRouting.select.mockClear();
+        });
+
+        test('should move to the next thread from outside a text input', () => {
+            renderWithContext(<ThreadList {...props}/>);
+
+            pressArrowDown(document.body);
+            expect(mockRouting.select).toHaveBeenCalledWith('2');
+        });
+
+        test('should not move threads while a contenteditable composer is focused', () => {
+            renderWithContext(<ThreadList {...props}/>);
+
+            const composer = document.createElement('div');
+            composer.setAttribute('contenteditable', 'true');
+            document.body.appendChild(composer);
+
+            pressArrowDown(composer);
+            expect(mockRouting.select).not.toHaveBeenCalled();
+
+            composer.remove();
+        });
+
+        test('should move threads from a non-editable element inside a contenteditable host', () => {
+            renderWithContext(<ThreadList {...props}/>);
+
+            const host = document.createElement('div');
+            host.setAttribute('contenteditable', 'true');
+            const readOnly = document.createElement('span');
+            readOnly.setAttribute('contenteditable', 'false');
+            host.appendChild(readOnly);
+            document.body.appendChild(host);
+
+            pressArrowDown(readOnly);
+            expect(mockRouting.select).toHaveBeenCalledWith('2');
+
+            host.remove();
+        });
+    });
+
     test('should support getThreads', async () => {
         renderWithContext(
             <ThreadList {...props}/>,

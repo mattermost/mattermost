@@ -5,6 +5,7 @@ package localcachelayer
 
 import (
 	"bytes"
+	"errors"
 	"maps"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -72,8 +73,8 @@ func (s *LocalCacheAttributesStore) handleClusterInvalidateUserAttributes(msg *m
 // GetSubject caches the user's custom-profile-attributes Subject, keyed by user ID. Every
 // user-subject read uses the single AccessControl property group (see BuildAccessControlSubject
 // in app), so the group ID does not need to be part of the key. Only the user object type is
-// cached; a channel-type lookup passes straight through. A not-found result is not cached, so a
-// user with no attributes yet is re-queried on each call until a value exists.
+// cached; a channel-type lookup passes straight through. A user with no attributes is cached as an
+// empty subject rather than returning not-found.
 func (s LocalCacheAttributesStore) GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error) {
 	if objectType != model.PropertyFieldObjectTypeUser {
 		return s.AttributesStore.GetSubject(rctx, ID, groupID, objectType)
@@ -88,7 +89,11 @@ func (s LocalCacheAttributesStore) GetSubject(rctx request.CTX, ID, groupID, obj
 
 	subject, err := s.AttributesStore.GetSubject(rctx, ID, groupID, objectType)
 	if err != nil {
-		return nil, err
+		var nfErr *store.ErrNotFound
+		if !errors.As(err, &nfErr) {
+			return nil, err
+		}
+		subject = &model.Subject{ID: ID, Type: objectType, Attributes: map[string]any{}}
 	}
 
 	s.rootStore.doStandardAddToCache(s.rootStore.userAttributesCache, ID, subject)
