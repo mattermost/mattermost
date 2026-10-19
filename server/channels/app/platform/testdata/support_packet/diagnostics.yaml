@@ -5,6 +5,10 @@ license:
   sku_short_name: enterprise
   is_trial: true
   is_non_production: true
+  expires_at: 1798859045000
+  features:
+    ldap: false
+    id_loaded: true
 server:
   # Machine
   os: linux
@@ -69,6 +73,7 @@ websocket:
 cluster:
   id: cluster-id
   number_of_nodes: 3
+  number_of_connected_nodes: 2
 notifications:
   email:
     status: OK

@@ -15,7 +15,7 @@ func TestBuiltinRegistry(t *testing.T) {
 	registry := healthcheck.Builtin()
 	require.NoError(t, registry.Validate())
 
-	for _, code := range []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY", "SITE_URL_EMPTY", "SITE_URL_HTTP"} {
+	for _, code := range []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY", "SITE_URL_EMPTY", "SITE_URL_HTTP", "CLUSTER_SINGLE_NODE", "CLUSTER_VERSION_SKEW", "RATELIMIT_OFF_LARGE"} {
 		_, ok := registry.Get(code)
 		assert.True(t, ok, code)
 	}
@@ -24,7 +24,7 @@ func TestBuiltinRegistry(t *testing.T) {
 func TestBuiltinRulesOnCloud(t *testing.T) {
 	var cloud []string
 	for _, rule := range healthcheck.Builtin().Rules() {
-		if rule.AppliesTo(healthcheck.Deployment{IsCloud: true}) {
+		if rule.AppliesTo(true) {
 			cloud = append(cloud, rule.Code)
 		}
 	}

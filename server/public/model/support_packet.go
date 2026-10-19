@@ -16,19 +16,27 @@ const (
 	SupportPacketPluginsFileName     = "plugins.json"
 )
 
+type SupportPacketLicense struct {
+	Company         string `yaml:"company"`
+	Users           int    `yaml:"users"`
+	SkuShortName    string `yaml:"sku_short_name"`
+	IsTrial         bool   `yaml:"is_trial,omitempty"`
+	IsGovSKU        bool   `yaml:"is_gov_sku,omitempty"`
+	IsNonProduction bool   `yaml:"is_non_production,omitempty"`
+	IsCloud         bool   `yaml:"is_cloud,omitempty"`
+	// ExpiresAt is in epoch milliseconds.
+	ExpiresAt           int64 `yaml:"expires_at,omitempty"`
+	IsSeatCountEnforced bool  `yaml:"is_seat_count_enforced,omitempty"`
+	ExtraUsers          *int  `yaml:"extra_users,omitempty"`
+	// Features is nil in packets from servers that predate it.
+	Features *Features `yaml:"features,omitempty"`
+}
+
 // SupportPacketDiagnostics reports one node's diagnostics. A nil pointer field was not collected, which is not the same as zero.
 type SupportPacketDiagnostics struct {
 	Version int `yaml:"version"`
 
-	License struct {
-		Company         string `yaml:"company"`
-		Users           int    `yaml:"users"`
-		SkuShortName    string `yaml:"sku_short_name"`
-		IsTrial         bool   `yaml:"is_trial,omitempty"`
-		IsGovSKU        bool   `yaml:"is_gov_sku,omitempty"`
-		IsNonProduction bool   `yaml:"is_non_production,omitempty"`
-		IsCloud         bool   `yaml:"is_cloud,omitempty"`
-	} `yaml:"license"`
+	License SupportPacketLicense `yaml:"license"`
 
 	Server struct {
 		// Machine
@@ -107,7 +115,9 @@ type SupportPacketDiagnostics struct {
 	Cluster struct {
 		ID            string `yaml:"id"`
 		NumberOfNodes *int   `yaml:"number_of_nodes,omitempty"`
-		IsLeader      bool   `yaml:"is_leader,omitempty"`
+		// NumberOfConnectedNodes leaves out nodes that are registered in the database but not in the gossip cluster.
+		NumberOfConnectedNodes *int `yaml:"number_of_connected_nodes,omitempty"`
+		IsLeader               bool `yaml:"is_leader,omitempty"`
 	} `yaml:"cluster"`
 
 	Notifications struct {

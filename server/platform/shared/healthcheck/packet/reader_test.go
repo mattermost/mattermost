@@ -31,6 +31,9 @@ import (
 const (
 	pushSubject    = "EmailSettings.PushNotificationServer"
 	siteURLSubject = "ServiceSettings.SiteURL"
+
+	// The fixtures run 11.0, which has ended.
+	versionSubject = "11.0"
 )
 
 type finding struct {
@@ -127,12 +130,14 @@ func TestReadGoldenPackets(t *testing.T) {
 			expected: []finding{
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
+				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
 		},
 		{
 			name: "ha",
 			expected: []finding{
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
+				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
 		},
 	}
@@ -155,8 +160,15 @@ func TestReadSnapshotFields(t *testing.T) {
 	assert.Equal(t, time.Date(2026, time.September, 25, 10, 0, 0, 0, time.UTC), s.CollectedAt)
 	assert.Equal(t, "11.0.4", s.Version.Current)
 	assert.Empty(t, s.Version.Latest)
-	assert.Nil(t, s.License)
-	assert.False(t, s.Deployment.IsCloud)
+	assert.False(t, s.IsCloud())
+
+	license, ok := s.License()
+	require.True(t, ok)
+	assert.Equal(t, model.LicenseShortSkuEnterprise, license.SkuShortName)
+	assert.Equal(t, 500, license.Users)
+	idLoaded, ok := s.LicenseFeature(func(f *model.Features) *bool { return f.IDLoadedPushNotifications })
+	require.True(t, ok)
+	assert.True(t, idLoaded)
 
 	for _, section := range []model.WorkspaceSection{model.SectionConfig, model.SectionStats, model.SectionJobs, model.SectionPlugins} {
 		assert.True(t, s.Has(section), "section %q", section)
@@ -281,7 +293,7 @@ func TestReadCloud(t *testing.T) {
 	files[model.SupportPacketDiagnosticsFileName] = bytes.Replace(files[model.SupportPacketDiagnosticsFileName], []byte("license:\n"), []byte("license:\n  is_cloud: true\n"), 1)
 
 	snapshot := readFiles(t, files).Snapshot
-	assert.True(t, snapshot.Deployment.IsCloud)
+	assert.True(t, snapshot.IsCloud())
 
 	var codes []string
 	for _, f := range evaluate(t, snapshot) {

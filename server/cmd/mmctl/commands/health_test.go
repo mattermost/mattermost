@@ -329,9 +329,12 @@ func healthTestPacketFiles() map[string]string {
 	return map[string]string{
 		model.PacketMetadataFileName:           "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
 		model.SupportPacketDiagnosticsFileName: "version: 2\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\n",
+		model.SupportPacketStatsFileName:       "registered_users: 100\n",
 		model.SupportPacketConfigFileName: `{
     "ServiceSettings": {"SiteURL": "https://chat.example.com"},
-    "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"}
+    "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"},
+    "ClusterSettings": {"Enable": false},
+    "RateLimitSettings": {"Enable": true, "MemoryStoreSize": 10000}
 }`,
 	}
 }
@@ -398,7 +401,12 @@ Notifications
             PushNotificationServer http://push.example.com uses http://, so push notifications are sent in cleartext.
             → Prefix PushNotificationServer with https:// and verify reachability from the app node.
 
-1 critical`, s.printedHealthFindings())
+Version
+  CRITICAL  Mattermost version is past end-of-life
+            Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15. No security patches ship for this release line. Upgrade to the latest release.
+            → Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.
+
+2 critical`, s.printedHealthFindings())
 	})
 
 	s.Run("an old packet is not reported as stopped evaluation", func() {
@@ -441,10 +449,11 @@ Notifications
 		s.Require().True(ok)
 		s.Equal(int64(healthTestPacketGeneratedAt), list.EvaluatedAt)
 		findings := list.Findings
-		s.Require().Len(findings, 1)
-		s.Equal("PUSH_BAD_SCHEME", findings[0].Code)
-		s.Equal("PushNotificationServer does not use https://", findings[0].Title)
-		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[0].FirstSeenAt)
+		s.Require().Len(findings, 2)
+		s.Equal("VERSION_EOL", findings[0].Code)
+		s.Equal("PUSH_BAD_SCHEME", findings[1].Code)
+		s.Equal("PushNotificationServer does not use https://", findings[1].Title)
+		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[1].FirstSeenAt)
 		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
 	})
 

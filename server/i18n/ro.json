@@ -1372,10 +1372,6 @@
     "translation": "Nu se poate actualiza o postare într-un canal șters."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Imposibil de găsit postul sau comentariul existent pentru actualizare."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Deja sters id={{.PostId}}."
   },
@@ -6013,7 +6009,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Nu se pot obține canalele pentru schema furnizată."
+    "translation": "Nu se pot obține echipele pentru schema furnizată."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -8909,7 +8905,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Nu s-a putut revoca invitația serverului la distanță din canal"
+    "translation": "Nu s-a putut revoca invitația serverului la distanță din canal."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -12528,20 +12524,12 @@
     "translation": "Testul de conexiune LDAP a eșuat. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Eroare: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Nu s-au putut prelua câmpurile CPA"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "Id AD/LDAP nevalid"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Nu s-a putut obține utilizatorul."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Valoare goală pentru atributul LDAP"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12682,10 +12670,6 @@
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "SAML nu a putut încărca certificatul public al furnizorului de identitate; contactați administratorul de sistem."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Nu s-au putut prelua câmpurile CPA"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
@@ -14265,7 +14249,7 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Constatarea de sănătate nu a putut fi pusă pe silențios."
+    "translation": "Nu se poate ignora constatarea de sănătate."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
@@ -14273,7 +14257,7 @@
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Nu s-a putut anula punerea pe silențios a constatării de sănătate."
+    "translation": "Nu se poate anula ignorarea constatării de sănătate."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
@@ -14586,5 +14570,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys nevalid: depășește limita de {{.MaxCount}} chei sau {{.MaxLength}} octeți."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NEGĂSIT**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "eliminat"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` nu este o valoare validă pentru `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Acest câmp este legat de un șablon de atribut global și nu poate fi modificat prin API-ul pentru atribute de utilizator. Folosiți în schimb API-ul pentru atribute globale."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Nu se poate crea emoji-ul. Imaginea este prea mare pentru a fi procesată. Încercați una cu dimensiuni mai mici sau cu mai puține cadre."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Pagina „Sănătatea site-ului” nu este activată."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Pagina „Sănătatea site-ului” necesită o licență Enterprise."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "Nu aveți permisiunea de a trimite mesaje cu autodistrugere la citire în acest canal."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Nu se poate reveni la începutul fișierului."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Nu se poate obține constatarea de sănătate."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Constatarea de sănătate nu a fost găsită."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Nu se pot obține constatările de sănătate."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Atributul nu mai este sincronizat din această sursă, așa că sincronizarea nu îl poate modifica."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Opțiunile unui atribut sincronizat din AD/LDAP sau SAML sunt gestionate de sincronizare și nu pot fi adăugate, redenumite sau eliminate."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Atributul sincronizat are opțiuni nevalide."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Sursă nevalidă pentru sincronizarea proprietăților."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "ID de utilizator nevalid pentru sincronizarea proprietăților."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Nu se poate determina care opțiuni ale atributului sincronizat sunt în uz."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Configurația de jurnalizare conține o cale de fișier jurnal sau de audit din afara directorului rădăcină pentru jurnale. Verificați jurnalele serverului pentru detalii."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Momentul colectării datelor este necunoscut."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Secțiunea de configurare nu este disponibilă."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Diagnosticele serverului nu sunt disponibile."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Istoricul sarcinilor nu este disponibil."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Detaliile licenței nu sunt disponibile."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Lista de pluginuri nu este disponibilă."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Regula a eșuat în mod neașteptat și nu a putut fi evaluată."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Statisticile de utilizare nu sunt disponibile."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} folosește http://, așa că notificările push sunt trimise necriptat."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} are o schemă nevalidă. Utilizatorii de pe mobil nu vor primi notificări."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Adăugați prefixul https:// la PushNotificationServer și verificați dacă serverul este accesibil de pe nodul aplicației."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer nu folosește https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Fiecare încercare de trimitere push va eșua cu eroarea „unsupported protocol scheme”."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Setați PushNotificationServer la https://push.mattermost.com sau la un proxy push auto-găzduit."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Notificările push sunt activate, dar PushNotificationServer este gol"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com este proxy-ul push de test al Mattermost. Nu are SLA, are un debit limitat și nu este destinat utilizării în producție. Livrarea notificărilor push pe mobil nu va fi fiabilă pentru nimic dincolo de testarea la scară mică."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Treceți la https://push.mattermost.com (Hosted Push Notification Service de producție, inclus în Enterprise) sau la un proxy push auto-găzduit."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer indică spre push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL este necesar pentru URL-urile webhook-urilor, callback-urile OAuth, conținutul notificărilor push pentru mobil și linkurile din e-mailuri. Integrările nu funcționează cât timp este gol."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Setați SiteURL la URL-ul HTTPS public al serverului."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL este gol"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL este {{.url}}. Cookie-urile de sesiune și tokenurile de autentificare circulă necriptat."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Serviți Mattermost prin HTTPS și actualizați SiteURL la adresa https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL folosește http:// (nu https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Mesajele cu autodistrugere la citire nu pot fi trimise ca postări programate recurente."
   }
 ]

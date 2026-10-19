@@ -368,6 +368,8 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Empty(t, d.Cluster.ID)
 		require.NotNil(t, d.Cluster.NumberOfNodes)
 		assert.Equal(t, 1, *d.Cluster.NumberOfNodes)
+		require.NotNil(t, d.Cluster.NumberOfConnectedNodes)
+		assert.Equal(t, 1, *d.Cluster.NumberOfConnectedNodes)
 		assert.False(t, d.Cluster.IsLeader)
 
 		/* LDAP */
@@ -389,6 +391,29 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.Google.Status)
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.Office365.Status)
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.OpenID.Status)
+	})
+
+	t.Run("database-only nodes count as nodes but not as connected", func(t *testing.T) {
+		cluster := emocks.NewClusterInterface(t)
+		cluster.On("SendClusterMessage", mock.Anything).Return().Maybe()
+		cluster.On("GetClusterId").Return("cluster-id")
+		cluster.On("IsLeader").Return(true)
+		cluster.On("GetClusterInfos").Return([]*model.ClusterInfo{
+			{Id: "a", Hostname: "app-1", IPAddress: "10.0.0.1"},
+			{Id: "b", Hostname: "app-2", IPAddress: "10.0.0.2"},
+			{Id: "c", Hostname: "app-3"},
+		}, nil)
+		originalCluster := th.Service.clusterIFace
+		t.Cleanup(func() {
+			th.Service.clusterIFace = originalCluster
+		})
+		th.Service.clusterIFace = cluster
+
+		d := getDiagnostics(t)
+		require.NotNil(t, d.Cluster.NumberOfNodes)
+		assert.Equal(t, 3, *d.Cluster.NumberOfNodes)
+		require.NotNil(t, d.Cluster.NumberOfConnectedNodes)
+		assert.Equal(t, 2, *d.Cluster.NumberOfConnectedNodes)
 	})
 
 	t.Run("only the cluster leader writes is_leader", func(t *testing.T) {
@@ -428,6 +453,31 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		fileData, err := supportPacketDiagnosticsFile(d, nil)
 		require.NoError(t, err)
 		assert.Contains(t, string(fileData.Body), "is_cloud: true")
+	})
+
+	t.Run("enforced license writes expiry, seat limit and features", func(t *testing.T) {
+		enforcedLicense := model.NewTestLicense("ldap")
+		enforcedLicense.IsSeatCountEnforced = true
+		enforcedLicense.ExtraUsers = new(5)
+		require.True(t, th.Service.SetLicense(enforcedLicense))
+		t.Cleanup(func() {
+			require.True(t, th.Service.SetLicense(license))
+		})
+
+		d := getDiagnostics(t)
+		assert.Equal(t, enforcedLicense.ExpiresAt, d.License.ExpiresAt)
+		assert.True(t, d.License.IsSeatCountEnforced)
+		assert.Equal(t, new(5), d.License.ExtraUsers)
+		require.NotNil(t, d.License.Features)
+		assert.Equal(t, new(true), d.License.Features.LDAP)
+
+		fileData, err := supportPacketDiagnosticsFile(d, nil)
+		require.NoError(t, err)
+		body := string(fileData.Body)
+		assert.Contains(t, body, "expires_at: "+strconv.FormatInt(enforcedLicense.ExpiresAt, 10)+"\n")
+		assert.Contains(t, body, "is_seat_count_enforced: true\n")
+		assert.Contains(t, body, "extra_users: 5\n")
+		assert.Contains(t, body, "    ldap: true\n")
 	})
 
 	t.Run("filestore fails", func(t *testing.T) {
@@ -1329,6 +1379,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 			model.SectionCluster: {"error while getting cluster infos"},
 		})
 		assert.Nil(t, d.Cluster.NumberOfNodes)
+		assert.Nil(t, d.Cluster.NumberOfConnectedNodes)
 	})
 
 	t.Run("LDAP vendor info fails", func(t *testing.T) {
@@ -1564,6 +1615,8 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.License.SkuShortName = "enterprise"
 	diagnostics.License.IsTrial = true
 	diagnostics.License.IsNonProduction = true
+	diagnostics.License.ExpiresAt = time.Date(2027, 1, 2, 3, 4, 5, 0, time.UTC).UnixMilli()
+	diagnostics.License.Features = &model.Features{IDLoadedPushNotifications: new(true), LDAP: new(false)}
 	diagnostics.Server.OS = "linux"
 	diagnostics.Server.Architecture = "amd64"
 	diagnostics.Server.Hostname = new("mm-host")
@@ -1617,6 +1670,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Websocket.Connections = 77
 	diagnostics.Cluster.ID = "cluster-id"
 	diagnostics.Cluster.NumberOfNodes = new(3)
+	diagnostics.Cluster.NumberOfConnectedNodes = new(2)
 	diagnostics.Notifications.Email.Status = model.StatusOk
 	diagnostics.Notifications.Push.Status = model.StatusFail
 	diagnostics.Notifications.Push.Error = "proxy timeout"

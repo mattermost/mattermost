@@ -1379,10 +1379,6 @@
     "translation": "Kan geen bericht bijwerken in een verwijderd kanaal."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "We kunnen geen bestaand bericht of commentaar vinden om bij te werken."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Is reeds verwijderd id={{.PostId}}."
   },
@@ -6380,7 +6376,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Fout bij het ophalen van kanalen voor het opgegeven schema."
+    "translation": "Fout bij het ophalen van teams voor het opgegeven schema."
   },
   {
     "id": "app.team.get_by_name.app_error",
@@ -8450,18 +8446,6 @@
     "translation": "Gebruiker mag geen prioriteitspost of blijvende melding aanmaken."
   },
   {
-    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
-    "translation": "Genegeerde indexen voor purge mogen niet beginnen met een streepje."
-  },
-  {
-    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
-    "translation": "Validatie van blijvende meldingen is mislukt."
-  },
-  {
-    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
-    "translation": "Gebruiker mag geen prioriteitspost of blijvende melding aanmaken."
-  },
-  {
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
     "translation": "Alleen berichten die een draadje beginnen mogen prioriteit hebben."
   },
@@ -9551,7 +9535,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Kan uitnodiging voor kanaal niet intrekken voor remote"
+    "translation": "Kan uitnodiging van externe voor kanaal niet intrekken."
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -10058,18 +10042,6 @@
   {
     "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} moet een prefix zijn van IndexPrefix {{.IndexPrefix}}."
-  },
-  {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Fout bij het ophalen van CPA-velden"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Lege LDAP attribuutwaarde"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Fout bij het ophalen van CPA-veld(en)"
   },
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
@@ -14592,5 +14564,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Ongeldige mention_keys: overschrijdt de limiet van {{.MaxCount}} sleutels of {{.MaxLength}} bytes."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NIET GEVONDEN**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "verwijderd"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` is geen geldige `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Dit veld is gekoppeld aan een sjabloon voor globale attributen en kan niet worden gewijzigd via de API voor gebruikersattributen. Gebruik in plaats daarvan de API voor globale attributen."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Kan geen emoticon aanmaken. De afbeelding is te groot om te verwerken. Gebruik een afbeelding met kleinere afmetingen of minder frames."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Sitegezondheid is niet ingeschakeld."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Sitegezondheid vereist een Enterprise-licentie."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "Je hebt niet het recht om verbrand-na-lezen berichten in dit kanaal te versturen."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Kan niet naar het begin van het bestand gaan."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Kan de bevinding van Sitegezondheid niet ophalen."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Bevinding van Sitegezondheid niet gevonden."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Kan de bevindingen van Sitegezondheid niet ophalen."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Het attribuut wordt niet meer vanuit deze bron gesynchroniseerd, dus de synchronisatie kan het niet wijzigen."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "De opties van een attribuut dat vanuit AD/LDAP of SAML wordt gesynchroniseerd, worden beheerd door de synchronisatie en kunnen niet worden toegevoegd, hernoemd of verwijderd."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Het gesynchroniseerde attribuut heeft ongeldige opties."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Ongeldige bron voor synchronisatie van eigenschappen."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Ongeldig gebruikers-ID voor synchronisatie van eigenschappen."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Kan niet bepalen welke opties van het gesynchroniseerde attribuut in gebruik zijn."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "De logconfiguratie bevat een pad voor een log- of auditbestand buiten de hoofdmap voor logbestanden. Controleer de serverlogs voor meer informatie."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Tijdstip van verzamelen onbekend."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Configuratiesectie niet beschikbaar."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Serverdiagnose niet beschikbaar."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Takengeschiedenis niet beschikbaar."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Licentiegegevens niet beschikbaar."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Pluginlijst niet beschikbaar."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "De regel is onverwacht mislukt en kon niet worden geëvalueerd."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Gebruiksstatistieken niet beschikbaar."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} gebruikt http://, dus pushmeldingen worden onversleuteld verzonden."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} heeft een ongeldig protocol. Mobiele gebruikers ontvangen geen meldingen."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Laat PushNotificationServer beginnen met https:// en controleer of de server bereikbaar is vanaf de applicatieserver."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer gebruikt geen https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Elke pushpoging mislukt met 'unsupported protocol scheme'."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Stel PushNotificationServer in op https://push.mattermost.com of op een zelf gehoste push-proxy."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Pushmeldingen zijn ingeschakeld, maar PushNotificationServer is leeg"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com is de test-push-proxy van Mattermost. Deze heeft geen SLA, een beperkte doorvoer en is niet bedoeld voor productiegebruik. Mobiele pushmeldingen zijn onbetrouwbaar voor alles wat verder gaat dan kleinschalig testen."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Schakel over naar https://push.mattermost.com (de Hosted Push Notification Service voor productie, inbegrepen bij Enterprise) of naar een zelf gehoste push-proxy."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer verwijst naar push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL is vereist voor webhook-URL's, OAuth-callbacks, mobiele pushberichten en links in e-mails. Integraties werken niet zolang deze leeg is."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Stel SiteURL in op de openbare HTTPS-URL van de server."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL is leeg"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL is {{.url}}. Sessiecookies en authenticatietokens worden onversleuteld verzonden."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Lever Mattermost via HTTPS en pas SiteURL aan naar het https://-adres."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL gebruikt http:// (geen https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Verbrand-na-lezen berichten kunnen niet als terugkerende geplande berichten worden verzonden."
   }
 ]

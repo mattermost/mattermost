@@ -1155,6 +1155,21 @@
     "description": "API error when a user lacks permission to move a custom slash command to another team."
   },
   {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "A single quote near `{{.Near}}` is not closed before ` --`. Close it, or use double quotes if the value contains ` --`.",
+    "description": "Slash command error when a single quoted argument value reaches a flag before its closing quote. {{.Near}} is the nearest flag (such as --name) or the command action, never the value itself."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Unexpected text near `{{.Near}}`. Wrap a value that contains spaces in quotes, and use double quotes if the value also contains an apostrophe.",
+    "description": "Slash command error when a word is not the action, a flag or a flag's value, usually because a value with spaces was not quoted. {{.Near}} is the nearest flag (such as --name) or the command action, never the value itself."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "A quote near `{{.Near}}` is never closed.",
+    "description": "Slash command error when a quoted argument value has no closing quote. {{.Near}} is the nearest flag (such as --name) or the command action, never the value itself."
+  },
+  {
     "id": "api.command.team_mismatch.app_error",
     "translation": "Unable to update commands across teams.",
     "description": "API error when an update would move a slash command from one team to another, which is not allowed; 'commands' are slash commands."
@@ -1938,7 +1953,7 @@
   {
     "id": "api.command_remote.accept_invitation.error",
     "translation": "Could not accept invitation: {{.Error}}",
-    "description": "Error response from the /secure-connection slash command when accepting a server-to-server (shared channels) invitation fails; {{.Error}} is the raw error text."
+    "description": "Error response from the /secure-connection slash command when accepting a server-to-server (shared channels) invitation fails; {{.Error}} is a translated error message, e.g. that the remote site could not be reached, returned an invalid response, or rejected the invitation."
   },
   {
     "id": "api.command_remote.add_remote.error",
@@ -1984,11 +1999,6 @@
     "id": "api.command_remote.displayname.hint",
     "translation": "A display name for the secure connection",
     "description": "Autocomplete hint for the display name argument of the /secure-connection slash command."
-  },
-  {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Could not encrypt invitation: {{.Error}}",
-    "description": "Ephemeral error when the /secure-connection invite subcommand fails to encrypt the invitation; {{.Error}} is the underlying error text."
   },
   {
     "id": "api.command_remote.fetch_status.error",
@@ -4135,11 +4145,6 @@
     "description": "API error when editing a post is blocked in a direct message channel restricted by admin policy."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Unable to find the existing post or comment to update.",
-    "description": "API error when the message or comment targeted by an edit cannot be found."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Already deleted id={{.PostId}}.",
     "description": "Detail text attached to an edit-post permission error; {{.PostId}} is the ID of the post that was already deleted. Mostly developer-facing."
@@ -4455,6 +4460,31 @@
     "description": "API error when a user requests an AI-generated recap (channel activity summary) that belongs to another user."
   },
   {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "The invitation has expired. Ask the remote site for a new invitation.",
+    "description": "Error shown to an admin accepting a secure connection (remote Mattermost server) invitation when the remote site reports that the invitation has expired."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "The remote site returned an invalid response.",
+    "description": "Error shown to an admin accepting a secure connection (remote Mattermost server) invitation when the remote site's reply cannot be read, e.g. a proxy returned an HTML page."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "The invitation contains an invalid site address: {{.URL}}",
+    "description": "Error shown to an admin accepting a secure connection (remote Mattermost server) invitation when the remote site address in the invitation is malformed and no request can be made. {{.URL}} is the address, with special characters percent-encoded."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "The remote site rejected the invitation.",
+    "description": "Error shown to an admin accepting a secure connection (remote Mattermost server) invitation when the remote site refuses to confirm it. The remote's reason is logged, not shown."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "Could not reach the remote site at {{.URL}}.",
+    "description": "Error shown to an admin accepting a secure connection (remote Mattermost server) invitation when the remote site cannot be contacted. {{.URL}} is the address that was tried."
+  },
+  {
     "id": "api.remote_cluster.accept_invitation_error",
     "translation": "Could not accept the remote cluster invitation",
     "description": "API error when accepting an invitation to connect with another Mattermost server (remote cluster) fails."
@@ -4527,7 +4557,7 @@
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
     "translation": "Secure connection has already been added.",
-    "description": "API error shown to an admin when trying to add a secure connection (remote server link) that already exists."
+    "description": "API error shown to an admin when trying to add or accept an invitation for a secure connection (remote server link) that already exists."
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
@@ -11231,6 +11261,16 @@
     "description": "API error returned when a search query over property fields (custom attribute definitions) fails."
   },
   {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "The attribute is no longer synced from this source, so its sync cannot change it.",
+    "description": "Error returned when the AD/LDAP or SAML sync tries to change an attribute an administrator unlinked from that source while the sync was running."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "The options of an attribute synced from AD/LDAP or SAML are managed by the sync and cannot be added, renamed or removed.",
+    "description": "API error (403) when an admin tries to add, rename or remove an option of a custom attribute synced from AD/LDAP or SAML; the sync owns that option list. 'AD/LDAP' and 'SAML' should stay as-is."
+  },
+  {
     "id": "app.property_field.update.app_error",
     "translation": "Unable to update property fields.",
     "description": "API error returned when saving changes to property fields (custom attribute definitions) fails."
@@ -11304,6 +11344,26 @@
     "id": "app.property_group.register.app_error",
     "translation": "Unable to register property group.",
     "description": "API error returned when registering a new property group (namespace for custom attribute fields) fails."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "The synced attribute has invalid options.",
+    "description": "Server error when the option list stored on a synced custom attribute cannot be read during AD/LDAP or SAML attribute sync; admin/log audience."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Invalid property sync source.",
+    "description": "Internal error when a custom attribute sync is started for an identity source other than AD/LDAP or SAML; admin/log audience."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Invalid user ID for property sync.",
+    "description": "Internal error when a custom attribute sync is requested with a malformed user ID; admin/log audience."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Unable to determine which options of the synced attribute are in use.",
+    "description": "Server error when the attribute sync cannot determine which options of a synced attribute users still hold, so unused options cannot be removed; admin/log audience."
   },
   {
     "id": "app.property_value.change_policy.lower_only.app_error",
@@ -13807,11 +13867,6 @@
     "description": "Result message of the AD/LDAP connection test in the System Console; placeholders hold the configured server host, port, security type, certificate file names, bind username, and the underlying error."
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Failed to retrieve CPA fields",
-    "description": "Error when fetching the Custom Profile Attribute (CPA) fields mapped to AD/LDAP attributes fails; admin/log audience."
-  },
-  {
     "id": "ent.ldap.create_fail",
     "translation": "Unable to create LDAP user.",
     "description": "Error when the server fails to create a Mattermost account for an AD/LDAP user (e.g. during first login or sync)."
@@ -13925,11 +13980,6 @@
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Size Limit Exceeded. Try increasing your Maximum page size setting. Check out https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded for more details.",
     "description": "AD/LDAP sync job error for admins; 'Maximum page size' is a System Console setting name and the URL is a documentation link that must stay intact."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Empty LDAP attribute value",
-    "description": "Error detail during AD/LDAP sync when a mapped custom profile attribute has an empty value in the directory; admin/log audience."
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -14212,11 +14262,6 @@
     "description": "SAML login error when the Identity Provider sent an unencrypted response but encryption is required."
   },
   {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Failed to retrieve CPA field(s)",
-    "description": "Error when fetching the Custom Profile Attribute (CPA) fields mapped to SAML attributes fails; admin/log audience."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "We received an empty response from the Identity Provider.",
     "description": "SAML login error shown to end users when the Identity Provider's response body is empty."
@@ -14294,7 +14339,7 @@
   {
     "id": "health.reason.collected_at_unknown",
     "translation": "Collection time unknown.",
-    "description": "Health dashboard reason shown when a health check could not run because the time its data was collected is unknown, so ages and durations cannot be measured, so the check's status is unknown."
+    "description": "Health dashboard reason shown when a health check could not run because the time its data was collected is unknown. Without it, ages and durations cannot be measured, so the check's status is unknown."
   },
   {
     "id": "health.reason.config_unavailable",
@@ -14330,6 +14375,106 @@
     "id": "health.reason.stats_unavailable",
     "translation": "Usage statistics unavailable.",
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "The leader advertises {{.address}}. Other nodes cannot reach it at that address, so gossip forms a one-node cluster and split brains are hidden.",
+    "description": "Health dashboard finding detail when the cluster advertise address is a loopback, unspecified or localhost address; {{.address}} is the configured address, and 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "Set ClusterSettings.AdvertiseAddress to the node's reachable IP address or DNS name, or leave it empty to use the network interface address. This check reads the leader's configuration, so review the setting on every node.",
+    "description": "Health dashboard fix-it step for an unreachable cluster advertise address; 'ClusterSettings.AdvertiseAddress' is the config setting path and should not be translated, and 'leader' is the cluster node that runs the health check."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "ClusterSettings.AdvertiseAddress is not reachable from other nodes",
+    "description": "Health dashboard finding title when the cluster advertise address is a loopback, unspecified or localhost address; 'ClusterSettings.AdvertiseAddress' is the config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "The configuration is stored in a file on each node and can be changed in the System Console. A change is saved on one node and pushed to the others on a best-effort basis; a node that misses the push keeps its own file, so the nodes' configurations can drift apart.",
+    "description": "Health dashboard finding detail when a high availability cluster uses file-based configuration that the System Console can change; 'System Console' is the Mattermost admin UI."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "Set ClusterSettings.ReadOnlyConfig to true and manage the configuration through the config file or environment variables on every node, or move the configuration into the database.",
+    "description": "Health dashboard fix-it step for a writable file-based configuration in a high availability cluster; 'ClusterSettings.ReadOnlyConfig' is the config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "ClusterSettings.ReadOnlyConfig is off in a file-based HA cluster",
+    "description": "Health dashboard finding title when a high availability cluster with file-based configuration allows configuration changes from the System Console; 'ClusterSettings.ReadOnlyConfig' is the config setting path and should not be translated, and 'HA' means high availability."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption is false, so traffic between cluster nodes is not encrypted.",
+    "description": "Health dashboard finding detail when cluster gossip encryption is turned off; 'ClusterSettings.EnableGossipEncryption' is the config setting path and should not be translated, and 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "Enable gossip encryption, then restart all nodes together in a maintenance window. Nodes with and without encryption cannot talk to each other, so a rolling restart splits the cluster until the last node restarts.",
+    "description": "Health dashboard fix-it step for unencrypted cluster gossip; 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "HA cluster gossip is not encrypted",
+    "description": "Health dashboard finding title when cluster gossip encryption is turned off; 'HA' means high availability, and 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "With {{.users}} registered users on HA, the default in-memory LRU cache means each node maintains its own copy and uses gossip for invalidation. Mattermost recommends Redis at 100,000 users and above to reduce cache-invalidation traffic at this scale.",
+    "description": "Health dashboard finding detail when a large high availability cluster uses the in-memory cache; {{.users}} is the registered user count, 'LRU' and 'Redis' are cache backend names and should not be translated, and 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "Evaluate setting CacheSettings.CacheType to redis with CacheSettings.RedisAddress configured. Redis requires a license with the Cluster feature.",
+    "description": "Health dashboard fix-it step for a large cluster on the in-memory cache; 'CacheSettings.CacheType', 'CacheSettings.RedisAddress' and 'redis' are config names and values and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "At scale, consider the Redis cache backend",
+    "description": "Health dashboard finding title suggesting the Redis cache for a large high availability cluster; 'Redis' is a product name and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "The intended HA topology is not actually running. A single node gives no failover and hides split-brain risk.",
+    "description": "Health dashboard finding detail when high availability is enabled but the cluster has only one node; 'HA' means high availability, and 'split-brain' is when cluster nodes lose contact and act independently."
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "Check gossip connectivity (ClusterSettings.GossipPort), firewall rules, and that all app nodes share the same ClusterName. An empty ClusterName also keeps the node on its own: the server then logs that high availability has been disabled.",
+    "description": "Health dashboard fix-it step for a cluster with only one node; 'ClusterSettings.GossipPort' and 'ClusterName' are config setting names and should not be translated, and 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "High availability is enabled but only one node is in the cluster",
+    "description": "Health dashboard finding title when ClusterSettings.Enable is on but the cluster reports a single node."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "Nodes in the cluster report these versions: {{.versions}}.",
+    "description": "Health dashboard finding detail when cluster nodes run different Mattermost versions; {{.versions}} is a comma-separated list of the versions."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "The nodes are split between versions, with no version more common than the others, so it is not clear which nodes are out of date.",
+    "description": "Health dashboard reason shown for one cluster node when two or more versions are tied for the most common version, so the node's status is unknown."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "This node runs {{.version}}, while most nodes run {{.majority}}.",
+    "description": "Health dashboard finding detail for one cluster node that runs a different Mattermost version; {{.version}} is the node's version and {{.majority}} is the version most nodes run."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "Unless an upgrade is in progress, upgrade every node to the same version and make sure the nodes can communicate via gossip.",
+    "description": "Health dashboard fix-it step for cluster nodes on different versions; 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "Multiple Mattermost versions detected in the cluster",
+    "description": "Health dashboard finding title when cluster nodes run different Mattermost versions."
   },
   {
     "id": "health.rule.push_bad_scheme.message.http",
@@ -14382,6 +14527,36 @@
     "description": "Health dashboard finding title when the push notification server is Mattermost's test push proxy; 'PushNotificationServer' is a config setting name and should not be translated."
   },
   {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "RateLimitSettings.Enable is false with {{.users}} registered users. Rate limiting protects the server against request floods and abusive or misbehaving clients; with this many users plus webhooks and bot integrations, a single misconfigured client can saturate the API. Mattermost documents its built-in rate limiter as intended for smaller deployments (up to a few hundred users), so at larger scale request throttling is often better handled at a load balancer or API gateway.",
+    "description": "Health dashboard finding detail when API rate limiting is off on a large instance; {{.users}} is the registered user count, and 'RateLimitSettings.Enable' is the config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "Make sure request throttling suited to this scale is in place, either Mattermost's built-in rate limiting (System Console > Environment > Rate Limiting) or at your load balancer or gateway.",
+    "description": "Health dashboard fix-it step for disabled rate limiting on a large instance; 'System Console > Environment > Rate Limiting' is the admin UI path."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "API rate limiting is disabled on a large instance",
+    "description": "Health dashboard finding title when API rate limiting is turned off on an instance with more than 500 registered users."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize is {{.size}}, but there are {{.users}} registered users. The rate limiter tracks at most this many clients; when it is full it drops the least recently seen one, whose request quota then starts over, so a small store weakens rate limiting.",
+    "description": "Health dashboard finding detail when the rate limiter's memory store is smaller than the registered user count; {{.size}} is the configured size, {{.users}} is the registered user count, and 'RateLimitSettings.MemoryStoreSize' is the config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "Raise RateLimitSettings.MemoryStoreSize to at least the number of registered users.",
+    "description": "Health dashboard fix-it step for a small rate limiter memory store; 'RateLimitSettings.MemoryStoreSize' is the config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "Rate limiting memory store is smaller than the user count",
+    "description": "Health dashboard finding title when RateLimitSettings.MemoryStoreSize is below the number of registered users."
+  },
+  {
     "id": "health.rule.site_url_empty.message",
     "translation": "SiteURL is required for webhook URLs, OAuth callbacks, mobile push payloads, and email links. Integrations are broken while it is empty.",
     "description": "Health dashboard finding detail explaining what breaks while the Site URL setting is empty; 'SiteURL' is a config setting name and should not be translated."
@@ -14398,18 +14573,113 @@
   },
   {
     "id": "health.rule.site_url_http.message",
-    "translation": "SiteURL is {{.url}}. Session cookies and auth tokens traverse cleartext.",
-    "description": "Health dashboard finding detail when the Site URL uses http://; {{.url}} is the configured Site URL, and 'traverse cleartext' means they travel over the network unencrypted."
+    "translation": "SiteURL is {{.url}}. Session cookies and auth tokens travel over the network unencrypted.",
+    "description": "Health dashboard finding detail when the Site URL uses http://; {{.url}} is the configured Site URL."
   },
   {
     "id": "health.rule.site_url_http.remediation",
-    "translation": "Serve via HTTPS and update SiteURL accordingly.",
+    "translation": "Serve Mattermost over HTTPS and update SiteURL to the https:// address.",
     "description": "Health dashboard fix-it step for a Site URL that uses http://; 'SiteURL' is a config setting name and should not be translated."
   },
   {
     "id": "health.rule.site_url_http.title",
-    "translation": "SiteURL uses http:// (not https)",
+    "translation": "SiteURL uses http:// (not https://)",
     "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; 'SiteURL' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "Latest release unknown: it could not be fetched, or the packet does not record it.",
+    "description": "Health dashboard reason shown when a version check could not run because the latest Mattermost release could not be fetched from GitHub or is not recorded in the Support Packet being evaluated, so the check's status is unknown."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "This version is not in this build's release table. To evaluate a Support Packet from a newer server, use a newer mmctl.",
+    "description": "Health dashboard reason shown when a version check could not run because the server version is newer than the release lifecycle table compiled into this build, so the check's status is unknown. 'mmctl' is the Mattermost command line tool and should not be translated."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "Server version unknown or not recognized.",
+    "description": "Health dashboard reason shown when a version check could not run because the server version is missing or cannot be parsed, so the check's status is unknown."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "Running {{.version}}. Latest is {{.latest}}, two or more releases newer.",
+    "description": "Health dashboard finding detail when the server is two or more releases behind the latest release; {{.version}} is the running version and {{.latest}} the latest released version."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Plan an upgrade to the latest release before support for this release line ends, or move to an Extended Support Release for a slower upgrade cadence.",
+    "description": "Health dashboard fix-it step for a server two or more releases behind the latest release; 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Several releases behind the latest release",
+    "description": "Health dashboard finding title when the server is two or more releases behind the latest Mattermost release."
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "Running {{.version}}. Latest is {{.latest}}.",
+    "description": "Health dashboard finding detail when the server is one release behind the latest release; {{.version}} is the running version and {{.latest}} the latest released version."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Plan an upgrade to the latest release.",
+    "description": "Health dashboard fix-it step for a server one release behind the latest release."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "A newer release is available",
+    "description": "Health dashboard finding title when the server is one release behind the latest Mattermost release."
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Running Mattermost {{.version}}. Support for this release line ended on {{.eol_date}}. No security patches ship for this release line.",
+    "description": "Health dashboard finding detail when the server's Extended Support Release is past end-of-life and no newer Extended Support Release is still supported; {{.version}} is the running version and {{.eol_date}} the day support for its release line ended (YYYY-MM-DD). 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Running Mattermost {{.version}}, an older release line that is no longer supported. No security patches ship for this release line.",
+    "description": "Health dashboard finding detail when the server runs a release line older than every line in this build's release table, all of which had reached end-of-life; {{.version}} is the running version."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Running Mattermost {{.version}}, an older release line that is no longer supported. No security patches ship for this release line. The newest supported Extended Support Release is {{.target}}.",
+    "description": "Health dashboard finding detail when the server runs a release line older than every line in this build's release table; {{.version}} is the running version and {{.target}} the newest Extended Support Release still supported. 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Running Mattermost {{.version}}. Support for this release line ended on {{.eol_date}}. No security patches ship for this release line. Upgrade to the latest release.",
+    "description": "Health dashboard finding detail when the server runs a regular (non-Extended Support) release that is past end-of-life; {{.version}} is the running version and {{.eol_date}} the day support for its release line ended (YYYY-MM-DD)."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Running Mattermost {{.version}}. Support for this release line ended on {{.eol_date}}. No security patches ship for this release line. The newest supported Extended Support Release is {{.target}}.",
+    "description": "Health dashboard finding detail when the server's Extended Support Release is past end-of-life; {{.version}} is the running version, {{.eol_date}} the day support for its release line ended (YYYY-MM-DD), and {{.target}} the newest Extended Support Release still supported. 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.",
+    "description": "Health dashboard fix-it step for a server past end-of-life; the URL is the Mattermost server releases page. 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Mattermost version is past end-of-life",
+    "description": "Health dashboard finding title when the server's release line no longer receives security patches."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "Running {{.version}} on Extended Support Release {{.esr}}. Plan an upgrade before {{.eol_date}} to keep receiving security patches.",
+    "description": "Health dashboard finding detail when the server's Extended Support Release reaches end-of-life within 90 days; {{.version}} is the running version, {{.esr}} the release line, and {{.eol_date}} its end-of-life date (YYYY-MM-DD). 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Schedule an upgrade to the latest release or to the next Extended Support Release.",
+    "description": "Health dashboard fix-it step for an Extended Support Release nearing end-of-life. 'Extended Support Release' is a Mattermost release type."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "Extended Support Release is nearing end-of-life",
+    "description": "Health dashboard finding title when the server's Extended Support Release reaches end-of-life within 90 days. 'Extended Support Release' is a Mattermost release type."
   },
   {
     "id": "humanize.list_join",
