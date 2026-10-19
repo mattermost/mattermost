@@ -55,52 +55,52 @@ exports[`components/integrations/EditOAuthApp should match snapshot 1`] = `
               class="backstage-form__radio-group-inline"
             >
               <label
-                class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                 for="_r_0_"
               >
                 <input
                   checked=""
-                  class="_radio__input_h0rbb_17"
+                  class="_radio__input_1hdqa_14"
                   id="_r_0_"
                   name="is_trusted"
                   type="radio"
                   value="true"
                 />
                 <span
-                  class="_radio__circle_h0rbb_36"
+                  class="_radio__circle_1hdqa_33"
                 >
                   <span
                     aria-hidden="true"
-                    class="_radio__dot_h0rbb_62"
+                    class="_radio__dot_1hdqa_59"
                   />
                 </span>
                 <span
-                  class="_radio__label_h0rbb_119"
+                  class="_radio__label_1hdqa_116"
                 >
                   Yes
                 </span>
               </label>
               <label
-                class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                 for="_r_1_"
               >
                 <input
-                  class="_radio__input_h0rbb_17"
+                  class="_radio__input_1hdqa_14"
                   id="_r_1_"
                   name="is_trusted"
                   type="radio"
                   value="false"
                 />
                 <span
-                  class="_radio__circle_h0rbb_36"
+                  class="_radio__circle_1hdqa_33"
                 >
                   <span
                     aria-hidden="true"
-                    class="_radio__dot_h0rbb_62"
+                    class="_radio__dot_1hdqa_59"
                   />
                 </span>
                 <span
-                  class="_radio__label_h0rbb_119"
+                  class="_radio__label_1hdqa_116"
                 >
                   No
                 </span>
@@ -129,11 +129,11 @@ exports[`components/integrations/EditOAuthApp should match snapshot 1`] = `
               class="backstage-form__radio-group-inline"
             >
               <label
-                class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                 for="_r_2_"
               >
                 <input
-                  class="_radio__input_h0rbb_17"
+                  class="_radio__input_1hdqa_14"
                   disabled=""
                   id="_r_2_"
                   name="is_public"
@@ -141,26 +141,26 @@ exports[`components/integrations/EditOAuthApp should match snapshot 1`] = `
                   value="true"
                 />
                 <span
-                  class="_radio__circle_h0rbb_36"
+                  class="_radio__circle_1hdqa_33"
                 >
                   <span
                     aria-hidden="true"
-                    class="_radio__dot_h0rbb_62"
+                    class="_radio__dot_1hdqa_59"
                   />
                 </span>
                 <span
-                  class="_radio__label_h0rbb_119"
+                  class="_radio__label_1hdqa_116"
                 >
                   Yes
                 </span>
               </label>
               <label
-                class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                 for="_r_3_"
               >
                 <input
                   checked=""
-                  class="_radio__input_h0rbb_17"
+                  class="_radio__input_1hdqa_14"
                   disabled=""
                   id="_r_3_"
                   name="is_public"
@@ -168,15 +168,15 @@ exports[`components/integrations/EditOAuthApp should match snapshot 1`] = `
                   value="false"
                 />
                 <span
-                  class="_radio__circle_h0rbb_36"
+                  class="_radio__circle_1hdqa_33"
                 >
                   <span
                     aria-hidden="true"
-                    class="_radio__dot_h0rbb_62"
+                    class="_radio__dot_1hdqa_59"
                   />
                 </span>
                 <span
-                  class="_radio__label_h0rbb_119"
+                  class="_radio__label_1hdqa_116"
                 >
                   No
                 </span>
@@ -399,52 +399,52 @@ exports[`components/integrations/EditOAuthApp should match snapshot when EnableO
               class="backstage-form__radio-group-inline"
             >
               <label
-                class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                 for="_r_4_"
               >
                 <input
                   checked=""
-                  class="_radio__input_h0rbb_17"
+                  class="_radio__input_1hdqa_14"
                   id="_r_4_"
                   name="is_trusted"
                   type="radio"
                   value="true"
                 />
                 <span
-                  class="_radio__circle_h0rbb_36"
+                  class="_radio__circle_1hdqa_33"
                 >
                   <span
                     aria-hidden="true"
-                    class="_radio__dot_h0rbb_62"
+                    class="_radio__dot_1hdqa_59"
                   />
                 </span>
                 <span
-                  class="_radio__label_h0rbb_119"
+                  class="_radio__label_1hdqa_116"
                 >
                   Yes
                 </span>
               </label>
               <label
-                class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                 for="_r_5_"
               >
                 <input
-                  class="_radio__input_h0rbb_17"
+                  class="_radio__input_1hdqa_14"
                   id="_r_5_"
                   name="is_trusted"
                   type="radio"
                   value="false"
                 />
                 <span
-                  class="_radio__circle_h0rbb_36"
+                  class="_radio__circle_1hdqa_33"
                 >
                   <span
                     aria-hidden="true"
-                    class="_radio__dot_h0rbb_62"
+                    class="_radio__dot_1hdqa_59"
                   />
                 </span>
                 <span
-                  class="_radio__label_h0rbb_119"
+                  class="_radio__label_1hdqa_116"
                 >
                   No
                 </span>
@@ -473,11 +473,11 @@ exports[`components/integrations/EditOAuthApp should match snapshot when EnableO
               class="backstage-form__radio-group-inline"
             >
               <label
-                class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                 for="_r_6_"
               >
                 <input
-                  class="_radio__input_h0rbb_17"
+                  class="_radio__input_1hdqa_14"
                   disabled=""
                   id="_r_6_"
                   name="is_public"
@@ -485,26 +485,26 @@ exports[`components/integrations/EditOAuthApp should match snapshot when EnableO
                   value="true"
                 />
                 <span
-                  class="_radio__circle_h0rbb_36"
+                  class="_radio__circle_1hdqa_33"
                 >
                   <span
                     aria-hidden="true"
-                    class="_radio__dot_h0rbb_62"
+                    class="_radio__dot_1hdqa_59"
                   />
                 </span>
                 <span
-                  class="_radio__label_h0rbb_119"
+                  class="_radio__label_1hdqa_116"
                 >
                   Yes
                 </span>
               </label>
               <label
-                class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                 for="_r_7_"
               >
                 <input
                   checked=""
-                  class="_radio__input_h0rbb_17"
+                  class="_radio__input_1hdqa_14"
                   disabled=""
                   id="_r_7_"
                   name="is_public"
@@ -512,15 +512,15 @@ exports[`components/integrations/EditOAuthApp should match snapshot when EnableO
                   value="false"
                 />
                 <span
-                  class="_radio__circle_h0rbb_36"
+                  class="_radio__circle_1hdqa_33"
                 >
                   <span
                     aria-hidden="true"
-                    class="_radio__dot_h0rbb_62"
+                    class="_radio__dot_1hdqa_59"
                   />
                 </span>
                 <span
-                  class="_radio__label_h0rbb_119"
+                  class="_radio__label_1hdqa_116"
                 >
                   No
                 </span>

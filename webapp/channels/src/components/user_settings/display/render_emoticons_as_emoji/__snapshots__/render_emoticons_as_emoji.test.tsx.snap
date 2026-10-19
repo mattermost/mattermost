@@ -31,52 +31,52 @@ exports[`components/user_settings/display/render_emoticons_as_emoji/render_emoti
               class="settings-radio-group"
             >
               <label
-                class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                 for="renderEmoticonsAsEmojiOn"
               >
                 <input
                   checked=""
-                  class="_radio__input_h0rbb_17 a11y--active a11y--focused"
+                  class="_radio__input_1hdqa_14 a11y--active a11y--focused"
                   id="renderEmoticonsAsEmojiOn"
                   name="renderEmoticonsAsEmoji"
                   type="radio"
                   value="true"
                 />
                 <span
-                  class="_radio__circle_h0rbb_36"
+                  class="_radio__circle_1hdqa_33"
                 >
                   <span
                     aria-hidden="true"
-                    class="_radio__dot_h0rbb_62"
+                    class="_radio__dot_1hdqa_59"
                   />
                 </span>
                 <span
-                  class="_radio__label_h0rbb_119"
+                  class="_radio__label_1hdqa_116"
                 >
                   On
                 </span>
               </label>
               <label
-                class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
                 for="renderEmoticonsAsEmojiOff"
               >
                 <input
-                  class="_radio__input_h0rbb_17"
+                  class="_radio__input_1hdqa_14"
                   id="renderEmoticonsAsEmojiOff"
                   name="renderEmoticonsAsEmoji"
                   type="radio"
                   value="false"
                 />
                 <span
-                  class="_radio__circle_h0rbb_36"
+                  class="_radio__circle_1hdqa_33"
                 >
                   <span
                     aria-hidden="true"
-                    class="_radio__dot_h0rbb_62"
+                    class="_radio__dot_1hdqa_59"
                   />
                 </span>
                 <span
-                  class="_radio__label_h0rbb_119"
+                  class="_radio__label_1hdqa_116"
                 >
                   Off
                 </span>
