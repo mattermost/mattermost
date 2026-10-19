@@ -14978,18 +14978,18 @@
   },
   {
     "id": "health.rule.ldap_recommended_at_scale.message",
-    "translation": "{{.users}} user accounts are managed manually. Mattermost recommends AD/LDAP once a workspace has more than 100 users: manual account management at this scale leads to stale accounts, onboarding lag, and offboarding drift, each of which is a security and licensing risk.",
-    "description": "Health dashboard finding detail when a workspace with more than 100 users uses neither AD/LDAP nor SAML. {{.users}} is the number of user accounts. 'AD/LDAP' and 'SAML' are config or product names and should not be translated."
+    "translation": "{{.users}} user accounts are managed manually. Mattermost recommends single sign-on once a workspace has more than 100 users: manual account management at this scale leads to stale accounts, onboarding lag, and offboarding drift, each of which is a security and licensing risk.",
+    "description": "Health dashboard finding detail when a workspace with more than 100 users uses no single sign-on provider (AD/LDAP, SAML, GitLab, Google, Office 365 or OpenID Connect). {{.users}} is the number of user accounts. 'AD/LDAP', 'SAML' and 'OpenID Connect' are config or product names and should not be translated."
   },
   {
     "id": "health.rule.ldap_recommended_at_scale.remediation",
-    "translation": "If you run an AD/LDAP directory, enable and configure AD/LDAP. Otherwise consider SAML for centralized identity.",
-    "description": "Health dashboard fix-it step when a workspace with more than 100 users uses neither AD/LDAP nor SAML. 'AD/LDAP' and 'SAML' are config or product names and should not be translated."
+    "translation": "Connect Mattermost to your identity provider: AD/LDAP if you run a directory, otherwise SAML or OpenID Connect.",
+    "description": "Health dashboard fix-it step when a workspace with more than 100 users uses no single sign-on provider (AD/LDAP, SAML, GitLab, Google, Office 365 or OpenID Connect). 'AD/LDAP', 'SAML' and 'OpenID Connect' are config or product names and should not be translated."
   },
   {
     "id": "health.rule.ldap_recommended_at_scale.title",
-    "translation": "Over 100 users with no AD/LDAP or SAML integration",
-    "description": "Health dashboard finding title when a workspace with more than 100 users uses neither AD/LDAP nor SAML. 'AD/LDAP' and 'SAML' are config or product names and should not be translated."
+    "translation": "Over 100 users with no single sign-on",
+    "description": "Health dashboard finding title when a workspace with more than 100 users uses no single sign-on provider (AD/LDAP, SAML, GitLab, Google, Office 365 or OpenID Connect). 'AD/LDAP', 'SAML' and 'OpenID Connect' are config or product names and should not be translated."
   },
   {
     "id": "health.rule.ldap_skip_cert.message",
@@ -15025,21 +15025,6 @@
     "id": "health.rule.ldap_sync_duty_cycle.title",
     "translation": "LDAP sync runs for a large share of its interval",
     "description": "Health dashboard finding title when each AD/LDAP sync run takes at least a quarter of the sync interval. 'SyncIntervalMinutes', 'LdapSettings.UserFilter' and 'BaseDN' are config or product names and should not be translated."
-  },
-  {
-    "id": "health.rule.ldap_sync_interval_low.message",
-    "translation": "SyncIntervalMinutes is {{.interval}}. Each sync walks the directory and updates users and groups, so short intervals keep the LDAP server and the database busy almost continuously.",
-    "description": "Health dashboard finding detail when AD/LDAP sync is scheduled more often than every 10 minutes. {{.interval}} is the configured interval in minutes. 'SyncIntervalMinutes' is a config name and should not be translated."
-  },
-  {
-    "id": "health.rule.ldap_sync_interval_low.remediation",
-    "translation": "Raise SyncIntervalMinutes to 60 (the default) unless directory changes must reach Mattermost faster than that.",
-    "description": "Health dashboard fix-it step when AD/LDAP sync is scheduled more often than every 10 minutes. 'SyncIntervalMinutes' is a config name and should not be translated."
-  },
-  {
-    "id": "health.rule.ldap_sync_interval_low.title",
-    "translation": "LDAP SyncIntervalMinutes is below 10 minutes",
-    "description": "Health dashboard finding title when AD/LDAP sync is scheduled more often than every 10 minutes. 'SyncIntervalMinutes' is a config name and should not be translated."
   },
   {
     "id": "health.rule.ldap_sync_no_basedn.message",
@@ -15333,7 +15318,7 @@
   },
   {
     "id": "health.rule.saml_id_is_email.remediation",
-    "translation": "Configure the IdP to send a stable identifier (such as objectGUID or an immutable ID), then set SamlSettings.IdAttribute to that attribute's name.",
+    "translation": "Configure the IdP to send a stable identifier (such as objectGUID or an immutable ID), then set SamlSettings.IdAttribute to that attribute's name. Existing accounts move to the new identifier on their own: at each user's next sign-in, Mattermost finds the account by email and stores the new ID.",
     "description": "Health dashboard fix-it step when the SAML ID attribute is empty or an email attribute. 'IdAttribute', 'SamlSettings.IdAttribute' and 'objectGUID' are config or product names and should not be translated."
   },
   {
@@ -15343,33 +15328,33 @@
   },
   {
     "id": "health.rule.saml_id_mutable.message",
-    "translation": "IdAttribute is {{.attribute}}. Usernames and uids are often recycled across employees, and when that happens the second person inherits the first person's Mattermost account.",
-    "description": "Health dashboard finding detail when the SAML ID attribute is a username or uid that the identity provider can reassign. {{.attribute}} is the configured attribute name. 'IdAttribute', 'objectGUID' and 'Microsoft Entra ID' are config or product names and should not be translated."
+    "translation": "IdAttribute is {{.attribute}}. Usernames, uids and user principal names are often recycled across employees, and when that happens the second person inherits the first person's Mattermost account.",
+    "description": "Health dashboard finding detail when the SAML ID attribute is a username, uid or user principal name that the identity provider can reassign. {{.attribute}} is the configured attribute name. 'IdAttribute', 'objectGUID' and 'Microsoft Entra ID' are config or product names and should not be translated."
   },
   {
     "id": "health.rule.saml_id_mutable.remediation",
     "translation": "Prefer an identifier that is never reassigned, such as objectGUID (AD) or an immutable ID (Microsoft Entra ID), and review the IdP policy on identifier reuse.",
-    "description": "Health dashboard fix-it step when the SAML ID attribute is a username or uid that the identity provider can reassign. 'IdAttribute', 'objectGUID' and 'Microsoft Entra ID' are config or product names and should not be translated."
+    "description": "Health dashboard fix-it step when the SAML ID attribute is a username, uid or user principal name that the identity provider can reassign. 'IdAttribute', 'objectGUID' and 'Microsoft Entra ID' are config or product names and should not be translated."
   },
   {
     "id": "health.rule.saml_id_mutable.title",
     "translation": "SAML IdAttribute can be reassigned at the IdP",
-    "description": "Health dashboard finding title when the SAML ID attribute is a username or uid that the identity provider can reassign. 'IdAttribute', 'objectGUID' and 'Microsoft Entra ID' are config or product names and should not be translated."
+    "description": "Health dashboard finding title when the SAML ID attribute is a username, uid or user principal name that the identity provider can reassign. 'IdAttribute', 'objectGUID' and 'Microsoft Entra ID' are config or product names and should not be translated."
   },
   {
-    "id": "health.rule.saml_metadata_unreachable.message",
-    "translation": "The leader node could not fetch the IdP metadata from IdpMetadataURL. Sign-in uses the IdP certificate already configured, so it can keep working, but the URL is wrong, blocked, or the IdP is down.",
-    "description": "Health dashboard finding detail when the server could not download the SAML identity provider metadata. 'IdpMetadataURL' is a config name and should not be translated."
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "The leader node's SAML check of the IdP certificate and IdP URL failed, so SAML sign-in is likely broken.",
+    "description": "Health dashboard finding detail when the SAML configuration check run by the server failed: the IdP certificate is missing, invalid or expired, or the IdP URL is missing or invalid. 'IdpCertificateFile' and 'IdpURL' are config names and should not be translated."
   },
   {
-    "id": "health.rule.saml_metadata_unreachable.remediation",
-    "translation": "Check the error details, then confirm IdpMetadataURL is correct and that the Mattermost servers can reach it.",
-    "description": "Health dashboard fix-it step when the server could not download the SAML identity provider metadata. 'IdpMetadataURL' is a config name and should not be translated."
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "Check the error details, then fix the IdP certificate (IdpCertificateFile) or the IdP URL (IdpURL) in the SAML settings. If the certificate expired, upload the IdP's current signing certificate.",
+    "description": "Health dashboard fix-it step when the SAML configuration check run by the server failed: the IdP certificate is missing, invalid or expired, or the IdP URL is missing or invalid. 'IdpCertificateFile' and 'IdpURL' are config names and should not be translated."
   },
   {
-    "id": "health.rule.saml_metadata_unreachable.title",
-    "translation": "SAML IdP metadata URL is unreachable",
-    "description": "Health dashboard finding title when the server could not download the SAML identity provider metadata. 'IdpMetadataURL' is a config name and should not be translated."
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "SAML configuration check failed",
+    "description": "Health dashboard finding title when the SAML configuration check run by the server failed: the IdP certificate is missing, invalid or expired, or the IdP URL is missing or invalid. 'IdpCertificateFile' and 'IdpURL' are config names and should not be translated."
   },
   {
     "id": "health.rule.saml_signature_sha1.message",

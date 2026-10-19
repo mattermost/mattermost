@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	healthcheck.Register(ldapProbeFailed, samlMetadataUnreachable)
+	healthcheck.Register(ldapProbeFailed, samlProbeFailed)
 }
 
 var ldapProbeFailed = healthcheck.Rule{
@@ -29,32 +29,21 @@ var ldapProbeFailed = healthcheck.Rule{
 	Eval:           gated(ldapEnabled, evalLdapProbeFailed),
 }
 
-var samlMetadataUnreachable = healthcheck.Rule{
-	Code:     "SAML_METADATA_UNREACHABLE",
+var samlProbeFailed = healthcheck.Rule{
+	Code:     "SAML_PROBE_FAILED",
 	Area:     model.AreaAuth,
 	Severity: healthcheck.SeverityWarning,
 	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.saml_metadata_unreachable.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.saml_metadata_unreachable.remediation"),
+		TitleID:       healthcheck.TranslationId("health.rule.saml_probe_failed.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.saml_probe_failed.remediation"),
 		DocsURL:       samlDocsURL,
 		ConsolePath:   samlConsolePath,
 	},
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityProbe,
 	AppliesToCloud: true,
-	Subject:        "SamlSettings.IdpMetadataURL",
-	Eval:           gated(samlMetadataConfigured, evalSamlMetadataUnreachable),
-}
-
-// The SAML probe fails on an empty IdpMetadataURL, which is valid when the IdP certificate is uploaded.
-func samlMetadataConfigured(s *healthcheck.Snapshot) (bool, bool) {
-	enabled, ok := samlEnabled(s)
-	if !ok || !enabled {
-		return false, ok
-	}
-
-	url, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.SamlSettings.IdpMetadataURL })
-	return url != "", ok
+	Subject:        "SamlSettings.IdpCertificateFile",
+	Eval:           gated(samlEnabled, evalSamlProbeFailed),
 }
 
 // leaderProbe reads a probe result the leader recorded; an empty status means it never ran.
@@ -81,8 +70,8 @@ func evalLdapProbeFailed(s *healthcheck.Snapshot) healthcheck.Result {
 	}, healthcheck.TranslationId("health.rule.ldap_probe_failed.message"))
 }
 
-func evalSamlMetadataUnreachable(s *healthcheck.Snapshot) healthcheck.Result {
+func evalSamlProbeFailed(s *healthcheck.Snapshot) healthcheck.Result {
 	return leaderProbe(s, func(diag *model.SupportPacketDiagnostics) (string, string) {
 		return diag.SAML.Status, diag.SAML.Error
-	}, healthcheck.TranslationId("health.rule.saml_metadata_unreachable.message"))
+	}, healthcheck.TranslationId("health.rule.saml_probe_failed.message"))
 }

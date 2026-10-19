@@ -18,7 +18,6 @@ func init() {
 		ldapPortPlainMismatch,
 		ldapSkipCert,
 		ldapQueryTimeoutLow,
-		ldapSyncIntervalLow,
 		ldapSyncNoBaseDN,
 		ldapRecommendedAtScale,
 		ldapIDIsEmail,
@@ -27,11 +26,9 @@ func init() {
 }
 
 const (
-	ldapPortSubject         = "LdapSettings.LdapPort"
-	ldapSyncIntervalSubject = "LdapSettings.SyncIntervalMinutes"
+	ldapPortSubject = "LdapSettings.LdapPort"
 
 	minLdapQueryTimeoutSeconds  = 10
-	minLdapSyncIntervalMinutes  = 10
 	ldapRecommendedUsers        = 100
 	maxDutyCycleIntervalMinutes = 30
 	maxDutyCyclePct             = 25
@@ -107,23 +104,6 @@ var ldapQueryTimeoutLow = healthcheck.Rule{
 	Eval:           gated(ldapEnabled, evalLdapQueryTimeoutLow),
 }
 
-var ldapSyncIntervalLow = healthcheck.Rule{
-	Code:     "LDAP_SYNC_INTERVAL_LOW",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.ldap_sync_interval_low.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.ldap_sync_interval_low.remediation"),
-		DocsURL:       ldapDocsURL,
-		ConsolePath:   ldapConsolePath,
-	},
-	Surface:        healthcheck.SurfaceProduct,
-	Volatility:     healthcheck.VolatilityStable,
-	AppliesToCloud: true,
-	Subject:        ldapSyncIntervalSubject,
-	Eval:           gated(ldapSyncEnabled, evalLdapSyncIntervalLow),
-}
-
 var ldapSyncNoBaseDN = healthcheck.Rule{
 	Code:     "LDAP_SYNC_NO_BASEDN",
 	Area:     model.AreaAuth,
@@ -188,7 +168,7 @@ var ldapSyncDutyCycle = healthcheck.Rule{
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityThreshold,
 	AppliesToCloud: true,
-	Subject:        ldapSyncIntervalSubject,
+	Subject:        "LdapSettings.SyncIntervalMinutes",
 	Eval:           gated(ldapSyncEnabled, evalLdapSyncDutyCycle),
 }
 
@@ -256,18 +236,6 @@ func evalLdapQueryTimeoutLow(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 }
 
-func evalLdapSyncIntervalLow(s *healthcheck.Snapshot) healthcheck.Result {
-	interval, ok := s.ConfigInt(func(cfg *model.Config) *int { return cfg.LdapSettings.SyncIntervalMinutes })
-	switch {
-	case !ok:
-		return unknownConfig()
-	case interval < minLdapSyncIntervalMinutes:
-		return healthcheck.Firing(healthcheck.TranslationId("health.rule.ldap_sync_interval_low.message")).WithDetail("interval", strconv.Itoa(interval))
-	default:
-		return healthcheck.Resolved()
-	}
-}
-
 // Validation requires BaseDN when Enable is set, so this can only fire on a sync-only install.
 func evalLdapSyncNoBaseDN(s *healthcheck.Snapshot) healthcheck.Result {
 	baseDN, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.LdapSettings.BaseDN })
@@ -293,17 +261,13 @@ func evalLdapIDIsEmail(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 }
 
-// Identity gates come before stats so a packet without stats still resolves an LDAP or SAML install.
+// Identity gates come before stats so a packet without stats still resolves an SSO install.
 func evalLdapRecommendedAtScale(s *healthcheck.Snapshot) []healthcheck.Result {
-	ldap, ok := ldapEnabled(s)
+	sso, ok := ssoEnabled(s)
 	if !ok {
 		return []healthcheck.Result{unknownConfig()}
 	}
-	saml, ok := samlEnabled(s)
-	if !ok {
-		return []healthcheck.Result{unknownConfig()}
-	}
-	if ldap || saml {
+	if sso {
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
 
@@ -317,6 +281,28 @@ func evalLdapRecommendedAtScale(s *healthcheck.Snapshot) []healthcheck.Result {
 		result = healthcheck.Firing(healthcheck.TranslationId("health.rule.ldap_recommended_at_scale.message")).WithDetail("users", strconv.FormatInt(users, 10))
 	}
 	return []healthcheck.Result{result.WithValue(float64(users))}
+}
+
+// ssoEnabled reports whether any identity provider manages accounts instead of local passwords.
+func ssoEnabled(s *healthcheck.Snapshot) (bool, bool) {
+	ldap, ok := ldapEnabled(s)
+	if !ok || ldap {
+		return ldap, ok
+	}
+
+	for _, setting := range []func(*model.Config) *bool{
+		func(cfg *model.Config) *bool { return cfg.SamlSettings.Enable },
+		func(cfg *model.Config) *bool { return cfg.GitLabSettings.Enable },
+		func(cfg *model.Config) *bool { return cfg.GoogleSettings.Enable },
+		func(cfg *model.Config) *bool { return cfg.Office365Settings.Enable },
+		func(cfg *model.Config) *bool { return cfg.OpenIdSettings.Enable },
+	} {
+		enabled, ok := s.ConfigBool(setting)
+		if !ok || enabled {
+			return enabled, ok
+		}
+	}
+	return false, true
 }
 
 func evalLdapSyncDutyCycle(s *healthcheck.Snapshot) healthcheck.Result {
@@ -335,8 +321,11 @@ func evalLdapSyncDutyCycle(s *healthcheck.Snapshot) healthcheck.Result {
 
 	var totalMillis, runs int64
 	for _, job := range jobs {
-		// A job that never started has no duration, only a creation time.
 		if job == nil || job.StartAt <= 0 || job.LastActivityAt <= job.StartAt {
+			continue
+		}
+		// Running, canceled and failed runs stop the clock early, which would understate the duty cycle.
+		if job.Status != model.JobStatusSuccess && job.Status != model.JobStatusWarning {
 			continue
 		}
 		totalMillis += job.LastActivityAt - job.StartAt

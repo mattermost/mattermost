@@ -21,7 +21,10 @@ func samlSnapshot(edit func(cfg *model.Config)) *healthcheck.Snapshot {
 func TestSamlRules(t *testing.T) {
 	t.Parallel()
 
-	const emailClaimURI = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+	const (
+		emailClaimURI = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+		nameClaimURI  = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+	)
 
 	testCases := []struct {
 		name     string
@@ -150,6 +153,22 @@ func TestSamlRules(t *testing.T) {
 			want: map[string]want{
 				"SAML_ID_IS_EMAIL": resolved,
 				"SAML_ID_MUTABLE":  firing("health.rule.saml_id_mutable.message", map[string]string{"attribute": "uid"}),
+			},
+		},
+		{
+			name:     "IdAttribute userPrincipalName",
+			snapshot: samlSnapshot(func(cfg *model.Config) { cfg.SamlSettings.IdAttribute = new("userPrincipalName") }),
+			want: map[string]want{
+				"SAML_ID_IS_EMAIL": resolved,
+				"SAML_ID_MUTABLE":  firing("health.rule.saml_id_mutable.message", map[string]string{"attribute": "userPrincipalName"}),
+			},
+		},
+		{
+			name:     "IdAttribute Entra name claim URI",
+			snapshot: samlSnapshot(func(cfg *model.Config) { cfg.SamlSettings.IdAttribute = new(nameClaimURI) }),
+			want: map[string]want{
+				"SAML_ID_IS_EMAIL": resolved,
+				"SAML_ID_MUTABLE":  firing("health.rule.saml_id_mutable.message", map[string]string{"attribute": nameClaimURI}),
 			},
 		},
 		{

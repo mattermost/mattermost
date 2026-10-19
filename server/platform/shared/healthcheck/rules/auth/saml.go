@@ -19,8 +19,9 @@ const samlIDSubject = "SamlSettings.IdAttribute"
 
 var (
 	// An empty IdAttribute keys SAML accounts by email.
-	samlIDEmailAttributes   = []string{"", "email", "mail", "emailaddress"}
-	samlIDMutableAttributes = []string{"username", "uid", "samaccountname"}
+	samlIDEmailAttributes = []string{"", "email", "mail", "emailaddress"}
+	// Entra's .../identity/claims/name claim carries the UPN.
+	samlIDMutableAttributes = []string{"username", "uid", "samaccountname", "upn", "userprincipalname", "name"}
 )
 
 var samlSignatureSHA1 = healthcheck.Rule{
@@ -43,7 +44,7 @@ var samlSignatureSHA1 = healthcheck.Rule{
 var samlVerifyOff = healthcheck.Rule{
 	Code:     "SAML_VERIFY_OFF",
 	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityWarning,
+	Severity: healthcheck.SeverityCritical,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.saml_verify_off.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.saml_verify_off.remediation"),
@@ -77,7 +78,7 @@ var samlEncryptOff = healthcheck.Rule{
 var samlIDIsEmail = healthcheck.Rule{
 	Code:     "SAML_ID_IS_EMAIL",
 	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityWarning,
+	Severity: healthcheck.SeverityInfo,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.saml_id_is_email.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.saml_id_is_email.remediation"),

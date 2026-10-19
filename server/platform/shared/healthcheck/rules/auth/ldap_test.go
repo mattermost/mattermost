@@ -86,7 +86,6 @@ func TestLdapSettingRules(t *testing.T) {
 			want: map[string]want{
 				"LDAP_SKIP_CERT":         resolved,
 				"LDAP_QUERY_TIMEOUT_LOW": resolved,
-				"LDAP_SYNC_INTERVAL_LOW": resolved,
 				"LDAP_SYNC_NO_BASEDN":    resolved,
 				"LDAP_ID_IS_EMAIL":       resolved,
 			},
@@ -134,21 +133,6 @@ func TestLdapSettingRules(t *testing.T) {
 			name:     "query timeout absent",
 			snapshot: ldapSnapshot(func(cfg *model.Config) { cfg.LdapSettings.QueryTimeout = nil }),
 			want:     map[string]want{"LDAP_QUERY_TIMEOUT_LOW": configUnavailable},
-		},
-		{
-			name:     "sync interval below 10 minutes",
-			snapshot: ldapSnapshot(func(cfg *model.Config) { cfg.LdapSettings.SyncIntervalMinutes = new(9) }),
-			want:     map[string]want{"LDAP_SYNC_INTERVAL_LOW": firing("health.rule.ldap_sync_interval_low.message", map[string]string{"interval": "9"})},
-		},
-		{
-			name:     "sync interval at 10 minutes",
-			snapshot: ldapSnapshot(func(cfg *model.Config) { cfg.LdapSettings.SyncIntervalMinutes = new(10) }),
-			want:     map[string]want{"LDAP_SYNC_INTERVAL_LOW": resolved},
-		},
-		{
-			name:     "sync interval absent",
-			snapshot: ldapSnapshot(func(cfg *model.Config) { cfg.LdapSettings.SyncIntervalMinutes = nil }),
-			want:     map[string]want{"LDAP_SYNC_INTERVAL_LOW": configUnavailable},
 		},
 		{
 			name: "sync only with an empty BaseDN",
@@ -213,12 +197,16 @@ func TestLdapRecommendedAtScale(t *testing.T) {
 		snapshot *healthcheck.Snapshot
 		want     want
 	}{
-		{"over 100 users without LDAP or SAML", snapshot(new(int64(101)), nil), firingAt("101", 101)},
-		{"100 users without LDAP or SAML", snapshot(new(int64(100)), nil), resolved.withValue(100)},
+		{"over 100 users without SSO", snapshot(new(int64(101)), nil), firingAt("101", 101)},
+		{"100 users without SSO", snapshot(new(int64(100)), nil), resolved.withValue(100)},
 		{"SAML enabled and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.SamlSettings.Enable = new(true) }), resolved},
 		{"LDAP sign-in enabled and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.LdapSettings.Enable = new(true) }), resolved},
 		{"LDAP sync only and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.LdapSettings.EnableSync = new(true) }), resolved},
-		{"neither enabled and stats absent", snapshot(nil, nil), want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable}},
+		{"GitLab enabled and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.GitLabSettings.Enable = new(true) }), resolved},
+		{"Google enabled and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.GoogleSettings.Enable = new(true) }), resolved},
+		{"Office 365 enabled and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.Office365Settings.Enable = new(true) }), resolved},
+		{"OpenID enabled and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.OpenIdSettings.Enable = new(true) }), resolved},
+		{"no SSO and stats absent", snapshot(nil, nil), want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable}},
 		{
 			name: "user count query failed",
 			snapshot: func() *healthcheck.Snapshot {
@@ -230,6 +218,7 @@ func TestLdapRecommendedAtScale(t *testing.T) {
 			want: want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable},
 		},
 		{"SAML setting absent", snapshot(new(int64(500)), func(cfg *model.Config) { cfg.SamlSettings.Enable = nil }), configUnavailable},
+		{"OpenID setting absent", snapshot(new(int64(500)), func(cfg *model.Config) { cfg.OpenIdSettings.Enable = nil }), configUnavailable},
 	}
 
 	for _, tc := range testCases {
@@ -245,7 +234,11 @@ func TestLdapSyncDutyCycle(t *testing.T) {
 
 	const start = int64(1_758_000_000_000)
 	run := func(seconds int64) *model.Job {
-		return &model.Job{Type: model.JobTypeLdapSync, StartAt: start, LastActivityAt: start + seconds*1000}
+		return &model.Job{Type: model.JobTypeLdapSync, Status: model.JobStatusSuccess, StartAt: start, LastActivityAt: start + seconds*1000}
+	}
+	withStatus := func(job *model.Job, status string) *model.Job {
+		job.Status = status
+		return job
 	}
 	snapshot := func(interval int, jobs []*model.Job) *healthcheck.Snapshot {
 		s := ldapSnapshot(func(cfg *model.Config) { cfg.LdapSettings.SyncIntervalMinutes = new(interval) })
@@ -283,6 +276,17 @@ func TestLdapSyncDutyCycle(t *testing.T) {
 				run(300),
 			}),
 			want: firingAt("10", "300", "50", 50),
+		},
+		{
+			name: "only finished runs count",
+			snapshot: snapshot(10, []*model.Job{
+				withStatus(run(60), model.JobStatusInProgress),
+				withStatus(run(60), model.JobStatusCanceled),
+				withStatus(run(30), model.JobStatusError),
+				withStatus(run(150), model.JobStatusSuccess),
+				withStatus(run(150), model.JobStatusWarning),
+			}),
+			want: firingAt("10", "150", "25", 25),
 		},
 		{"jobs absent", snapshot(10, nil), want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonJobsUnavailable}},
 		{"no runs", snapshot(10, []*model.Job{}), noRuns},

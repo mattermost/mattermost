@@ -17,7 +17,6 @@ var allRules = []healthcheck.Rule{
 	ldapPortPlainMismatch,
 	ldapSkipCert,
 	ldapQueryTimeoutLow,
-	ldapSyncIntervalLow,
 	ldapSyncNoBaseDN,
 	ldapRecommendedAtScale,
 	ldapIDIsEmail,
@@ -29,7 +28,7 @@ var allRules = []healthcheck.Rule{
 	samlIDMutable,
 	sessionExtendOff,
 	ldapProbeFailed,
-	samlMetadataUnreachable,
+	samlProbeFailed,
 }
 
 type want struct {
@@ -102,19 +101,18 @@ func TestRegistered(t *testing.T) {
 		"LDAP_PORT_PLAIN_MISMATCH":  healthcheck.SeverityWarning,
 		"LDAP_SKIP_CERT":            healthcheck.SeverityWarning,
 		"LDAP_QUERY_TIMEOUT_LOW":    healthcheck.SeverityInfo,
-		"LDAP_SYNC_INTERVAL_LOW":    healthcheck.SeverityWarning,
 		"LDAP_SYNC_NO_BASEDN":       healthcheck.SeverityCritical,
 		"LDAP_RECOMMENDED_AT_SCALE": healthcheck.SeverityInfo,
 		"LDAP_ID_IS_EMAIL":          healthcheck.SeverityWarning,
 		"LDAP_SYNC_DUTY_CYCLE":      healthcheck.SeverityWarning,
 		"SAML_SIGNATURE_SHA1":       healthcheck.SeverityInfo,
-		"SAML_VERIFY_OFF":           healthcheck.SeverityWarning,
+		"SAML_VERIFY_OFF":           healthcheck.SeverityCritical,
 		"SAML_ENCRYPT_OFF":          healthcheck.SeverityInfo,
-		"SAML_ID_IS_EMAIL":          healthcheck.SeverityWarning,
+		"SAML_ID_IS_EMAIL":          healthcheck.SeverityInfo,
 		"SAML_ID_MUTABLE":           healthcheck.SeverityInfo,
 		"SESSION_EXTEND_OFF":        healthcheck.SeverityInfo,
 		"LDAP_PROBE_FAILED":         healthcheck.SeverityWarning,
-		"SAML_METADATA_UNREACHABLE": healthcheck.SeverityWarning,
+		"SAML_PROBE_FAILED":         healthcheck.SeverityWarning,
 	}
 	require.Len(t, severities, len(allRules))
 
@@ -167,7 +165,6 @@ func everyConditionHolds(cfg *model.Config) {
 	cfg.SamlSettings.Verify = new(false)
 	cfg.SamlSettings.Encrypt = new(false)
 	cfg.SamlSettings.IdAttribute = new("")
-	cfg.SamlSettings.IdpMetadataURL = new("https://idp.example.com/metadata")
 }
 
 // gateSnapshot carries saturating ldap_sync jobs and failing probes, so every code fires once its gate opens.
@@ -187,7 +184,7 @@ func gateSnapshot(edit func(cfg *model.Config)) *healthcheck.Snapshot {
 	})
 	s.Config = cs.Config
 	s.Stats = &model.SupportPacketStats{RegisteredUsers: new(int64(500))}
-	s.Jobs = &model.SupportPacketJobList{LDAPSyncJobs: []*model.Job{{StartAt: 1_000_000, LastActivityAt: 1_000_000 + 5*60*1000}}}
+	s.Jobs = &model.SupportPacketJobList{LDAPSyncJobs: []*model.Job{{Status: model.JobStatusSuccess, StartAt: 1_000_000, LastActivityAt: 1_000_000 + 5*60*1000}}}
 	s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil, model.SectionStats: nil, model.SectionJobs: nil}
 	return s
 }
@@ -196,8 +193,8 @@ func TestGates(t *testing.T) {
 	t.Parallel()
 
 	ldapGated := []healthcheck.Rule{ldapPortTLSMismatch, ldapSkipCert, ldapQueryTimeoutLow, ldapIDIsEmail, ldapProbeFailed}
-	syncGated := []healthcheck.Rule{ldapSyncIntervalLow, ldapSyncNoBaseDN, ldapSyncDutyCycle}
-	samlGated := []healthcheck.Rule{samlSignatureSHA1, samlVerifyOff, samlEncryptOff, samlIDIsEmail, samlMetadataUnreachable}
+	syncGated := []healthcheck.Rule{ldapSyncNoBaseDN, ldapSyncDutyCycle}
+	samlGated := []healthcheck.Rule{samlSignatureSHA1, samlVerifyOff, samlEncryptOff, samlIDIsEmail, samlProbeFailed}
 
 	stateOf := func(t *testing.T, s *healthcheck.Snapshot, rules []healthcheck.Rule) map[string]healthcheck.State {
 		t.Helper()

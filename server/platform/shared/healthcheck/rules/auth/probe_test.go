@@ -10,13 +10,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
-// probeSnapshot enables LDAP sign-in and SAML with a metadata URL, over the given nodes.
+// probeSnapshot enables LDAP sign-in and SAML over the given nodes.
 func probeSnapshot(nodes []*healthcheck.NodeSnapshot, edit func(cfg *model.Config)) *healthcheck.Snapshot {
 	s := healthcheck.NewSnapshot(nodes)
 	s.Config = configSnapshot(func(cfg *model.Config) {
 		cfg.LdapSettings.Enable = new(true)
 		cfg.SamlSettings.Enable = new(true)
-		cfg.SamlSettings.IdpMetadataURL = new("https://idp.example.com/metadata")
 		if edit != nil {
 			edit(cfg)
 		}
@@ -53,44 +52,46 @@ func TestProbeRules(t *testing.T) {
 			name:     "fail",
 			snapshot: probeSnapshot(leaderWith(model.StatusFail, "connection refused"), nil),
 			want: map[string]want{
-				"LDAP_PROBE_FAILED":         firing("health.rule.ldap_probe_failed.message", details),
-				"SAML_METADATA_UNREACHABLE": firing("health.rule.saml_metadata_unreachable.message", details),
+				"LDAP_PROBE_FAILED": firing("health.rule.ldap_probe_failed.message", details),
+				"SAML_PROBE_FAILED": firing("health.rule.saml_probe_failed.message", details),
 			},
 		},
 		{
 			name:     "ok",
 			snapshot: probeSnapshot(leaderWith(model.StatusOk, ""), nil),
-			want:     map[string]want{"LDAP_PROBE_FAILED": resolved, "SAML_METADATA_UNREACHABLE": resolved},
+			want:     map[string]want{"LDAP_PROBE_FAILED": resolved, "SAML_PROBE_FAILED": resolved},
 		},
 		{
 			name:     "disabled",
 			snapshot: probeSnapshot(leaderWith(model.StatusDisabled, ""), nil),
-			want:     map[string]want{"LDAP_PROBE_FAILED": resolved, "SAML_METADATA_UNREACHABLE": resolved},
+			want:     map[string]want{"LDAP_PROBE_FAILED": resolved, "SAML_PROBE_FAILED": resolved},
 		},
 		{
 			name:     "empty status",
 			snapshot: probeSnapshot(leaderWith("", ""), nil),
-			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_METADATA_UNREACHABLE": diagnosticsUnavailable},
+			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_PROBE_FAILED": diagnosticsUnavailable},
 		},
 		{
 			name:     "leader without diagnostics",
 			snapshot: probeSnapshot([]*healthcheck.NodeSnapshot{{Hostname: "app-1.example.com", IsLeader: true}}, nil),
-			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_METADATA_UNREACHABLE": diagnosticsUnavailable},
+			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_PROBE_FAILED": diagnosticsUnavailable},
 		},
 		{
 			name:     "no leader",
 			snapshot: probeSnapshot(nil, nil),
-			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_METADATA_UNREACHABLE": diagnosticsUnavailable},
+			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_PROBE_FAILED": diagnosticsUnavailable},
 		},
 		{
-			name:     "empty metadata URL with a failing probe",
-			snapshot: probeSnapshot(leaderWith(model.StatusFail, "SAML IdP metadata URL is not configured"), func(cfg *model.Config) { cfg.SamlSettings.IdpMetadataURL = new("") }),
-			want:     map[string]want{"SAML_METADATA_UNREACHABLE": resolved},
+			name:     "expired IdP certificate",
+			snapshot: probeSnapshot(leaderWith(model.StatusFail, "SAML IdP certificate expired on 2026-01-01T00:00:00Z"), nil),
+			want: map[string]want{
+				"SAML_PROBE_FAILED": firing("health.rule.saml_probe_failed.message", map[string]string{"error": "SAML IdP certificate expired on 2026-01-01T00:00:00Z"}),
+			},
 		},
 		{
-			name:     "metadata URL absent",
-			snapshot: probeSnapshot(leaderWith(model.StatusFail, ""), func(cfg *model.Config) { cfg.SamlSettings.IdpMetadataURL = nil }),
-			want:     map[string]want{"SAML_METADATA_UNREACHABLE": configUnavailable},
+			name:     "SAML enable absent",
+			snapshot: probeSnapshot(leaderWith(model.StatusFail, ""), func(cfg *model.Config) { cfg.SamlSettings.Enable = nil }),
+			want:     map[string]want{"SAML_PROBE_FAILED": configUnavailable},
 		},
 		{
 			name: "both disabled with failing probes",
@@ -98,7 +99,7 @@ func TestProbeRules(t *testing.T) {
 				cfg.LdapSettings.Enable = new(false)
 				cfg.SamlSettings.Enable = new(false)
 			}),
-			want: map[string]want{"LDAP_PROBE_FAILED": resolved, "SAML_METADATA_UNREACHABLE": resolved},
+			want: map[string]want{"LDAP_PROBE_FAILED": resolved, "SAML_PROBE_FAILED": resolved},
 		},
 		{
 			name: "LDAP sync only probes LDAP",
