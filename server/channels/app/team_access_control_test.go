@@ -1086,3 +1086,100 @@ func TestCreateOrUpdateAccessControlPolicy_AdvancedMembershipRule(t *testing.T) 
 		mockACS.AssertNotCalled(t, "ExpressionToVisualAST", mock.Anything, mock.Anything)
 	})
 }
+
+func TestDeleteAccessControlPolicy_AdvancedMembershipRule(t *testing.T) {
+	const (
+		complexRule = `user.attributes.dept == "eng" || user.attributes.role == "lead"`
+		simpleRule  = `user.attributes.dept == "eng"`
+	)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		cfg.FeatureFlags.AttributeValueMasking = false
+	}).InitBasic(t)
+
+	adminCtx := th.Context.WithSession(&model.Session{
+		UserId: th.BasicUser.Id,
+		Id:     model.NewId(),
+		Roles:  model.SystemUserRoleId,
+	})
+	sysadminCtx := th.Context.WithSession(&model.Session{
+		UserId: th.SystemAdminUser.Id,
+		Id:     model.NewId(),
+		Roles:  model.SystemUserRoleId + " " + model.SystemAdminRoleId,
+	})
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+
+	badRequest := model.NewAppError("ExpressionToVisualAST", "app.pap.expression_to_visual_ast.app_error", nil, "", http.StatusBadRequest)
+	ctxMatcher := mock.AnythingOfType("*request.Context")
+
+	setupMock := func(t *testing.T) *mocks.AccessControlServiceInterface {
+		t.Helper()
+		mockACS := &mocks.AccessControlServiceInterface{}
+		originalACS := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+		return mockACS
+	}
+
+	policyWith := func(id string, typ string, expression string) *model.AccessControlPolicy {
+		return &model.AccessControlPolicy{
+			ID:   id,
+			Type: typ,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: expression},
+			},
+		}
+	}
+
+	t.Run("team admin deleting a policy with a complex rule is rejected", func(t *testing.T) {
+		mockACS := setupMock(t)
+		mockACS.On("GetPolicy", ctxMatcher, th.BasicTeam.Id).
+			Return(policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, complexRule), nil).Once()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, complexRule).Return(nil, badRequest).Once()
+
+		appErr := th.App.DeleteAccessControlPolicy(adminCtx, th.BasicTeam.Id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Equal(t, "app.pap.save_policy.advanced_rule_requires_system_admin", appErr.Id)
+		mockACS.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("channel admin deleting a policy with a complex rule is rejected", func(t *testing.T) {
+		mockACS := setupMock(t)
+		mockACS.On("GetPolicy", ctxMatcher, privateChannel.Id).
+			Return(policyWith(privateChannel.Id, model.AccessControlPolicyTypeChannel, complexRule), nil).Once()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, complexRule).Return(nil, badRequest).Once()
+
+		appErr := th.App.DeleteAccessControlPolicy(adminCtx, privateChannel.Id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Equal(t, "app.pap.save_policy.advanced_rule_requires_system_admin", appErr.Id)
+		mockACS.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("team admin deleting a policy with a simple rule succeeds", func(t *testing.T) {
+		mockACS := setupMock(t)
+		mockACS.On("GetPolicy", ctxMatcher, th.BasicTeam.Id).
+			Return(policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, simpleRule), nil).Once()
+		mockACS.On("ExpressionToVisualAST", ctxMatcher, simpleRule).Return(&model.VisualExpression{}, nil).Once()
+		mockACS.On("DeletePolicy", ctxMatcher, th.BasicTeam.Id).Return(nil).Once()
+
+		appErr := th.App.DeleteAccessControlPolicy(adminCtx, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("system admin deleting a policy with a complex rule skips the check", func(t *testing.T) {
+		mockACS := setupMock(t)
+		mockACS.On("GetPolicy", ctxMatcher, th.BasicTeam.Id).
+			Return(policyWith(th.BasicTeam.Id, model.AccessControlPolicyTypeTeam, complexRule), nil).Once()
+		mockACS.On("DeletePolicy", ctxMatcher, th.BasicTeam.Id).Return(nil).Once()
+
+		appErr := th.App.DeleteAccessControlPolicy(sysadminCtx, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		mockACS.AssertNotCalled(t, "ExpressionToVisualAST", mock.Anything, mock.Anything)
+	})
+}

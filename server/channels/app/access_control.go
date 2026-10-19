@@ -617,9 +617,19 @@ func (a *App) checkMembershipRuleEditable(rctx request.CTX, policy *model.Access
 		return nil
 	}
 
-	all := slices.Concat(submitted, stored)
-	slices.Sort(all)
-	for _, expression := range slices.Compact(all) {
+	return a.rejectAdvancedMembershipRules(rctx, slices.Concat(submitted, stored))
+}
+
+// rejectAdvancedMembershipRules returns 403 if any expression needs the Advanced editor.
+func (a *App) rejectAdvancedMembershipRules(rctx request.CTX, expressions []string) *model.AppError {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil
+	}
+
+	expressions = slices.Clone(expressions)
+	slices.Sort(expressions)
+	for _, expression := range slices.Compact(expressions) {
 		if expression == "" || expression == "true" {
 			continue
 		}
@@ -628,7 +638,7 @@ func (a *App) checkMembershipRuleEditable(rctx request.CTX, policy *model.Access
 			if appErr.StatusCode != http.StatusBadRequest {
 				return appErr
 			}
-			return model.NewAppError("checkMembershipRuleEditable", "app.pap.save_policy.advanced_rule_requires_system_admin", nil, "", http.StatusForbidden)
+			return model.NewAppError("rejectAdvancedMembershipRules", "app.pap.save_policy.advanced_rule_requires_system_admin", nil, "", http.StatusForbidden)
 		}
 	}
 
@@ -674,6 +684,17 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 				return appErr
 			} else if hasMasked {
 				return model.NewAppError("DeleteAccessControlPolicy", "app.pap.delete_policy.masked_values", nil, "", http.StatusForbidden)
+			}
+		}
+	}
+
+	// Deleting replaces the membership rules with none, so it gets the same
+	// System Console only guard as a save.
+	if session := rctx.Session(); session != nil && session.UserId != "" && policy != nil &&
+		(policy.Type == model.AccessControlPolicyTypeTeam || policy.Type == model.AccessControlPolicyTypeChannel) {
+		if expressions := membershipExpressions(policy); len(expressions) > 0 && !a.HasPermissionTo(rctx, session.UserId, model.PermissionManageSystem) {
+			if appErr := a.rejectAdvancedMembershipRules(rctx, expressions); appErr != nil {
+				return appErr
 			}
 		}
 	}

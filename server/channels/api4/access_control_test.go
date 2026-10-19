@@ -30,6 +30,20 @@ func allowSelfInclusion(mockACS *mocks.AccessControlServiceInterface, userID str
 		Maybe()
 }
 
+// requireAdvancedEditor swaps allowSelfInclusion's ExpressionToVisualAST stub for one
+// that reports every rule as needing the Advanced editor.
+func requireAdvancedEditor(mockACS *mocks.AccessControlServiceInterface) {
+	kept := mockACS.ExpectedCalls[:0]
+	for _, call := range mockACS.ExpectedCalls {
+		if call.Method != "ExpressionToVisualAST" {
+			kept = append(kept, call)
+		}
+	}
+	mockACS.ExpectedCalls = kept
+	mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).
+		Return(nil, model.NewAppError("ExpressionToVisualAST", "app.pap.expression_to_visual_ast.app_error", nil, "", http.StatusBadRequest))
+}
+
 // maskingOffTestConfig disables attribute-value masking for policy-endpoint
 // tests that do not cover masking. ABAC and other ABAC sub-flags default on.
 func maskingOffTestConfig(cfg *model.Config) {
@@ -908,17 +922,6 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 	})
 
 	// Replaces the permissive default so the rule under test needs the Advanced editor.
-	requireAdvancedEditor := func(mockACS *mocks.AccessControlServiceInterface) {
-		kept := mockACS.ExpectedCalls[:0]
-		for _, call := range mockACS.ExpectedCalls {
-			if call.Method != "ExpressionToVisualAST" {
-				kept = append(kept, call)
-			}
-		}
-		mockACS.ExpectedCalls = kept
-		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).
-			Return(nil, model.NewAppError("ExpressionToVisualAST", "app.pap.expression_to_visual_ast.app_error", nil, "", http.StatusBadRequest))
-	}
 	complexRule := "user.attributes.department == 'a' || user.attributes.team == 'b'"
 
 	t.Run("channel admin cannot write a rule that needs the Advanced editor", func(t *testing.T) {
@@ -2933,6 +2936,32 @@ func TestDeleteAccessControlPolicyTeamAdmin(t *testing.T) {
 		require.Error(t, err)
 		defer r.Body.Close()
 		require.Equal(t, 403, r.StatusCode)
+	})
+
+	t.Run("team admin cannot delete their team policy when its rule needs the Advanced editor", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		complexRule := `user.attributes.dept == "eng" || user.attributes.role == "lead"`
+		teamPolicy := &model.AccessControlPolicy{
+			ID:    th.BasicTeam.Id,
+			Type:  model.AccessControlPolicyTypeTeam,
+			Rules: []model.AccessControlPolicyRule{{Actions: []string{"membership"}, Expression: complexRule}},
+		}
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).Return(teamPolicy, nil).Maybe()
+		requireAdvancedEditor(mockACS)
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		r, err := th.Client.DoAPIDelete(
+			context.Background(),
+			"/access_control_policies/"+th.BasicTeam.Id+"?team_id="+th.BasicTeam.Id,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, http.StatusForbidden, r.StatusCode)
+		CheckErrorID(t, err, "app.pap.save_policy.advanced_rule_requires_system_admin")
+		mockACS.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
 	})
 
 	t.Run("regular user is denied", func(t *testing.T) {
