@@ -8,8 +8,7 @@ import Input from 'components/widgets/inputs/input/input';
 
 import Setting from './setting';
 
-const INPUT_TYPES = ['text', 'textarea', 'number', 'email', 'tel', 'url', 'password'] as const;
-export type InputTypes = typeof INPUT_TYPES[number];
+export type InputTypes = 'text' | 'textarea' | 'number' | 'email' | 'tel' | 'url' | 'password';
 
 export type Props = {
     id: string;

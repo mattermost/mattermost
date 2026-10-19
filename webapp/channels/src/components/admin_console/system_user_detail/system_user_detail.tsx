@@ -592,6 +592,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
     renderTwoColumnLayout = () => {
         const fields: Array<React.ReactNode | null> = [];
+
         // defineMessage so formatjs extracts this id (plain const objects are dropped).
         const managedByProviderTitle = defineMessage({
             id: 'admin.userManagement.userDetail.managedByProvider.title',
