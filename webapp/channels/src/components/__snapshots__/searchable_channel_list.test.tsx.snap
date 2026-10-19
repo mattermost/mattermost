@@ -8,24 +8,52 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
     <div
       class="filter-row"
     >
-      <span
-        aria-hidden="true"
-        id="searchIcon"
-      >
-        <i
-          class="icon icon-magnify"
-        />
-      </span>
       <div
-        class="input-wrapper"
+        class="_search-input_1iq6i_2 _search-input--size-large_1iq6i_150 _search-input--has-leading-icon_1iq6i_171 filter-textbox"
       >
-        <input
-          aria-label="Search Channels"
-          class="form-control filter-textbox"
-          id="searchChannelsTextbox"
-          placeholder="Search channels"
-          value=""
-        />
+        <div
+          class="_search-input__wrapper_1iq6i_7"
+        >
+          <div
+            class="_search-input__inner_1iq6i_54"
+          >
+            <span
+              aria-hidden="true"
+              class="_search-input__leading-icon_1iq6i_85"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-20_1i355_46"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="24"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M20.224,18.829l-3.775-3.775C17.418,13.791,18,12.215,18,10.5C18,6.358,14.642,3,10.5,3S3,6.358,3,10.5S6.358,18,10.5,18c1.708,0,3.278-0.578,4.539-1.539l3.775,3.749c0.39,0.388,1.02,0.388,1.41,0C20.592,19.823,20.592,19.216,20.224,18.829z M5,10.5
+	C5,7.462,7.462,5,10.5,5S16,7.462,16,10.5S13.538,16,10.5,16S5,13.538,5,10.5z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <input
+              aria-label="Search Channels"
+              class="_search-input__input_1iq6i_17"
+              id="searchChannelsTextbox"
+              placeholder="Search channels"
+              type="search"
+              value=""
+            />
+          </div>
+        </div>
       </div>
     </div>
     <div

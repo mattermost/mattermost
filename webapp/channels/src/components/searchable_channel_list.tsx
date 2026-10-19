@@ -6,6 +6,7 @@ import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon, AccountPlusOutlineIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 import {Button} from '@mattermost/shared/components/button';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
@@ -15,7 +16,6 @@ import {ChannelIcon} from 'components/channel_type_icon';
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
-import QuickInput from 'components/quick_input';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
@@ -437,10 +437,8 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             this.setState({page: 0});
         }
     };
-    handleChange = (e?: React.FormEvent<HTMLInputElement>) => {
-        if (e?.currentTarget) {
-            this.setState({channelSearchValue: e?.currentTarget.value}, () => this.doSearch());
-        }
+    handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        this.setState({channelSearchValue: e.currentTarget.value}, () => this.doSearch());
     };
     handleClear = () => {
         this.setState({channelSearchValue: ''}, () => this.doSearch());
@@ -646,22 +644,17 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
         const input = (
             <div className='filter-row'>
-                <span
-                    id='searchIcon'
-                    aria-hidden='true'
-                >
-                    <i className='icon icon-magnify'/>
-                </span>
-                <QuickInput
+                <SearchInput
                     id='searchChannelsTextbox'
                     ref={this.filter}
-                    className='form-control filter-textbox'
+                    className='filter-textbox'
+                    size='large'
                     placeholder={this.props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search channels'})}
-                    onInput={this.handleChange}
-                    clearable={true}
+                    onChange={this.handleChange}
                     onClear={this.handleClear}
                     value={this.state.channelSearchValue}
                     aria-label={this.props.intl.formatMessage({id: 'filtered_channels_list.search.label', defaultMessage: 'Search Channels'})}
+                    clearButtonProps={{'data-testid': 'input-clear'}}
                 />
             </div>
         );
