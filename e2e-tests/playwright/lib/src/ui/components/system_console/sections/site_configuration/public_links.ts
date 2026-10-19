@@ -15,8 +15,9 @@ export default class PublicLinks {
 
     constructor(container: Locator) {
         this.container = container;
-        // Compass GeneratedSetting renders the masked salt in an <input value>, not text content.
-        this.maskedSalt = container.getByDisplayValue('********************************');
+        // Compass GeneratedSetting renders the masked salt as a disabled <input value>,
+        // not as text content. Match the asterisk mask so regenerate makes this locator hide.
+        this.maskedSalt = container.locator('input[value="********************************"]');
         this.regenerateButton = container.getByRole('button', {name: 'Regenerate'});
     }
 
