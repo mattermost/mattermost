@@ -27,6 +27,12 @@
         "DisableDatabaseSearch": false,
         "ReplicaLagSettings": []
     },
+    "ExperimentalAuditSettings": {
+        "FileEnabled": true,
+        "FileName": "/var/log/mattermost/audit.log",
+        "AdvancedLoggingJSON": {},
+        "Certificate": ""
+    },
     "LogSettings": {
         "EnableConsole": true,
         "ConsoleLevel": "INFO",
@@ -50,6 +56,12 @@
         "SendPushNotifications": true,
         "PushNotificationServer": "http://push.example.com",
         "PushNotificationContents": "full"
+    },
+    "ComplianceSettings": {
+        "Enable": false,
+        "Directory": "./data/",
+        "EnableDaily": false,
+        "BatchSize": 30000
     },
     "LdapSettings": {
         "EnableSync": true
@@ -93,8 +105,32 @@
         "VaryByUser": false,
         "VaryByHeader": ""
     },
+    "DataRetentionSettings": {
+        "EnableMessageDeletion": true,
+        "EnableFileDeletion": true,
+        "MessageRetentionDays": 0,
+        "MessageRetentionHours": 17520,
+        "FileRetentionDays": 0,
+        "FileRetentionHours": 17520,
+        "DeletionJobStartTime": "02:00",
+        "BatchSize": 3000,
+        "TimeBetweenBatchesMilliseconds": 100
+    },
     "MessageExportSettings": {
-        "EnableExport": true
+        "EnableExport": true,
+        "ExportFormat": "globalrelay",
+        "DailyRunTime": "01:00",
+        "ExportFromTimestamp": 0,
+        "BatchSize": 10000,
+        "GlobalRelaySettings": {
+            "CustomerType": "A9",
+            "SMTPUsername": "archive-user@example.com",
+            "SMTPPassword": "********************************",
+            "EmailAddress": "archive@example.com",
+            "SMTPServerTimeout": 10,
+            "CustomSMTPServerName": "",
+            "CustomSMTPPort": "25"
+        }
     },
     "MetricsSettings": {
         "Enable": true,

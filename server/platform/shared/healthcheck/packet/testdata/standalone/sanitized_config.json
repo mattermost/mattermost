@@ -27,6 +27,12 @@
         "DisableDatabaseSearch": false,
         "ReplicaLagSettings": []
     },
+    "ExperimentalAuditSettings": {
+        "FileEnabled": false,
+        "FileName": "",
+        "AdvancedLoggingJSON": {},
+        "Certificate": ""
+    },
     "LogSettings": {
         "EnableConsole": true,
         "ConsoleLevel": "INFO",
@@ -50,6 +56,12 @@
         "SendPushNotifications": true,
         "PushNotificationServer": "https://push-test.mattermost.com",
         "PushNotificationContents": "full"
+    },
+    "ComplianceSettings": {
+        "Enable": true,
+        "Directory": "",
+        "EnableDaily": false,
+        "BatchSize": 30000
     },
     "LdapSettings": {
         "EnableSync": true
@@ -93,8 +105,32 @@
         "VaryByUser": false,
         "VaryByHeader": ""
     },
+    "DataRetentionSettings": {
+        "EnableMessageDeletion": false,
+        "EnableFileDeletion": false,
+        "MessageRetentionDays": 365,
+        "MessageRetentionHours": 0,
+        "FileRetentionDays": 365,
+        "FileRetentionHours": 0,
+        "DeletionJobStartTime": "02:00",
+        "BatchSize": 3000,
+        "TimeBetweenBatchesMilliseconds": 100
+    },
     "MessageExportSettings": {
-        "EnableExport": false
+        "EnableExport": false,
+        "ExportFormat": "actiance",
+        "DailyRunTime": "01:00",
+        "ExportFromTimestamp": 0,
+        "BatchSize": 10000,
+        "GlobalRelaySettings": {
+            "CustomerType": "A9",
+            "SMTPUsername": "",
+            "SMTPPassword": "",
+            "EmailAddress": "",
+            "SMTPServerTimeout": 1800,
+            "CustomSMTPServerName": "",
+            "CustomSMTPPort": "25"
+        }
     },
     "MetricsSettings": {
         "Enable": false,

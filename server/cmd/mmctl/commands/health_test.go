@@ -336,6 +336,9 @@ license:
   expires_at: 1821866400000
   features:
     metrics: true
+    compliance: true
+    data_retention: true
+    message_export: true
 server:
   os: linux
   hostname: mm.example.com
@@ -355,9 +358,9 @@ notifications:
     status: OK
 `,
 		model.SupportPacketStatsFileName:   "registered_users: 300\nactive_users: 300\nsingle_channel_guests: 0\nposts: 1000\n",
+		model.SupportPacketJobsFileName:    "data_retention_jobs: []\n",
 		model.SupportPacketConfigFileName:  healthTestPacketConfig(),
 		model.SupportPacketPluginsFileName: `{"enabled": [], "disabled": []}`,
-		model.SupportPacketJobsFileName:    "data_retention_jobs: []\n",
 	}
 }
 
@@ -372,6 +375,7 @@ func healthTestPacketConfig() string {
 	cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.IdLoadedNotification)
 	cfg.SqlSettings.DataSource = model.NewPointer("postgres://****:****@db.example.com:5432/mattermost")
 	cfg.RateLimitSettings.Enable = model.NewPointer(true)
+	cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
 	cfg.MetricsSettings.Enable = model.NewPointer(true)
 
 	b, err := json.Marshal(cfg)
