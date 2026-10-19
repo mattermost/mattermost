@@ -457,6 +457,20 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Contains(t, string(fileData.Body), "is_cloud: true")
 	})
 
+	t.Run("trial recognized by duration writes is_trial", func(t *testing.T) {
+		trialLicense := model.NewTestLicense("ldap")
+		trialLicense.IsTrial = false
+		trialLicense.StartsAt = model.GetMillis()
+		trialLicense.ExpiresAt = trialLicense.StartsAt + (30*24*time.Hour + 8*time.Hour).Milliseconds()
+		require.True(t, trialLicense.IsTrialLicense())
+		require.True(t, th.Service.SetLicense(trialLicense))
+		t.Cleanup(func() {
+			require.True(t, th.Service.SetLicense(license))
+		})
+
+		assert.True(t, getDiagnostics(t).License.IsTrial)
+	})
+
 	t.Run("enforced license writes expiry, seat limit and features", func(t *testing.T) {
 		enforcedLicense := model.NewTestLicense("ldap")
 		enforcedLicense.IsSeatCountEnforced = true

@@ -32,6 +32,10 @@ type SupportPacketLicense struct {
 	Features *Features `yaml:"features,omitempty"`
 }
 
+func (l *SupportPacketLicense) IsMattermostEntry() bool {
+	return l != nil && l.SkuShortName == LicenseShortSkuMattermostEntry
+}
+
 // SupportPacketDiagnostics reports one node's diagnostics. A nil pointer field was not collected, which is not the same as zero.
 type SupportPacketDiagnostics struct {
 	Version int `yaml:"version"`

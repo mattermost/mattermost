@@ -5,6 +5,7 @@ package healthcheck
 
 import (
 	"slices"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -117,6 +118,28 @@ func (s *Snapshot) License() (*model.SupportPacketLicense, bool) {
 func (s *Snapshot) IsCloud() bool {
 	license, ok := s.License()
 	return ok && license.IsCloud
+}
+
+// LicenseSeats returns the licensed seat count, or ok=false when there is no license or it
+// sets no positive seat count.
+func (s *Snapshot) LicenseSeats() (int, bool) {
+	license, ok := s.License()
+	if !ok || license.Users <= 0 {
+		return 0, false
+	}
+
+	return license.Users, true
+}
+
+// LicenseExpiresAt returns when the license expires, or ok=false when there is no license or
+// no expiry is recorded, as in older Support Packets.
+func (s *Snapshot) LicenseExpiresAt() (time.Time, bool) {
+	license, ok := s.License()
+	if !ok || license.ExpiresAt == 0 {
+		return time.Time{}, false
+	}
+
+	return time.UnixMilli(license.ExpiresAt).UTC(), true
 }
 
 func (s *Snapshot) LicenseFeature(get func(*model.Features) *bool) (bool, bool) {

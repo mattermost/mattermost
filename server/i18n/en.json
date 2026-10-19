@@ -14902,6 +14902,46 @@
     "description": "Health dashboard finding title when a background job is in progress but has neither reported progress nor recorded activity for over an hour."
   },
   {
+    "id": "health.rule.license_expired.message",
+    "translation": "The license expired on {{.expires_at}}. The server removes an expired license 10 days after it expires, and Enterprise features stop working.",
+    "description": "Health dashboard finding detail when the license has expired; {{.expires_at}} is the expiry date (YYYY-MM-DD)."
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "The trial license expired on {{.expires_at}}. The server removes an expired license 10 days after it expires, and Enterprise features stop working.",
+    "description": "Health dashboard finding detail when a trial license has expired; {{.expires_at}} is the expiry date (YYYY-MM-DD)."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Get a new license and upload it in System Console > About > Edition and License.",
+    "description": "Health dashboard fix-it step for an expired license; 'System Console > About > Edition and License' is the path to the license page in the admin UI."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "License has expired",
+    "description": "Health dashboard finding title when the server's license expired before the health data was collected."
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "The license expires on {{.expires_at}}.",
+    "description": "Health dashboard finding detail when the license expires within 30 days; {{.expires_at}} is the expiry date (YYYY-MM-DD)."
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "The trial license expires on {{.expires_at}}.",
+    "description": "Health dashboard finding detail when a trial license expires within 30 days; {{.expires_at}} is the expiry date (YYYY-MM-DD)."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Get a new license now, so it can be uploaded in System Console > About > Edition and License before the current one expires.",
+    "description": "Health dashboard fix-it step for a license that expires soon; 'System Console > About > Edition and License' is the path to the license page in the admin UI."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "License expires within 30 days",
+    "description": "Health dashboard finding title when the server's license expires in less than 30 days."
+  },
+  {
     "id": "health.rule.log_debug_prod.message",
     "translation": "LogSettings.FileLevel is {{.level}}. Debug-level file logging grows log files quickly, and the extra detail can include request payloads. This is fine while troubleshooting, but not ideal as a steady-state production setting.",
     "description": "Health dashboard finding detail when the file log level is debug or trace; {{.level}} is the configured level. 'LogSettings.FileLevel' is a config setting path and should not be translated."
@@ -15160,6 +15200,51 @@
     "id": "health.rule.search_unavailable.title",
     "translation": "Search is disabled",
     "description": "Health dashboard finding title when database search is disabled and Elasticsearch or OpenSearch searching is off."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "{{.used}} users count toward the license limit of {{.limit}} users, which is now reached. The server does not create or reactivate users until seats are freed or added.",
+    "description": "Health dashboard finding detail when the license's enforced user limit is reached; {{.used}} is the number of users taking a seat and {{.limit}} is the licensed seats plus any extra users the license allows."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Purchase additional seats, or deactivate users who no longer need access to free seats.",
+    "description": "Health dashboard fix-it step when the license's user limit is reached and the server refuses new users."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "Licensed user limit reached",
+    "description": "Health dashboard finding title when the number of active users reached the hard user limit the license enforces."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "{{.used}} users count toward {{.seats}} licensed seats ({{.percent}}%).",
+    "description": "Health dashboard finding detail when licensed seats are nearly full; {{.used}} is the number of users taking a seat, {{.seats}} the licensed seats and {{.percent}} the ratio as a percentage."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "If you expect more users, plan additional seats before the license is full. Deactivating users who no longer need access frees seats.",
+    "description": "Health dashboard fix-it step when 90% or more of the licensed seats are in use."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "Licensed seats are nearly full",
+    "description": "Health dashboard finding title when users take 90% to 100% of the licensed seats."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "{{.used}} users count toward {{.seats}} licensed seats ({{.percent}}%).",
+    "description": "Health dashboard finding detail when more users take a seat than the license covers; {{.used}} is the number of users taking a seat, {{.seats}} the licensed seats and {{.percent}} the ratio as a percentage."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Purchase additional seats, or deactivate users who no longer need access. Deactivated users do not take a seat.",
+    "description": "Health dashboard fix-it step when more users are active than the license has seats for."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "More users than licensed seats",
+    "description": "Health dashboard finding title when more users take a seat than the license covers."
   },
   {
     "id": "health.rule.site_url_empty.message",
