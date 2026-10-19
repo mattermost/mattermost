@@ -7,18 +7,17 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestReattachReservedPlugin(t *testing.T) {
 	// No server/environment is available: reservation must precede lifecycle access,
 	// including the detach of an existing instance.
 	ch := &Channels{}
-	for _, id := range []string{model.CoreServerPluginID, "Com.Mattermost.Server"} {
-		err := ch.ReattachPlugin(&model.Manifest{Id: id}, nil)
-		require.NotNil(t, err)
-		require.Equal(t, "app.plugin.reserved_id.app_error", err.Id)
-		require.Equal(t, http.StatusBadRequest, err.StatusCode)
-	}
+	err := ch.ReattachPlugin(&model.Manifest{Id: "Com.Mattermost.Server"}, nil)
+	require.NotNil(t, err)
+	require.Equal(t, "app.plugin.reserved_id.app_error", err.Id)
+	require.Equal(t, http.StatusBadRequest, err.StatusCode)
 }

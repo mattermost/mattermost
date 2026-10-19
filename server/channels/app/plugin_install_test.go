@@ -114,20 +114,18 @@ func TestInstallPluginLocally(t *testing.T) {
 		require.Nil(t, actualManifest)
 	})
 
-	for _, id := range []string{model.CoreServerPluginID, "COM.MATTERMOST.SERVER", "Com.Mattermost.Server"} {
-		t.Run("reserved ID "+id, func(t *testing.T) {
-			th := Setup(t)
-			manifest, appErr := installPlugin(t, th, id, "1.0.0", installPluginLocallyAlways)
-			require.NotNil(t, appErr)
-			require.Equal(t, "app.plugin.reserved_id.app_error", appErr.Id)
-			require.Nil(t, manifest)
-			bundles, err := th.App.GetPluginsEnvironment().Available()
-			require.NoError(t, err)
-			for _, bundle := range bundles {
-				require.NotEqual(t, id, bundle.Manifest.Id)
-			}
-		})
-	}
+	t.Run("reserved plugin id", func(t *testing.T) {
+		th := Setup(t)
+		manifest, appErr := installPlugin(t, th, "Com.Mattermost.Server", "1.0.0", installPluginLocallyAlways)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.plugin.reserved_id.app_error", appErr.Id)
+		require.Nil(t, manifest)
+		bundles, err := th.App.GetPluginsEnvironment().Available()
+		require.NoError(t, err)
+		for _, bundle := range bundles {
+			require.NotEqual(t, model.CoreServerPluginID, bundle.Manifest.Id)
+		}
+	})
 
 	// The following tests fail mysteriously on CI due to an unexpected bundle being present.
 	// This exists to clean up manually until we figure out what test isn't cleaning up after

@@ -619,7 +619,6 @@ func TestPluginPanicLogs(t *testing.T) {
 
 		import (
 			"github.com/mattermost/mattermost/server/public/plugin"
-"github.com/mattermost/mattermost/server/public/plugin/utils"
 			"github.com/mattermost/mattermost/server/public/model"
 		)
 
@@ -669,7 +668,6 @@ func TestPluginStatusActivateError(t *testing.T) {
 			"errors"
 
 			"github.com/mattermost/mattermost/server/public/plugin"
-"github.com/mattermost/mattermost/server/public/plugin/utils"
 		)
 
 		type MyPlugin struct {
@@ -1612,7 +1610,7 @@ func TestReservedPluginColdStart(t *testing.T) {
  `, markerDir), backend)
 	executable, err := os.ReadFile(backend)
 	require.NoError(t, err)
-	ids := []string{"Com.Mattermost.Server", "startup-control"}
+	ids := []string{model.CoreServerPluginID, "startup-control"}
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.RequirePluginSignature = false

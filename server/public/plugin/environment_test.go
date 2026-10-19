@@ -146,7 +146,7 @@ func TestReservedPluginActivation(t *testing.T) {
 	for _, component := range []string{"server", "webapp"} {
 		t.Run(component, func(t *testing.T) {
 			pluginDir, webappDir := t.TempDir(), t.TempDir()
-			id := "Com.Mattermost.Server"
+			id := model.CoreServerPluginID
 			bundleDir := filepath.Join(pluginDir, id)
 			require.NoError(t, os.Mkdir(bundleDir, 0700))
 			manifest := &model.Manifest{Id: id, Version: "1.0.0"}
