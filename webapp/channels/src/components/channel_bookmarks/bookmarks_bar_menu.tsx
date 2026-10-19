@@ -22,7 +22,7 @@ import OverflowBookmarkItem from './overflow_bookmark_item';
 import {MAX_BOOKMARKS_PER_CHANNEL} from './utils';
 
 const BookmarksBarIconMenuTrigger = Menu.createMenuIconButtonTrigger({
-    size: 'small',
+    size: 'x-small',
     padding: 'compact',
 });
 

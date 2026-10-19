@@ -113,6 +113,7 @@ describe('BookmarksBarMenu — IconButton triggers', () => {
         expect(button).toBeInTheDocument();
         expect(button).toHaveAttribute('aria-label', 'Add a bookmark');
         expect(button?.className).toContain('icon-button');
+        expect(button?.className).toContain('icon-button--size-x-small');
         expect(button).not.toHaveClass('withLabel');
     });
 
@@ -131,6 +132,7 @@ describe('BookmarksBarMenu — IconButton triggers', () => {
         const button = container.querySelector('#channelBookmarksBarMenuButton');
         expect(button).toBeInTheDocument();
         expect(button?.className).toContain('icon-button');
+        expect(button?.className).toContain('icon-button--size-x-small');
         expect(button?.className).toContain('icon-button--has-count');
         expect(button).toHaveTextContent('2');
     });
