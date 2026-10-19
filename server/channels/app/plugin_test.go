@@ -1622,8 +1622,8 @@ func TestReservedPluginColdStart(t *testing.T) {
 	th.App.ch.ShutDownPlugins()
 	require.Nil(t, th.App.GetPluginsEnvironment())
 	for _, id := range ids {
-		manifest, err := json.Marshal(&model.Manifest{Id: id, Version: "1.0.0", Server: &model.ManifestServer{Executable: "backend.exe"}})
-		require.NoError(t, err)
+		manifest, marshalErr := json.Marshal(&model.Manifest{Id: id, Version: "1.0.0", Server: &model.ManifestServer{Executable: "backend.exe"}})
+		require.NoError(t, marshalErr)
 		var bundle bytes.Buffer
 		gz := gzip.NewWriter(&bundle)
 		tw := tar.NewWriter(gz)
