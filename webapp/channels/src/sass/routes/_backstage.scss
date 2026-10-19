@@ -290,6 +290,19 @@
         }
     }
 
+    // Keep Yes/No radios side-by-side and aligned with the label.
+    .backstage-form__radio-group-inline {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        padding-top: 7px;
+        gap: var(--spacing-xl);
+
+        > label {
+            width: auto;
+        }
+    }
+
     .form-control {
         background: variables.$white;
 

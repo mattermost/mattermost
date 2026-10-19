@@ -13,6 +13,7 @@ import (
 	"io"
 	"maps"
 	"net"
+	"net/http"
 	"net/mail"
 	"net/url"
 	"os"
@@ -378,6 +379,22 @@ func NewAppError(where string, id string, params map[string]any, details string,
 	}
 	ap.Translate(translateFunc)
 	return ap
+}
+
+// AsAppError returns the *AppError in err's chain, or wraps err in a generic internal error
+// when there is none. Use it where an error must cross a boundary that still requires an
+// *AppError, such as an API handler or a caller not yet migrated to return error.
+func AsAppError(err error) *AppError {
+	if err == nil {
+		return nil
+	}
+
+	var appErr *AppError
+	if errors.As(err, &appErr) {
+		return appErr
+	}
+
+	return NewAppError("", "model.app_error.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 }
 
 var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPadding(base32.NoPadding)

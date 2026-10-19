@@ -19,8 +19,26 @@ type State = ThreadsState['threadsInTeam'] | ThreadsState['unreadThreadsInTeam']
 // furthermore manually adding older thread will BREAK pagination
 function shouldAddThreadId(ids: Array<UserThread['id']>, thread: UserThread, threads: IDMappedObjects<UserThread>) {
     return ids.some((id) => {
-        const t = threads![id];
-        return thread.last_reply_at > t.last_reply_at;
+        const t = threads[id];
+        return t && thread.last_reply_at > t.last_reply_at;
+    });
+}
+
+// An empty unread list gives nothing to compare against, so fall back to the team's followed threads:
+// a thread newer than all of them is the newest unread, and paginating older from it is safe.
+function shouldAddUnreadThreadId(ids: Array<UserThread['id']>, thread: UserThread, teamId: Team['id'], extra: ExtraData) {
+    if (ids.length) {
+        return shouldAddThreadId(ids, thread, extra.threads);
+    }
+
+    const followedIds = extra.threadsInTeam?.[teamId] ?? [];
+    return followedIds.length > 0 && followedIds.every((id) => {
+        if (id === thread.id) {
+            return true;
+        }
+
+        const t = extra.threads[id];
+        return t && thread.last_reply_at > t.last_reply_at;
     });
 }
 
@@ -56,19 +74,19 @@ function handlePostRemoved(state: State, action: AnyAction): State {
 }
 
 // adds thread to all teams in state
-function handleAllTeamsReceivedThread(state: State, thread: UserThread, teamId: Team['id'], extra: ExtraData) {
+function handleAllTeamsReceivedThread(state: State, thread: UserThread, teamId: Team['id'], extra: ExtraData, isUnreadList: boolean) {
     const teamIds = Object.keys(state);
 
     let newState = {...state};
     for (const teamId of teamIds) {
-        newState = handleSingleTeamReceivedThread(newState, thread, teamId, extra);
+        newState = handleSingleTeamReceivedThread(newState, thread, teamId, extra, isUnreadList);
     }
 
     return newState;
 }
 
 // adds thread to single team
-function handleSingleTeamReceivedThread(state: State, thread: UserThread, teamId: Team['id'], extra: ExtraData) {
+function handleSingleTeamReceivedThread(state: State, thread: UserThread, teamId: Team['id'], extra: ExtraData, isUnreadList: boolean) {
     const nextSet = new Set(state[teamId] || []);
 
     // thread exists in state
@@ -77,7 +95,7 @@ function handleSingleTeamReceivedThread(state: State, thread: UserThread, teamId
     }
 
     // check if thread is newer than any of the existing threads
-    const shouldAdd = shouldAddThreadId([...nextSet], thread, extra.threads);
+    const shouldAdd = isUnreadList ? shouldAddUnreadThreadId([...nextSet], thread, teamId, extra) : shouldAddThreadId([...nextSet], thread, extra.threads);
 
     if (shouldAdd) {
         nextSet.add(thread.id);
@@ -91,14 +109,14 @@ function handleSingleTeamReceivedThread(state: State, thread: UserThread, teamId
     return state;
 }
 
-export function handleReceivedThread(state: State, action: AnyAction, extra: ExtraData) {
+export function handleReceivedThread(state: State, action: AnyAction, extra: ExtraData, isUnreadList = false) {
     const {thread, team_id: teamId} = action.data;
 
     if (!teamId) {
-        return handleAllTeamsReceivedThread(state, thread, teamId, extra);
+        return handleAllTeamsReceivedThread(state, thread, teamId, extra, isUnreadList);
     }
 
-    return handleSingleTeamReceivedThread(state, thread, teamId, extra);
+    return handleSingleTeamReceivedThread(state, thread, teamId, extra, isUnreadList);
 }
 
 // add the thread only if it's 'newer' than other threads
@@ -213,7 +231,7 @@ function handleSingleTeamThreadRead(state: ThreadsState['unreadThreadsInTeam'], 
         // the thread is unread
         if (thread && (newUnreadReplies > 0 || newUnreadMentions > 0)) {
             // if it's newer add it, we don't care about ordering here since we order on the selector
-            if (shouldAddThreadId(team, thread, extra.threads)) {
+            if (shouldAddUnreadThreadId(team, thread, teamId, extra)) {
                 return {
                     ...state,
                     [teamId]: [
@@ -282,7 +300,7 @@ export const unreadThreadsInTeamReducer = (state: ThreadsState['unreadThreadsInT
     }
     case ThreadTypes.RECEIVED_THREAD:
         if (action.data.thread.unread_replies > 0 || action.data.thread.unread_mentions > 0) {
-            return handleReceivedThread(state, action, extra);
+            return handleReceivedThread(state, action, extra, true);
         }
         return state;
     case ThreadTypes.RECEIVED_THREADS:

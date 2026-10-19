@@ -36,6 +36,11 @@ var renderableABACActions = map[string]renderableActionConfig{
 		DefaultWhenInactive: true,
 		FailClosedOnError:   true,
 	},
+	model.AccessControlPolicyActionCreateBurnOnReadPost: {
+		ResourceType:        model.AccessControlPolicyTypeChannel,
+		DefaultWhenInactive: true,
+		FailClosedOnError:   true,
+	},
 }
 
 // SearchAllowedActionsForCurrentUser computes non-authoritative, render-time ABAC
@@ -100,7 +105,7 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 	// Inactive ABAC, or permission policies disabled: return per-action defaults
 	// without evaluating. The feature flag is checked here, not inside
 	// attributeBasedAccessControlEnabled, so this stays in step with
-	// HasPermissionToFileAction without narrowing the shared ETag and cache gate.
+	// HasPermissionToChannelAction without narrowing the shared ETag and cache gate.
 	acs := a.Srv().Channels().AccessControl
 	if acs == nil || !a.attributeBasedAccessControlEnabled() || !a.Config().FeatureFlags.PermissionPolicies {
 		for _, action := range candidates {
@@ -112,10 +117,11 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 		return resp, nil
 	}
 
-	// All currently registered resource types are channel-scoped, so req.Resource.ID
-	// is always a channel ID here. If a non-channel resource type is ever added to
-	// renderableABACActions, this call must be updated to pass the correct channel ID.
-	subject, appErr := a.BuildAccessControlSubjectForSession(rctx, req.Resource.ID)
+	channelID := ""
+	if req.Resource.Type == model.AccessControlPolicyTypeChannel {
+		channelID = req.Resource.ID
+	}
+	subject, appErr := a.BuildAccessControlSubjectForSession(rctx, channelID)
 	if appErr != nil {
 		rctx.Logger().Info("Failed to build ABAC subject for render-decision search",
 			mlog.String("resource_type", req.Resource.Type),

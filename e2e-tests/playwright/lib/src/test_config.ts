@@ -9,8 +9,8 @@ import {SERVER_ENV_BASELINE} from './containers/env_baseline';
 import {
     getUpgradeFromServerImage,
     getUpgradeToServerImage,
-    isUpgradeFromProjectSelected,
-    isUpgradeToPhaseProjectSelected,
+    isUpgradeFromProjectActive,
+    isUpgradeToPhaseProjectActive,
 } from './upgrade_env';
 
 dotenv.config({quiet: true});
@@ -181,9 +181,11 @@ export class TestConfig {
         this.testcontainersNetworkGatewayIp = process.env.PW_TESTCONTAINERS_NETWORK_GATEWAY_IP || '';
         // upgrade-from → PW_UPGRADE_FROM_SERVER_IMAGE; upgrade-to/swap-to → SERVER_IMAGE (never the
         // from-image persisted as PW_TESTCONTAINERS_SERVER_IMAGE); otherwise prefer persisted image.
-        if (isUpgradeFromProjectSelected()) {
+        // *Active (not *Selected): this constructor also runs inside a worker process reloading
+        // the config, where only the env-var-aware check resolves correctly (see upgrade_env.ts).
+        if (isUpgradeFromProjectActive()) {
             this.serverImage = getUpgradeFromServerImage();
-        } else if (isUpgradeToPhaseProjectSelected()) {
+        } else if (isUpgradeToPhaseProjectActive()) {
             this.serverImage = getUpgradeToServerImage();
         } else {
             this.serverImage =
@@ -294,4 +296,10 @@ function parseTestContainersServices(actualValue: string | undefined): TestConta
         );
     }
     return requested as TestContainersServiceName[];
+}
+
+/** Re-reads .env.testcontainers, which another process may have written since this one started. */
+export function reloadTestConfig(): void {
+    dotenv.config({path: '.env.testcontainers', quiet: true, override: true});
+    Object.assign(testConfig, new TestConfig());
 }

@@ -553,6 +553,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		model.ClusterEventInvalidateCacheForPropertyFields,
 		model.ClusterEventInvalidateCacheForAccessControlPolicyEtag,
 		model.ClusterEventInvalidateCacheForUserPropertyValuesEpoch,
+		model.ClusterEventInvalidateCacheForUserAttributes,
 		model.ClusterEventClearSessionCacheForAllUsers,
 		model.ClusterEventInstallPlugin,
 		model.ClusterEventRemovePlugin,

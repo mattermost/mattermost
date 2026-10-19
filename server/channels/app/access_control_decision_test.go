@@ -60,6 +60,24 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		require.Equal(t, 400, appErr.StatusCode)
 	})
 
+	t.Run("empty resource ID on channel resource returns bad request", func(t *testing.T) {
+		_, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
+			Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel},
+		})
+		require.NotNil(t, appErr)
+		require.Equal(t, 400, appErr.StatusCode)
+	})
+
+	t.Run("empty resource ID on system-level resource is accepted", func(t *testing.T) {
+		disableABAC(t)
+
+		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
+			Resource: model.Resource{Type: model.AccessControlPolicyTypePermission},
+		})
+		require.Nil(t, appErr)
+		require.Empty(t, resp.Decisions)
+	})
+
 	t.Run("unsupported action returns bad request", func(t *testing.T) {
 		_, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,
@@ -98,7 +116,7 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		require.True(t, resp.Decisions[model.AccessControlPolicyActionUploadFileAttachment].Evaluated)
 		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 
-		enforced := th.App.HasPermissionToFileAction(rctx, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionUploadFileAttachment)
+		enforced := th.App.HasPermissionToChannelAction(rctx, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionUploadFileAttachment)
 		require.True(t, enforced)
 		require.Equal(t, enforced, resp.Decisions[model.AccessControlPolicyActionUploadFileAttachment].Allowed)
 	})
@@ -111,11 +129,17 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 
 		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionUploadFileAttachment, model.AccessControlPolicyActionDownloadFileAttachment},
+			Actions: []string{
+				model.AccessControlPolicyActionUploadFileAttachment,
+				model.AccessControlPolicyActionDownloadFileAttachment,
+				model.AccessControlPolicyActionCreateBurnOnReadPost},
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 2)
-		for _, action := range []string{model.AccessControlPolicyActionUploadFileAttachment, model.AccessControlPolicyActionDownloadFileAttachment} {
+		require.Len(t, resp.Decisions, 3)
+		for _, action := range []string{
+			model.AccessControlPolicyActionUploadFileAttachment,
+			model.AccessControlPolicyActionDownloadFileAttachment,
+			model.AccessControlPolicyActionCreateBurnOnReadPost} {
 			require.True(t, resp.Decisions[action].Evaluated, action)
 			require.True(t, resp.Decisions[action].Allowed, action)
 			require.Empty(t, resp.Decisions[action].Reason, action)
@@ -184,11 +208,14 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 
 		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionUploadFileAttachment, model.AccessControlPolicyActionDownloadFileAttachment},
+			Actions: []string{
+				model.AccessControlPolicyActionUploadFileAttachment,
+				model.AccessControlPolicyActionDownloadFileAttachment,
+				model.AccessControlPolicyActionCreateBurnOnReadPost},
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 2)
-		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 2)
+		require.Len(t, resp.Decisions, 3)
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 3)
 	})
 
 	for _, want := range []bool{true, false} {
@@ -206,7 +233,7 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			})
 			require.Nil(t, appErr)
 
-			enforced := th.App.HasPermissionToFileAction(rctx, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionUploadFileAttachment)
+			enforced := th.App.HasPermissionToChannelAction(rctx, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionUploadFileAttachment)
 			require.Equal(t, enforced, resp.Decisions[model.AccessControlPolicyActionUploadFileAttachment].Allowed)
 			require.Equal(t, want, enforced)
 		})
@@ -221,14 +248,15 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			Resource: channelResource,
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 2)
-		require.Len(t, resp.Results, 2)
+		require.Len(t, resp.Decisions, 3)
+		require.Len(t, resp.Results, 3)
 		resultNames := make(map[string]bool, len(resp.Results))
 		for _, r := range resp.Results {
 			resultNames[r.Action.Name] = true
 		}
 		require.True(t, resultNames[model.AccessControlPolicyActionUploadFileAttachment])
 		require.True(t, resultNames[model.AccessControlPolicyActionDownloadFileAttachment])
+		require.True(t, resultNames[model.AccessControlPolicyActionCreateBurnOnReadPost])
 	})
 
 	t.Run("discovery mode ABAC active permitted in results denied excluded", func(t *testing.T) {
@@ -239,14 +267,15 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
 		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
-			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment ||
+				req.Action == model.AccessControlPolicyActionCreateBurnOnReadPost
 		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
 
 		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 2)
+		require.Len(t, resp.Decisions, 3)
 		require.Len(t, resp.Results, 1)
 		require.Equal(t, model.AccessControlPolicyActionUploadFileAttachment, resp.Results[0].Action.Name)
 	})

@@ -265,8 +265,8 @@ export default function InviteView(props: Props) {
                 <button
                     id='closeIcon'
                     className='icon icon-close close'
-                    aria-label='Close'
-                    title='Close'
+                    aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
+                    title={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                     onClick={props.onClose}
                 />
             </Modal.Header>
