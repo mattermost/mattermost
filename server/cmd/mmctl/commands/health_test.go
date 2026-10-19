@@ -334,6 +334,9 @@ license:
   sku_short_name: enterprise
   features:
     metrics: true
+    compliance: true
+    data_retention: true
+    message_export: true
 server:
   os: linux
   hostname: mm.example.com
