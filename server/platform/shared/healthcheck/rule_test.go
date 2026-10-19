@@ -20,10 +20,10 @@ func TestRuleAppliesTo(t *testing.T) {
 	onPremRule := validRule("ONPREM")
 	onPremRule.AppliesToCloud = false
 
-	require.True(t, cloudRule.AppliesTo(Deployment{IsCloud: true}))
-	require.False(t, onPremRule.AppliesTo(Deployment{IsCloud: true}))
-	require.True(t, onPremRule.AppliesTo(Deployment{IsCloud: false}))
-	require.True(t, cloudRule.AppliesTo(Deployment{IsCloud: false}))
+	require.True(t, cloudRule.AppliesTo(true))
+	require.False(t, onPremRule.AppliesTo(true))
+	require.True(t, onPremRule.AppliesTo(false))
+	require.True(t, cloudRule.AppliesTo(false))
 }
 
 func validRule(code string) Rule {
@@ -31,7 +31,7 @@ func validRule(code string) Rule {
 		Code:       code,
 		Area:       model.AreaPlatform,
 		Severity:   SeverityWarning,
-		RuleText:   model.RuleText{SummaryID: "health.rule." + strings.ToLower(code) + ".summary", RemediationID: "health.rule." + strings.ToLower(code) + ".remediation"},
+		RuleText:   model.RuleText{TitleID: "health.rule." + strings.ToLower(code) + ".title", RemediationID: "health.rule." + strings.ToLower(code) + ".remediation"},
 		Surface:    SurfaceProduct,
 		Volatility: VolatilityStable,
 		Subject:    "ServiceSettings.SiteURL",
