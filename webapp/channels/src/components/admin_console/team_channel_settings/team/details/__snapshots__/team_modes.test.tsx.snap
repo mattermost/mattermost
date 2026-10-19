@@ -115,6 +115,11 @@ exports[`admin_console/team_channel_settings/team/TeamModes should match snapsho
             </div>
           </div>
           <div
+            class="help-text csvDomains"
+          >
+            Comma Separated Email Domain List
+          </div>
+          <div
             class="Input_container csvDomains"
           >
             <div
@@ -132,7 +137,7 @@ exports[`admin_console/team_channel_settings/team/TeamModes should match snapsho
                     data-testid="input-wrapper"
                     id="input_allowedDomains"
                     name="allowedDomains"
-                    placeholder="Comma Separated Email Domain List"
+                    placeholder="mattermost.com"
                     type="text"
                     value=""
                   />

@@ -592,10 +592,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
     renderTwoColumnLayout = () => {
         const fields: Array<React.ReactNode | null> = [];
-        const managedByProviderTitle = {
+        // defineMessage so formatjs extracts this id (plain const objects are dropped).
+        const managedByProviderTitle = defineMessage({
             id: 'admin.userManagement.userDetail.managedByProvider.title',
             defaultMessage: 'Managed by login provider',
-        };
+        });
         const usernamePlaceholder = this.props.intl.formatMessage({
             id: 'admin.userManagement.userDetail.username.input',
             defaultMessage: 'Enter username',

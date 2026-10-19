@@ -22,11 +22,18 @@
 
     &__fields {
         display: flex;
+        flex-wrap: wrap;
         gap: 8px;
 
         .Input_container {
             min-width: 0;
-            flex: 1;
+            flex: 1 1 calc(33.333% - 6px);
+        }
+
+        // Username validation copy is long; give that column the full row so
+        // FieldMessage is not trapped in a one-third-width cell.
+        .Input_container:last-child {
+            flex: 1 1 100%;
         }
     }
 }

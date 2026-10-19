@@ -94,20 +94,32 @@ const AllowedDomainsToggle = ({syncChecked, allAllowedChecked, allowedDomainsChe
                 />
             )}
         >
-            <Input
-                name='allowedDomains'
-                type='text'
-                value={allowedDomains}
-                placeholder={defineMessage({
-                    id: 'admin.team_settings.team_details.csvDomains',
-                    defaultMessage: 'Comma Separated Email Domain List',
-                })}
-                useLegend={false}
-                inputSize={SIZE.SMALL}
-                onChange={(e) => onToggle(syncChecked, allAllowedChecked, allowedDomainsChecked, e.currentTarget.value)}
-                disabled={isDisabled}
-                containerClassName='csvDomains'
-            />
+            <>
+                <div className='help-text csvDomains'>
+                    <FormattedMessage
+                        id='admin.team_settings.team_details.csvDomains'
+                        defaultMessage='Comma Separated Email Domain List'
+                    />
+                </div>
+                <Input
+                    name='allowedDomains'
+                    type='text'
+                    value={allowedDomains}
+
+                    // Visible help-text owns the instruction; placeholder is the example domain.
+                    // label feeds aria-label when useLegend={false} (not a floating legend).
+                    label={defineMessage({
+                        id: 'admin.team_settings.team_details.csvDomains',
+                        defaultMessage: 'Comma Separated Email Domain List',
+                    })}
+                    placeholder='mattermost.com'
+                    useLegend={false}
+                    inputSize={SIZE.SMALL}
+                    onChange={(e) => onToggle(syncChecked, allAllowedChecked, allowedDomainsChecked, e.currentTarget.value)}
+                    disabled={isDisabled}
+                    containerClassName='csvDomains'
+                />
+            </>
         </LineSwitch>));
 
 type PolicyEnforceToggleProps = {

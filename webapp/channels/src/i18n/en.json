@@ -17343,6 +17343,10 @@
     "defaultMessage": "This name is managed by the {authService} login provider and cannot be changed here.",
     "description": "Tooltip hint on the disabled first/last name inputs on the admin user configuration page; {authService} is the SSO provider name in uppercase."
   },
+  "admin.userManagement.userDetail.managedByProvider.title": {
+    "defaultMessage": "Managed by login provider",
+    "description": "Tooltip title shown over disabled profile fields on the admin user configuration page when the account is managed by an SSO login provider."
+  },
   "admin.userManagement.userDetail.managedByProvider.username": {
     "defaultMessage": "This username is managed by the {authService} login provider and cannot be changed here.",
     "description": "Tooltip hint on the disabled username input on the admin user configuration page; {authService} is the SSO provider name in uppercase."

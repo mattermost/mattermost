@@ -117,13 +117,17 @@ input::-webkit-file-upload-button {
 .inputWithMenu {
     cursor: pointer;
 
+    // Compass Input adapter root (.Input) or legacy form-control.
+    .Input,
     input.form-control {
         width: 100px;
         cursor: pointer;
+    }
 
-        &:read-only {
-            background-color: variables.$white;
-        }
+    input.form-control:read-only,
+    .Input input:read-only {
+        background-color: variables.$white;
+        cursor: pointer;
     }
 }
 

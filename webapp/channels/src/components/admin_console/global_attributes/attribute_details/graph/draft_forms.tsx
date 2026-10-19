@@ -7,7 +7,7 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 
-import Input from 'components/widgets/inputs/input/input';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
 import Constants from 'utils/constants';
 
@@ -63,6 +63,7 @@ export const AddTopLevelForm = ({
                 name={isEmptyCanvas ? 'graph_empty_option_name' : 'graph_add_top_option_name'}
                 type='text'
                 useLegend={false}
+                inputSize={isEmptyCanvas ? SIZE.SMALL : SIZE.MEDIUM}
                 label={placeholder}
                 placeholder={placeholder}
                 aria-label={formatMessage(messages.addTopLevel)}
@@ -132,6 +133,7 @@ export function ChildDraftRow({
                 name='graph_child_option_name'
                 type='text'
                 useLegend={false}
+                inputSize={SIZE.SMALL}
                 label={childNamePlaceholder}
                 placeholder={childNamePlaceholder}
                 aria-label={formatMessage(messages.childNameAria, {name: parentName})}

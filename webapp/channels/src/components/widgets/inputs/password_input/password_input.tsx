@@ -99,7 +99,11 @@ const PasswordInput = React.forwardRef((
     // Match legacy Input adapter: id defaults to input_${name} (login/signup Cypress
     // and Playwright target #input_password-input). Reveal toggle stays #password_toggle.
     const resolvedId = id ?? `input_${name}`;
-    const resolvedPlaceholder = placeholder ?? defaultLabel;
+
+    // When a floating label is shown, never fall back to defaultLabel as the
+    // placeholder — that duplicates the label text on focus (e.g. "Password").
+    // Explicit placeholder props are still passed through.
+    const resolvedPlaceholder = useLegend ? placeholder : (placeholder ?? defaultLabel);
 
     return (
         <CompassPasswordInput

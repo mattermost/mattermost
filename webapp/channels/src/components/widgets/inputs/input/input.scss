@@ -6,9 +6,9 @@
 .Input_container {
     width: 100%;
 
-    textarea {
-        resize: none;
-    }
+    // Do not force resize:none here — Compass TextArea defaults to
+    // resize:vertical. Call sites that need a fixed height pass
+    // style={{resize:'none'}} (e.g. TextSetting resizable={false}).
 
     // Used by CategorySelector / DropdownInput react-select shells that still
     // nest under .Input_wrapper inside Input_fieldset (not Compass TextInput).
