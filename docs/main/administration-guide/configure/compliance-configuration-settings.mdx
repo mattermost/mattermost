@@ -171,23 +171,6 @@ Default is 100. Possible values are any non-negative integer (≥ 0).
 </tbody>
 </table>
 
-### Boards retention days
-
-Set how long Mattermost keeps boards data. When set to a value greater than 0, boards data older than the specified number of days will be deleted during retention job execution only when boards deletion is enabled via `EnableBoardsDeletion`.
-
-Default is 365 days. Possible values are any non-negative integer (≥ 0).
-
-<table style={{width: '85%'}}>
-<colgroup>
-<col style={{width: '85%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"BoardsRetentionDays": 365</code> with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
 ### Enable message deletion
 
 **True**: Message deletion is enabled during data retention job execution.
@@ -231,29 +214,6 @@ When `EnableMessageDeletion` is set to `false`, messages will not be deleted reg
 <Note>
 
 When `EnableFileDeletion` is set to `false`, files will not be deleted regardless of other retention policy settings.
-
-</Note>
-
-### Enable boards deletion
-
-**True**: Boards deletion is enabled during data retention job execution.
-
-**False**: Boards data is not deleted during data retention job execution.
-
-<table style={{width: '96%'}}>
-<colgroup>
-<col style={{width: '95%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"EnableBoardsDeletion": false</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-<Note>
-
-When `EnableBoardsDeletion` is set to `false`, boards data will not be deleted regardless of other retention policy settings.
 
 </Note>
 
