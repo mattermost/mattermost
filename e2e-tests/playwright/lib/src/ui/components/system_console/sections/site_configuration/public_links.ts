@@ -15,7 +15,8 @@ export default class PublicLinks {
 
     constructor(container: Locator) {
         this.container = container;
-        this.maskedSalt = container.getByText('********************************');
+        // Compass GeneratedSetting renders the masked salt in an <input value>, not text content.
+        this.maskedSalt = container.getByDisplayValue('********************************');
         this.regenerateButton = container.getByRole('button', {name: 'Regenerate'});
     }
 

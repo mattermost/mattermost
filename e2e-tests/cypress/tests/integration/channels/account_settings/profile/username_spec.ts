@@ -50,7 +50,7 @@ describe('Settings > Sidebar > General > Edit', () => {
         cy.get('#username').click().clear().blur();
 
         // * Check if element is present and contains expected text values
-        cy.get('#error_username').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
+        cy.get('#username-message').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
 
         // # Click "x" button to close Profile modal
         cy.uiClose();
@@ -64,7 +64,7 @@ describe('Settings > Sidebar > General > Edit', () => {
         cy.get('#username').clear().type('te').blur();
 
         // * Check if element is present and contains expected text values
-        cy.get('#error_username').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
+        cy.get('#username-message').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
 
         // # Click "x" button to close Profile modal
         cy.uiClose();
@@ -152,7 +152,7 @@ describe('Settings > Sidebar > General > Edit', () => {
             cy.get('#username').clear().type(prefix).type('{backspace}.').type(otherUser.username).blur();
 
             // * Check if element is present and contains expected text values
-            cy.get('#error_username').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
+            cy.get('#username-message').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
         }
 
         // # Click "x" button to close Profile modal
@@ -175,7 +175,7 @@ describe('Settings > Sidebar > General > Edit', () => {
             cy.get('#username').clear().type(username).blur();
 
             // * Check if element is present and contains expected text values
-            cy.get('#error_username').should('be.visible').should('contain', 'This username is reserved, please choose a new one.');
+            cy.get('#username-message').should('be.visible').should('contain', 'This username is reserved, please choose a new one.');
         }
 
         // # Click "x" button to close Profile modal
