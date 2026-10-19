@@ -787,6 +787,7 @@ const SetHeaderButton = ({channel}: {channel: Channel}) => {
     return (
         <ActionButton
             aria-label={label}
+            aria-haspopup='dialog'
             icon={<Icon glyph={<PencilOutlineIcon/>}/>}
             label={label}
             onClick={handleClick}
@@ -812,6 +813,7 @@ const NotificationPrefsButton = ({channel, currentUser}: {channel: Channel; curr
         <ActionButton
             id='channelIntroNotificationPreferencesButton'
             aria-label={label}
+            aria-haspopup='dialog'
             icon={<Icon glyph={<BellRingOutlineIcon/>}/>}
             label={label}
             onClick={handleClick}

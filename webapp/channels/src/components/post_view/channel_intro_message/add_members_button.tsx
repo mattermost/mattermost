@@ -132,6 +132,7 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
                     <ActionButton
                         onClick={handleAddPeople}
                         aria-label={addLabel}
+                        aria-haspopup='dialog'
                         icon={<Icon glyph={<AccountPlusOutlineIcon/>}/>}
                         label={addLabel}
                     />

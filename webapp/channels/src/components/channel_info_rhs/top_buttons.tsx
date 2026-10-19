@@ -145,9 +145,10 @@ export default function TopButtons({
                 >
                     <ActionButton
                         onClick={actions.addPeople}
-                        active={isInvitingPeople}
                         id='channelInfoRHSAddPeopleButton'
                         aria-label={formatMessage({id: 'channel_info_rhs.top_buttons.add_people', defaultMessage: 'Add People'})}
+                        aria-haspopup='dialog'
+                        aria-expanded={isInvitingPeople}
                         icon={<Icon glyph={<AccountPlusOutlineIcon/>}/>}
                         label={
                             <FormattedMessage
