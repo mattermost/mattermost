@@ -15737,6 +15737,11 @@
     "description": "API error when a post acknowledgement has a malformed user ID for the acknowledging user."
   },
   {
+    "id": "model.app_error.internal_error",
+    "translation": "An internal error occurred.",
+    "description": "Generic fallback returned to API clients when an unexpected internal error (one without a more specific error) reaches the API; shown as the error message, so keep it short and user-facing."
+  },
+  {
     "id": "model.authorize.is_valid.auth_code.app_error",
     "translation": "Invalid authorization code.",
     "description": "API validation error during the OAuth 2.0 authorization flow when the generated authorization code field is malformed; developer/integration-facing."
