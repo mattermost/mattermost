@@ -2,14 +2,32 @@
 
 exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot when an audience url with a wildcard is configured, and typed in value starts with configured audience url 1`] = `
 <div>
-  <input
-    autocomplete="off"
-    class="form-control"
-    id="url"
-    maxlength="1024"
-    placeholder="Test placeholder"
-    value="https://aud.com/api/it_matches"
-  />
+  <div
+    class="Input_container"
+  >
+    <div
+      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+    >
+      <div
+        class="_text-input__wrapper_3inqk_31"
+      >
+        <div
+          class="_text-input__inner_3inqk_80"
+        >
+          <input
+            autocomplete="off"
+            class="_text-input__input_3inqk_42"
+            data-testid="input-wrapper"
+            id="url"
+            maxlength="1024"
+            name="url"
+            placeholder="Test placeholder"
+            value="https://aud.com/api/it_matches"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
   <div
     class="outgoing-oauth-audience-match-message-container"
   >
@@ -31,14 +49,32 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
 
 exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot when typed in value does not have an exact match 1`] = `
 <div>
-  <input
-    autocomplete="off"
-    class="form-control"
-    id="url"
-    maxlength="1024"
-    placeholder="Test placeholder"
-    value="https://aud.com/api/no_match"
-  />
+  <div
+    class="Input_container"
+  >
+    <div
+      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+    >
+      <div
+        class="_text-input__wrapper_3inqk_31"
+      >
+        <div
+          class="_text-input__inner_3inqk_80"
+        >
+          <input
+            autocomplete="off"
+            class="_text-input__input_3inqk_42"
+            data-testid="input-wrapper"
+            id="url"
+            maxlength="1024"
+            name="url"
+            placeholder="Test placeholder"
+            value="https://aud.com/api/no_match"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
   <div
     class="outgoing-oauth-audience-match-message-container"
   >
@@ -60,14 +96,32 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
 
 exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot when typed in value matches a configured audience 1`] = `
 <div>
-  <input
-    autocomplete="off"
-    class="form-control"
-    id="url"
-    maxlength="1024"
-    placeholder="Test placeholder"
-    value="https://aud.com/api"
-  />
+  <div
+    class="Input_container"
+  >
+    <div
+      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+    >
+      <div
+        class="_text-input__wrapper_3inqk_31"
+      >
+        <div
+          class="_text-input__inner_3inqk_80"
+        >
+          <input
+            autocomplete="off"
+            class="_text-input__input_3inqk_42"
+            data-testid="input-wrapper"
+            id="url"
+            maxlength="1024"
+            name="url"
+            placeholder="Test placeholder"
+            value="https://aud.com/api"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
   <div
     class="outgoing-oauth-audience-match-message-container"
   >
@@ -89,14 +143,32 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
 
 exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot with existing connections 1`] = `
 <div>
-  <input
-    autocomplete="off"
-    class="form-control"
-    id="url"
-    maxlength="1024"
-    placeholder="Test placeholder"
-    value=""
-  />
+  <div
+    class="Input_container"
+  >
+    <div
+      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+    >
+      <div
+        class="_text-input__wrapper_3inqk_31"
+      >
+        <div
+          class="_text-input__inner_3inqk_80"
+        >
+          <input
+            autocomplete="off"
+            class="_text-input__input_3inqk_42"
+            data-testid="input-wrapper"
+            id="url"
+            maxlength="1024"
+            name="url"
+            placeholder="Test placeholder"
+            value=""
+          />
+        </div>
+      </div>
+    </div>
+  </div>
   <div
     class="outgoing-oauth-audience-match-message-container"
   >
@@ -125,13 +197,31 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
 
 exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot with no existing connections 1`] = `
 <div>
-  <input
-    autocomplete="off"
-    class="form-control"
-    id="url"
-    maxlength="1024"
-    placeholder="Test placeholder"
-    value=""
-  />
+  <div
+    class="Input_container"
+  >
+    <div
+      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+    >
+      <div
+        class="_text-input__wrapper_3inqk_31"
+      >
+        <div
+          class="_text-input__inner_3inqk_80"
+        >
+          <input
+            autocomplete="off"
+            class="_text-input__input_3inqk_42"
+            data-testid="input-wrapper"
+            id="url"
+            maxlength="1024"
+            name="url"
+            placeholder="Test placeholder"
+            value=""
+          />
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 `;

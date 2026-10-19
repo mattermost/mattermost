@@ -201,13 +201,31 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="name"
-              maxlength="64"
-              type="text"
-              value="testApp"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="name"
+                      maxlength="64"
+                      name="name"
+                      type="text"
+                      value="testApp"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -227,13 +245,31 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="description"
-              maxlength="512"
-              type="text"
-              value="testing"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="description"
+                      maxlength="512"
+                      name="description"
+                      type="text"
+                      value="testing"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -253,13 +289,31 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="homepage"
-              maxlength="256"
-              type="url"
-              value="https://test.com"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="homepage"
+                      maxlength="256"
+                      name="homepage"
+                      type="url"
+                      value="https://test.com"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -279,13 +333,31 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="icon_url"
-              maxlength="512"
-              type="url"
-              value="https://test.com/icon"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="icon_url"
+                      maxlength="512"
+                      name="icon_url"
+                      type="url"
+                      value="https://test.com/icon"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -305,15 +377,29 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <textarea
-              class="form-control"
-              id="callbackUrls"
-              maxlength="1024"
-              rows="3"
+            <div
+              class="Input_container"
             >
-              https://test.com/callback
+              <div
+                class="_text-area_r07x5_2 _text-area--size-medium_r07x5_109 Input"
+              >
+                <div
+                  class="_text-area__wrapper_r07x5_8"
+                >
+                  <textarea
+                    class="_text-area__input_r07x5_15"
+                    data-testid="input-wrapper"
+                    id="callbackUrls"
+                    maxlength="1024"
+                    name="callbackUrls"
+                    rows="3"
+                  >
+                    https://test.com/callback
 https://test.com/callback2
-            </textarea>
+                  </textarea>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -403,12 +489,12 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
             >
               <label
                 class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
-                for="_r_4_"
+                for="_r_9_"
               >
                 <input
                   checked=""
                   class="_radio__input_h0rbb_17"
-                  id="_r_4_"
+                  id="_r_9_"
                   name="is_trusted"
                   type="radio"
                   value="true"
@@ -429,11 +515,11 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
               </label>
               <label
                 class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
-                for="_r_5_"
+                for="_r_a_"
               >
                 <input
                   class="_radio__input_h0rbb_17"
-                  id="_r_5_"
+                  id="_r_a_"
                   name="is_trusted"
                   type="radio"
                   value="false"
@@ -477,12 +563,12 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
             >
               <label
                 class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
-                for="_r_6_"
+                for="_r_b_"
               >
                 <input
                   class="_radio__input_h0rbb_17"
                   disabled=""
-                  id="_r_6_"
+                  id="_r_b_"
                   name="is_public"
                   type="radio"
                   value="true"
@@ -503,13 +589,13 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
               </label>
               <label
                 class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
-                for="_r_7_"
+                for="_r_c_"
               >
                 <input
                   checked=""
                   class="_radio__input_h0rbb_17"
                   disabled=""
-                  id="_r_7_"
+                  id="_r_c_"
                   name="is_public"
                   type="radio"
                   value="false"
@@ -548,13 +634,31 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="name"
-              maxlength="64"
-              type="text"
-              value="testApp"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="name"
+                      maxlength="64"
+                      name="name"
+                      type="text"
+                      value="testApp"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -574,13 +678,31 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="description"
-              maxlength="512"
-              type="text"
-              value="testing"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="description"
+                      maxlength="512"
+                      name="description"
+                      type="text"
+                      value="testing"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -600,13 +722,31 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="homepage"
-              maxlength="256"
-              type="url"
-              value="https://test.com"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="homepage"
+                      maxlength="256"
+                      name="homepage"
+                      type="url"
+                      value="https://test.com"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -626,13 +766,31 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="icon_url"
-              maxlength="512"
-              type="url"
-              value="https://test.com/icon"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="icon_url"
+                      maxlength="512"
+                      name="icon_url"
+                      type="url"
+                      value="https://test.com/icon"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -652,12 +810,26 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
           <div
             class="col-md-5 col-sm-8"
           >
-            <textarea
-              class="form-control"
-              id="callbackUrls"
-              maxlength="1024"
-              rows="3"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-area_r07x5_2 _text-area--size-medium_r07x5_109 Input"
+              >
+                <div
+                  class="_text-area__wrapper_r07x5_8"
+                >
+                  <textarea
+                    class="_text-area__input_r07x5_15"
+                    data-testid="input-wrapper"
+                    id="callbackUrls"
+                    maxlength="1024"
+                    name="callbackUrls"
+                    rows="3"
+                  />
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >

@@ -292,7 +292,8 @@
         }
     }
 
-    .form-control {
+    // Narrowed to selects — text inputs/textareas use Compass via BackstageInput.
+    select.form-control {
         background: variables.$white;
 
         &:focus {

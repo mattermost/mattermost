@@ -16,6 +16,7 @@ import type {Team} from '@mattermost/types/teams';
 import {validateOutgoingOAuthConnection} from 'mattermost-redux/actions/integrations';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import BackstageInput from 'components/backstage/components/backstage_input';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
@@ -272,13 +273,13 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         }
     };
 
-    const updateName = (e: ChangeEvent<HTMLInputElement>) => {
+    const updateName = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormState({
             name: e.target.value,
         });
     };
 
-    const updateClientId = (e: ChangeEvent<HTMLInputElement>) => {
+    const updateClientId = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setUnvalidated();
 
         setFormState({
@@ -286,7 +287,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         });
     };
 
-    const updateClientSecret = (e: ChangeEvent<HTMLInputElement>) => {
+    const updateClientSecret = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setUnvalidated();
 
         setFormState({
@@ -294,7 +295,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         });
     };
 
-    const updateOAuthTokenURL = (e: ChangeEvent<HTMLInputElement>) => {
+    const updateOAuthTokenURL = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setUnvalidated();
 
         setFormState({
@@ -302,7 +303,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         });
     };
 
-    const updateAudienceUrls = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    const updateAudienceUrls = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormState({
             audienceUrls: e.target.value,
         });
@@ -338,10 +339,9 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                         </label>
                         <div className='col-md-5 col-sm-8'>
-                            <input
+                            <BackstageInput
                                 id='name'
                                 type='text'
-                                className='form-control'
                                 value={formState.name}
                                 onChange={updateName}
                             />
@@ -364,11 +364,10 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                         </label>
                         <div className='col-md-5 col-sm-8'>
-                            <input
+                            <BackstageInput
                                 id='client_id'
                                 type='text'
                                 autoComplete='off'
-                                className='form-control'
                                 value={formState.clientId}
                                 onChange={updateClientId}
                             />
@@ -391,11 +390,10 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                         </label>
                         <div className='col-md-5 col-sm-8'>
-                            <input
+                            <BackstageInput
                                 id='client_secret'
                                 type='password'
                                 autoComplete='off'
-                                className='form-control'
                                 value={formState.clientSecret}
                                 onChange={updateClientSecret}
                             />
@@ -418,10 +416,9 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                         </label>
                         <div className='col-md-5 col-sm-8'>
-                            <input
+                            <BackstageInput
                                 id='token_url'
                                 type='text'
-                                className='form-control'
                                 value={formState.oauthTokenUrl}
                                 onChange={updateOAuthTokenURL}
                             />
@@ -451,10 +448,10 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                         </label>
                         <div className='col-md-5 col-sm-8'>
-                            <textarea
+                            <BackstageInput
                                 id='audienceUrls'
+                                type='textarea'
                                 rows={3}
-                                className='form-control'
                                 value={formState.audienceUrls}
                                 onChange={updateAudienceUrls}
                             />

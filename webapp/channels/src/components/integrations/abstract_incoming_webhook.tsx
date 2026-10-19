@@ -12,6 +12,7 @@ import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import BackstageInput from 'components/backstage/components/backstage_input';
 import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
@@ -148,13 +149,13 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
         this.props.action(hook).then(() => this.setState({saving: false}));
     };
 
-    updateDisplayName: ChangeEventHandler<HTMLInputElement> = (e) => {
+    updateDisplayName: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (e) => {
         this.setState({
             displayName: e.target.value,
         });
     };
 
-    updateDescription: ChangeEventHandler<HTMLInputElement> = (e) => {
+    updateDescription: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (e) => {
         this.setState({
             description: e.target.value,
         });
@@ -172,13 +173,13 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
         });
     };
 
-    updateUsername: ChangeEventHandler<HTMLInputElement> = (e) => {
+    updateUsername: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (e) => {
         this.setState({
             username: e.target.value,
         });
     };
 
-    updateIconURL: ChangeEventHandler<HTMLInputElement> = (e) => {
+    updateIconURL: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (e) => {
         this.setState({
             iconURL: e.target.value,
         });
@@ -218,11 +219,10 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='displayName'
                                     type='text'
                                     maxLength={64}
-                                    className='form-control'
                                     value={this.state.displayName}
                                     onChange={this.updateDisplayName}
                                 />
@@ -245,11 +245,10 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='description'
                                     type='text'
                                     maxLength={500}
-                                    className='form-control'
                                     value={this.state.description}
                                     onChange={this.updateDescription}
                                 />
@@ -326,11 +325,10 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                     />
                                 </label>
                                 <div className='col-md-5 col-sm-8'>
-                                    <input
+                                    <BackstageInput
                                         id='username'
                                         type='text'
                                         maxLength={22}
-                                        className='form-control'
                                         value={this.state.username}
                                         onChange={this.updateUsername}
                                     />
@@ -355,11 +353,10 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                     />
                                 </label>
                                 <div className='col-md-5 col-sm-8'>
-                                    <input
+                                    <BackstageInput
                                         id='iconURL'
                                         type='text'
                                         maxLength={1024}
-                                        className='form-control'
                                         value={this.state.iconURL}
                                         onChange={this.updateIconURL}
                                     />

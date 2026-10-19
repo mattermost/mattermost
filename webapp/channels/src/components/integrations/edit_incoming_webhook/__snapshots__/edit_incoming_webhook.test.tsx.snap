@@ -43,13 +43,31 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="displayName"
-              maxlength="64"
-              type="text"
-              value="display_name"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="displayName"
+                      maxlength="64"
+                      name="displayName"
+                      type="text"
+                      value="display_name"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -69,13 +87,31 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="description"
-              maxlength="500"
-              type="text"
-              value="description"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="description"
+                      maxlength="500"
+                      name="description"
+                      type="text"
+                      value="description"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -129,13 +165,31 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="username"
-              maxlength="22"
-              type="text"
-              value="username"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="username"
+                      maxlength="22"
+                      name="username"
+                      type="text"
+                      value="username"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -155,13 +209,31 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="iconURL"
-              maxlength="1024"
-              type="text"
-              value="http://test/icon.png"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="iconURL"
+                      maxlength="1024"
+                      name="iconURL"
+                      type="text"
+                      value="http://test/icon.png"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -246,13 +318,31 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="displayName"
-              maxlength="64"
-              type="text"
-              value="display_name"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="displayName"
+                      maxlength="64"
+                      name="displayName"
+                      type="text"
+                      value="display_name"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -272,13 +362,31 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="description"
-              maxlength="500"
-              type="text"
-              value="description"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="description"
+                      maxlength="500"
+                      name="description"
+                      type="text"
+                      value="description"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -332,13 +440,31 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="username"
-              maxlength="22"
-              type="text"
-              value="username"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="username"
+                      maxlength="22"
+                      name="username"
+                      type="text"
+                      value="username"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -358,13 +484,31 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="iconURL"
-              maxlength="1024"
-              type="text"
-              value="http://test/icon.png"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="iconURL"
+                      maxlength="1024"
+                      name="iconURL"
+                      type="text"
+                      value="http://test/icon.png"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -476,13 +620,31 @@ exports[`components/integrations/EditIncomingWebhook should show AbstractIncomin
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="displayName"
-              maxlength="64"
-              type="text"
-              value="display_name"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="displayName"
+                      maxlength="64"
+                      name="displayName"
+                      type="text"
+                      value="display_name"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -502,13 +664,31 @@ exports[`components/integrations/EditIncomingWebhook should show AbstractIncomin
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="description"
-              maxlength="500"
-              type="text"
-              value="description"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="description"
+                      maxlength="500"
+                      name="description"
+                      type="text"
+                      value="description"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -562,13 +742,31 @@ exports[`components/integrations/EditIncomingWebhook should show AbstractIncomin
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="username"
-              maxlength="22"
-              type="text"
-              value="username"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="username"
+                      maxlength="22"
+                      name="username"
+                      type="text"
+                      value="username"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -588,13 +786,31 @@ exports[`components/integrations/EditIncomingWebhook should show AbstractIncomin
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="iconURL"
-              maxlength="1024"
-              type="text"
-              value="http://test/icon.png"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="iconURL"
+                      maxlength="1024"
+                      name="iconURL"
+                      type="text"
+                      value="http://test/icon.png"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
