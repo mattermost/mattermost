@@ -4,8 +4,10 @@
 package api4
 
 import (
+	"archive/tar"
 	"bytes"
 	"cmp"
+	"compress/gzip"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -2218,4 +2220,40 @@ func TestPluginWebSocketRemoteAddress(t *testing.T) {
 	require.NotNil(t, hooks)
 	_, remoteAddr := hooks.MessageWillBePosted(nil, nil)
 	require.NotEmpty(t, remoteAddr)
+}
+
+func TestUploadReservedPlugin(t *testing.T) {
+	th := Setup(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+	var bundle bytes.Buffer
+	gz := gzip.NewWriter(&bundle)
+	tw := tar.NewWriter(gz)
+	for name, data := range map[string]string{
+		"plugin.json": `{"id":"com.mattermost.server","version":"1.0.0","webapp":{"bundle_path":"main.js"}}`,
+		"main.js":     "// reserved fixture",
+	} {
+		require.NoError(t, tw.WriteHeader(&tar.Header{Name: name, Mode: 0600, Size: int64(len(data))}))
+		_, err := tw.Write([]byte(data))
+		require.NoError(t, err)
+	}
+	require.NoError(t, tw.Close())
+	require.NoError(t, gz.Close())
+	manifest, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(bundle.Bytes()))
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	var appErr *model.AppError
+	require.ErrorAs(t, err, &appErr)
+	require.Equal(t, "app.plugin.reserved_id.app_error", appErr.Id)
+	require.Nil(t, manifest)
+	stored, fileErr := th.App.FileExists("plugins/com.mattermost.server.tar.gz")
+	require.Nil(t, fileErr)
+	require.False(t, stored)
+	bundles, err := th.App.GetPluginsEnvironment().Available()
+	require.NoError(t, err)
+	for _, b := range bundles {
+		require.NotEqual(t, model.CoreServerPluginID, b.Manifest.Id)
+	}
 }

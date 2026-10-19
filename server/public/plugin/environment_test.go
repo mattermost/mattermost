@@ -141,3 +141,63 @@ func TestHasPluginImplementing(t *testing.T) {
 		require.False(t, env.HasPluginImplementing(MessageHasBeenPostedID))
 	})
 }
+
+func TestReservedPluginActivation(t *testing.T) {
+	for _, component := range []string{"server", "webapp"} {
+		t.Run(component, func(t *testing.T) {
+			pluginDir, webappDir := t.TempDir(), t.TempDir()
+			id := "Com.Mattermost.Server"
+			bundleDir := filepath.Join(pluginDir, id)
+			require.NoError(t, os.Mkdir(bundleDir, 0700))
+			manifest := &model.Manifest{Id: id, Version: "1.0.0"}
+			if component == "server" {
+				manifest.Server = &model.ManifestServer{Executable: "backend"}
+			} else {
+				manifest.Webapp = &model.ManifestWebapp{BundlePath: "main.js"}
+				require.NoError(t, os.WriteFile(filepath.Join(bundleDir, "main.js"), []byte("// fixture"), 0600))
+			}
+			data, err := json.Marshal(manifest)
+			require.NoError(t, err)
+			require.NoError(t, os.WriteFile(filepath.Join(bundleDir, "plugin.json"), data, 0600))
+			env, err := NewEnvironment(func(*model.Manifest) API {
+				t.Fatal("reserved plugin must not construct an API")
+				return nil
+			}, nil, pluginDir, webappDir, mlog.CreateConsoleTestLogger(t), nil)
+			require.NoError(t, err)
+			loaded, activated, err := env.Activate(id)
+			require.ErrorContains(t, err, "reserved for the core server")
+			require.Nil(t, loaded)
+			require.False(t, activated)
+			_, registered := env.registeredPlugins.Load(id)
+			require.False(t, registered)
+			entries, err := os.ReadDir(webappDir)
+			require.NoError(t, err)
+			require.Empty(t, entries, "reserved webapp must not be unpacked")
+
+			// A stale running entry must not turn rejection into a successful no-op.
+			rp := newRegisteredPlugin(&model.BundleInfo{Manifest: manifest})
+			rp.State = model.PluginStateRunning
+			env.registeredPlugins.Store(id, rp)
+			_, _, err = env.Activate(id)
+			require.ErrorContains(t, err, "reserved for the core server")
+		})
+	}
+}
+
+func TestReservedPluginReattach(t *testing.T) {
+	manifest := &model.Manifest{Id: model.CoreServerPluginID, Server: &model.ManifestServer{Executable: "backend"}}
+	env := &Environment{newAPIImpl: func(*model.Manifest) API {
+		t.Fatal("reserved plugin must not construct an API")
+		return nil
+	}}
+	require.ErrorContains(t, env.Reattach(manifest, nil), "reserved for the core server")
+	_, registered := env.registeredPlugins.Load(manifest.Id)
+	require.False(t, registered)
+
+	rp := newRegisteredPlugin(&model.BundleInfo{Manifest: manifest})
+	rp.State = model.PluginStateRunning
+	env.registeredPlugins.Store(manifest.Id, rp)
+	require.ErrorContains(t, env.Reattach(manifest, nil), "reserved for the core server")
+	actual, _ := env.registeredPlugins.Load(manifest.Id)
+	require.Equal(t, rp, actual, "reattach must not replace an existing registration")
+}

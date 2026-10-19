@@ -399,7 +399,7 @@ func TestServePluginRequest(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/plugins/testplugin/endpoint", nil)
 		req = mux.SetURLVars(req, map[string]string{"plugin_id": "testplugin"})
 		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+session.Token)
-		req.Header.Set("Mattermost-Plugin-ID", "evil-plugin")
+		req.Header.Set("Mattermost-Plugin-ID", model.CoreServerPluginID)
 		req.Header.Set("Mattermost-User-Id", "evil-user")
 		req.AddCookie(&http.Cookie{Name: "other_cookie", Value: "keep_me"})
 		req.AddCookie(&http.Cookie{Name: "another_cookie", Value: "keep_me_too"})

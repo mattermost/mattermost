@@ -1297,6 +1297,18 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 		*cfg.PluginSettings.EnableUploads = true
 	})
 
+	reservedBundle := makeInMemoryGzipTarFile(t, []testFile{
+		{"plugin.json", `{"id":"com.mattermost.server","version":"1.0.0","webapp":{"bundle_path":"main.js"}}`},
+		{"main.js", "// reserved fixture"},
+	})
+	reservedManifest, appErr := api.InstallPlugin(reservedBundle, true)
+	require.NotNil(t, appErr)
+	require.Equal(t, "app.plugin.reserved_id.app_error", appErr.Id)
+	require.Nil(t, reservedManifest)
+	stored, appErr := th.App.FileExists(getBundleStorePath(model.CoreServerPluginID))
+	require.Nil(t, appErr)
+	require.False(t, stored)
+
 	manifest, appErr := api.InstallPlugin(bytes.NewReader(tarData), true)
 	defer os.RemoveAll("plugins/testplugin")
 	require.Nil(t, appErr)
@@ -2073,6 +2085,8 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 				if r.URL.Path != "/api/v2/test" {
 					return
 				}
+			case "/identity":
+				w.Write([]byte(r.Header.Get("Mattermost-Plugin-ID")))
 			case "/nobody":
 				w.WriteHeader(599)
 			}
@@ -2105,6 +2119,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 				return nil, err.Error()
 			}
 			req.Header.Add("Mattermost-User-Id", "userid")
+			req.Header.Set("Mattermost-Plugin-ID", "com.mattermost.server")
 			resp := p.API.PluginHTTP(req)
 			if resp == nil {
 				return nil, "Nil resp"
@@ -2163,6 +2178,13 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	require.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "ok", ret)
+
+	req := httptest.NewRequest(http.MethodGet, "/identity", nil)
+	req.Header.Set("Mattermost-Plugin-ID", "forged-plugin")
+	response := httptest.NewRecorder()
+	th.App.ServeInternalPluginRequest("", response, req, "", "testplugininterserver")
+	require.Equal(t, http.StatusOK, response.Code)
+	require.Equal(t, model.CoreServerPluginID, response.Body.String())
 }
 
 func TestInterpluginPluginHTTPContext(t *testing.T) {

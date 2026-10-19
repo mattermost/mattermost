@@ -10626,6 +10626,11 @@
     "description": "Admin console error when deleting a plugin's bundle file from the file store fails."
   },
   {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Plugin ID {{.ID}} is reserved for the core server and cannot be installed or loaded.",
+    "description": "Returned when installing or reattaching a plugin that uses the core server caller identity."
+  },
+  {
     "id": "app.plugin.restart.app_error",
     "translation": "Unable to restart plugin on upgrade.",
     "description": "Admin console error when restarting a plugin after upgrading it fails."
