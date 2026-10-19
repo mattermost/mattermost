@@ -6,7 +6,7 @@
 import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, KeyboardEvent, MouseEvent} from 'react';
-import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
+import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl, useIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
@@ -596,26 +596,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             id: 'admin.userManagement.userDetail.managedByProvider.title',
             defaultMessage: 'Managed by login provider',
         };
-        const usernameLabel = defineMessage({
-            id: 'admin.userManagement.userDetail.username',
-            defaultMessage: 'Username',
-        });
-        const emailLabel = defineMessage({
-            id: 'admin.userManagement.userDetail.email',
-            defaultMessage: 'Email',
-        });
-        const firstNameLabel = defineMessage({
-            id: 'admin.userManagement.userDetail.firstName',
-            defaultMessage: 'First Name',
-        });
-        const lastNameLabel = defineMessage({
-            id: 'admin.userManagement.userDetail.lastName',
-            defaultMessage: 'Last Name',
-        });
-        const authDataLabel = defineMessage({
-            id: 'admin.userManagement.userDetail.authData',
-            defaultMessage: 'Auth Data',
-        });
         const usernamePlaceholder = this.props.intl.formatMessage({
             id: 'admin.userManagement.userDetail.username.input',
             defaultMessage: 'Enter username',
@@ -652,12 +632,21 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             ) : null
         );
 
+        // Compass chrome without floating legends — external <label> text owns the name
+        // (same pattern as System Console TextSetting: useLegend={false}, aria-label cleared).
+        const compassFieldProps = {
+            useLegend: false as const,
+            'aria-label': undefined,
+            containerClassName: 'SystemUserDetail__compassField',
+        };
+
         // Add system fields
         fields.push(
-            <div
-                key='username'
-                className='SystemUserDetail__field'
-            >
+            <label key='username'>
+                <FormattedMessage
+                    id='admin.userManagement.userDetail.username'
+                    defaultMessage='Username'
+                />
                 {isManagedByProvider ? (
                     <WithTooltip
                         title={this.props.intl.formatMessage(managedByProviderTitle)}
@@ -670,12 +659,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             name='username'
                             type='text'
                             value={this.state.usernameField}
-                            label={usernameLabel}
                             placeholder={usernamePlaceholder}
                             disabled={true}
                             readOnly={true}
                             inputPrefix={atLeadingIcon}
-                            containerClassName='SystemUserDetail__compassField'
+                            {...compassFieldProps}
                         />
                     </WithTooltip>
                 ) : (
@@ -684,27 +672,27 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             name='username'
                             type='text'
                             value={this.state.usernameField}
-                            label={usernameLabel}
                             placeholder={usernamePlaceholder}
                             onChange={this.handleUsernameChange}
                             disabled={this.state.isSaving}
                             hasError={Boolean(this.state.usernameError)}
                             inputPrefix={atLeadingIcon}
-                            containerClassName='SystemUserDetail__compassField'
                             aria-describedby={this.state.usernameError ? 'username-error' : undefined}
                             aria-invalid={this.state.usernameError ? 'true' : 'false'}
+                            {...compassFieldProps}
                         />
                         {fieldError('username-error', this.state.usernameError)}
                     </>
                 )}
-            </div>,
+            </label>,
         );
 
         fields.push(
-            <div
-                key='email'
-                className='SystemUserDetail__field'
-            >
+            <label key='email'>
+                <FormattedMessage
+                    id='admin.userManagement.userDetail.email'
+                    defaultMessage='Email'
+                />
                 {isManagedByProvider ? (
                     <WithTooltip
                         title={this.props.intl.formatMessage(managedByProviderTitle)}
@@ -717,11 +705,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             name='email'
                             type='text'
                             value={this.state.emailField}
-                            label={emailLabel}
                             disabled={true}
                             readOnly={true}
                             inputPrefix={emailLeadingIcon}
-                            containerClassName='SystemUserDetail__compassField'
+                            {...compassFieldProps}
                         />
                     </WithTooltip>
                 ) : (
@@ -730,33 +717,30 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             name='email'
                             type='text'
                             value={this.state.emailField}
-                            label={emailLabel}
                             onChange={this.handleEmailChange}
                             disabled={this.state.isSaving}
                             hasError={Boolean(this.state.emailError)}
                             inputPrefix={emailLeadingIcon}
-                            containerClassName='SystemUserDetail__compassField'
                             aria-describedby={this.state.emailError ? 'email-error' : undefined}
                             aria-invalid={this.state.emailError ? 'true' : 'false'}
+                            {...compassFieldProps}
                         />
                         {fieldError('email-error', this.state.emailError)}
                     </>
                 )}
-            </div>,
+            </label>,
         );
 
         const nameField = (
             fieldKey: 'firstNameField' | 'lastNameField',
             name: string,
-            label: MessageDescriptor,
+            label: React.ReactNode,
             onChange: (event: ChangeEvent<HTMLInputElement>) => void,
             placeholder: string,
             maxLength: number,
         ) => (
-            <div
-                key={fieldKey}
-                className='SystemUserDetail__field'
-            >
+            <label key={fieldKey}>
+                {label}
                 {isManagedByProvider ? (
                     <WithTooltip
                         title={this.props.intl.formatMessage(managedByProviderTitle)}
@@ -769,11 +753,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             name={name}
                             type='text'
                             value={this.state[fieldKey]}
-                            label={label}
                             placeholder={placeholder}
                             disabled={true}
                             readOnly={true}
-                            containerClassName='SystemUserDetail__compassField'
+                            {...compassFieldProps}
                         />
                     </WithTooltip>
                 ) : (
@@ -781,21 +764,23 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         name={name}
                         type='text'
                         value={this.state[fieldKey]}
-                        label={label}
                         placeholder={placeholder}
                         onChange={onChange}
                         disabled={this.state.isSaving}
                         maxLength={maxLength}
-                        containerClassName='SystemUserDetail__compassField'
+                        {...compassFieldProps}
                     />
                 )}
-            </div>
+            </label>
         );
 
         fields.push(nameField(
             'firstNameField',
             'firstName',
-            firstNameLabel,
+            <FormattedMessage
+                id='admin.userManagement.userDetail.firstName'
+                defaultMessage='First Name'
+            />,
             this.handleFirstNameChange,
             firstNamePlaceholder,
             Constants.MAX_FIRSTNAME_LENGTH,
@@ -804,7 +789,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         fields.push(nameField(
             'lastNameField',
             'lastName',
-            lastNameLabel,
+            <FormattedMessage
+                id='admin.userManagement.userDetail.lastName'
+                defaultMessage='Last Name'
+            />,
             this.handleLastNameChange,
             lastNamePlaceholder,
             Constants.MAX_LASTNAME_LENGTH,
@@ -812,45 +800,40 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         // Authentication Method stays display-only (not a Compass text field).
         fields.push(
-            <div
-                key='authMethod'
-                className='SystemUserDetail__field SystemUserDetail__authMethod'
-            >
-                <span className='SystemUserDetail__fieldLabel'>
-                    <FormattedMessage
-                        id='admin.userManagement.userDetail.authenticationMethod'
-                        defaultMessage='Authentication Method'
-                    />
-                </span>
+            <label key='authMethod'>
+                <FormattedMessage
+                    id='admin.userManagement.userDetail.authenticationMethod'
+                    defaultMessage='Authentication Method'
+                />
                 <span className='SystemUserDetail__authMethodValue'>
                     <Icon glyph={<ShieldOutlineIcon/>}/>
                     <span data-testid='authenticationMethodValue'>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
                 </span>
-            </div>,
+            </label>,
         );
 
         if (isManagedByProvider) {
             fields.push(
-                <div
-                    key='authData'
-                    className='SystemUserDetail__field'
-                >
+                <label key='authData'>
+                    <FormattedMessage
+                        id='admin.userManagement.userDetail.authData'
+                        defaultMessage='Auth Data'
+                    />
                     <Input
                         name='authData'
                         type='text'
                         value={this.state.authDataField}
-                        label={authDataLabel}
                         placeholder={authDataPlaceholder}
                         onChange={this.handleAuthDataChange}
                         disabled={this.state.isSaving}
                         hasError={Boolean(this.state.authDataError)}
                         inputPrefix={shieldLeadingIcon}
-                        containerClassName='SystemUserDetail__compassField'
                         aria-describedby={this.state.authDataError ? 'authdata-error' : undefined}
                         aria-invalid={this.state.authDataError ? 'true' : 'false'}
+                        {...compassFieldProps}
                     />
                     {fieldError('authdata-error', this.state.authDataError)}
-                </div>,
+                </label>,
             );
         }
 

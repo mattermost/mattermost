@@ -29,20 +29,8 @@
             }
         }
 
-        .SystemUserDetail__field {
-            display: block;
-            margin-top: 12px;
-        }
-
         .SystemUserDetail__compassField {
             max-width: 320px;
-        }
-
-        .SystemUserDetail__fieldLabel {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 12px;
-            font-weight: bold;
         }
 
         .SystemUserDetail__authMethodValue {
@@ -51,7 +39,6 @@
             gap: 8px;
         }
 
-        // Selects and non-Compass CPA email/url inputs still use external labels.
         label {
             display: block;
             font-weight: unset;
@@ -62,10 +49,6 @@
                 margin-bottom: 6px;
                 font-size: 12px;
                 font-weight: bold;
-            }
-
-            > span:nth-child(2) {
-                vertical-align: middle;
             }
 
             input, select {

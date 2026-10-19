@@ -122,24 +122,17 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Username
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
                       <div
-                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 _text-input--has-leading-icon_3inqk_209 Input"
+                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--has-leading-icon_3inqk_209 Input"
                       >
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_username"
-                          >
-                            Username
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -182,15 +175,14 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Email
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -200,12 +192,6 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_email"
-                          >
-                            Email
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -247,7 +233,7 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -258,9 +244,8 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    First Name
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -270,12 +255,6 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_firstName"
-                          >
-                            First Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -293,15 +272,14 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Last Name
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -311,12 +289,6 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_lastName"
-                          >
-                            Last Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -334,7 +306,7 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -345,14 +317,8 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field SystemUserDetail__authMethod"
-                  >
-                    <span
-                      class="SystemUserDetail__fieldLabel"
-                    >
-                      Authentication Method
-                    </span>
+                  <label>
+                    Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
                     >
@@ -383,7 +349,7 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                         Email
                       </span>
                     </span>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
@@ -607,24 +573,17 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Username
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
                       <div
-                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 _text-input--has-leading-icon_3inqk_209 Input"
+                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--has-leading-icon_3inqk_209 Input"
                       >
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_username"
-                          >
-                            Username
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -667,15 +626,14 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Email
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -685,12 +643,6 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_email"
-                          >
-                            Email
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -732,7 +684,7 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -743,9 +695,8 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    First Name
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -755,12 +706,6 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_firstName"
-                          >
-                            First Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -778,15 +723,14 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Last Name
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -796,12 +740,6 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_lastName"
-                          >
-                            Last Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -819,7 +757,7 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -830,14 +768,8 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field SystemUserDetail__authMethod"
-                  >
-                    <span
-                      class="SystemUserDetail__fieldLabel"
-                    >
-                      Authentication Method
-                    </span>
+                  <label>
+                    Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
                     >
@@ -868,7 +800,7 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                         Email
                       </span>
                     </span>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
@@ -1092,24 +1024,17 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Username
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
                       <div
-                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 _text-input--has-leading-icon_3inqk_209 Input"
+                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--has-leading-icon_3inqk_209 Input"
                       >
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_username"
-                          >
-                            Username
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -1152,15 +1077,14 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Email
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -1170,12 +1094,6 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_email"
-                          >
-                            Email
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -1217,7 +1135,7 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -1228,9 +1146,8 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    First Name
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -1240,12 +1157,6 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_firstName"
-                          >
-                            First Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -1263,15 +1174,14 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Last Name
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -1281,12 +1191,6 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_lastName"
-                          >
-                            Last Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -1304,7 +1208,7 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -1315,14 +1219,8 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field SystemUserDetail__authMethod"
-                  >
-                    <span
-                      class="SystemUserDetail__fieldLabel"
-                    >
-                      Authentication Method
-                    </span>
+                  <label>
+                    Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
                     >
@@ -1353,7 +1251,7 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                         Email
                       </span>
                     </span>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
@@ -1577,24 +1475,17 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Username
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
                       <div
-                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 _text-input--has-leading-icon_3inqk_209 Input"
+                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--has-leading-icon_3inqk_209 Input"
                       >
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_username"
-                          >
-                            Username
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -1637,15 +1528,14 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Email
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -1655,12 +1545,6 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_email"
-                          >
-                            Email
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -1702,7 +1586,7 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -1713,9 +1597,8 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    First Name
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -1725,12 +1608,6 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_firstName"
-                          >
-                            First Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -1748,15 +1625,14 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Last Name
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -1766,12 +1642,6 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_lastName"
-                          >
-                            Last Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -1789,7 +1659,7 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -1800,14 +1670,8 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field SystemUserDetail__authMethod"
-                  >
-                    <span
-                      class="SystemUserDetail__fieldLabel"
-                    >
-                      Authentication Method
-                    </span>
+                  <label>
+                    Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
                     >
@@ -1838,7 +1702,7 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                         Email
                       </span>
                     </span>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
@@ -2062,24 +1926,17 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Username
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
                       <div
-                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 _text-input--has-leading-icon_3inqk_209 Input"
+                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--has-leading-icon_3inqk_209 Input"
                       >
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_username"
-                          >
-                            Username
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -2122,15 +1979,14 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Email
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -2140,12 +1996,6 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_email"
-                          >
-                            Email
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -2187,7 +2037,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -2198,9 +2048,8 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    First Name
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -2210,12 +2059,6 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_firstName"
-                          >
-                            First Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -2233,15 +2076,14 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Last Name
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -2251,12 +2093,6 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_lastName"
-                          >
-                            Last Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -2274,7 +2110,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -2285,14 +2121,8 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field SystemUserDetail__authMethod"
-                  >
-                    <span
-                      class="SystemUserDetail__fieldLabel"
-                    >
-                      Authentication Method
-                    </span>
+                  <label>
+                    Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
                     >
@@ -2323,7 +2153,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                         Email
                       </span>
                     </span>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
@@ -2553,24 +2383,17 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Username
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
                       <div
-                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 _text-input--has-leading-icon_3inqk_209 Input"
+                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--has-leading-icon_3inqk_209 Input"
                       >
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_username"
-                          >
-                            Username
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -2613,15 +2436,14 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Email
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -2631,12 +2453,6 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_email"
-                          >
-                            Email
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -2678,7 +2494,7 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -2689,9 +2505,8 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    First Name
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -2701,12 +2516,6 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_firstName"
-                          >
-                            First Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -2724,15 +2533,14 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Last Name
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -2742,12 +2550,6 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_lastName"
-                          >
-                            Last Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -2765,7 +2567,7 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -2776,14 +2578,8 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field SystemUserDetail__authMethod"
-                  >
-                    <span
-                      class="SystemUserDetail__fieldLabel"
-                    >
-                      Authentication Method
-                    </span>
+                  <label>
+                    Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
                     >
@@ -2814,7 +2610,7 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                         Email
                       </span>
                     </span>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
@@ -3038,24 +2834,17 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Username
                     <div
                       class="Input_container SystemUserDetail__compassField disabled"
                     >
                       <div
-                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 _text-input--has-leading-icon_3inqk_209 Input"
+                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--has-leading-icon_3inqk_209 Input"
                       >
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_username"
-                          >
-                            Username
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -3099,15 +2888,14 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Email
                     <div
                       class="Input_container SystemUserDetail__compassField disabled"
                     >
@@ -3117,12 +2905,6 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_email"
-                          >
-                            Email
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -3165,7 +2947,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -3176,9 +2958,8 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    First Name
                     <div
                       class="Input_container SystemUserDetail__compassField disabled"
                     >
@@ -3188,12 +2969,6 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_firstName"
-                          >
-                            First Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -3212,15 +2987,14 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Last Name
                     <div
                       class="Input_container SystemUserDetail__compassField disabled"
                     >
@@ -3230,12 +3004,6 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_lastName"
-                          >
-                            Last Name
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -3254,7 +3022,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
               <div
@@ -3265,14 +3033,8 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                   class="field-column left"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field SystemUserDetail__authMethod"
-                  >
-                    <span
-                      class="SystemUserDetail__fieldLabel"
-                    >
-                      Authentication Method
-                    </span>
+                  <label>
+                    Authentication Method
                     <span
                       class="SystemUserDetail__authMethodValue"
                     >
@@ -3303,15 +3065,14 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                         LDAP
                       </span>
                     </span>
-                  </div>
+                  </label>
                 </div>
                 <div
                   class="field-column right"
                   data-testid="fieldColumn"
                 >
-                  <div
-                    class="SystemUserDetail__field"
-                  >
+                  <label>
+                    Auth Data
                     <div
                       class="Input_container SystemUserDetail__compassField"
                     >
@@ -3321,12 +3082,6 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                         <div
                           class="_text-input__wrapper_3inqk_31"
                         >
-                          <label
-                            class="_text-input__label_3inqk_53"
-                            for="input_authData"
-                          >
-                            Auth Data
-                          </label>
                           <div
                             class="_text-input__inner_3inqk_80"
                           >
@@ -3369,7 +3124,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 </div>
               </div>
             </div>

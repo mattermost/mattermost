@@ -342,9 +342,10 @@ export default function UserAttributeField({
                     name={field.id}
                     type='text'
                     value={textValue}
-                    label={fieldLabel}
                     disabled={true}
                     readOnly={true}
+                    useLegend={false}
+                    aria-label={undefined}
                     containerClassName='UserAttributeField__compassField'
                 />
             );
@@ -448,10 +449,11 @@ export default function UserAttributeField({
                         name={field.id}
                         type={inputType || 'text'}
                         value={textValue}
-                        label={fieldLabel}
                         onChange={(e) => onChange(field.id, e.target.value)}
                         disabled={isDisabled}
                         hasError={Boolean(error)}
+                        useLegend={false}
+                        aria-label={undefined}
                         containerClassName='UserAttributeField__compassField'
                         aria-describedby={describedErrorId}
                         aria-invalid={error ? 'true' : 'false'}
@@ -484,17 +486,6 @@ export default function UserAttributeField({
         />
     );
 
-    // Compass text/tel fields own their floating label; omit the external name.
-    const usesCompassTextInput = (() => {
-        if (omitLocksField && valueRefersToOptions(field)) {
-            return true;
-        }
-        if (field.type === 'text' || field.type === undefined) {
-            return COMPASS_TEXT_INPUT_TYPES.has(getInputTypeFromValueType(field.attrs?.value_type));
-        }
-        return false;
-    })();
-
     const fieldBody = (
         <>
             {field.type === 'graph' ? (
@@ -509,14 +500,6 @@ export default function UserAttributeField({
                 >
                     {fieldName}
                 </label>
-            ) : usesCompassTextInput ? (
-
-                // Keep a first-row spacer so UserAttributeField__trailing
-                // (grid-row: 2) still lines up with the control.
-                <span
-                    className='UserAttributeField__labelSpacer'
-                    aria-hidden={true}
-                />
             ) : fieldName}
             {fieldContent}
             {error && (
@@ -544,8 +527,7 @@ export default function UserAttributeField({
     // Wrapping that in <label> forwards chip clicks to the trigger, so the X
     // opens the menu instead of removing the value. Point the name at the
     // trigger instead (with a click forwarder — divs are not labelable).
-    // Compass text fields also use a div root so the floating label is not nested.
-    const root = (field.type === 'graph' || usesCompassTextInput) ? (
+    const root = field.type === 'graph' ? (
         <div
             className='UserAttributeField cpa-field'
             data-testid={testId}
