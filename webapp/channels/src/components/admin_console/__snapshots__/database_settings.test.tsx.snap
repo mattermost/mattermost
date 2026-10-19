@@ -39,7 +39,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
               class="col-sm-8"
             >
               <div
-                class="Input_container"
+                class="Input_container disabled"
               >
                 <div
                   class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
@@ -53,9 +53,9 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                       <input
                         class="_text-input__input_3inqk_42"
                         data-testid="input-wrapper"
+                        disabled=""
                         id="DriverName"
                         name="DriverName"
-                        readonly=""
                         type="text"
                       />
                     </div>
@@ -82,7 +82,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
               class="col-sm-8"
             >
               <div
-                class="Input_container"
+                class="Input_container disabled"
               >
                 <div
                   class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
@@ -96,9 +96,9 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                       <input
                         class="_text-input__input_3inqk_42"
                         data-testid="input-wrapper"
+                        disabled=""
                         id="DataSource"
                         name="DataSource"
-                        readonly=""
                         type="text"
                         value="**********@localhost/mattermost_test?sslmode=disable&connect_timeout=10"
                       />
@@ -706,7 +706,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
               class="col-sm-8"
             >
               <div
-                class="Input_container"
+                class="Input_container disabled"
               >
                 <div
                   class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
@@ -720,9 +720,9 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                       <input
                         class="_text-input__input_3inqk_42"
                         data-testid="input-wrapper"
+                        disabled=""
                         id="activeSearchBackend"
                         name="activeSearchBackend"
-                        readonly=""
                         type="text"
                         value=""
                       />

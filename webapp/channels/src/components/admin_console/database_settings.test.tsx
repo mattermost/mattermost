@@ -94,4 +94,30 @@ describe('components/DatabaseSettings', () => {
 
         expect(container.querySelectorAll('.Input_container').length).toBeGreaterThanOrEqual(numberIds.length);
     });
+
+    test('renders Driver Name, Data Source, and Active Search Backend as disabled Compass inputs', () => {
+        renderWithContext(
+            <DatabaseSettings
+                {...baseProps}
+                value={[]}
+                config={config}
+                isDisabled={false}
+            />,
+        );
+
+        const displayIds = ['DriverName', 'DataSource', 'activeSearchBackend'];
+
+        for (const id of displayIds) {
+            const input = document.getElementById(id) as HTMLInputElement;
+            expect(input).toBeInTheDocument();
+            expect(input).toBeDisabled();
+            expect(input).not.toHaveAttribute('readonly');
+            expect(input).not.toHaveClass('form-control');
+
+            const fieldRoot = input.closest('.Input_container');
+            expect(fieldRoot).toBeInTheDocument();
+            expect(fieldRoot).toHaveClass('disabled');
+            expect(fieldRoot!.querySelector('legend')).not.toBeInTheDocument();
+        }
+    });
 });

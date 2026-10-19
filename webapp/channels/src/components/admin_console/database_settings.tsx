@@ -222,7 +222,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                             name='DriverName'
                             type='text'
                             value={this.state.driverName}
-                            readOnly={true}
+                            disabled={true}
                             useLegend={false}
 
                             // Left-column label owns the accessible name.
@@ -246,7 +246,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                             name='DataSource'
                             type='text'
                             value={dataSource}
-                            readOnly={true}
+                            disabled={true}
                             useLegend={false}
 
                             // Left-column label owns the accessible name.
@@ -436,7 +436,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                             name='activeSearchBackend'
                             type='text'
                             value={this.state.searchBackend}
-                            readOnly={true}
+                            disabled={true}
                             useLegend={false}
 
                             // Left-column label owns the accessible name.
