@@ -134,8 +134,11 @@ for (const name of localeNames) {
     // A duplicate key also lands here: JSON.parse keeps only the last one.
     const canonical = JSON.stringify(Object.fromEntries(Object.keys(data).sort().map((k) => [k, data[k]])), null, 2) + '\n';
     if (text !== canonical) {
-        const at = [...text].findIndex((c, i) => c !== canonical[i]);
-        const line = text.slice(0, at === -1 ? text.length : at).split('\n').length;
+        let at = 0;
+        while (at < text.length && text[at] === canonical[at]) {
+            at++;
+        }
+        const line = text.slice(0, at).split('\n').length;
         errors.push(`${name}: not in canonical form from line ${line}: keys in code-point order, a 2-space indent and a trailing newline`);
     }
 

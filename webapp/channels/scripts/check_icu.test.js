@@ -98,6 +98,12 @@ describe('check_icu', () => {
             expect(stderr).toContain('fr.json: not in canonical form');
         });
 
+        test('names the first line out of form, past characters outside the BMP', () => {
+            const {stderr} = check({'a.b': 'Hi 😀', 'a.c': 'Bye'}, {'fr.json': '{\n  "a.b": "Salut 😀",\n   "a.c": "Ciao"\n}\n'});
+
+            expect(stderr).toContain('fr.json: not in canonical form from line 3');
+        });
+
         test('accepts a clean catalog', () => {
             const {code, stdout} = check(
                 {'a.b': 'Hello {name}'},
