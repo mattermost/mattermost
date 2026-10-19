@@ -44,7 +44,11 @@ const CallOptionsMenu = ({
     transformOrigin,
 }: Props) => {
     const {formatMessage} = useIntl();
-    const ariaLabel = formatMessage({id: 'call_options.aria_label', defaultMessage: 'Call options'});
+    const ariaLabel = formatMessage({
+        id: 'call_options.aria_label',
+        defaultMessage: 'Call options',
+        description: 'Accessible label for the call button, and the menu it opens, offering ways to call a user from a DM channel header or their profile popover.',
+    });
 
     return (
         <Menu.Container
@@ -71,12 +75,14 @@ const CallOptionsMenu = ({
                             <FormattedMessage
                                 id='call_options.audio'
                                 defaultMessage='Start an Audio Call'
+                                description='Call options menu item that starts a voice call through the Mattermost Calls plugin.'
                             />
                         </span>
                         <span>
                             <FormattedMessage
                                 id='call_options.audio_sub'
                                 defaultMessage='Mattermost Call'
+                                description='Secondary line under the call options menu item that starts an audio call, naming it as a call made within Mattermost rather than a phone call.'
                             />
                         </span>
                     </>
@@ -94,6 +100,7 @@ const CallOptionsMenu = ({
                                 <FormattedMessage
                                     id='call_options.phone'
                                     defaultMessage='Call {label}'
+                                    description='Call options menu item that phones the user on one of their numbers; {label} is the name of the profile attribute holding the number, such as "Mobile" or "Work phone".'
                                     values={{label: phone.label}}
                                 />
                             </span>
@@ -101,6 +108,7 @@ const CallOptionsMenu = ({
                                 <FormattedMessage
                                     id='call_options.phone_sub'
                                     defaultMessage='{number} • Phone call'
+                                    description='Secondary line under a call options menu item that phones the user; {number} is the phone number that will be dialed.'
                                     values={{number: phone.number}}
                                 />
                             </span>

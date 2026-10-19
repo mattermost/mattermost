@@ -16,10 +16,14 @@ import AlertBanner from 'components/alert_banner';
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
 
+import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import Bot, {matchesFilter} from './bot';
+import type {BotCreateWarnings} from './bot_create_warnings';
+import {parseBotCreateWarnings, stripBotCreateWarningsParam} from './bot_create_warnings';
+import BotCreateWarningsBanner from './bot_create_warnings_banner';
 
 // The server clamps per_page to PerPageMaximum (200), so bots must be fetched
 // in pages of that size and accumulated rather than in a single large request.
@@ -107,6 +111,11 @@ type Props = {
     *  Only used for routing since backstage is team based.
     */
     team: Team;
+
+    /**
+     * From react-router. `search` may carry create warnings from the Add Bot page.
+     */
+    location?: {pathname: string; search: string};
 };
 
 // Distinguishes a clean load from a total failure (no bots fetched) and a
@@ -116,6 +125,7 @@ type LoadError = 'none' | 'full' | 'partial';
 type State = {
     loading: boolean;
     loadError: LoadError;
+    createWarnings?: BotCreateWarnings;
 };
 
 export default class Bots extends React.PureComponent<Props, State> {
@@ -125,6 +135,7 @@ export default class Bots extends React.PureComponent<Props, State> {
         this.state = {
             loading: true,
             loadError: 'none',
+            createWarnings: props.location ? parseBotCreateWarnings(props.location.search) : undefined,
         };
     }
 
@@ -133,6 +144,12 @@ export default class Bots extends React.PureComponent<Props, State> {
 
         if (this.props.appsEnabled) {
             this.props.actions.fetchAppsBotIDs();
+        }
+
+        const {location} = this.props;
+        const search = location ? stripBotCreateWarningsParam(location.search) : undefined;
+        if (location && search !== undefined) {
+            getHistory().replace(location.pathname + search);
         }
     }
 
@@ -210,6 +227,22 @@ export default class Bots extends React.PureComponent<Props, State> {
                     />
                 }
             />
+        );
+    }
+
+    private dismissCreateWarnings = (): void => {
+        this.setState({createWarnings: undefined});
+    };
+
+    private renderBanners(): JSX.Element {
+        return (
+            <>
+                <BotCreateWarningsBanner
+                    warnings={this.state.createWarnings}
+                    onDismiss={this.dismissCreateWarnings}
+                />
+                {this.renderLoadError()}
+            </>
         );
     }
 
@@ -346,7 +379,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                 }
                 searchPlaceholder={Utils.localizeMessage({id: 'bots.manage.search', defaultMessage: 'Search Bot Accounts'})}
                 loading={this.state.loading}
-                error={this.renderLoadError()}
+                error={this.renderBanners()}
             >
                 {this.bots}
             </BackstageList>
