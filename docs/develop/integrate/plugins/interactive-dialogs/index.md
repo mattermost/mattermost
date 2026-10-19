@@ -28,7 +28,7 @@ Interactive dialogs support the following parameters:
 
 | Parameter           | Type    | Description                                                                                                                                                                        |
 |---------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `title`             | String  | Title of the dialog. Maximum 80 characters (24 characters prior to Mattermost v12.0).                                                                                                                                        |
+| `title`             | String  | Title of the dialog. Maximum 24 characters.                                                                                                                                   |
 | `introduction_text` | String  | Markdown-formatted introduction text which is displayed above the dialog `elements`.                                                                                               |
 | `elements`          | Array   | See below for more details on elements. If none are supplied the dialog box acts as a simple confirmation.                                    |
 | `url`               | String  | The URL to send the submitted dialog payload to.                                                                                                                                   |
