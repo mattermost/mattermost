@@ -91,13 +91,17 @@ function getBaseState(): DeepPartial<GlobalState> {
     };
 }
 
+function mockLocalHour(hour: number) {
+    const fakeLocal = DateTime.local(2025, 1, 1, hour, {zone: 'Asia/Kolkata'});
+    if (!fakeLocal.isValid) {
+        throw new Error('expected a valid DateTime');
+    }
+    jest.spyOn(DateTime, 'local').mockReturnValue(fakeLocal);
+}
+
 describe('useTimePostBoxIndicator', () => {
     it('should pass base case', () => {
-        const fakeLocal = DateTime.local(2025, 1, 1, 3, {
-            zone: 'Asia/Kolkata',
-        });
-
-        DateTime.local = jest.fn(() => fakeLocal);
+        mockLocalHour(3);
 
         const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('dm_channel_id'), getBaseState());
 
@@ -112,11 +116,7 @@ describe('useTimePostBoxIndicator', () => {
     });
 
     it('should work for DM with bots', () => {
-        const fakeLocal = DateTime.local(2025, 1, 1, 3, {
-            zone: 'Asia/Kolkata',
-        });
-
-        DateTime.local = jest.fn(() => fakeLocal);
+        mockLocalHour(3);
         const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('bot_dm_channel_id'), getBaseState());
 
         expect(current.isDM).toBe(true);
@@ -131,11 +131,7 @@ describe('useTimePostBoxIndicator', () => {
     });
 
     it('should handle teammate not loaded', () => {
-        const fakeLocal = DateTime.local(2025, 1, 1, 1, {
-            zone: 'Asia/Kolkata',
-        });
-
-        DateTime.local = jest.fn(() => fakeLocal);
+        mockLocalHour(1);
 
         const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('unknown_dm_channel_id'), getBaseState());
 

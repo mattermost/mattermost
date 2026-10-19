@@ -64,7 +64,7 @@
     "@swc/core": "^1.16.18",
     "@swc/jest": "^0.2.36",
     "@testing-library/dom": "^10.4.2",
-    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "@types/jest": "^30.0.0",
