@@ -32,6 +32,7 @@ export class TestBrowser {
         // Sign in a user in new browser context
         const context = await this.browser.newContext(options);
         await routeInternalBaseUrlToHost(context);
+        await routeUnprefixedApiToSubpath(context);
         const page = await context.newPage();
         patchGotoToUseBaseUrl(page);
 
@@ -62,6 +63,7 @@ export class TestBrowser {
     async newPage(options: Parameters<Browser['newContext']>[0] = {}) {
         const context = await this.browser.newContext(options);
         await routeInternalBaseUrlToHost(context);
+        await routeUnprefixedApiToSubpath(context);
         const page = await context.newPage();
         patchGotoToUseBaseUrl(page);
 
@@ -102,6 +104,25 @@ async function routeInternalBaseUrlToHost(context: BrowserContext) {
 
     await context.route(`${internalBaseURL}/**`, async (route) => {
         await route.continue({url: route.request().url().replace(internalBaseURL, baseURL)});
+    });
+}
+
+/**
+ * Specs often call the API from the page with an absolute path (`fetch('/api/v4/...')`). Under a
+ * subpath that path misses the prefix and the server 302-redirects it, which drops a POST/PUT body.
+ * Rewrite such requests onto the prefixed path instead. No-op without a subpath.
+ */
+async function routeUnprefixedApiToSubpath(context: BrowserContext) {
+    const {subpathPrefix, baseURL} = testConfig;
+    if (!subpathPrefix) {
+        return;
+    }
+
+    const {origin} = new URL(baseURL);
+    await context.route(`${origin}/api/**`, async (route) => {
+        const url = new URL(route.request().url());
+        url.pathname = `${subpathPrefix}${url.pathname}`;
+        await route.continue({url: url.href});
     });
 }
 

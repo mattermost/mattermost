@@ -106,7 +106,7 @@ import {
 } from './mock_browser_api';
 import {duration, getRandomId, newTestPassword, simpleEmailRe, wait} from './util';
 
-export {expect} from '@playwright/test';
+export {expect} from './expect';
 
 export type ExtendedFixtures = {
     axe: AxeBuilderExtended;

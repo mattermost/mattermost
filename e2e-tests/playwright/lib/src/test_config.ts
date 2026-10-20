@@ -225,6 +225,11 @@ export class TestConfig {
         this.testcontainersNetworkName = process.env.PW_TESTCONTAINERS_NETWORK_NAME || '';
         this.testcontainersNetworkGatewayIp = process.env.PW_TESTCONTAINERS_NETWORK_GATEWAY_IP || '';
         this.testcontainersServices = parseTestContainersServices(process.env.PW_TESTCONTAINERS_SERVICES);
+        // Subpath mode serves the server through the nginx proxy, so it can't boot without it,
+        // even when PW_TESTCONTAINERS_SERVICES is set explicitly (or to an empty opt-out).
+        if (this.subpathMode && !this.testcontainersServices.includes('nginx')) {
+            this.testcontainersServices = [...this.testcontainersServices, 'nginx'];
+        }
 
         // Testcontainers — container (postgres, inbucket, webhook, mattermost)
         this.postgresUrl =
@@ -272,6 +277,26 @@ export class TestConfig {
         this.opensearchUrl = process.env.PW_OPENSEARCH_URL || 'http://localhost:9201';
         this.minioUrl = process.env.PW_MINIO_URL || 'http://localhost:9000';
         this.azuriteUrl = process.env.PW_AZURITE_URL || 'http://localhost:10000';
+    }
+
+    /** Path prefix baseURL is served under: '' normally, '/subpath' in subpath mode. */
+    get subpathPrefix(): string {
+        return new URL(this.baseURL).pathname.replace(/\/+$/, '');
+    }
+
+    /** Prefixes an absolute app path (e.g. '/team/channels/x') with subpathPrefix, for URL/href assertions. */
+    withSubpath(path: string): string {
+        return `${this.subpathPrefix}${path}`;
+    }
+
+    /**
+     * The SiteURL a freshly booted server reports. Server-side link parsing (e.g. permalink previews)
+     * only recognizes links under it, so specs embedding permalinks in posts must build them from this.
+     * In subpath mode SiteURL is the host-facing subpath URL set via boot env, which wins over any
+     * config patch; otherwise it is the internal alias.
+     */
+    get siteURL(): string {
+        return this.subpathMode ? this.baseURL : this.internalBaseURL;
     }
 }
 

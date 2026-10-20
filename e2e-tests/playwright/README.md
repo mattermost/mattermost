@@ -26,7 +26,8 @@ No separate terminal or setup step needed — Playwright brings up Postgres, Inb
 PW_USE_TESTCONTAINERS=true npm run test -- login
 
 # Runs the full suite (not just specs/functional/subpath) against the server booted directly under
-# the subpath (behind the nginx proxy started by default above) — setup's "ensure server deployment"
+# the subpath. The nginx proxy is always started in this mode, even if PW_TESTCONTAINERS_SERVICES
+# omits it or is empty, so there's no need to list it. Setup's "ensure server deployment"
 # step, and every specs/functional/subpath spec's requireSubpathServer(), both fail fast otherwise.
 # Only for a run dedicated entirely to the subpath project — every other test sharing this server
 # would also see the prefix, so don't combine this with chrome/firefox/ipad in the same invocation.
@@ -34,7 +35,8 @@ PW_USE_TESTCONTAINERS=true npm run test -- login
 # a plain server.
 PW_USE_TESTCONTAINERS=true PW_SERVER_DEPLOY=subpath npx playwright test --project subpath
 
-# Change which additional services start, comma-separated (or "" to start none)
+# Change which additional services start, comma-separated (or "" to start none).
+# nginx is still added when PW_SERVER_DEPLOY=subpath
 PW_USE_TESTCONTAINERS=true PW_TESTCONTAINERS_SERVICES=minio,openldap npm run test
 
 # Pin a specific server image (defaults to mattermostdevelopment/mattermost-enterprise-edition:master)
