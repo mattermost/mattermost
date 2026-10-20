@@ -42,7 +42,7 @@ export function resolveMattermostBootEnv(extraEnv: Record<string, string> = {}):
         ...SERVER_ENV_BASELINE,
         // testConfig.subpathMode boots directly on the subpath; serverEnv/extraEnv can still
         // override this explicitly.
-        ...(testConfig.subpathMode ? {MM_SERVICESETTINGS_SITEURL: `${testConfig.nginxUrl}${SUBPATH_DEFAULT}`} : {}),
+        ...(testConfig.subpathMode ? {MM_SERVICESETTINGS_SITEURL: testConfig.subpathSiteURL} : {}),
         ...testConfig.serverEnv,
         ...extraEnv,
         ...structuralEnv(),

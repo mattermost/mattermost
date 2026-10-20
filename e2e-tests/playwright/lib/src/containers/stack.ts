@@ -762,9 +762,11 @@ function applyResolvedConfig(stack: StartedStack): void {
 
         // Container already booted with this SiteURL (resolveMattermostBootEnv()) — reflect it here.
         if (testConfig.subpathMode) {
-            const subpathUrl = `${testConfig.nginxUrl}${SUBPATH_DEFAULT}`;
-            testConfig.baseURL = subpathUrl;
-            testConfig.bootEnvOverrides = {...testConfig.bootEnvOverrides, MM_SERVICESETTINGS_SITEURL: subpathUrl};
+            testConfig.baseURL = `${testConfig.nginxUrl}${SUBPATH_DEFAULT}`;
+            testConfig.bootEnvOverrides = {
+                ...testConfig.bootEnvOverrides,
+                MM_SERVICESETTINGS_SITEURL: testConfig.subpathSiteURL,
+            };
             if (testConfig.sslServer) {
                 // baseGlobalSetup() makes its own HTTPS calls right after this.
                 disableTlsVerificationForSelfSignedProxy();

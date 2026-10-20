@@ -267,7 +267,7 @@ export class TestConfig {
         // elsewhere, before a fresh container starts.
         this.bootEnvOverrides =
             parsePersistedBootEnv(process.env.PW_TESTCONTAINERS_BOOT_ENV) ??
-            computeDefaultBootEnv(this.serverEnv, this.subpathMode, this.nginxUrl);
+            computeDefaultBootEnv(this.serverEnv, this.subpathMode, this.subpathSiteURL);
 
         // Testcontainers — service-specific (opt-in additional services)
         this.ldapHost = process.env.PW_LDAP_HOST || 'localhost';
@@ -290,13 +290,27 @@ export class TestConfig {
     }
 
     /**
+     * The SiteURL the server runs with in subpath mode: the nginx proxy under the subpath, addressed
+     * by its Docker network alias. The server calls itself back through SiteURL (plugin integration
+     * and dialog URLs), so it must be an address the server's own container can reach. The
+     * host-mapped nginxUrl (e.g. localhost:8057) isn't, and baseURL carries that for the browser.
+     */
+    get subpathSiteURL(): string {
+        if (!this.useTestContainers) {
+            return `${this.nginxUrl}${SUBPATH_DEFAULT}`;
+        }
+        const scheme = this.sslServer ? 'https' : 'http';
+        return `${scheme}://${NGINX_ALIAS}:${this.sslServer ? NGINX_SSL_PORT : NGINX_PORT}${SUBPATH_DEFAULT}`;
+    }
+
+    /**
      * The SiteURL a freshly booted server reports. Server-side link parsing (e.g. permalink previews)
      * only recognizes links under it, so specs embedding permalinks in posts must build them from this.
-     * In subpath mode SiteURL is the host-facing subpath URL set via boot env, which wins over any
-     * config patch; otherwise it is the internal alias.
+     * In subpath mode SiteURL is set via boot env, which wins over any config patch; otherwise it is
+     * the internal alias.
      */
     get siteURL(): string {
-        return this.subpathMode ? this.baseURL : this.internalBaseURL;
+        return this.subpathMode ? this.subpathSiteURL : this.internalBaseURL;
     }
 }
 
@@ -337,11 +351,11 @@ function parseKeyValueList(actualValue: string | undefined): Record<string, stri
 function computeDefaultBootEnv(
     serverEnv: Record<string, string>,
     subpathMode: boolean,
-    nginxUrl: string,
+    subpathSiteURL: string,
 ): Record<string, string> {
     return {
         ...SERVER_ENV_BASELINE,
-        ...(subpathMode ? {MM_SERVICESETTINGS_SITEURL: `${nginxUrl}${SUBPATH_DEFAULT}`} : {}),
+        ...(subpathMode ? {MM_SERVICESETTINGS_SITEURL: subpathSiteURL} : {}),
         MM_FILESETTINGS_DRIVERNAME: 'local',
         MM_ELASTICSEARCHSETTINGS_BACKEND: 'elasticsearch',
         ...serverEnv,
@@ -353,7 +367,7 @@ function computeDefaultBootEnv(
  * persisted boot env turns out to reference a container that's no longer running.
  */
 export function defaultBootEnv(): Record<string, string> {
-    return computeDefaultBootEnv(testConfig.serverEnv, testConfig.subpathMode, testConfig.nginxUrl);
+    return computeDefaultBootEnv(testConfig.serverEnv, testConfig.subpathMode, testConfig.subpathSiteURL);
 }
 
 function parsePersistedBootEnv(actualValue: string | undefined): Record<string, string> | undefined {
