@@ -45,7 +45,7 @@ require (
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gosaml2 v0.10.0
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
-	github.com/mattermost/logr/v2 v2.0.22
+	github.com/mattermost/logr/v2 v2.0.23
 	github.com/mattermost/mattermost-plugin-ai v1.14.2
 	github.com/mattermost/mattermost/server/public v0.4.3
 	github.com/mattermost/morph v1.1.0
