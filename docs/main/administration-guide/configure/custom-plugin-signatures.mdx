@@ -174,9 +174,11 @@ cd mattermost-marketplace
 go run ./cmd/marketplace server --database /path/to/plugins.json --listen :8085
 ```
 
-The listening address defaults to `:8085`. Serve the Marketplace over HTTPS when Mattermost reaches it across a network.
+The listening address defaults to `:8085`. Serve the Marketplace over HTTPS with a certificate the Mattermost server trusts, such as a certificate from your organization's CA installed on the server.
 
-Mattermost can call `http://127.0.0.1` or `http://localhost` without listing that host in `ServiceSettings.AllowedUntrustedInternalConnections`. Add any other private address to that allowlist. Certificate verification still applies to HTTPS. `ServiceSettings.EnableInsecureOutgoingConnections` accepts a certificate the server would otherwise reject.
+Mattermost can call `http://127.0.0.1` or `http://localhost` without listing that host in `ServiceSettings.AllowedUntrustedInternalConnections`. Add any other private address to that allowlist. `PluginSettings.AllowInsecureDownloadURL` still has to be `true` before Mattermost will download a plugin bundle over `http://`.
+
+`ServiceSettings.EnableInsecureOutgoingConnections` skips TLS verification for every outgoing HTTPS request from the server, including file storage, not only the Marketplace. That exposes those connections to interception. Use a trusted certificate instead.
 
 Confirm the listing:
 
@@ -203,7 +205,7 @@ If the upstream request fails, the whole listing fails, including your plugins.
 
 A Marketplace host that cannot reach the internet stays current another way: replace `plugins.json` with the file from [mattermost/mattermost-marketplace](https://github.com/mattermost/mattermost-marketplace) and restart the server. That file is a snapshot of the public catalog. It changes when you replace it. To keep your own plugins in that snapshot, merge your listings into the file before you restart.
 
-`go run ./cmd/generator/ add` registers a GitHub release and stores the signature already published with that release. Use it for plugins signed by the key that produced those release signatures. A bundle you signed with your own key is added by editing `plugins.json`, as shown above.
+`go run ./cmd/generator/ add mattermost-plugin-jitsi v2.0.0` registers that GitHub release and stores the signature already published with it. The repository name and version are required. Use it for plugins signed by the key that produced those release signatures. A bundle you signed with your own key is added by editing `plugins.json`, as shown above.
 
 ### Point Mattermost at the Marketplace
 
@@ -268,9 +270,12 @@ Restart Mattermost. On startup the server checks the signature with the built-in
 Copying the files does not install the plugin. With `PluginSettings.AutomaticPrepackagedPlugins` set to `true`, add the plugin ID from `plugin.json` to `PluginSettings.PluginStates` and restart again:
 
 ```json
-"PluginStates": {
-    "com.example.myplugin": {
-        "Enable": true
+"PluginSettings": {
+    "AutomaticPrepackagedPlugins": true,
+    "PluginStates": {
+        "com.example.myplugin": {
+            "Enable": true
+        }
     }
 }
 ```
