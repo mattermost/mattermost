@@ -97,7 +97,7 @@ test('MM-T175 Channel short-linking still works when placed in brackets', async 
     await lastPost.getLink(linkedChannel.display_name).click();
 
     // * Verify the linked channel opens
-    await expect(page).toHaveURL(`/${team.name}/channels/${linkedChannel.name}`);
+    await expect(page).toHavePath(`/${team.name}/channels/${linkedChannel.name}`);
     await channelsPage.centerView.header.toHaveTitle(linkedChannel.display_name);
 });
 

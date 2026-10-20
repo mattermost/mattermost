@@ -8,6 +8,7 @@ import {PluginManifest} from '@mattermost/types/plugins';
 
 import {callsPluginId} from './constant';
 import {getAdminClient} from './server/init';
+import {requireSubpathServer} from './server/server_env';
 import {testConfig} from './test_config';
 
 export async function shouldHaveCallsEnabled(enabled = true) {
@@ -115,6 +116,11 @@ export async function ensureServerDeployment() {
             // eslint-disable-next-line no-console
             console.log(`hostname: ${info.hostname}, version: ${info.version}, config_hash: ${info.config_hash}`),
         );
+    }
+
+    // Based on test config, ensure server booted under the subpath.
+    if (testConfig.subpathMode) {
+        requireSubpathServer();
     }
 }
 

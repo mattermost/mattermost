@@ -17,7 +17,6 @@ import Notifications from '@/ui/components/system_console/sections/site_configur
 import UsersAndTeams from '@/ui/components/system_console/sections/site_configuration/users_and_teams';
 import SystemProperties from '@/ui/components/system_console/sections/system_attributes/system_properties';
 import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
-import {testConfig} from '@/test_config';
 
 export default class SystemConsolePage {
     readonly page: Page;
@@ -95,16 +94,16 @@ export default class SystemConsolePage {
     }
 
     async goto() {
-        await this.page.goto(new URL('/admin_console', testConfig.baseURL).href);
+        await this.page.goto('/admin_console');
     }
 
     /** Notifications settings URL is environment/notifications (sidebar groups under Site Configuration). */
     async gotoNotificationsSettings() {
-        await this.page.goto(new URL('/admin_console/environment/notifications', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/environment/notifications');
     }
 
     async gotoEditionAndLicense() {
-        await this.page.goto(new URL('/admin_console/about/license', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/about/license');
         await this.editionAndLicense.toBeVisible();
     }
 }
