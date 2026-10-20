@@ -28,8 +28,9 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
-  - **Changes to All plans:**
+  - **Changes to Enterprise plans:**
     - Under ``ElasticsearchSettings`` in ``config.json``, added ``EnableFileIndexing`` configuration setting to control indexing of file attachments in Elasticsearch and OpenSearch.
+  - **Changes to All plans:**
     - ``ServiceSettings.EnableFileSearch``, which defaults to ``true``, is now configurable in the System Console. It moved from **System Console > Experimental > Features** to **System Console > Site Configuration > File Sharing and Downloads**, and is also reported in the client configuration so the web app can hide the file search and channel files entry points when it's disabled. The setting itself is unchanged.
 
 #### Compatibility
@@ -117,8 +118,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
  - v12.1 is built with Go ``v1.26.7``.
 
 ### Open Source Components
-  - Added ``@mattermost/compass-ui`` to https://github.com/mattermost/mattermost/.
-  - Added ``fflate`` to https://github.com/mattermost/mattermost/.
+  - Added ``@mattermost/compass-ui`` and ``fflate``.
 
 ## Release v12.0 - [Major Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v12-0-major-release}
 
