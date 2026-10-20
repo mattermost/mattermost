@@ -890,7 +890,7 @@ describe('rhs view actions', () => {
         });
 
         it('opens a mention search', () => {
-            store.dispatch(openAtPrevious({isMentionSearch: true}));
+            store.dispatch(openAtPrevious({isRecentMentions: true}));
             const compareStore = mockStore(initialState);
 
             compareStore.dispatch(performSearch('"@mattermost"', '', true));
@@ -947,7 +947,7 @@ describe('rhs view actions', () => {
                 return {data: 'data'};
             });
 
-            await store.dispatch(openAtPrevious({isFlaggedPosts: true}));
+            await store.dispatch(openAtPrevious({isSavedPosts: true}));
 
             expect(SearchActions.getFlaggedPosts).toHaveBeenCalled();
 

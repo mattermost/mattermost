@@ -661,13 +661,13 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
             const currentChannelId = getCurrentChannelId(getState());
             return dispatch(showChannelMembers(currentChannelId));
         }
-        if (previous.isMentionSearch) {
+        if (previous.isRecentMentions) {
             return dispatch(showMentions());
         }
         if (previous.isPinnedPosts) {
             return dispatch(showPinnedPosts());
         }
-        if (previous.isFlaggedPosts) {
+        if (previous.isSavedPosts) {
             return dispatch(showFlaggedPosts());
         }
         if (previous.selectedPostId) {
