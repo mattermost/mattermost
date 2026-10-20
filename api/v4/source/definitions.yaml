@@ -5747,6 +5747,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AccessControlPolicyActiveUpdate"
+        team_id:
+          type: string
+          description: >
+            The ID of the team, required for a team admin who has the
+            `manage_team_access_rules` permission on it.
     AccessControlPolicyActiveUpdate:
       type: object
       properties:
@@ -5755,7 +5760,9 @@ components:
           description: The ID of the policy.
         active:
           type: boolean
-          description: The active status of the policy.
+          description: >
+            `true` turns auto-add on for the policy's membership rule, and
+            `false` turns it off.
     Recap:
       type: object
       properties:
