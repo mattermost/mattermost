@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"os"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/config"
 )
 
 func (s *MmctlE2ETestSuite) TestConfigResetCmdE2E() {
@@ -473,6 +475,20 @@ func (s *MmctlE2ETestSuite) latestConfigID() string {
 	return entries[0].Id
 }
 
+// storedConfig returns the active configuration as saved in the database. Unlike
+// s.th.App.Config(), it doesn't include environment overrides.
+func (s *MmctlE2ETestSuite) storedConfig() *model.Config {
+	ds, err := config.NewDatabaseStore(*s.th.App.Config().SqlSettings.DataSource)
+	s.Require().NoError(err)
+	defer ds.Close()
+
+	b, err := ds.Load()
+	s.Require().NoError(err)
+	cfg := &model.Config{}
+	s.Require().NoError(json.Unmarshal(b, cfg))
+	return cfg
+}
+
 func (s *MmctlE2ETestSuite) TestConfigHistoryCmd() {
 	s.SetupTestHelperWithDatabaseConfigStore()
 	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Old Site" })
@@ -550,6 +566,7 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 		err := configRollbackCmdF(c, &cobra.Command{}, []string{oldConfigID})
 		s.Require().NoError(err)
 		s.Require().Equal("Old Site", *s.th.App.Config().TeamSettings.SiteName)
+		s.Require().Equal("Old Site", *s.storedConfig().TeamSettings.SiteName)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&configRollbackResult{
 			ConfigId: oldConfigID,
@@ -566,6 +583,7 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 		err := configRollbackCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{oldConfigID})
 		s.Require().NoError(err)
 		s.Require().Equal("new-password", *s.th.App.Config().EmailSettings.SMTPPassword)
+		s.Require().Equal("new-password", *s.storedConfig().EmailSettings.SMTPPassword)
 		s.Require().Equal(&configRollbackResult{ConfigId: oldConfigID, Changes: []*model.ConfigChange{}}, printer.GetLines()[0])
 	})
 
@@ -591,6 +609,7 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 		err := configRollbackCmdF(s.th.LocalClient, &cobra.Command{}, []string{oldConfigID})
 		s.Require().NoError(err)
 		s.Require().Equal("old-password", *s.th.App.Config().EmailSettings.SMTPPassword)
+		s.Require().Equal("old-password", *s.storedConfig().EmailSettings.SMTPPassword)
 		s.Require().Equal(&configRollbackResult{
 			ConfigId: oldConfigID,
 			Changes:  []*model.ConfigChange{{Path: "EmailSettings.SMTPPassword", OldValue: model.FakeSetting, NewValue: model.FakeSetting}},
@@ -619,11 +638,12 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 
 		err := configRollbackCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{oldConfigID})
 		s.Require().NoError(err)
-		cfg := s.th.App.Config()
-		s.Require().Equal("Old Site", *cfg.TeamSettings.SiteName)
-		s.Require().Equal("new-password", *cfg.EmailSettings.SMTPPassword)
-		s.Require().Equal([]string{"postgres://replica0"}, cfg.SqlSettings.DataSourceReplicas)
-		s.Require().Equal(replicaLagSettings, cfg.SqlSettings.ReplicaLagSettings)
+		for _, cfg := range []*model.Config{s.th.App.Config(), s.storedConfig()} {
+			s.Require().Equal("Old Site", *cfg.TeamSettings.SiteName)
+			s.Require().Equal("new-password", *cfg.EmailSettings.SMTPPassword)
+			s.Require().Equal([]string{"postgres://replica0"}, cfg.SqlSettings.DataSourceReplicas)
+			s.Require().Equal(replicaLagSettings, cfg.SqlSettings.ReplicaLagSettings)
+		}
 		s.Require().Equal(&configRollbackResult{
 			ConfigId: oldConfigID,
 			Changes:  []*model.ConfigChange{{Path: "TeamSettings.SiteName", OldValue: "New Site", NewValue: "Old Site"}},
@@ -655,6 +675,7 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 		err := configRollbackCmdF(s.th.Client, &cobra.Command{}, []string{oldConfigID})
 		s.Require().Error(err)
 		s.Require().Equal("New Site", *s.th.App.Config().TeamSettings.SiteName)
+		s.Require().Equal("New Site", *s.storedConfig().TeamSettings.SiteName)
 		s.Require().Empty(printer.GetLines())
 	})
 }
@@ -673,5 +694,8 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmdWithEnvironmentOverrides() {
 		s.Require().NoError(err)
 		s.Require().Equal("Old Site", *s.th.App.Config().TeamSettings.SiteName)
 		s.Require().Equal("http://localhost:8065", *s.th.App.Config().ServiceSettings.SiteURL)
+		stored := s.storedConfig()
+		s.Require().Equal("Old Site", *stored.TeamSettings.SiteName)
+		s.Require().Empty(*stored.ServiceSettings.SiteURL)
 	})
 }
