@@ -118,4 +118,8 @@ jobs:
         uses: ./.github/actions/run-in-buildenv
         with:
           build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
-          run: make i18n-verify
+          # The pipeline's copy of go-i18n's plural categories has to agree with
+          # go-i18n for every server catalog, including one this PR adds.
+          run: |
+            make i18n-verify
+            cd ../tools/mmgotool && go test ./commands/ -run TestServerPluralTableMatchesGoI18n
