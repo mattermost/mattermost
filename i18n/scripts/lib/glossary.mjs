@@ -1,6 +1,12 @@
 // i18n/glossary/: en.json is the term inventory, and <locale>.json holds each
 // term's target in that locale. See i18n/glossary/README.md.
-import {flatten, GLOSSARY_DIR} from './catalogs.mjs';
+//
+// i18n/style.json: how each locale's catalogs address the user, formally or
+// informally (address), the pronouns that say so (use), and the pronouns that
+// would mean the other (avoid). matchCase matches avoid only as written, for a
+// formal pronoun that is an ordinary one capitalized: German "Sie" is "you",
+// "sie" is "she" or "they".
+import {flatten, GLOSSARY_DIR, STYLE} from './catalogs.mjs';
 
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -31,6 +37,23 @@ export function readGlossary(tree, locale) {
         // capitalizes at the start of a sentence and in title case.
         patterns: [term, ...(entry.aliases || [])].map((form) => ({form, re: wordPattern(form, entry.doNotTranslate ? '' : 'i')})),
     }));
+}
+
+/**
+ * A locale's style.json entry, with avoid compiled into one pattern, or null.
+ * skipSentenceStart is for languages whose formal pronoun is also an ordinary
+ * one at the start of a sentence: German "Sie" is "you" mid-sentence, but can be
+ * "they" first.
+ */
+export function readStyle(tree, locale) {
+    const text = tree.read(STYLE);
+    const entry = text === null ? null : JSON.parse(text)[locale];
+    if (!entry) {
+        return null;
+    }
+    const start = entry.skipSentenceStart ? '(?<![.!?:\\n]\\s*|^\\s*|["“„«(*]\\s*)' : '';
+    const words = entry.avoid.map(escape).join('|');
+    return {...entry, avoidRe: new RegExp(`${start}(?<![\\p{L}\\p{N}'’])(${words})(?![\\p{L}\\p{N}])`, entry.matchCase ? 'gu' : 'giu')};
 }
 
 /**

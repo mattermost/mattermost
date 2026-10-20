@@ -7,6 +7,7 @@
 //         entries also carry a description.
 
 export const GLOSSARY_DIR = 'i18n/glossary';
+export const STYLE = 'i18n/style.json';
 
 // A server plural map is checked as all of its forms at once.
 export function flatten(value) {

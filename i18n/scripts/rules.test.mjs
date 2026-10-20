@@ -5,7 +5,7 @@ import path from 'node:path';
 import {describe, test} from 'node:test';
 import {fileURLToPath} from 'node:url';
 
-import {readGlossary} from './lib/glossary.mjs';
+import {readGlossary, readStyle} from './lib/glossary.mjs';
 import {checkTranslation} from './lib/rules.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -26,6 +26,7 @@ const check = (locale, english, value, surface = 'webapp', glossary = fixtureGlo
     locale,
     surface,
     glossary,
+    style: readStyle(repoTree, locale),
 }).map((f) => `${f.severity} ${f.rule}`);
 
 describe('rules', () => {
@@ -96,6 +97,16 @@ describe('rules', () => {
         assert.deepEqual(check('ru', 'Upload a .png file from https://example.com', 'Загрузите файл .png с https://example.com'), []);
         assert.deepEqual(check('ru', 'Type /header to set it', 'Введите /header, чтобы задать его'), []);
         assert.deepEqual(check('ru', 'Type "yes" to confirm', 'Введите "yes" для подтверждения'), []);
+    });
+
+    test('form of address', () => {
+        assert.deepEqual(check('de', 'Enter a number', 'Geben Sie eine Zahl ein'), ['soft address']);
+        assert.deepEqual(check('de', 'They agreed', 'Sie stimmten zu'), []);
+        assert.deepEqual(check('de', 'Enter a number', 'Gib eine Zahl ein'), []);
+        assert.deepEqual(check('ru', 'Your license', 'Твоя лицензия', 'server'), ['soft address']);
+        assert.deepEqual(check('fr', 'You can do it', 'Tu peux le faire'), ['soft address']);
+        assert.deepEqual(check('fr', 'Type "tu" to continue', 'Saisissez "tu" pour continuer'), []);
+        assert.deepEqual(check('ja', 'You can do it', 'できます'), []);
     });
 
     test('leaving out a doNotTranslate name is soft', () => {

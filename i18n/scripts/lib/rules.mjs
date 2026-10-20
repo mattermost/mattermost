@@ -105,7 +105,15 @@ const isLatinScript = (locale) => new Intl.Locale(locale).maximize().script === 
 const isEnglish = (locale) => new Intl.Locale(locale).language === 'en';
 const unquoted = (value) => (typeof value === 'string' ? value.replace(QUOTED, ' ') : Object.fromEntries(Object.entries(value).map(([k, v]) => [k, v.replace(QUOTED, ' ')])));
 
-function softChecks(item, value, locale, surface, glossary) {
+function addressFindings(value, locale, surface, style) {
+    if (!style) {
+        return [];
+    }
+    const found = [...new Set([...proseOf(unquoted(value), surface).matchAll(style.avoidRe)].map((m) => m[1]))];
+    return found.length ? [finding('address', 'soft', `${found.map((w) => `"${w}"`).join(', ')}: ${locale} addresses the user ${style.address}ly (${style.use.join(', ')})`)] : [];
+}
+
+function softChecks(item, value, locale, surface, glossary, style) {
     const out = [];
     if (!isEnglish(locale) && flatten(value) === flatten(item.english)) {
         // A name is capitalised; three ordinary words are a sentence nobody translated.
@@ -123,6 +131,7 @@ function softChecks(item, value, locale, surface, glossary) {
             out.push(finding('english-words', 'soft', `keeps English words from the source: ${kept.slice(0, 6).join(', ')}`));
         }
     }
+    out.push(...addressFindings(value, locale, surface, style));
     const dropped = droppedNames(glossary, item.english, value);
     if (dropped.length) {
         out.push(finding('do-not-translate', 'soft', `leaves out ${dropped.map((d) => `"${d}"`).join(', ')}, which the glossary keeps in English`));
@@ -198,10 +207,10 @@ function sourceFor(english) {
 
 /**
  * Check one translation of item, {english, description}, where english is the
- * en.json message, against the locale's glossary from readGlossary. Returns
- * findings of {rule, severity, message}.
+ * en.json message, against the locale's glossary and style from readGlossary
+ * and readStyle. Returns findings of {rule, severity, message}.
  */
-export function checkTranslation({item, value, locale, surface, glossary}) {
+export function checkTranslation({item, value, locale, surface, glossary, style = null}) {
     const isPluralMap = surface === 'server' && value && typeof value === 'object' && !Array.isArray(value) &&
         Object.values(value).every((form) => typeof form === 'string');
     if (typeof value !== 'string' && !isPluralMap) {
@@ -228,6 +237,6 @@ export function checkTranslation({item, value, locale, surface, glossary}) {
     } else {
         out.push(...checkServer(item, value, locale));
     }
-    out.push(...softChecks(item, value, locale, surface, glossary));
+    out.push(...softChecks(item, value, locale, surface, glossary, style));
     return out;
 }
