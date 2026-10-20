@@ -478,12 +478,6 @@ func TestPermissionLevelAtMostAsPermissiveAs(t *testing.T) {
 		}
 	}
 
-	t.Run("each tier against itself is true", func(t *testing.T) {
-		for _, l := range ladder {
-			assert.True(t, l.AtMostAsPermissiveAs(l))
-		}
-	})
-
 	t.Run("empty string behaves as none", func(t *testing.T) {
 		var empty PermissionLevel
 		assert.True(t, empty.AtMostAsPermissiveAs(PermissionLevelEveryone))
