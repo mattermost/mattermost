@@ -435,10 +435,10 @@ func TestPermissionsFromLegacyGrantsScopedOwnerAndSyncSourceStaySeparate(t *test
 }
 
 func TestPermissionsFromLegacyGrantsOwnerIsSourcePlugin(t *testing.T) {
-	// An owner that is also the field's source plugin collapses into one grant
-	// rather than two, and the merge does not narrow the plugin's unrestricted
-	// access down to the owner's scope. The field being public still adds a
-	// second, wildcard grant for the read any other plugin has today.
+	// On an unprotected field the source plugin has no standing of its own:
+	// being an owner is what lets it write, so it keeps exactly the owner's
+	// scope. The field being public still adds a wildcard grant for the read
+	// any other plugin has today.
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsSourcePluginID: "plugin1",
@@ -450,39 +450,79 @@ func TestPermissionsFromLegacyGrantsOwnerIsSourcePlugin(t *testing.T) {
 
 	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
 
-	require.Len(t, p.Grants, 2)
-	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[0].Type)
-	assert.Equal(t, "plugin1", p.Grants[0].ID)
-	assert.Empty(t, p.Grants[0].Scopes)
-	assert.ElementsMatch(t, validPropertyActions, p.Grants[0].Allow)
-	assert.Equal(t, "*", p.Grants[1].ID)
-	assert.ElementsMatch(t, []string{PropertyActionOptionRead, PropertyActionValueRead}, p.Grants[1].Allow)
+	assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "scope-a", PropertyActionValueWrite))
+	assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionValueWrite))
+	assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "scope-b", PropertyActionValueWrite))
+	assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionFieldWrite))
+	require.Len(t, p.Grants, 3)
+	assert.Equal(t, "*", p.Grants[2].ID)
+	assert.ElementsMatch(t, []string{PropertyActionOptionRead, PropertyActionValueRead}, p.Grants[2].Allow)
 }
 
-func TestPermissionsFromLegacyGrantsSourcePluginOnly(t *testing.T) {
-	// A source_only field with a source plugin: restrictions deny reads to
-	// everyone, but the plugin's grant admits it regardless, making it
-	// the field's only reader. The field has no owners and is not protected, so
-	// any other plugin may still write it; the wildcard grant is what keeps
-	// that true after conversion, even though such a plugin still cannot read
-	// the field.
-	field := &PropertyField{
-		Attrs: StringInterface{
-			PropertyAttrsAccessMode:     PropertyAccessModeSourceOnly,
-			PropertyAttrsSourcePluginID: "plugin1",
-		},
-	}
+func TestPermissionsFromLegacyGrantsSourcePlugin(t *testing.T) {
+	t.Run("a protected source_only field admits only its source plugin", func(t *testing.T) {
+		// Restrictions deny reads to everyone, and the protected attr closes
+		// every write, so the plugin's grant is the field's only access.
+		field := &PropertyField{
+			Attrs: StringInterface{
+				PropertyAttrsAccessMode:     PropertyAccessModeSourceOnly,
+				PropertyAttrsProtected:      true,
+				PropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+		require.NoError(t, ValidatePropertyFieldAccessMode(field))
 
-	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+		p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
 
-	assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionValueRead))
-	assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionOptionRead))
-	require.Len(t, p.Grants, 2)
-	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[0].Type)
-	assert.Equal(t, "plugin1", p.Grants[0].ID)
-	assert.ElementsMatch(t, validPropertyActions, p.Grants[0].Allow)
-	assert.Equal(t, "*", p.Grants[1].ID)
-	assert.ElementsMatch(t, []string{PropertyActionFieldWrite, PropertyActionOptionWrite, PropertyActionValueWrite}, p.Grants[1].Allow)
+		assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionValueRead))
+		assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionOptionRead))
+		assert.Equal(t, []Grant{{
+			Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "plugin1"},
+			Allow:    validPropertyActions,
+		}}, p.Grants)
+	})
+
+	t.Run("a synced protected field keeps its values for the sync service", func(t *testing.T) {
+		field := &PropertyField{
+			Attrs: StringInterface{
+				PropertyAttrsProtected:      true,
+				PropertyAttrsSourcePluginID: "plugin1",
+				PropertyFieldAttrLDAP:       "ldap-sync-id",
+			},
+		}
+
+		p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+		assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionValueWrite))
+		assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionFieldWrite))
+		assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionValueWrite))
+	})
+
+	t.Run("an unprotected field gives its source plugin nothing of its own", func(t *testing.T) {
+		// Owned by another plugin, the field is that plugin's to write, as it
+		// is on master; unowned, the wildcard already covers the source plugin.
+		owned := &PropertyField{
+			Attrs: StringInterface{
+				PropertyAttrsSourcePluginID: "plugin1",
+				PropertyAttrsOwners:         []PropertyOwner{{Type: PropertyOwnerTypePlugin, ID: "plugin2"}},
+			},
+		}
+		p := PermissionsFromLegacy(owned, LegacyConversionOpts{ConvertAttrs: true})
+		for _, action := range []string{PropertyActionFieldWrite, PropertyActionOptionWrite, PropertyActionValueWrite} {
+			assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", action), action)
+			assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin2", "", action), action)
+		}
+
+		synced := &PropertyField{
+			Attrs: StringInterface{
+				PropertyAttrsSourcePluginID: "plugin1",
+				PropertyFieldAttrLDAP:       "ldap-sync-id",
+			},
+		}
+		p = PermissionsFromLegacy(synced, LegacyConversionOpts{ConvertAttrs: true})
+		assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionValueWrite))
+		assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionFieldWrite))
+	})
 }
 
 func TestPermissionsFromLegacyGrantsSyncLock(t *testing.T) {
