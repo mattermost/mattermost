@@ -1,0 +1,214 @@
+---
+title: "Access policy expressions"
+---
+<PlanAvailability slug="entry-adv" />
+
+An access rule is a condition a user must meet before Mattermost lets them join a channel or team, or take an action such as uploading a file. Mattermost stores each rule as an expression in CEL (Common Expression Language), a small language for writing yes-or-no conditions such as `user.attributes.Department == "Engineering"`.
+
+You can write rules in two ways:
+
+- **Simple Mode** is a table. Each row picks an attribute, an operator, and one or more values, and Mattermost writes the expression for you. A user must match every row.
+- **Advanced Mode** is a text editor where you write the expression yourself. You can combine conditions with `&&` (and), `||` (or), and `!` (not), and group them with parentheses.
+
+Both modes are available in the System Console. Channel Settings and Team Settings offer Simple Mode only.
+
+This page describes everything a rule can refer to and every operator Mattermost accepts. To create and assign policies, see [System-wide attribute-based access policies](/administration-guide/manage/admin/abac-system-wide-policies), [Team membership access policies](/administration-guide/manage/admin/abac-team-membership), and [Channel-specific access rules](/administration-guide/manage/admin/abac-channel-access-rules). To define the attributes themselves, see [Attribute Management](/administration-guide/manage/admin/attribute-management).
+
+## Attributes you can use \{#attributes-you-can-use}
+
+A rule can refer to the following values:
+
+| In a rule | Shown in Simple Mode as | What it holds | Where you can use it |
+|----|----|----|----|
+| `user.attributes.<name>` | The attribute's display name | A user attribute defined in Attribute Management, such as `user.attributes.Department`. | Any rule |
+| `user.email` | **Email** | The user's email address. | Any rule |
+| `user.verified` | **Email verified** | `true` if the user has verified their email address, otherwise `false`. | Any rule |
+| `user.isbot` | **Bot account** | `true` for bot accounts, otherwise `false`. | Any rule |
+| `user.createat` | **Account created** | When the account was created. It can only be used with `youngerThanDays`. | Any rule |
+| `user.session.<name>` | The session attribute's display name | A property of the user's current connection, such as their IP address. See [Session attributes](#session-attributes). | Permission rules only |
+| `resource.attributes.<name>` | The channel attribute's display name, under **Channel attributes** in the value menu | An attribute of the channel being accessed. See [Channel attributes](#channel-attributes). | Any rule except team membership rules |
+
+Keep the following in mind:
+
+- **In Advanced Mode, use the attribute's unique name, not its display name.** Names can contain only letters, numbers, and underscores, and can't start with a number. They're case-sensitive, so `Clearance` and `clearance` are different attributes. Older attributes whose names contain spaces can't be used in rules.
+- **Attributes that users can edit themselves are excluded by default.** Otherwise, users could give themselves access by changing their own profile. Attributes synced from AD/LDAP or SAML, and attributes users can't edit, are always available. To allow user-editable attributes, enable [`EnableUserManagedAttributes`](/administration-guide/configure/system-attributes#enable-user-managed-attributes). Until then, Simple Mode shows these attributes as unavailable, and a rule that uses one can't be saved.
+- **`true` and `false` aren't quoted** for `user.verified` and `user.isbot`: write `user.verified == true`. Session attributes are different; see [Session attributes](#session-attributes).
+
+## Operators by attribute type \{#operators-by-attribute-type}
+
+Which operators Simple Mode offers depends on the attribute's type. The table shows the expression each operator produces, so you can write the same condition in Advanced Mode.
+
+| Attribute type | Simple Mode operator | Expression it produces |
+|----|----|----|
+| Text, Phone, URL, Select | **is** | `user.attributes.Department == "Engineering"` |
+| | **is not** | `user.attributes.Department != "Engineering"` |
+| | **in** | `user.attributes.Department in ["Engineering", "Sales"]` |
+| | **starts with** | `user.attributes.Location.startsWith("US-")` |
+| | **ends with** | `user.attributes.Location.endsWith("-HQ")` |
+| | **contains** | `user.attributes.Location.contains("East")` |
+| Multiselect | **has any of** | `("North" in user.attributes.Regions \|\| "South" in user.attributes.Regions)` |
+| | **has all of** | `"North" in user.attributes.Regions && "South" in user.attributes.Regions` |
+| Ranked | **is exactly** | `user.attributes.Clearance == "Secret"` |
+| | **is not** | `user.attributes.Clearance != "Secret"` |
+| | **is at least** | `user.attributes.Clearance >= "Secret"` |
+| | **is greater than** | `user.attributes.Clearance > "Secret"` |
+| | **is at most** | `user.attributes.Clearance <= "Secret"` |
+| | **is less than** | `user.attributes.Clearance < "Secret"` |
+| Hierarchical | **covers all of** | `user.attributes.Programs.coversAll(["F-18", "F-35"])` |
+| | **covers any of** | `user.attributes.Programs.coversAny(["F-18", "F-35"])` |
+| | **is within all of** | `user.attributes.Programs.withinAll(["Air"])` |
+| | **is within any of** | `user.attributes.Programs.withinAny(["Air", "Sea"])` |
+| | **has any of** | `("F-18" in user.attributes.Programs \|\| "F-35" in user.attributes.Programs)` |
+| | **has all of** | `"F-18" in user.attributes.Programs && "F-35" in user.attributes.Programs` |
+| Email | **is**, **is not**, **in**, **contains**, **starts with**, **ends with** | `user.email.endsWith("@example.com")` |
+| Email verified, Bot account | **is**, **is not** | `user.verified == true`, `user.isbot == false` |
+| Account created | **younger than (days)** | `user.createat.youngerThanDays(30)` |
+| Session attributes | **is**, **is not**, **in**, **starts with**, **ends with**, **contains** | `user.session.os_platform == "windows"` |
+| Session IP address | Also **in IP range** | `user.session.ip_address.inCIDR("10.0.0.0/8")` |
+| Session versions | Also **version is**, **version is greater than**, **version is at least**, **version is less than**, **version is at most** | `user.session.client_version.versionGTE("6.3.0")` |
+
+Where an operator can compare against a channel attribute, Simple Mode lists the matching channel attributes under **Channel attributes** in the value menu. See [Channel attributes](#channel-attributes).
+
+### Everything Advanced Mode accepts
+
+Advanced Mode accepts only the following:
+
+- **Comparisons:** `==`, `!=`, `<`, `<=`, `>`, `>=`. Use `<`, `<=`, `>`, and `>=` with ranked attributes.
+- **Logic:** `&&` (and), `||` (or), `!` (not), parentheses, and `condition ? a : b` (if `condition` is true, use `a`, otherwise `b`).
+- **Membership:** `in`. Use `user.attributes.Department in ["Engineering", "Sales"]` to check a single value against a list, and `"North" in user.attributes.Regions` to check whether a multiselect or hierarchical attribute includes a value.
+- **Text functions:** `startsWith`, `endsWith`, `contains`.
+- **Multiselect functions:** `hasAnyOf`, `hasAllOf`. Their argument must be a channel attribute. To check fixed values, use `in`.
+- **Hierarchical functions:** `coversAll`, `coversAny`, `withinAll`, `withinAny`. See [Hierarchical attributes](#hierarchical-attributes).
+- **Session functions:** `inCIDR`, `versionEQ`, `versionGT`, `versionGTE`, `versionLT`, `versionLTE`. See [Session attributes](#session-attributes).
+- **Account age:** `youngerThanDays`, on `user.createat` only.
+- **Values:** text in quotes, `true` and `false`, whole numbers, and lists of these in square brackets.
+
+Anything else is rejected when you validate or save the rule. This includes other CEL functions, decimal numbers, `null`, maps such as `{"a": 1}`, and list macros such as `all()`, `exists()`, `filter()`, and `map()` (CEL shortcuts that loop over a list).
+
+## Ranked attributes \{#ranked-attributes}
+
+A ranked attribute's options have a fixed order, from lowest to highest, set in Attribute Management. Comparisons use that order, not alphabetical order. For example, if Clearance runs *Public*, *Confidential*, *Secret*, *Top Secret*, this rule matches users whose clearance is *Secret* or *Top Secret*:
+
+```
+user.attributes.Clearance >= "Secret"
+```
+
+Keep the following in mind:
+
+- **Compare against an option name or a channel attribute.** The other side of the comparison must be one of the attribute's option names, or a ranked channel attribute that comes from the same global attribute, such as `user.attributes.Clearance >= resource.attributes.Clearance`. See [Channel attributes](#channel-attributes).
+- **`in` isn't supported.** To match a range, use `>=` or `<=`. To match specific options, join `==` checks with `||`.
+- **Two user attributes can't be compared with each other.** For example, `user.attributes.Clearance >= user.attributes.RequiredClearance` is rejected.
+- **A misspelled option name is rejected when you save.**
+- **Deleting or renaming an option an existing rule uses breaks the rule.** The whole rule then evaluates to false for everyone, even if the comparison is inside `!`. Update the rule before you change the options.
+
+## Hierarchical attributes \{#hierarchical-attributes}
+
+From Mattermost v12.0, an attribute's options can form a hierarchy, where an option can have parent options above it and child options below it. For example, a Programs attribute might have these options:
+
+```
+All Programs
+├── Air
+│   ├── F-18
+│   └── F-35
+└── Sea
+    └── Submarine
+```
+
+A user can hold one or more options. Holding an option counts for everything below it: a user who holds *Air* also covers *F-18* and *F-35*. Four functions use the hierarchy:
+
+- **`coversAll(list)`** (**covers all of**): for every option in the list, the user holds that option or one above it.
+- **`coversAny(list)`** (**covers any of**): for at least one option in the list, the user holds that option or one above it.
+- **`withinAll(list)`** (**is within all of**): every option the user holds is in the list or below an option in it.
+- **`withinAny(list)`** (**is within any of**): at least one option the user holds is in the list or below an option in it.
+
+In short, *covers* checks that the user is at or above the options you name, and *within* checks that the user is at or below them. *Within all* is the strict one: it excludes a user who holds anything outside the options you name.
+
+Here's how the rules evaluate for three users. Alex holds *Air*, Blake holds *F-18*, and Casey holds *F-18* and *Submarine*.
+
+| Rule | Alex | Blake | Casey |
+|----|----|----|----|
+| `user.attributes.Programs.coversAll(["F-18"])` | Yes | Yes | Yes |
+| `user.attributes.Programs.coversAll(["F-18", "Submarine"])` | No | No | Yes |
+| `user.attributes.Programs.coversAny(["F-35", "Submarine"])` | Yes | No | Yes |
+| `user.attributes.Programs.withinAll(["Air"])` | Yes | Yes | No |
+| `user.attributes.Programs.withinAny(["Air"])` | Yes | Yes | Yes |
+| `"Air" in user.attributes.Programs` | Yes | No | No |
+
+Keep the following in mind:
+
+- **`in` ignores the hierarchy.** `"Air" in user.attributes.Programs` matches only users who hold *Air* itself. Each `in` tests one option; to test several, join them with `&&` or `||`. The Simple Mode **has any of** and **has all of** operators do this for you.
+- **Compare against a channel attribute** by passing it instead of a list, for example `user.attributes.Programs.coversAll(resource.attributes.Programs)`. Both must come from the same global attribute. `hasAnyOf` and `hasAllOf` also accept a hierarchical channel attribute, and match options exactly, ignoring the hierarchy.
+- **No other operators work with hierarchical attributes.** `==`, `!=`, `<`, `>`, `startsWith`, and the rest are rejected when you save, because a hierarchy has no single order to compare against.
+- **The list can't be empty.**
+- **Option names aren't checked when you save.** If a rule names an option that doesn't exist, because it's misspelled or was later deleted, the whole rule evaluates to false for everyone. Use **Test access rule** or **Simulate access** to catch this before it removes members.
+
+## Channel attributes \{#channel-attributes}
+
+From Mattermost v12.0, a rule can compare a user's attributes with the [attributes of the channel](/administration-guide/manage/admin/channel-attributes) being accessed, written `resource.attributes.<name>`. This lets one system-wide policy serve many channels, each with its own requirement. For example, assign this policy to every classified channel and set each channel's Clearance attribute:
+
+```
+user.attributes.Clearance >= resource.attributes.Clearance
+```
+
+A user can then join a *Secret* channel if their clearance is *Secret* or higher, and a *Top Secret* channel only if it's *Top Secret*.
+
+To compare a user attribute with a channel attribute, apply one global attribute to both **Users** and **Channels** in Attribute Management. Keep the following in mind:
+
+- **Ranked, multiselect, and hierarchical attributes must come from the same global attribute** on both sides, so that the options match. Mattermost rejects the rule otherwise.
+- **A multiselect channel attribute can only be used with `hasAnyOf` or `hasAllOf`**, called on a multiselect user attribute. `user.attributes.Regions.hasAnyOf(resource.attributes.Regions)` matches users who have at least one of the channel's regions. `hasAllOf` matches users who have every one of the channel's regions; extra regions are fine.
+- **Team membership rules can't use channel attributes**, because teams don't have attributes. This includes system-wide policies assigned to a team.
+- **Only `resource.attributes.<name>` is supported.** Other forms, such as `has(resource.attributes.Clearance)`, are rejected.
+
+<Warning>
+
+If a channel has no value for a channel attribute that its policy uses, the policy denies everyone for that channel. On a private channel, the next synchronization removes every member. On a public channel, nobody is removed, but nobody is recommended or added automatically either. This also happens if the channel's value is an option that has since been deleted.
+
+The policy editor warns about this with **Channels without this attribute lose all members**. Set the attribute on every channel before you assign the policy to it.
+
+</Warning>
+
+## Session attributes \{#session-attributes}
+
+From Mattermost v12.0, permission rules can check the user's current connection, such as their IP address, their app version, or whether a VPN is active. These values are written `user.session.<name>`. They can't be used in membership rules, because membership doesn't depend on how someone is connected right now.
+
+Each session attribute must be enabled in **System Console \> System Attributes \> Session Attributes** before a rule can use it. A rule that uses an unknown or disabled attribute can't be saved. See [Session attributes](/administration-guide/manage/admin/session-attributes) for the full list and for which clients report each one.
+
+Two kinds of function work only with session attributes:
+
+- **`inCIDR`** checks whether an IP address is inside a range. Ranges are written in CIDR notation, an address followed by the number of fixed leading bits; for example, `10.0.0.0/8` covers every address starting with `10.`:
+
+  ```
+  user.session.ip_address.inCIDR("10.0.0.0/8")
+  ```
+
+- **`versionEQ`, `versionGT`, `versionGTE`, `versionLT`, and `versionLTE`** compare version numbers part by part, so `6.10.0` counts as newer than `6.9.0`:
+
+  ```
+  user.session.client_version.versionGTE("6.3.0")
+  ```
+
+Session values are always text. For yes-or-no attributes, compare against the quoted strings `"true"` and `"false"`, for example `user.session.vpn_active == "true"`.
+
+## How rules combine \{#how-rules-combine}
+
+Mattermost combines conditions and rules in the following ways:
+
+- **Rows in Simple Mode** are combined with AND: a user must match every row.
+- **Rules for the same action in one policy** are combined with OR: a user must match at least one. In channel permission rules, this applies to rules for the same channel role. A channel admin with no rule of their own for an action is checked against the channel member rules.
+- **A policy and the system-wide policies it inherits** are combined with AND: the user must pass all of them. A channel's or team's own rules can narrow a system-wide policy but never widen it.
+- **For permission actions**, such as uploading or downloading files, the channel's permission rules and the system-wide permission policies must all allow the action.
+- **An action with no rules at all** isn't restricted.
+
+Membership rules and permission rules are checked at different times. Membership rules decide who can be in a channel or team. They're checked when someone joins or is added, and again on each synchronization. Permission rules decide whether a member can take an action, and they're checked each time the user tries.
+
+## When a rule can't be evaluated \{#when-a-rule-cant-be-evaluated}
+
+When Mattermost can't decide whether a rule matches, it denies access. This happens in the following cases:
+
+- **The user has no value for an attribute** the rule uses. The condition doesn't match, even for **is not** or inside `!`. For example, `user.attributes.Department != "Sales"` doesn't match a user with no department. Another condition joined with `||` can still match.
+- **A session attribute is missing**, because the client doesn't report it or the value has expired.
+- **The channel has no value for a channel attribute** the rule uses. See [Channel attributes](#channel-attributes).
+- **A ranked or hierarchical option no longer exists.** The whole rule evaluates to false.
+- **A value can't be read**, such as an IP address or version that isn't valid.
+
+To find these problems before they affect users, select **Test access rule** in a membership policy to see which users match. In a permission policy, select **Simulate rules** to check specific users. See [Simulate access](/administration-guide/manage/admin/abac-system-wide-policies#simulate-access).

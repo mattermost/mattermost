@@ -502,6 +502,7 @@ const ADMIN_MANAGE_GROUPS = {
         'admin/abac-team-membership',
         'admin/abac-team-channel-policies',
         'admin/abac-channel-access-rules',
+        'admin/abac-policy-expressions',
         'admin/session-attributes',
       ]},
     ],
