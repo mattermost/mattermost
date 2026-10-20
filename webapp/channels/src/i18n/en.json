@@ -14371,18 +14371,6 @@
     "defaultMessage": "Password",
     "description": "Page title of the Password settings page in the System Console (Authentication section)."
   },
-  "admin.server_logs.CopyLog": {
-    "defaultMessage": "Copy log",
-    "description": "Button in the header of the log event modal (server logs admin page); copies the log entry JSON to the clipboard."
-  },
-  "admin.server_logs.DataCopied": {
-    "defaultMessage": "Data copied",
-    "description": "Confirmation text that briefly replaces the copy button after the log entry has been copied to the clipboard."
-  },
-  "admin.server_logs.LogEvent": {
-    "defaultMessage": "Log Event",
-    "description": "Title of the modal showing the full JSON of a single server log entry."
-  },
   "admin.service.attemptDescription": {
     "defaultMessage": "Login attempts allowed before user is locked out and required to reset password via email.",
     "description": "Admin console help text for the Maximum Login Attempts setting on the Password admin page."

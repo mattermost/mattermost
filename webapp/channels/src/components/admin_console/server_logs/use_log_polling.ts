@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 
 type UseLogPollingOptions = {
     fetchLogs: () => Promise<void>;
@@ -10,7 +10,6 @@ type UseLogPollingOptions = {
 };
 
 export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPollingOptions) {
-    const [lastUpdated, setLastUpdated] = useState<number | null>(null);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const fetchRef = useRef(fetchLogs);
     const isPollingRef = useRef(false);
@@ -30,7 +29,6 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
         isPollingRef.current = true;
         try {
             await fetchRef.current();
-            setLastUpdated(Date.now());
         } catch {
             // Keep polling so a transient failure recovers on the next tick
         } finally {
@@ -71,6 +69,4 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, [enabled, intervalMs, stop, tick]);
-
-    return {lastUpdated};
 }

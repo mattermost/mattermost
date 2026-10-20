@@ -6,8 +6,6 @@ import {act, renderHook} from 'tests/react_testing_utils';
 import useLogPolling from './use_log_polling';
 
 describe('components/admin_console/server_logs/useLogPolling', () => {
-    const NOW = 1700000000000;
-
     let fetchLogs: jest.Mock;
 
     // Flushes the promises of an in-flight poll so the next tick is not skipped
@@ -51,7 +49,6 @@ describe('components/admin_console/server_logs/useLogPolling', () => {
 
     beforeEach(() => {
         jest.useFakeTimers();
-        jest.setSystemTime(NOW);
         fetchLogs = jest.fn().mockResolvedValue(undefined);
     });
 
@@ -204,46 +201,7 @@ describe('components/admin_console/server_logs/useLogPolling', () => {
         });
     });
 
-    describe('lastUpdated', () => {
-        test('should be null before the first poll completes', () => {
-            const {result} = renderPolling({enabled: false, intervalMs: 5000});
-
-            expect(result.current.lastUpdated).toBeNull();
-        });
-
-        test('should be set after a successful poll', async () => {
-            const {result} = renderPolling({enabled: true, intervalMs: 5000});
-
-            // Flush the immediate fetch
-            await act(async () => {});
-
-            expect(result.current.lastUpdated).toBe(NOW);
-        });
-
-        test('should update after each poll', async () => {
-            const {result} = renderPolling({enabled: true, intervalMs: 5000});
-
-            await act(async () => {});
-            expect(result.current.lastUpdated).toBe(NOW);
-
-            await advance(5000);
-
-            expect(result.current.lastUpdated).toBe(NOW + 5000);
-        });
-
-        test('should not update when the fetch rejects', async () => {
-            const {result} = renderPolling({enabled: true, intervalMs: 5000});
-
-            await act(async () => {});
-            expect(result.current.lastUpdated).toBe(NOW);
-
-            fetchLogs.mockRejectedValue(new Error('request failed'));
-
-            await advance(5000);
-
-            expect(result.current.lastUpdated).toBe(NOW);
-        });
-
+    describe('failures', () => {
         test('should keep polling after a failed fetch', async () => {
             fetchLogs.mockRejectedValue(new Error('request failed'));
 

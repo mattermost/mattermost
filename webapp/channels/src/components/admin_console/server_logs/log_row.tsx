@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState, memo} from 'react';
+import React, {useCallback, memo} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -15,16 +15,10 @@ import {getDisplayNameByUser, imageURLForUser} from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import type {LogObjectWithAdditionalInfo} from './types';
+import useClipboardCopy from './use_clipboard_copy';
 import {formatLogValue} from './utils';
 
 import './log_list.scss';
-
-function copyToClipboard(text: string): Promise<void> {
-    if (typeof navigator === 'undefined' || !navigator.clipboard) {
-        return Promise.reject(new Error('Clipboard API unavailable'));
-    }
-    return navigator.clipboard.writeText(text);
-}
 
 type Props = {
     log: LogObjectWithAdditionalInfo;
@@ -120,18 +114,13 @@ const KNOWN_KEYS = new Set(['timestamp', 'level', 'msg', 'caller']);
 
 function CopyButton({value}: {value: string}) {
     const intl = useIntl();
-    const [copied, setCopied] = useState(false);
+    const [status, copy] = useClipboardCopy();
 
     const handleCopy = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
-        copyToClipboard(value).then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
-        }).catch(() => {
-            // Clipboard unavailable — no success feedback
-        });
-    }, [value]);
+        copy(value);
+    }, [copy, value]);
 
     return (
         <button
@@ -140,7 +129,7 @@ function CopyButton({value}: {value: string}) {
             onClick={handleCopy}
             aria-label={intl.formatMessage({id: 'admin.logs.copyToClipboard', defaultMessage: 'Copy to clipboard'})}
         >
-            <i className={copied ? 'icon icon-check' : 'icon icon-content-copy'}/>
+            <i className={status === 'copied' ? 'icon icon-check' : 'icon icon-content-copy'}/>
         </button>
     );
 }
@@ -211,8 +200,10 @@ function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
 }
 
 function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm, wrapText}: Props) {
-    const [copyJsonSuccess, setCopyJsonSuccess] = useState(false);
-    const [copyLineSuccess, setCopyLineSuccess] = useState(false);
+    const [copyJsonStatus, copyJson] = useClipboardCopy();
+    const [copyLineStatus, copyLine] = useClipboardCopy();
+    const copyJsonSuccess = copyJsonStatus === 'copied';
+    const copyLineSuccess = copyLineStatus === 'copied';
     const levelConfig = LEVEL_CONFIG[log.level];
 
     const handleClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
@@ -230,24 +221,13 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
 
     const handleCopyJson = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        copyToClipboard(JSON.stringify(log, undefined, 2)).then(() => {
-            setCopyJsonSuccess(true);
-            setTimeout(() => setCopyJsonSuccess(false), 2000);
-        }).catch(() => {
-            // Clipboard unavailable — no success feedback
-        });
-    }, [log]);
+        copyJson(JSON.stringify(log, undefined, 2));
+    }, [copyJson, log]);
 
     const handleCopyLine = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        const line = `${log.timestamp} [${log.level?.toUpperCase()}] ${log.msg} (${log.caller})`;
-        copyToClipboard(line).then(() => {
-            setCopyLineSuccess(true);
-            setTimeout(() => setCopyLineSuccess(false), 2000);
-        }).catch(() => {
-            // Clipboard unavailable — no success feedback
-        });
-    }, [log]);
+        copyLine(`${log.timestamp} [${log.level?.toUpperCase()}] ${log.msg} (${log.caller})`);
+    }, [copyLine, log]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         // Ignore events from interactive descendants (buttons, links)
@@ -260,14 +240,9 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
             onToggleExpand(log);
         }
         if (e.key === 'c' && !e.ctrlKey && !e.metaKey) {
-            copyToClipboard(JSON.stringify(log, undefined, 2)).then(() => {
-                setCopyJsonSuccess(true);
-                setTimeout(() => setCopyJsonSuccess(false), 2000);
-            }).catch(() => {
-                // Clipboard unavailable — no success feedback
-            });
+            copyJson(JSON.stringify(log, undefined, 2));
         }
-    }, [log, onToggleExpand]);
+    }, [copyJson, log, onToggleExpand]);
 
     const rowClasses = [
         'LogRow',

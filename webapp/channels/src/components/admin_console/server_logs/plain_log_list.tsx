@@ -12,6 +12,9 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 import * as TextFormatting from 'utils/text_formatting';
 
+import useClipboardCopy from './use_clipboard_copy';
+import type {CopyStatus} from './use_clipboard_copy';
+
 import './plain_log_list.scss';
 
 type Props = {
@@ -161,18 +164,18 @@ function highlightPlainLog(line: string): React.ReactNode {
     return <>{parts}</>;
 }
 
-function getCopyIconClass(success: boolean, failed: boolean): string {
-    if (success) {
+function getCopyIconClass(status: CopyStatus): string {
+    if (status === 'copied') {
         return 'icon icon-check';
     }
-    if (failed) {
+    if (status === 'failed') {
         return 'icon icon-alert-outline';
     }
     return 'icon icon-content-copy';
 }
 
-function getCopyLabel(success: boolean, failed: boolean): React.ReactNode {
-    if (success) {
+function getCopyLabel(status: CopyStatus): React.ReactNode {
+    if (status === 'copied') {
         return (
             <FormattedMessage
                 id='admin.logs.copied'
@@ -180,7 +183,7 @@ function getCopyLabel(success: boolean, failed: boolean): React.ReactNode {
             />
         );
     }
-    if (failed) {
+    if (status === 'failed') {
         return (
             <FormattedMessage
                 id='admin.logs.copyFailed'
@@ -206,7 +209,7 @@ export default function PlainLogList({
     const logPanelRef = useRef<HTMLDivElement>(null);
     const [followTail, setFollowTail] = useState(true);
     const [wrapText, setWrapText] = useState(false);
-    const [copySuccess, setCopySuccess] = useState(false);
+    const [copyStatus, copy] = useClipboardCopy();
     const [showLineNumbers, setShowLineNumbers] = useState(true);
     const [newestFirst, setNewestFirst] = useState(false);
     const [goToPageInput, setGoToPageInput] = useState('');
@@ -241,22 +244,7 @@ export default function PlainLogList({
         }
     }, [followTail, newestFirst]);
 
-    const [copyFailed, setCopyFailed] = useState(false);
-
-    const handleCopyAll = useCallback(() => {
-        if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
-            setCopyFailed(true);
-            setTimeout(() => setCopyFailed(false), 2000);
-            return;
-        }
-        navigator.clipboard.writeText(displayLogs.join('\n')).then(() => {
-            setCopySuccess(true);
-            setTimeout(() => setCopySuccess(false), 2000);
-        }).catch(() => {
-            setCopyFailed(true);
-            setTimeout(() => setCopyFailed(false), 2000);
-        });
-    }, [displayLogs]);
+    const handleCopyAll = useCallback(() => copy(displayLogs.join('\n')), [copy, displayLogs]);
 
     const handleGoToPage = useCallback(() => {
         const pageNum = parseInt(goToPageInput, 10);
@@ -491,8 +479,8 @@ export default function PlainLogList({
                         className='btn btn-sm btn-quaternary'
                         onClick={handleCopyAll}
                     >
-                        <i className={getCopyIconClass(copySuccess, copyFailed)}/>
-                        {getCopyLabel(copySuccess, copyFailed)}
+                        <i className={getCopyIconClass(copyStatus)}/>
+                        {getCopyLabel(copyStatus)}
                     </button>
 
                     <div className='PlainLogViewer__pagination'>
