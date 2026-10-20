@@ -80,7 +80,7 @@ export default class ServerLogs {
     }
 
     /**
-     * Turn live tail on at the given poll interval, e.g. 'Every 5 seconds'.
+     * Turn live tail on at the given poll interval, e.g. 'Every 10 seconds'.
      * Picking an interval is what enables polling.
      */
     async selectLiveTailInterval(interval: string) {

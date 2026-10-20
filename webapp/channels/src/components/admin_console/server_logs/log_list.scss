@@ -18,9 +18,9 @@
     &__filters {
         column-gap: 12px;
 
-        // Wide enough for the longest selector value, 'Every 5 seconds'
+        // Wide enough for the longest selector value, 'Every 10 seconds'
         .inputWithMenu input.form-control {
-            width: 140px;
+            width: 150px;
         }
     }
 

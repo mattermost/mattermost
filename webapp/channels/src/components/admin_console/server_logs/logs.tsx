@@ -43,9 +43,8 @@ export const searchableStrings = [
     messages.title,
 ];
 
-const POLL_INTERVALS = [5000, 10000, 30000, 60000] as const;
+const POLL_INTERVALS = [10000, 30000, 60000] as const;
 const POLL_INTERVAL_LABELS = defineMessages<number>({
-    5000: {id: 'admin.logs.pollInterval.5s', defaultMessage: 'Every 5 seconds'},
     10000: {id: 'admin.logs.pollInterval.10s', defaultMessage: 'Every 10 seconds'},
     30000: {id: 'admin.logs.pollInterval.30s', defaultMessage: 'Every 30 seconds'},
     60000: {id: 'admin.logs.pollInterval.60s', defaultMessage: 'Every 60 seconds'},
@@ -127,7 +126,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
 
     // Live tail state
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
-    const [pollInterval, setPollInterval] = useState(5000);
+    const [pollInterval, setPollInterval] = useState(30000);
 
     // Active time preset
     const [activeTimePreset, setActiveTimePreset] = useState<number | null>(null);

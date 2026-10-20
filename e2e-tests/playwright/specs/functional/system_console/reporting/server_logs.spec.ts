@@ -81,7 +81,7 @@ test.describe('System Console - Reporting - Server Logs', () => {
             await serverLogs.toBeVisible();
 
             // # Turn on live tail at the shortest poll interval
-            await serverLogs.selectLiveTailInterval('Every 5 seconds');
+            await serverLogs.selectLiveTailInterval('Every 10 seconds');
 
             // * Verify polling is running
             await expect(serverLogs.lastUpdated).toBeVisible();

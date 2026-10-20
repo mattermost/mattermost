@@ -9967,10 +9967,6 @@
     "defaultMessage": "Every 30 seconds",
     "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 30 seconds."
   },
-  "admin.logs.pollInterval.5s": {
-    "defaultMessage": "Every 5 seconds",
-    "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 5 seconds."
-  },
   "admin.logs.pollInterval.60s": {
     "defaultMessage": "Every 60 seconds",
     "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 60 seconds."
