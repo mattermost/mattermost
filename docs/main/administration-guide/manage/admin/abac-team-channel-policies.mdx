@@ -4,7 +4,7 @@ sidebar_label: "Team channel policies"
 ---
 <PlanAvailability slug="entry-adv" />
 
-Team Admins can create and manage attribute-based membership policies for private channels within their team, directly from Team Settings, without requiring System Admin involvement. For organization-wide policies managed by System Admins, see [System-wide attribute-based access policies](/administration-guide/manage/admin/abac-system-wide-policies).
+Team Admins can create and manage attribute-based membership policies for public and private channels within their team, directly from Team Settings, without requiring System Admin involvement. For organization-wide policies managed by System Admins, see [System-wide attribute-based access policies](/administration-guide/manage/admin/abac-system-wide-policies).
 
 <Note>
 
@@ -14,21 +14,22 @@ From Mattermost v11.10, Team Settings has four tabs: **Info**, **Access**, **Tea
 
 With team-level channel membership policies, Team Admins can:
 
-- Create policies that apply attribute-based access rules to one or more private channels within their team.
-- Control which users can join or stay in those channels based on their profile attributes.
-- Manage auto-sync membership, so channels stay up to date as user attributes change.
+- Create policies that apply attribute-based access rules to one or more channels within their team.
+- Control which users can join or stay in private channels, and which users are recommended or automatically added to public channels, based on their profile attributes.
+- Manage auto-add for each channel, so channels stay up to date as user attributes change.
 
 ## Use cases
 
 - **Team-wide project access**: Restrict all private project channels to members with a specific project attribute.
 - **Department isolation**: Ensure only users from a specific department can join the team's private channels.
 - **Clearance tiers**: Apply clearance-level requirements consistently across multiple channels in the team without System Admin involvement for each change.
+- **Onboarding recommendations**: Recommend or automatically add users to the public channels that match their department or role.
 
 ## Prerequisites
 
 - [Attribute-Based Access Control (ABAC)](/administration-guide/manage/admin/attribute-based-access-control) must be enabled by a System Admin in **System Console \> System Attributes \> Attribute-Based Access**.
 - You need Team Admin permissions for the team. The `manage_team_access_rules` permission is included in the Team Admin role by default.
-- Team-level membership policies apply only to private channels within the team.
+- Team-level membership policies can be assigned to public and private channels within the team. Default channels (such as Town Square and Off-Topic), shared channels, and group-synced channels can't be assigned.
 
 ### Access Team Settings
 
@@ -42,22 +43,31 @@ System Admins also have access to the **Channel Membership** tab in Team Setting
 
 </Note>
 
+## Public and private channels
+
+A policy behaves differently depending on the type of each channel it's assigned to:
+
+- **Private channels** are enforced. Only users who match the rules can join or be added, and members who no longer match are removed during synchronization.
+- **Public channels** are advisory. Nobody is ever removed and anyone can still join. Matching users are added automatically when auto-add is on, or see the channel under **Browse Channels \> Recommended channels** when it's off.
+
+A single policy can cover both kinds of channel. The editor shows a warning when it does, and each channel follows the rules for its own type.
+
 ## Manage membership policies
 
-The **Channel Membership** tab shows policies scoped to the team. Each policy displays its name and the number of private channels it applies to.
+The **Channel Membership** tab shows policies scoped to the team. Each policy displays its name and the number of channels it applies to.
 
-Team Admins only see policies whose access rules their own user attributes satisfy. If a policy has rules that exclude the Team Admin's attributes (for example, a policy requiring `Department=Engineering` and the Team Admin has `Department=Finance`), that policy will not appear in their list. This is a self-inclusion safety mechanism to prevent admins from being locked out of policies they manage.
+If a policy applies to at least one private channel, Team Admins only see it when their own user attributes satisfy its rules. For example, if a policy requires `Department=Engineering` and the Team Admin has `Department=Finance`, that policy won't appear in their list. This self-inclusion safety mechanism prevents admins from being locked out of channels they manage. Policies that apply only to public channels are always shown, because they can't remove anyone.
 
 ### Create a policy
 
 1. In the **Channel Membership** tab, select **Add policy**.
 2. Enter a unique policy name.
-3. Define access rules under **Access rules**:
+3. Define rules under **Membership rules**:
    - Select **Add attribute** to add a condition.
-   - For each condition, choose the user attribute, the matching operator (**Is**, **Is not**, **In**, **Contains**), and the required value.
+   - For each condition, choose the user attribute, a matching operator, and the required value. The operators on offer depend on the attribute's type. See [Operators by attribute type](/administration-guide/manage/admin/abac-policy-expressions#operators-by-attribute-type) for the full list. This editor uses Simple Mode only.
    - Add multiple conditions as needed. All conditions are combined with a logical AND, so users must satisfy all of them.
 4. Assign channels under **Assigned channels**:
-   - Select **Add channels** to search for and select private channels within the team.
+   - Select **Add channels** to search for and select public or private channels within the team.
    - Channels already assigned to this policy are excluded from the search results to prevent duplicates.
    - A channel can be assigned to multiple policies simultaneously; all policies are enforced independently.
 5. Optionally, toggle **Auto-add members** per channel to control whether users matching the rules are automatically added to that channel.
@@ -65,7 +75,7 @@ Team Admins only see policies whose access rules their own user attributes satis
 
 <Important>
 
-Self-exclusion prevention is enforced during save. If your defined rules would exclude your own user account, Mattermost will block the save and display an error. Adjust your rules to include your own attributes before saving.
+Self-exclusion prevention is enforced during save when the policy applies to at least one private channel. If your defined rules would exclude your own user account, Mattermost will block the save and display an error. Adjust your rules to include your own attributes before saving. Policies that apply only to public channels skip this check.
 
 </Important>
 
@@ -73,7 +83,7 @@ Self-exclusion prevention is enforced during save. If your defined rules would e
 
 Select a policy row in the list, or use the three-dot menu and select **Edit**, to open the policy editor. You can update the policy name, access rules, and channel assignments. Select **Save** to apply changes.
 
-When saving changes that affect existing channel membership, a confirmation dialog shows how many users will be added or removed. Confirm to proceed.
+When saving changes that affect channel membership, a confirmation dialog summarizes how the policy will affect its assigned public and private channels. Confirm to proceed.
 
 ### Delete a policy
 
@@ -85,16 +95,16 @@ You can only delete a policy that has no channels assigned to it. To delete a po
 
 ### Auto-add members
 
-Each channel assigned to a policy has an independent **Auto-add members** toggle:
+Each channel assigned to a policy has its own **Auto-add members** toggle:
 
-- **Enabled**: Users matching the policy rules are automatically added to the channel. If a user loses the required attributes and later regains them, they are automatically re-added.
-- **Disabled** (default): The policy enforces rules as a gate, removing users who no longer qualify, but does not automatically add new qualifying users.
+- **Enabled**: Users matching the policy rules are automatically added to the channel during synchronization. On a private channel, a user who loses the required attributes is removed, and is added again if they later regain them. On a public channel, a matching user who leaves is added again at the next synchronization.
+- **Disabled** (default): Nobody is added automatically. On a private channel, the rules still act as a gate. On a public channel, matching users see the channel as recommended.
 
-Regardless of this setting, users who no longer satisfy the access rules are always removed during the next synchronization.
+On private channels, users who no longer satisfy the access rules are always removed during the next synchronization, whatever this setting is. On public channels, nobody is ever removed.
 
 <Note>
 
-If a system-wide policy has auto-sync enabled for a channel, Team Admins cannot disable it for that channel. If a system-wide policy has auto-sync disabled, Team Admins can choose to enable it.
+From Mattermost v12.0, auto-add is set separately for each channel rather than once for the whole policy. The toggle changes the channel's own setting, which Channel Admins can also change in **Channel Settings**. It isn't inherited from other policies assigned to the same channel. See [Policy inheritance](/administration-guide/manage/admin/abac-channel-access-rules#policy-inheritance).
 
 </Note>
 
@@ -104,17 +114,21 @@ When both a system-wide policy and a team-level policy apply to the same channel
 
 - System-wide policies are managed in the System Console.
 - Team-level policies are managed in Team Settings.
-- Users must meet the rules of all applicable policies to access the channel.
+- Users must meet the rules of all applicable policies to access the channel. If any policy denies a user, that user is denied. See [How rules combine](/administration-guide/manage/admin/abac-policy-expressions#how-rules-combine).
 
 ### Cross-team policies
 
-A policy that has private channels from more than one team is considered a cross-team policy. Cross-team policies are not visible in any team's **Channel Membership** tab — they are managed exclusively through the System Console.
+A policy that has channels from more than one team is considered a cross-team policy. Cross-team policies are not visible in any team's **Channel Membership** tab — they are managed exclusively through the System Console.
 
 If a System Admin adds a channel from another team to a policy that was previously scoped to one team, that policy will no longer appear in any team's **Channel Membership** tab.
 
 ## Synchronization
 
-When you save a policy or modify channel assignments, Mattermost creates a membership synchronization job. Changes are applied as soon as the job completes. Synchronization also runs automatically on a schedule to handle attribute changes from external systems such as LDAP or SAML. The interval is set by `AccessControlSettings.SyncJobIntervalSeconds` and defaults to 3600 seconds (60 minutes). User attributes used for access control evaluation are refreshed on a separate schedule controlled by `AccessControlSettings.AttributeRefreshIntervalSeconds`, which defaults to 30 seconds.
+When you save a policy, change its rules or channel assignments, or change auto-add for a channel, Mattermost creates a membership synchronization job for the team. Changes are applied as soon as the job completes, so you don't need to trigger a sync yourself.
+
+The bottom of the **Channel Membership** tab shows when the team's policies were last synchronized. Select **Sync now** to run a synchronization immediately. It only affects channels and policies in the current team.
+
+Synchronization also runs automatically on a schedule, every 60 minutes by default, to handle attribute changes from external systems such as AD/LDAP or SAML. See [Sync job interval](/administration-guide/configure/system-attributes#sync-job-interval-seconds). User attributes used for access control evaluation are refreshed separately, every 30 seconds by default. See [Attribute refresh interval](/administration-guide/configure/system-attributes#attribute-refresh-interval-seconds).
 
 ## Troubleshooting and FAQs
 
@@ -129,16 +143,16 @@ The **Channel Membership** tab is only visible when:
 
 There are two reasons a policy may not appear in your **Channel Membership** tab:
 
-- **Cross-team policy**: The policy includes private channels from more than one team. Cross-team policies are not visible in Team Settings for anyone and must be managed through the System Console.
-- **Self-inclusion filter**: Your own user attributes do not satisfy the policy's access rules. For example, if a policy requires `Department=Engineering` and your profile has `Department=Finance`, you will not see that policy. A System Admin or another Team Admin whose attributes do satisfy the rules would need to manage it instead.
+- **Cross-team policy**: The policy includes channels from more than one team. Cross-team policies are not visible in Team Settings for anyone and must be managed through the System Console.
+- **Self-inclusion filter**: The policy applies to at least one private channel, and your own user attributes do not satisfy its access rules. For example, if a policy requires `Department=Engineering` and your profile has `Department=Finance`, you will not see that policy. A System Admin or another Team Admin whose attributes do satisfy the rules would need to manage it instead.
 
 ### What happens when I save rules that would exclude me?
 
-Mattermost validates your access rules against your own user attributes before saving. If the rules would remove you from any assigned channel, the save is blocked and an error is shown. Adjust the rules to include your own attributes, or reset them using the **Undo** option in the save panel.
+If the policy applies to at least one private channel, Mattermost validates your access rules against your own user attributes before saving. If the rules would exclude you, the save is blocked and an error is shown. Adjust the rules to include your own attributes, or reset them using the **Undo** option in the save panel.
 
 ### Can I assign a channel to more than one team-level policy?
 
-Yes. A private channel can be assigned to multiple membership policies. Each policy's rules are applied independently, and users must satisfy all of them to access the channel.
+Yes. A channel can be assigned to multiple membership policies. Each policy's rules are applied independently, and users must satisfy all of them.
 
 ### Can Team Admins override system-wide policies?
 

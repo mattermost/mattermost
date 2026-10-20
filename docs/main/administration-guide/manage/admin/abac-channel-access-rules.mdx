@@ -10,7 +10,7 @@ From Mattermost v11.8, channel access rules can be applied to **both private and
 - **Private channels** are hard-gated. Non-matching members are removed during synchronization, and only matching users can be added or invited.
 - **Public channels** are advisory. Non-matching members are *never* removed (anyone can still join a public channel by browsing or via a direct link). With auto-add enabled the policy still pulls matching users in; with auto-add disabled the channel surfaces under **Browse Channels \> Recommended channels** for users whose attributes match.
 
-Each ABAC channel access policy has an explicit active state that determines whether the policy will automatically add users who meet the policy's criteria but are not yet channel members. For private channels, the policy's rules are always enforced to remove members who no longer meet the required attribute rules, regardless of the active state. For public channels, no member is ever removed by ABAC — the rules are advisory only.
+Each channel also has its own auto-add setting, which controls whether Mattermost adds users who match the rules but aren't members yet. On private channels, members who no longer match the rules are removed whether auto-add is on or off. On public channels, ABAC never removes anyone; the rules are advisory only.
 
 With channel access rules, Channel and Team Admins can:
 
@@ -39,39 +39,33 @@ You can also assign ABAC rules to a channel directly from a channel's details pa
 
 ## Configure access rules
 
-Channel access rules use the same simple interface as system policies, allowing you to create attribute-based conditions without complex syntax.
+Channel access rules use Simple Mode, the same table editor that system policies use, so you can build attribute-based conditions without writing expressions. Advanced Mode isn't available in Channel Settings.
 
 1.  In the **Membership Policy** tab, you'll see any inherited system policies at the top in a blue information banner (if applicable).
 2.  Use the **Add attribute** button to create new access conditions:
     - **Select attribute**: Choose from available user attributes
-    - **Choose operator**: Select how the attribute should match:
-      - **Is**: Exact match with specified value
-      - **Is not**: Must not match specified value
-      - **In**: Must match any of multiple specified values
-      - **Contains**: Attribute value must contain specified text
+    - **Choose operator**: Select how the attribute should match. The operators on offer depend on the attribute's type. See [Operators by attribute type](/administration-guide/manage/admin/abac-policy-expressions#operators-by-attribute-type) for the full list.
     - **Set values**: Enter the required attribute values
 3.  Add multiple conditions as needed. All conditions are combined with logical AND (all must be satisfied).
-4.  Select **Test access rules** to preview which users would be granted access based on your current rules.
+4.  Select **Test access rule** to preview which users would be granted access based on your current rules.
 5.  Select **Save** at the bottom of the tab to apply your changes.
 
-### Auto-sync membership
+### Auto-add members
 
-The **Auto-add members based on access rules** toggle controls automatic membership management. The behavior differs by channel type:
+The **Auto-add members based on access rules** checkbox controls automatic membership management. The behavior differs by channel type:
 
 - **Private channels (hard gate)**: Membership stays consistently aligned with the rules, similar to how LDAP group channels work.
   - **Enabled**: Users matching the rules are automatically added. If users temporarily lose attributes and later regain them, they will be automatically re-added.
   - **Disabled**: Rules act as a gate (preventing unauthorized joins) but don't automatically add qualifying users.
 - **Public channels (advisory)**: ABAC never removes members — anyone can still join a public channel.
-  - **Enabled**: Matching users are automatically added (a convenience, not a gate).
+  - **Enabled**: Matching users are automatically added (a convenience, not a gate). A matching user who leaves the channel is added again at the next synchronization. To let users leave for good, turn auto-add off.
   - **Disabled**: The channel appears under **Browse Channels \> Recommended channels** for users whose attributes match, surfacing the channel without adding anyone.
 
 <Important>
 
-- Auto-add/auto-sync is checked on a per-channel policy basis, not inherited from parent system-wide policies.
-- If a system policy has auto-sync enabled, Channel and Team Admins cannot disable it at the channel level.
-- If a system policy has auto-sync disabled, Channel and Team Admins can choose to enable it for their channel.
-- When no rules are configured, this toggle is automatically disabled.
-- On **private** channels, users who no longer meet required attribute rules are always removed during synchronization regardless of the auto-sync setting. On **public** channels, no member is ever removed by ABAC.
+- From Mattermost v12.0, auto-add is set separately for each channel and isn't inherited from system policies. See [Policy inheritance](#policy-inheritance).
+- The checkbox is unavailable while the channel has no access rules of its own and no system policy applies to it.
+- On **private** channels, users who no longer meet required attribute rules are always removed during synchronization, whether auto-add is on or off. On **public** channels, no member is ever removed by ABAC.
 
 </Important>
 <Note>
@@ -114,15 +108,11 @@ Public channels with membership policies may appear in **Browse Channels** under
 
 ## Channel-level permission policies
 
-From Mattermost v11.8.0, channel admins can define channel-level permission rules for file upload and file download based on user attributes and channel role. Applicable roles include **channel admin**, **channel member**, and **channel guest**. Burn-on-read message creation can also be restricted this way.
+From Mattermost v11.8, channel admins can define channel-level permission rules for file upload and file download based on user attributes and channel role. Each rule applies to one role: **Channel admin**, **Channel member**, or **Channel guest**. From Mattermost v12.1, creating burn-on-read messages can also be restricted this way.
 
 For system-wide permission policies that restrict these actions, see [Permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies).
 
-<Note>
-
-**Channel-level permission policies** require a Mattermost Enterprise Advanced license and are gated by both the `PermissionPolicies` feature flag (`MM_FEATUREFLAGS_PERMISSIONPOLICIES`) and the `ChannelPermissionPolicies` feature flag (`MM_FEATUREFLAGS_CHANNELPERMISSIONPOLICIES`). See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
-
-</Note>
+Channel-level permission policies require Mattermost Entry or Enterprise Advanced.
 
 After adding or editing a rule in the **Permissions Policy** tab, select **Save** at the bottom of the tab to apply it.
 
@@ -136,67 +126,26 @@ A rule that references a session attribute denies any session that doesn't have 
 
 ## Simulate access
 
-From Mattermost v11.8.0, admins can use **Simulate access** in Channel Settings to preview whether selected users can perform actions such as uploading files or downloading files before saving policy changes.
+From Mattermost v11.8, admins can preview whether selected users can perform actions such as uploading files or downloading files before saving policy changes. In the **Permissions Policy** tab, select **Simulate rules** to open **Simulate access**.
 
 - Simulation can evaluate draft rules before they're saved, so you can confirm the intended scope without affecting live channel access.
+- Simulation covers permission rules only. To preview who a membership rule lets into the channel, use **Test access rule** in the **Membership Policy** tab.
 - Some denied results may indicate that the decision came from another policy. In that case, Mattermost shows that access was denied by another policy without exposing policy details you aren't authorized to see.
 - From Mattermost v12, a neutral **No recent session** result indicates that the rules reference [session attributes](/administration-guide/manage/admin/session-attributes) and the selected user has no cached session data to evaluate.
 
-<Note>
-
-**Simulate access** is gated by the `PermissionPolicies` feature flag (`MM_FEATUREFLAGS_PERMISSIONPOLICIES`) and requires a Mattermost Enterprise Advanced license. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
-
-</Note>
-
 ## Manage team-scoped membership policies in Team Settings
 
-From Mattermost v11.7, Team Admins can create, edit, and delete channel membership policies directly from Team Settings, scoped to channels within their team. This lets teams self-manage attribute-based membership for their own channels without requiring a System Admin to create or modify a system-wide policy.
-
-### Prerequisites
-
-- [Attribute-Based Access Control (ABAC)](/administration-guide/manage/admin/attribute-based-access-control) must be enabled by a System Admin in **System Console \> System Attributes \> Attribute-Based Access**.
-- You need Team Admin permissions for the team and the `manage_team_access_rules` permission.
-- Team-scoped membership policies can be assigned to both public and private channels within the team.
-
-### Team Admin workflow
-
-1.  Open **Team Settings** from the team menu, and go to the **Channel Membership** tab. This tab is only visible to Team Admins with the `manage_team_access_rules` permission when ABAC is enabled system-wide.
-2.  Select **Add Policy** and enter a name for the policy. Parent policy names must be unique; if you enter a name that's already in use, Mattermost displays a user-friendly error and prevents the policy from being saved.
-3.  Define the attribute rules that determine which users can be members of channels assigned to this policy. Rules use the same attribute conditions available for channel-specific access rules.
-4.  Assign the applicable private channels in the team to the policy.
-5.  Select **Save** to create or update the policy. Team-scoped policies can be edited or deleted from the same tab at any time.
-
-### Team Settings sync status footer
-
-The **Channel Membership** tab includes a sync status footer that shows:
-
-- **Last sync time**: The time of the most recent membership synchronization for policies in this team.
-- **Sync now**: An on-demand action that triggers an immediate synchronization for the team's policies.
-
-Team-scoped sync is limited to the team admin's team scope. Triggering **Sync now** from Team Settings does not affect channels or policies outside the current team.
-
-### Sync behavior by channel type
-
-Sync behavior for team-scoped membership policies depends on the type of channel the policy is assigned to:
-
-- **Public channels**: Sync is advisory and add-only. Users who match the policy's rules are added to the channel, but no users are removed if their attributes change.
-- **Private channels**: Sync is enforced. Users who match the policy's rules are added to the channel, and users who no longer match the rules are removed during the next synchronization.
-
-### Automatic sync on policy changes
-
-Mattermost automatically runs a sync job whenever a team-scoped membership policy is created, or its rules, assigned channels, or active state change. Team Admins don't need to manually trigger **Sync now** for these updates; the sync runs as part of the change.
+Team Admins can also create membership policies that cover several public or private channels in their team at once, from the **Channel Membership** tab in **Team Settings**. See [Team-level channel membership policies](/administration-guide/manage/admin/abac-team-channel-policies) for details.
 
 ## Policy inheritance
 
-Channel-level (child) ABAC policies now behave independently and consistently, even when parent system-wide policies exist. Each policy maintains its own active state and configuration.
+A channel can have its own access rules and can also import one or more [system policies](/administration-guide/manage/admin/abac-system-wide-policies). When both are configured:
 
-When both [system policies](/administration-guide/manage/admin/abac-system-wide-policies) and channel rules are configured:
-
-1.  **System policies** are displayed in a blue banner at the top (read-only)
-2.  **Channel rules** are managed in the access rules section below
-3.  **Users must satisfy BOTH** system policies and channel rules to access the channel
-4.  Channel rules **add restrictions** but cannot weaken system policies
-5.  **Auto-add behavior** is determined by the individual channel policy, not inherited from parent system-wide policies. System-wide policies can pass down their rules, but auto-add/auto-sync is evaluated per channel.
+1.  **System policies** are displayed in a blue banner at the top (read-only).
+2.  **Channel rules** are managed in the access rules section below.
+3.  **Every policy must allow access.** Users must satisfy each system policy and the channel's own rules. If any one of them denies a user, that user is denied. See [How rules combine](/administration-guide/manage/admin/abac-policy-expressions#how-rules-combine).
+4.  **Channel rules add restrictions.** They can't weaken or override a system policy.
+5.  **Auto-add isn't inherited.** Each channel keeps its own auto-add setting. When a System Admin assigns a system policy to a channel that has no access rules of its own yet, the system policy's setting becomes the channel's starting value. After that, only the channel's setting counts, and changing the system policy doesn't change it.
 
 ## Use cases and recommendations
 
@@ -210,7 +159,7 @@ When both [system policies](/administration-guide/manage/admin/abac-system-wide-
 **Best practices:**
 
 - **Start simple**: Begin with basic attribute conditions before adding complexity
-- **Test before saving**: Always use the "Test access rules" feature to verify your intended scope
+- **Test before saving**: Always use **Test access rule** to verify your intended scope
 - **Document changes**: Consider posting a message in the channel when access rules change
 - **Regular review**: Periodically review rules to ensure they remain appropriate
 - **Coordinate with IT**: Work with System Admins for complex organizational policies
@@ -255,7 +204,7 @@ When ABAC is enabled for a **public** channel:
 
 - **Search results are unfiltered**: All eligible team members appear in the Add Members modal so admins can still invite anyone; matching users carry a **Recommended** tag.
 - **Recommendations**: With auto-add disabled, the channel surfaces under **Browse Channels \> Recommended channels** for matching users.
-- **Auto-add (when enabled)**: Matching users are added automatically. **Members are never removed** by ABAC — users can always leave on their own, and joining freely is unaffected because the channel is public.
+- **Auto-add (when enabled)**: Matching users are added automatically. **Members are never removed** by ABAC, and joining freely is unaffected because the channel is public. Users can leave, but a user who still matches the rules is added again at the next synchronization.
 
 <Note>
 
@@ -296,24 +245,19 @@ No. The two modes have different semantics — a public-channel policy is adviso
 
 #### Can I use advanced CEL expressions in Channel Settings?
 
-No. Channel Settings only supports Basic Mode with simple attribute conditions. For complex expressions with nested logic or mixed operators, System Admins need to create policies in the System Console.
+No. Channel Settings only supports Simple Mode with simple attribute conditions. For complex expressions with nested logic or mixed operators, System Admins need to create policies in the System Console.
 
 #### How do I remove all access rules from a channel?
 
 Delete all attribute conditions from the access rules table. When no rules are configured and no system policies are applied, the channel returns to standard access behavior.
 
-#### Why is the auto-sync toggle disabled?
+#### Why can't I select the auto-add checkbox?
 
-The auto-sync toggle is automatically disabled when:
-
-- No access rules are configured
-- A system policy with auto-sync enabled is applied (Channel and Team Admins cannot disable it)
-- There are validation errors in the current rules
-- The channel's access control policy is not in an active state
+The **Auto-add members based on access rules** checkbox is unavailable while the channel has no access rules of its own and no system policy applies to it. Add at least one access rule, and the checkbox becomes available.
 
 <Note>
 
-**Troubleshooting auto-sync issues**: If auto-sync functionality (automatic adding/re-adding of members) is not working as expected, verify that the channel's access control policy is in an active state. An inactive policy will prevent automatic member additions from occurring. Note that enforcement of rules (removal of members who no longer meet requirements) happens regardless of the policy's active state.
+**Troubleshooting auto-add**: If matching users aren't being added, check that **Auto-add members based on access rules** is selected and saved for this channel. Auto-add isn't inherited from system policies, so a system policy that adds members elsewhere doesn't add them here. Users are added when the next synchronization runs. Removal of members who no longer meet the rules on private channels doesn't depend on this setting.
 
 </Note>
 
@@ -321,7 +265,7 @@ The auto-sync toggle is automatically disabled when:
 
 #### How quickly are membership changes applied?
 
-When you save access rules, membership sync job is created and changes are applied as soon as the job is completed. Additionally, Mattermost runs synchronization jobs on a schedule to handle attribute changes from external systems (LDAP, SAML). The interval is set by `AccessControlSettings.SyncJobIntervalSeconds` and defaults to 3600 seconds (60 minutes). User attributes used for access control evaluation are refreshed on a separate schedule controlled by `AccessControlSettings.AttributeRefreshIntervalSeconds`, which defaults to 30 seconds.
+When you save access rules, a membership sync job is created and changes are applied as soon as the job is completed. Mattermost also runs synchronization on a schedule, every 60 minutes by default, to handle attribute changes from external systems such as AD/LDAP or SAML. See [Sync job interval](/administration-guide/configure/system-attributes#sync-job-interval-seconds). User attributes used for access control evaluation are refreshed separately, every 30 seconds by default. See [Attribute refresh interval](/administration-guide/configure/system-attributes#attribute-refresh-interval-seconds).
 
 #### Will users be notified when they're removed from a channel?
 
@@ -339,7 +283,7 @@ You can use any user attributes either synchronized via LDAP/SAML or manually co
 
 #### What happens if a user attribute changes?
 
-During the next scheduled synchronization (every 60 minutes by default), users who no longer match the access rules will be removed from the channel, and new users who now match will be added (if auto-sync is enabled).
+During the next scheduled synchronization (every 60 minutes by default), users who now match the access rules are added if auto-add is on. On private channels, users who no longer match are removed. On public channels, nobody is removed.
 
 #### Do guest users work with ABAC channels?
 
