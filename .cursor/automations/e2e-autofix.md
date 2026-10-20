@@ -25,8 +25,9 @@ A fix request names:
 - `server_image_tag`, `server_images`: the server images that run tested (`enterprise`, `fips`). They
   may be missing; see [Test environment](#test-environment) for how to find them then.
 - `last_green_commit`, `first_red_commit`, `suspect_commits` (oldest first, `suspect_commits_total`
-  in all): the newest master commit where none of the failing tests failed (they passed, flaked,
-  or were skipped behind a flag), the first where one failed, and what landed in between. For `flaky`, the cause is usually older than this range.
+  in all): the newest master commit where every failing test passed or was skipped behind a flag
+  (a run where one flaked is not green: it may be where the break began), the first where one
+  failed, and what landed in between. For `flaky`, the cause is usually older than this range.
 - `open_prs_touching`: other open PRs into master that change these specs or their directories.
   They don't stop the request: most are feature work that happens to edit a spec.
 - `labels`: labels the PR must carry
@@ -93,6 +94,7 @@ image_tag() {
     tag=$(image_tag "$sha")
     [[ "$tag" =~ ^[0-9a-f]{7}_[0-9a-f]{7}$ ]] || continue
     docker manifest inspect "mattermostdevelopment/mattermost-enterprise-edition:$tag" >/dev/null 2>&1 || continue
+    docker manifest inspect "mattermostdevelopment/mattermost-enterprise-fips-edition:$tag" >/dev/null 2>&1 || continue
     echo "base=$sha tag=$tag"; break
   done
   ```
