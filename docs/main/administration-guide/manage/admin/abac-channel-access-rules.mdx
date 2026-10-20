@@ -265,7 +265,7 @@ The **Auto-add members based on access rules** checkbox is unavailable while the
 
 #### How quickly are membership changes applied?
 
-When you save access rules, a membership sync job is created and changes are applied as soon as the job is completed. Mattermost also runs synchronization on a schedule, every 60 minutes by default, to handle attribute changes from external systems such as AD/LDAP or SAML. See [Sync job interval](/administration-guide/configure/system-attributes#sync-job-interval-seconds). User attributes used for access control evaluation are refreshed separately, every 30 seconds by default. See [Attribute refresh interval](/administration-guide/configure/system-attributes#attribute-refresh-interval-seconds).
+When you save access rules, a membership sync job is created and changes are applied as soon as the job is completed. Mattermost also runs synchronization on a schedule, every 60 minutes by default, to handle attribute changes from external systems such as AD/LDAP or SAML. See [Sync job interval](/administration-guide/configure/system-attributes#sync-job-interval-seconds). Synchronization always reads the latest attribute values. Other lookups, such as the people offered when adding members and the results of testing a rule, can take up to 30 seconds by default to reflect an attribute change. See [Attribute refresh interval](/administration-guide/configure/system-attributes#attribute-refresh-interval-seconds).
 
 #### Will users be notified when they're removed from a channel?
 

@@ -116,6 +116,8 @@ user.session.<name>.<function>("<value>")
 | **version is at most** | `versionLTE` | The version is equal to or older than the given version. | `os_version`, `client_version`, `user_agent_browser_version` |
 | **version is less than** | `versionLT` | The version is strictly older than the given version. | `os_version`, `client_version`, `user_agent_browser_version` |
 
+For how these functions fit with the rest of a rule, and which operators each attribute type supports, see [Session attributes](/administration-guide/manage/admin/abac-policy-expressions#session-attributes) in the access policy expression reference.
+
 To allow several address ranges, join `inCIDR` checks with `||`:
 
 ```

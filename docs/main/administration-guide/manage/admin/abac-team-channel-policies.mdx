@@ -128,7 +128,7 @@ When you save a policy, change its rules or channel assignments, or change auto-
 
 The bottom of the **Channel Membership** tab shows when the team's policies were last synchronized. Select **Sync now** to run a synchronization immediately. It only affects channels and policies in the current team.
 
-Synchronization also runs automatically on a schedule, every 60 minutes by default, to handle attribute changes from external systems such as AD/LDAP or SAML. See [Sync job interval](/administration-guide/configure/system-attributes#sync-job-interval-seconds). User attributes used for access control evaluation are refreshed separately, every 30 seconds by default. See [Attribute refresh interval](/administration-guide/configure/system-attributes#attribute-refresh-interval-seconds).
+Synchronization also runs automatically on a schedule, every 60 minutes by default, to handle attribute changes from external systems such as AD/LDAP or SAML. See [Sync job interval](/administration-guide/configure/system-attributes#sync-job-interval-seconds). Synchronization always reads the latest attribute values. Other lookups, such as the people offered when adding members and the results of testing a rule, can take up to 30 seconds by default to reflect an attribute change. See [Attribute refresh interval](/administration-guide/configure/system-attributes#attribute-refresh-interval-seconds).
 
 ## Troubleshooting and FAQs
 

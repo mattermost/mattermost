@@ -35,6 +35,10 @@ When starting a plugin, the server consults the [plugin's manifest](/developers/
 
 The server will trigger the [OnActivate](/developers/integrate/reference/server#Hooks.OnActivate) hook if the plugin is successfully started, allowing you to perform startup events. If the plugin is disabled, the server will trigger the [OnDeactivate](/developers/integrate/reference/server#Hooks.OnDeactivate) hook. While running, the server plugin can consume hook events, make API calls, launch threads or subprocesses of its own, interact with third-party services or do anything else a regular program can do.
 
+## Properties and access control
+
+To attach typed data to Mattermost objects, such as a status for posts or a region for channels, without managing your own database tables, see [Store custom data with the property system](/developers/integrate/plugins/components/server/property-system). To protect your plugin's own resources with attribute-based access policies, and to respect Mattermost's file upload and download policies, see [Enforce access control in your plugin](/developers/integrate/plugins/components/server/access-control).
+
 ## High availability
 
 Considerations for plugins in a high availability configuration are documented here: [High Availability](/developers/integrate/plugins/components/server/ha)
