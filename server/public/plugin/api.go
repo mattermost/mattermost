@@ -864,16 +864,8 @@ type API interface {
 
 	// HasPermissionToFileAction evaluates the applicable policy for a session and file.
 	//
-	// action is "upload_file_attachment" or "download_file_attachment". The
-	// policies that apply to the file's channel are evaluated for the
-	// session's user. Returns false for any other action, an invalid session,
-	// a file that isn't in a channel, or an evaluation error. Returns true
-	// when attribute-based access control is turned off.
-	//
-	// Also available in 11.7.12, 11.10.3, 11.11.1 and their later patch releases.
-	//
 	// @tag File
-	// Minimum server version: 12.0
+	// Minimum server version: 11.7
 	HasPermissionToFileAction(sessionID, fileID, action string) bool
 
 	// GetFileLink gets the public link to a file by fileId.
@@ -1530,17 +1522,6 @@ type API interface {
 
 	// CreatePropertyField creates a new property field.
 	//
-	// Name and Type are required. Type is one of text, select, multiselect,
-	// date, user, multiuser, rank (a select whose options are ordered) or graph
-	// (a multiselect whose options form a hierarchy).
-	//
-	// In a group registered with RegisterPropertyGroup, leave ObjectType
-	// empty: a field with an ObjectType is refused there. In the built-in
-	// access_control group, ObjectType (user, channel, post, template, system
-	// or session) and TargetType (system, team or channel) are required, and
-	// TargetID is empty for a system target and the team or channel ID
-	// otherwise.
-	//
 	// If the field's LinkedFieldID is set, the field inherits type, options,
 	// and security attributes from the referenced template field. The source
 	// must be a template field in the same group, must not itself be linked,
@@ -1618,7 +1599,7 @@ type API interface {
 	// query examined rather than the last one it returned.
 	//
 	// @tag PropertyField
-	// Minimum server version: 12.0
+	// Minimum server version: 11.10
 	GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error)
 
 	// CreatePropertyFieldOptions adds options to a property field, at most 200
@@ -1631,7 +1612,7 @@ type API interface {
 	// option's identifier is assigned here, so supplying one is refused.
 	//
 	// @tag PropertyField
-	// Minimum server version: 12.0
+	// Minimum server version: 11.10
 	CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
 
 	// UpdatePropertyFieldOptions rewrites options a property field owns, at most
@@ -1644,7 +1625,7 @@ type API interface {
 	// field that inherits them. Every option is updated or none is.
 	//
 	// @tag PropertyField
-	// Minimum server version: 12.0
+	// Minimum server version: 11.10
 	UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
 
 	// DeletePropertyFieldOptions removes options a property field owns, at most
@@ -1656,16 +1637,10 @@ type API interface {
 	// that no longer exists is ignored wherever it is read.
 	//
 	// @tag PropertyField
-	// Minimum server version: 12.0
+	// Minimum server version: 11.10
 	DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error
 
 	// CreatePropertyValue creates a new property value.
-	//
-	// The value is JSON shaped by the field's type: a string for text, an
-	// option ID for select and rank, an array of option IDs for multiselect
-	// and graph, a user ID for user and an array of user IDs for multiuser.
-	// In the access_control group, a value of the wrong shape, or one naming
-	// an option the field doesn't have, is refused.
 	//
 	// @tag PropertyValue
 	// Minimum server version: 10.10
@@ -1691,12 +1666,6 @@ type API interface {
 
 	// UpsertPropertyValue creates a new property value or updates if it already exists.
 	//
-	// The value is JSON shaped by the field's type: a string for text, an
-	// option ID for select and rank, an array of option IDs for multiselect
-	// and graph, a user ID for user and an array of user IDs for multiuser.
-	// In the access_control group, a value of the wrong shape, or one naming
-	// an option the field doesn't have, is refused.
-	//
 	// @tag PropertyValue
 	// Minimum server version: 10.10
 	UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error)
@@ -1713,23 +1682,13 @@ type API interface {
 	// Minimum server version: 11.0
 	SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
 
-	// RegisterPropertyGroup registers a new property group, or returns the
-	// existing group if one with that name is already registered. A plugin
-	// registers its own group for the fields it defines.
-	//
-	// The built-in "access_control" group (model.AccessControlPropertyGroupName)
-	// holds user attributes, attribute templates and channel attributes. The
-	// deprecated "custom_profile_attributes" name is refused with an error; use
-	// "access_control" instead.
+	// RegisterPropertyGroup registers a new property group.
 	//
 	// @tag PropertyGroup
 	// Minimum server version: 10.10
 	RegisterPropertyGroup(name string) (*model.PropertyGroup, error)
 
-	// GetPropertyGroup gets a property group by name. Use
-	// model.AccessControlPropertyGroupName ("access_control") for the group
-	// that holds user attributes, attribute templates and channel attributes.
-	// The deprecated "custom_profile_attributes" name is refused with an error.
+	// GetPropertyGroup gets a property group by name.
 	//
 	// @tag PropertyGroup
 	// Minimum server version: 10.10
@@ -1754,12 +1713,6 @@ type API interface {
 	UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error)
 
 	// UpsertPropertyValues creates or updates multiple property values in a single operation.
-	//
-	// The value is JSON shaped by the field's type: a string for text, an
-	// option ID for select and rank, an array of option IDs for multiselect
-	// and graph, a user ID for user and an array of user IDs for multiuser.
-	// In the access_control group, a value of the wrong shape, or one naming
-	// an option the field doesn't have, is refused.
 	//
 	// @tag PropertyValue
 	// Minimum server version: 10.10
@@ -1838,35 +1791,16 @@ type API interface {
 	// means the decision could not be computed and the plugin MUST fail closed
 	// (deny).
 	//
-	// The policy is the one stored under resourceID. With none, the decision
-	// is allow with Context["reason"] set to "no_policy". A policy with no
-	// rule for action denies. When a policy exists but can't be evaluated, for
-	// example because attribute-based access control is unavailable, an error
-	// is returned.
-	//
 	// @tag AccessControl
-	// Minimum server version: 11.11
+	// Minimum server version: 11.10
 	EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError)
 
 	// SaveAccessControlPolicy creates or updates a policy whose Type is
 	// "<callingPluginID>:<type>". Version is forced to v0.5 and Active to
 	// true. policy.ID must be the resource's stable 26-char ID.
 	//
-	// Name is required, and the policy needs at least one rule. Each rule needs
-	// at least one action. Action names are chosen by the plugin; each must
-	// match ^[a-z0-9]+(_[a-z0-9]+)*$ and be at most 64 characters long. Plugin
-	// policies can't have imports, roles (on the policy or its rules) or a
-	// team scope. The Type of an existing policy can't be changed.
-	//
-	// actingUserID must be an existing user; the change is validated and
-	// audited as that user. The server doesn't check that this user may make
-	// the change: the plugin remains responsible for that.
-	//
-	// If the acting user isn't a system admin, they must satisfy every rule of
-	// the saved policy.
-	//
 	// @tag AccessControl
-	// Minimum server version: 11.11
+	// Minimum server version: 11.10
 	SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)
 
 	// GetAccessControlPolicy returns the policy stored under id. Returns a
@@ -1874,74 +1808,43 @@ type API interface {
 	// owned by the calling plugin (fail closed, no existence leak).
 	//
 	// @tag AccessControl
-	// Minimum server version: 11.11
+	// Minimum server version: 11.10
 	GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError)
 
 	// DeleteAccessControlPolicy deletes the policy stored under id after
 	// verifying the stored policy's type equals resourceType and is owned by
 	// the calling plugin. Type mismatches return a not-found error (fail closed).
 	//
-	// actingUserID must be an existing user; the change is validated and
-	// audited as that user. The server doesn't check that this user may make
-	// the change: the plugin remains responsible for that.
-	//
 	// @tag AccessControl
-	// Minimum server version: 11.11
+	// Minimum server version: 11.10
 	DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError
 
 	// CheckAccessControlExpression compiles and lints a CEL expression; an
 	// empty slice means the expression is valid.
 	//
-	// See https://docs.mattermost.com/administration-guide/manage/admin/abac-policy-expressions
-	// for the expression language.
-	//
-	// actingUserID must be an existing user; the call runs as that user. The
-	// server doesn't check that this user may make the call: the plugin
-	// remains responsible for that.
-	//
 	// @tag AccessControl
-	// Minimum server version: 11.11
+	// Minimum server version: 11.10
 	CheckAccessControlExpression(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError)
 
 	// QueryUsersForAccessControlExpression returns users matching the
-	// expression (test modal support for policy editors). limit defaults to 50
-	// and is capped at 100.
-	//
-	// See https://docs.mattermost.com/administration-guide/manage/admin/abac-policy-expressions
-	// for the expression language.
-	//
-	// actingUserID must be an existing user; the call runs as that user. The
-	// server doesn't check that this user may make the call: the plugin
-	// remains responsible for that.
+	// expression (test modal support for policy editors).
 	//
 	// @tag AccessControl
-	// Minimum server version: 11.11
+	// Minimum server version: 11.10
 	QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError)
 
-	// GetAccessControlFieldsAutocomplete returns user attribute fields for
-	// editor autocomplete, filtered by the acting user's attribute visibility.
-	// limit defaults to 50 and is capped at 100.
-	//
-	// actingUserID must be an existing user; the call runs as that user. The
-	// server doesn't check that this user may make the call: the plugin
-	// remains responsible for that.
+	// GetAccessControlFieldsAutocomplete returns CPA fields for editor
+	// autocomplete, filtered by the acting user's attribute visibility.
 	//
 	// @tag AccessControl
-	// Minimum server version: 11.11
+	// Minimum server version: 11.10
 	GetAccessControlFieldsAutocomplete(actingUserID, after string, limit int) ([]*model.PropertyField, *model.AppError)
 
 	// GetAccessControlVisualAST converts a CEL expression to the visual
 	// (table) AST.
 	//
-	// See https://docs.mattermost.com/administration-guide/manage/admin/abac-policy-expressions
-	// for the expression language.
-	//
-	// actingUserID must be an existing user; the call runs as that user. The
-	// server doesn't check that this user may make the call: the plugin
-	// remains responsible for that.
-	//
 	// @tag AccessControl
-	// Minimum server version: 11.11
+	// Minimum server version: 11.10
 	GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError)
 }
 
