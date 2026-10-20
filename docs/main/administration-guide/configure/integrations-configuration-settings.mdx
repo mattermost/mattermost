@@ -322,6 +322,30 @@ Access the following configuration settings in the System Console by going to **
 </tbody>
 </table>
 
+### Bot attributes
+
+<PlanAvailability slug="entry-ent" />
+
+From Mattermost v12.1, bot accounts can have [user attribute](/administration-guide/manage/admin/attribute-management) values. A bot's values work like any user's, so [attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) policies check a bot the same way they check a person. Give a bot the values a policy requires so it can join a private channel or team that the policy controls, or use permission policies to control which bots can upload or download files. Like any user, a bot that doesn't match a policy is removed from private channels and teams at the next synchronization.
+
+To set a bot's attributes:
+
+1.  Go to the **Product** menu and select **Integrations \> Bot Accounts**.
+2.  Select **Add Bot Account**, or select **Edit** on an existing bot.
+3.  In the **Attributes** section, select **Add attribute** and choose an attribute, then set its value. To clear a value, select the remove button on its row.
+4.  Select **Create Bot Account** or **Update**.
+
+The bot's attribute values appear in its profile popover, following each attribute's **Profile display** setting.
+
+Who can set a bot's attributes:
+
+- The bot's owner, if they have the `manage_bots` permission, and anyone with the `manage_others_bots` permission. System admins have both. See [advanced permissions](/administration-guide/onboard/advanced-permissions-backend-infrastructure) for details.
+- Only system admins can set attributes whose **Who can set the value** setting is **System Administrator**, and only system admins can set any attribute on a bot that has the **System Admin** role.
+
+By default, access rules use only attributes that system admins set or that are synced from AD/LDAP or SAML (see [Enable user-managed attributes](/administration-guide/configure/system-attributes#enable-user-managed-attributes)). So, unless that setting is enabled, only a system admin can set the bot attributes that access rules check. Attributes synced from AD/LDAP or SAML aren't offered for bots.
+
+To write a rule that covers every bot, use the **Bot account** attribute (`user.isbot`) instead. See [Attributes you can use](/administration-guide/manage/admin/abac-policy-expressions#attributes-you-can-use).
+
 ------------------------------------------------------------------------------------------------------------------------
 
 ## GIF
