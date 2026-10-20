@@ -699,4 +699,13 @@
     #confirmModalBody p {
         height: 30px;
     }
+
+    // SectionNotice titles are paragraphs. Let them grow past the single-line subtitle height.
+    #confirmModalBody .integration-delete-notice p {
+        height: auto;
+    }
+
+    #confirmModalBody p + .integration-delete-notice {
+        margin-top: 12px;
+    }
 }
