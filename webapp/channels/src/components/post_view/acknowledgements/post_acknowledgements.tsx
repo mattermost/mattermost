@@ -34,6 +34,7 @@ type Props = {
     currentUserId: UserProfile['id'];
     hasReactions: boolean;
     isDeleted: boolean;
+    isWriteDenied?: boolean;
     list?: Array<{user: UserProfile; acknowledgedAt: PostAcknowledgement['acknowledged_at']}>;
     postId: Post['id'];
     showDivider?: boolean;
@@ -49,6 +50,7 @@ function PostAcknowledgements({
     currentUserId,
     hasReactions,
     isDeleted,
+    isWriteDenied = false,
     list,
     postId,
     showDivider = true,
@@ -65,7 +67,7 @@ function PostAcknowledgements({
             acknowledgedAt = ack.acknowledgedAt;
         }
     }
-    const buttonDisabled = (Boolean(acknowledgedAt) && moreThan5minAgo(acknowledgedAt)) || isCurrentAuthor;
+    const buttonDisabled = (Boolean(acknowledgedAt) && moreThan5minAgo(acknowledgedAt)) || isCurrentAuthor || isWriteDenied;
 
     const {x, y, strategy, context, refs: {setReference, setFloating}} = useFloating({
         open,

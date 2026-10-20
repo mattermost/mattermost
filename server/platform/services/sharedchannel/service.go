@@ -81,6 +81,7 @@ type AppIface interface {
 	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
 	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 	Publish(message *model.WebSocketEvent)
+	SetupBroadcastHookForChannelReadAccess(channelID string, message *model.WebSocketEvent)
 	SaveAcknowledgementForPostWithModel(rctx request.CTX, acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, *model.AppError)
 	DeleteAcknowledgementForPostWithModel(rctx request.CTX, acknowledgement *model.PostAcknowledgement) *model.AppError
 	SaveAcknowledgementsForPost(rctx request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError)
@@ -298,6 +299,8 @@ func (scs *Service) notifyClientsForSharedChannelConverted(channel *model.Channe
 		return
 	}
 	messageWs.Add("channel", string(channelJSON))
+	// Carries the full channel, so it must not reach members the channel's policy denies.
+	scs.app.SetupBroadcastHookForChannelReadAccess(channel.Id, messageWs)
 
 	scs.app.Publish(messageWs)
 }

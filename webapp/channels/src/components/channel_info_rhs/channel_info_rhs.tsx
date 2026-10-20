@@ -13,6 +13,7 @@ import {Permissions} from 'mattermost-redux/constants';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
+import {useChannelManagementAccess} from 'components/common/hooks/useChannelManagementAccess';
 import Scrollbars from 'components/common/scrollbars';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
@@ -193,6 +194,11 @@ const ChannelInfoRhs = ({
 
     const canEditChannelProperties = !isArchived && canManageProperties;
 
+    // Unarchiving is authorised on manage_team, which the management decision does not
+    // reach through the permission selectors, and an archived channel mounts no composer
+    // to prefetch it.
+    const managementAllowedByPolicy = useChannelManagementAccess(isArchived ? channel.id : '');
+
     return (
         <div
             id='rhsContainer'
@@ -217,7 +223,7 @@ const ChannelInfoRhs = ({
                                             id='channel_info_rhs.archived.title'
                                             defaultMessage='This channel is archived.'
                                         />
-                                        {channel.name !== Constants.DEFAULT_CHANNEL && (
+                                        {channel.name !== Constants.DEFAULT_CHANNEL && managementAllowedByPolicy && (
                                             <ChannelPermissionGate
                                                 channelId={channel.id}
                                                 teamId={channel.team_id}

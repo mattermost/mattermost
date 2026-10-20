@@ -479,6 +479,10 @@ func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagConten
 		return nil, "", nil
 	}
 
+	if !requireChannelWriteAccess(c, channel) {
+		return nil, "", nil
+	}
+
 	commentRequired := c.App.Config().ContentFlaggingSettings.AdditionalSettings.ReviewerCommentRequired
 	if err := actionRequest.IsValid(*commentRequired); err != nil {
 		c.Err = err

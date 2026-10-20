@@ -1452,6 +1452,11 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
+	// Pinning changes what every member of the channel sees, like a reaction.
+	if !requireChannelWriteAccess(c, channel) {
+		return
+	}
+
 	patch := &model.PostPatch{}
 	patch.IsPinned = new(isPinned)
 
@@ -1507,6 +1512,17 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// An acknowledgement is shown to every member of the channel, like a reaction.
+	if !requireChannelWriteAccessByID(c, post.ChannelId) {
+		return
+	}
+
 	acknowledgement, appErr := c.App.SaveAcknowledgementForPost(c.AppContext, c.Params.PostId, c.Params.UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -1546,9 +1562,13 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, post.ChannelId) {
 		return
 	}
 
@@ -1627,6 +1647,10 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
 		}
 
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, sourcePost.ChannelId) || !requireChannelWriteAccessByID(c, moveThreadParams.ChannelId) {
 		return
 	}
 
@@ -2021,6 +2045,10 @@ func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			c.Err = err
 		}
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, post.ChannelId) {
 		return
 	}
 

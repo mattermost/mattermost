@@ -6,6 +6,9 @@ import {
     ACCESS_CONTROL_ACTION_MEMBERSHIP,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+    ACCESS_CONTROL_CHANNEL_ACCESS_ACTIONS,
     ACCESS_CONTROL_PERMISSION_ACTIONS,
     buildRulesWithMembership,
     buildRulesWithPermissionRules,
@@ -228,6 +231,49 @@ describe('hasEffectiveRules', () => {
     test('is false for an empty or missing rules array', () => {
         expect(hasEffectiveRules([])).toBe(false);
         expect(hasEffectiveRules(undefined)).toBe(false);
+    });
+});
+
+describe('channel_write_access as a permission action', () => {
+    test('is part of the permission action set', () => {
+        expect(ACCESS_CONTROL_PERMISSION_ACTIONS).toContain(ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS);
+        expect(ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS).toBe('channel_write_access');
+    });
+
+    test('shares the channel-access group with channel_read_access and channel_management_access', () => {
+        // All three hide behind the one feature flag, so pickers filter them together.
+        expect(ACCESS_CONTROL_CHANNEL_ACCESS_ACTIONS).toEqual([
+            ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+            ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+            ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+        ]);
+    });
+
+    test('getPermissionRules picks up channel_write_access rules', () => {
+        const rules: AccessControlPolicyRule[] = [
+            {actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: 'membership_expr'},
+            {name: 'Writing', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS], expression: 'write_expr'},
+        ];
+        expect(getPermissionRules(rules)).toEqual([
+            {name: 'Writing', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS], expression: 'write_expr'},
+        ]);
+    });
+});
+
+describe('channel_management_access as a permission action', () => {
+    test('is part of the permission action set', () => {
+        expect(ACCESS_CONTROL_PERMISSION_ACTIONS).toContain(ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS);
+        expect(ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS).toBe('channel_management_access');
+    });
+
+    test('getPermissionRules picks up channel_management_access rules', () => {
+        const rules: AccessControlPolicyRule[] = [
+            {actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: 'membership_expr'},
+            {name: 'Managing', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS], expression: 'manage_expr'},
+        ];
+        expect(getPermissionRules(rules)).toEqual([
+            {name: 'Managing', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS], expression: 'manage_expr'},
+        ]);
     });
 });
 

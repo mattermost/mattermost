@@ -48,6 +48,8 @@ func setupBurnOnReadABAC(t *testing.T, borAllowed bool) *TestHelper {
 	// Anything else the request evaluates must not be what fails the test.
 	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 		Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+	// Posting passes the channel-access gates, which ask whether a policy governs them.
+	ungovernedChannelAccess(mockACS)
 
 	return th
 }
@@ -63,6 +65,7 @@ func denyBurnOnReadPolicy(th *TestHelper) {
 	})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
 	denyACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 		Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+	ungovernedChannelAccess(denyACS)
 }
 
 func burnOnReadScheduledPost(th *TestHelper) *model.ScheduledPost {
@@ -153,6 +156,7 @@ func TestBurnOnReadABACEnforcementDenies(t *testing.T) {
 		stubReadAccessNotGoverned(countingACS)
 		countingACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 			Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+		ungovernedChannelAccess(countingACS)
 		previous := th.App.Srv().Channels().AccessControl
 		th.App.Srv().Channels().AccessControl = countingACS
 		defer func() { th.App.Srv().Channels().AccessControl = previous }()

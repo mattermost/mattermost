@@ -1094,4 +1094,115 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             )).toBeInTheDocument();
         });
     });
+
+    describe('channel_write_access policy', () => {
+        const withWriteDecision = (allowed: boolean) => mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagPermissionPolicies: 'true',
+                    },
+                },
+                renderPermissions: {
+                    byResource: {
+                        channel: {
+                            [channelId]: {
+                                channel_write_access: {allowed, evaluated: true, generation: 1},
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        it('disables the editor and explains why when the policy denies', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withWriteDecision(false),
+            );
+
+            const textbox = screen.getByPlaceholderText('You do not have permission to post in this channel.');
+            expect(textbox).toBeDisabled();
+        });
+
+        it('leaves the editor alone when the policy allows', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withWriteDecision(true),
+            );
+
+            expect(screen.getByPlaceholderText('Write to Test Channel')).toBeEnabled();
+        });
+
+        // The endpoint enforces regardless, and failing closed would grey the composer
+        // out on the first visit to every channel.
+        it('fails open while no decision has been fetched', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(initialState, {
+                    entities: {
+                        general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                        renderPermissions: {byResource: {}},
+                    },
+                }),
+            );
+
+            expect(screen.getByPlaceholderText('Write to Test Channel')).toBeEnabled();
+        });
+
+        // The policy message wins over the generic read-only one: it names the actual
+        // cause, and a session denied by policy usually has the RBAC permission.
+        it('reports the policy denial even when RBAC denies too', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(withWriteDecision(false), {
+                    entities: {
+                        roles: {
+                            roles: {
+                                user_roles: {permissions: []},
+                            },
+                        },
+                    },
+                }),
+            );
+
+            expect(screen.getByPlaceholderText(
+                'You do not have permission to post in this channel.',
+            )).toBeInTheDocument();
+        });
+
+        it('disables the edit Save button when the policy denies write access', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    isInEditMode={true}
+                    rootId={'post_id_1'}
+                />,
+                withWriteDecision(false),
+            );
+
+            expect(screen.getByRole('button', {name: 'Save'})).toBeDisabled();
+        });
+
+        it('leaves the edit Save button enabled when the policy allows write access', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    isInEditMode={true}
+                    rootId={'post_id_1'}
+                />,
+                withWriteDecision(true),
+            );
+
+            expect(screen.getByRole('button', {name: 'Save'})).toBeEnabled();
+        });
+    });
 });

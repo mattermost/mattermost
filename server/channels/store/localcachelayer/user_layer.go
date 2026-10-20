@@ -366,3 +366,22 @@ func isEmptyOptions(options *model.UserGetOptions) bool {
 	}
 	return false
 }
+
+// PromoteGuestToUser and DemoteUserToGuest rewrite the scheme flags of every channel
+// membership the user has, so the cached membership roles are dropped.
+func (s *LocalCacheUserStore) PromoteGuestToUser(rctx request.CTX, userID string) error {
+	if err := s.UserStore.PromoteGuestToUser(rctx, userID); err != nil {
+		return err
+	}
+	s.rootStore.channel.clearChannelMemberRoles()
+	return nil
+}
+
+func (s *LocalCacheUserStore) DemoteUserToGuest(rctx request.CTX, userID string) (*model.User, error) {
+	user, err := s.UserStore.DemoteUserToGuest(rctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	s.rootStore.channel.clearChannelMemberRoles()
+	return user, nil
+}

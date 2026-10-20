@@ -40,11 +40,17 @@ import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+import ChannelSettingsReadOnlyNotice from './channel_settings_read_only_notice';
+
 type ChannelSettingsInfoTabProps = {
     channel: Channel;
     onCancel?: () => void;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
     showTabSwitchError?: boolean;
+
+    // Only drives the explanatory banner. Every field below already reads the
+    // channel-management-aware permission selectors, so a denial disables them on its own.
+    isReadOnly?: boolean;
 };
 
 // The form seeds each field from the raw channel record and trims only when
@@ -61,6 +67,7 @@ function ChannelSettingsInfoTab({
     onCancel,
     setAreThereUnsavedChanges,
     showTabSwitchError,
+    isReadOnly = false,
 }: ChannelSettingsInfoTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -522,6 +529,8 @@ function ChannelSettingsInfoTab({
                 displayName={channel?.display_name || ''}
                 toPublic={false} // Always false since we're only converting from public to private
             />
+
+            {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
 
             {/* Channel Name Section*/}
             <div

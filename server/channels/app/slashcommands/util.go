@@ -10,6 +10,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 const (
@@ -23,6 +25,14 @@ func response(message string) *model.CommandResponse {
 		Text:         message,
 		Type:         model.PostTypeDefault,
 	}
+}
+
+func channelManagementDenied(a *app.App, rctx request.CTX, args *model.CommandArgs, channel *model.Channel) bool {
+	return rctx.Session().UserId == args.UserId && !a.EnforceChannelManagementAccess(rctx, args.UserId, channel)
+}
+
+func channelManagementDeniedByID(a *app.App, rctx request.CTX, args *model.CommandArgs, channelID string) bool {
+	return rctx.Session().UserId == args.UserId && !a.EnforceChannelManagementAccessByID(rctx, args.UserId, channelID)
 }
 
 // parseNamedArgs parses a command string into a map of arguments. It is assumed the
