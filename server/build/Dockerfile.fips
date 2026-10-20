@@ -1,5 +1,5 @@
 # First stage - FIPS dev image with dependencies for building
-FROM cgr.dev/mattermost.com/glibc-openssl-fips:16-dev@sha256:e630aa623f8b0f39c1a06354cdc3f07d8ea22b53e02e1ee9e0fce4c41b498801 AS builder
+FROM cgr.dev/mattermost.com/glibc-openssl-fips:16-dev@sha256:511094d553d337665ba8569356b36143b7fe28f107beed39770adabbc8a2969f AS builder
 # Setting bash as our shell, and enabling pipefail option
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -37,7 +37,7 @@ RUN mkdir -p /var/tmp \
   && chmod 755 /var/tmp
 
 # Final stage using FIPS runtime image
-FROM cgr.dev/mattermost.com/glibc-openssl-fips:16@sha256:a636adba740bb6a53e55c14f7deb979802bcff2203f4aaecfe6f1d159cdfe3a1
+FROM cgr.dev/mattermost.com/glibc-openssl-fips:16@sha256:32b54eba449da71d7240e4d0ea4dbafbdae11a316a3d8a09fbcde5267e19986f
 
 # Some ENV variables
 ENV PATH="/mattermost/bin:${PATH}"

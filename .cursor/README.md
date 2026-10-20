@@ -8,7 +8,7 @@ The Docker build context is `.cursor/` only. The Dockerfile intentionally does n
 
 - Ubuntu 24.04.
 - Docker CE 28.5.2 with `fuse-overlayfs` and `iptables-legacy`, matching Cursor's Docker-in-Cloud guidance for complex compose setups.
-- Go from `server/.go-version` (currently 1.26.7). The install hook installs that version if the image is stale or the agent did not boot from this Dockerfile.
+- Go from `server/.go-version` (currently 1.27.2). The install hook installs that version if the image is stale or the agent did not boot from this Dockerfile.
 - Node from `.nvmrc` (currently 24.11, image pin 24.11.1) via nvm. The install hook installs that version if the image is stale or the agent did not boot from this Dockerfile.
 - Browser runtime libraries for the Playwright e2e suite.
 - AWS CLI v2 for S3 uploads.

@@ -3,7 +3,7 @@ FROM ubuntu:24.04
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Keep in sync with server/.go-version. cloud-agent-install.sh reinstalls if they drift.
-ARG GO_VERSION=1.26.7
+ARG GO_VERSION=1.27.2
 # Image pin on the .nvmrc line (currently 24.11). cloud-agent-install.sh uses .nvmrc at bootstrap.
 ARG NODE_VERSION=24.11.1
 ARG NVM_VERSION=0.40.3

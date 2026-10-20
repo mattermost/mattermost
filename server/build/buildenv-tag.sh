@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Prints the tag identifying the mattermost-build-server image, e.g.
-# "go1.26.7-node24.11.1". The image bakes in both toolchains, so the tag names
+# "go1.27.2-node24.11.1". The image bakes in both toolchains, so the tag names
 # both. CI resolves this once and propagates it as BUILD_SERVER_TAG.
 #
 # The tag comes from the Dockerfiles, since those are what actually determine
@@ -19,7 +19,7 @@ fail() {
 }
 
 # A pin may be more specific than its source of truth: the FIPS base image
-# carries a fourth component, 1.26.7.1 for Go 1.26.7.
+# may carry a fourth component, e.g. 1.26.7.1 for Go 1.26.7.
 satisfies() {
     [[ "$1" == "$2" || "$1" == "$2."* ]]
 }
