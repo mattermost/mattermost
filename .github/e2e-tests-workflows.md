@@ -148,6 +148,8 @@ There is deliberately no `testcontainers:down` first — the runner is fresh, so
 
 **When it runs.** `e2e-tests-ci.yml`'s `check-changes` turns it on for a PR whose diff touches `e2e-tests/playwright/upgrade-specs/`, `e2e-tests/playwright/script/resolve_upgrade_matrix.mjs`, either `e2e-tests-playwright-rolling-upgrades*` workflow, or a server migration (`server/channels/db/migrations/`, `server/config/migrations/`, `server/channels/app/migrations.go`, `server/channels/app/permissions_migrations.go`, `server/public/model/version.go`). Everything else — including `e2e-tests/playwright/lib/` and `playwright.config.ts` — is unmatched and needs the manual dispatch's opt-in checkbox to run within this workflow. That decision is the only gate: unlike the full suite, this pipeline does not also consult `should_run`, because `should_run` matches `^e2e-tests/.*\.(ts|tsx|js|jsx)$` and would veto a run whose only change is the `.mjs` matrix resolver. Consequently there is no "skipped" status — when it is not requested, nothing is posted.
 
+`e2e-tests-on-merge.yml` mirrors this same gate on merges to `master`/`release-*`: its own `check-changes` job diffs the merge commit against its parent (`git diff HEAD~1 HEAD`, since there is no PR base to diff against) and applies the identical harness/migration conditions above (it has no manual opt-in checkbox, unlike the PR pipeline). Release cut (`e2e-tests-on-release.yml`) stays unconditional — no gate, always `true`.
+
 Failed rolling-upgrade contexts are included when applying **E2E Tests/verified** or the override-status workflow (discovered by pattern `e2e-test/playwright-full/{edition}/upgrade-from-*`, same principle as full-suite contexts).
 
 This pipeline is invoked from `e2e-tests-playwright.yml` when `run_rolling_upgrades: "true"`. It is **not** embedded in `e2e-tests-playwright-template.yml`.
@@ -156,7 +158,7 @@ This pipeline is invoked from `e2e-tests-playwright.yml` when `run_rolling_upgra
 |---------|------------------------|
 | PR (Argo / automated) | `false` (default) |
 | PR (`workflow_dispatch`, manual) | Opt-in: **Run rolling upgrades** on `e2e-tests-ci.yml` |
-| Merge to `master` / `release-*` | `false` — too expensive per merge |
+| Merge to `master` / `release-*` | Auto — same file-change gate as PR (touches harness/migrations), evaluated against the merge commit's parent |
 | Release cut | `true` |
 | Ad-hoc | n/a — **Run workflow** directly on `e2e-tests-playwright-rolling-upgrades.yml` |
 
@@ -226,9 +228,9 @@ Push to master/release-*
   ─► trigger-e2e-tests job dispatches e2e-tests-on-merge.yml
 ```
 
-**Jobs:** 4 (cypress + playwright) x (enterprise + fips), smoke skipped, full tests only
+**Jobs:** 4 (cypress + playwright) x (enterprise + fips), smoke skipped, full tests only, plus a `check-changes` job that conditionally forwards `run_rolling_upgrades` to the two playwright jobs (see [Playwright rolling upgrades](#playwright-rolling-upgrades-separate-from-full-suite) above).
 
-**Commit statuses (4 total):**
+**Commit statuses (4 total, +1 per rolling-upgrade from-version when triggered):**
 
 | Context | Description example |
 |---------|-------------------|

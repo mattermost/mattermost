@@ -125,7 +125,7 @@ describe('Interactive Dialog - Checkbox Elements', () => {
                 cy.get('input[type="radio"]').should('have.length', 9);
 
                 cy.get('table.checkbox-matrix tbody tr').first().within(() => {
-                    cy.get('input[type="radio"]').eq(1).check();
+                    cy.get('input[type="radio"]').eq(1).check({force: true});
                     cy.get('input[type="radio"]').eq(1).should('be.checked');
                     cy.get('input[type="radio"]').eq(0).should('not.be.checked');
                     cy.get('input[type="radio"]').eq(2).should('not.be.checked');

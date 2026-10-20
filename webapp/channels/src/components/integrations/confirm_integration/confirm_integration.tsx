@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, type JSX} from 'react';
+import React, {useEffect, useState, type JSX} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
 import {Link, useHistory} from 'react-router-dom';
 
@@ -14,13 +14,16 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import CopyText from 'components/copy_text';
 import ExternalLink from 'components/external_link';
+import type {BotCreateWarnings} from 'components/integrations/bots/bot_create_warnings';
+import {parseBotCreateWarnings, stripBotCreateWarningsParam} from 'components/integrations/bots/bot_create_warnings';
+import BotCreateWarningsBanner from 'components/integrations/bots/bot_create_warnings_banner';
 
 import {Constants, DeveloperLinks, ErrorPageTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
 type Props = {
     team: Team;
-    location: {search: string};
+    location: {pathname: string; search: string};
     commands: IDMappedObjects<Command>;
     oauthApps: IDMappedObjects<OAuthApp>;
     incomingHooks: IDMappedObjects<IncomingWebhook>;
@@ -42,6 +45,16 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
             window.removeEventListener('keypress', handleKeyPress);
         };
     });
+
+    const isBotConfirmation = type === Constants.Integrations.BOT && Boolean(bots[id]);
+    const [botCreateWarnings, setBotCreateWarnings] = useState<BotCreateWarnings | undefined>(() => (isBotConfirmation ? parseBotCreateWarnings(location.search) : undefined));
+
+    useEffect(() => {
+        const search = isBotConfirmation ? stripBotCreateWarningsParam(location.search) : undefined;
+        if (search !== undefined) {
+            history.replace(location.pathname + search);
+        }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleKeyPress = (e: KeyboardEvent) => {
         if (e.key === 'Enter') {
@@ -490,6 +503,12 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                         defaultMessage='Setup Successful'
                     />
                 </h4>
+                {type === Constants.Integrations.BOT && (
+                    <BotCreateWarningsBanner
+                        warnings={botCreateWarnings}
+                        onDismiss={() => setBotCreateWarnings(undefined)}
+                    />
+                )}
                 {helpText}
                 {tokenText}
                 <div className='backstage-form__footer'>

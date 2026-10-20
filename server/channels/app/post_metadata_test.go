@@ -35,6 +35,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 )
 
@@ -67,6 +68,67 @@ func TestPreparePostListForClient(t *testing.T) {
 			assert.NotNil(t, clientPost.Metadata, "should've populated metadata for each post")
 		}
 	})
+}
+
+func TestPreparePostListForClientDeletedPosts(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostPriority = true
+	})
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	createAcknowledgedUrgentPost := func() *model.Post {
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "urgent",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck: model.NewPointer(true),
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		_, appErr = th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		return post
+	}
+	live := createAcknowledgedUrgentPost()
+	deleted := createAcknowledgedUrgentPost()
+	deleted.DeleteAt = model.GetMillis()
+
+	mockAutoTranslation := &einterfacesmocks.AutoTranslationInterface{}
+	mockAutoTranslation.On("IsFeatureAvailable").Return(true)
+	mockAutoTranslation.On("GetUserLanguage", th.BasicUser.Id, th.BasicChannel.Id).Return("es", nil)
+	mockAutoTranslation.On("GetBatch", model.TranslationObjectTypePost, []string{live.Id}, "es").Return(map[string]*model.Translation{
+		live.Id: {ObjectID: live.Id, ObjectType: model.TranslationObjectTypePost, Lang: "es", Text: "urgente", State: model.TranslationStateReady},
+	}, nil)
+	originalAutoTranslation := th.Server.AutoTranslation
+	th.Server.AutoTranslation = mockAutoTranslation
+	t.Cleanup(func() { th.Server.AutoTranslation = originalAutoTranslation })
+
+	postList := model.NewPostList()
+	for _, post := range []*model.Post{live, deleted} {
+		postList.AddPost(post)
+		postList.AddOrder(post.Id)
+	}
+
+	clientPostList := th.App.PreparePostListForClient(th.Context, postList, nil)
+
+	livePost := clientPostList.Posts[live.Id]
+	assert.NotNil(t, livePost.Metadata.Priority)
+	assert.NotEmpty(t, livePost.Metadata.Acknowledgements)
+	assert.Contains(t, livePost.Metadata.Translations, "es")
+
+	deletedPost := clientPostList.Posts[deleted.Id]
+	assert.Empty(t, deletedPost.Message)
+	assert.Nil(t, deletedPost.Metadata.Priority)
+	assert.Empty(t, deletedPost.Metadata.Acknowledgements)
+	assert.Empty(t, deletedPost.Metadata.Translations)
+	mockAutoTranslation.AssertExpectations(t)
 }
 
 func TestPreparePostForClient(t *testing.T) {
