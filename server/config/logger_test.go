@@ -720,6 +720,12 @@ func TestManagedDirs(t *testing.T) {
 		assert.NotContains(t, dirs, "/old/plugins")
 	})
 
+	t.Run("executable directory is managed", func(t *testing.T) {
+		exe, err := os.Executable()
+		require.NoError(t, err)
+		assert.Contains(t, managedDirs(newCfg("/p", "/c", "/d"), nil), filepath.Dir(exe))
+	})
+
 	t.Run("duplicates are removed", func(t *testing.T) {
 		cfg := newCfg("/same", "/same", "/same")
 		assert.Equal(t, 1, strings.Count(strings.Join(managedDirs(cfg, cfg), "\n"), "/same"))

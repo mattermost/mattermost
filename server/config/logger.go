@@ -317,7 +317,7 @@ func resolveLogFilePath(filePath string, loggingRoot string) (string, error) {
 // logging root or inside a server-managed directory and the server is not configured to reject it.
 const LogPathInvalidWarning = "Log file path in logging config is outside the logging root directory or inside a directory the server manages. " +
 	"Set the EnforceLogPathRoot feature flag to reject this configuration now; enforcement will become the default in a future release. " +
-	"To fix, set the MM_LOG_PATH environment variable to a parent directory containing all log paths, and move log files into the logging root but outside the plugin, data, config, client, templates and translations directories."
+	"To fix, set the MM_LOG_PATH environment variable to a parent directory containing all log paths, and move log files into the logging root but outside the plugin, data, config, executable, client, templates and translations directories."
 
 // IsLogPathEnforcementEnabled reports whether a log path outside the logging root should be
 // treated as fatal rather than merely logged. Nil-safe: cfg may carry no feature flags at all.
@@ -468,6 +468,7 @@ func managedDirs(cfg, activeCfg *model.Config) []string {
 	}
 	candidates = append(candidates,
 		configDir(),
+		executableDir(),
 		foundDir(fileutils.FindDir(model.ClientDir)),
 		foundDir(fileutils.FindDir(prepackagedPluginsDir)),
 		foundDir(fileutils.FindDir(templatesDir)),
@@ -501,6 +502,15 @@ func configDir() string {
 		return dir
 	}
 	return ""
+}
+
+// executableDir returns the directory that holds the server executable.
+func executableDir() string {
+	exe, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	return filepath.Dir(exe)
 }
 
 func makeSimpleConsoleTarget(level string, outputJSON bool, color bool) (mlog.TargetCfg, error) {
