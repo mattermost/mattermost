@@ -2382,8 +2382,8 @@ Enabling these features can increase the load on your Mattermost server’s CPU,
 </colgroup>
 <tbody>
 <tr>
-<td><p>Define the default maximum number of mesages to synchronize at a time.</p><p>Default is <strong>50</strong>.</p></td>
-<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ConnectedWorkspacesSettings</code> &gt; <code>DefaultMaxPostsPerSync</code> &gt; <code>50</code></li><li>Environment variable: N/A</li></ul></td>
+<td><p>Define the default maximum number of messages to synchronize at a time.</p><p>Must be greater than 0. Default is <strong>50</strong>.</p></td>
+<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ConnectedWorkspacesSettings</code> &gt; <code>MaxPostsPerSync</code> &gt; <code>50</code></li><li>Environment variable: N/A</li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2420,8 +2420,8 @@ Enabling these features can increase the load on your Mattermost server’s CPU,
 </colgroup>
 <tbody>
 <tr>
-<td><p>The number of users to sync in each batch when performing global user synchronization between connected workspaces.</p><p>Must be greater than 0. Default is <strong>100</strong>.</p></td>
-<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ConnectedWorkspacesSettings</code> &gt; <code>GlobalUserSyncBatchSize</code> &gt; <code>100</code></li><li>Environment variable: N/A</li></ul></td>
+<td><p>The number of users to sync in each batch when performing global user synchronization between connected workspaces.</p><p>Must be greater than 0. Default is <strong>25</strong>.</p></td>
+<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ConnectedWorkspacesSettings</code> &gt; <code>GlobalUserSyncBatchSize</code> &gt; <code>25</code></li><li>Environment variable: N/A</li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2441,8 +2441,8 @@ Enabling these features can increase the load on your Mattermost server’s CPU,
 </colgroup>
 <tbody>
 <tr>
-<td><p>The number of channel members to sync in each batch when synchronizing channel membership between connected workspaces.</p><p>Must be greater than 0. Default is <strong>100</strong>.</p></td>
-<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ConnectedWorkspacesSettings</code> &gt; <code>MemberSyncBatchSize</code> &gt; <code>100</code></li><li>Environment variable: N/A</li></ul></td>
+<td><p>The number of channel members to sync in each batch when synchronizing channel membership between connected workspaces.</p><p>Must be greater than 0. Default is <strong>20</strong>.</p></td>
+<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ConnectedWorkspacesSettings</code> &gt; <code>MemberSyncBatchSize</code> &gt; <code>20</code></li><li>Environment variable: N/A</li></ul></td>
 </tr>
 </tbody>
 </table>
