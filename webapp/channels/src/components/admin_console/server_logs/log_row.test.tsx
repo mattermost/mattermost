@@ -6,9 +6,14 @@ import React from 'react';
 import {LogLevelEnum} from '@mattermost/types/admin';
 
 import {act, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import LogRow from './log_row';
 import type {LogObjectWithAdditionalInfo} from './types';
+
+jest.mock('mattermost-redux/actions/users', () => ({
+    getMissingProfilesByIds: jest.fn(() => ({type: 'MOCK_GET_MISSING_PROFILES'})),
+}));
 
 describe('components/admin_console/server_logs/LogRow', () => {
     const baseLog: LogObjectWithAdditionalInfo = {
@@ -37,12 +42,15 @@ describe('components/admin_console/server_logs/LogRow', () => {
     const getRow = () => screen.getByRole('listitem');
     const getRowSummary = () => document.querySelector<HTMLElement>('.LogRow__main')!;
 
+    const user = TestHelper.getUserMock({id: 'abcdefghijklmnopqrstuvwxyz', username: 'admin'});
+
     const renderLogRow = (props: Partial<typeof defaultProps> = {}) => {
         return renderWithContext(
             <LogRow
                 {...defaultProps}
                 {...props}
             />,
+            {entities: {users: {profiles: {[user.id]: user}}}},
         );
     };
 
@@ -357,19 +365,43 @@ describe('components/admin_console/server_logs/LogRow', () => {
         });
 
         test('should link IDs that resolve to an admin console page', () => {
-            const userId = 'abcdefghijklmnopqrstuvwxyz';
-            renderLogRow({isExpanded: true, log: {...baseLog, user_id: userId}});
+            const teamId = 'abcdefghijklmnopqrstuvwxyz';
+            renderLogRow({isExpanded: true, log: {...baseLog, team_id: teamId}});
 
-            expect(screen.getByText(userId).closest('a')).toHaveAttribute(
+            expect(screen.getByText(teamId).closest('a')).toHaveAttribute(
                 'href',
-                `/admin_console/user_management/user/${userId}`,
+                `/admin_console/user_management/teams/${teamId}`,
             );
         });
 
         test('should not link values that are not valid Mattermost IDs', () => {
-            renderLogRow({isExpanded: true, log: {...baseLog, user_id: 'not-an-id'}});
+            renderLogRow({isExpanded: true, log: {...baseLog, team_id: 'not-an-id'}});
 
             expect(screen.getByText('not-an-id').closest('a')).toBeNull();
+        });
+
+        test.each(['user_id', 'sender_id', 'creator_id', 'bot_id', 'actor_user_id'])('should show the user behind %s and link them to the admin console', (field) => {
+            renderLogRow({isExpanded: true, log: {...baseLog, [field]: user.id}});
+
+            expect(screen.getByText(user.id).closest('a')).toBeNull();
+            expect(screen.getByText('@admin').closest('a')).toHaveAttribute(
+                'href',
+                `/admin_console/user_management/user/${user.id}`,
+            );
+        });
+
+        test('should show only the ID when the user is unknown', () => {
+            const unknownId = 'zyxwvutsrqponmlkjihgfedcba';
+            renderLogRow({isExpanded: true, log: {...baseLog, user_id: unknownId}});
+
+            expect(screen.getByText(unknownId)).toBeInTheDocument();
+            expect(document.querySelector('.LogRow__user')).not.toBeInTheDocument();
+        });
+
+        test('should not treat remote user IDs as user IDs', () => {
+            renderLogRow({isExpanded: true, log: {...baseLog, user_remote_id: user.id}});
+
+            expect(screen.queryByText('@admin')).not.toBeInTheDocument();
         });
 
         test('should not link ID fields without an admin console page', () => {
@@ -462,10 +494,9 @@ describe('components/admin_console/server_logs/LogRow', () => {
         });
 
         test('should not expand the row when an admin console link is clicked', async () => {
-            const userId = 'abcdefghijklmnopqrstuvwxyz';
-            renderLogRow({isExpanded: true, log: {...baseLog, user_id: userId}});
+            renderLogRow({isExpanded: true, log: {...baseLog, user_id: user.id}});
 
-            await userEvent.click(screen.getByText(userId));
+            await userEvent.click(screen.getByText('@admin'));
 
             expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();
         });

@@ -404,6 +404,17 @@
         }
     }
 
+    &__user {
+        display: inline-flex;
+        align-items: center;
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+
+        .LogRow__detail-link {
+            gap: 4px;
+        }
+    }
+
     &__detail-link-icon {
         font-size: 14px;
     }

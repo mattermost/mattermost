@@ -4,7 +4,15 @@
 import React, {useCallback, useState, memo} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
+
+import {useUser} from 'components/common/hooks/useUser';
+import Avatar from 'components/widgets/users/avatar';
+
+import {getDisplayNameByUser, imageURLForUser} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import type {LogObjectWithAdditionalInfo} from './types';
 import {formatLogValue} from './utils';
@@ -37,7 +45,6 @@ const LEVEL_CONFIG: Record<string, {label: MessageDescriptor; className: string}
 
 // Fields that link to admin console pages
 const ADMIN_LINK_FIELDS: Record<string, string> = {
-    user_id: '/admin_console/user_management/user/',
     team_id: '/admin_console/user_management/teams/',
     channel_id: '/admin_console/user_management/channels/',
 };
@@ -47,6 +54,12 @@ const COPYABLE_FIELDS = new Set([
     'user_id', 'team_id', 'channel_id', 'post_id', 'request_id',
     'job_id', 'session_id', 'token_id', 'caller', 'url',
 ]);
+
+const USER_ID_FIELDS = new Set(['user_id', 'sender_id', 'creator_id', 'bot_id']);
+
+function isUserIdField(key: string): boolean {
+    return USER_ID_FIELDS.has(key) || key.endsWith('_user_id');
+}
 
 // Mattermost IDs are always 26 lowercase alphanumeric characters
 const MM_ID_PATTERN = /^[a-z0-9]{26}$/;
@@ -132,9 +145,45 @@ function CopyButton({value}: {value: string}) {
     );
 }
 
+function UserIdValue({value}: {value: string}) {
+    const intl = useIntl();
+    const user = useUser(value);
+    const displayName = useSelector((state: GlobalState) => getDisplayNameByUser(state, user));
+
+    return (
+        <span className='LogRow__detail-value LogRow__detail-value--mono'>
+            {value}
+            <CopyButton value={value}/>
+            {user && (
+                <span className='LogRow__user'>
+                    {'('}
+                    <Link
+                        className='LogRow__detail-link'
+                        to={`/admin_console/user_management/user/${user.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        title={intl.formatMessage({id: 'admin.logs.viewInAdmin', defaultMessage: 'View in admin console'})}
+                    >
+                        <Avatar
+                            size='xxs'
+                            url={imageURLForUser(user.id, user.last_picture_update)}
+                            alt=''
+                        />
+                        {displayName === user.username ? `@${user.username}` : displayName}
+                    </Link>
+                    {')'}
+                </span>
+            )}
+        </span>
+    );
+}
+
 // Value renderer: handles copy buttons and admin deep links
 function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
     const intl = useIntl();
+    if (isUserIdField(fieldKey) && MM_ID_PATTERN.test(value)) {
+        return <UserIdValue value={value}/>;
+    }
+
     const isCopyable = COPYABLE_FIELDS.has(fieldKey) || fieldKey.endsWith('_id');
     const adminPath = ADMIN_LINK_FIELDS[fieldKey];
     const isLinkable = adminPath && MM_ID_PATTERN.test(value);
