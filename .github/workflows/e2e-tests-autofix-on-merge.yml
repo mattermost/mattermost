@@ -31,6 +31,10 @@ jobs:
   autofix:
     if: github.event.workflow_run.conclusion != 'cancelled' && vars.E2E_ENABLE_AUTOFIX != 'false'
     runs-on: ubuntu-24.04
+    # A workflow_run job gets read-only caches by default, so the record step could not save
+    # the ledger of sent requests and the next run would send them again. Safe only while this
+    # job checks out and runs no pull-request code.
+    cache-mode: write
     permissions:
       contents: read
       pull-requests: read
