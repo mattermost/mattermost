@@ -30,6 +30,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
   - **Changes to All plans:**
     - Under ``ElasticsearchSettings`` in ``config.json``, added ``EnableFileIndexing`` configuration setting to control indexing of file attachments in Elasticsearch and OpenSearch.
+    - ``ServiceSettings.EnableFileSearch``, which defaults to ``true``, is now configurable in the System Console. It moved from **System Console > Experimental > Features** to **System Console > Site Configuration > File Sharing and Downloads**, and is also reported in the client configuration so the web app can hide the file search and channel files entry points when it's disabled. The setting itself is unchanged.
 
 #### Compatibility
   - Updated minimum supported Firefox version to 153+.
