@@ -287,7 +287,8 @@ func maskingFromLegacy(field *PropertyField, restrictions *Restrictions, opts Le
 
 // grantsFromLegacy converts the Attrs-based identities the legacy model let
 // past its checks into grants enumerating the five enforced actions: plugin
-// and service owners, the source plugin, and the sync service. It adds one wildcard plugin grant for ambient access a machine
+// and service owners, the source plugin of a protected field, and the sync
+// service. It adds one wildcard plugin grant for ambient access a machine
 // caller named nowhere on the field still holds (see
 // ambientMachineGrantAllow).
 //
@@ -297,8 +298,8 @@ func maskingFromLegacy(field *PropertyField, restrictions *Restrictions, opts Le
 // field's own target rather than a value's object, so scope has nothing to
 // say about them. The two halves are tracked separately per identity and
 // recombined into one grant at the end whenever neither ends up carrying a
-// scope — e.g. an owner who is also the field's source plugin, whose
-// unrestricted access cancels the owner scope out of both halves. An identity
+// scope — e.g. a scoped owner that is also the sync service, whose unscoped
+// value.write cancels the owner scope out of the value half. An identity
 // whose two halves do end up scoped differently is the case this split
 // exists for: a scoped owner keeps its field.write and option grants
 // unscoped even though its value grant is not, matching how the store's
@@ -370,11 +371,18 @@ func grantsFromLegacy(field *PropertyField) []Grant {
 		addGrant(owner.Type, owner.ID, owner.Scopes, allow)
 	}
 
-	if pluginID, _ := field.Attrs[PropertyAttrsSourcePluginID].(string); pluginID != "" {
+	if pluginID, _ := field.Attrs[PropertyAttrsSourcePluginID].(string); pluginID != "" && IsPropertyFieldProtected(field) {
 		// The source plugin can read, write the definition and write values on a
 		// protected field; anything less takes access away, and it is never
-		// scope-restricted.
-		addGrant(PropertyOwnerTypePlugin, pluginID, nil, validPropertyActions)
+		// scope-restricted. It has no standing on an unprotected field: there
+		// the owners list, or the wildcard on an unowned field, already says
+		// what it may do. The sync lock still reserves the values for the sync
+		// service.
+		allow := validPropertyActions
+		if syncLockSource(field) != "" {
+			allow = removeAction(allow, PropertyActionValueWrite)
+		}
+		addGrant(PropertyOwnerTypePlugin, pluginID, nil, allow)
 	}
 
 	if syncSource := syncLockSource(field); syncSource != "" {
