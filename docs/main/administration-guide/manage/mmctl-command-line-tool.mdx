@@ -3785,7 +3785,7 @@ Requires a Mattermost Enterprise license and the `HealthDashboard` feature flag,
 
 Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.
 
-With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.
+With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included. --packet can't be combined with --include-muted, because findings evaluated from a packet are never muted.
 
 **Format**
 
