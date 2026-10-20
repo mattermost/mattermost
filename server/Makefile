@@ -340,7 +340,7 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 
 .PHONY: install-golangci-lint
 install-golangci-lint:
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
 
 .PHONY: golangci-lint
 golangci-lint: setup-go-work install-golangci-lint ## Run golangci-lint on codebase
@@ -368,7 +368,7 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 
 .PHONY: install-mockery
 install-mockery:
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+	$(GO) install github.com/vektra/mockery/v2/...@v2.53.8
 
 .PHONY: store-mocks
 store-mocks: setup-go-work install-mockery ## Creates mock files.

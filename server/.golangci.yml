@@ -17,6 +17,7 @@ linters:
     - errorlint
     - exhaustive
     - exhaustruct
+    - exhaustruct_v5
     - forbidigo
     - forcetypeassert
     - funcorder
@@ -90,6 +91,13 @@ linters:
       disable:
         - fieldalignment
       enable-all: true
+    modernize:
+      disable:
+        # Analyzers added with Go 1.27 tooling; they are adopted separately, not as part of the toolchain bump.
+        - embedlit
+        - errorsastype
+        - reflecttypeassert
+        - stringscut
     unqueryvet:
       check-sql-builders: true
   exclusions:
