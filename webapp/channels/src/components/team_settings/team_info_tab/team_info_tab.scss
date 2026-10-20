@@ -5,13 +5,10 @@
         flex: 2;
     }
 
-    .description-section-input {
-        .Input_container,
-        [class*='_text-area'],
-        [class*='_text-input'] {
-            height: 100%;
-        }
-    }
+    // Do not set height on [class*='_text-area'] — that substring also matches
+    // Compass's __wrapper / __input / __label and breaks floating-label layout
+    // (label height:100% stretches through the field chrome).
+    // Legacy .Input_fieldset { height: 100% } is obsolete under Compass TextArea.
 
     #teamName,
     #teamDescription {
