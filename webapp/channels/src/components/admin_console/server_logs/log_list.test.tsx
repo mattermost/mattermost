@@ -59,8 +59,8 @@ function renderList(logs: LogObjectWithAdditionalInfo[]) {
     );
 }
 
-function pressKey(key: string, init: KeyboardEventInit = {}) {
-    fireEvent.keyDown(screen.getByRole('list'), {key, ...init});
+function pressKey(key: string) {
+    fireEvent.keyDown(screen.getByRole('list'), {key});
 }
 
 function pressArrow(direction: 'ArrowDown' | 'ArrowUp', times = 1) {

@@ -5,7 +5,10 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {ShortcutKey, ShortcutKeys, ShortcutKeyVariant} from '@mattermost/shared/components/shortcut_key';
+import {ShortcutKeys} from '@mattermost/shared/components/shortcut_key';
+
+import {ShortcutSequence, ShortcutKeyVariant} from 'components/shortcut_sequence';
+import type {ShortcutKeyDescriptor} from 'components/shortcut_sequence';
 
 import './keyboard_hints.scss';
 
@@ -17,7 +20,7 @@ const messages = defineMessages({
     search: {id: 'admin.logs.keyboardHints.search', defaultMessage: 'Search', description: 'Shortcut description in the keyboard shortcuts tooltip on the System Console Server Logs page; shown next to the / key, which focuses the log search box.'},
 });
 
-const HINTS: Array<{keys: Array<string | MessageDescriptor>; description: MessageDescriptor}> = [
+const HINTS: Array<{keys: ShortcutKeyDescriptor[]; description: MessageDescriptor}> = [
     {keys: ['↑', '↓'], description: messages.navigate},
     {keys: [ShortcutKeys.enter], description: messages.expand},
     {keys: [ShortcutKeys.escape], description: messages.collapse},
@@ -36,14 +39,10 @@ export default function KeyboardHints() {
                     className='LogKeyboardHints__row'
                 >
                     <span className='LogKeyboardHints__keys'>
-                        {keys.map((key) => (
-                            <ShortcutKey
-                                key={typeof key === 'string' ? key : key.id}
-                                variant={ShortcutKeyVariant.Tooltip}
-                            >
-                                {typeof key === 'string' ? key : <FormattedMessage {...key}/>}
-                            </ShortcutKey>
-                        ))}
+                        <ShortcutSequence
+                            keys={keys}
+                            variant={ShortcutKeyVariant.Tooltip}
+                        />
                     </span>
                     <FormattedMessage {...description}/>
                 </div>
