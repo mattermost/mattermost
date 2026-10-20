@@ -321,7 +321,7 @@ const IPFiltering = () => {
                         filterToggle={filterToggle}
                         setFilterToggle={setFilterToggle}
                     />
-                    {ipFilters !== null && filterToggle &&
+                    {ipFilters !== null && currentUsersIP !== null && filterToggle &&
                         <EditSection
                             ipFilters={ipFilters}
                             currentUsersIP={currentUsersIP}
