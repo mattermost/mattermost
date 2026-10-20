@@ -131,13 +131,13 @@ test.describe('System Console - Reporting - Server Logs', () => {
             const queryResponse = page.waitForResponse((response) => response.url().includes('/api/v4/logs/query'));
             await serverLogs.selectDuration('Last 5 minutes');
 
-            // * Verify both range bounds are sent in the layout the server parses. An
-            // unparseable date is silently dropped server side rather than rejected, so
-            // the response status alone would not catch a format change.
+            // * Verify the start is sent in the layout the server parses. An unparseable
+            // date is silently dropped server side rather than rejected, so the response
+            // status alone would not catch a format change. The end is left open so the
+            // server ends the range at its own clock.
             const body = (await queryRequest).postDataJSON();
-            const serverDateFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+00:00$/;
-            expect(body.date_from).toMatch(serverDateFormat);
-            expect(body.date_to).toMatch(serverDateFormat);
+            expect(body.date_from).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+00:00$/);
+            expect(body.date_to).toBe('');
             expect((await queryResponse).status()).toBe(200);
 
             // * Verify the just-written entry is still listed under the 5 minute range
