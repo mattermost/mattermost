@@ -242,7 +242,7 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 				return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 			}
 			next := strings.TrimLeftFunc(rest, unicode.IsSpace)
-			return false, parsed + in[:len(in)-len(next)], next, model.AutocompleteSuggestion{}
+			return false, parsed + toBeParsed[:len(toBeParsed)-len(next)], next, model.AutocompleteSuggestion{}
 		}
 	} else if in[0] == '"' { //input with multiple words
 		indexOfSecondQuote := strings.Index(in[1:], `"`)

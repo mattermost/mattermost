@@ -818,6 +818,17 @@ func TestRemoteProviderAutocompleteQuotedValues(t *testing.T) {
 				assert.Equal(t, "My Remote", margs["displayname"])
 			})
 		}
+
+		t.Run("extra space before the quote", func(t *testing.T) {
+			input := pre + " " + quoted + " "
+			want := []model.AutocompleteSuggestion{{
+				Complete:    input + "--password ",
+				Suggestion:  "--password",
+				Description: passwordHelp,
+			}}
+			assert.Equal(t, want, suggest(input))
+			assert.Equal(t, want, suggest(input+"--pa"))
+		})
 	})
 
 	t.Run("the value hint stays up until the quote is closed", func(t *testing.T) {
