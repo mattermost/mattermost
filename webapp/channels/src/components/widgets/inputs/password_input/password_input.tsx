@@ -16,6 +16,8 @@ import {formatAsString} from 'utils/i18n';
 
 import {SIZE} from '../input/input';
 
+import './password_input.scss';
+
 type PasswordInputProps = {
     className?: string;
     value: string;

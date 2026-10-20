@@ -10,8 +10,10 @@
     // resize:vertical. Call sites that need a fixed height pass
     // style={{resize:'none'}} (e.g. TextSetting resizable={false}).
 
-    // Compass TextInput label opacity (.64) is below WCAG AA on white (~4.5:1).
-    .Input label {
+    // Compass TextInput/TextArea label opacities (.64) are below WCAG AA on white.
+    // Beat module specificity of --label-floated + __label (0,2,0).
+    .Input[class*='_text-input'] [class*='_text-input__label'],
+    .Input[class*='_text-area'] [class*='_text-area__label'] {
         color: rgba(var(--center-channel-color-rgb), 0.8);
     }
 
