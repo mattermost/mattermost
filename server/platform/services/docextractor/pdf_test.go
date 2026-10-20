@@ -244,7 +244,7 @@ func TestPdfExtractConcurrentReturnsThenExtractsSample(t *testing.T) {
 
 	var wg sync.WaitGroup
 	wg.Add(n)
-	for i := 0; i < n; i++ {
+	for range n {
 		go func() {
 			defer wg.Done()
 			extractor := pdfExtractor{}
@@ -603,7 +603,7 @@ func classicPDFWithXrefRing(objs []string, sections int) []byte {
 		prevAt int
 	}
 	written := make([]sec, sections)
-	for i := 0; i < sections; i++ {
+	for i := range sections {
 		written[i].xrefAt = body.Len()
 		n := len(offsets)
 		fmt.Fprintf(&body, "xref\n0 %d\n", n)
@@ -617,9 +617,9 @@ func classicPDFWithXrefRing(objs []string, sections int) []byte {
 		fmt.Fprintf(&body, " >>\nstartxref\n%d\n%%%%EOF\n", written[i].xrefAt)
 	}
 	out := body.Bytes()
-	for i := 0; i < sections; i++ {
+	for i := range sections {
 		target := written[(i+1)%sections].xrefAt
-		copy(out[written[i].prevAt:written[i].prevAt+10], []byte(fmt.Sprintf("%010d", target)))
+		copy(out[written[i].prevAt:written[i].prevAt+10], fmt.Appendf(nil, "%010d", target))
 	}
 	return out
 }
@@ -668,7 +668,7 @@ func buildXrefStreamPDF(objs map[int]string, compressed map[int][2]int, prevObj 
 	xrefOffset := body.Len()
 	size := xrefNum + 1
 	var data bytes.Buffer
-	for i := 0; i < size; i++ {
+	for i := range size {
 		if i == 0 {
 			data.Write([]byte{0, 0, 0, 0})
 			continue
@@ -740,7 +740,7 @@ func xrefStreamPDFPrevRing(objs map[int]string, sections int) []byte {
 	// Write sections-1 extra XRef streams, then the final startxref stream.
 	extraCount := sections - 1
 	written := make([]sec, 0, sections)
-	for i := 0; i < extraCount; i++ {
+	for i := range extraCount {
 		obj := maxObj + 1 + i
 		s := sec{obj: obj, xrefAt: body.Len()}
 		fmt.Fprintf(&body, "%d 0 obj\n", obj)
@@ -758,7 +758,7 @@ func xrefStreamPDFPrevRing(objs map[int]string, sections int) []byte {
 	finalAt := body.Len()
 	size := finalObj + 1
 	var data bytes.Buffer
-	for i := 0; i < size; i++ {
+	for i := range size {
 		if i == 0 {
 			data.Write([]byte{0, 0, 0, 0})
 			continue
@@ -777,14 +777,14 @@ func xrefStreamPDFPrevRing(objs map[int]string, sections int) []byte {
 
 	out := body.Bytes()
 	// final → extra0 → extra1 → … → final.
-	for i := 0; i < extraCount; i++ {
+	for i := range extraCount {
 		var target int
 		if i+1 < extraCount {
 			target = written[i+1].xrefAt
 		} else {
 			target = finalAt
 		}
-		copy(out[written[i].prevAt:written[i].prevAt+10], []byte(fmt.Sprintf("%010d", target)))
+		copy(out[written[i].prevAt:written[i].prevAt+10], fmt.Appendf(nil, "%010d", target))
 	}
 	return out
 }
