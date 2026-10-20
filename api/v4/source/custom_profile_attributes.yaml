@@ -1,10 +1,23 @@
   "/api/v4/custom_profile_attributes/fields":
     get:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: List all the Custom Profile Attributes fields
       description: |
         List all the Custom Profile Attributes fields.
+
+        The list includes every user attribute, whether or not it's linked
+        to a global attribute template. A field with more than 1000 options is
+        returned without `attrs.options`; `attrs.options_count` holds the
+        number of options and `attrs.options_omitted` is `true`.
+
+        **Deprecated since v12.0.** Use the Properties API
+        (`GET /api/v4/properties/groups/access_control/user/fields`) instead.
+        This endpoint will be removed in a future release.
+
+        **License:** requires an Entry, Enterprise or Enterprise Advanced
+        license (403 otherwise).
 
         __Minimum server version__: 10.5
 
@@ -24,11 +37,27 @@
           $ref: "#/components/responses/Unauthorized"
 
     post:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: Create a Custom Profile Attribute field
       description: |
         Create a new Custom Profile Attribute field on the system.
+
+        The new field isn't linked to a global attribute template. To add a
+        user attribute the way the System Console's Attribute Management page
+        does, create a template with
+        `POST /api/v4/properties/groups/access_control/template/fields`, then
+        a user field linked to it with
+        `POST /api/v4/properties/groups/access_control/user/fields`, setting
+        `linked_field_id` to the template's ID.
+
+        **Deprecated since v12.0.** Use the Properties API
+        (`/api/v4/properties/groups/access_control/user/...`) instead. This
+        endpoint will be removed in a future release.
+
+        **License:** requires an Entry, Enterprise or Enterprise Advanced
+        license (403 otherwise).
 
         __Minimum server version__: 10.5
 
@@ -55,6 +84,12 @@
                     expressions as `user.attributes.<name>`.
                 type:
                   type: string
+                  description: >
+                    The type of attribute. `rank` is a select whose options are
+                    ordered by the `rank` each option carries. `graph` is a
+                    hierarchical multiselect: its options can sit below other
+                    options.
+                  enum: [text, select, multiselect, date, user, multiuser, rank, graph]
                 attrs:
                   type: object
                   properties:
@@ -68,7 +103,7 @@
                       description: "Sort order for displaying this attribute"
                     options:
                       type: array
-                      description: "Options for select/multiselect fields"
+                      description: "Options for select, multiselect, rank and graph fields"
                       items:
                         type: object
                         properties:
@@ -76,16 +111,45 @@
                             type: string
                           color:
                             type: string
+                          rank:
+                            type: integer
+                            description: >
+                              `rank` fields only: the option's position in the
+                              field's order. Every option of a `rank` field
+                              needs one, and ranks must be unique positive
+                              integers.
+                          parents:
+                            type: array
+                            items:
+                              type: string
+                            description: >
+                              `graph` fields only: the names of the options
+                              directly above this one. Options read back from
+                              `attrs.options` don't include `parents`.
                     value_type:
                       type: string
                       description: "Type of text value"
                       enum: ["email", "url", "phone"]
                     ldap:
                       type: string
-                      description: "LDAP attribute for syncing"
+                      description: >
+                        AD/LDAP attribute to sync the value from. Only `text`
+                        fields can be synced; the server clears this on other
+                        types.
                     saml:
                       type: string
-                      description: "SAML attribute for syncing"
+                      description: >
+                        SAML attribute to sync the value from. Only `text`
+                        fields can be synced; the server clears this on other
+                        types.
+                    managed:
+                      type: string
+                      description: >
+                        Set to `admin` so that only system administrators can
+                        set the attribute's values. Only a system administrator
+                        can set it.
+                      enum: ["", "admin"]
+                      default: ""
                     protected:
                       type: boolean
                       description: "If true, the field is read-only and cannot be modified."
@@ -127,6 +191,7 @@
 
   "/api/v4/custom_profile_attributes/fields/{field_id}":
     patch:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: Patch a Custom Profile Attribute field
@@ -138,6 +203,17 @@
 
         **Note:** Fields with `attrs.protected = true` cannot be
         modified and will return an error.
+
+        A field linked to a global attribute template can't be changed
+        through this endpoint and returns 400. Change the template, or the
+        linked user field, through the Properties API instead.
+
+        **Deprecated since v12.0.** Use the Properties API
+        (`PATCH /api/v4/properties/groups/access_control/user/fields/{field_id}`)
+        instead. This endpoint will be removed in a future release.
+
+        **License:** requires an Entry, Enterprise or Enterprise Advanced
+        license (403 otherwise).
 
         __Minimum server version__: 10.5
 
@@ -169,6 +245,12 @@
                     when `name` actually changes.
                 type:
                   type: string
+                  description: >
+                    The type of attribute. `rank` is a select whose options are
+                    ordered by the `rank` each option carries. `graph` is a
+                    hierarchical multiselect: its options can sit below other
+                    options.
+                  enum: [text, select, multiselect, date, user, multiuser, rank, graph]
                 attrs:
                   type: object
                   properties:
@@ -182,7 +264,7 @@
                       description: "Sort order for displaying this attribute"
                     options:
                       type: array
-                      description: "Options for select/multiselect fields"
+                      description: "Options for select, multiselect, rank and graph fields"
                       items:
                         type: object
                         properties:
@@ -192,16 +274,45 @@
                             type: string
                           color:
                             type: string
+                          rank:
+                            type: integer
+                            description: >
+                              `rank` fields only: the option's position in the
+                              field's order. Every option of a `rank` field
+                              needs one, and ranks must be unique positive
+                              integers.
+                          parents:
+                            type: array
+                            items:
+                              type: string
+                            description: >
+                              `graph` fields only: the names of the options
+                              directly above this one. Options read back from
+                              `attrs.options` don't include `parents`.
                     value_type:
                       type: string
                       description: "Type of text value"
                       enum: ["email", "url", "phone"]
                     ldap:
                       type: string
-                      description: "LDAP attribute for syncing"
+                      description: >
+                        AD/LDAP attribute to sync the value from. Only `text`
+                        fields can be synced; the server clears this on other
+                        types.
                     saml:
                       type: string
-                      description: "SAML attribute for syncing"
+                      description: >
+                        SAML attribute to sync the value from. Only `text`
+                        fields can be synced; the server clears this on other
+                        types.
+                    managed:
+                      type: string
+                      description: >
+                        Set to `admin` so that only system administrators can
+                        set the attribute's values. Only a system administrator
+                        can set it.
+                      enum: ["", "admin"]
+                      default: ""
                     protected:
                       type: boolean
                       description: "If true, the field is read-only and cannot be modified."
@@ -225,7 +336,17 @@
               schema:
                 $ref: "#/components/schemas/PropertyField"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          description: >
+            The request is invalid, or the field is linked to a global
+            attribute template (error ID
+            `api.custom_profile_attributes.linked_field.app_error`). Fields
+            created before v12.0 are linked to a template when the server is
+            upgraded, and fields created in Attribute Management are always
+            linked. Change a linked field through the Properties API instead.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -241,12 +362,23 @@
                 $ref: "#/components/schemas/AppError"
 
     delete:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: Delete a Custom Profile Attribute field
       description: |
         Marks a Custom Profile Attribute field and all its values as
         deleted.
+
+        A field linked to a global attribute template can't be deleted
+        through this endpoint and returns 400.
+
+        **Deprecated since v12.0.** Use the Properties API
+        (`DELETE /api/v4/properties/groups/access_control/user/fields/{field_id}`)
+        instead. This endpoint will be removed in a future release.
+
+        **License:** requires an Entry, Enterprise or Enterprise Advanced
+        license (403 otherwise).
 
         __Minimum server version__: 10.5
 
@@ -268,7 +400,17 @@
               schema:
                 $ref: "#/components/schemas/StatusOK"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          description: >
+            The request is invalid, or the field is linked to a global
+            attribute template (error ID
+            `api.custom_profile_attributes.linked_field.app_error`). Fields
+            created before v12.0 are linked to a template when the server is
+            upgraded, and fields created in Attribute Management are always
+            linked. Change a linked field through the Properties API instead.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -276,6 +418,7 @@
 
   "/api/v4/custom_profile_attributes/values":
     patch:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: Patch Custom Profile Attribute values
@@ -289,6 +432,18 @@
         **Note:** Values for fields with `attrs.protected = true` cannot be
         updated and will return an error.
 
+        The body and the response are maps from field ID to value. A request
+        with no entries or more than 50 entries returns 400, and an unknown
+        field ID returns 404.
+
+        **Deprecated since v12.0.** Use the Properties API
+        (`PATCH /api/v4/properties/groups/access_control/user/values/{user_id}`,
+        with your own user ID) instead. This endpoint will be removed in a
+        future release.
+
+        **License:** requires an Entry, Enterprise or Enterprise Advanced
+        license (403 otherwise).
+
         __Minimum server version__: 10.5
 
         ##### Permissions
@@ -300,36 +455,35 @@
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  value:
-                    oneOf:
-                      - type: string
-                      - type: array
-                        items:
-                          type: string
+              type: object
+              description: >
+                A map from field ID to the new value, with between 1 and 50
+                entries. A `text`, `select`, `rank`, `date` or `user` value is
+                a string (an option ID for `select` and `rank`); a
+                `multiselect`, `graph` or `multiuser` value is an array of
+                strings (option IDs or user IDs).
+              minProperties: 1
+              maxProperties: 50
+              additionalProperties:
+                oneOf:
+                  - type: string
+                  - type: array
+                    items:
+                      type: string
       responses:
         "200":
           description: Custom Profile Attribute values patch successful
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    value:
-                      oneOf:
-                        - type: string
-                        - type: array
-                          items:
-                            type: string
+                type: object
+                description: A map from field ID to the value that was saved.
+                additionalProperties:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -338,11 +492,21 @@
           $ref: "#/components/responses/Forbidden"
   "/api/v4/custom_profile_attributes/group":
     get:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: Get Custom Profile Attribute property group data
       description: |
-        Get the property group used for Custom Profile Attributes.
+        Get the property group used for Custom Profile Attributes: the
+        `access_control` group.
+
+        **Deprecated since v12.0.** The Properties API
+        (`/api/v4/properties/groups/access_control/user/...`) addresses the
+        group by name, so it doesn't need the group ID. This endpoint will be
+        removed in a future release.
+
+        **License:** requires an Entry, Enterprise or Enterprise Advanced
+        license (403 otherwise).
 
         __Minimum server version__: 10.8
 
@@ -367,11 +531,19 @@
 
   "/api/v4/users/{user_id}/custom_profile_attributes":
     get:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: List Custom Profile Attribute values
       description: |
         List all the Custom Profile Attributes values for specified user.
+
+        **Deprecated since v12.0.** Use the Properties API
+        (`GET /api/v4/properties/groups/access_control/user/values/{user_id}`)
+        instead. This endpoint will be removed in a future release.
+
+        **License:** requires an Entry, Enterprise or Enterprise Advanced
+        license (403 otherwise).
 
         __Minimum server version__: 10.5
 
@@ -390,15 +562,17 @@
           description: Custom Profile Attribute values fetch successful. Result may be empty.
           content:
             application/json:
-            schema:
-              type: array
-              items:
+              schema:
                 type: object
-                properties:
-                  field_id:
-                    type: string
-                  value:
-                    type: string
+                description: >
+                  A map from field ID to the user's value for that field.
+                  Fields the user has no value for are left out.
+                additionalProperties:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -406,6 +580,7 @@
         "403":
           $ref: "#/components/responses/Forbidden"
     patch:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: Update custom profile attribute values for a user
@@ -415,10 +590,21 @@
         **Note:** Values for fields with `attrs.protected = true` cannot be
         updated and will return an error.
 
+        The body and the response are maps from field ID to value. A request
+        with no entries or more than 50 entries returns 400, and an unknown
+        field ID returns 404.
+
+        **Deprecated since v12.0.** Use the Properties API
+        (`PATCH /api/v4/properties/groups/access_control/user/values/{user_id}`)
+        instead. This endpoint will be removed in a future release.
+
+        **License:** requires an Entry, Enterprise or Enterprise Advanced
+        license (403 otherwise).
+
         __Minimum server version__: 11
 
         ##### Permissions
-        Must have permission to edit the user. Users can only edit their own CPA values unless they are system administrators.
+        Must be the user themselves or have the `edit_other_users` permission.
       parameters:
         - name: user_id
           in: path
@@ -433,36 +619,35 @@
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  value:
-                    oneOf:
-                      - type: string
-                      - type: array
-                        items:
-                          type: string
+              type: object
+              description: >
+                A map from field ID to the new value, with between 1 and 50
+                entries. A `text`, `select`, `rank`, `date` or `user` value is
+                a string (an option ID for `select` and `rank`); a
+                `multiselect`, `graph` or `multiuser` value is an array of
+                strings (option IDs or user IDs).
+              minProperties: 1
+              maxProperties: 50
+              additionalProperties:
+                oneOf:
+                  - type: string
+                  - type: array
+                    items:
+                      type: string
       responses:
         '200':
           description: Custom profile attribute values updated successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    value:
-                      oneOf:
-                        - type: string
-                        - type: array
-                          items:
-                            type: string
+                type: object
+                description: A map from field ID to the value that was saved.
+                additionalProperties:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
         '400':
           $ref: '#/components/responses/BadRequest'
         '403':
