@@ -386,7 +386,9 @@ func TestLdapCheckTreatsConfigValuesAsData(t *testing.T) {
 				assert.NotContains(t, combined, bindPassword, "bind password should not appear on stdout or stderr")
 			}
 			if tc.forbidPasswordArgv {
-				assert.NotContains(t, got.argv, bindPassword, "bind password should not appear in the ldapsearch argument list")
+				for _, arg := range got.argv {
+					assert.NotContains(t, arg, bindPassword, "bind password should not appear in the ldapsearch argument list")
+				}
 			}
 			if tc.forbidDashLeadingOption {
 				require.True(t, got.invoked, "ldapsearch should be invoked")
