@@ -31,6 +31,7 @@ This changelog summarizes updates to Mattermost desktop app releases for [Matter
 - Moved most native dialogs to in-app modals to better unify the user interface.
 - Added a table in **Settings** that shows the session attribute values the app currently reports.
 - Added a randomly generated identifier, stored locally and stable for the lifetime of an installation, to the crash and error reports sent to Sentry when error reporting is enabled. It allows reports from the same installation to be correlated without identifying the user.
+- Updated file download finalization handling for saved downloads.
 
 ### Architectural Changes
 
@@ -50,6 +51,8 @@ This changelog summarizes updates to Mattermost desktop app releases for [Matter
 
 #### All Platforms
 
+- Fixed an issue where the Calls widget could crash the app when resized to a very large size.
+- Fixed an issue with some local network access checks.
 - Fixed an issue where the pre-authentication secret wasn't applied to WebSocket connections.
 - Fixed an issue where adding a Mattermost server on the local network, such as ``localhost`` or a private IP address, would fail to validate.
 - Fixed several crashes caused by accessing the main window, a server view, or the tray icon after it was destroyed, or by creating the main window before the app finished launching.
