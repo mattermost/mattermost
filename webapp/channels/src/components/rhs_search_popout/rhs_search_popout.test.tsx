@@ -128,14 +128,17 @@ describe('RhsSearchPopout', () => {
     });
 
     test('should open a mention search with the filters it was popped out with', async () => {
+        const channel1 = 'channel1channel1channel1ab';
+        const channel2 = 'channel2channel2channel2ab';
+
         renderPopout(
-            `?q=%40user&type=messages&mode=mention&searchTeamId=${team.id}&mentionChannels=channel1%2Cchannel2&mentionTypes=direct&mentionDate=today`,
+            `?q=%40user&type=messages&mode=mention&searchTeamId=${team.id}&mentionChannels=${channel1}%2C${channel2}&mentionTypes=direct&mentionDate=today`,
             'mention',
         );
 
         await waitFor(() => {
             expect(jest.mocked(updateMentionFilters)).toHaveBeenCalledWith(
-                {channelIds: ['channel1', 'channel2'], mentionTypes: ['direct'], date: 'today'},
+                {channelIds: [channel1, channel2], mentionTypes: ['direct'], date: 'today'},
                 team.id,
             );
         });

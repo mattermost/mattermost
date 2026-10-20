@@ -130,12 +130,15 @@ describe('buildMentionSearchQuery', () => {
 });
 
 describe('mention filters in the popout URL', () => {
+    const channelA = 'a'.repeat(26);
+    const channelB = 'b1'.repeat(13);
+
     test('round trips the filters', () => {
-        const filters: MentionFilters = {channelIds: ['abc', 'def'], mentionTypes: ['direct', 'keyword'], date: 'last_7_days'};
+        const filters: MentionFilters = {channelIds: [channelA, channelB], mentionTypes: ['direct', 'keyword'], date: 'last_7_days'};
 
         const params = new URLSearchParams(mentionFiltersToSearchParams(filters));
 
-        expect(params.toString()).toEqual('mentionChannels=abc%2Cdef&mentionTypes=direct%2Ckeyword&mentionDate=last_7_days');
+        expect(params.toString()).toEqual(`mentionChannels=${channelA}%2C${channelB}&mentionTypes=direct%2Ckeyword&mentionDate=last_7_days`);
         expect(mentionFiltersFromSearchParams(params)).toEqual(filters);
     });
 
@@ -148,13 +151,20 @@ describe('mention filters in the popout URL', () => {
     });
 
     test('drops values it does not recognise rather than searching on them', () => {
-        const params = new URLSearchParams('mentionChannels=abc,,&mentionTypes=direct,nonsense&mentionDate=yesterday');
+        const params = new URLSearchParams(`mentionChannels=${channelA},,&mentionTypes=direct,nonsense&mentionDate=yesterday`);
 
         expect(mentionFiltersFromSearchParams(params)).toEqual({
-            channelIds: ['abc'],
+            channelIds: [channelA],
             mentionTypes: ['direct'],
             date: 'any',
         });
+    });
+
+    test('drops channel values that are not ids, so they cannot add terms or modifiers to the query', () => {
+        const params = new URLSearchParams();
+        params.set('mentionChannels', `${channelA},abc on:2020-01-01,${channelB.toUpperCase()},${channelB}x`);
+
+        expect(mentionFiltersFromSearchParams(params).channelIds).toEqual([channelA]);
     });
 });
 
