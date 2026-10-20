@@ -902,12 +902,12 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             return invalid;
         }
 
-        // /cel/check accepts these, but the team policy save rejects them.
+        // /cel/check accepts resource attributes, but the team policy save rejects them.
         if (teamRuleGuardErrorId(expression)) {
             return invalid;
         }
         try {
-            const errors = await Client4.checkAccessControlExpression(expression, undefined, this.props.teamID);
+            const errors = await Client4.checkAccessControlExpression(expression, undefined, this.props.teamID, true);
             return errors.length ? invalid : undefined;
         } catch {
             return invalid;

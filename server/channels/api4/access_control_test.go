@@ -1266,6 +1266,28 @@ func TestCheckExpression(t *testing.T) {
 		require.NotEmpty(t, errors, "expected errors")
 	}, "CheckExpression with system admin errors returned")
 
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		expression := `user.attributes.Department == "Engineering" ? true : false`
+		mockAccessControlService.On("CheckMembershipExpression", mock.AnythingOfType("*request.Context"), expression).Return([]model.CELExpressionError{
+			{Message: "membership sync cannot evaluate this rule: ternary operator is not supported"},
+		}, nil).Times(1)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		errors, resp, err := client.CheckMembershipExpression(context.Background(), expression)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, errors, 1)
+		mockAccessControlService.AssertNotCalled(t, "CheckExpression", mock.Anything, mock.Anything)
+	}, "CheckExpression with the membership flag runs the membership check")
+
 	t.Run("CheckExpression with channel admin for their channel", func(t *testing.T) {
 		// Reload config to pick up the feature flag
 		err := th.App.ReloadConfig()

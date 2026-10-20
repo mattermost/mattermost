@@ -12,17 +12,8 @@ describe('teamRuleGuardErrorId', () => {
         expect(teamRuleGuardErrorId('user.attributes.Program == "resource.attributes.x"')).toBeUndefined();
     });
 
-    test('flags session attribute references', () => {
-        expect(teamRuleGuardErrorId('user.session.ip == "1.2.3.4"')).toBe('session_attributes');
-    });
-
-    test('flags session attribute references with whitespace around the dot', () => {
-        expect(teamRuleGuardErrorId('user . session.ip == "1.2.3.4"')).toBe('session_attributes');
-        expect(teamRuleGuardErrorId('user\n.session.ip == "1.2.3.4"')).toBe('session_attributes');
-    });
-
-    test('ignores session attribute text inside a string literal', () => {
-        expect(teamRuleGuardErrorId('user.attributes.Note == "user.session.ip"')).toBeUndefined();
+    test('leaves session attribute references to the server check', () => {
+        expect(teamRuleGuardErrorId('user.session.ip == "1.2.3.4"')).toBeUndefined();
     });
 
     test('accepts plain user attribute rules', () => {

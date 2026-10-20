@@ -1595,7 +1595,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             await userEvent.click(screen.getByText('Save'));
 
             expect(await screen.findByText(invalidRulesMessage)).toBeInTheDocument();
-            expect(checkExpressionSpy).toHaveBeenCalledWith(celRule, undefined, '123');
+            expect(checkExpressionSpy).toHaveBeenCalledWith(celRule, undefined, '123', true);
             expectNoWrites(actions);
         });
 
@@ -1623,7 +1623,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             await waitFor(() => {
                 expect(actions.createAccessControlTeamSyncJob).toHaveBeenCalledWith({policy_id: '123'});
             });
-            expect(checkExpressionSpy).toHaveBeenCalledWith(celRule, undefined, '123');
+            expect(checkExpressionSpy).toHaveBeenCalledWith(celRule, undefined, '123', true);
             expect(actions.searchUsersForExpression).toHaveBeenCalledWith(celRule, '', '', 1000);
             expect(actions.saveTeamAccessPolicy).toHaveBeenCalledWith(expect.objectContaining({
                 id: '123',
@@ -1693,15 +1693,16 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             expectNoWrites(actions);
         });
 
-        test('blocks a session attribute rule without calling the server check', async () => {
+        test('blocks a session attribute rule the server membership check rejects', async () => {
             const actions = renderEnforced();
+            checkExpressionSpy.mockResolvedValue([{message: 'membership rules cannot reference session attributes: ip', line: 0, column: 0}]);
             await screen.findByTestId('team-level-access-rules');
 
             await userEvent.click(screen.getByTestId('set-session-rule'));
             await userEvent.click(screen.getByText('Save'));
 
             expect(await screen.findByText(invalidRulesMessage)).toBeInTheDocument();
-            expect(checkExpressionSpy).not.toHaveBeenCalled();
+            expect(checkExpressionSpy).toHaveBeenCalledWith('user.session.ip == "1.2.3.4"', undefined, '123', true);
             expectNoWrites(actions);
         });
 

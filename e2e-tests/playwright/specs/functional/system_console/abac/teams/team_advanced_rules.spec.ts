@@ -385,15 +385,19 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
 
         const {page} = await pw.testBrowser.login(adminUser);
         const rulesPanel = await openTeamRules(page, team);
+        const statusBar = rulesPanel.locator('.cel-editor__status-bar');
 
         await switchTeamRulesMode(page);
         await typeTeamRulesCel(page, 'user.session.ip == "1.2.3.4"');
 
-        await expect(rulesPanel.locator('[role="alert"]').filter({hasText: 'session attributes'})).toBeVisible();
+        // * The server's membership check rejects it as it is typed
+        await waitForTeamRulesValidation(page, 'error');
+        await expect(statusBar).toContainText('session attributes');
 
         // CEL allows whitespace around the member dot, so this is the same reference.
         await typeTeamRulesCel(page, 'user . session.ip == "1.2.3.4"');
-        await expect(rulesPanel.locator('[role="alert"]').filter({hasText: 'session attributes'})).toBeVisible();
+        await waitForTeamRulesValidation(page, 'error');
+        await expect(statusBar).toContainText('session attributes');
 
         await page.getByTestId('saveSetting').click();
         await expect(page.getByTestId('saveChangesPanel-errorMessage')).toContainText('Fix the errors');
@@ -820,10 +824,10 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     /**
-     * @objective A membership rule that sync can't run as SQL is rejected on save instead of
-     *            being stored and silently never enforced.
+     * @objective A membership rule that sync can't run as SQL is rejected while it is typed and
+     *            on save, instead of being stored and silently never enforced.
      */
-    test('MM-71104-T20 a rule membership sync cannot evaluate is rejected on save', async ({pw}) => {
+    test('MM-71104-T20 a rule membership sync cannot evaluate is rejected', async ({pw}) => {
         test.setTimeout(180_000);
         const {adminClient, adminUser, team} = await setupFixture(pw);
 
@@ -835,23 +839,20 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
             'system admin saved a ternary membership rule',
         );
 
-        // # Type the same rule in the Advanced editor; /cel/check accepts it
+        // # Type the same rule in the Advanced editor
         const {page} = await pw.testBrowser.login(adminUser);
-        await openTeamRules(page, team);
+        const rulesPanel = await openTeamRules(page, team);
         await switchTeamRulesMode(page);
         await typeTeamRulesCel(page, ternaryRule());
-        await waitForTeamRulesValidation(page, 'validated');
 
+        // * The editor's membership check flags it before save
+        await waitForTeamRulesValidation(page, 'error');
+        await expect(rulesPanel.locator('.cel-editor__status-bar')).toContainText(NOT_SQLIZABLE_MESSAGE);
+
+        // * Save is blocked before anything is written
         await page.getByTestId('saveSetting').click();
-
-        // * Whether or not the confirm step appears first, the save ends with the server's reason
-        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'});
-        const errorMessage = page.getByTestId('saveChangesPanel-errorMessage');
-        await expect(confirmModal.or(errorMessage)).toBeVisible({timeout: 15_000});
-        if (await confirmModal.isVisible()) {
-            await confirmModal.getByRole('button', {name: 'Apply'}).click();
-        }
-        await expect(errorMessage).toContainText(NOT_SQLIZABLE_MESSAGE, {timeout: 15_000});
+        await expect(page.getByTestId('saveChangesPanel-errorMessage')).toContainText('Fix the errors');
+        await expect(page.locator('.ConfirmModal')).toHaveCount(0);
 
         // * Nothing was persisted
         expect(await getMembershipExpression(adminClient, team.id)).toBeUndefined();
@@ -859,7 +860,9 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     // Parent links are written before the team policy, and nothing rolls them back when the
-    // policy save fails. Enable once the save order or a rollback is fixed.
+    // policy save fails. Enable once the save order or a rollback is fixed. The editor now
+    // catches a ternary before save, so this needs a rule only the save rejects, such as
+    // one that excludes the admin.
     test.fixme('MM-71104-T20b a rejected save does not leave a parent link behind', async ({pw}) => {
         test.setTimeout(180_000);
         const {adminClient, adminUser, team} = await setupFixture(pw);

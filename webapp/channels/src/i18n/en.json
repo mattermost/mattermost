@@ -16185,7 +16185,7 @@
   },
   "admin.team_settings.team_detail.rules.error.session_attributes": {
     "defaultMessage": "Team membership rules can't reference session attributes.",
-    "description": "Error on the System Console per-team page, shown inline under the Team-specific membership rules editor and in the save bar when the server rejects the save, because the rule references user.session.* attributes, which team membership rules can't use."
+    "description": "Error in the save bar on the System Console per-team page when the server rejects the save because the team membership rule references user.session.* attributes, which team membership rules can't use."
   },
   "admin.team_settings.team_detail.rules.subtitle": {
     "defaultMessage": "User attributes and values as additional rules to restrict team membership",

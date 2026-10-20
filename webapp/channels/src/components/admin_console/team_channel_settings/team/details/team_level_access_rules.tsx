@@ -87,7 +87,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
 
     // Validate in the team's context so a team admin without manage_system isn't refused.
     const celActions = useMemo(() => ({
-        checkExpression: (expr: string) => Client4.checkAccessControlExpression(expr, undefined, team.id),
+        checkExpression: (expr: string) => Client4.checkAccessControlExpression(expr, undefined, team.id, true),
     }), [team.id]);
 
     // The last value this editor emitted; the parent echoes it back as initialExpression.
@@ -160,8 +160,6 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
         switch (teamRuleGuardErrorId(expression)) {
         case 'resource_attributes':
             return formatMessage({id: 'admin.team_settings.team_detail.rules.error.resource_attributes', defaultMessage: 'Team membership rules can\'t reference resource attributes.'});
-        case 'session_attributes':
-            return formatMessage({id: 'admin.team_settings.team_detail.rules.error.session_attributes', defaultMessage: 'Team membership rules can\'t reference session attributes.'});
         default:
             return '';
         }

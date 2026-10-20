@@ -745,6 +745,20 @@ func (a *App) CheckExpression(rctx request.CTX, expression string) ([]model.CELE
 	return errs, nil
 }
 
+func (a *App) CheckMembershipExpression(rctx request.CTX, expression string) ([]model.CELExpressionError, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("CheckMembershipExpression", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	errs, appErr := acs.CheckMembershipExpression(rctx, expression)
+	if appErr != nil {
+		return nil, model.NewAppError("CheckMembershipExpression", "app.pap.check_expression.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	return errs, nil
+}
+
 func (a *App) TestExpression(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {

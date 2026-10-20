@@ -746,7 +746,7 @@ describe('TeamLevelAccessRules', () => {
 
             await userEvent.click(screen.getByTestId('cel-check'));
 
-            expect(checkSpy).toHaveBeenCalledWith('true', undefined, mockTeam.id);
+            expect(checkSpy).toHaveBeenCalledWith('true', undefined, mockTeam.id, true);
             checkSpy.mockRestore();
         });
 
@@ -861,35 +861,15 @@ describe('TeamLevelAccessRules', () => {
             expect(onValidityChange).toHaveBeenLastCalledWith(false);
         });
 
-        test('rejects session attribute references', async () => {
-            const onValidityChange = jest.fn();
-            renderWithContext(
-                <TeamLevelAccessRules
-                    {...defaultProps}
-                    onValidityChange={onValidityChange}
-                />,
-            );
-
-            await userEvent.click(getToggle());
-            await userEvent.type(screen.getByTestId('cel-input'), 'user.session.ip == "1.2.3.4"');
-
-            expect(screen.getByRole('alert')).toHaveTextContent('Team membership rules can\'t reference session attributes.');
-            expect(onValidityChange).toHaveBeenLastCalledWith(false);
-        });
-
-        test('rejects session attribute references in simple mode too', () => {
-            const onValidityChange = jest.fn();
+        test('leaves session attribute references to the server membership check', () => {
             renderWithContext(
                 <TeamLevelAccessRules
                     {...defaultProps}
                     initialExpression='user.session.ip == "1.2.3.4"'
-                    onValidityChange={onValidityChange}
                 />,
             );
 
-            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
-            expect(screen.getByRole('alert')).toHaveTextContent('Team membership rules can\'t reference session attributes.');
-            expect(onValidityChange).toHaveBeenLastCalledWith(false);
+            expect(screen.queryByText('Team membership rules can\'t reference session attributes.')).not.toBeInTheDocument();
         });
 
         test('reports advanced editor validity and resets it when returning to the table', async () => {
