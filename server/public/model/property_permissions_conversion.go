@@ -139,7 +139,9 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 // source plugin's, and field.write none becomes protected; both read back as
 // human write locks. A caller reconverting a projection must strip those
 // first. A wildcard grant is never projected: v2 has no owner meaning "any
-// plugin", and expresses that access by listing no owners at all.
+// plugin", and expresses that access by listing no owners at all. A user or
+// role owner converts to no grant, so it is carried over from the stored
+// owners attr instead (see appendHumanOwners).
 func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 	if field.Permissions == nil {
 		return field
@@ -168,7 +170,7 @@ func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 		delete(projected.Attrs, PropertyAttrsProtected)
 	}
 
-	if owners := ownersFromGrants(field.Permissions.Grants); len(owners) > 0 {
+	if owners := appendHumanOwners(ownersFromGrants(field.Permissions.Grants), GetPropertyFieldOwners(field)); len(owners) > 0 {
 		projected.Attrs[PropertyAttrsOwners] = owners
 	} else {
 		// No owners at all, so the field looks exactly like a field that never
@@ -207,6 +209,25 @@ func ownersFromGrants(grants []Grant) []PropertyOwner {
 			Scopes: grant.Scopes,
 			Allow:  grant.Allow,
 		})
+	}
+	return owners
+}
+
+// appendHumanOwners appends to owners each user or role owner in stored that
+// owners does not already name. Such an owner converts to no grant, yet to a
+// v2 reader it is what locks the field to people, and reconverting a
+// projection without it would hand the field's writes to the plugin
+// wildcard. A machine owner in stored is left out: its grant is the
+// authority, and is already projected.
+func appendHumanOwners(owners, stored []PropertyOwner) []PropertyOwner {
+	for _, owner := range stored {
+		if isMachineOwnerType(owner.Type) {
+			continue
+		}
+		if slices.ContainsFunc(owners, func(o PropertyOwner) bool { return o.Type == owner.Type && o.ID == owner.ID }) {
+			continue
+		}
+		owners = append(owners, owner)
 	}
 	return owners
 }
@@ -264,11 +285,11 @@ func maskingFromLegacy(field *PropertyField, restrictions *Restrictions, opts Le
 	return masking
 }
 
-// grantsFromLegacy converts a field's owners, source plugin and sync lock —
-// all Attrs-based, all implicitly trusted with everything under the legacy
-// model — into grants enumerating the five enforced actions, plus one
-// wildcard plugin grant for ambient access a machine caller named nowhere
-// on the field still holds (see ambientMachineGrantAllow).
+// grantsFromLegacy converts the Attrs-based identities the legacy model let
+// past its checks into grants enumerating the five enforced actions: plugin
+// and service owners, the source plugin, and the sync service. It adds one wildcard plugin grant for ambient access a machine
+// caller named nowhere on the field still holds (see
+// ambientMachineGrantAllow).
 //
 // Each input's Allow is split by PropertyActionMeasuredAgainstValueObject
 // before it is merged in: an owner's Scopes only ever narrows the value
@@ -330,6 +351,14 @@ func grantsFromLegacy(field *PropertyField) []Grant {
 	}
 
 	for _, owner := range GetPropertyFieldOwners(field) {
+		if !isMachineOwnerType(owner.Type) {
+			// Under the legacy model an owners list is a lock: only a plugin or
+			// service caller ever matched an owner, and every human was refused on
+			// an owned field. A user or role owner was accepted but changed
+			// nothing, so it converts to no grant, and the restrictions above keep
+			// the lock.
+			continue
+		}
 		allow := validPropertyActions
 		if len(owner.Allow) > 0 {
 			// An owner written by ProjectLegacyPermissions carries the exact list its
@@ -442,6 +471,13 @@ func unguardedGroupPluginAllow(field *PropertyField) []string {
 		return removeAction(validPropertyActions, PropertyActionFieldWrite)
 	}
 	return slices.Clone(validPropertyActions)
+}
+
+// isMachineOwnerType reports whether a legacy owner of this type was ever
+// matched by an access check. Only plugin and service callers were; a user or
+// role owner was stored but never matched anyone.
+func isMachineOwnerType(ownerType string) bool {
+	return ownerType == PropertyOwnerTypePlugin || ownerType == PropertyOwnerTypeService
 }
 
 // syncLockSource returns the sync source whose lock applies to field's own
