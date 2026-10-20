@@ -4,7 +4,9 @@ on:
     paths:
       - "server/i18n/**"
       - "webapp/channels/src/i18n/**"
-      # The checkers themselves, so a change to one is verified by it.
+      # The glossary, the translation pipeline and the checkers themselves, so a
+      # change to one is verified by it.
+      - "i18n/**"
       - "webapp/channels/scripts/check_icu.mjs"
       - "webapp/channels/scripts/icu_rules.mjs"
       - "tools/mmgotool/**"

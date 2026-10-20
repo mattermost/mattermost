@@ -123,3 +123,22 @@ jobs:
           run: |
             make i18n-verify
             cd ../tools/mmgotool && go test ./commands/ -run TestServerPluralTableMatchesGoI18n
+
+  check-changes:
+    name: Test the translation pipeline
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      # The rules parse ICU messages with react-intl's parser, from webapp's
+      # node_modules.
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+
+      - name: ci/test-pipeline
+        run: node --test i18n/scripts/*.test.mjs

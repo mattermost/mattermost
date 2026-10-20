@@ -2,11 +2,15 @@
 // See LICENSE.txt for license information.
 
 /**
- * The per-message rules for the webapp locale catalogs, which check_icu.mjs
- * runs over every catalog in CI.
+ * The per-message rules for the webapp locale catalogs.
  *
- * Every finding carries a stable rule id and a severity, so a caller can tell
- * the rules apart without matching on message text.
+ * check_icu.mjs runs them over every catalog in CI, and the translation pipeline
+ * in i18n/scripts/ runs them over each translation before it lands. There is one
+ * copy so that what the pipeline accepts is exactly what CI accepts.
+ *
+ * Every finding carries a stable rule id, and its severity here is the one CI
+ * uses. The pipeline holds new translations to a stricter standard than the
+ * catalogs as they stand, so it maps some warnings to errors by rule id.
  */
 
 import {createRequire} from 'node:module';
@@ -66,9 +70,9 @@ const UNESCAPED_APOSTROPHE = /(?<!')'(?!')[<{]/;
 // Horizontal arrows and pointers. They are not bidi-mirrored, so in a
 // right-to-left sentence one meaning "next" or "leads to" points backwards.
 // Vertical arrows and the ↵ key symbol read the same either way.
-const HORIZONTAL_GLYPH = /[\u2190\u2192\u21D0\u21D2\u27F5\u27F6\u2794\u279C-\u27BF\u2B05\u25B6\u25B8\u25BA\u25C0\u25C2\u25C4]/u;
+export const HORIZONTAL_GLYPH = /[\u2190\u2192\u21D0\u21D2\u27F5\u27F6\u2794\u279C-\u27BF\u2B05\u25B6\u25B8\u25BA\u25C0\u25C2\u25C4]/u;
 
-function isRightToLeft(locale) {
+export function isRightToLeft(locale) {
     const tag = new Intl.Locale(locale);
     return (tag.getTextInfo ? tag.getTextInfo() : tag.textInfo).direction === 'rtl';
 }
@@ -202,7 +206,7 @@ const finding = (rule, severity, message) => ({rule, severity, message});
  * {rule, severity, message}, where severity is "error" or "warning".
  *
  *   errors   parse, unknown-argument, missing-argument, argument-role, apostrophe
- *   warnings rtl-arrow, plural-category
+ *   warnings rtl-arrow, plural-category, plural-unused-category
  */
 export function checkMessage(source, message, locale) {
     const findings = [];
@@ -260,6 +264,7 @@ export function checkMessage(source, message, locale) {
 
     // ICU falls back to "other" for a category the message lacks, so this
     // renders, just in the wrong grammatical form: "5 каналы" for "5 каналов".
+    const used = new Intl.PluralRules(locale).resolvedOptions().pluralCategories;
     for (const node of pluralNodes(ast)) {
         if (!source.incompletePlurals.has(node.value) && displaysCount(node, ast)) {
             const missing = missingCategories(node, locale);
@@ -267,6 +272,12 @@ export function checkMessage(source, message, locale) {
                 const forms = [...missing.keys()].join('/');
                 const counts = [...missing.values()].join(', ');
                 findings.push(finding('plural-category', 'warning', `plural "${node.value}" has no ${forms} form, so counts such as ${counts} render with "other"`));
+            }
+        }
+        if ((node.pluralType || 'cardinal') === 'cardinal') {
+            const unused = Object.keys(node.options).filter((c) => !c.startsWith('=') && !used.includes(c));
+            if (unused.length) {
+                findings.push(finding('plural-unused-category', 'warning', `plural "${node.value}" has a ${unused.join('/')} form that ${locale} never selects${unused.includes('one') ? '; for exactly one, write =1' : ''}`));
             }
         }
     }
