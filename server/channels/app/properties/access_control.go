@@ -832,7 +832,15 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 	return nil
 }
 
-// PreDeletePropertyValuesForField enforces write access before deleting all values for a field.
+// PreDeletePropertyValuesForField enforces access before deleting all values for a field.
+//
+// A field carrying a typed permissions object judges this as a field.write,
+// not a value.write: it clears every value the field has across every object,
+// so there is no single object to measure value.write against, and destroying
+// a field's data wholesale is an act on the field. Field delete never comes
+// through here -- it removes the values in the store directly -- so this gates
+// the bulk delete on its own. Absent permissions, it falls back to the legacy
+// value-write paths, as checkValueWriteAccess does.
 func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error {
 	if !h.isGroupManaged(groupID) {
 		return nil
@@ -845,17 +853,33 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 		return err
 	}
 
-	// This clears every value the field has across every object, so there is no
-	// single object to measure value.write against here -- an empty target would
-	// resolve as a denied channel/team membership check for anyone but a
-	// sysadmin, refusing a legitimate cascade. A human caller's authority for
-	// this operation comes from the field-level write gate on the delete path
-	// (PreDeletePropertyField / enforceFieldUpdateAccess), not from here.
-	if field.Permissions != nil && !isMachineCaller(h.pluginChecker, callerID) {
-		return nil
+	if field.Permissions == nil {
+		return h.checkValueWriteAccess(rctx, newMaskingContext(), field, callerID, h.extractActingAsScope(rctx), "")
 	}
 
-	return h.checkValueWriteAccess(rctx, newMaskingContext(), field, callerID, h.extractActingAsScope(rctx), "")
+	if !isMachineCaller(h.pluginChecker, callerID) {
+		if h.permissionsAllows(rctx, field, callerID, "", model.PropertyActionFieldWrite, "") {
+			return nil
+		}
+		return fmt.Errorf("field %s refuses caller %q a delete of all its values: %w", field.ID, callerID, ErrAccessDenied)
+	}
+
+	if !h.permissionsGrantAllows(field, callerID, "", model.PropertyActionFieldWrite) {
+		return fmt.Errorf("field %s carries permissions and caller %q matches no field.write grant: %w", field.ID, callerID, ErrAccessDenied)
+	}
+
+	// A machine caller holds nothing for masking to match, so unless except
+	// names it, it can see none of a masked field's values -- and may not
+	// destroy what it cannot read, the rule checkValueWriteVisibility holds a
+	// single write to.
+	fm, err := h.resolveFieldMasking(rctx, field)
+	if err != nil {
+		return err
+	}
+	if fm.masking != nil && !h.exempt(rctx, fm.masking.Except, callerID) {
+		return fmt.Errorf("field %s is masked and caller %q is not exempt, so it may not delete values it cannot read: %w", field.ID, callerID, ErrAccessDenied)
+	}
+	return nil
 }
 
 // Value Post-Hooks

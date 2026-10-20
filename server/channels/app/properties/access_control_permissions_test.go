@@ -275,28 +275,142 @@ func TestPermissionsHumanValueWriteAccessControl(t *testing.T) {
 
 		require.NoError(t, th.service.DeletePropertyField(allowedRctx, th.CPAGroupID, created.ID))
 	})
+}
 
-	t.Run("deleting all of a field's values still admits a human even though it carries permissions", func(t *testing.T) {
-		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-owner" })
-		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+// TestPermissionsDeleteAllFieldValuesAccessControl covers deleting every value
+// a field carrying permissions has: a field.write for humans and machines
+// alike, and on a masked field a machine caller must also be in except.
+func TestPermissionsDeleteAllFieldValuesAccessControl(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
+		return pluginID == "plugin-owner"
+	})
+	t.Cleanup(func() {
+		th.service.setPluginCheckerForTests(nil)
+		th.service.setLadderCheckerForTests(nil)
+	})
 
-		field := grantsField(th.CPAGroupID, "DeleteAllValues", []model.Grant{
-			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}, Allow: []string{model.PropertyActionValueWrite}},
+	pluginGrant := func(actions ...string) []model.Grant {
+		return []model.Grant{{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}, Allow: actions}}
+	}
+	remaining := func(t *testing.T, fieldID string) int {
+		t.Helper()
+		values, err := th.dbStore.PropertyValue().SearchPropertyValues(th.Context, model.PropertyValueSearchOpts{
+			GroupID: th.CPAGroupID,
+			FieldID: fieldID,
+			PerPage: 10,
 		})
-		created, err := th.service.CreatePropertyField(RequestContextWithCallerID(th.Context, "plugin-owner"), field)
+		require.NoError(t, err)
+		return len(values)
+	}
+	requireRefused := func(t *testing.T, rctx request.CTX, fieldID string) {
+		t.Helper()
+		delErr := th.service.DeletePropertyValuesForField(rctx, th.CPAGroupID, fieldID)
+		require.Error(t, delErr)
+		assert.ErrorIs(t, delErr, ErrAccessDenied)
+		assert.Equal(t, 1, remaining(t, fieldID))
+	}
+	requireDeleted := func(t *testing.T, rctx request.CTX, fieldID string) {
+		t.Helper()
+		require.NoError(t, th.service.DeletePropertyValuesForField(rctx, th.CPAGroupID, fieldID))
+		assert.Equal(t, 0, remaining(t, fieldID))
+	}
+	pluginRctx := RequestContextWithCallerID(th.Context, "plugin-owner")
+
+	t.Run("a machine with value.write but no field.write is refused", func(t *testing.T) {
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "DeleteAll-ValueWriteOnly", pluginGrant(model.PropertyActionValueWrite)))
+		require.NoError(t, err)
+		writeValueDirect(t, th, created.ID, "user", model.NewId(), "v")
+
+		requireRefused(t, pluginRctx, created.ID)
+	})
+
+	t.Run("a machine with field.write on an unmasked field is admitted", func(t *testing.T) {
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "DeleteAll-Unmasked", pluginGrant(model.PropertyActionFieldWrite)))
+		require.NoError(t, err)
+		writeValueDirect(t, th, created.ID, "user", model.NewId(), "v")
+
+		requireDeleted(t, pluginRctx, created.ID)
+	})
+
+	t.Run("a machine with field.write on a masked field is refused unless except names it", func(t *testing.T) {
+		field := maskedField(th.CPAGroupID, "DeleteAll-Masked", model.PropertyFieldTypeText, &model.Masking{})
+		field.Permissions.Grants = pluginGrant(model.PropertyActionFieldWrite)
+		created, err := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, err)
+		writeValueDirect(t, th, created.ID, "user", model.NewId(), "v")
+
+		requireRefused(t, pluginRctx, created.ID)
+
+		exempt := maskedField(th.CPAGroupID, "DeleteAll-MaskedExempt", model.PropertyFieldTypeText, &model.Masking{
+			Except: []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}},
+		})
+		exempt.Permissions.Grants = pluginGrant(model.PropertyActionFieldWrite)
+		created, err = th.service.CreatePropertyField(th.Context, exempt)
+		require.NoError(t, err)
+		writeValueDirect(t, th, created.ID, "user", model.NewId(), "v")
+
+		requireDeleted(t, pluginRctx, created.ID)
+	})
+
+	t.Run("a linked field takes its masking from its template", func(t *testing.T) {
+		template, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "DeleteAll-Template",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+		holdings, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "DeleteAll-Holdings",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+		})
+		require.NoError(t, err)
+		template.Permissions = &model.Permissions{Masking: &model.Masking{MaskByFieldID: holdings.ID}}
+		updated, err := th.dbStore.PropertyField().Update(template.GroupID, []*model.PropertyField{template}, nil)
+		require.NoError(t, err)
+		template = updated[0]
+
+		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "DeleteAll-Linked",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Permissions:   &model.Permissions{Grants: pluginGrant(model.PropertyActionFieldWrite)},
+			LinkedFieldID: &template.ID,
+		})
+		require.NoError(t, err)
+		writeValueDirect(t, th, linked.ID, "channel", model.NewId(), "v")
+
+		requireRefused(t, pluginRctx, linked.ID)
+
+		template.Permissions.Masking.Except = []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}}
+		_, err = th.dbStore.PropertyField().Update(template.GroupID, []*model.PropertyField{template}, nil)
 		require.NoError(t, err)
 
-		_, err = th.service.CreatePropertyValue(RequestContextWithCallerID(th.Context, "plugin-owner"), newValueFor(created.ID, model.NewId()))
-		require.NoError(t, err)
+		requireDeleted(t, pluginRctx, linked.ID)
+	})
 
-		// A ladder checker that always denies -- proves the human pass-through on
-		// this path is a deliberate exception, not an accidental allow.
-		th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool {
-			return false
+	t.Run("a human is admitted with field.write and refused without it", func(t *testing.T) {
+		allowedUserID := model.NewId()
+		th.service.setLadderCheckerForTests(func(_ request.CTX, callerID string, _ *model.PropertyField, action, _ string) bool {
+			// value.write alone is not enough: the deny case below holds it.
+			return action == model.PropertyActionValueWrite ||
+				(callerID == allowedUserID && action == model.PropertyActionFieldWrite)
 		})
 
-		delErr := th.service.DeletePropertyValuesForField(RequestContextWithCallerID(th.Context, model.NewId()), th.CPAGroupID, created.ID)
-		require.NoError(t, delErr)
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "DeleteAll-Human", nil))
+		require.NoError(t, err)
+		writeValueDirect(t, th, created.ID, "user", model.NewId(), "v")
+
+		requireRefused(t, RequestContextWithCallerID(th.Context, model.NewId()), created.ID)
+		requireDeleted(t, RequestContextWithCallerID(th.Context, allowedUserID), created.ID)
 	})
 }
 
