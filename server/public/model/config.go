@@ -55,6 +55,9 @@ const (
 
 	DatabaseDriverPostgres = "postgres"
 
+	// MinimumPostgresMajorVersion is the oldest PostgreSQL major version the server supports.
+	MinimumPostgresMajorVersion = 15
+
 	SearchengineElasticsearch = "elasticsearch"
 
 	MinioAccessKey = "minioaccesskey"

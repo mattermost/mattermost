@@ -60,8 +60,7 @@ test.describe(
             await expect(displayName).not.toBeEditable();
 
             // * The one place levels can be changed is a link away
-            await expect(globalAttributes.classificationMarkingsLink).toHaveAttribute(
-                'href',
+            await expect(globalAttributes.classificationMarkingsLink).toHaveHrefPath(
                 '/admin_console/site_config/classification_markings',
             );
         });

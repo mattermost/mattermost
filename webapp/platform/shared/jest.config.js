@@ -4,7 +4,8 @@
 /** @type {import('jest').Config} */
 
 export default {
-    moduleDirectories: ['src', 'node_modules'],
+    moduleDirectories: ['node_modules'],
+    modulePaths: ['<rootDir>/src'],
     testEnvironment: 'jsdom',
     testPathIgnorePatterns: ['/node_modules/', '/dist/'],
     clearMocks: true,
