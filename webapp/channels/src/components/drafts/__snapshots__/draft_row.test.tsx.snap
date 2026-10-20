@@ -26,7 +26,15 @@ exports[`components/drafts/drafts_row should match snapshot for channel draft 1`
           class="PanelHeader__actions"
         >
           <div>
-            Draft Actions
+            <button>
+              Send draft
+            </button>
+            <button>
+              Schedule draft
+            </button>
+            <button>
+              Delete draft
+            </button>
           </div>
         </div>
         <div
@@ -82,7 +90,15 @@ exports[`components/drafts/drafts_row should match snapshot for thread draft 1`]
           class="PanelHeader__actions"
         >
           <div>
-            Draft Actions
+            <button>
+              Send draft
+            </button>
+            <button>
+              Schedule draft
+            </button>
+            <button>
+              Delete draft
+            </button>
           </div>
         </div>
         <div
