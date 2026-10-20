@@ -34,7 +34,6 @@ export default class ServerLogs {
     readonly list: Locator;
     readonly rows: Locator;
     readonly reloadButton: Locator;
-    readonly lastUpdated: Locator;
 
     // Plain text viewer
     readonly lineNumbersButton: Locator;
@@ -55,9 +54,6 @@ export default class ServerLogs {
         this.list = container.getByRole('list', {name: 'Server log entries'});
         this.rows = this.list.getByRole('listitem');
         this.reloadButton = container.getByRole('button', {name: 'Reload'});
-
-        // The elapsed-time indicator is a plain span with no role or stable text
-        this.lastUpdated = container.locator('.LogViewer__last-updated');
 
         this.lineNumbersButton = container.getByRole('button', {name: 'Lines'});
     }

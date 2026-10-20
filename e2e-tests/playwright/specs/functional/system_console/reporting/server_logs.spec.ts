@@ -83,8 +83,8 @@ test.describe('System Console - Reporting - Server Logs', () => {
             // # Turn on live tail at the shortest poll interval
             await serverLogs.selectLiveTailInterval('Every 10 seconds');
 
-            // * Verify polling is running
-            await expect(serverLogs.lastUpdated).toBeVisible();
+            // * Verify live tail is on
+            await expect(serverLogs.liveTailValue).toHaveValue('Every 10 seconds');
 
             // # Write an entry only after the page has loaded, so it can only arrive by polling
             const marker = `pw-log-${pw.random.id()}`;
