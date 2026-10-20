@@ -1178,3 +1178,31 @@ func TestProjectLegacyPermissionsOmitsDerivedGrants(t *testing.T) {
 		assert.Equal(t, "ldap", owners[0].ID)
 	})
 }
+
+func TestProjectLegacyPermissionsMergesScopedOwner(t *testing.T) {
+	// A scoped owner converts to a scoped value grant and an unscoped grant
+	// for the rest. A v2 reader set one owner, and gets that one owner back.
+	sysadmin := PermissionLevelSysadmin
+	field := &PropertyField{
+		ObjectType:        PropertyFieldObjectTypeUser,
+		PermissionField:   &sysadmin,
+		PermissionOptions: &sysadmin,
+		PermissionValues:  &sysadmin,
+		Attrs: StringInterface{
+			PropertyAttrsOwners: []PropertyOwner{{Type: PropertyOwnerTypePlugin, ID: "scim", Scopes: []string{"entra"}}},
+		},
+	}
+	opts := LegacyConversionOpts{ConvertAttrs: true}
+	field.Permissions = PermissionsFromLegacy(field, opts)
+	require.Len(t, field.Permissions.Grants, 3, "the scoped owner's two halves and the wildcard's read")
+
+	projected := ProjectLegacyPermissions(field)
+
+	assert.Equal(t, []PropertyOwner{{
+		Type:   PropertyOwnerTypePlugin,
+		ID:     "scim",
+		Scopes: []string{"entra"},
+		Allow:  validPropertyActions,
+	}}, GetPropertyFieldOwners(projected))
+	assert.Equal(t, field.Permissions, PermissionsFromLegacy(projected, opts))
+}

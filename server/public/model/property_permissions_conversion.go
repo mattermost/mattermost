@@ -240,7 +240,47 @@ func ownersFromGrants(field *PropertyField) []PropertyOwner {
 			Allow:  grant.Allow,
 		})
 	}
-	return owners
+	return mergeSplitOwners(owners)
+}
+
+// mergeSplitOwners rejoins the two grants grantsFromLegacy splits a scoped
+// owner into: a scoped grant over the value actions, and an unscoped one over
+// the rest. A v2 reader expects the one owner it set, not a second, unscoped
+// copy of it. The merged owner carries the scopes and every action of both,
+// and converts back to the same two grants. Any other pair for one identity
+// is left as it is.
+func mergeSplitOwners(owners []PropertyOwner) []PropertyOwner {
+	isValueHalf := func(o PropertyOwner) bool {
+		return len(o.Scopes) > 0 && !slices.ContainsFunc(o.Allow, func(a string) bool { return !PropertyActionMeasuredAgainstValueObject(a) })
+	}
+	isOtherHalf := func(o PropertyOwner) bool {
+		return len(o.Scopes) == 0 && !slices.ContainsFunc(o.Allow, PropertyActionMeasuredAgainstValueObject)
+	}
+
+	merged := make([]PropertyOwner, 0, len(owners))
+	used := make([]bool, len(owners))
+	for i, owner := range owners {
+		if used[i] {
+			continue
+		}
+		for j := i + 1; j < len(owners); j++ {
+			other := owners[j]
+			if used[j] || other.Type != owner.Type || other.ID != owner.ID {
+				continue
+			}
+			if (isValueHalf(owner) && isOtherHalf(other)) || (isOtherHalf(owner) && isValueHalf(other)) {
+				scopes := owner.Scopes
+				if len(scopes) == 0 {
+					scopes = other.Scopes
+				}
+				owner = PropertyOwner{Type: owner.Type, ID: owner.ID, Scopes: scopes, Allow: unionActions(owner.Allow, other.Allow)}
+				used[j] = true
+				break
+			}
+		}
+		merged = append(merged, owner)
+	}
+	return merged
 }
 
 // derivedGrantAllow returns, for each identity grantsFromLegacy grants from
