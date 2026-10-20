@@ -25,7 +25,7 @@ func probeSnapshot(nodes []*healthcheck.NodeSnapshot, edit func(cfg *model.Confi
 }
 
 func leaderWith(status, probeErr string) []*healthcheck.NodeSnapshot {
-	diag := &model.SupportPacketDiagnostics{}
+	diag := licensedDiag()
 	diag.LDAP.Status = status
 	diag.LDAP.Error = probeErr
 	diag.SAML.Status = status
@@ -41,6 +41,7 @@ func TestProbeRules(t *testing.T) {
 	t.Parallel()
 
 	diagnosticsUnavailable := want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonDiagnosticsUnavailable}
+	licenseUnavailable := want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonLicenseUnavailable}
 	details := map[string]string{"error": "connection refused"}
 
 	testCases := []struct {
@@ -71,15 +72,16 @@ func TestProbeRules(t *testing.T) {
 			snapshot: probeSnapshot(leaderWith("", ""), nil),
 			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_PROBE_FAILED": diagnosticsUnavailable},
 		},
+		// The license is read from the leader's diagnostics, so without them the license gate reports first.
 		{
 			name:     "leader without diagnostics",
 			snapshot: probeSnapshot([]*healthcheck.NodeSnapshot{{Hostname: "app-1.example.com", IsLeader: true}}, nil),
-			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_PROBE_FAILED": diagnosticsUnavailable},
+			want:     map[string]want{"LDAP_PROBE_FAILED": licenseUnavailable, "SAML_PROBE_FAILED": licenseUnavailable},
 		},
 		{
 			name:     "no leader",
 			snapshot: probeSnapshot(nil, nil),
-			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_PROBE_FAILED": diagnosticsUnavailable},
+			want:     map[string]want{"LDAP_PROBE_FAILED": licenseUnavailable, "SAML_PROBE_FAILED": licenseUnavailable},
 		},
 		{
 			name:     "expired IdP certificate",

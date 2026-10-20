@@ -4,6 +4,7 @@
 package auth
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -52,7 +53,23 @@ func (w want) withValue(v float64) want {
 	return w
 }
 
-// configSnapshot returns a snapshot over a defaulted config with edit applied.
+// licensedDiag returns leader diagnostics whose license grants LDAP and SAML.
+func licensedDiag() *model.SupportPacketDiagnostics {
+	return &model.SupportPacketDiagnostics{License: model.SupportPacketLicense{
+		SkuShortName: model.LicenseShortSkuEnterprise,
+		Features:     &model.Features{LDAP: new(true), SAML: new(true)},
+	}}
+}
+
+func licensedSnapshot() *healthcheck.Snapshot {
+	return healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{{
+		Hostname:    "app-1.example.com",
+		IsLeader:    true,
+		Diagnostics: &model.NodeDiagnostics{Diagnostics: licensedDiag()},
+	}})
+}
+
+// configSnapshot returns a licensed snapshot over a defaulted config with edit applied.
 func configSnapshot(edit func(cfg *model.Config)) *healthcheck.Snapshot {
 	cfg := &model.Config{}
 	cfg.SetDefaults()
@@ -60,10 +77,10 @@ func configSnapshot(edit func(cfg *model.Config)) *healthcheck.Snapshot {
 		edit(cfg)
 	}
 
-	return &healthcheck.Snapshot{
-		Config:   &model.SupportPacketConfig{Config: cfg},
-		Sections: map[model.WorkspaceSection]error{model.SectionConfig: nil},
-	}
+	s := licensedSnapshot()
+	s.Config = &model.SupportPacketConfig{Config: cfg}
+	s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil}
+	return s
 }
 
 func assertResults(t *testing.T, snapshot *healthcheck.Snapshot, wants map[string]want) {
@@ -132,7 +149,7 @@ func TestConfigAbsent(t *testing.T) {
 
 	t.Run("no config section", func(t *testing.T) {
 		t.Parallel()
-		assertResults(t, &healthcheck.Snapshot{}, wants)
+		assertResults(t, licensedSnapshot(), wants)
 	})
 
 	t.Run("gate settings absent", func(t *testing.T) {
@@ -164,7 +181,7 @@ func everyConditionHolds(cfg *model.Config) {
 
 // gateSnapshot carries saturating ldap_sync jobs and failing probes, so every code fires once its gate opens.
 func gateSnapshot(edit func(cfg *model.Config)) *healthcheck.Snapshot {
-	diag := &model.SupportPacketDiagnostics{}
+	diag := licensedDiag()
 	diag.LDAP.Status = model.StatusFail
 	diag.SAML.Status = model.StatusFail
 
@@ -185,31 +202,89 @@ func gateSnapshot(edit func(cfg *model.Config)) *healthcheck.Snapshot {
 	return s
 }
 
-func TestGates(t *testing.T) {
+var (
+	ldapGated = []healthcheck.Rule{ldapPortTLSMismatch, ldapSkipCert, ldapQueryTimeoutLow, ldapIDIsEmail, ldapProbeFailed}
+	syncGated = []healthcheck.Rule{ldapSyncNoBaseDN, ldapSyncDutyCycle}
+	samlGated = []healthcheck.Rule{samlSignatureSHA1, samlVerifyOff, samlEncryptOff, samlIDIsEmail, samlProbeFailed}
+)
+
+func stateOf(t *testing.T, s *healthcheck.Snapshot, rules []healthcheck.Rule) map[string]healthcheck.State {
+	t.Helper()
+
+	states := map[string]healthcheck.State{}
+	for _, rule := range rules {
+		results := rule.Eval(s)
+		require.Len(t, results, 1, rule.Code)
+		states[rule.Code] = results[0].State
+	}
+	return states
+}
+
+func all(rules []healthcheck.Rule, state healthcheck.State) map[string]healthcheck.State {
+	states := map[string]healthcheck.State{}
+	for _, rule := range rules {
+		states[rule.Code] = state
+	}
+	return states
+}
+
+func TestLicenseGate(t *testing.T) {
 	t.Parallel()
 
-	ldapGated := []healthcheck.Rule{ldapPortTLSMismatch, ldapSkipCert, ldapQueryTimeoutLow, ldapIDIsEmail, ldapProbeFailed}
-	syncGated := []healthcheck.Rule{ldapSyncNoBaseDN, ldapSyncDutyCycle}
-	samlGated := []healthcheck.Rule{samlSignatureSHA1, samlVerifyOff, samlEncryptOff, samlIDIsEmail, samlProbeFailed}
-
-	stateOf := func(t *testing.T, s *healthcheck.Snapshot, rules []healthcheck.Rule) map[string]healthcheck.State {
-		t.Helper()
-
-		states := map[string]healthcheck.State{}
-		for _, rule := range rules {
-			results := rule.Eval(s)
-			require.Len(t, results, 1, rule.Code)
-			states[rule.Code] = results[0].State
-		}
-		return states
+	gated := slices.Concat(ldapGated, syncGated, samlGated)
+	openGates := func(cfg *model.Config) {
+		cfg.LdapSettings.Enable = new(true)
+		cfg.LdapSettings.EnableSync = new(true)
+		cfg.SamlSettings.Enable = new(true)
 	}
-	all := func(rules []healthcheck.Rule, state healthcheck.State) map[string]healthcheck.State {
-		states := map[string]healthcheck.State{}
-		for _, rule := range rules {
-			states[rule.Code] = state
-		}
-		return states
+	withLicense := func(edit func(leader *healthcheck.NodeSnapshot)) *healthcheck.Snapshot {
+		s := gateSnapshot(openGates)
+		leader, ok := s.Leader()
+		require.True(t, ok)
+		edit(leader)
+		return s
 	}
+	setLicense := func(license model.SupportPacketLicense) func(*healthcheck.NodeSnapshot) {
+		return func(leader *healthcheck.NodeSnapshot) { leader.Diagnostics.Diagnostics.License = license }
+	}
+
+	t.Run("feature licensed", func(t *testing.T) {
+		t.Parallel()
+		assert.Equal(t, all(gated, healthcheck.StateFiring), stateOf(t, gateSnapshot(openGates), gated))
+	})
+
+	t.Run("unlicensed", func(t *testing.T) {
+		t.Parallel()
+		s := withLicense(setLicense(model.SupportPacketLicense{}))
+		assert.Equal(t, all(gated, healthcheck.StateResolved), stateOf(t, s, gated))
+	})
+
+	t.Run("feature not in license", func(t *testing.T) {
+		t.Parallel()
+		s := withLicense(setLicense(model.SupportPacketLicense{
+			SkuShortName: model.LicenseShortSkuProfessional,
+			Features:     &model.Features{LDAP: new(false), SAML: new(false)},
+		}))
+		assert.Equal(t, all(gated, healthcheck.StateResolved), stateOf(t, s, gated))
+	})
+
+	t.Run("license unavailable", func(t *testing.T) {
+		t.Parallel()
+		s := withLicense(func(leader *healthcheck.NodeSnapshot) {
+			leader.Diagnostics.Errors = model.SectionErrors{model.SectionLicense: assert.AnError}
+		})
+
+		licenseUnavailable := want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonLicenseUnavailable}
+		wants := map[string]want{}
+		for _, rule := range gated {
+			wants[rule.Code] = licenseUnavailable
+		}
+		assertResults(t, s, wants)
+	})
+}
+
+func TestGates(t *testing.T) {
+	t.Parallel()
 
 	t.Run("every gate closed", func(t *testing.T) {
 		t.Parallel()
