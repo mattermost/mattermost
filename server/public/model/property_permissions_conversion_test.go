@@ -230,8 +230,8 @@ func TestPermissionsFromLegacyGrantsOwners(t *testing.T) {
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsOwners: []PropertyOwner{
-				{Type: PropertyOwnerTypeUser, ID: "user1", Scopes: []string{"scope-a"}},
-				{Type: PropertyOwnerTypeRole, ID: "role1", Scopes: []string{"scope-b", "scope-c"}},
+				{Type: PropertyOwnerTypePlugin, ID: "plugin1", Scopes: []string{"scope-a"}},
+				{Type: PropertyOwnerTypeService, ID: "service1", Scopes: []string{"scope-b", "scope-c"}},
 			},
 		},
 	}
@@ -239,20 +239,20 @@ func TestPermissionsFromLegacyGrantsOwners(t *testing.T) {
 	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
 
 	require.Len(t, p.Grants, 5)
-	assert.Equal(t, PropertyOwnerTypeUser, p.Grants[0].Type)
-	assert.Equal(t, "user1", p.Grants[0].ID)
+	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[0].Type)
+	assert.Equal(t, "plugin1", p.Grants[0].ID)
 	assert.Equal(t, []string{"scope-a"}, p.Grants[0].Scopes)
 	assert.ElementsMatch(t, []string{PropertyActionValueRead, PropertyActionValueWrite}, p.Grants[0].Allow)
-	assert.Equal(t, PropertyOwnerTypeUser, p.Grants[1].Type)
-	assert.Equal(t, "user1", p.Grants[1].ID)
+	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[1].Type)
+	assert.Equal(t, "plugin1", p.Grants[1].ID)
 	assert.Empty(t, p.Grants[1].Scopes)
 	assert.ElementsMatch(t, []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionOptionWrite}, p.Grants[1].Allow)
-	assert.Equal(t, PropertyOwnerTypeRole, p.Grants[2].Type)
-	assert.Equal(t, "role1", p.Grants[2].ID)
+	assert.Equal(t, PropertyOwnerTypeService, p.Grants[2].Type)
+	assert.Equal(t, "service1", p.Grants[2].ID)
 	assert.Equal(t, []string{"scope-b", "scope-c"}, p.Grants[2].Scopes)
 	assert.ElementsMatch(t, []string{PropertyActionValueRead, PropertyActionValueWrite}, p.Grants[2].Allow)
-	assert.Equal(t, PropertyOwnerTypeRole, p.Grants[3].Type)
-	assert.Equal(t, "role1", p.Grants[3].ID)
+	assert.Equal(t, PropertyOwnerTypeService, p.Grants[3].Type)
+	assert.Equal(t, "service1", p.Grants[3].ID)
 	assert.Empty(t, p.Grants[3].Scopes)
 	assert.ElementsMatch(t, []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionOptionWrite}, p.Grants[3].Allow)
 	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[4].Type)
@@ -292,7 +292,7 @@ func TestPermissionsFromLegacyGrantsUnscopedOwnerUnaffected(t *testing.T) {
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsOwners: []PropertyOwner{
-				{Type: PropertyOwnerTypeUser, ID: "user1"},
+				{Type: PropertyOwnerTypePlugin, ID: "plugin1"},
 			},
 		},
 	}
@@ -303,9 +303,73 @@ func TestPermissionsFromLegacyGrantsUnscopedOwnerUnaffected(t *testing.T) {
 	// ambient read access any other plugin still has today; the owner's own
 	// grant is still the single, unsplit one this test is about.
 	require.Len(t, p.Grants, 2)
-	assert.Equal(t, "user1", p.Grants[0].ID)
+	assert.Equal(t, "plugin1", p.Grants[0].ID)
 	assert.Empty(t, p.Grants[0].Scopes)
 	assert.ElementsMatch(t, validPropertyActions, p.Grants[0].Allow)
+}
+
+func TestPermissionsFromLegacyHumanOwnersGrantNothing(t *testing.T) {
+	// No access check ever matched a user or role owner: only plugin and
+	// service callers got past an owners list, and every human was refused on
+	// an owned field. Such owners convert to no grant, and the field stays
+	// locked to people.
+	tests := map[string]PropertyOwner{
+		"user":        {Type: PropertyOwnerTypeUser, ID: "user1"},
+		"scoped user": {Type: PropertyOwnerTypeUser, ID: "user1", Scopes: []string{"scope-a"}},
+		"role":        {Type: PropertyOwnerTypeRole, ID: SystemUserRoleId},
+	}
+	for name, owner := range tests {
+		t.Run(name, func(t *testing.T) {
+			field := &PropertyField{
+				ObjectType:        PropertyFieldObjectTypeUser,
+				PermissionField:   new(PermissionLevelSysadmin),
+				PermissionOptions: new(PermissionLevelSysadmin),
+				PermissionValues:  new(PermissionLevelSysadmin),
+				Attrs: StringInterface{
+					PropertyAttrsOwners: []PropertyOwner{owner},
+				},
+			}
+
+			p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+			assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionValueWrite))
+			assert.Equal(t, PermissionLevelSysadmin, p.Restrictions.TierFor(PropertyActionFieldWrite))
+			// The only grant is the wildcard's ambient read: the owner still
+			// closes the field to every other plugin's writes.
+			assert.Equal(t, []Grant{{
+				Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"},
+				Allow:    []string{PropertyActionOptionRead, PropertyActionValueRead},
+			}}, p.Grants)
+		})
+	}
+}
+
+func TestProjectLegacyPermissionsKeepsHumanOwners(t *testing.T) {
+	// A user or role owner has no grant to project, so it is carried over from
+	// the stored attr. Without it, a v2 reader would see an unowned field, and
+	// converting what it sends back would open the field's writes to the
+	// plugin wildcard.
+	field := &PropertyField{
+		PermissionField:   new(PermissionLevelSysadmin),
+		PermissionOptions: new(PermissionLevelSysadmin),
+		PermissionValues:  new(PermissionLevelSysadmin),
+		Attrs: StringInterface{
+			PropertyAttrsOwners: []PropertyOwner{
+				{Type: PropertyOwnerTypeUser, ID: "user1"},
+				{Type: PropertyOwnerTypePlugin, ID: "plugin1"},
+			},
+		},
+	}
+	opts := LegacyConversionOpts{ConvertAttrs: true}
+	field.Permissions = PermissionsFromLegacy(field, opts)
+
+	projected := ProjectLegacyPermissions(field)
+
+	owners := GetPropertyFieldOwners(projected)
+	require.Len(t, owners, 2)
+	assert.Equal(t, Identity{Type: PropertyOwnerTypePlugin, ID: "plugin1"}, Identity{Type: owners[0].Type, ID: owners[0].ID})
+	assert.Equal(t, Identity{Type: PropertyOwnerTypeUser, ID: "user1"}, Identity{Type: owners[1].Type, ID: owners[1].ID})
+	assert.Equal(t, field.Permissions, PermissionsFromLegacy(projected, opts))
 }
 
 func TestPermissionsFromLegacyWorstCaseGrantCountUnderCap(t *testing.T) {
@@ -316,7 +380,7 @@ func TestPermissionsFromLegacyWorstCaseGrantCountUnderCap(t *testing.T) {
 	// field whose owners stay within PropertyOwnersMaxPerField.
 	owners := make([]PropertyOwner, PropertyOwnersMaxPerField)
 	for i := range owners {
-		owners[i] = PropertyOwner{Type: PropertyOwnerTypeUser, ID: NewId(), Scopes: []string{"scope"}}
+		owners[i] = PropertyOwner{Type: PropertyOwnerTypePlugin, ID: NewId(), Scopes: []string{"scope"}}
 	}
 	field := &PropertyField{
 		Attrs: StringInterface{
@@ -343,7 +407,7 @@ func TestPermissionsFromLegacyGrantsScopedOwnerAndSyncSourceStaySeparate(t *test
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsOwners: []PropertyOwner{
-				{Type: PropertyOwnerTypeUser, ID: "user1", Scopes: []string{"scope-a"}},
+				{Type: PropertyOwnerTypePlugin, ID: "plugin1", Scopes: []string{"scope-a"}},
 			},
 			PropertyFieldAttrLDAP: "ldap-sync-id",
 		},
@@ -351,14 +415,14 @@ func TestPermissionsFromLegacyGrantsScopedOwnerAndSyncSourceStaySeparate(t *test
 
 	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
 
-	var sawScopedUserGrant, sawUnscopedUserGrant bool
+	var sawScopedOwnerGrant, sawUnscopedOwnerGrant bool
 	for _, g := range p.Grants {
-		if g.Type == PropertyOwnerTypeUser && g.ID == "user1" {
+		if g.Type == PropertyOwnerTypePlugin && g.ID == "plugin1" {
 			if len(g.Scopes) > 0 {
-				sawScopedUserGrant = true
+				sawScopedOwnerGrant = true
 				assert.ElementsMatch(t, []string{PropertyActionValueRead, PropertyActionValueWrite}, g.Allow)
 			} else {
-				sawUnscopedUserGrant = true
+				sawUnscopedOwnerGrant = true
 				assert.ElementsMatch(t, []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionOptionWrite}, g.Allow)
 			}
 		}
@@ -366,8 +430,8 @@ func TestPermissionsFromLegacyGrantsScopedOwnerAndSyncSourceStaySeparate(t *test
 			assert.Equal(t, []string{PropertyActionFieldWrite, PropertyActionValueWrite}, g.Allow)
 		}
 	}
-	assert.True(t, sawScopedUserGrant)
-	assert.True(t, sawUnscopedUserGrant)
+	assert.True(t, sawScopedOwnerGrant)
+	assert.True(t, sawUnscopedOwnerGrant)
 }
 
 func TestPermissionsFromLegacyGrantsOwnerIsSourcePlugin(t *testing.T) {
@@ -453,7 +517,7 @@ func TestPermissionsFromLegacyGrantsLinkedFieldDropsOptionRead(t *testing.T) {
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsOwners: []PropertyOwner{
-				{Type: PropertyOwnerTypeUser, ID: "user1"},
+				{Type: PropertyOwnerTypePlugin, ID: "plugin1"},
 			},
 		},
 	}
