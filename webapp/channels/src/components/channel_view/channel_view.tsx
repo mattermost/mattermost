@@ -111,7 +111,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
     render() {
         const {channelViewPluginComponent} = this.props;
         const {focusedPostId} = this.state;
-        if (channelViewPluginComponent && (!focusedPostId || channelViewPluginComponent.handlesPermalinks)) {
+        if (channelViewPluginComponent) {
             return (
                 <div
                     ref={this.channelViewRef}

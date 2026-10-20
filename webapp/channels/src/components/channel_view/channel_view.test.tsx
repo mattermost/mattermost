@@ -232,7 +232,7 @@ describe('components/channel_view', () => {
             expect(markChannelAsRead).not.toHaveBeenCalled();
         });
 
-        it('renders the core post view for a permalink when the registration does not handle permalinks', () => {
+        it('renders the plugin component with focusedPostId for a permalink', () => {
             renderWithContext(
                 <ChannelView
                     {...baseProps}
@@ -242,14 +242,13 @@ describe('components/channel_view', () => {
                 state,
             );
 
-            expect(screen.getByTestId('channel-header')).toBeInTheDocument();
-            expect(screen.getByTestId('deferred-post-view')).toHaveAttribute('data-focused-post-id', 'postid');
-            expect(screen.getByTestId('post-create')).toBeInTheDocument();
-            expect(screen.queryByTestId('plugin-channel-view')).not.toBeInTheDocument();
-            expect(markChannelAsRead).not.toHaveBeenCalled();
+            expect(screen.getByTestId('plugin-channel-view')).toHaveAttribute('data-focused-post-id', 'postid');
+            expect(screen.queryByTestId('deferred-post-view')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-create')).not.toBeInTheDocument();
+            expect(markChannelAsRead).toHaveBeenCalledWith('channelId');
         });
 
-        it('keeps the core post view after the permalink is dropped from the URL until the channel changes', () => {
+        it('keeps focusedPostId after the permalink is dropped from the URL until the channel changes', () => {
             const {rerender} = renderWithContext(
                 <ChannelView
                     {...baseProps}
@@ -266,8 +265,8 @@ describe('components/channel_view', () => {
                     channelViewPluginComponent={registration}
                 />,
             );
-            expect(screen.getByTestId('deferred-post-view')).toBeInTheDocument();
-            expect(screen.queryByTestId('plugin-channel-view')).not.toBeInTheDocument();
+            expect(screen.getByTestId('plugin-channel-view')).toHaveAttribute('data-focused-post-id', 'postid');
+            expect(screen.queryByTestId('deferred-post-view')).not.toBeInTheDocument();
 
             rerender(
                 <ChannelView
@@ -277,31 +276,14 @@ describe('components/channel_view', () => {
                     channelViewPluginComponent={registration}
                 />,
             );
-            expect(screen.getByTestId('plugin-channel-view')).toBeInTheDocument();
-            expect(screen.queryByTestId('deferred-post-view')).not.toBeInTheDocument();
-        });
-
-        it('renders the plugin component with focusedPostId for a permalink when the registration handles permalinks', () => {
-            renderWithContext(
-                <ChannelView
-                    {...baseProps}
-                    match={permalinkMatch}
-                    channelViewPluginComponent={{...registration, handlesPermalinks: true}}
-                />,
-                state,
-            );
-
-            expect(screen.getByTestId('plugin-channel-view')).toHaveAttribute('data-focused-post-id', 'postid');
-            expect(screen.queryByTestId('deferred-post-view')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('post-create')).not.toBeInTheDocument();
-            expect(markChannelAsRead).toHaveBeenCalledWith('channelId');
+            expect(screen.getByTestId('plugin-channel-view')).not.toHaveAttribute('data-focused-post-id');
         });
 
         it('does not pass focusedPostId to the plugin component outside of a permalink', () => {
             renderWithContext(
                 <ChannelView
                     {...baseProps}
-                    channelViewPluginComponent={{...registration, handlesPermalinks: true}}
+                    channelViewPluginComponent={registration}
                 />,
                 state,
             );

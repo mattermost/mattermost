@@ -491,8 +491,8 @@ export type ChannelViewPluginComponentProps = {
     teamId: string;
 
     /**
-     * Post id the channel was opened focused on via a permalink. Only ever set for registrations
-     * with `handlesPermalinks: true`; otherwise core renders its own post view for permalinks.
+     * Post id the channel was opened focused on via a permalink. Stays set after that id is
+     * removed from the URL, until the user switches channels. The component shows that post.
      */
     focusedPostId?: string;
 };
@@ -500,9 +500,6 @@ export type ChannelViewPluginComponentProps = {
 export type ChannelViewRegistration = PluginComponent & {
     matcher: (state: GlobalState, channel: Channel) => boolean;
     component: React.ComponentType<ChannelViewPluginComponentProps>;
-
-    /** When true, the component is also rendered for permalinks and receives focusedPostId. */
-    handlesPermalinks?: boolean;
 };
 
 export type PostHeaderComponent = PluginComponent & {

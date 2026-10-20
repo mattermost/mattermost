@@ -1555,20 +1555,17 @@ export default class PluginRegistry {
      * team's id. Core marks the channel as read when the component mounts and whenever the channel
      * changes, as the post list would.
      *
-     * Permalinks (`/:team/channels/:channel/:postid`): by default core renders its normal post list
-     * and composer for a permalink so the linked post is still shown and highlighted; the plugin
-     * component returns once the user switches away and back to the channel. Pass
-     * `handlesPermalinks: true` to render the component for permalinks too; it then receives the
-     * linked post id as `focusedPostId` and is responsible for showing that post.
+     * Permalinks (`/:team/channels/:channel/:postid`) render the component too. It receives the
+     * linked post id as `focusedPostId` and is responsible for showing that post. `focusedPostId`
+     * stays set after the post id is removed from the URL, until the user switches channels.
      *
      * Registrations are cleaned up automatically when the plugin is removed.
      *
      * @returns Auto-generated unique id for this registration, usable with `unregisterComponent`.
      */
-    registerChannelViewComponent = reArg(['matcher', 'component', 'handlesPermalinks'], ({matcher, component, handlesPermalinks = false}: {
+    registerChannelViewComponent = reArg(['matcher', 'component'], ({matcher, component}: {
         matcher: ChannelViewRegistration['matcher'];
         component: ChannelViewRegistration['component'];
-        handlesPermalinks?: ChannelViewRegistration['handlesPermalinks'];
     }) => {
         if (this.isActive()) {
             clearLoggedChannelViewErrors(this.id);
@@ -1579,7 +1576,6 @@ export default class PluginRegistry {
             pluginId: this.id,
             matcher,
             component,
-            handlesPermalinks: handlesPermalinks === true,
         });
         return id;
     });
