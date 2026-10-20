@@ -756,6 +756,7 @@
         "RecurringScheduledPosts": false,
         "PostDeliveryTracking": false,
         "EnforceLogPathRoot": false,
-        "HealthDashboard": false
+        "HealthDashboard": false,
+        "EnableBrotliCompression": false
     }
 }
