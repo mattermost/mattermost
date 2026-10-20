@@ -289,8 +289,18 @@ MAX_OUTPUT_TOKENS = 16384
 
 
 def _raw_bullets(notes: list[dict]) -> str:
-    """The unpolished fallback: each note verbatim as a bullet, tagged with its ID."""
-    return "\n".join(f"- {note['text']} [[{note['id']}]]" for note in notes)
+    """The unpolished fallback: each note verbatim as a bullet, tagged with its ID.
+
+    The marker sits on the first line. Later lines of a multi-line note are indented
+    so they stay part of that bullet and ``extract_source_markers`` still attributes it.
+    """
+    blocks = []
+    for note in notes:
+        lines = note["text"].replace("\r\n", "\n").replace("\r", "\n").split("\n")
+        blocks.append(f"- {lines[0]} [[{note['id']}]]")
+        for line in lines[1:]:
+            blocks.append(f"  {line.strip()}" if line.strip() else "")
+    return "\n".join(blocks)
 
 
 def polish_with_ai(notes: list[dict]) -> tuple[str, bool]:
@@ -389,7 +399,9 @@ def normalize_formatting(text: str) -> str:
     #    generated independently and can disagree on base indent; a fragment-wide
     #    minimum would demote an already-correct top-level bullet to nested just
     #    because some other section happened to start one space shallower.
-    bullet_re = re.compile(r"^( *)- ")
+    # ``*`` and ``+`` are rewritten to ``-``. Update mode only inserts ``-`` bullets, so a
+    # star bullet would otherwise be dropped on a rerun even though create mode kept it.
+    bullet_re = re.compile(r"^( *)([-*+]) ")
 
     def _starts_new_block(line: str) -> bool:
         """True for a non-blank line that is neither a bullet nor a bullet continuation."""
@@ -408,7 +420,7 @@ def normalize_formatting(text: str) -> str:
                 match = bullet_re.match(line)
                 if match:
                     level = level_of[len(match.group(1))]
-                    block[offset] = " " * (1 + 2 * level) + line[match.end(1):]
+                    block[offset] = " " * (1 + 2 * level) + "- " + line[match.end():].lstrip()
             lines[block_start:index] = block
         block_start = index + 1
     text = "\n".join(lines)
@@ -786,6 +798,30 @@ def render_pr_body(body: str, sources: set) -> str:
     return body.rstrip() + "\n\n" + comment + "\n"
 
 
+def unattributed_sources(sources_by_id: dict, referenced: set) -> list[str]:
+    """PRs whose note ID never appeared on a bullet."""
+    missing = {sources_by_id[note_id] for note_id in sources_by_id if note_id not in referenced}
+    return sorted(missing, key=_source_sort_key)
+
+
+def require_sources_attributed(sources_by_id: dict, referenced: set) -> None:
+    """Fail before writing when any note has no source marker.
+
+    Recording that PR in the changelog-sources comment would make the next run skip it,
+    so a note the model dropped would never be added. Raising leaves the file and the
+    open PR untouched.
+    """
+    missing = unattributed_sources(sources_by_id, referenced)
+    if not missing:
+        return
+    raise RuntimeError(
+        "Refusing to write the changelog: "
+        f"{len(missing)} PR(s) produced no [[N#]] source marker ({', '.join(missing)}). "
+        "Recording them as included would make the next run skip their release notes. "
+        "Nothing was written."
+    )
+
+
 # ── Update mode: add new bullets to an existing entry ───────────────────────────────
 #
 # Reviewers edit the changelog PR directly, so a rerun must never regenerate what is
@@ -821,23 +857,121 @@ def parse_fragment(fragment: str) -> list[dict]:
     return sections
 
 
+# A bullet marker at any indent. Existing entries use one space (v11.11) or two (v11.9, v11.10).
+_BULLET_INDENT_RE = re.compile(r"^( *)([-*+]) ")
+
+# MDX admonitions that sit after a section's list and before the next heading.
+# New bullets belong in the list, not after ``</Important>``.
+_JSX_BOUNDARY_RE = re.compile(r"^[ \t]*</?[A-Z][A-Za-z0-9]*\b")
+
+
+def _bullet_indent(line: str) -> int | None:
+    match = _BULLET_INDENT_RE.match(line)
+    if not match:
+        return None
+    return len(match.group(1))
+
+
+def _is_jsx_boundary(line: str) -> bool:
+    return bool(_JSX_BOUNDARY_RE.match(line))
+
+
+def _before_jsx_block(lines: list[str], start: int, end: int) -> int:
+    """Exclusive end of ``lines[start:end]``, stopping at the first MDX admonition."""
+    for index in range(start + 1, end):
+        if _is_jsx_boundary(lines[index]):
+            return index
+    return end
+
+
+def _minimum_bullet_indent(lines: list[str], start: int, end: int) -> int | None:
+    """Shallowest bullet indent in the region. That indent is the top-level list."""
+    indents = []
+    for index in range(start, end):
+        if _is_jsx_boundary(lines[index]):
+            break
+        indent = _bullet_indent(lines[index])
+        if indent is not None:
+            indents.append(indent)
+    return min(indents) if indents else None
+
+
+def _is_top_level(line: str, top_indent: int | None) -> bool:
+    indent = _bullet_indent(line)
+    if indent is None:
+        return False
+    if top_indent is None:
+        return True
+    return indent == top_indent
+
+
+def _at_indent(line: str, indent: int) -> str:
+    """Rewrite a bullet line so its marker sits at ``indent`` spaces."""
+    if _bullet_indent(line) is None:
+        return line
+    return " " * indent + line.lstrip()
+
+
+def _align_to_indent(block: list[str], top_indent: int | None) -> list[str]:
+    """Shift a new bullet block so its top-level marker matches the existing list."""
+    if top_indent is None:
+        return block
+    indents = [i for i in (_bullet_indent(line) for line in block) if i is not None]
+    if not indents:
+        return block
+    delta = top_indent - min(indents)
+    if delta == 0:
+        return block
+    aligned = []
+    for line in block:
+        if not line.strip():
+            aligned.append(line)
+        elif delta > 0:
+            aligned.append(" " * delta + line)
+        else:
+            cut = -delta
+            aligned.append(line[cut:] if line.startswith(" " * cut) else line)
+    return aligned
+
+
+def _shift_under(children: list[str], parent_line: str) -> list[str]:
+    """Nest ``children`` one level under ``parent_line``, keeping relative depth."""
+    parent_indent = _bullet_indent(parent_line)
+    if parent_indent is None:
+        return children
+    child_indents = [i for i in (_bullet_indent(line) for line in children) if i is not None]
+    if not child_indents:
+        return children
+    delta = (parent_indent + 2) - min(child_indents)
+    if delta == 0:
+        return children
+    shifted = []
+    for line in children:
+        if not line.strip():
+            shifted.append(line)
+        elif delta > 0:
+            shifted.append(" " * delta + line)
+        else:
+            cut = -delta
+            shifted.append(line[cut:] if line.startswith(" " * cut) else line.lstrip())
+    return shifted
+
+
 def _top_level_blocks(lines: list[str]) -> list[list[str]]:
     """Group bullet lines into blocks of one top-level bullet plus everything nested under it.
 
     Lines before the first bullet (a description paragraph, the blog post line) and
     blank lines are dropped: they either already exist in the entry or are not wanted.
+    ``*`` and ``+`` markers count, so a bullet normalize_formatting has not rewritten yet
+    is still inserted.
     """
     blocks = []
     for line in lines:
-        if re.match(r"^ ?- ", line):
+        if re.match(r"^ ?[-*+] ", line):
             blocks.append([line])
-        elif blocks and line.strip() and line.startswith(" "):
+        elif blocks and line.strip() and line.startswith((" ", "\t")):
             blocks[-1].append(line)
     return blocks
-
-
-def _is_top_level(line: str) -> bool:
-    return bool(re.match(r"^ ?- ", line))
 
 
 def _region_end(lines: list[str], start: int, stop_pattern: str) -> int:
@@ -861,7 +995,12 @@ def _merge_bullets(lines: list[str], start: int, end: int, new_lines: list[str],
 
     A new block whose top-level line already exists in the region — a plan label such as
     ``- **Changes to All plans:**`` — has its nested bullets added under the existing one
-    instead of repeating the label.
+    instead of repeating the label. Top-level is the shallowest bullet indent already in
+    the region, so a two-space label matches a one-space label from the new fragment.
+
+    The list stops at an MDX admonition (``<Important>``, ``<Note>``, ``<Attention>``).
+    Those blocks sit between ``#### config.json`` and the next heading; appending after
+    the last content line would place new settings under the admonition.
 
     Database Schema Changes is written either as one summary bullet with the changes
     nested beneath it, or as a flat list of changes. A new summary bullet is never
@@ -870,28 +1009,42 @@ def _merge_bullets(lines: list[str], start: int, end: int, new_lines: list[str],
 
     Returns how many lines were inserted.
     """
+    end = _before_jsx_block(lines, start, end)
+    top_indent = _minimum_bullet_indent(lines, start, end)
     inserted = 0
     for block in _top_level_blocks(new_lines):
         head, children = block[0], block[1:]
         target = None
         for index in range(start, end + inserted):
-            if _is_top_level(lines[index]) and lines[index].strip() == head.strip():
+            if _is_top_level(lines[index], top_indent) and lines[index].strip() == head.strip():
                 target = index
                 break
         if target is None and title == "Database Schema Changes" and children:
-            heads = [i for i in range(start, end + inserted) if _is_top_level(lines[i])]
-            nested = [i for i in heads if i + 1 < len(lines) and lines[i + 1].startswith("   ")]
+            heads = [i for i in range(start, end + inserted) if _is_top_level(lines[i], top_indent)]
+            nested = [
+                i for i in heads
+                if i + 1 < len(lines)
+                and _bullet_indent(lines[i + 1]) is not None
+                and _bullet_indent(lines[i + 1]) > (_bullet_indent(lines[i]) or 0)
+            ]
             if len(heads) == 1 and nested:
                 target = heads[0]
-            elif heads and not nested:
-                block = [line[2:] if line.startswith("   ") else line for line in children]
+            elif heads and not nested and top_indent is not None:
+                block = [_at_indent(line, top_indent) if _bullet_indent(line) is not None else line for line in children]
         if target is not None and children:
+            children = _shift_under(children, lines[target])
             block_end = target + 1
-            while block_end < end + inserted and lines[block_end].strip() and not _is_top_level(lines[block_end]):
+            while (
+                block_end < end + inserted
+                and lines[block_end].strip()
+                and not _is_top_level(lines[block_end], top_indent)
+                and not _is_jsx_boundary(lines[block_end])
+            ):
                 block_end += 1
             lines[block_end:block_end] = children
             inserted += len(children)
         else:
+            block = _align_to_indent(block, top_indent)
             at = _last_content_line(lines, start, end + inserted) + 1
             lines[at:at] = block
             inserted += len(block)
@@ -899,7 +1052,11 @@ def _merge_bullets(lines: list[str], start: int, end: int, new_lines: list[str],
 
 
 def _insert_heading_block(lines, start, end, level, title, order, block_lines) -> None:
-    """Insert a new heading and its lines inside ``lines[start:end]`` at its canonical position."""
+    """Insert a new heading and its lines inside ``lines[start:end]`` at its canonical position.
+
+    A new subsection stays above a trailing admonition. A new top-level section does not:
+    that admonition belongs to the previous section and the new section follows it.
+    """
     marker = "#" * level + " "
     rank = order.index(title) if title in order else len(order)
     at = None
@@ -914,7 +1071,8 @@ def _insert_heading_block(lines, start, end, level, title, order, block_lines) -
     while body and not body[-1].strip():
         body.pop()
     if at is None:
-        at = _last_content_line(lines, start, end) + 1
+        append_end = _before_jsx_block(lines, start, end) if level >= 4 else end
+        at = _last_content_line(lines, start, append_end) + 1
         lines[at:at] = [""] + body
     else:
         lines[at:at] = body + [""]
@@ -1122,10 +1280,12 @@ def main():
             fragment = fragment.replace("BLOG_POST_LINK", blog_post_link())
             if ai_polished:
                 check_for_truncation(fragment)
+            require_sources_attributed(sources_by_id, referenced)
             with open(changelog_path, "r", encoding="utf-8") as f:
                 content = f.read()
+            updated = merge_into_entry(content, version_short, fragment)
             with open(changelog_path, "w", encoding="utf-8") as f:
-                f.write(merge_into_entry(content, version_short, fragment))
+                f.write(updated)
             entry = fragment
             print(f"✅ Added {len(items)} bullet(s) from {len(sources_by_id)} note(s) to the {version_short} entry")
         else:
@@ -1221,6 +1381,8 @@ def main():
         # at all.
         if ai_polished:
             check_for_truncation(entry)
+        if all_notes:
+            require_sources_attributed(sources_by_id, referenced)
 
         header = CHANGELOG_HEADER_TEMPLATE.format(major=major_version(VERSION))
         insert_changelog_entry(entry, changelog_path, header=header)
@@ -1229,17 +1391,11 @@ def main():
         prs_with_notes = total_prs - len(no_notes_prs)
         print(f"✅ Changelog updated with notes from {prs_with_notes} PR(s) across {len(REPOS)} repo(s)")
 
-    # A note whose bullet carries no marker cannot be attributed, but its content is
-    # almost certainly in the text (or was merged into another bullet). It is still
-    # recorded as included: treating it as missing would make every later run add it
-    # again, and a duplicated bullet is worse than one unattributed bullet.
-    unattributed = sorted({sources_by_id[i] for i in sources_by_id if i not in referenced}, key=_source_sort_key)
-    if all_notes and not referenced:
-        print("⚠️  No bullet carries a source marker — the model ignored rule 12. Attribution is unavailable for this run.")
-    elif unattributed:
-        print(f"⚠️  {len(unattributed)} PR(s) could not be matched to a bullet: {', '.join(unattributed)}")
-
-    included |= set(sources_by_id.values())
+    # require_sources_attributed already refused the run when a note had no marker.
+    # Only PRs that a bullet actually referenced are recorded, so a dropped note is
+    # sent again on the next run instead of being skipped forever.
+    unattributed = unattributed_sources(sources_by_id, referenced)
+    included |= {sources_by_id[note_id] for note_id in referenced if note_id in sources_by_id}
     pr_body = render_pr_body(pr_body, included)
 
     payload = {
