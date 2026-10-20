@@ -5,6 +5,29 @@
       summary: Create a property field
       description: >
         Create a new property field for a specific group and object type.
+
+
+        The `access_control` group holds at most 200 fields, and at most 20 of
+        them can have object type `user`. Creating a field past either limit
+        returns 422.
+
+
+        **License:** in the `access_control` group, this endpoint requires an
+        Entry, Enterprise or Enterprise Advanced license (403 otherwise).
+        Fields with object type `channel` in that group require Entry or
+        Enterprise Advanced (501 otherwise).
+
+
+        __Minimum server version__: 11.7
+
+
+        ##### Permissions
+
+
+        Depends on the field's `target_type`: `create_post` on the channel for
+        `channel`, `manage_team` on the team for `team`, and `manage_system`
+        for `system`. Creating a field with object type `template` always
+        requires `manage_system`.
       operationId: CreatePropertyField
       parameters:
         - name: group_name
@@ -34,8 +57,12 @@
                   description: The name of the property field
                 type:
                   type: string
-                  description: The type of property field
-                  enum: [text, select, multiselect, date, user, multiuser]
+                  description: >
+                    The type of property field. `rank` is a select whose
+                    options are ordered by the `rank` each option carries.
+                    `graph` is a hierarchical multiselect: its options can sit
+                    below other options.
+                  enum: [text, select, multiselect, date, user, multiuser, rank, graph]
                 attrs:
                   type: object
                   description: Additional attributes for the property field
@@ -88,7 +115,8 @@
                     template field in the same group, must not itself be linked, and must
                     not be deleted. When set, the created field inherits the source's type,
                     options, and security attributes; the `type` field in the request body
-                    is ignored. Can only be set at creation time.
+                    is ignored. Can only be set at creation time. To unlink the
+                    field later, patch `linked_field_id` to an empty string.
         description: Property field object to create
         required: true
       responses:
@@ -109,6 +137,10 @@
             A property field with the same name already exists at the same or a
             conflicting hierarchy level.
           $ref: "#/components/responses/Conflict"
+        "422":
+          description: The group's field limit has been reached.
+        "501":
+          $ref: "#/components/responses/NotImplemented"
     get:
       tags:
         - properties
@@ -139,6 +171,21 @@
 
 
         **Cursor key must match the active ordering:** in delta mode (`since > 0`) the endpoint orders by `update_at` and pagination requires `cursor_update_at`; otherwise it orders by `create_at` and pagination requires `cursor_create_at`. Passing the wrong key for the active mode returns 400.
+
+
+        **Large option lists:** a field with more than 1000 options is
+        returned without `attrs.options`; `attrs.options_count` gives the
+        number of options and `attrs.options_omitted` is `true`. Use the get
+        property field options endpoint to page through them.
+
+
+        **License:** in the `access_control` group, this endpoint requires an
+        Entry, Enterprise or Enterprise Advanced license (403 otherwise).
+        Fields with object type `channel` in that group require Entry or
+        Enterprise Advanced (501 otherwise).
+
+
+        __Minimum server version__: 11.7
       operationId: GetPropertyFields
       parameters:
         - name: group_name
@@ -247,6 +294,8 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/properties/groups/{group_name}/fields/search":
     post:
       tags:
@@ -266,6 +315,15 @@
 
         Requesting a single value in `object_types` is equivalent to calling
         the singular endpoint and is supported for client uniformity.
+
+
+        **License:** in the `access_control` group, this endpoint requires an
+        Entry, Enterprise or Enterprise Advanced license (403 otherwise).
+        Including `channel` in `object_types` for that group requires Entry or
+        Enterprise Advanced (501 otherwise).
+
+
+        __Minimum server version__: 11.10
       operationId: SearchPropertyFields
       parameters:
         - name: group_name
@@ -296,6 +354,7 @@
                       - channel
                       - user
                       - template
+                      - session
                       - system
                 channel_id:
                   type: string
@@ -400,6 +459,23 @@
 
 
         **Propagation:** When a template field's options are updated, the changes propagate atomically to all fields that link to it.
+
+
+        **Large option lists:** a field with more than 1000 options is read
+        without `attrs.options`; `attrs.options_count` gives the number of
+        options and `attrs.options_omitted` is `true`. Patching such a field
+        with an option list returns 400; change its options through the
+        property field options endpoints instead.
+
+
+        **License:** in the `access_control` group, this endpoint requires an
+        Entry, Enterprise or Enterprise Advanced license (403 otherwise).
+        Fields with object type `channel` in that group, and templates that
+        `channel` fields link to, require Entry or Enterprise Advanced (501
+        otherwise).
+
+
+        __Minimum server version__: 11.7
       operationId: UpdatePropertyField
       parameters:
         - name: group_name
@@ -447,6 +523,8 @@
             Name conflict with an existing field, or cannot change type of a
             field that has active linked dependents.
           $ref: "#/components/responses/Conflict"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
     delete:
       tags:
         - properties
@@ -455,6 +533,16 @@
         Deletes a property field and all its associated values.
         Returns 409 Conflict if the field has active linked dependents;
         unlink or delete dependent fields first.
+
+
+        **License:** in the `access_control` group, this endpoint requires an
+        Entry, Enterprise or Enterprise Advanced license (403 otherwise).
+        Fields with object type `channel` in that group, and templates that
+        `channel` fields link to, require Entry or Enterprise Advanced (501
+        otherwise).
+
+
+        __Minimum server version__: 11.7
       operationId: DeletePropertyField
       parameters:
         - name: group_name
@@ -495,6 +583,380 @@
             The field has active linked dependents. Unlink or delete dependent
             fields before deleting the source.
           $ref: "#/components/responses/Conflict"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}/options":
+    get:
+      tags:
+        - properties
+      summary: Get property field options
+      description: >
+        Get one page of a property field's options, in the order they were
+        created. This is how to read the options of a field with more than
+        1000 options, which is read without `attrs.options`.
+
+
+        The page includes the options the field inherits from the template
+        it's linked to, marked `read_only`. On a hierarchical (`graph`) field,
+        each option lists the names of the options directly above it in
+        `parents`.
+
+
+        Keep requesting pages while `has_more` is `true`, passing the
+        response's `next_cursor_create_at` and `next_cursor_id` back as
+        `cursor_create_at` and `cursor_id`. A short or empty page doesn't mean
+        the listing has ended.
+
+
+        Returns 400 for a field type without options.
+
+
+        **License:** in the `access_control` group, this endpoint requires an
+        Entry, Enterprise or Enterprise Advanced license (403 otherwise).
+        Fields with object type `channel` in that group, and templates that
+        `channel` fields link to, require Entry or Enterprise Advanced (501
+        otherwise).
+
+
+        __Minimum server version__: 12.0
+
+
+        ##### Permissions
+
+
+        The same as reading the field: any authenticated user for a
+        system-level field, `view_team` on the team for a team-level field,
+        and `read_channel` on the channel for a channel-level field.
+      operationId: GetPropertyFieldOptions
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The object type of the property field
+          required: true
+          schema:
+            type: string
+        - name: field_id
+          in: path
+          description: Property field ID
+          required: true
+          schema:
+            type: string
+        - name: cursor_id
+          in: query
+          description: >
+            The `next_cursor_id` from the previous page. Send it together with
+            `cursor_create_at`, or send neither; sending only one returns 400.
+          schema:
+            type: string
+        - name: cursor_create_at
+          in: query
+          description: >
+            The `next_cursor_create_at` from the previous page. Send it
+            together with `cursor_id`, or send neither.
+          schema:
+            type: integer
+            format: int64
+        - name: per_page
+          in: query
+          description: The number of options per page. The maximum is 200.
+          schema:
+            type: integer
+            default: 60
+            maximum: 200
+      responses:
+        "200":
+          description: Property field options retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertyFieldOptionPage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    post:
+      tags:
+        - properties
+      summary: Create property field options
+      description: >
+        Add options to a property field. Either every option in the request is
+        created or none is.
+
+
+        Send each option's `name`, and optionally its `color`, `attrs` and, on
+        a hierarchical (`graph`) field, `parents`. Don't send an `id`; the
+        server assigns one. A parent can be an option the field already has or
+        another option in the same request. A new option's name can't match
+        the name of an option the field already has, including inherited
+        options. A hierarchical field holds at most 100,000 options.
+
+
+        Returns 400 for a field type without options; for a `rank` field,
+        whose options are set through the field's `attrs.options` so that each
+        option carries its rank; and for a field linked to a hierarchical
+        (`graph`) template, whose options can only be changed on the template.
+
+
+        **License:** in the `access_control` group, this endpoint requires an
+        Entry, Enterprise or Enterprise Advanced license (403 otherwise).
+        Fields with object type `channel` in that group, and templates that
+        `channel` fields link to, require Entry or Enterprise Advanced (501
+        otherwise).
+
+
+        __Minimum server version__: 12.0
+
+
+        ##### Permissions
+
+
+        Requires permission to manage the field's options.
+      operationId: CreatePropertyFieldOptions
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The object type of the property field
+          required: true
+          schema:
+            type: string
+        - name: field_id
+          in: path
+          description: Property field ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              maxItems: 200
+              items:
+                $ref: "#/components/schemas/PropertyFieldOption"
+        description: The options to create
+        required: true
+      responses:
+        "201":
+          description: Property field options creation successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyFieldOption"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: >
+            The field changed while the request was being processed. Retry the
+            request.
+          $ref: "#/components/responses/Conflict"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    patch:
+      tags:
+        - properties
+      summary: Update property field options
+      description: >
+        Update options that a property field owns. Identify each option by its
+        `id` and include its `name`, even if the name isn't changing. A
+        `color`, `attrs` or `parents` value that's left out stays as it was.
+        On a hierarchical (`graph`) field, sending `parents` replaces the
+        option's parents; send an empty array to make it a top-level option.
+
+
+        Options the field inherits from a template (`read_only`) can't be
+        changed here; change them on the template.
+
+
+        Returns 400 for a field type without options; for a `rank` field,
+        whose options are set through the field's `attrs.options` so that each
+        option carries its rank; and for a field linked to a hierarchical
+        (`graph`) template, whose options can only be changed on the template.
+
+
+        **License:** in the `access_control` group, this endpoint requires an
+        Entry, Enterprise or Enterprise Advanced license (403 otherwise).
+        Fields with object type `channel` in that group, and templates that
+        `channel` fields link to, require Entry or Enterprise Advanced (501
+        otherwise).
+
+
+        __Minimum server version__: 12.0
+
+
+        ##### Permissions
+
+
+        Requires permission to manage the field's options.
+      operationId: UpdatePropertyFieldOptions
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The object type of the property field
+          required: true
+          schema:
+            type: string
+        - name: field_id
+          in: path
+          description: Property field ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              maxItems: 200
+              items:
+                $ref: "#/components/schemas/PropertyFieldOption"
+        description: The options to update
+        required: true
+      responses:
+        "200":
+          description: Property field options update successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyFieldOption"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: >
+            The field changed while the request was being processed. Retry the
+            request.
+          $ref: "#/components/responses/Conflict"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - properties
+      summary: Delete property field options
+      description: >
+        Delete options that a property field owns, together with their parent
+        links. Values that refer to a deleted option are kept but ignored.
+
+
+        On a hierarchical (`graph`) field, an option that still has options
+        below it can only be deleted together with them, so a whole branch can
+        be removed in one request. Options the field inherits from a template
+        (`read_only`) can't be deleted here.
+
+
+        Returns 400 for a field type without options; for a `rank` field,
+        whose options are set through the field's `attrs.options` so that each
+        option carries its rank; and for a field linked to a hierarchical
+        (`graph`) template, whose options can only be changed on the template.
+
+
+        **License:** in the `access_control` group, this endpoint requires an
+        Entry, Enterprise or Enterprise Advanced license (403 otherwise).
+        Fields with object type `channel` in that group, and templates that
+        `channel` fields link to, require Entry or Enterprise Advanced (501
+        otherwise).
+
+
+        __Minimum server version__: 12.0
+
+
+        ##### Permissions
+
+
+        Requires permission to manage the field's options.
+      operationId: DeletePropertyFieldOptions
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The object type of the property field
+          required: true
+          schema:
+            type: string
+        - name: field_id
+          in: path
+          description: Property field ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              maxItems: 200
+              items:
+                type: string
+        description: The IDs of the options to delete
+        required: true
+      responses:
+        "200":
+          description: Property field options deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: >
+            The field changed while the request was being processed. Retry the
+            request.
+          $ref: "#/components/responses/Conflict"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/properties/groups/{group_name}/{object_type}/values/{target_id}":
     get:
       tags:
@@ -506,10 +968,28 @@
         The `system` object type must use the dedicated `/api/v4/properties/groups/{group_name}/system/values` endpoint and will return 400 on this route.
 
 
-        **Delta sync via `since`:** When `since > 0`, the endpoint returns only rows whose `update_at` is greater than the cutoff, *including* tombstoned rows.
+        **Delta sync via `since`:** When `since > 0`, the endpoint returns only rows whose `update_at` is greater than or equal to the cutoff, *including* tombstoned rows.
 
 
         **Cursor key must match the active ordering:** in delta mode (`since > 0`) the endpoint orders by `update_at` and pagination requires `cursor_update_at`; otherwise it orders by `create_at` and pagination requires `cursor_create_at`.
+
+
+        **License:** in the `access_control` group, this endpoint requires an
+        Entry, Enterprise or Enterprise Advanced license (403 otherwise), and
+        values of objects of type `channel` require Entry or Enterprise
+        Advanced (501 otherwise).
+
+
+        __Minimum server version__: 11.7
+
+
+        ##### Permissions
+
+
+        Depends on the object type: `read_channel` on the channel for
+        `channel`, `read_channel` on the post's channel for `post`, and for
+        `user`, being the user or being able to see them. Other object types
+        return 400.
       operationId: GetPropertyValues
       parameters:
         - name: group_name
@@ -583,6 +1063,10 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
     patch:
       tags:
         - properties
@@ -591,6 +1075,34 @@
         Update one or more property values for a specific target within a group. Uses upsert semantics: creates the value if it doesn't exist, updates it if it does. All field IDs must belong to the specified group.
         The `template` object type cannot have values and will return 400.
         The `system` object type must use the dedicated `/api/v4/properties/groups/{group_name}/system/values` endpoint and will return 400 on this route.
+
+
+        The request can set up to 50 values, each for a different field. An
+        empty request, more than 50 items, or the same `field_id` twice returns
+        400. A `field_id` that doesn't exist in the group, or that belongs to a
+        field of another object type, returns 404.
+
+
+        **License:** in the `access_control` group, this endpoint requires an
+        Entry, Enterprise or Enterprise Advanced license (403 otherwise), and
+        values of objects of type `channel` require Entry or Enterprise
+        Advanced (501 otherwise).
+
+
+        __Minimum server version__: 11.7
+
+
+        ##### Permissions
+
+
+        Depends on the object type: for `channel`,
+        `manage_public_channel_properties` or
+        `manage_private_channel_properties` on the channel, or membership of a
+        direct or group message channel; for `post`, `create_post` in the
+        post's channel; for `user`, being the user or having
+        `edit_other_users`. Other object types return 400. The caller also
+        needs permission to set values of each field in the request (403
+        otherwise).
       operationId: UpdatePropertyValues
       parameters:
         - name: group_name
@@ -626,7 +1138,11 @@
                     type: string
                     description: The ID of the property field
                   value:
-                    description: The value to set for this property. Can be any JSON type.
+                    description: >
+                      The value to set for this property. Can be any JSON type.
+                      For `text` fields it's a string, for `select` and `rank`
+                      fields an option ID, and for `multiselect` and `graph`
+                      fields an array of option IDs.
         description: Array of property values to update
         required: true
       responses:
@@ -644,6 +1160,10 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/properties/groups/{group_name}/system/values":
     get:
       tags:
@@ -656,10 +1176,17 @@
         the `{object_type}/values/{target_id}` route returns 400 for `system`.
 
 
-        **Delta sync via `since`:** When `since > 0`, the endpoint returns only rows whose `update_at` is greater than the cutoff, *including* tombstones.
+        **Delta sync via `since`:** When `since > 0`, the endpoint returns only rows whose `update_at` is greater than or equal to the cutoff, *including* tombstones.
 
 
         **Cursor key must match the active ordering:** in delta mode (`since > 0`) the endpoint orders by `update_at` and pagination requires `cursor_update_at`; otherwise it orders by `create_at` and pagination requires `cursor_create_at`.
+
+
+        **License:** in the `access_control` group, this endpoint requires an
+        Entry, Enterprise or Enterprise Advanced license (403 otherwise).
+
+
+        __Minimum server version__: 11.8
       operationId: GetSystemPropertyValues
       parameters:
         - name: group_name
@@ -729,6 +1256,25 @@
         updates it if it does. Requires system administrator access. All field
         IDs must reference `system` object-type fields in the specified group;
         template field IDs are rejected with 400.
+
+
+        The request can set up to 50 values, each for a different field. An
+        empty request, more than 50 items, or the same `field_id` twice returns
+        400. A `field_id` that doesn't exist in the group returns 404.
+
+
+        **License:** in the `access_control` group, this endpoint requires an
+        Entry, Enterprise or Enterprise Advanced license (403 otherwise).
+
+
+        __Minimum server version__: 11.8
+
+
+        ##### Permissions
+
+
+        Must have the `manage_system` permission. The caller also needs
+        permission to set values of each field in the request (403 otherwise).
       operationId: UpdateSystemPropertyValues
       parameters:
         - name: group_name
@@ -752,7 +1298,11 @@
                     type: string
                     description: The ID of the property field
                   value:
-                    description: The value to set for this property. Can be any JSON type.
+                    description: >
+                      The value to set for this property. Can be any JSON type.
+                      For `text` fields it's a string, for `select` and `rank`
+                      fields an option ID, and for `multiselect` and `graph`
+                      fields an array of option IDs.
         description: Array of property values to update
         required: true
       responses:
@@ -770,3 +1320,5 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

@@ -689,15 +689,35 @@ components:
           type: string
         type:
           type: string
-          description: The type of property
-          enum: [text, select, multiselect, date, user, multiuser]
+          description: >
+            The type of property. `rank` is a select whose options are ordered
+            by the `rank` each option carries. `graph` is a hierarchical
+            multiselect: its options can sit below other options. Converting a
+            field to or from `graph` returns 400.
+          enum: [text, select, multiselect, date, user, multiuser, rank, graph]
         object_type:
           type: string
           description: The type of object this property applies to
-          enum: [post, channel, user, template]
+          enum: [post, channel, user, template, session, system]
         attrs:
           type: object
-          description: Additional attributes
+          description: >
+            Additional attributes.
+
+
+            For field types with options (`select`, `multiselect`, `rank`,
+            `graph`), `attrs.options` lists the options. When a field has more
+            than 1000 options, reads leave `attrs.options` out and set
+            `attrs.options_count` to the number of options and
+            `attrs.options_omitted` to `true`. Page through the options with
+            the get property field options endpoint instead. A write that
+            supplies an option list for such a field returns 400.
+
+
+            On a `graph` field, an option written in `attrs.options` may carry
+            `parents`, a list of the names of the options directly above it.
+            Options read back from `attrs.options` don't include `parents`; the
+            get property field options endpoint returns them.
         target_id:
           type: string
           description: The ID of the target (empty for system-level, team ID for team-level, channel ID for channel-level)
@@ -739,6 +759,8 @@ components:
             The ID of the template field this field is linked to. When set, the field
             inherits its type and options from the source template. Can only be set at
             creation time. Null when the field is not linked.
+            The type and options of a linked field can't be changed. Patch
+            `linked_field_id` to an empty string to unlink the field.
         create_at:
           type: integer
           format: int64
@@ -761,6 +783,7 @@ components:
           type: string
         type:
           type: string
+          enum: [text, select, multiselect, date, user, multiuser, rank, graph]
         attrs:
           type: object
         linked_field_id:
@@ -786,6 +809,9 @@ components:
             The property's value, whose JSON shape depends on the field's type: most types
             (`text`, `select`, `date`, `user`) store a JSON string, while `multiselect` and
             `multiuser` store a JSON array of strings.
+            A `select` or `rank` value is an option ID, and a `multiselect` or
+            `graph` value is an array of option IDs. A `user` value is a user
+            ID, and a `multiuser` value is an array of user IDs.
         create_at:
           type: integer
           format: int64
@@ -801,6 +827,73 @@ components:
         updated_by:
           type: string
           description: User ID of the user who last updated this property value
+    PropertyFieldOption:
+      type: object
+      description: >
+        One option of a property field, as the property field options
+        endpoints read and write it.
+      properties:
+        id:
+          type: string
+          description: >
+            The option ID. Assigned by the server when the option is created;
+            don't send it when creating an option. Required when updating one.
+        name:
+          type: string
+          description: >
+            The option name. Required on every write. Names are unique among
+            the options a field has, including options it inherits from a
+            template.
+        color:
+          type: string
+          description: The option color. Left as it was when omitted on an update.
+        attrs:
+          type: object
+          description: >
+            Additional attributes of the option. Can't contain the keys `id`,
+            `name`, `color` or `rank`. Left as they were when omitted on an
+            update.
+        parents:
+          type: array
+          items:
+            type: string
+          description: >
+            Hierarchical (`graph`) fields only: the names of the options
+            directly above this one, at most 100. An option with no parents is
+            a top-level option. On an update, sending `parents` replaces the
+            option's parents, and omitting it leaves them as they were. Returns
+            400 for other field types, or if the change would create a cycle
+            or a hierarchy deeper than 100 levels.
+        read_only:
+          type: boolean
+          description: >
+            `true` when the field inherits the option from the template it's
+            linked to. A read-only option can only be changed on the template.
+            Ignored on writes.
+        create_at:
+          type: integer
+          format: int64
+          description: When the option was created. Ignored on writes.
+    PropertyFieldOptionPage:
+      type: object
+      description: One page of a property field's options.
+      properties:
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/PropertyFieldOption"
+        has_more:
+          type: boolean
+          description: >
+            Whether more options follow. Keep requesting pages while this is
+            `true`; a short or empty page doesn't mean the listing has ended.
+        next_cursor_create_at:
+          type: integer
+          format: int64
+          description: Pass as `cursor_create_at` to get the next page.
+        next_cursor_id:
+          type: string
+          description: Pass as `cursor_id` to get the next page.
     FileInfoList:
       type: object
       properties:
