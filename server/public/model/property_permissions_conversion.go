@@ -134,16 +134,17 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 // field unchanged when Permissions is nil — there is nothing to project. Never
 // mutates field or its Attrs map.
 //
-// It is not a lossless inverse of PermissionsFromLegacy. Every grant naming a
-// specific identity becomes an owner, including synthesized ones such as the
-// source plugin's, and field.write none becomes protected; both read back as
-// human write locks. A caller reconverting a projection must strip those
-// first. A field whose stored attrs mark it protected projects the
-// unprotected, sysadmin-pinned columns access_control stores for it, and
-// carries the protection in the attr. A wildcard grant is never projected: v2 has no owner meaning "any
-// plugin", and expresses that access by listing no owners at all. A user or
-// role owner converts to no grant, so it is carried over from the stored
-// owners attr instead (see appendHumanOwners).
+// It aims to show a v2 caller the field it had before conversion, and is not
+// a lossless inverse of PermissionsFromLegacy for an object written through
+// v3. Owners are projected from grants, leaving out the plugin wildcard (v2
+// has no owner meaning "any plugin", and expresses that access by listing no
+// owners at all) and the grants the conversion derives from the field's other
+// attrs (see ownersFromGrants). A user or role owner converts to no grant, so
+// it is carried over from the stored owners attr instead (see
+// appendHumanOwners). field.write none becomes protected, except that a field
+// whose stored attrs mark it protected projects the unprotected,
+// sysadmin-pinned columns access_control stores for it, and carries the
+// protection in the attr.
 func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 	if field.Permissions == nil {
 		return field
@@ -188,7 +189,7 @@ func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 		delete(projected.Attrs, PropertyAttrsProtected)
 	}
 
-	if owners := appendHumanOwners(ownersFromGrants(field.Permissions.Grants), GetPropertyFieldOwners(field)); len(owners) > 0 {
+	if owners := appendHumanOwners(ownersFromGrants(field), GetPropertyFieldOwners(field)); len(owners) > 0 {
 		projected.Attrs[PropertyAttrsOwners] = owners
 	} else {
 		// No owners at all, so the field looks exactly like a field that never
@@ -215,10 +216,21 @@ func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 // wildcard the conversion gives every unowned field would lock it for
 // everyone. An unowned field converts back to the same wildcard, so nothing
 // is lost.
-func ownersFromGrants(grants []Grant) []PropertyOwner {
+//
+// So is a grant the conversion derives from the field's other attrs: the
+// source plugin's on a protected field, and the sync service's on a synced
+// one. A v2 reader never saw either as an owner, and would read a synced
+// field as managed by an integration. Both attrs are still on the field, so
+// converting the projection back derives the same grants. A grant edited
+// past what the attrs give is a real owner, and is projected.
+func ownersFromGrants(field *PropertyField) []PropertyOwner {
+	derived := derivedGrantAllow(field)
 	var owners []PropertyOwner
-	for _, grant := range grants {
+	for _, grant := range field.Permissions.Grants {
 		if grant.ID == "*" {
+			continue
+		}
+		if allow, ok := derived[grant.Identity]; ok && len(grant.Scopes) == 0 && isSubsetOf(grant.Allow, allow) {
 			continue
 		}
 		owners = append(owners, PropertyOwner{
@@ -229,6 +241,30 @@ func ownersFromGrants(grants []Grant) []PropertyOwner {
 		})
 	}
 	return owners
+}
+
+// derivedGrantAllow returns, for each identity grantsFromLegacy grants from
+// attrs other than owners, the actions it grants it: the source plugin of a
+// protected field, and the sync service of a synced one.
+func derivedGrantAllow(field *PropertyField) map[Identity][]string {
+	derived := map[Identity][]string{}
+	if pluginID, allow := sourcePluginGrantAllow(field); pluginID != "" {
+		derived[Identity{Type: PropertyOwnerTypePlugin, ID: pluginID}] = allow
+	}
+	if syncSource := syncLockSource(field); syncSource != "" {
+		derived[Identity{Type: PropertyOwnerTypeService, ID: syncSource}] = syncLockGrantAllow
+	}
+	return derived
+}
+
+// isSubsetOf reports whether every action in allow is also in of.
+func isSubsetOf(allow, of []string) bool {
+	for _, action := range allow {
+		if !slices.Contains(of, action) {
+			return false
+		}
+	}
+	return true
 }
 
 // appendHumanOwners appends to owners each user or role owner in stored that
@@ -389,17 +425,7 @@ func grantsFromLegacy(field *PropertyField) []Grant {
 		addGrant(owner.Type, owner.ID, owner.Scopes, allow)
 	}
 
-	if pluginID, _ := field.Attrs[PropertyAttrsSourcePluginID].(string); pluginID != "" && IsPropertyFieldProtected(field) {
-		// The source plugin can read, write the definition and write values on a
-		// protected field; anything less takes access away, and it is never
-		// scope-restricted. It has no standing on an unprotected field: there
-		// the owners list, or the wildcard on an unowned field, already says
-		// what it may do. The sync lock still reserves the values for the sync
-		// service.
-		allow := validPropertyActions
-		if syncLockSource(field) != "" {
-			allow = removeAction(allow, PropertyActionValueWrite)
-		}
+	if pluginID, allow := sourcePluginGrantAllow(field); pluginID != "" {
 		addGrant(PropertyOwnerTypePlugin, pluginID, nil, allow)
 	}
 
@@ -497,6 +523,24 @@ func unguardedGroupPluginAllow(field *PropertyField) []string {
 		return removeAction(validPropertyActions, PropertyActionFieldWrite)
 	}
 	return slices.Clone(validPropertyActions)
+}
+
+// sourcePluginGrantAllow returns field's source plugin and the actions its
+// grant allows, or "" when it gets none. The source plugin can read, write
+// the definition and write values on a protected field; anything less takes
+// access away, and it is never scope-restricted. It has no standing on an
+// unprotected field: there the owners list, or the wildcard on an unowned
+// field, already says what it may do. The sync lock still reserves the
+// values for the sync service.
+func sourcePluginGrantAllow(field *PropertyField) (string, []string) {
+	pluginID, _ := field.Attrs[PropertyAttrsSourcePluginID].(string)
+	if pluginID == "" || !IsPropertyFieldProtected(field) {
+		return "", nil
+	}
+	if syncLockSource(field) != "" {
+		return pluginID, removeAction(validPropertyActions, PropertyActionValueWrite)
+	}
+	return pluginID, validPropertyActions
 }
 
 // isMachineOwnerType reports whether a legacy owner of this type was ever
