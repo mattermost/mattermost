@@ -1067,3 +1067,50 @@ func TestProjectLegacyPermissionsOmitsWildcardGrant(t *testing.T) {
 		assert.Equal(t, "plugin1", owners[0].ID)
 	})
 }
+
+func TestProjectLegacyPermissionsProtectedColumns(t *testing.T) {
+	sysadmin, member := PermissionLevelSysadmin, PermissionLevelMember
+
+	t.Run("a field protected by the attr projects the columns access_control stores", func(t *testing.T) {
+		// The access_control hook pins the field and option columns to sysadmin
+		// and keeps protection in the attr, so master stores this field
+		// unprotected. Projecting Protected would have master refuse every edit
+		// of it after a rollback.
+		field := &PropertyField{
+			PermissionField:   &sysadmin,
+			PermissionOptions: &sysadmin,
+			PermissionValues:  &member,
+			Attrs: StringInterface{
+				PropertyAttrsProtected:      true,
+				PropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+		opts := LegacyConversionOpts{ConvertAttrs: true}
+		field.Permissions = PermissionsFromLegacy(field, opts)
+		require.Equal(t, PermissionLevelNone, field.Permissions.Restrictions.TierFor(PropertyActionFieldWrite))
+
+		projected := ProjectLegacyPermissions(field)
+
+		assert.False(t, projected.Protected)
+		assert.Equal(t, PermissionLevelSysadmin, *projected.PermissionField)
+		assert.Equal(t, PermissionLevelSysadmin, *projected.PermissionOptions)
+		assert.True(t, IsPropertyFieldProtected(projected))
+		assert.Equal(t, field.Permissions, PermissionsFromLegacy(projected, opts))
+	})
+
+	t.Run("field.write none with no protected attr projects the Protected column", func(t *testing.T) {
+		field := &PropertyField{
+			Protected:         true,
+			PermissionField:   new(PermissionLevelNone),
+			PermissionOptions: &member,
+			PermissionValues:  &member,
+		}
+		field.Permissions = PermissionsFromLegacy(field, LegacyConversionOpts{})
+
+		projected := ProjectLegacyPermissions(field)
+
+		assert.True(t, projected.Protected)
+		assert.Equal(t, PermissionLevelNone, *projected.PermissionField)
+		assert.Equal(t, PermissionLevelMember, *projected.PermissionOptions)
+	})
+}
