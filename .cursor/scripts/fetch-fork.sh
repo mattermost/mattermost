@@ -19,6 +19,20 @@ is_git_work_tree() {
   [ "$(git -C "${1:-}" rev-parse --is-inside-work-tree 2>/dev/null)" = "true" ]
 }
 
+is_expected_fork_checkout() {
+  local candidate="${1:-}"
+  local module
+  if [ -z "${FORK_MODULE:-}" ] || [ ! -f "$candidate/go.mod" ]; then
+    return 1
+  fi
+  module="$(awk '$1 == "module" { print $2; exit }' "$candidate/go.mod")"
+  [ "$module" = "$FORK_MODULE" ]
+}
+
+is_usable_fork_checkout() {
+  is_git_work_tree "${1:-}" && is_expected_fork_checkout "${1:-}"
+}
+
 # Absolute path for a target that may not exist yet. `abspath` would do it,
 # but it is GNU-only, and a silently empty result here is worse than a loud
 # failure: it ends with `go work use ""` quietly doing nothing.
@@ -51,6 +65,7 @@ FORK="${1:-}"
 case "$FORK" in
   pdf)
     FORK_REPO="mattermost/pdf"
+    FORK_MODULE="github.com/mattermost/pdf"
     FORK_KIND="go"
     ;;
   "")
@@ -83,7 +98,7 @@ can_clone_into() {
   if [ ! -e "$dest" ]; then
     return 0
   fi
-  if is_git_work_tree "$dest"; then
+  if is_usable_fork_checkout "$dest"; then
     return 0
   fi
   if [ ! -d "$dest" ] || [ ! -w "$dest" ] || [ ! -x "$dest" ]; then
@@ -100,7 +115,7 @@ can_clone_into() {
 find_fork_checkout() {
   local candidate
   for candidate in "$ROOT/../$FORK" "$ROOT/../../$FORK" "$HOME/$FORK"; do
-    if is_git_work_tree "$candidate"; then
+    if is_usable_fork_checkout "$candidate"; then
       abspath "$candidate"
       return 0
     fi
@@ -121,17 +136,57 @@ fork_clone_dest() {
 publish_fork_checkout() {
   local source="$1"
   local dest="$2"
+  local lock waited=0
+  lock="$(dirname "$dest")/.$(basename "$dest").publish.lock"
 
-  if mv -T -n "$source" "$dest" && [ ! -e "$source" ]; then
-    return 0
+  if ! mkdir "$lock" 2>/dev/null; then
+    rm -rf "$source"
+    while [ "$waited" -lt 10 ]; do
+      if is_usable_fork_checkout "$dest"; then
+        log "Another process populated $FORK_REPO at $dest; reusing it."
+        return 0
+      fi
+      if [ ! -d "$lock" ]; then
+        break
+      fi
+      sleep 1
+      waited=$((waited + 1))
+    done
+    if is_usable_fork_checkout "$dest"; then
+      log "Another process populated $FORK_REPO at $dest; reusing it."
+      return 0
+    fi
+    log "Could not publish $FORK_REPO checkout at $dest."
+    return 1
   fi
 
-  rm -rf "$source"
-  if is_git_work_tree "$dest"; then
+  if is_usable_fork_checkout "$dest"; then
+    rmdir "$lock" 2>/dev/null || true
+    rm -rf "$source"
     log "Another process populated $FORK_REPO at $dest; reusing it."
     return 0
   fi
 
+  if [ -e "$dest" ]; then
+    rmdir "$dest" 2>/dev/null || {
+      rmdir "$lock" 2>/dev/null || true
+      rm -rf "$source"
+      log "Could not publish $FORK_REPO checkout at $dest."
+      return 1
+    }
+  fi
+
+  if mv "$source" "$dest"; then
+    rmdir "$lock" 2>/dev/null || true
+    return 0
+  fi
+
+  rmdir "$lock" 2>/dev/null || true
+  rm -rf "$source"
+  if is_usable_fork_checkout "$dest"; then
+    log "Another process populated $FORK_REPO at $dest; reusing it."
+    return 0
+  fi
   log "Could not publish $FORK_REPO checkout at $dest."
   return 1
 }
@@ -144,6 +199,10 @@ clone_fork() {
   if [ -z "$dest" ] || [ "$dest" = "/" ] || [ "$(basename "$dest")" != "$FORK" ]; then
     log "Refusing unsafe clone dest: ${dest:-<empty>}"
     return 1
+  fi
+
+  if is_usable_fork_checkout "$dest"; then
+    return 0
   fi
 
   if ! can_clone_into "$dest"; then
@@ -189,8 +248,8 @@ clone_fork() {
 
 # Adds the fork to server/go.work. go.work is gitignored, so this cannot leak
 # into a commit the way a go.mod replace directive can. `make setup-go-work`
-# rewrites go.work from scratch and drops the fork, so re-run this script after
-# any target that depends on it.
+# rewrites go.work from scratch and drops the fork. Pass SKIP_SETUP_GO_WORK=true
+# to make targets while a fork is wired, or re-run this script after they finish.
 wire_go_workspace() {
   local target="${1:-}"
 
@@ -220,7 +279,7 @@ wire_go_workspace() {
   fi
 
   log "Added $target to server/go.work. The server now builds against this checkout."
-  log "Re-run this script if 'make setup-go-work' rewrites go.work."
+  log "Pass SKIP_SETUP_GO_WORK=true to make targets while this fork is wired, or re-run this script if setup-go-work rewrites go.work."
 }
 
 TARGET=""
@@ -230,8 +289,8 @@ else
   DEST="$(fork_clone_dest)"
   clone_fork "$DEST"
   TARGET="$(abspath "$DEST")"
-  if [ -z "$TARGET" ] || ! is_git_work_tree "$TARGET"; then
-    log "Clone completed but no checkout was found at $DEST."
+  if [ -z "$TARGET" ] || ! is_usable_fork_checkout "$TARGET"; then
+    log "Clone completed but no usable $FORK_REPO checkout was found at $DEST."
     exit 1
   fi
 fi
