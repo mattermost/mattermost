@@ -507,9 +507,6 @@ func TestPluginSync(t *testing.T) {
 				require.Len(t, pluginStatus, 1)
 				require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 
-				appErr = th.App.DeletePublicKey("pub_key")
-				checkNoError(t, appErr)
-
 				appErr = th.App.ch.RemovePlugin("testplugin")
 				checkNoError(t, appErr)
 			})

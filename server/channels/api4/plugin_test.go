@@ -1654,9 +1654,6 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		exists, appErr := th.App.FileExists(filePath)
 		require.Nil(t, appErr)
 		require.False(t, exists)
-
-		appErr = th.App.DeletePublicKey("pub_key")
-		require.Nil(t, appErr)
 	}, "verify, install and remove plugin")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -1695,9 +1692,6 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		exists, appErr := th.App.FileExists(filePath)
 		require.Nil(t, appErr)
 		require.False(t, exists)
-
-		appErr = th.App.DeletePublicKey("pub_key")
-		require.Nil(t, appErr)
 	}, "ignore version in Marketplace request")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {

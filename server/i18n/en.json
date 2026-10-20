@@ -10661,11 +10661,6 @@
     "description": "API error when the server fails to serialize the Marketplace plugin list to JSON; 'marshal' is a serialization term."
   },
   {
-    "id": "app.plugin.modify_saml.app_error",
-    "translation": "Can't modify saml files.",
-    "description": "Error when a plugin file-write targets SAML certificate files, which is forbidden; 'saml' refers to SAML authentication files."
-  },
-  {
     "id": "app.plugin.mvdir.app_error",
     "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name.",
     "description": "Admin console error when moving an extracted plugin into the plugins directory fails, often due to a directory name collision."
