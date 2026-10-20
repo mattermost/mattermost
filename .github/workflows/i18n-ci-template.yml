@@ -125,7 +125,7 @@ jobs:
             cd ../tools/mmgotool && go test ./commands/ -run TestServerPluralTableMatchesGoI18n
 
   check-changes:
-    name: Test the translation pipeline
+    name: Test the translation pipeline and its glossary
     runs-on: ubuntu-24.04
     steps:
       - name: ci/checkout-repo
@@ -142,3 +142,6 @@ jobs:
 
       - name: ci/test-pipeline
         run: node --test i18n/scripts/*.test.mjs
+
+      - name: ci/check-glossary
+        run: node i18n/scripts/check_glossary.mjs
