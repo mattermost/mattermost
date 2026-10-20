@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test, expect} from '@mattermost/playwright-lib';
+import {demoPluginId, demoPluginUrl, getPluginStatus, test, expect} from '@mattermost/playwright-lib';
 
 test('should install and enable demo plugin from URL', async ({pw}) => {
-    // Create and navigate to channels page
+    // # Create and navigate to channels page
     const {adminClient, user} = await pw.initSetup();
     const {channelsPage} = await pw.testBrowser.login(user);
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    // Enable public links before installing plugin
+    // # Enable public links before installing plugin
     await adminClient.patchConfig({
         FileSettings: {EnablePublicLink: true},
         ServiceSettings: {
@@ -21,41 +21,48 @@ test('should install and enable demo plugin from URL', async ({pw}) => {
         },
         PluginSettings: {
             Plugins: {
-                'com.mattermost.demo-plugin': {
+                [demoPluginId]: {
                     username: 'demouser',
-                    channelname: 'demo',
+                    channelname: 'demo_plugin',
                     lastname: 'User',
                 },
             },
         },
     });
 
-    // Install and enable
-    await pw.installAndEnablePlugin(
-        adminClient,
-        'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0.tar.gz',
-        'com.mattermost.demo-plugin',
-    );
+    // # Remove any existing install, so the install below really downloads from the URL.
+    // pw.installAndEnablePlugin is a no-op for an active plugin and only enables an installed
+    // one, and the setup project pre-installs the demo plugin, so it would never install here.
+    await adminClient.removePlugin(demoPluginId);
 
-    // Verify it's active (API validation, no UI)
+    // * Verify the plugin is gone
+    await expect.poll(async () => (await getPluginStatus(adminClient, demoPluginId)).isInstalled).toBe(false);
+
+    // # Install from URL and enable
+    await adminClient.installPluginFromUrl(demoPluginUrl, true);
+    await adminClient.enablePlugin(demoPluginId);
+
+    // * Verify it's active (API validation, no UI)
     await expect
         .poll(async () => {
-            return pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin');
+            return pw.isPluginActive(adminClient, demoPluginId);
         })
         .toBe(true);
 
-    // Optional: Get plugin details
+    // * Verify plugin details
     const plugins = await adminClient.getPlugins();
-    const demoPlugin = plugins.active.find((p) => p.id === 'com.mattermost.demo-plugin');
+    const demoPlugin = plugins.active.find((p) => p.id === demoPluginId);
     expect(demoPlugin).toBeDefined();
 
-    // Dismiss overlay again if it reappeared after plugin activation
+    // # Dismiss overlay again if it reappeared after plugin activation.
+    // No fixed wait needed — postMessage's fill/click actions auto-wait for the
+    // input to become interactable once the overlay clears.
     await channelsPage.page.keyboard.press('Escape');
-    await channelsPage.page.waitForTimeout(500);
 
-    // UI Validation: Execute slash command and verify response
+    // # Execute slash command
     await channelsPage.postMessage('/demo_plugin true');
 
+    // * Verify the response post
     const post = await channelsPage.getLastPost();
     await post.toBeVisible();
     await post.toContainText('enabled');

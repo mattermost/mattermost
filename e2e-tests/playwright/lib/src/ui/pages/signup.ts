@@ -5,6 +5,7 @@ import type {Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 import {duration, wait} from '@/util';
+import {testConfig} from '@/test_config';
 import {components} from '@/ui/components';
 
 export default class SignupPage {
@@ -113,6 +114,6 @@ export default class SignupPage {
         await this.passwordInput.fill(password);
         await this.termsAndPrivacyCheckBox.check();
         await this.createAccountButton.click();
-        await this.page.waitForURL((url) => !url.pathname.startsWith('/signup_user_complete'));
+        await this.page.waitForURL((url) => !url.pathname.startsWith(testConfig.withSubpath('/signup_user_complete')));
     }
 }

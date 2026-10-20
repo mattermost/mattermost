@@ -1,0 +1,282 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package jobs
+
+import (
+	"strconv"
+	"time"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+)
+
+func init() {
+	healthcheck.Register(jobStuck, jobWedgedAtZero, jobFailed)
+}
+
+const (
+	stuckAfter = 24 * time.Hour
+	// wedgedAfter matches the server's own timeout for an idle migration job.
+	wedgedAfter = time.Hour
+	// retentionStaleAfter leaves the daily data retention schedule room to miss a few runs.
+	retentionStaleAfter = 7 * 24 * time.Hour
+	// collectedRunsPerType matches the per-type cap of the Support Packet job collector.
+	collectedRunsPerType = 5
+)
+
+var monitoredJobTypes = []string{
+	model.JobTypeLdapSync,
+	model.JobTypeDataRetention,
+	model.JobTypeMessageExport,
+	model.JobTypeElasticsearchPostIndexing,
+	model.JobTypeElasticsearchPostAggregation,
+}
+
+// The data retention worker never reports progress, so it is always at zero while running.
+var progressJobTypes = []string{
+	model.JobTypeLdapSync,
+	model.JobTypeMessageExport,
+	model.JobTypeElasticsearchPostIndexing,
+	model.JobTypeElasticsearchPostAggregation,
+}
+
+var jobStuck = healthcheck.Rule{
+	Code:     "JOB_STUCK",
+	Area:     model.AreaJobs,
+	Severity: healthcheck.SeverityWarning,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.job_stuck.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.job_stuck.remediation"),
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityStable,
+	Eval:       evalJobStuck,
+}
+
+var jobWedgedAtZero = healthcheck.Rule{
+	Code:     "JOB_WEDGED_AT_ZERO",
+	Area:     model.AreaJobs,
+	Severity: healthcheck.SeverityWarning,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.job_wedged_at_zero.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.job_wedged_at_zero.remediation"),
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityStable,
+	Eval:       evalJobWedgedAtZero,
+}
+
+var jobFailed = healthcheck.Rule{
+	Code:     "JOB_FAILED",
+	Area:     model.AreaJobs,
+	Severity: healthcheck.SeverityWarning,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.job_failed.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.job_failed.remediation"),
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityStable,
+	Eval:       evalJobFailed,
+}
+
+// licensed reports whether the license carries the feature jobType's scheduler and worker require.
+func licensed(s *healthcheck.Snapshot, jobType string) (granted, ok bool) {
+	switch jobType {
+	case model.JobTypeLdapSync:
+		return s.LicenseAllows(func(f *model.Features) *bool { return f.LDAP })
+	case model.JobTypeMessageExport:
+		return s.LicenseAllows(func(f *model.Features) *bool { return f.MessageExport })
+	case model.JobTypeElasticsearchPostIndexing, model.JobTypeElasticsearchPostAggregation:
+		return s.LicenseAllows(func(f *model.Features) *bool { return f.Elasticsearch })
+	case model.JobTypeDataRetention:
+		return s.LicenseAllows(func(f *model.Features) *bool { return f.DataRetention })
+	default:
+		return true, true
+	}
+}
+
+// gate reports whether the feature behind jobType is enabled; ok is false when Config is absent.
+func gate(s *healthcheck.Snapshot, jobType string) (enabled, ok bool) {
+	switch jobType {
+	case model.JobTypeLdapSync:
+		return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.LdapSettings.EnableSync })
+	case model.JobTypeMessageExport:
+		return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.MessageExportSettings.EnableExport })
+	case model.JobTypeElasticsearchPostIndexing, model.JobTypeElasticsearchPostAggregation:
+		return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ElasticsearchSettings.EnableIndexing })
+	default:
+		_, ok := s.ConfigRoot()
+		return true, ok
+	}
+}
+
+// evalJobTypes returns one result per job type, calling check only for enabled types with collected runs.
+func evalJobTypes(s *healthcheck.Snapshot, jobTypes []string, check func(jobType string, jobs []*model.Job) healthcheck.Result) []healthcheck.Result {
+	results := make([]healthcheck.Result, 0, len(jobTypes))
+	for _, jobType := range jobTypes {
+		enabled, ok := gate(s, jobType)
+		if !ok {
+			results = append(results, healthcheck.UnknownSubject(jobType, healthcheck.ReasonConfigUnavailable))
+			continue
+		}
+		if !enabled {
+			results = append(results, healthcheck.ResolvedSubject(jobType))
+			continue
+		}
+
+		// Checked after the config gate so a disabled job type stays resolved in packets without license data.
+		granted, ok := licensed(s, jobType)
+		if !ok {
+			results = append(results, healthcheck.UnknownSubject(jobType, healthcheck.ReasonLicenseUnavailable))
+			continue
+		}
+		if !granted {
+			results = append(results, healthcheck.ResolvedSubject(jobType))
+			continue
+		}
+
+		jobs, ok := s.JobsFor(jobType)
+		if !ok {
+			results = append(results, healthcheck.UnknownSubject(jobType, healthcheck.ReasonJobsUnavailable))
+			continue
+		}
+
+		results = append(results, check(jobType, jobs))
+	}
+
+	return results
+}
+
+// latestStartedJob skips pending runs: schedulers keep queueing them behind a stuck in-progress run.
+func latestStartedJob(jobs []*model.Job) *model.Job {
+	for _, job := range jobs {
+		if job != nil && job.Status != model.JobStatusPending {
+			return job
+		}
+	}
+
+	return nil
+}
+
+// latestCompletedJob skips canceled runs too: a worker stop on restart cancels the running job, which says nothing about its health.
+func latestCompletedJob(jobs []*model.Job) *model.Job {
+	for _, job := range jobs {
+		if job == nil {
+			continue
+		}
+
+		switch job.Status {
+		case model.JobStatusSuccess, model.JobStatusWarning, model.JobStatusError:
+			return job
+		}
+	}
+
+	return nil
+}
+
+var reasonRunsUnfinished = healthcheck.TranslationId("health.reason.job_runs_unfinished")
+
+// historyTruncated reports whether queued, running or canceled rows may have pushed the run a rule needs out of the collected window.
+func historyTruncated(jobs []*model.Job) bool {
+	return len(jobs) >= collectedRunsPerType
+}
+
+func hours(d time.Duration) string {
+	return strconv.Itoa(int(d.Hours()))
+}
+
+func evalJobStuck(s *healthcheck.Snapshot) []healthcheck.Result {
+	return evalJobTypes(s, monitoredJobTypes, func(jobType string, jobs []*model.Job) healthcheck.Result {
+		if s.CollectedAt.IsZero() {
+			return healthcheck.UnknownSubject(jobType, healthcheck.ReasonCollectedAtUnknown)
+		}
+
+		job := latestStartedJob(jobs)
+		if job == nil && historyTruncated(jobs) {
+			return healthcheck.UnknownSubject(jobType, reasonRunsUnfinished)
+		}
+		if job == nil || job.Status != model.JobStatusInProgress {
+			return healthcheck.ResolvedSubject(jobType)
+		}
+
+		idle := s.CollectedAt.Sub(time.UnixMilli(job.LastActivityAt))
+		if idle <= stuckAfter {
+			return healthcheck.ResolvedSubject(jobType)
+		}
+
+		return healthcheck.FiringSubject(jobType, healthcheck.TranslationId("health.rule.job_stuck.message")).
+			WithDetail("job_type", jobType).
+			WithDetail("job_id", job.Id).
+			WithDetail("hours", hours(idle))
+	})
+}
+
+func evalJobWedgedAtZero(s *healthcheck.Snapshot) []healthcheck.Result {
+	return evalJobTypes(s, progressJobTypes, func(jobType string, jobs []*model.Job) healthcheck.Result {
+		if s.CollectedAt.IsZero() {
+			return healthcheck.UnknownSubject(jobType, healthcheck.ReasonCollectedAtUnknown)
+		}
+
+		job := latestStartedJob(jobs)
+		if job == nil && historyTruncated(jobs) {
+			return healthcheck.UnknownSubject(jobType, reasonRunsUnfinished)
+		}
+		if job == nil || job.Status != model.JobStatusInProgress || job.Progress != 0 {
+			return healthcheck.ResolvedSubject(jobType)
+		}
+
+		// Progress is a whole percentage, so a large job sits at 0 for hours; it still touches LastActivityAt every batch.
+		idle := s.CollectedAt.Sub(time.UnixMilli(job.LastActivityAt))
+		if idle <= wedgedAfter {
+			return healthcheck.ResolvedSubject(jobType)
+		}
+
+		return healthcheck.FiringSubject(jobType, healthcheck.TranslationId("health.rule.job_wedged_at_zero.message")).
+			WithDetail("job_type", jobType).
+			WithDetail("job_id", job.Id)
+	})
+}
+
+// retentionLeftover reports whether job predates turning data retention off, so nothing will run to clear it.
+// Custom policies also keep the scheduler on, but they are not in the snapshot; an active one would have produced a newer run.
+func retentionLeftover(s *healthcheck.Snapshot, job *model.Job) bool {
+	messages, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.DataRetentionSettings.EnableMessageDeletion })
+	if !ok || messages {
+		return false
+	}
+	files, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.DataRetentionSettings.EnableFileDeletion })
+	if !ok || files {
+		return false
+	}
+
+	idle, ok := s.Since(time.UnixMilli(job.LastActivityAt))
+	return ok && idle > retentionStaleAfter
+}
+
+func evalJobFailed(s *healthcheck.Snapshot) []healthcheck.Result {
+	return evalJobTypes(s, monitoredJobTypes, func(jobType string, jobs []*model.Job) healthcheck.Result {
+		job := latestCompletedJob(jobs)
+		if job == nil && historyTruncated(jobs) {
+			return healthcheck.UnknownSubject(jobType, reasonRunsUnfinished)
+		}
+		if job == nil || job.Status != model.JobStatusError {
+			return healthcheck.ResolvedSubject(jobType)
+		}
+		if jobType == model.JobTypeDataRetention && retentionLeftover(s, job) {
+			return healthcheck.ResolvedSubject(jobType)
+		}
+
+		jobError := job.Data["error"]
+		if jobError == "" {
+			return healthcheck.FiringSubject(jobType, healthcheck.TranslationId("health.rule.job_failed.message.no_error")).
+				WithDetail("job_type", jobType).
+				WithDetail("job_id", job.Id)
+		}
+
+		return healthcheck.FiringSubject(jobType, healthcheck.TranslationId("health.rule.job_failed.message")).
+			WithDetail("job_type", jobType).
+			WithDetail("job_id", job.Id).
+			WithDetail("error", jobError)
+	})
+}
