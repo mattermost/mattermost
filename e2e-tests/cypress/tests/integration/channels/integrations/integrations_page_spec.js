@@ -50,39 +50,30 @@ describe('Integrations', () => {
         // # Return to integrations home
         cy.visit(`/${teamA}/integrations`);
 
-        // # Isolate icon links
-        cy.get('.integrations-list').within(() => {
-            // * Incoming Webhooks link is visible and works
-            cy.findByText('Incoming Webhooks').scrollIntoView().should('be.visible').click();
-            cy.url().should('include', '/incoming_webhooks');
-        });
+        // * Incoming Webhooks link is visible and works
+        cy.findByRole('link', {name: /Incoming Webhooks Incoming webhooks allow external integrations to send messages/}).scrollIntoView().should('be.visible').click();
+        cy.url().should('include', '/incoming_webhooks');
 
         // # Return to integrations home
         cy.visit(`/${teamA}/integrations`);
 
         // * Outgoing Webhooks link is visible and works
-        cy.get('.integrations-list').within(() => {
-            cy.findByText('Outgoing Webhooks').scrollIntoView().should('be.visible').click();
-            cy.url().should('include', '/outgoing_webhooks');
-        });
+        cy.findByRole('link', {name: /Outgoing Webhooks Outgoing webhooks allow external integrations to receive and respond to messages/}).scrollIntoView().should('be.visible').click();
+        cy.url().should('include', '/outgoing_webhooks');
 
         // # Return to integrations home
         cy.visit(`/${teamA}/integrations`);
 
         // * Slash Commands link is visible and works
-        cy.get('.integrations-list').within(() => {
-            cy.findByText('Slash Commands').scrollIntoView().should('be.visible').click();
-            cy.url().should('include', '/commands');
-        });
+        cy.findByRole('link', {name: /Slash Commands Slash commands send events to external integrations/}).scrollIntoView().should('be.visible').click();
+        cy.url().should('include', '/commands');
 
         // # Return to integrations home
         cy.visit(`/${teamA}/integrations`);
 
         // * Bot Accounts link is visible and works
-        cy.get('.integrations-list').within(() => {
-            cy.findByText('Bot Accounts').scrollIntoView().should('be.visible').click();
-            cy.url().should('include', '/bots');
-        });
+        cy.findByRole('link', {name: /Bot Accounts Use bot accounts to integrate with Mattermost through plugins or the API/}).scrollIntoView().should('be.visible').click();
+        cy.url().should('include', '/bots');
     });
 });
 
