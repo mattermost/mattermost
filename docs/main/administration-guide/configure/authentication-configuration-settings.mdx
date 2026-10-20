@@ -613,7 +613,7 @@ This filter uses the permissions of the **Bind Username** account to execute the
 </colgroup>
 <tbody>
 <tr>
-<td><p>This setting accepts a <a href="https://www.ldapexplorer.com/en/manual/109010000-ldap-filter-syntax.htm">general syntax</a> AD/LDAP filter that is applied when searching for group objects. Only the groups selected by the query can access Mattermost.</p><p>String input. Must be a valid AD/LDAP filter. Default is <code>(|(objectClass=group)(objectClass=groupOfNames)(objectClass=groupOfUniqueNames))</code>.</p></td>
+<td><p>This setting accepts a <a href="https://www.ldapexplorer.com/en/manual/109010000-ldap-filter-syntax.htm">general syntax</a> AD/LDAP filter that is applied when searching for group objects. Only the groups selected by the query can access Mattermost.</p><p>String input. Must be a valid AD/LDAP filter if set. Default is <code>(|(objectClass=group)(objectClass=groupOfNames)(objectClass=groupOfUniqueNames))</code>.</p></td>
 <td><ul><li>System Config path: <strong>Authentication &gt; AD/LDAP</strong></li><li><code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>GroupFilter</code></li><li>Environment variable: <code>MM_LDAPSETTINGS_GROUPFILTER</code></li></ul></td>
 </tr>
 </tbody>
