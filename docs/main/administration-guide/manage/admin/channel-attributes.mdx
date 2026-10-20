@@ -2,15 +2,15 @@
 title: "Channel attributes"
 ---
 
-<PlanAvailability slug="ent-adv" />
+<PlanAvailability slug="entry-adv" />
 
 From Mattermost v12.0, system admins can define attributes once in **System Console \> System Attributes \> Attribute Management**, then apply those attributes to channels. Channel attributes provide structured information about a channel, such as its classification, department, region, or project.
 
-Channel attribute values can be displayed in the channel header, the channel banner, and Channel Info. In this release, channel attributes are informational and aren't evaluated by access policies.
+Channel attribute values can be displayed in the channel header, the channel banner, and Channel Info. Access rules can also compare a user's attributes with a channel's attributes, so one policy can apply a different requirement to each channel. See [Use channel attributes in access rules](#use-channel-attributes-in-access-rules).
 
 <Note>
 
-Channel attributes require a Mattermost Enterprise Advanced license and the `ChannelAttributes` feature flag (`MM_FEATUREFLAGS_CHANNELATTRIBUTES`). The feature flag is disabled by default. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
+Channel attributes require a Mattermost Entry or Enterprise Advanced license.
 
 </Note>
 
@@ -58,6 +58,56 @@ To manage values together with the channel's other information:
 
 Changes made in Channel Settings remain pending until you select **Save**. Channel attributes aren't available for direct message or group message channels.
 
+## Use channel attributes in access rules
+
+From Mattermost v12.0, a membership or permission policy rule can compare a user attribute with an attribute of the channel being accessed. For example, a single system-wide policy assigned to many channels can require each user's clearance to be at least the clearance set on each channel. Rules are written in CEL, the expression language Mattermost uses for access rules:
+
+```
+user.attributes.Clearance >= resource.attributes.Clearance
+```
+
+In a rule, `user.attributes.<name>` is the user's value and `resource.attributes.<name>` is the channel's value.
+
+### Before you begin
+
+A channel attribute can be compared only with a user attribute of the same type. For attributes with options (**Select**, **Multiselect**, **Ranked**, and **Hierarchical**), both must also come from the same global attribute, so that the options match. The simplest approach is one global attribute that applies to both users and channels:
+
+1. Go to **System Console \> System Attributes \> Attribute Management**.
+2. Create or select the global attribute, such as a **Ranked** attribute named Clearance.
+3. Make sure it applies to both **Users** and **Channels**. See [Choose the resources an attribute applies to](/administration-guide/manage/admin/attribute-management#choose-the-resources-an-attribute-applies-to).
+4. Set a value for each user, or sync the values from your identity provider.
+5. Set a value on every channel the policy will be assigned to. See [Set channel attribute values](#set-channel-attribute-values).
+
+### Add a channel attribute to a rule
+
+Channel attributes are offered in the policy editors under **System Console \> System Attributes \> Membership Policies** and **System Console \> System Attributes \> Permission Policies**, and in the **Membership Policy** and **Permissions Policy** tabs of **Channel Settings**.
+
+1. In **Simple Mode**, select **Add attribute**, then select the user attribute, such as Clearance.
+2. Select an operator, such as **is at least**.
+3. Open the value menu. Under **Channel attributes**, select the channel attribute to compare against. The value then shows as **Channel: Clearance**.
+4. Save the policy.
+
+The value menu lists only channel attributes that can be compared with the selected user attribute and operator. In **Advanced Mode**, write the comparison directly, using `resource.attributes.<name>`.
+
+The following comparisons work with channel attributes:
+
+- **Text** and **Select** attributes, with **is** and **is not**.
+- **Ranked** attributes, with **is exactly**, **is not**, **is at least**, **is greater than**, **is at most**, and **is less than**.
+- **Hierarchical** attributes, with **covers all of**, **covers any of**, **is within all of**, **is within any of**, **has any of**, and **has all of**.
+- **Multiselect** attributes, with **has any of** and **has all of**.
+
+See [Channel attributes](/administration-guide/manage/admin/abac-policy-expressions#channel-attributes) in the policy expression reference for the full rules.
+
+Team membership policies can't use channel attributes, because teams don't have attributes. This includes system-wide policies assigned to a team.
+
+<Warning>
+
+If a channel has no value for a channel attribute that its policy uses, the policy denies everyone for that channel. On a private channel, the next synchronization removes every member. On a public channel, nobody is removed, but nobody is recommended or added automatically either. A permission policy blocks the actions it controls for everyone in the channel.
+
+The policy editor warns about this with **Channels without this attribute lose all members**. Set the attribute on every channel before you assign the policy to it.
+
+</Warning>
+
 ## Display attributes in the channel header
 
 When **Header** is selected as a display location, each set value appears as a label beside the channel name. Select a label to open Channel Info.
@@ -104,16 +154,29 @@ Removing the Classification **Channels** resource makes the classification value
 
 ### Assign a classification to a channel
 
-When the `ChannelAttributes` feature flag is enabled, classification is assigned through the channel attribute editor:
+Classification is assigned through the channel attribute editor:
 
 - Use Channel Info to assign a value immediately.
 - Use **Channel Settings \> Info** to assign a value and save it with the rest of the channel information.
 
 The standalone **Classification** section previously available under **Channel Settings \> Configuration** is hidden to avoid providing two controls for the same value.
 
-Classification markings are informational only. Assigning a classification doesn't control access to the channel, its messages, or its files.
+Assigning a classification on its own doesn't control access to the channel, its messages, or its files. To restrict access by classification, use it in an access rule.
 
-This release establishes channel attributes as display metadata only. Evaluating channel attributes in access policies is outside the current scope.
+### Use classification in access rules
+
+Classification is a **Ranked** channel attribute, so a rule can compare it with a user attribute that uses the same classification levels. Classification Markings can create that user attribute for you:
+
+1. Go to **System Console \> Site Configuration \> Classification Markings**.
+2. Under **Clearance attribute**, select **Enable clearance attribute**, then select **Save**. This option is available when attribute-based access control is enabled.
+
+Mattermost creates a **Ranked** user attribute named **Classification clearance**, with the unique name `clearance`, linked to the classification levels. Set each user's clearance, then add a rule that compares it with the channel's classification, either in **Simple Mode** or in **Advanced Mode**:
+
+```
+user.attributes.clearance >= resource.attributes.classification
+```
+
+Assign the policy only to channels that have a classification. A channel without one denies everyone, as described in [Use channel attributes in access rules](#use-channel-attributes-in-access-rules).
 
 ### Classification banner behavior
 
@@ -135,6 +198,6 @@ When upgrading an existing deployment:
 - Existing classification levels and channel classification values are preserved.
 - Classification levels are represented as Ranked attribute options.
 - Existing classification banners continue to display.
-- After `ChannelAttributes` is enabled, channel admins assign and update classifications from Channel Info or **Channel Settings \> Info**.
+- Channel admins assign and update classifications from Channel Info or **Channel Settings \> Info**.
 
 System admins should review the Classification **Channels** resource in Attribute Management before changing and saving its display settings.
