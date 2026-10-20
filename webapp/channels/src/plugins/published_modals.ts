@@ -46,6 +46,10 @@ const publishedModals = {
     team_members: lazyModal(() => import('components/team_members_modal')),
     leave_team: lazyModal(() => import('components/leave_team_modal')),
     file_preview_modal: withDefaultProps(lazyModal(() => import('components/file_preview_modal')), {startIndex: 0}),
+    new_channel_modal: lazyModal(() => import('components/new_channel_modal/new_channel_modal')),
+
+    // Like team_settings, pinned open; initialTab can name a plugin's own tab.
+    channel_settings: withFixedProps(lazyModal(() => import('components/channel_settings_modal/channel_settings_modal')), {isOpen: true}),
 } satisfies Record<PublishedModalId, React.ComponentType<any>>;
 
 // Fails the build here if a modal's real props drift from the published contract,

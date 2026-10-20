@@ -705,6 +705,69 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({data: mockChannel, error: null}));
     });
 
+    function stateWithPluginOnlyOptions(onCreate: jest.Mock): DeepPartial<GlobalState> {
+        const option = (id: string, label: string) => ({
+            id,
+            pluginId: 'test-plugin',
+            label,
+            description: `${label} description`,
+            icon: <i/>,
+            isAvailable: () => true,
+            onCreate,
+            createButtonText: 'Create board',
+            showInNewChannelModal: false,
+        });
+        return {
+            ...baseState,
+            plugins: {
+                ...baseState.plugins,
+                components: {
+                    ChannelTypeOption: [option('public-board', 'Public board'), option('private-board', 'Private board')],
+                },
+            },
+        } as DeepPartial<GlobalState>;
+    }
+
+    test('an option registered with showInNewChannelModal false is not listed in "Create a new channel"', () => {
+        renderWithContext(<NewChannelModal/>, stateWithPluginOnlyOptions(jest.fn()));
+
+        expect(screen.getByText('Create a new channel')).toBeInTheDocument();
+        expect(screen.getByText('Public Channel')).toBeInTheDocument();
+        expect(screen.queryByText('Public board')).not.toBeInTheDocument();
+        expect(screen.queryByText('Private board')).not.toBeInTheDocument();
+    });
+
+    test('opened for a plugin, offers only its options under its own title, with the first selected', async () => {
+        const onCreate = jest.fn().mockResolvedValue({status: 'created', channel: mockChannel});
+        renderWithContext(
+            <NewChannelModal
+                channelTypePluginId='test-plugin'
+                modalHeaderText='Create a new board'
+                nameLabel='Board name'
+                namePlaceholder='Enter a name for your new board'
+                purposeLabel='Board description'
+                purposeHelpText='This will be displayed when browsing for boards and channels.'
+            />,
+            stateWithPluginOnlyOptions(onCreate),
+        );
+
+        expect(screen.getByText('Create a new board')).toBeInTheDocument();
+        expect(screen.queryByText('Public Channel')).not.toBeInTheDocument();
+        expect(screen.queryByText('Private Channel')).not.toBeInTheDocument();
+        expect(screen.getByText('Public board').closest('button')).toHaveClass('selected');
+        expect(screen.getByText('Private board').closest('button')).not.toHaveClass('selected');
+        expect(screen.getByPlaceholderText('Enter a name for your new board')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByText('Private board'));
+        expect(screen.getByPlaceholderText('Board description')).toBeInTheDocument();
+        expect(screen.getByText('This will be displayed when browsing for boards and channels.')).toBeInTheDocument();
+        await userEvent.type(screen.getByRole('textbox', {name: 'Board name'}), 'Roadmap');
+        await userEvent.click(screen.getByRole('button', {name: 'Create board'}));
+
+        await waitFor(() => expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({type: 'private-board', displayName: 'Roadmap'})));
+        expect(createChannel).not.toHaveBeenCalled();
+    });
+
     test('plugin channel-type option rendering - three buttons with available option', async () => {
         renderWithContext(<NewChannelModal/>, stateWithOption());
 
