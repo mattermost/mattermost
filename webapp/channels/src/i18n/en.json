@@ -9759,14 +9759,6 @@
     "defaultMessage": "Caller",
     "description": "Field label in an expanded log entry on the System Console Server Logs page; the source file and line that wrote the log follows."
   },
-  "admin.logs.detail.level": {
-    "defaultMessage": "Level",
-    "description": "Field label in an expanded log entry on the System Console Server Logs page; the log level (e.g. Error, Info) follows."
-  },
-  "admin.logs.detail.message": {
-    "defaultMessage": "Message",
-    "description": "Field label in an expanded log entry on the System Console Server Logs page; the log message follows."
-  },
   "admin.logs.detail.timestamp": {
     "defaultMessage": "Timestamp",
     "description": "Field label in an expanded log entry on the System Console Server Logs page; the date and time of the entry follows."

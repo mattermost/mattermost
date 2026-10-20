@@ -354,7 +354,7 @@
     &__details-core {
         display: grid;
         gap: 12px 24px;
-        grid-template-columns: minmax(0, max-content) minmax(0, max-content) minmax(0, 1fr);
+        grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
     }
 
     &__details-grid {
@@ -374,10 +374,6 @@
         min-width: 0;
         flex-direction: column;
         gap: 2px;
-
-        &--full {
-            grid-column: 1 / -1;
-        }
     }
 
     &__detail-label {

@@ -166,7 +166,12 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
     const [copyLineSuccess, setCopyLineSuccess] = useState(false);
     const levelConfig = LEVEL_CONFIG[log.level];
 
-    const handleClick = useCallback(() => {
+    const handleClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
+        // Finishing a text selection in the row ends with a click, which shouldn't toggle it
+        const selection = window.getSelection();
+        if (selection && !selection.isCollapsed && e.currentTarget.contains(selection.anchorNode)) {
+            return;
+        }
         onToggleExpand(log);
     }, [log, onToggleExpand]);
 
@@ -222,7 +227,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
         isFocused ? 'LogRow--focused' : '',
         log.level === 'error' ? 'LogRow--error-bg' : '',
         log.level === 'warn' ? 'LogRow--warn-bg' : '',
-        wrapText ? 'LogRow--wrap' : 'LogRow--nowrap',
+        wrapText || isExpanded ? 'LogRow--wrap' : 'LogRow--nowrap',
     ].filter(Boolean).join(' ');
 
     // Collect extra fields (not timestamp, level, msg, caller)
@@ -291,19 +296,6 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                         <div className='LogRow__detail-item'>
                             <span className='LogRow__detail-label'>
                                 <FormattedMessage
-                                    id='admin.logs.detail.level'
-                                    defaultMessage='Level'
-                                />
-                            </span>
-                            <span className='LogRow__detail-value'>
-                                <span className={`LogRow__level ${levelConfig ? levelConfig.className : 'LogRow__level--debug'}`}>
-                                    {levelConfig ? <FormattedMessage {...levelConfig.label}/> : log.level}
-                                </span>
-                            </span>
-                        </div>
-                        <div className='LogRow__detail-item'>
-                            <span className='LogRow__detail-label'>
-                                <FormattedMessage
                                     id='admin.logs.detail.caller'
                                     defaultMessage='Caller'
                                 />
@@ -312,15 +304,6 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                                 {log.caller}
                                 <CopyButton value={log.caller}/>
                             </span>
-                        </div>
-                        <div className='LogRow__detail-item LogRow__detail-item--full'>
-                            <span className='LogRow__detail-label'>
-                                <FormattedMessage
-                                    id='admin.logs.detail.message'
-                                    defaultMessage='Message'
-                                />
-                            </span>
-                            <span className='LogRow__detail-value LogRow__detail-value--mono'>{log.msg}</span>
                         </div>
                     </div>
 

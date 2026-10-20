@@ -286,14 +286,28 @@ describe('components/admin_console/server_logs/LogRow', () => {
             renderLogRow({isExpanded: true});
 
             expect(screen.getByText('Timestamp')).toBeInTheDocument();
-            expect(screen.getByText('Level')).toBeInTheDocument();
             expect(screen.getByText('Caller')).toBeInTheDocument();
-            expect(screen.getByText('Message')).toBeInTheDocument();
-
-            // The details show the unabbreviated timestamp, and repeat the row's
-            // level chip
             expect(screen.getByText(baseLog.timestamp)).toBeInTheDocument();
-            expect(screen.getAllByText('Info')).toHaveLength(2);
+        });
+
+        test('should wrap the message in the row instead of repeating it in the details', () => {
+            renderLogRow({isExpanded: true, wrapText: false});
+
+            expect(document.querySelector('.LogRow')).toHaveClass('LogRow--wrap');
+            expect(screen.getAllByText(baseLog.msg)).toHaveLength(1);
+            expect(screen.queryByText('Level')).not.toBeInTheDocument();
+            expect(screen.getAllByText('Info')).toHaveLength(1);
+        });
+
+        test('should not toggle the row when a text selection in it ends', () => {
+            renderLogRow({isExpanded: true});
+
+            const message = document.querySelector('.LogRow__message')!;
+            window.getSelection()!.selectAllChildren(message);
+            fireEvent.click(message);
+
+            expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();
+            window.getSelection()!.removeAllRanges();
         });
 
         test('should render extra fields beyond timestamp, level, msg and caller', () => {
@@ -442,7 +456,7 @@ describe('components/admin_console/server_logs/LogRow', () => {
         test('should not expand the row when the details area is clicked', async () => {
             renderLogRow({isExpanded: true});
 
-            await userEvent.click(screen.getByText('Message'));
+            await userEvent.click(screen.getByText('Timestamp'));
 
             expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();
         });
