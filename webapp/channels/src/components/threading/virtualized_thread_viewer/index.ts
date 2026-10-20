@@ -9,6 +9,7 @@ import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/sel
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isDateLine} from 'mattermost-redux/utils/post_list';
 
 import {measureRhsOpened} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -40,16 +41,18 @@ function makeMapStateToProps() {
         const lastViewedAt = getThreadLastViewedAt(state, selected.id);
         const directTeammate = getDirectTeammate(state, channelId);
 
-        // The thread selector includes the root. Drop it from the list when the caller already
-        // shows that post, and keep it as lastPost when it is the only post so scrolling stays valid.
+        // postIds is newest-first and includes the root. The separator selector skips its oldest
+        // post, so the root has to stay in that list or the first unread reply loses its
+        // new-messages line. Drop the root afterwards when the caller already shows it.
         const replyPostIds = hideRoot ? postIds.filter((id) => id !== selected.id) : postIds;
         const lastPost = getPost(state, replyPostIds[0] || postIds[0]);
 
-        const replyListIds = getRepliesListWithSeparators(state, {
-            postIds: replyPostIds,
+        const preparedIds = getRepliesListWithSeparators(state, {
+            postIds,
             showDate: !useRelativeTimestamp,
             lastViewedAt: collapsedThreads ? lastViewedAt : undefined,
         });
+        const replyListIds = hideRoot ? withoutRoot(preparedIds, selected.id) : preparedIds;
         const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
 
         return {
@@ -62,6 +65,17 @@ function makeMapStateToProps() {
             isChannelAutotranslated: isMyChannelAutotranslated(state, channelId),
         };
     };
+}
+
+// The root is the oldest post, so the date line that belongs only to it is the last id.
+function withoutRoot(ids: string[], rootId: string): string[] {
+    const withoutRootId = ids.filter((id) => id !== rootId);
+    const last = withoutRootId[withoutRootId.length - 1];
+    const beforeLast = withoutRootId[withoutRootId.length - 2];
+    if (last && isDateLine(last) && (!beforeLast || isDateLine(beforeLast))) {
+        return withoutRootId.slice(0, -1);
+    }
+    return withoutRootId;
 }
 
 const mapDispatchToProps = {
