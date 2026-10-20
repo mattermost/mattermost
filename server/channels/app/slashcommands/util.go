@@ -130,7 +130,7 @@ func tokenizeCommand(T i18n.TranslateFunc, cmd string) ([]commandToken, error) {
 				}
 				return nil, errors.New(T("api.command.named_args.unterminated_quote", map[string]any{"Near": near}))
 			}
-			if next, _ := utf8.DecodeRuneInString(after); after != "" && !unicode.IsSpace(next) {
+			if !atWordEnd(after) {
 				word, _ := nextWord(after)
 				return nil, errors.New(T("api.command.named_args.unexpected_value", map[string]any{"Near": errorAnchor(tokens, word)}))
 			}
@@ -152,10 +152,15 @@ func splitQuotedArg(in string) (rest string, quoted, closed bool) {
 		return in, false, false
 	}
 	_, after, err := quotedToken(in[size:], open, style)
-	if err != nil {
+	if err != nil || !atWordEnd(after) {
 		return in, true, false
 	}
 	return after, true, true
+}
+
+func atWordEnd(s string) bool {
+	next, _ := utf8.DecodeRuneInString(s)
+	return s == "" || unicode.IsSpace(next)
 }
 
 func nextWord(s string) (string, string) {
@@ -179,7 +184,7 @@ func quotedToken(s string, open rune, style quoteStyle) (commandToken, string, e
 		_, size := utf8.DecodeRuneInString(s[i:])
 		after := s[i+size:]
 		if r == style.close {
-			if next, _ := utf8.DecodeRuneInString(after); after == "" || unicode.IsSpace(next) {
+			if atWordEnd(after) {
 				return commandToken{text: s[:i], quoted: true}, after, nil
 			}
 		} else if unicode.IsSpace(r) && strings.HasPrefix(strings.TrimLeftFunc(after, unicode.IsSpace), "--") {

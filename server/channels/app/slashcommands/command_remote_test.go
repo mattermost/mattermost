@@ -796,32 +796,28 @@ func TestRemoteProviderAutocompleteQuotedValues(t *testing.T) {
 		passwordHelp := T("api.command_remote.invite_password.help")
 
 		for _, tt := range []struct {
-			name       string
-			afterQuote string
+			name      string
+			separator string
 		}{
-			{"no trailing space", ""},
-			{"one trailing space", " "},
-			{"multiple trailing spaces", "   "},
+			{"one space", " "},
+			{"multiple spaces", "   "},
+			{"tab", "\t"},
+			{"no-break space", "\u00a0"},
 		} {
 			t.Run(tt.name, func(t *testing.T) {
-				input := pre + quoted + tt.afterQuote
-				sep := tt.afterQuote
-				if sep == "" {
-					sep = " "
-				}
-				assert.Equal(t, []model.AutocompleteSuggestion{{
-					Complete:    pre + quoted + sep + "--password ",
+				want := []model.AutocompleteSuggestion{{
+					Complete:    pre + quoted + tt.separator + "--password ",
 					Suggestion:  "--password",
 					Description: passwordHelp,
-				}}, suggest(input))
+				}}
+				assert.Equal(t, want, suggest(pre+quoted+tt.separator))
+				assert.Equal(t, want, suggest(pre+quoted+tt.separator+"--pa"))
+
+				margs, err := parseNamedArgs(T, "/"+pre+quoted+tt.separator+"--password pw")
+				require.NoError(t, err)
+				assert.Equal(t, "My Remote", margs["displayname"])
 			})
 		}
-
-		assert.Equal(t, []model.AutocompleteSuggestion{{
-			Complete:    pre + quoted + "   --password ",
-			Suggestion:  "--password",
-			Description: passwordHelp,
-		}}, suggest(pre+quoted+"   --pa"))
 	})
 
 	t.Run("the value hint stays up until the quote is closed", func(t *testing.T) {
@@ -835,6 +831,9 @@ func TestRemoteProviderAutocompleteQuotedValues(t *testing.T) {
 			{"flag inside single quotes", "'My --pa"},
 			{"curly double quote opened again before it closes", "\u201cMy \u201cRemote\u201d "},
 			{"extra space before the quote", " 'My Rem"},
+			{"double quote closed at the end of the input", `"My Remote"`},
+			{"apostrophe at the end of the input", "'Bob'"},
+			{"curly apostrophe at the end of the input", "\u2018Bob\u2019"},
 		} {
 			t.Run(tt.name, func(t *testing.T) {
 				input := "secure-connection create --name n --displayname " + tt.displayname
@@ -845,6 +844,66 @@ func TestRemoteProviderAutocompleteQuotedValues(t *testing.T) {
 				}}, suggest(input))
 			})
 		}
+	})
+
+	t.Run("the value hint stays up when text follows the closing quote, which execution rejects", func(t *testing.T) {
+		for _, tt := range []struct {
+			name        string
+			displayname string
+		}{
+			{"straight double quote", `"My Remote"x`},
+			{"curly double quote", "\u201cMy Remote\u201dx"},
+			{"flag right after the quote", `"My Remote"--pa`},
+			{"word and flag after the quote", `"My Remote"x --pa`},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				input := "secure-connection create --name n --displayname " + tt.displayname
+				assert.Equal(t, []model.AutocompleteSuggestion{{
+					Complete:    input,
+					Hint:        T("api.command_remote.displayname.hint"),
+					Description: T("api.command_remote.displayname.help"),
+				}}, suggest(input))
+
+				_, err := parseNamedArgs(T, "/"+input+" --password pw")
+				require.Error(t, err)
+			})
+		}
+	})
+
+	t.Run("a plugin or custom command with the same trigger keeps straight double quote grouping", func(t *testing.T) {
+		create := model.NewAutocompleteData("create", "", "")
+		create.AddNamedTextArgument("name", "", "", "", true)
+		create.AddNamedTextArgument("displayname", "", "", "", false)
+		create.AddNamedTextArgument("password", "", "", "", true)
+		lookalike := model.NewAutocompleteData(CommandTriggerRemote, "", "")
+		lookalike.AddCommand(create)
+
+		assertDoubleQuotesOnly := func(t *testing.T, commands []*model.Command) {
+			suggestFor := func(input string) []model.AutocompleteSuggestion {
+				args := &model.CommandArgs{T: T, UserId: th.SystemAdminUser.Id, TeamId: th.BasicTeam.Id, Command: input}
+				return th.App.GetSuggestions(th.Context, args, commands, model.SystemAdminRoleId)
+			}
+			suggestions := suggestFor(`secure-connection create --name n --displayname "My Remote" `)
+			require.Len(t, suggestions, 1)
+			assert.Equal(t, "--password", suggestions[0].Suggestion)
+
+			assert.Empty(t, suggestFor("secure-connection create --name n --displayname 'My Remote' "))
+			assert.Empty(t, suggestFor("secure-connection create --name n --displayname \u201cMy Remote\u201d "))
+		}
+
+		t.Run("custom", func(t *testing.T) {
+			assertDoubleQuotesOnly(t, []*model.Command{{Id: model.NewId(), Trigger: CommandTriggerRemote, AutoComplete: true, AutocompleteData: lookalike}})
+		})
+
+		t.Run("plugin", func(t *testing.T) {
+			const pluginID = "com.example.quotes"
+			require.NoError(t, th.App.RegisterPluginCommand(pluginID, &model.Command{Trigger: CommandTriggerRemote, AutoComplete: true, AutocompleteData: lookalike}))
+			t.Cleanup(func() { th.App.UnregisterPluginCommand(pluginID, "", CommandTriggerRemote) })
+
+			commands, appErr := th.App.ListAutocompleteCommands(th.BasicTeam.Id, T)
+			require.Nil(t, appErr)
+			assertDoubleQuotesOnly(t, commands)
+		})
 	})
 
 	t.Run("the trigger is matched case-insensitively", func(t *testing.T) {

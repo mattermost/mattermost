@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"slices"
 	"strings"
+	"unicode"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -26,7 +27,8 @@ type AutocompleteDynamicArgProvider interface {
 // including plugins that split on whitespace, only treat straight double quotes as grouping words.
 type AutocompleteQuotedArgProvider interface {
 	// SplitQuotedArg returns the input after the quoted value that in starts with. quoted is false
-	// if in does not start with a quote, and closed is false until the value's closing quote is typed.
+	// if in does not start with a quote, and closed is false while the command would not accept the
+	// value as typed, e.g. until its closing quote is typed or when text follows the closing quote.
 	SplitQuotedArg(in string) (rest string, quoted, closed bool)
 }
 
@@ -36,16 +38,17 @@ func (a *App) GetSuggestions(rctx request.CTX, commandArgs *model.CommandArgs, c
 		return strings.Compare(strings.ToLower(a.Trigger), strings.ToLower(b.Trigger))
 	})
 
-	autocompleteData := []*model.AutocompleteData{}
+	pluginCommands := a.CommandsForTeam(commandArgs.TeamId)
+	userInput := commandArgs.Command
+	suggestions := []model.AutocompleteSuggestion{}
 	for _, command := range commands {
 		if command.AutocompleteData == nil {
 			command.AutocompleteData = model.NewAutocompleteData(command.Trigger, command.AutoCompleteHint, command.AutoCompleteDesc)
 		}
-		autocompleteData = append(autocompleteData, command.AutocompleteData)
+		quotes := builtInQuotedArgProvider(command, pluginCommands)
+		suggestions = append(suggestions, a.getSuggestions(rctx, commandArgs, []*model.AutocompleteData{command.AutocompleteData}, "", userInput, roleID, quotes)...)
 	}
 
-	userInput := commandArgs.Command
-	suggestions := a.getSuggestions(rctx, commandArgs, autocompleteData, "", userInput, roleID)
 	for i, suggestion := range suggestions {
 		for _, command := range commands {
 			if strings.HasPrefix(suggestion.Complete, command.Trigger) {
@@ -58,7 +61,7 @@ func (a *App) GetSuggestions(rctx request.CTX, commandArgs *model.CommandArgs, c
 	return suggestions
 }
 
-func (a *App) getSuggestions(rctx request.CTX, commandArgs *model.CommandArgs, commands []*model.AutocompleteData, inputParsed, inputToBeParsed, roleID string) []model.AutocompleteSuggestion {
+func (a *App) getSuggestions(rctx request.CTX, commandArgs *model.CommandArgs, commands []*model.AutocompleteData, inputParsed, inputToBeParsed, roleID string, quotes AutocompleteQuotedArgProvider) []model.AutocompleteSuggestion {
 	suggestions := []model.AutocompleteSuggestion{}
 	index := strings.Index(inputToBeParsed, " ")
 
@@ -89,12 +92,12 @@ func (a *App) getSuggestions(rctx request.CTX, commandArgs *model.CommandArgs, c
 
 		if len(command.Arguments) == 0 {
 			// Seek recursively in subcommands
-			subSuggestions := a.getSuggestions(rctx, commandArgs, command.SubCommands, parsed, toBeParsed, roleID)
+			subSuggestions := a.getSuggestions(rctx, commandArgs, command.SubCommands, parsed, toBeParsed, roleID, quotes)
 			suggestions = append(suggestions, subSuggestions...)
 			continue
 		}
 
-		found, _, _, suggestion := a.parseArguments(rctx, commandArgs, command.Arguments, parsed, toBeParsed)
+		found, _, _, suggestion := a.parseArguments(rctx, commandArgs, command.Arguments, parsed, toBeParsed, quotes)
 		if found {
 			suggestions = append(suggestions, suggestion...)
 		}
@@ -103,27 +106,27 @@ func (a *App) getSuggestions(rctx request.CTX, commandArgs *model.CommandArgs, c
 	return suggestions
 }
 
-func (a *App) parseArguments(rctx request.CTX, commandArgs *model.CommandArgs, args []*model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+func (a *App) parseArguments(rctx request.CTX, commandArgs *model.CommandArgs, args []*model.AutocompleteArg, parsed, toBeParsed string, quotes AutocompleteQuotedArgProvider) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
 	if len(args) == 0 {
 		return false, parsed, toBeParsed, suggestions
 	}
 
 	if args[0].Required {
-		found, changedParsed, changedToBeParsed, suggestion := a.parseArgument(rctx, commandArgs, args[0], parsed, toBeParsed)
+		found, changedParsed, changedToBeParsed, suggestion := a.parseArgument(rctx, commandArgs, args[0], parsed, toBeParsed, quotes)
 		if found {
 			suggestions = append(suggestions, suggestion...)
 			return true, changedParsed, changedToBeParsed, suggestions
 		}
-		return a.parseArguments(rctx, commandArgs, args[1:], changedParsed, changedToBeParsed)
+		return a.parseArguments(rctx, commandArgs, args[1:], changedParsed, changedToBeParsed, quotes)
 	}
 
 	// Handling optional arguments. Optional argument can be inputted or not,
 	// so we have to pase both cases recursively and output combined suggestions.
-	foundWithOptional, changedParsedWithOptional, changedToBeParsedWithOptional, suggestionsWithOptional := a.parseArgument(rctx, commandArgs, args[0], parsed, toBeParsed)
+	foundWithOptional, changedParsedWithOptional, changedToBeParsedWithOptional, suggestionsWithOptional := a.parseArgument(rctx, commandArgs, args[0], parsed, toBeParsed, quotes)
 	if foundWithOptional {
 		suggestions = append(suggestions, suggestionsWithOptional...)
 	} else {
-		foundWithOptionalRest, changedParsedWithOptionalRest, changedToBeParsedWithOptionalRest, suggestionsWithOptionalRest := a.parseArguments(rctx, commandArgs, args[1:], changedParsedWithOptional, changedToBeParsedWithOptional)
+		foundWithOptionalRest, changedParsedWithOptionalRest, changedToBeParsedWithOptionalRest, suggestionsWithOptionalRest := a.parseArguments(rctx, commandArgs, args[1:], changedParsedWithOptional, changedToBeParsedWithOptional, quotes)
 		if foundWithOptionalRest {
 			suggestions = append(suggestions, suggestionsWithOptionalRest...)
 		}
@@ -132,7 +135,7 @@ func (a *App) parseArguments(rctx request.CTX, commandArgs *model.CommandArgs, a
 		changedToBeParsedWithOptional = changedToBeParsedWithOptionalRest
 	}
 
-	foundWithoutOptional, changedParsedWithoutOptional, changedToBeParsedWithoutOptional, suggestionsWithoutOptional := a.parseArguments(rctx, commandArgs, args[1:], parsed, toBeParsed)
+	foundWithoutOptional, changedParsedWithoutOptional, changedToBeParsedWithoutOptional, suggestionsWithoutOptional := a.parseArguments(rctx, commandArgs, args[1:], parsed, toBeParsed, quotes)
 	if foundWithoutOptional {
 		suggestions = append(suggestions, suggestionsWithoutOptional...)
 	}
@@ -151,7 +154,7 @@ func (a *App) parseArguments(rctx request.CTX, commandArgs *model.CommandArgs, a
 	return foundWithoutOptional, changedParsedWithoutOptional, changedToBeParsedWithoutOptional, suggestions
 }
 
-func (a *App) parseArgument(rctx request.CTX, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+func (a *App) parseArgument(rctx request.CTX, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string, quotes AutocompleteQuotedArgProvider) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
 	if arg.Name != "" { //Parse the --name first
 		found, changedParsed, changedToBeParsed, suggestion := parseNamedArgument(arg, parsed, toBeParsed)
 		if found {
@@ -169,7 +172,7 @@ func (a *App) parseArgument(rctx request.CTX, commandArgs *model.CommandArgs, ar
 	}
 
 	if arg.Type == model.AutocompleteArgTypeText {
-		found, changedParsed, changedToBeParsed, suggestion := parseInputTextArgument(arg, parsed, toBeParsed, quotedArgProvider(parsed))
+		found, changedParsed, changedToBeParsed, suggestion := parseInputTextArgument(arg, parsed, toBeParsed, quotes)
 		if found {
 			suggestions = append(suggestions, suggestion)
 			return true, changedParsed, changedToBeParsed, suggestions
@@ -216,10 +219,13 @@ func parseNamedArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (
 	return false, parsed + namedArg + " ", in[len(namedArg)+1:], model.AutocompleteSuggestion{}
 }
 
-// quotedArgProvider returns the quote parser of the built-in command that parsed starts with, if it has one.
-func quotedArgProvider(parsed string) AutocompleteQuotedArgProvider {
-	trigger, _, _ := strings.Cut(parsed, " ")
-	provider, _ := GetCommandProvider(strings.ToLower(trigger)).(AutocompleteQuotedArgProvider)
+// builtInQuotedArgProvider returns the quote parser of command if it is a built-in command that has one.
+// Plugin and custom team commands take precedence over a built-in command with the same trigger.
+func builtInQuotedArgProvider(command *model.Command, pluginCommands []*model.Command) AutocompleteQuotedArgProvider {
+	if command.Id != "" || slices.ContainsFunc(pluginCommands, func(pc *model.Command) bool { return pc.Trigger == command.Trigger }) {
+		return nil
+	}
+	provider, _ := GetCommandProvider(command.Trigger).(AutocompleteQuotedArgProvider)
 	return provider
 }
 
@@ -231,15 +237,12 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 	}
 	if quotes != nil {
 		if rest, quoted, closed := quotes.SplitQuotedArg(in); quoted {
-			if !closed {
+			// A closing quote at the end of the input may still be an apostrophe being typed.
+			if !closed || rest == "" {
 				return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 			}
-			next := strings.TrimLeft(rest, " ")
-			separator := rest[:len(rest)-len(next)]
-			if separator == "" {
-				separator = " "
-			}
-			return false, parsed + in[:len(in)-len(rest)] + separator, next, model.AutocompleteSuggestion{}
+			next := strings.TrimLeftFunc(rest, unicode.IsSpace)
+			return false, parsed + in[:len(in)-len(next)], next, model.AutocompleteSuggestion{}
 		}
 	} else if in[0] == '"' { //input with multiple words
 		indexOfSecondQuote := strings.Index(in[1:], `"`)
