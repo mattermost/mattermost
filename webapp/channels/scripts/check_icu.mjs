@@ -141,7 +141,10 @@ for (const name of localeNames) {
     // Keys in code-point order, as every catalog already is, so that a hand edit
     // cannot reorder or reindent a file and bury its one real change in the diff.
     // A duplicate key also lands here: JSON.parse keeps only the last one.
-    const canonical = JSON.stringify(Object.fromEntries(Object.keys(data).sort().map((k) => [k, data[k]])), null, 2) + '\n';
+    // UTF-8 byte order is code-point order; a bare sort() compares UTF-16 code
+    // units, which puts a character past U+FFFF before U+E000-U+FFFF.
+    const keys = Object.keys(data).map((k) => [Buffer.from(k), k]).sort(([a], [b]) => Buffer.compare(a, b)).map(([, k]) => k);
+    const canonical = JSON.stringify(Object.fromEntries(keys.map((k) => [k, data[k]])), null, 2) + '\n';
     if (text !== canonical) {
         let at = 0;
         while (at < text.length && text[at] === canonical[at]) {

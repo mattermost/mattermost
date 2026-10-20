@@ -98,6 +98,15 @@ describe('check_icu', () => {
             expect(stderr).toContain('fr.json: not in canonical form');
         });
 
+        // U+E000 is a single UTF-16 code unit, U+10000 a surrogate pair starting
+        // at 0xD800, so code-unit order would put them the other way around.
+        test('orders keys by code point, not UTF-16 code unit', () => {
+            const ordered = (first, second) => `{\n  "a.b": "Un",\n  "${first}": "x",\n  "${second}": "y"\n}\n`;
+
+            expect(check({'a.b': 'One'}, {'fr.json': ordered('\uE000', '\u{10000}')}).stderr).not.toContain('canonical form');
+            expect(check({'a.b': 'One'}, {'fr.json': ordered('\u{10000}', '\uE000')}).stderr).toContain('fr.json: not in canonical form from line 3');
+        });
+
         test('names the first line out of form, past characters outside the BMP', () => {
             const {stderr} = check({'a.b': 'Hi 😀', 'a.c': 'Bye'}, {'fr.json': '{\n  "a.b": "Salut 😀",\n   "a.c": "Ciao"\n}\n'});
 
