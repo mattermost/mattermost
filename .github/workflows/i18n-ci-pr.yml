@@ -10,6 +10,8 @@ on:
       - "webapp/channels/scripts/check_icu.mjs"
       - "webapp/channels/scripts/icu_rules.mjs"
       - "tools/mmgotool/**"
+      # make i18n-verify-all is what the template runs.
+      - "server/Makefile"
       - ".github/workflows/i18n-ci-pr.yml"
       - ".github/workflows/i18n-ci-template.yml"
 concurrency:
@@ -27,10 +29,4 @@ permissions:
 
 jobs:
   pr-ci:
-    permissions:
-      contents: read
-      id-token: write  # for chainguard (FIPS base image pull)
     uses: ./.github/workflows/i18n-ci-template.yml
-    secrets:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

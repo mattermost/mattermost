@@ -360,6 +360,18 @@ i18n-verify: ## Verify the non-English translation files against en.json
 	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n verify --warn-missing-ids
 
+# What CI runs. The translation pipeline in i18n/scripts/ keeps its own copy of
+# go-i18n's plural forms, which TestServerPluralTableMatchesGoI18n holds to
+# go-i18n, and parses ICU messages with react-intl's parser from webapp's
+# node_modules.
+.PHONY: i18n-verify-all
+i18n-verify-all: i18n-verify ## Run every translation check: both surfaces' catalogs, the glossary and the translation pipeline
+	cd ../tools/mmgotool && $(GO) test ./commands/ -run TestServerPluralTableMatchesGoI18n
+	@test -d $(BUILD_WEBAPP_DIR)/node_modules || { echo "$(BUILD_WEBAPP_DIR)/node_modules is missing; run make -C $(BUILD_WEBAPP_DIR) node_modules"; exit 1; }
+	cd $(BUILD_WEBAPP_DIR)/channels && npm run i18n-verify-translations -- --warn-missing-keys
+	cd .. && node --test i18n/scripts/*.test.mjs
+	cd .. && node i18n/scripts/check_glossary.mjs
+
 .PHONY: i18n-check
 i18n-check: ## Exit on empty translation strings and translation source strings
 	cd ../tools/mmgotool && $(GO) install .

@@ -3,13 +3,6 @@
 name: i18n CI Template
 on:
   workflow_call:
-    secrets:
-      # Only the FIPS half of setup-buildenv needs these, and it is skipped on
-      # fork PRs, so they are optional.
-      DOCKERHUB_USERNAME:
-        required: false
-      DOCKERHUB_TOKEN:
-        required: false
 
 permissions:
   contents: read
@@ -25,36 +18,6 @@ permissions:
 # contributor adding a string has a documented way to produce the other 21
 # locales. Everything else here is a hard failure.
 jobs:
-  buildenv:
-    name: Build Environment
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: read
-      id-token: write  # for chainguard (FIPS base image pull)
-    outputs:
-      build-server-tag: ${{ steps.calculate.outputs.BUILD_SERVER_TAG }}
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-
-      - name: ci/calculate-build-image-tag
-        id: calculate
-        working-directory: server/
-        run: |
-          tag=$(./build/buildenv-tag.sh)
-          echo "BUILD_SERVER_TAG=${tag}" >> "${GITHUB_OUTPUT}"
-
-      - name: ci/setup-buildenv
-        env:
-          CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        uses: ./.github/actions/setup-buildenv
-        with:
-          build-server-tag: ${{ steps.calculate.outputs.BUILD_SERVER_TAG }}
-
   check-files:
     name: Report non-English translation file changes
     runs-on: ubuntu-22.04
@@ -79,69 +42,26 @@ jobs:
         run: |
           echo "::warning title=Non-English i18n files changed::This PR modifies non-English translation files directly. Ensure the changes are intentional and will not be overwritten by Weblate."
 
-  verify-webapp:
-    name: Verify webapp translation files
+  verify:
+    name: Verify translations
     runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: webapp
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
-      - name: ci/setup
+      - name: ci/setup-webapp
         uses: ./.github/actions/webapp-setup
         with:
           read-only: "true"
 
-      - name: ci/i18n-verify-translations
-        working-directory: webapp/channels
-        run: |
-          npm run i18n-verify-translations -- --warn-missing-keys
-
-  verify-server:
-    name: Verify server translation files
-    needs: buildenv
-    runs-on: ubuntu-24.04
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: ci/setup-go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
-          persist-credentials: false
+          go-version-file: tools/mmgotool/go.mod
+          cache-dependency-path: tools/mmgotool/go.sum
 
-      - name: ci/restore-go-cache
-        uses: ./.github/actions/restore-go-cache
-
-      - name: ci/i18n-verify
-        uses: ./.github/actions/run-in-buildenv
-        with:
-          build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
-          # The pipeline's copy of go-i18n's plural categories has to agree with
-          # go-i18n for every server catalog, including one this PR adds.
-          run: |
-            make i18n-verify
-            cd ../tools/mmgotool && go test ./commands/ -run TestServerPluralTableMatchesGoI18n
-
-  check-changes:
-    name: Test the translation pipeline and its glossary
-    runs-on: ubuntu-24.04
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-
-      # The rules parse ICU messages with react-intl's parser, from webapp's
-      # node_modules.
-      - name: ci/setup
-        uses: ./.github/actions/webapp-setup
-        with:
-          read-only: "true"
-
-      - name: ci/test-pipeline
-        run: node --test i18n/scripts/*.test.mjs
-
-      - name: ci/check-glossary
-        run: node i18n/scripts/check_glossary.mjs
+      - name: ci/i18n-verify-all
+        working-directory: server
+        run: make i18n-verify-all
