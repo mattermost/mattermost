@@ -221,8 +221,9 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 		return fmt.Errorf("unable to fetch Support Packet: %w", err)
 	}
 
+	exclusive := filename == ""
 	var file *os.File
-	if filename == "" {
+	if exclusive {
 		filename = model.SanitizeFilename(rFilename)
 		if filename == "" {
 			filename = "mm_support_packet.zip"
@@ -237,6 +238,10 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 
 	_, err = io.Copy(file, data)
 	if err != nil {
+		_ = file.Close()
+		if exclusive {
+			_ = os.Remove(filename)
+		}
 		return fmt.Errorf("failed to write to zip file: %w", err)
 	}
 

@@ -631,6 +631,32 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		s.Require().NoError(statErr)
 		s.True(info.Mode()&os.ModeSymlink != 0)
 	})
+
+	s.Run("removes incomplete default file after a write failure", func() {
+		printer.Clean()
+
+		root := s.T().TempDir()
+		workDir := filepath.Join(root, "work")
+		s.Require().NoError(os.Mkdir(workDir, 0o700))
+		s.T().Chdir(workDir)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(s.T(), "/api/v4/system/support_packet", r.URL.Path)
+			w.Header().Set("Content-Disposition", `attachment; filename="packet.zip"`)
+			w.Header().Set("Content-Length", "100")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("partial"))
+		}))
+		s.T().Cleanup(server.Close)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+
+		err := systemSupportPacketCmdF(model.NewAPIv4Client(server.URL), cmd, []string{})
+		s.Require().Error(err)
+		s.Require().NoFileExists(filepath.Join(workDir, "packet.zip"))
+		s.Require().NoFileExists(filepath.Join(workDir, "mm_support_packet.zip"))
+	})
 }
 
 // serverFilenameCases are Content-Disposition values whose last path element is baseName.
@@ -718,16 +744,14 @@ func unexpectedDownloadPaths(workDir, absPath, baseName string) []string {
 	}
 }
 
-// assertDownloadUsedBaseName checks that the file is written only as baseName
-// inside workDir. The command may also return an error instead of writing.
+// assertDownloadUsedBaseName checks that the command succeeded and that the
+// file is written only as baseName inside workDir.
 func assertDownloadUsedBaseName(t *testing.T, workDir, baseName string, unexpectedPaths []string, wantBody []byte, cmdErr error) {
 	t.Helper()
 	for _, p := range unexpectedPaths {
 		require.NoFileExists(t, p)
 	}
-	if cmdErr != nil {
-		return
-	}
+	require.NoError(t, cmdErr)
 	got, err := os.ReadFile(filepath.Join(workDir, baseName))
 	require.NoError(t, err)
 	require.Equal(t, wantBody, got)
