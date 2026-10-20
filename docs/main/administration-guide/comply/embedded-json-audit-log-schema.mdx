@@ -1584,7 +1584,7 @@ Mattermost v12.0 introduces the `postDelivered` audit log event, which records e
 
 <PlanAvailability slug="entry-adv" />
 
-When [Enable audit logging for membership policy decisions](/administration-guide/configure/system-attributes#enable-access-control-audit-logging) is enabled, Mattermost writes one record each time a membership sync job adds a user to a channel or team, or removes one, because of a membership policy. Individual permission decisions, such as whether a user may upload a file, download a file, or send a burn-on-read message, aren't recorded.
+When [Enable audit logging for membership policy decisions](/administration-guide/configure/system-attributes#enable-access-control-audit-logging) is enabled, Mattermost writes one record each time a membership sync job adds a user to a channel or team, or removes one, because of a membership policy. Individual permission decisions, such as whether a user may upload or download a file, aren't recorded.
 
 These records are written at the `audit-cli` level. If you use an advanced audit logging target, include that level in the target.
 

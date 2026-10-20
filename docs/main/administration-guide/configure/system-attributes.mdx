@@ -11,7 +11,7 @@ System attributes are the attributes Mattermost stores for users and channels, a
 - **Session Attributes**: Choose which details of a user's current connection, such as IP address, VPN status, and device posture, permission policies can check. Requires Mattermost Entry or Enterprise Advanced. See [Session attributes](/administration-guide/manage/admin/session-attributes).
 - **Attribute-Based Access**: Turn attribute-based access control (ABAC) on and configure how it behaves. Requires Mattermost Entry or Enterprise Advanced. The settings on this page are described [below](#attribute-based-access).
 - **Membership Policies**: Create system-wide policies that control who can be a member of channels and teams. Shown once attribute-based access control is enabled. See [System-wide attribute-based access policies](/administration-guide/manage/admin/abac-system-wide-policies).
-- **Permission Policies**: Create policies that control who can upload files, download files, and send burn-on-read messages. Shown once attribute-based access control is enabled. See [Permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies).
+- **Permission Policies**: Create policies that control who can upload and download files. Shown once attribute-based access control is enabled. See [Permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies).
 
 <Tip>
 
@@ -136,7 +136,7 @@ Each record covers one user and one channel or team. Mattermost records these ev
 
 Every record includes the reason for the change: `matches-policy` for an addition, `no-longer-matches` for a removal, or `team-removal-cascade` for a channel removal that followed a team removal. The channel records that follow a team removal point back to the team removal record, so you can trace them together. See [Access control membership events](/administration-guide/comply/embedded-json-audit-log-schema#access-control-membership-events) for every field in the record.
 
-Only membership changes are recorded. Individual permission decisions, such as whether a user may upload a file, download a file, or send a burn-on-read message, aren't written to the audit log.
+Only membership changes are recorded. Individual permission decisions, such as whether a user may upload or download a file, aren't written to the audit log.
 
 ### Sync job interval \{#sync-job-interval-seconds}
 
