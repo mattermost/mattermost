@@ -27,11 +27,13 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+      # Reads the run's server image tag from the commit statuses the E2E run posted.
+      statuses: read
     steps:
       # The run reports which branch it tested; runs of release branches are ignored.
       - name: ci/e2e-autofix-plan
         id: plan
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch@b22cff775044c885a4e8e675d71ef3c2fdbb3449 # actions/e2e-master-watch
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch@13c82ddd616e4823638884971f154357dbbff6fe # actions/e2e-master-watch
         with:
           repository: ${{ github.repository }}
           gh-run-id: ${{ github.event.workflow_run.id }}
@@ -52,11 +54,15 @@ jobs:
           cause-hold-hours: 4
 
       # Requests carry test errors and commit titles: they go through env and stdin, never into the script.
+      # Each fix request gets the server images the master run tested (server_images), read from the
+      # "image_tag:<tag>" its Playwright commit statuses carry, so the agent reproduces on the same build.
       - name: ci/e2e-autofix-send
         id: send
         if: steps.plan.outputs.count != '0'
         env:
           REQUESTS: ${{ steps.plan.outputs.requests }}
+          REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
           WEBHOOK_URL: ${{ secrets.CURSOR_E2E_AUTOFIX_WEBHOOK_URL }}
           WEBHOOK_KEY: ${{ secrets.CURSOR_E2E_AUTOFIX_WEBHOOK_KEY }}
         run: |
@@ -65,10 +71,28 @@ jobs:
             echo "results=[]" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          image_tag_of() {
+            gh api "repos/$REPOSITORY/commits/$1/statuses?per_page=100" --jq \
+              '[.[] | select(.context | startswith("e2e-test/playwright-full/")) | .description // ""
+                | capture("image_tag:(?<t>[A-Za-z0-9._-]+)")?.t] | first // empty' 2>/dev/null || true
+          }
           results='[]'
           while IFS= read -r request; do
             id=$(jq -r '.id' <<<"$request")
-            status=$(jq -c '.payload' <<<"$request" | curl -sS -o /dev/null -w '%{http_code}' --max-time 30 \
+            payload=$(jq -c '.payload' <<<"$request")
+            commit=$(jq -r '.commit // empty' <<<"$payload")
+            tag=""
+            if [[ "$commit" =~ ^[0-9a-f]{7,40}$ ]]; then
+              tag=$(image_tag_of "$commit")
+            fi
+            if [[ "$tag" =~ ^[A-Za-z0-9._-]+$ ]]; then
+              payload=$(jq -c --arg tag "$tag" '. + {server_image_tag: $tag, server_images: {
+                enterprise: "mattermostdevelopment/mattermost-enterprise-edition:\($tag)",
+                fips: "mattermostdevelopment/mattermost-enterprise-fips-edition:\($tag)"}}' <<<"$payload")
+            elif [ -n "$commit" ]; then
+              echo "$id: no image_tag in the Playwright statuses of $commit; sent without server_images"
+            fi
+            status=$(printf '%s' "$payload" | curl -sS -o /dev/null -w '%{http_code}' --max-time 30 \
               -X POST "$WEBHOOK_URL" -H "Authorization: Bearer $WEBHOOK_KEY" -H 'Content-Type: application/json' \
               --data-binary @-) || true
             echo "$id: HTTP ${status:-000}"
@@ -79,6 +103,6 @@ jobs:
       # Runs on every trunk run, even one that sent nothing, to keep the record of sent requests alive.
       - name: ci/e2e-autofix-record
         if: always() && steps.plan.outcome == 'success'
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch/record@b22cff775044c885a4e8e675d71ef3c2fdbb3449 # actions/e2e-master-watch/record
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch/record@13c82ddd616e4823638884971f154357dbbff6fe # actions/e2e-master-watch/record
         with:
           results: ${{ steps.send.outputs.results || '[]' }}

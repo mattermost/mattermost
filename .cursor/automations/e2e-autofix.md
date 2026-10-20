@@ -22,6 +22,8 @@ A fix request names:
   passed on retry in that run; it is flaky, not broken. `failed_in_suites_now` lists the lanes a
   test failed in when it was reported broken on its first failure.
 - `master_run`, `commit`, `suites`: the run, the master commit it tested, and the suites that failed
+- `server_image_tag`, `server_images`: the server images that run tested (`enterprise`, `fips`). They
+  may be missing; see [Test environment](#test-environment) for how to find them then.
 - `last_green_commit`, `first_red_commit`, `suspect_commits` (oldest first, `suspect_commits_total`
   in all): the newest master commit where every failing test passed, the first where one failed,
   and what landed in between. For `flaky`, the cause is usually older than this range.
@@ -60,25 +62,113 @@ the same way. Go on only if the request shows new failures since then (a higher 
 If a spec in the request no longer exists on master (deleted or renamed), drop it. If it was
 renamed, check whether the new file still fails before deciding anything about it.
 
-## 2. Reproduce first
+## Test environment
 
-Work from master HEAD. Run the specs against the master server images with Testcontainers, in
-the `chrome` project as master CI does. The Enterprise Advanced license must be in the environment
-(`MM_LICENSE`); if it is missing, the specs skip, which is not a reproduction, so stop and say so.
+A pass or a failure only counts when it ran the way master CI runs it. Every Playwright run in
+these instructions uses this setup.
+
+**Images.** A master run tests the server images built from the commit it tested:
+`mattermostdevelopment/mattermost-enterprise-edition:<tag>` and, for the FIPS lane,
+`mattermostdevelopment/mattermost-enterprise-fips-edition:<tag>`. `<tag>` is
+`<mattermost sha, 7 chars>_<enterprise sha, 7 chars>`. Never use the `master` tag: it moves with
+every merge and may not match the code you have checked out. Find a commit's tag in the statuses
+its E2E run posted:
 
 ```bash
-cd e2e-tests/playwright && npm ci
-PW_USE_TESTCONTAINERS=true SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:master \
-  npx playwright test --project=chrome --retries=0 <spec paths relative to e2e-tests/playwright> --repeat-each=3
+gh api "repos/mattermost/mattermost/commits/<sha>/statuses?per_page=100" --jq \
+  '[.[] | select(.context | startswith("e2e-test/playwright-full/")) | .description // ""
+    | capture("image_tag:(?<t>[A-Za-z0-9._-]+)")?.t] | first // empty'
 ```
 
-Repeat with the FIPS image (`mattermostdevelopment/mattermost-enterprise-fips-edition:master`) when
-`suites` includes a `fips` suite.
+- **The run's build**: `server_images` from the request, with the specs checked out at `commit`.
+  If `server_images` is missing, use the command above on `commit`.
+- **Current master**: walk `git log --first-parent origin/master` from the top and take the newest
+  commit that has a tag (its images are built before its E2E run starts). Call it `<base>`. Run
+  the specs checked out at `<base>`, with `<base>`'s images, and branch your fix from `<base>`.
+
+Specs and server must come from the same commit, or a failure can come from the mismatch.
+
+**Setup.** From `e2e-tests/playwright`, after every checkout of another commit:
+
+```bash
+npm ci                          # also builds lib/dist; specs import @mattermost/playwright-lib from it
+npx playwright install chromium
+```
+
+If you changed `lib/src` since the last `npm ci`, run `npm run build` before the next run: specs
+run the built `lib/dist`, not `lib/src`, so a stale build tests the old helper.
+
+**Environment**, as in `.github/workflows/e2e-tests-playwright-template.yml`:
+
+```bash
+export CI=true PW_USE_TESTCONTAINERS=true \
+  PW_TESTCONTAINERS_SERVICES=openldap,keycloak,elasticsearch,opensearch,minio,azurite,nginx \
+  SERVER_IMAGE=<image>
+npx playwright test --project=chrome --retries=0 <spec paths relative to e2e-tests/playwright> --repeat-each=<n>
+```
+
+- `MM_LICENSE` (Enterprise Advanced) must be set. Without it license-gated specs skip, and a skip
+  is neither a failure nor a pass: stop and say the license is missing.
+- Without the full `PW_TESTCONTAINERS_SERVICES` list, specs that need LDAP, SAML, Elasticsearch,
+  OpenSearch, MinIO, Azurite or nginx skip. Count a skipped test as not run, never as passed.
+- Each `npx playwright test` starts a fresh stack and removes it at the end; its `--repeat-each`
+  runs share that one stack. Run `npm run testcontainers:down` before you switch `SERVER_IMAGE`
+  and after any run you interrupted: a leftover `.env.testcontainers` keeps the old image, and it
+  overrides `SERVER_IMAGE`.
+
+**CI's order of specs.** A CI worker runs many spec files one after another on one server
+(`PW_TESTCONTAINERS_REUSE=true`), so a spec can fail only after another spec changed server state
+(settings, user count, site URL). The failing worker and the specs it ran before the failure are
+in the run's TSIO report and in its debug artifact (`gh run download <run id> -n
+playwright-full-<enterprise|fips>-debug-<worker>`). To reproduce such a failure, run that worker's
+earlier specs and then the failing spec in the same order, on one stack, with
+`PW_TESTCONTAINERS_REUSE=true` (one `npx playwright test` per spec file), then
+`npm run testcontainers:down`.
+
+**Your own product change.** A prebuilt image does not contain it. Build an image that adds your
+change on top of the image you reproduced with, so nothing else differs:
+
+```bash
+ctx=$(mktemp -d); : > "$ctx/layers"
+# Webapp change: build it, then add it over the image's client.
+(cd webapp && make dist) && cp -RL webapp/channels/dist "$ctx/client" \
+  && echo 'COPY --chown=2000:2000 client/ /mattermost/client/' >> "$ctx/layers"
+# Server change: first check out enterprise at the image tag's enterprise sha (see below).
+(cd server && make build-linux-amd64) && cp server/bin/mattermost "$ctx/mattermost" \
+  && echo 'COPY --chown=2000:2000 mattermost /mattermost/bin/mattermost' >> "$ctx/layers"
+{ echo "FROM <image you reproduced with>"; cat "$ctx/layers"; } > "$ctx/Dockerfile"
+docker build -t e2e-autofix-local:<enterprise|fips> "$ctx"
+```
+
+- A server build links the enterprise checkout the install hook prepared (`../enterprise`, or
+  `BUILD_ENTERPRISE_DIR` in `server/config.override.mk`). Check it out at the enterprise sha in the
+  image tag first (fetch more history if the clone is shallow), or the binary mixes versions.
+- `make build-linux-amd64` writes `server/bin/linux_amd64/mattermost` instead when the machine is
+  not linux/amd64.
+- A webapp build goes on both images. A server binary for the FIPS image must be built with
+  `FIPS_ENABLED=true` in the FIPS build environment (`server/build/Dockerfile.buildenv-fips`); if
+  you cannot build it, verify the server change on the enterprise image only and say so in the PR.
+- Run with `SERVER_IMAGE=e2e-autofix-local:<enterprise|fips>`. Testcontainers uses the local image
+  and does not pull it.
+
+## 2. Reproduce first
+
+Set up as in [Test environment](#test-environment) and run the specs on current master
+(`<base>` and its images), `--repeat-each=3`. Run the enterprise image, and the FIPS image as well
+when `suites` includes a `fips` suite.
 
 - `broken`: each spec must fail in at least 2 of 3 runs. Drop any that doesn't from your fix and
   name it in the PR as not reproducible, with its pass and failure counts. If none reproduces, stop
   and report your pass counts. Do not open a PR.
-- `flaky`: run it 10 times. You need at least one failure to have something to fix.
+- `flaky`: run it 10 times (`--repeat-each=10`). You need at least one failure to have something
+  to fix.
+- If a test fails only after other specs ran in CI (its error points at server state, or it passes
+  alone), reproduce it in [CI's order of specs](#test-environment) before you call it not
+  reproducible.
+- If a spec does not reproduce on `<base>`, run it on the run's build (`commit` and
+  `server_images`). If it fails there, master has fixed it since: find the commit that did, save
+  `already fixed by <sha>` for it, and leave it out. If it passes there too, it is not
+  reproducible.
 
 ## 3. Find the cause
 
@@ -93,9 +183,10 @@ and the code, with `git log` on the spec and what it uses. Decide which it is:
 - **The test is racy.** Fix the race: wait for the state the test depends on, isolate shared
   server state, or remove an ordering dependency.
 - **The product is broken.** Fix it only if the fix is small and clearly correct, then verify it
-  as in step 4 and open the PR. Otherwise, open no PR and change no code: comment on the PR of the
-  suspect commit with the failing tests, the error, the master run and your reproduction, and ask
-  its author to look. Save the outcome as `blocked: product bug, reported on #<number>`.
+  as in step 4, on an image built with your change
+  ([Your own product change](#test-environment)), and open the PR. Otherwise, open no PR and
+  change no code: comment on the PR of the suspect commit with the failing tests, the error, the
+  master run and your reproduction, and ask its author to look. Save the outcome as `blocked: product bug, reported on #<number>`.
 
 Never make a test pass by deleting it, skipping it without a flag reason, loosening its
 assertion, adding a fixed wait or sleep, raising a timeout, or adding retries.
@@ -118,9 +209,13 @@ Then find every other place with the same defect, before you change anything:
 
 ## 4. Verify, all on your machine, before any push
 
+Use the [Test environment](#test-environment) with `<base>`'s images, or with images built with
+your product change, and `npm run build` first if you changed `lib/src`.
+
 - Each spec from the request that you reproduced and fixed passes `--project=chrome --retries=0
-  --repeat-each=5` on the regular image, and on FIPS when relevant. For `flaky`,
-  `--repeat-each=10`. Specs you dropped as not reproducible are left unchanged.
+  --repeat-each=5` on the enterprise image, and on FIPS when relevant. For `flaky`,
+  `--repeat-each=10`. A failure you reproduced only in CI's order of specs must also pass in that
+  order. Specs you dropped as not reproducible are left unchanged.
 - Every other spec you changed for the same defect passes `--repeat-each=3`, under the condition
   that broke the original (for leaked state, put the server into that state first), and on a
   fresh stack.
@@ -139,9 +234,10 @@ Do not use CI to find out whether a fix works. Every push re-runs the full pipel
   instead, for example `fix(e2e): update channel settings specs for ChannelAttributes on master`.
 - Body: follow `.github/PULL_REQUEST_TEMPLATE.md`, without its comments. Under `#### Summary`: the
   root cause in a few sentences, the master run link, the suspect commit, the other specs you
-  fixed for the same defect, and a table of pass counts before and after your fix for each spec on
-  each image. Keep the `#### Release Note` header and its `release-note` code block with `NONE`,
-  unless you changed product behaviour users can see; then write that note in the past tense.
+  fixed for the same defect, the image tags you tested on, and a table of pass counts before and
+  after your fix for each spec on each image. Keep the `#### Release Note` header and its
+  `release-note` code block with `NONE`, unless you changed product behaviour users can see; then
+  write that note in the past tense.
 - Add every label in `labels`. Request review from the suspect commit's author, or the specs' code
   owners.
 
@@ -169,8 +265,8 @@ conflict request for it.
 
 At the end of every run, whatever happened, save one memory per spec: the spec path, the date,
 the error's first line, and the outcome (`pr #<number>`, `not reproducible` with your pass counts,
-`already fixed by #<number>`, or `blocked` with the reason). Step 1 of later runs reads these, so a
-spec that can't be reproduced isn't retried every day.
+`already fixed by #<number>` or `by <sha>`, or `blocked` with the reason). Step 1 of later runs
+reads these, so a spec that can't be reproduced isn't retried every day.
 
 ## Resolve a conflict on your fix PR
 
@@ -190,7 +286,10 @@ The request names `pr`, `pr_url`, `pr_branch` and `pr_head`.
    - If master changed the same test in a way your repair makes unnecessary (for example, a longer
      timeout for a wait your fix makes pass), keep master's change and say so in your comment, so
      the reviewers decide. Do not remove it yourself.
-4. Verify on your machine with step 4's repeat counts, taken from the PR's description: the
+4. Verify on your machine, with the images of `<base>` (the newest master commit that has them, see
+   [Test environment](#test-environment)), or images built from them with the PR's product change.
+   If `<base>` is older than the master you merged, name the commits in between in your comment.
+   Use step 4's repeat counts, taken from the PR's description: the
    specs the PR repaired pass `--project=chrome --retries=0 --repeat-each=5` (`--repeat-each=10`
    if they were flaky), and the other specs it changed for the same defect pass
    `--repeat-each=3`. Run each under the condition that broke the original and on a fresh stack,
