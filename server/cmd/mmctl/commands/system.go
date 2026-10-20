@@ -221,11 +221,16 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 		return fmt.Errorf("unable to fetch Support Packet: %w", err)
 	}
 
+	var file *os.File
 	if filename == "" {
-		filename = rFilename
+		filename = model.SanitizeFilename(rFilename)
+		if filename == "" {
+			filename = "mm_support_packet.zip"
+		}
+		file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	} else {
+		file, err = os.Create(filename)
 	}
-
-	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("failed to create zip file: %w", err)
 	}
