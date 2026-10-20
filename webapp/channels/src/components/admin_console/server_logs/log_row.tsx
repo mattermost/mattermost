@@ -286,7 +286,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                                     defaultMessage='Timestamp'
                                 />
                             </span>
-                            <span className='LogRow__detail-value'>{log.timestamp}</span>
+                            <span className='LogRow__detail-value LogRow__detail-value--mono'>{log.timestamp}</span>
                         </div>
                         <div className='LogRow__detail-item'>
                             <span className='LogRow__detail-label'>
@@ -320,7 +320,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                                     defaultMessage='Message'
                                 />
                             </span>
-                            <span className='LogRow__detail-value'>{log.msg}</span>
+                            <span className='LogRow__detail-value LogRow__detail-value--mono'>{log.msg}</span>
                         </div>
                     </div>
 
@@ -348,10 +348,10 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                     <div className='LogRow__details-actions'>
                         <button
                             type='button'
-                            className='btn btn-sm btn-tertiary'
+                            className='btn btn-sm btn-quaternary'
                             onClick={handleCopyJson}
                         >
-                            <i className={copyJsonSuccess ? 'icon icon-check' : 'icon icon-code-json'}/>
+                            <i className={copyJsonSuccess ? 'icon icon-check' : 'icon icon-content-copy'}/>
                             {copyJsonSuccess ? (
                                 <FormattedMessage
                                     id='admin.logs.copied'
