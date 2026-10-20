@@ -112,6 +112,7 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 		if model.IsValidId(channelArg) {
 			channel, response, err = c.GetChannel(context.TODO(), strings.ToLower(channelArg))
 			if err != nil {
+				// Same as getTeamFromArg: only not-found and bad-request continue to the next lookup.
 				nErr := ExtractErrorFromResponse(response, err)
 				var nfErr *NotFoundError
 				var badRequestErr *BadRequestError
