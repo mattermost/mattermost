@@ -818,6 +818,35 @@ The ID attribute value is matched verbatim - Mattermost applies no case normaliz
 </tbody>
 </table>
 
+#### User attributes sync \{#adldap-user-attributes-sync}
+
+<PlanAvailability slug="entry-ent" />
+
+<table>
+<colgroup>
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Fills user attributes, such as a department or a security clearance, from your AD/LDAP server. Each user attribute defined in <a href={useBaseUrl('/administration-guide/manage/admin/attribute-management')}>Attribute Management</a> is listed by its display name. Enter the name of the AD/LDAP attribute that holds its values, or leave it blank to manage the attribute in Mattermost.</p><p>When set, users can't edit their value for that attribute, because it comes from the AD/LDAP server.</p><p>This section appears once at least one user attribute exists.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; AD/LDAP</strong> (<strong>Account sync</strong> section)</li><li>Not stored in <code>config.json</code> and has no environment variable. Each mapping is saved with the user attribute itself.</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+You can also set this mapping in **System Console \> System Attributes \> Attribute Management**, with **Link to external source** in the attribute's **Definition** section. Both places change the same setting. See [Link an attribute to AD/LDAP or SAML](/administration-guide/manage/admin/attribute-management#link-an-attribute-to-adldap-or-saml) for details.
+
+From Mattermost v12.1, user attributes are synced from AD/LDAP and SAML as follows:
+
+- **Attribute types:** **Text** (including **Phone** and **URL**), **Select**, and **Multiselect** attributes can be synced. Attributes of other types are listed but can't be edited here. Before v12.1, linking an attribute changes its type to **Text**.
+- **Values:** A **Text** or **Select** attribute stores the first value the identity provider sends. A **Multiselect** attribute stores all of them, such as every group a user belongs to.
+- **Options:** Each new **Select** or **Multiselect** value is added as an option automatically, up to 500 options per attribute. Options that no user or channel holds any more are removed, including options added before the attribute was linked. While the attribute is synced, only the sync can add, rename, or remove its options.
+- **Values that are no longer sent:** When the identity provider stops sending an attribute for a user, the next sync clears that user's value. A value Mattermost can't store, such as one that's too long, an invalid phone number or URL, or one that would need an option past the 500-option limit, clears the user's previous value too. This way, an outdated value can't keep satisfying an access control policy.
+- **Users only:** Only attributes that apply to **Users** can be synced.
+- **AD/LDAP takes precedence:** If an attribute is mapped in both AD/LDAP and SAML, its values are synced from AD/LDAP only.
+- **When values sync:** AD/LDAP values are synced each time AD/LDAP synchronization runs, at the [synchronization interval](#synchronization-interval-minutes) or when you select [AD/LDAP Synchronize Now](#adldap-synchronize-now). Unused options are removed at the end of each run. SAML values are synced each time a user signs in with SAML. See [SAML user attributes sync](#saml-user-attributes-sync).
+
 ### Group synchronization
 
 <PlanAvailability slug="entry-ent" />
@@ -1443,6 +1472,27 @@ The ID attribute value is matched verbatim - Mattermost applies no case normaliz
 </tr>
 </tbody>
 </table>
+
+### User attributes sync \{#saml-user-attributes-sync}
+
+<PlanAvailability slug="entry-ent" />
+
+<table>
+<colgroup>
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>(Optional) Fills user attributes, such as a department or a security clearance, from the SAML assertion. Each user attribute defined in <a href={useBaseUrl('/administration-guide/manage/admin/attribute-management')}>Attribute Management</a> is listed by its display name. Enter the name of the SAML attribute that holds its values, as the attribute's <code>Name</code> or <code>FriendlyName</code> in the assertion, or leave it blank to manage the attribute in Mattermost.</p><p>When set, users can't edit their value for that attribute, because it comes from the identity provider.</p><p>This section appears once at least one user attribute exists.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; SAML 2.0</strong></li><li>Not stored in <code>config.json</code> and has no environment variable. Each mapping is saved with the user attribute itself.</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+Values are synced each time a user signs in with SAML, and options that no user or channel holds any more are removed at the same time. Otherwise, sync works as described for [AD/LDAP user attributes sync](#adldap-user-attributes-sync), which also covers setting the mapping in Attribute Management. If an attribute is mapped in both AD/LDAP and SAML, its values are synced from AD/LDAP only.
+
+When [Enable synchronizing SAML accounts with AD/LDAP](#enable-synchronizing-saml-accounts-with-adldap) is on and the SAML [Id attribute](#id-attribute-1) is set, attributes mapped in AD/LDAP are also synced for SAML users each time AD/LDAP synchronization runs.
 
 ### Preferred language attribute
 

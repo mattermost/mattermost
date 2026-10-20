@@ -103,6 +103,8 @@ The AD/LDAP synchronization depends on email. Make sure all users on your AD/LDA
 
 When Mattermost is configured to use AD/LDAP for user authentication, the following user attribute changes can't be made through the API: first name, last name, position, nickname, email, profile picture, or username. LDAP must be the authoritative source for these user attributes.
 
+Synchronization can also fill the user attributes you define in [Attribute Management](/administration-guide/manage/admin/attribute-management), such as a department or a security clearance used in access control policies. Map each one to an AD/LDAP attribute in the **Account sync** section of the wizard. See [User attributes sync](/administration-guide/configure/authentication-configuration-settings#adldap-user-attributes-sync) for details.
+
 To configure AD/LDAP synchronization with AD/LDAP sign-in:
 
 1.  Go to **System Console \> Authentication \> AD/LDAP** to open the AD/LDAP wizard and navigate to the **Connection Settings** section. Set **Enable Synchronization with AD/LDAP** to **true**.
