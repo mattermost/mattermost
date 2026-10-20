@@ -18,11 +18,14 @@ This changelog summarizes updates to Mattermost desktop app releases for [Matter
 
 **Download Binaries:** [Mattermost Desktop on GitHub](https://github.com/mattermost/desktop/releases/latest)
 
+### Important Upgrade Notes
+
+- Servers configured with a subpath in their Site URL now require Boards v9.4.0 or later. The Desktop App no longer strips the server subpath from paths sent by Boards, a workaround that caused "Team not found" errors when a team name matched the subpath, so older Boards versions may show navigation errors. Update the Boards plugin to v9.4.0 or later before updating the Desktop App. Follow the [Boards installation instructions](https://docs.mattermost.com/administration-guide/configure/install-boards.html). Deployments without a subpath are unaffected. See the [forum post](https://forum.mattermost.com/t/desktop-app-v6-4-requires-boards-v9-4-0-for-subpath-deployments/26064) for full details and migration options.
+
 ### Compatibility
 
 - Desktop App is supported on any currently supported [Mattermost server version](https://docs.mattermost.com/product-overview/mattermost-desktop-releases.html#latest-releases).
 - Updated Chromium minimum supported version to 150+.
-- Servers configured with a subpath in their Site URL require Boards v9.4.0 or later. The Desktop App no longer strips the server subpath from paths sent by Boards, so older Boards versions may show navigation errors. See the [removed and deprecated features](/product-overview/deprecated-features) documentation for details.
 
 ### Improvements
 
