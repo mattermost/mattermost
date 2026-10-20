@@ -25,6 +25,7 @@ func TestFileInfoStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("FileInfoSaveGetByPath", func(t *testing.T) { testFileInfoSaveGetByPath(t, rctx, ss) })
 	t.Run("FileInfoGetForPost", func(t *testing.T) { testFileInfoGetForPost(t, rctx, ss) })
 	t.Run("FileInfoGetForUser", func(t *testing.T) { testFileInfoGetForUser(t, rctx, ss) })
+	t.Run("FileInfoGetForPermanentDeleteByUser", func(t *testing.T) { testFileInfoGetForPermanentDeleteByUser(t, rctx, ss) })
 	t.Run("FileInfoGetWithOptions", func(t *testing.T) { testFileInfoGetWithOptions(t, rctx, ss) })
 	t.Run("FileInfoGetWithOptionsOnlyEmptyContent", func(t *testing.T) { testFileInfoGetWithOptionsOnlyEmptyContent(t, rctx, ss) })
 	t.Run("FileInfoAttachToPost", func(t *testing.T) { testFileInfoAttachToPost(t, rctx, ss) })
@@ -229,6 +230,60 @@ func testFileInfoGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 			assert.Len(t, postInfos, tc.ExpectedPosts)
 		})
 	}
+}
+
+func testFileInfoGetForPermanentDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	userID := model.NewId()
+	otherUserID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Files",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+	channelID := channel.Id
+
+	root, err := ss.Post().Save(rctx, &model.Post{ChannelId: channelID, UserId: userID, Message: "root"})
+	require.NoError(t, err)
+	otherReply, err := ss.Post().Save(rctx, &model.Post{ChannelId: channelID, UserId: otherUserID, RootId: root.Id, Message: "reply"})
+	require.NoError(t, err)
+	otherRoot, err := ss.Post().Save(rctx, &model.Post{ChannelId: channelID, UserId: otherUserID, Message: "unrelated"})
+	require.NoError(t, err)
+
+	save := func(info *model.FileInfo) *model.FileInfo {
+		info.ChannelId = channelID
+		info.Path = "file.txt"
+		saved, saveErr := ss.FileInfo().Save(rctx, info)
+		require.NoError(t, saveErr)
+		t.Cleanup(func() { _ = ss.FileInfo().PermanentDelete(rctx, saved.Id) })
+		return saved
+	}
+
+	expected := []*model.FileInfo{
+		save(&model.FileInfo{CreatorId: userID, DeleteAt: model.GetMillis()}),
+		save(&model.FileInfo{CreatorId: otherUserID, PostId: root.Id}),
+		save(&model.FileInfo{CreatorId: otherUserID, PostId: otherReply.Id}),
+	}
+	save(&model.FileInfo{CreatorId: otherUserID, PostId: otherRoot.Id})
+	save(&model.FileInfo{CreatorId: otherUserID})
+
+	expectedIDs := []string{}
+	for _, info := range expected {
+		expectedIDs = append(expectedIDs, info.Id)
+	}
+
+	infos, err := ss.FileInfo().GetForPermanentDeleteByUser(userID, 10)
+	require.NoError(t, err)
+	actualIDs := []string{}
+	for _, info := range infos {
+		actualIDs = append(actualIDs, info.Id)
+	}
+	assert.ElementsMatch(t, expectedIDs, actualIDs)
+
+	infos, err = ss.FileInfo().GetForPermanentDeleteByUser(userID, 2)
+	require.NoError(t, err)
+	assert.Len(t, infos, 2)
 }
 
 func testFileInfoGetForUser(t *testing.T, rctx request.CTX, ss store.Store) {
