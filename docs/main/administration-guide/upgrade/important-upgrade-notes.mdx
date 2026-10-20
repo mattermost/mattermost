@@ -23,10 +23,7 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </thead>
 <tbody>
 <tr>
-<td rowspan="2">v12.1</td>
-<td><p>This migration adds a new partial composite index, <code>idx_propertyvalues_groupid_fieldid</code>, on the <code>PropertyValues</code> table covering the columns <code>GroupID</code> and <code>FieldID</code> for rows where <code>DeleteAt</code> is 0. The <code>PropertyValues</code> table is part of the Properties/Custom Attributes feature. This index improves lookups that filter by group and field, which is a common access pattern for that feature. The index is created using <code>CONCURRENTLY</code>, so the build does not block concurrent reads or writes against the <code>PropertyValues</code> table. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>{"-- morph:nontransactional\nCREATE INDEX CONCURRENTLY IF NOT EXISTS idx_propertyvalues_groupid_fieldid ON PropertyValues(GroupID, FieldID) WHERE DeleteAt = 0;"}</code></pre><pre><code>{"-- morph:nontransactional\nDROP INDEX CONCURRENTLY IF EXISTS idx_propertyvalues_groupid_fieldid;"}</code></pre></td>
-</tr>
-<tr>
+<td>v12.1</td>
 <td><p>Mattermost Desktop App v6.4 (November 2026) requires Boards v9.4.0 or later on servers configured with a subpath in their Site URL. The Desktop App no longer strips the server subpath from paths sent by Boards, a workaround that caused &quot;Team not found&quot; errors when a team name matched the subpath, so older Boards versions may show navigation errors. Update the Boards plugin to v9.4.0 or later <em>before</em> updating the Desktop App, following the <a href={useBaseUrl('/administration-guide/configure/install-boards')}>Boards installation instructions</a>. Deployments without a subpath are unaffected. See the <a href="https://forum.mattermost.com/t/desktop-app-v6-4-requires-boards-v9-4-0-for-subpath-deployments/26064">forum post</a> for full details and migration options.</p></td>
 </tr>
 <tr>

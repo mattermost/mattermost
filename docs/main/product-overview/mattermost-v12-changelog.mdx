@@ -21,7 +21,10 @@ Platform and OS scope reflects reported and tested environments and may not repr
 ### Upgrade Impact
 
 #### Database Schema Changes
-  - Added a database index on ``PropertyValues (GroupID, FieldID)``.
+  - Added the ``creator`` value to the ``permission_level`` enum type to support the new creator permission level for property fields; an enum value addition with no table rewrite and negligible impact on running systems.
+  - Added the ``healthfindings`` table, which stores the findings raised by the Built-in Health Dashboard keyed by a finding fingerprint; a new table with no impact on existing tables or queries.
+  - Added the index ``idx_healthfindings_lastseenat`` on ``healthfindings (lastseenat)`` using ``CONCURRENTLY``, so the build doesn't block reads or writes; no downtime expected.
+  - Added the partial index ``idx_propertyvalues_groupid_fieldid`` on ``PropertyValues (GroupID, FieldID)`` for rows where ``DeleteAt`` is 0, using ``CONCURRENTLY``, to speed up lookups that filter by group and field; no downtime expected.
 
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
