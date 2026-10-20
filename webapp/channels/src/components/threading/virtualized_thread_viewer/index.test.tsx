@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {CollapsedThreads} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {START_OF_NEW_MESSAGES, isDateLine} from 'mattermost-redux/utils/post_list';
@@ -52,7 +53,7 @@ describe('virtualized thread viewer connector', () => {
         const state: DeepPartial<GlobalState> = {
             entities: {
                 general: {
-                    config: {CollapsedThreads: 'always_on'},
+                    config: {CollapsedThreads: CollapsedThreads.ALWAYS_ON},
                 },
                 users: {
                     currentUserId: currentUser.id,
@@ -86,6 +87,7 @@ describe('virtualized thread viewer connector', () => {
                 useRelativeTimestamp={useRelativeTimestamp}
                 onCardClick={() => {}}
                 hideRoot={hideRoot}
+                isThreadView={false}
             />,
             state,
         );
