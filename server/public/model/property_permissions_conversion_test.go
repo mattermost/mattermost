@@ -473,7 +473,7 @@ func TestPermissionsFromLegacyGrantsSourcePlugin(t *testing.T) {
 		}}, p.Grants)
 	})
 
-	t.Run("a synced protected field keeps its values for the sync service", func(t *testing.T) {
+	t.Run("a synced protected field gives its source plugin no value write", func(t *testing.T) {
 		field := &PropertyField{
 			Attrs: StringInterface{
 				PropertyAttrsProtected:      true,
