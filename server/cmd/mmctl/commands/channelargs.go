@@ -51,11 +51,25 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 			return nil
 		}
 
-		channel, _, _ = c.GetChannelByNameIncludeDeleted(context.TODO(), channelPart, team.Id, "")
+		if model.IsValidId(channelPart) {
+			channel, _, _ = c.GetChannel(context.TODO(), strings.ToLower(channelPart))
+		}
+
+		if channel == nil {
+			channel, _, _ = c.GetChannelByNameIncludeDeleted(context.TODO(), channelPart, team.Id, "")
+		}
+
+		if channel != nil || model.IsValidId(channelPart) {
+			return channel
+		}
 	}
 
 	if channel == nil {
-		channel, _, _ = c.GetChannel(context.TODO(), channelPart)
+		lookup := channelPart
+		if model.IsValidId(channelPart) {
+			lookup = strings.ToLower(channelPart)
+		}
+		channel, _, _ = c.GetChannel(context.TODO(), lookup)
 	}
 
 	return channel
@@ -95,21 +109,41 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 		if err != nil {
 			return nil, err
 		}
-		channel, response, err = c.GetChannelByNameIncludeDeleted(context.TODO(), channelArg, team.Id, "")
-		if err != nil {
-			err = ExtractErrorFromResponse(response, err)
-			var nfErr *NotFoundError
-			var badRequestErr *BadRequestError
-			if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
-				return nil, err
+		if model.IsValidId(channelArg) {
+			channel, response, err = c.GetChannel(context.TODO(), strings.ToLower(channelArg))
+			if err != nil {
+				nErr := ExtractErrorFromResponse(response, err)
+				var nfErr *NotFoundError
+				var badRequestErr *BadRequestError
+				if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+					return nil, nErr
+				}
+			}
+		}
+		if channel == nil {
+			channel, response, err = c.GetChannelByNameIncludeDeleted(context.TODO(), channelArg, team.Id, "")
+			if err != nil {
+				err = ExtractErrorFromResponse(response, err)
+				var nfErr *NotFoundError
+				var badRequestErr *BadRequestError
+				if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
+					return nil, err
+				}
 			}
 		}
 	}
 	if channel != nil {
 		return channel, nil
 	}
+	if teamArg != "" && model.IsValidId(channelArg) {
+		return nil, ErrEntityNotFound{Type: "channel", ID: arg}
+	}
 	var err error
-	channel, response, err = c.GetChannel(context.TODO(), channelArg)
+	lookup := channelArg
+	if model.IsValidId(channelArg) {
+		lookup = strings.ToLower(channelArg)
+	}
+	channel, response, err = c.GetChannel(context.TODO(), lookup)
 	if err != nil {
 		nErr := ExtractErrorFromResponse(response, err)
 		var nfErr *NotFoundError
