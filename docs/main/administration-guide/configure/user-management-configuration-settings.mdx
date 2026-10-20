@@ -429,7 +429,7 @@ Users can only join the team if their email matches one of the specified domains
 
 <PlanAvailability slug="entry-adv" />
 
-From Mattermost v11.10, control who can be a member of this team based on their user attributes.
+From Mattermost v11.10, control who can be a member of this team based on their user attributes. This option requires [attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) to be enabled in **System Console \> System Attributes \> Attribute-Based Access**.
 
 On private teams the rules are enforced: users who don't match can't join, and members who no longer match are removed at the next sync. On public teams the rules are advisory — the team is recommended to qualifying users, but anyone can still join.
 
@@ -441,7 +441,7 @@ On private teams the rules are enforced: users who don't match can't join, and m
 
 This option is unavailable on group-synced teams, because group sync and attribute-based membership are mutually exclusive.
 
-Team Admins with the **Manage Team Access Rules** permission can also define team membership rules from the **Team Membership** tab in [Team Settings](/end-user-guide/collaborate/team-settings), without access to the System Console.
+Team Admins with the `manage_team_access_rules` permission can also define team membership rules from the **Team Membership** tab in [Team Settings](/end-user-guide/collaborate/team-settings), without access to the System Console.
 
 See [Team membership access policies](/administration-guide/manage/admin/abac-team-membership) for full details.
 
