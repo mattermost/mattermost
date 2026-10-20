@@ -469,9 +469,6 @@ export type SidebarBrowseOrAddChannelMenuAction = PluginComponent & {
     text: PluggableText;
     action: (teamId: string) => void;
     icon: React.ReactNode;
-
-    /** Where the item sits: 'afterCreateChannel' puts it right below "Create new channel"; by default it follows the built-in items. */
-    placement?: 'default' | 'afterCreateChannel';
 };
 
 export type ChannelIconOverrideRegistration = PluginComponent & {
@@ -530,13 +527,6 @@ export type ChannelTypeOptionComponent = PluginComponent & {
     description: PluggableText;
     icon: React.ReactNode;
     createButtonText?: PluggableText;
-
-    /**
-     * Whether "Create a new channel" lists the option; true when unset. An option that is not listed
-     * is offered only when the plugin opens the modal for its own channel types (new_channel_modal
-     * with channelTypePluginId).
-     */
-    showInNewChannelModal?: boolean;
 
     /** Called with the full Redux state so plugins can read their own plugin-scoped state. */
     isAvailable: (state: GlobalState) => boolean;

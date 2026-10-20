@@ -30,8 +30,6 @@ describe('openPublishedModal', () => {
             team_members: ModalIdentifiers.TEAM_MEMBERS,
             leave_team: ModalIdentifiers.LEAVE_TEAM,
             file_preview_modal: ModalIdentifiers.FILE_PREVIEW_MODAL,
-            new_channel_modal: ModalIdentifiers.NEW_CHANNEL_MODAL,
-            channel_settings: ModalIdentifiers.CHANNEL_SETTINGS,
         };
 
         for (const id of Object.keys(expected) as PublishedModalId[]) {
@@ -45,7 +43,7 @@ describe('openPublishedModal', () => {
 
 describe('canOpenPublishedModal', () => {
     test('is true for every published modal id', () => {
-        const ids: PublishedModalId[] = ['user_settings', 'invitation', 'team_settings', 'team_members', 'leave_team', 'file_preview_modal', 'new_channel_modal', 'channel_settings'];
+        const ids: PublishedModalId[] = ['user_settings', 'invitation', 'team_settings', 'team_members', 'leave_team', 'file_preview_modal'];
 
         for (const id of ids) {
             expect(canOpenPublishedModal(id)).toBe(true);

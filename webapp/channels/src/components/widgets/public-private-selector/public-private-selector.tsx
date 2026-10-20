@@ -112,9 +112,6 @@ type PublicPrivateSelectorProps = {
     publicButtonProps?: ButtonSelectorProps;
     privateButtonProps?: ButtonSelectorProps;
     pluginOptions?: PluginOptionButtonProps[];
-
-    /** Shows only `pluginOptions`, for a modal opened for one plugin's channel types. */
-    hideBuiltInOptions?: boolean;
     onChange: (selected: string) => void;
 };
 
@@ -142,7 +139,6 @@ const PublicPrivateSelector = ({
         locked: lockedPrivate,
     } = {} as ButtonSelectorProps,
     pluginOptions,
-    hideBuiltInOptions = false,
     onChange,
 }: PublicPrivateSelectorProps) => {
     const {formatMessage} = useIntl();
@@ -167,38 +163,34 @@ const PublicPrivateSelector = ({
 
     return (
         <div className={classNames('public-private-selector', className)}>
-            {!hideBuiltInOptions && (
-                <>
-                    <BigButtonSelector
-                        id={Constants.OPEN_CHANNEL as ChannelType}
-                        title={titlePublic || formatMessage({id: 'public_private_selector.public.title', defaultMessage: 'Public'})}
-                        description={descriptionPublic || formatMessage({id: 'public_private_selector.public.description', defaultMessage: 'Anyone'})}
-                        iconSVG={GlobeCircleSolidIcon}
-                        titleClassName={titleClassNamePublic}
-                        descriptionClassName={descriptionClassNamePublic}
-                        iconClassName={iconClassNamePublic}
-                        tooltip={tooltipPublic}
-                        selected={selected === Constants.OPEN_CHANNEL}
-                        disabled={disabledPublic}
-                        locked={lockedPublic}
-                        onClick={handleOnClick}
-                    />
-                    <BigButtonSelector
-                        id={Constants.PRIVATE_CHANNEL as ChannelType}
-                        title={titlePrivate || formatMessage({id: 'public_private_selector.private.title', defaultMessage: 'Private'})}
-                        description={descriptionPrivate || formatMessage({id: 'public_private_selector.private.description', defaultMessage: 'Only invited members'})}
-                        iconSVG={LockCircleSolidIcon}
-                        titleClassName={titleClassNamePrivate}
-                        descriptionClassName={descriptionClassNamePrivate}
-                        iconClassName={iconClassNamePrivate}
-                        tooltip={tooltipPrivate}
-                        selected={selected === Constants.PRIVATE_CHANNEL}
-                        disabled={disabledPrivate}
-                        locked={lockedPrivate}
-                        onClick={handleOnClick}
-                    />
-                </>
-            )}
+            <BigButtonSelector
+                id={Constants.OPEN_CHANNEL as ChannelType}
+                title={titlePublic || formatMessage({id: 'public_private_selector.public.title', defaultMessage: 'Public'})}
+                description={descriptionPublic || formatMessage({id: 'public_private_selector.public.description', defaultMessage: 'Anyone'})}
+                iconSVG={GlobeCircleSolidIcon}
+                titleClassName={titleClassNamePublic}
+                descriptionClassName={descriptionClassNamePublic}
+                iconClassName={iconClassNamePublic}
+                tooltip={tooltipPublic}
+                selected={selected === Constants.OPEN_CHANNEL}
+                disabled={disabledPublic}
+                locked={lockedPublic}
+                onClick={handleOnClick}
+            />
+            <BigButtonSelector
+                id={Constants.PRIVATE_CHANNEL as ChannelType}
+                title={titlePrivate || formatMessage({id: 'public_private_selector.private.title', defaultMessage: 'Private'})}
+                description={descriptionPrivate || formatMessage({id: 'public_private_selector.private.description', defaultMessage: 'Only invited members'})}
+                iconSVG={LockCircleSolidIcon}
+                titleClassName={titleClassNamePrivate}
+                descriptionClassName={descriptionClassNamePrivate}
+                iconClassName={iconClassNamePrivate}
+                tooltip={tooltipPrivate}
+                selected={selected === Constants.PRIVATE_CHANNEL}
+                disabled={disabledPrivate}
+                locked={lockedPrivate}
+                onClick={handleOnClick}
+            />
             {pluginOptions?.map((option) => (
                 <BigButtonSelector
                     key={option.id}

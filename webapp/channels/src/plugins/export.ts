@@ -7,7 +7,6 @@ import type {JSX} from 'react';
 import * as reactJSXDevRuntime from 'react/jsx-dev-runtime';
 import * as reactJSXRuntime from 'react/jsx-runtime';
 
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PublishedEditorUtils, PublishedModalId, PublishedModalIdCandidate, PublishedModalProps, PublishedModalUtils} from '@mattermost/shared/types/global';
 
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
@@ -122,7 +121,6 @@ interface WindowWithLibraries {
         MenuSeparator: typeof Menu.Separator;
         AccessControlTableEditor: typeof AccessControlTableEditor;
         AccessControlCELEditor: typeof AccessControlCELEditor;
-        WithTooltip: typeof WithTooltip;
     };
     ProductApi: {
         useWebSocket: typeof useWebSocket;
@@ -244,7 +242,6 @@ window.Components = {
     MenuSeparator: Menu.Separator,
     AccessControlTableEditor,
     AccessControlCELEditor,
-    WithTooltip,
 };
 
 // This is a prototype of the Product API for use by internal plugins only while we transition to the proper architecture

@@ -24,9 +24,6 @@ export type Props = {
     value: string;
     name: string;
     placeholder: string;
-
-    /** Defaults to "Channel name". */
-    label?: string;
     onDisplayNameChange: (name: string) => void;
     onURLChange: (url: string) => void;
     currentUrl?: string;
@@ -198,7 +195,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 name={props.name}
                 containerClassName={`${props.name}-container`}
                 inputClassName={`${props.name}-input channel-name-input-field`}
-                label={props.label ?? formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}
+                label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}
                 placeholder={props.placeholder}
                 limit={Constants.MAX_CHANNELNAME_LENGTH}
 
