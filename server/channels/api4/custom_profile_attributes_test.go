@@ -7,12 +7,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -1613,6 +1615,366 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 	})
 }
 
+func TestPatchCPAValuesForBotTarget(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	defaultPerms := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+
+	field, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+		Name: celSafeName(),
+		Type: model.PropertyFieldTypeText,
+	})
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+
+	newBot := func(t *testing.T, ownerID string) *model.Bot {
+		t.Helper()
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: GenerateTestUsername(), OwnerId: ownerID})
+		require.Nil(t, appErr)
+		return bot
+	}
+	withPerms := func(t *testing.T, perms ...*model.Permission) {
+		t.Helper()
+		th.RestoreDefaultRolePermissions(t, defaultPerms)
+		for _, p := range perms {
+			th.AddPermissionToRole(t, p.Id, model.SystemUserRoleId)
+		}
+	}
+	values := func(v string) map[string]json.RawMessage {
+		return map[string]json.RawMessage{field.ID: json.RawMessage(fmt.Sprintf("%q", v))}
+	}
+	requireStored := func(t *testing.T, botUserID, want string) {
+		t.Helper()
+		stored, resp, err := th.SystemAdminClient.ListCPAValues(context.Background(), botUserID)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		var got string
+		require.NoError(t, json.Unmarshal(stored[field.ID], &got))
+		require.Equal(t, want, got)
+	}
+	requireWritten := func(t *testing.T, botUserID, want string) {
+		t.Helper()
+		patched, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), botUserID, values(want))
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		var got string
+		require.NoError(t, json.Unmarshal(patched[field.ID], &got))
+		require.Equal(t, want, got)
+		requireStored(t, botUserID, want)
+	}
+	requireDenied := func(t *testing.T, targetID string) {
+		t.Helper()
+		_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), targetID, values("denied"))
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	}
+
+	t.Run("own bot with manage_bots", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser.Id)
+		withPerms(t, model.PermissionManageBots)
+		requireWritten(t, bot.UserId, "v1")
+	})
+
+	t.Run("own bot with read_bots only", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser.Id)
+		withPerms(t, model.PermissionReadBots)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("own bot without read_bots is 403 not 404", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser.Id)
+		withPerms(t)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("others' bot with manage_others_bots", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser2.Id)
+		withPerms(t, model.PermissionManageOthersBots)
+		requireWritten(t, bot.UserId, "others")
+	})
+
+	t.Run("others' bot with only manage_bots", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser2.Id)
+		withPerms(t, model.PermissionManageBots)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("others' bot with read_others_bots only", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser2.Id)
+		withPerms(t, model.PermissionReadOthersBots)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("others' bot without read_others_bots", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser2.Id)
+		withPerms(t)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("system admin bot owned by caller", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser.Id)
+		_, appErr := th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		withPerms(t, model.PermissionManageBots)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("others' system admin bot with manage_others_bots", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser2.Id)
+		_, appErr := th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		withPerms(t, model.PermissionManageOthersBots)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("edit_other_users writes a regular user", func(t *testing.T) {
+		withPerms(t, model.PermissionEditOtherUsers)
+		requireWritten(t, th.BasicUser2.Id, "edit-other")
+	})
+
+	t.Run("edit_other_users cannot write a system admin", func(t *testing.T) {
+		withPerms(t, model.PermissionEditOtherUsers)
+		requireDenied(t, th.SystemAdminUser.Id)
+	})
+
+	t.Run("plugin-owned bot with manage_bots", func(t *testing.T) {
+		bot := newBot(t, "com.mattermost.test")
+		withPerms(t, model.PermissionManageBots)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("plugin-owned bot with manage_others_bots", func(t *testing.T) {
+		bot := newBot(t, "com.mattermost.test")
+		withPerms(t, model.PermissionManageOthersBots)
+		requireWritten(t, bot.UserId, "plugin-bot")
+	})
+
+	t.Run("disabled bot", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser.Id)
+		_, appErr := th.App.UpdateBotActive(th.Context, bot.UserId, false)
+		require.Nil(t, appErr)
+		withPerms(t, model.PermissionManageBots)
+		requireWritten(t, bot.UserId, "disabled")
+	})
+
+	t.Run("non-bot target with bot permissions", func(t *testing.T) {
+		withPerms(t, model.PermissionManageBots, model.PermissionManageOthersBots)
+		requireDenied(t, th.BasicUser2.Id)
+	})
+
+	t.Run("nonexistent target", func(t *testing.T) {
+		withPerms(t, model.PermissionManageOthersBots)
+		requireDenied(t, model.NewId())
+	})
+
+	t.Run("system admin writes a bot target", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser2.Id)
+		withPerms(t)
+		patched, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), bot.UserId, values("sysadmin"))
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, json.RawMessage(`"sysadmin"`), patched[field.ID])
+		requireStored(t, bot.UserId, "sysadmin")
+	})
+
+	t.Run("self route unaffected", func(t *testing.T) {
+		withPerms(t)
+		patched, resp, err := th.Client.PatchCPAValues(context.Background(), values("self"))
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, json.RawMessage(`"self"`), patched[field.ID])
+	})
+
+	t.Run("field locks", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser.Id)
+		withPerms(t, model.PermissionManageBots)
+
+		cpaGroup, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+		memberLevel := model.PermissionLevelMember
+		protectedField, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+			GroupID:           cpaGroup.ID,
+			Name:              celSafeName(),
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeUser,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected:      true,
+				model.PropertyAttrsSourcePluginID: "com.mattermost.test-plugin",
+			},
+		})
+		require.NoError(t, err)
+
+		createField := func(t *testing.T, attrs model.StringInterface) *model.PropertyField {
+			t.Helper()
+			created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+				Name:  celSafeName(),
+				Type:  model.PropertyFieldTypeText,
+				Attrs: attrs,
+			})
+			CheckCreatedStatus(t, resp)
+			require.NoError(t, err)
+			return created
+		}
+		syncedField := createField(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsLDAP: "ldap_attr"})
+		ownedField := createField(t, model.StringInterface{model.PropertyAttrsOwners: []model.PropertyOwner{{
+			ID:     "com.mattermost.scim",
+			Type:   model.PropertyOwnerTypePlugin,
+			Scopes: []string{"entra"},
+		}}})
+		adminField := createField(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsManaged: "admin"})
+
+		requireLocked := func(t *testing.T, fieldID, errorID string) {
+			t.Helper()
+			_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), bot.UserId, map[string]json.RawMessage{
+				fieldID: json.RawMessage(`"x"`),
+			})
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, errorID)
+		}
+
+		t.Run("protected", func(t *testing.T) {
+			requireLocked(t, protectedField.ID, "app.property.access_denied.app_error")
+		})
+
+		t.Run("synced", func(t *testing.T) {
+			requireLocked(t, syncedField.ID, "app.property.sync_lock.app_error")
+		})
+
+		t.Run("owner-managed", func(t *testing.T) {
+			requireLocked(t, ownedField.ID, "api.property_value.patch.no_values_permission.app_error")
+		})
+
+		t.Run("admin-managed", func(t *testing.T) {
+			requireLocked(t, adminField.ID, "api.property_value.patch.no_values_permission.app_error")
+		})
+
+		t.Run("batch with one admin-managed field writes nothing", func(t *testing.T) {
+			_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), bot.UserId, values("before"))
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+
+			_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), bot.UserId, map[string]json.RawMessage{
+				field.ID:      json.RawMessage(`"after"`),
+				adminField.ID: json.RawMessage(`"x"`),
+			})
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+			requireStored(t, bot.UserId, "before")
+		})
+	})
+}
+
+// TestBotWritesOwnCPAValues covers a bot authenticated with its own token
+// writing its own values, as opposed to a bot manager writing on its behalf.
+func TestBotWritesOwnCPAValues(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+		*cfg.ServiceSettings.EnableUserAccessTokens = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	createField := func(t *testing.T, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+			Name:  celSafeName(),
+			Type:  model.PropertyFieldTypeText,
+			Attrs: attrs,
+		})
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		return created
+	}
+	regularField := createField(t, nil)
+	adminField := createField(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsManaged: "admin"})
+
+	newBotClient := func(t *testing.T, roles string) (*model.Client4, string) {
+		t.Helper()
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: GenerateTestUsername(), OwnerId: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		if roles != "" {
+			_, appErr = th.App.UpdateUserRoles(th.Context, bot.UserId, roles, false)
+			require.Nil(t, appErr)
+		}
+		token, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: bot.UserId, Description: "bot token"})
+		require.Nil(t, appErr)
+		client := th.CreateClient()
+		client.SetToken(token.Token)
+		return client, bot.UserId
+	}
+	requireStored := func(t *testing.T, botUserID, fieldID, want string) {
+		t.Helper()
+		stored, resp, err := th.SystemAdminClient.ListCPAValues(context.Background(), botUserID)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		var got string
+		require.NoError(t, json.Unmarshal(stored[fieldID], &got))
+		require.Equal(t, want, got)
+	}
+
+	t.Run("member bot", func(t *testing.T) {
+		botClient, botUserID := newBotClient(t, "")
+
+		_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), botUserID, map[string]json.RawMessage{
+			adminField.ID: json.RawMessage(`"admin set"`),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		t.Run("can write a regular field", func(t *testing.T) {
+			_, resp, err := botClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+				regularField.ID: json.RawMessage(`"bot set"`),
+			})
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+			requireStored(t, botUserID, regularField.ID, "bot set")
+		})
+
+		t.Run("cannot write an admin-managed field via the self route", func(t *testing.T) {
+			_, resp, err := botClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+				adminField.ID: json.RawMessage(`"bot set"`),
+			})
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+			requireStored(t, botUserID, adminField.ID, "admin set")
+		})
+
+		t.Run("cannot write an admin-managed field via the user route", func(t *testing.T) {
+			_, resp, err := botClient.PatchCPAValuesForUser(context.Background(), botUserID, map[string]json.RawMessage{
+				adminField.ID: json.RawMessage(`"bot set"`),
+			})
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+			requireStored(t, botUserID, adminField.ID, "admin set")
+		})
+
+		t.Run("cannot write an admin-managed field via the generic API", func(t *testing.T) {
+			_, resp, err := botClient.PatchPropertyValues(context.Background(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser, botUserID,
+				[]model.PropertyValuePatchItem{{FieldID: adminField.ID, Value: json.RawMessage(`"bot set"`)}})
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+			requireStored(t, botUserID, adminField.ID, "admin set")
+		})
+	})
+
+	t.Run("system admin bot can write an admin-managed field", func(t *testing.T) {
+		botClient, botUserID := newBotClient(t, model.SystemUserRoleId+" "+model.SystemAdminRoleId)
+		_, resp, err := botClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+			adminField.ID: json.RawMessage(`"bot set"`),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		requireStored(t, botUserID, adminField.ID, "bot set")
+	})
+}
+
 // TestCPANonAdminWriteOwnValueViaGenericAPI confirms a non-admin user can set
 // their own value on a regular CPA field via the generic property API.
 func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
@@ -1732,6 +2094,26 @@ func TestCPANonAdminBlockedFromAdminManagedViaGenericAPI(t *testing.T) {
 		var actualValue string
 		require.NoError(t, json.Unmarshal(upserted[0].Value, &actualValue))
 		require.Equal(t, "Admin Value", actualValue)
+	})
+
+	t.Run("bot manager writing their bot's admin-managed value is forbidden", func(t *testing.T) {
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.SystemUserRoleId)
+
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: GenerateTestUsername(), OwnerId: th.BasicUser.Id})
+		require.Nil(t, appErr)
+
+		_, resp, err := th.Client.PatchPropertyValues(
+			context.Background(),
+			model.AccessControlPropertyGroupName,
+			model.PropertyFieldObjectTypeUser,
+			bot.UserId,
+			items,
+		)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 }
 
@@ -2128,6 +2510,108 @@ func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 		})
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
+	})
+}
+
+func TestUserValuesTargetAccessAudit(t *testing.T) {
+	logFile, err := os.CreateTemp("", "user_values_target_access_audit.log")
+	require.NoError(t, err)
+	defer os.Remove(logFile.Name())
+
+	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "advanced_logging")
+	options := []app.Option{app.WithLicense(license)}
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
+		cfg.FeatureFlags.IntegratedBoards = true
+	})
+	th.App.Srv().SetLicense(license)
+	th.LoginBasic(t)
+
+	defaultPerms := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+	th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.SystemUserRoleId)
+
+	field, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{Name: celSafeName(), Type: model.PropertyFieldTypeText})
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+	bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: GenerateTestUsername(), OwnerId: th.BasicUser.Id})
+	require.Nil(t, appErr)
+	vals := map[string]json.RawMessage{field.ID: json.RawMessage(`"v"`)}
+	items := []model.PropertyValuePatchItem{{FieldID: field.ID, Value: json.RawMessage(`"v"`)}}
+
+	readAudit := func(t *testing.T) string {
+		t.Helper()
+		require.NoError(t, th.Server.Audit.Flush())
+		require.NoError(t, logFile.Sync())
+		data, err := os.ReadFile(logFile.Name())
+		require.NoError(t, err)
+		return string(data)
+	}
+	resetAudit := func(t *testing.T) {
+		t.Helper()
+		require.NoError(t, th.Server.Audit.Flush())
+		require.NoError(t, logFile.Truncate(0))
+		_, err := logFile.Seek(0, 0)
+		require.NoError(t, err)
+	}
+	requirePath := func(t *testing.T, event, actorID, want string) {
+		t.Helper()
+		entry := FindAuditEntry(readAudit(t), event, actorID)
+		require.NotNil(t, entry, "no %s audit entry for %s", event, actorID)
+		assert.Equal(t, "success", entry.Status)
+		assert.Equal(t, want, entry.Parameters["target_access"])
+	}
+
+	t.Run("self", func(t *testing.T) {
+		resetAudit(t)
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), vals)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		requirePath(t, model.AuditEventPatchCPAValues, th.BasicUser.Id, "self")
+	})
+
+	t.Run("edit_other_users", func(t *testing.T) {
+		resetAudit(t)
+		_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, vals)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		requirePath(t, model.AuditEventPatchCPAValues, th.SystemAdminUser.Id, "edit_other_users")
+	})
+
+	t.Run("bot_manager via CPA route", func(t *testing.T) {
+		resetAudit(t)
+		_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), bot.UserId, vals)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		requirePath(t, model.AuditEventPatchCPAValues, th.BasicUser.Id, "bot_manager")
+	})
+
+	t.Run("bot_manager via generic route", func(t *testing.T) {
+		resetAudit(t)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser, bot.UserId, items)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		requirePath(t, model.AuditEventPatchPropertyValues, th.BasicUser.Id, "bot_manager")
+	})
+
+	t.Run("local", func(t *testing.T) {
+		resetAudit(t)
+		_, resp, err := th.LocalClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, vals)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		requirePath(t, model.AuditEventPatchCPAValues, "", "local")
+	})
+
+	t.Run("denied write records no path", func(t *testing.T) {
+		resetAudit(t)
+		_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser2.Id, vals)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		entry := FindAuditEntry(readAudit(t), model.AuditEventPatchCPAValues, th.BasicUser.Id)
+		require.NotNil(t, entry)
+		assert.Equal(t, "fail", entry.Status)
+		assert.NotContains(t, entry.Parameters, "target_access")
 	})
 }
 

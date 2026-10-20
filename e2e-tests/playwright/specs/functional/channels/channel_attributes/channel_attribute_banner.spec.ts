@@ -28,8 +28,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * @objective Verify an attribute token can be inserted from Channel Settings and previews its resolved value.
      */
     test('inserts an attribute token from the Attributes menu and previews the resolved text', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -77,9 +77,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * Channel Settings seeds them as removable defaults rather than locked chips.
      */
     test('composes one banner from every designated attribute and offers to remove them', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -135,9 +134,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * banner, even though banner_info stays disabled for that channel.
      */
     test('shows the banner section as on when an attribute drives the banner', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -190,9 +188,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * @objective Verify a banner authored as custom text plus a token renders both in the channel.
      */
     test('saves a banner mixing custom text with a token', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -237,9 +234,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * @objective Verify a separator between two tokens is dropped when one of them has no value.
      */
     test('tidies the separator when one of two tokens is unset', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -296,9 +292,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * @objective Verify a template whose tokens are all unset says so rather than previewing a blank line.
      */
     test('says so when every token in the template is unset', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -347,9 +342,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * because tokens key off the machine name.
      */
     test('keeps resolving after the attribute display name changes', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -406,9 +400,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * attributes are on, rather than through its own dedicated controls.
      */
     test('treats classification as one attribute among many', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -454,9 +447,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
     test('color picker is editable and toggle is unlocked when a non-classification attribute drives the banner', async ({
         pw,
     }) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -499,8 +491,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * toggle in Channel Settings is locked and cannot be turned off.
      */
     test('banner toggle is disabled when a required attribute designates the banner', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();

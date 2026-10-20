@@ -48,6 +48,7 @@ describe('SystemUserDetail', () => {
         ldapPictureAttributeSet: false,
         customProfileAttributeEnabled: true,
         customProfileAttributeFields: [],
+        canEditAdminManaged: true,
         patchUser: jest.fn(),
         updateUserAuth: jest.fn(),
         updateUserMfa: jest.fn(),
@@ -810,6 +811,149 @@ describe('SystemUserDetail', () => {
             expect(changesList).not.toHaveTextContent('opt-3');
         });
 
+        describe('CPA validation and locks', () => {
+            const REQUIRED = 'This attribute is required.';
+            const INVALID_EMAIL = 'Invalid email address';
+            const ADMIN_MANAGED = 'This field can only be changed by an administrator.';
+
+            const renderWithField = (field: UserPropertyField, value?: string | string[], overrides: Partial<Props> = {}) => renderWithContext(
+                <SystemUserDetail
+                    {...defaultProps}
+                    customProfileAttributeFields={[field]}
+                    getCustomProfileAttributeFields={jest.fn().mockResolvedValue({data: [field]})}
+                    getCustomProfileAttributeValues={jest.fn().mockResolvedValue({data: value === undefined ? {} : {[field.id]: value}})}
+                    {...overrides}
+                />,
+            );
+            const cpaField = () => screen.getByTestId('user-detail-custom-attribute-label-cpa-1');
+            const cpaInput = () => cpaField().querySelector('input') as HTMLInputElement;
+            const fieldAlert = () => within(cpaField()).getByRole('alert');
+            const saveButton = () => screen.getByRole('button', {name: 'Save'});
+
+            test('shows a required error when a required value is cleared', async () => {
+                renderWithField(buildCPAField({required: true} as Partial<UserPropertyField['attrs']>), 'Eng');
+                await waitForLoadingToFinish();
+
+                await userEvent.clear(cpaInput());
+
+                expect(fieldAlert()).toHaveTextContent(REQUIRED);
+                expect(saveButton()).toBeDisabled();
+            });
+
+            test('shows a required error for a cleared required select', async () => {
+                const field = {
+                    ...buildCPAField({required: true, options: [{id: 'opt-1', name: 'One'}]} as Partial<UserPropertyField['attrs']>),
+                    type: 'select',
+                } as UserPropertyField;
+                renderWithField(field, 'opt-1');
+                await waitForLoadingToFinish();
+
+                const select = within(cpaField()).getByRole('combobox');
+                await userEvent.selectOptions(select, '');
+
+                expect(fieldAlert()).toHaveTextContent(REQUIRED);
+                expect(saveButton()).toBeDisabled();
+            });
+
+            test('shows a required error for a required multiselect cleared to no values', async () => {
+                const field = {
+                    ...buildCPAField({required: true, options: [{id: 'opt-1', name: 'One'}]} as Partial<UserPropertyField['attrs']>),
+                    type: 'multiselect',
+                } as UserPropertyField;
+                renderWithField(field, ['opt-1']);
+                await waitForLoadingToFinish();
+
+                expect(within(cpaField()).queryByRole('alert')).not.toBeInTheDocument();
+                await userEvent.click(within(cpaField()).getByRole('button', {name: 'Remove One'}));
+
+                expect(fieldAlert()).toHaveTextContent(REQUIRED);
+                expect(saveButton()).toBeDisabled();
+            });
+
+            test('clears the error when a field is reverted to its original value', async () => {
+                renderWithField(buildCPAField({value_type: 'email'}), 'legacy');
+                await waitForLoadingToFinish();
+
+                fireEvent.change(cpaInput(), {target: {value: 'legacy2'}});
+                expect(fieldAlert()).toHaveTextContent(INVALID_EMAIL);
+                expect(saveButton()).toBeDisabled();
+
+                fireEvent.change(cpaInput(), {target: {value: 'legacy'}});
+                expect(within(cpaField()).queryByRole('alert')).not.toBeInTheDocument();
+                expect(saveButton()).toBeDisabled();
+            });
+
+            test('accepts a padded email and an optional whitespace-only value', async () => {
+                renderWithField(buildCPAField({value_type: 'email'}));
+                await waitForLoadingToFinish();
+
+                fireEvent.change(cpaInput(), {target: {value: ' a@b.co '}});
+                expect(within(cpaField()).queryByRole('alert')).not.toBeInTheDocument();
+
+                fireEvent.change(cpaInput(), {target: {value: '   '}});
+                expect(within(cpaField()).queryByRole('alert')).not.toBeInTheDocument();
+                expect(saveButton()).toBeEnabled();
+            });
+
+            test('allows clearing an optional email', async () => {
+                renderWithField(buildCPAField({value_type: 'email'}), 'a@b.co');
+                await waitForLoadingToFinish();
+
+                await userEvent.clear(cpaInput());
+
+                expect(screen.queryByText(INVALID_EMAIL)).not.toBeInTheDocument();
+                expect(saveButton()).toBeEnabled();
+            });
+
+            test('still rejects an invalid email', async () => {
+                renderWithField(buildCPAField({value_type: 'email'}));
+                await waitForLoadingToFinish();
+
+                await userEvent.type(cpaInput(), 'nope');
+
+                expect(fieldAlert()).toHaveTextContent(INVALID_EMAIL);
+                expect(cpaInput()).toHaveAttribute('aria-invalid', 'true');
+                expect(saveButton()).toBeDisabled();
+            });
+
+            test('clears the error once the value is fixed', async () => {
+                renderWithField(buildCPAField({value_type: 'email'}));
+                await waitForLoadingToFinish();
+
+                fireEvent.change(cpaInput(), {target: {value: 'nope'}});
+                expect(fieldAlert()).toHaveTextContent(INVALID_EMAIL);
+
+                fireEvent.change(cpaInput(), {target: {value: 'a@b.co'}});
+                expect(within(cpaField()).queryByRole('alert')).not.toBeInTheDocument();
+                expect(saveButton()).toBeEnabled();
+            });
+
+            test('locks an admin-managed field without manage_system', async () => {
+                renderWithField(buildCPAField({managed: 'admin'}), 'Eng', {canEditAdminManaged: false});
+                await waitForLoadingToFinish();
+
+                expect(cpaInput()).toBeDisabled();
+                expect(screen.getByText(ADMIN_MANAGED)).toBeInTheDocument();
+            });
+
+            test('keeps an admin-managed field editable with manage_system', async () => {
+                renderWithField(buildCPAField({managed: 'admin'}), 'Eng');
+                await waitForLoadingToFinish();
+
+                expect(cpaInput()).toBeEnabled();
+                expect(screen.queryByText(ADMIN_MANAGED)).not.toBeInTheDocument();
+            });
+
+            test('does not validate an untouched pre-existing invalid value', async () => {
+                renderWithField(buildCPAField({value_type: 'email'}), 'legacy');
+                await waitForLoadingToFinish();
+
+                expect(cpaInput()).toHaveValue('legacy');
+                expect(screen.queryByText(INVALID_EMAIL)).not.toBeInTheDocument();
+                expect(saveButton()).toBeDisabled();
+            });
+        });
+
         describe('graph omit-unlock', () => {
             const OMITTED_COPY = 'This field has too many options to be edited here.';
 
@@ -1052,7 +1196,7 @@ describe('SystemUserDetail', () => {
 
                 await waitForLoadingToFinish();
 
-                expect(trigger()).toBeDisabled();
+                expect(trigger()).toHaveAttribute('aria-disabled', 'true');
                 expect(screen.getByText('Synced with:')).toBeInTheDocument();
                 expect(fieldContainer()).not.toHaveTextContent(OMITTED_COPY);
             });
@@ -1066,7 +1210,7 @@ describe('SystemUserDetail', () => {
 
                 await waitForLoadingToFinish();
 
-                expect(trigger()).toBeDisabled();
+                expect(trigger()).toHaveAttribute('aria-disabled', 'true');
                 expect(fieldContainer()).toHaveTextContent('Managed by plugin');
             });
 
@@ -1079,7 +1223,7 @@ describe('SystemUserDetail', () => {
 
                 await waitForLoadingToFinish();
 
-                expect(trigger()).toBeDisabled();
+                expect(trigger()).toHaveAttribute('aria-disabled', 'true');
                 expect(screen.getByText('Synced with:')).toBeInTheDocument();
             });
 
@@ -1089,7 +1233,7 @@ describe('SystemUserDetail', () => {
 
                 await waitForLoadingToFinish();
 
-                expect(trigger()).toBeEnabled();
+                expect(trigger()).not.toHaveAttribute('aria-disabled', 'true');
                 await waitFor(() => expect(trigger()).toHaveTextContent('Alpha'));
             });
 
@@ -1123,9 +1267,9 @@ describe('SystemUserDetail', () => {
 
             test('G17: opens the menu when the field label is clicked', async () => {
                 // The field name is a <label htmlFor> pointing at the trigger,
-                // so clicking the name opens the menu. The picker itself is not
-                // wrapped in that label: chip-remove lives inside the trigger
-                // button, and a wrapping <label> would steal those clicks.
+                // with a click forwarder because the Menu trigger is a div
+                // (chip-remove lives inside it). The picker itself is not wrapped
+                // in that label: a wrapping <label> would steal chip-remove clicks.
                 mockPageAll.mockResolvedValue(REGIME_1);
                 renderDetail(buildGraphField({options_omitted: true}), ['opt-1']);
 

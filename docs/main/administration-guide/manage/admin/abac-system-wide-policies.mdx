@@ -10,7 +10,7 @@ Use this guide to create and manage organization-wide attribute-based access pol
 
 ## Prerequisites
 
-- [Attribute-based access controls (ABAC)](/administration-guide/manage/admin/attribute-based-access-control) require defined user attributes. First [configure user attributes](/administration-guide/manage/admin/user-attributes) in the System Console.
+- [Attribute-based access controls (ABAC)](/administration-guide/manage/admin/attribute-based-access-control) require defined user attributes. First configure user attributes in the System Console. See [Attribute management](/administration-guide/manage/admin/attribute-management) for Mattermost v12.0 and later, or [User attributes](/administration-guide/manage/admin/user-attributes) for earlier releases.
 - Then go to **System Console \> System Attributes \> Attribute-Based Access** to enable attribute-based access controls for your Mattermost instance. This functionality requires a Mattermost Enterprise Advanced license.
 
 From Mattermost v10.11, user-managed attributes are excluded from attribute-based access control (ABAC) rules by default for security reasons. This prevents access control policies from being circumvented by users editing their own profile attributes. To include user-managed attributes in ABAC rules, a system admin must explicitly enable the `EnableUserManagedAttributes` configuration setting. See the [user attribute](/administration-guide/manage/admin/user-attributes#before-you-begin) documentation for details on enabling this feature. This configuration setting is available only in Enterprise Edition Advanced and is disabled by default.

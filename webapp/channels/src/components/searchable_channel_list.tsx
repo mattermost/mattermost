@@ -946,7 +946,7 @@ const messages = defineMessages({
     },
     channelPurpose: {
         id: 'more_channels.channel_purpose',
-        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount} , Purpose: {channelPurpose}',
+        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
     },
     joiningButton: {
         id: 'joinChannel.joiningButton',

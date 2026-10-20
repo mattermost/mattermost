@@ -37,6 +37,16 @@ on:
         type: string
         required: false
         description: "Comma-separated alias tags for context name (e.g., 'release-11.4, release-11')"
+      server_deploy:
+        type: string
+        required: false
+        default: ""
+        description: "Value for PW_SERVER_DEPLOY (e.g. 'subpath'); empty for a standard deployment"
+      playwright_project:
+        type: string
+        required: false
+        default: chrome
+        description: "Playwright project name (passed to dispatch-begin metadata and dispatch-run --project=)."
       ref_branch:
         type: string
         required: false
@@ -79,6 +89,7 @@ jobs:
           INPUT_SERVER_IMAGE_ALIASES: ${{ inputs.server_image_aliases }}
           INPUT_SERVER_IMAGE_REPO: ${{ inputs.server_image_repo }}
           INPUT_SERVER_IMAGE_TAG: ${{ inputs.server_image_tag }}
+          INPUT_SERVER_DEPLOY: ${{ inputs.server_deploy }}
           PR_NUMBER: ${{ inputs.pr_number }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           RUN_ID: ${{ github.run_id }}
@@ -141,11 +152,15 @@ jobs:
           # Generate context name suffix based on report type
           REPORT_TYPE="${INPUT_REPORT_TYPE}"
           case "$REPORT_TYPE" in
-            MASTER) echo "context_suffix=/master" >> $GITHUB_OUTPUT ;;
-            RELEASE) echo "context_suffix=/release" >> $GITHUB_OUTPUT ;;
-            RELEASE_CUT) echo "context_suffix=/release-cut" >> $GITHUB_OUTPUT ;;
-            *) echo "context_suffix=" >> $GITHUB_OUTPUT ;;
+            MASTER) SUFFIX="/master" ;;
+            RELEASE) SUFFIX="/release" ;;
+            RELEASE_CUT) SUFFIX="/release-cut" ;;
+            *) SUFFIX="" ;;
           esac
+          if [ "${INPUT_SERVER_DEPLOY}" = "subpath" ]; then
+            SUFFIX="${SUFFIX}/subpath"
+          fi
+          echo "context_suffix=${SUFFIX}" >> $GITHUB_OUTPUT
 
   skip:
     needs:
@@ -191,6 +206,8 @@ jobs:
       server_edition: ${{ inputs.server_edition }}
       server_image_repo: ${{ inputs.server_image_repo }}
       server_image_aliases: ${{ inputs.server_image_aliases }}
+      server_deploy: ${{ inputs.server_deploy }}
+      playwright_project: ${{ inputs.playwright_project }}
       server: ${{ inputs.server }}
       enable_reporting: ${{ inputs.enable_reporting }}
       report_type: ${{ inputs.report_type }}
