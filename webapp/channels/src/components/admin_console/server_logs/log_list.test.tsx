@@ -433,32 +433,8 @@ describe('components/admin_console/server_logs/LogList', () => {
     describe('keyboard shortcuts', () => {
         beforeEach(pinAscendingSort);
 
-        const withErrors = [
-            makeLog('info 1', '2026-03-12T10:00:01.000Z'),
-            makeLog('error 1', '2026-03-12T10:00:02.000Z', LogLevelEnum.ERROR),
-            makeLog('info 2', '2026-03-12T10:00:03.000Z'),
-            makeLog('error 2', '2026-03-12T10:00:04.000Z', LogLevelEnum.ERROR),
-        ];
-
-        test('should jump between the error rows with e and shift-e', () => {
-            renderList(withErrors);
-
-            pressKey('e');
-            expect(focusedRowMessage()).toBe('error 1');
-
-            pressKey('e');
-            expect(focusedRowMessage()).toBe('error 2');
-
-            // Nothing further down to jump to, so the selection stays put
-            pressKey('e');
-            expect(focusedRowMessage()).toBe('error 2');
-
-            pressKey('E', {shiftKey: true});
-            expect(focusedRowMessage()).toBe('error 1');
-        });
-
         test('should focus the search input on /', () => {
-            renderList(withErrors);
+            renderList([first, second, third]);
 
             pressKey('/');
 
@@ -466,9 +442,9 @@ describe('components/admin_console/server_logs/LogList', () => {
         });
 
         test('should leave typing in the search input alone', () => {
-            renderList(withErrors);
+            renderList([first, second, third]);
 
-            fireEvent.keyDown(screen.getByLabelText('Search logs'), {key: 'e'});
+            fireEvent.keyDown(screen.getByLabelText('Search logs'), {key: 'ArrowDown'});
 
             expect(focusedRow()).toBeNull();
         });

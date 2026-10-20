@@ -9823,9 +9823,25 @@
     "defaultMessage": "Time",
     "description": "Column header in the log entry list on the System Console Server Logs page; the column shows when each entry was written."
   },
-  "admin.logs.keyboardHints": {
-    "defaultMessage": "Keyboard shortcuts: Up and Down arrows navigate entries, Enter expands the selected entry, E jumps to the next error, and / focuses the search box.",
-    "description": "Help text on the System Console Server Logs page listing the keyboard shortcuts for the log entry list; \"E\" and \"/\" are literal keys and must not be translated."
+  "admin.logs.keyboardHints.collapse": {
+    "defaultMessage": "Collapse entry",
+    "description": "Shortcut description in the keyboard shortcuts tooltip on the System Console Server Logs page; shown next to the Esc key."
+  },
+  "admin.logs.keyboardHints.expand": {
+    "defaultMessage": "Expand entry",
+    "description": "Shortcut description in the keyboard shortcuts tooltip on the System Console Server Logs page; shown next to the Enter key."
+  },
+  "admin.logs.keyboardHints.navigate": {
+    "defaultMessage": "Move between entries",
+    "description": "Shortcut description in the keyboard shortcuts tooltip on the System Console Server Logs page; shown next to the Up and Down arrow keys."
+  },
+  "admin.logs.keyboardHints.search": {
+    "defaultMessage": "Search",
+    "description": "Shortcut description in the keyboard shortcuts tooltip on the System Console Server Logs page; shown next to the / key, which focuses the log search box."
+  },
+  "admin.logs.keyboardHints.title": {
+    "defaultMessage": "Keyboard shortcuts",
+    "description": "Heading of the keyboard shortcuts tooltip on the System Console Server Logs page."
   },
   "admin.logs.keyboardHintsLabel": {
     "defaultMessage": "Keyboard shortcuts",

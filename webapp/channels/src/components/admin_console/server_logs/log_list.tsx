@@ -13,6 +13,7 @@ import * as Menu from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {LogObjectWithAdditionalInfo} from './types';
 
@@ -374,25 +375,6 @@ export default function LogList({
             e.preventDefault();
             searchInputRef.current?.focus();
             break;
-        case 'e':
-        case 'E': {
-            e.preventDefault();
-            const direction = e.shiftKey ? -1 : 1;
-
-            // With nothing focused yet, start from whichever end the search walks away from
-            let start = focusedIndex === -1 ? 0 : focusedIndex + direction;
-            if (focusedIndex === -1 && direction === -1) {
-                start = visibleLogs.length - 1;
-            }
-            for (let i = start; i >= 0 && i < visibleLogs.length; i += direction) {
-                if (visibleLogs[i].level === 'error') {
-                    setFocusedKey(rowKeys[i]);
-                    focusRow(i);
-                    break;
-                }
-            }
-            break;
-        }
         }
     }, [visibleLogs, rowKeys, focusedIndex, focusRow]);
 
@@ -784,12 +766,7 @@ export default function LogList({
                         />
                     )}
                     <WithTooltip
-                        title={
-                            <FormattedMessage
-                                id='admin.logs.keyboardHints'
-                                defaultMessage='Keyboard shortcuts: Up and Down arrows navigate entries, Enter expands the selected entry, E jumps to the next error, and / focuses the search box.'
-                            />
-                        }
+                        title={<KeyboardHints/>}
                     >
                         <i
                             className='icon icon-information-outline LogViewer__footer-help'
