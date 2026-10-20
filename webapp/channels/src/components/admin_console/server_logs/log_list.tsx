@@ -139,6 +139,11 @@ function getRowKeys(rows: LogObjectWithAdditionalInfo[]): string[] {
     });
 }
 
+// "2026-10-20 11:39:58.721 +02:00" isn't ISO 8601, and Safari can't parse it
+function parseTimestamp(timestamp: string): number {
+    return Date.parse(timestamp.replace(' ', 'T').replace(' ', ''));
+}
+
 function savePrefs(prefs: StoredPrefs) {
     try {
         localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
@@ -227,13 +232,12 @@ export default function LogList({
             filtered = filtered.filter((log) => enabledLevels.has(log.level));
         }
 
-        const sorted = [...filtered].sort((a, b) => {
-            const timeA = new Date(a.timestamp).valueOf();
-            const timeB = new Date(b.timestamp).valueOf();
-            return sortAsc ? timeA - timeB : timeB - timeA;
-        });
-
-        return sorted;
+        // Ties fall back to file order so same-millisecond entries reverse too
+        const direction = sortAsc ? 1 : -1;
+        return filtered.
+            map((log, index) => ({log, index, time: parseTimestamp(log.timestamp)})).
+            sort((a, b) => direction * ((a.time - b.time) || (a.index - b.index))).
+            map(({log}) => log);
     }, [logs, allLevelsEnabled, enabledLevels, sortAsc]);
 
     const matchCount = search ? processedLogs.length : null;

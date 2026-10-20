@@ -233,8 +233,8 @@ describe('components/admin_console/server_logs/Logs refetching', () => {
         await userEvent.click((await screen.findAllByText('Received HTTP request'))[0]);
 
         expect(document.querySelectorAll('.LogRow__details')).toHaveLength(1);
-        expect(screen.getByText('first-request')).toBeInTheDocument();
-        expect(screen.queryByText('second-request')).not.toBeInTheDocument();
+        expect(screen.getByText('second-request')).toBeInTheDocument();
+        expect(screen.queryByText('first-request')).not.toBeInTheDocument();
     });
 
     test('should expand only the clicked row when entries are identical', async () => {

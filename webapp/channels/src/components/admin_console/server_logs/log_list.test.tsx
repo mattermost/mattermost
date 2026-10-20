@@ -282,6 +282,29 @@ describe('components/admin_console/server_logs/LogList', () => {
             fireEvent.click(screen.getByRole('button', {name: /^Time/}));
             expect(rowMessages()).toEqual(['msg 1', 'msg 2', 'msg 3']);
         });
+
+        test('should keep entries with the same timestamp in reverse file order when newest first', () => {
+            renderList([
+                makeLog('starting', '2026-10-20 11:39:58.781 +02:00'),
+                makeLog('listening', '2026-10-20 11:39:58.781 +02:00'),
+                makeLog('later', '2026-10-20 11:39:58.782 +02:00'),
+            ]);
+
+            expect(rowMessages()).toEqual(['later', 'listening', 'starting']);
+
+            fireEvent.click(screen.getByRole('button', {name: /^Time/}));
+            expect(rowMessages()).toEqual(['starting', 'listening', 'later']);
+        });
+
+        test('should interleave entries from different cluster nodes by timestamp', () => {
+            renderList([
+                makeLog('node1 a', '2026-10-20 11:39:58.100 +02:00'),
+                makeLog('node1 b', '2026-10-20 11:39:58.300 +02:00'),
+                makeLog('node2 a', '2026-10-20 09:39:58.200 Z'),
+            ]);
+
+            expect(rowMessages()).toEqual(['node1 b', 'node2 a', 'node1 a']);
+        });
     });
 
     describe('pagination', () => {
