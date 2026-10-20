@@ -834,19 +834,37 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 
 // PreDeletePropertyValuesForField enforces access before deleting all values for a field.
 //
-// A field carrying a typed permissions object judges this as a field.write,
-// not a value.write: it clears every value the field has across every object,
-// so there is no single object to measure value.write against, and destroying
-// a field's data wholesale is an act on the field. Field delete never comes
-// through here -- it removes the values in the store directly -- so this gates
-// the bulk delete on its own. Absent permissions, it falls back to the legacy
-// value-write paths, as checkValueWriteAccess does.
+// On a field carrying a typed permissions object, the caller needs both
+// field.write and value.write. Clearing every value a field has is an act on
+// the field, and it is also a write of every one of those values, so holding
+// either action alone is not enough: a sync lock withholds value.write while
+// leaving field.write, and this must not get around it.
+//
+// value.write is judged as the single-value write judges it, with no target,
+// since the delete reaches every object at once. A machine caller needs a
+// value.write grant matching its acting-as scope; grants never depend on the
+// target. A human caller is judged by the ladder and their user and role
+// grants with an empty target. A tier measured against the value's object
+// (member, admin or creator on a channel or post field) then has no object to
+// be measured against and refuses; on a user, system or template field those
+// tiers are measured against the field's own target and resolve as usual.
+//
+// On a masked field a machine caller must also be named in except. It holds
+// nothing for masking to match, so it cannot see the values, and a single
+// write is refused on a value the caller cannot see (checkValueWriteVisibility).
+// A linked field takes its masking from its template.
+//
+// Field delete never comes through here (it removes the values in the store
+// directly), so this hook is the only check on a bulk value delete. A field
+// without a permissions object falls back to the legacy value-write paths, as
+// checkValueWriteAccess does.
 func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error {
 	if !h.isGroupManaged(groupID) {
 		return nil
 	}
 
 	callerID := h.extractCallerID(rctx)
+	scope := h.extractActingAsScope(rctx)
 
 	field, err := h.propertyService.getPropertyField(rctx, groupID, fieldID)
 	if err != nil {
@@ -854,30 +872,32 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 	}
 
 	if field.Permissions == nil {
-		return h.checkValueWriteAccess(rctx, newMaskingContext(), field, callerID, h.extractActingAsScope(rctx), "")
+		return h.checkValueWriteAccess(rctx, newMaskingContext(), field, callerID, scope, "")
 	}
 
 	if !isMachineCaller(h.pluginChecker, callerID) {
-		if h.permissionsAllows(rctx, field, callerID, "", model.PropertyActionFieldWrite, "") {
-			return nil
+		if !h.permissionsAllows(rctx, field, callerID, "", model.PropertyActionFieldWrite, "") {
+			return fmt.Errorf("field %s refuses caller %q the field.write a delete of all its values needs: %w", field.ID, callerID, ErrAccessDenied)
 		}
-		return fmt.Errorf("field %s refuses caller %q a delete of all its values: %w", field.ID, callerID, ErrAccessDenied)
+		if !h.permissionsAllows(rctx, field, callerID, "", model.PropertyActionValueWrite, "") {
+			return fmt.Errorf("field %s refuses caller %q the value.write a delete of all its values needs: %w", field.ID, callerID, ErrAccessDenied)
+		}
+		return nil
 	}
 
 	if !h.permissionsGrantAllows(field, callerID, "", model.PropertyActionFieldWrite) {
 		return fmt.Errorf("field %s carries permissions and caller %q matches no field.write grant: %w", field.ID, callerID, ErrAccessDenied)
 	}
+	if !h.permissionsGrantAllows(field, callerID, scope, model.PropertyActionValueWrite) {
+		return fmt.Errorf("field %s carries permissions and caller %q acting as scope %q matches no value.write grant: %w", field.ID, callerID, scope, ErrAccessDenied)
+	}
 
-	// A machine caller holds nothing for masking to match, so unless except
-	// names it, it can see none of a masked field's values -- and may not
-	// destroy what it cannot read, the rule checkValueWriteVisibility holds a
-	// single write to.
 	fm, err := h.resolveFieldMasking(rctx, field)
 	if err != nil {
 		return err
 	}
 	if fm.masking != nil && !h.exempt(rctx, fm.masking.Except, callerID) {
-		return fmt.Errorf("field %s is masked and caller %q is not exempt, so it may not delete values it cannot read: %w", field.ID, callerID, ErrAccessDenied)
+		return fmt.Errorf("field %s is masked and caller %q is not exempt, so it may not delete values it cannot see: %w", field.ID, callerID, ErrAccessDenied)
 	}
 	return nil
 }
