@@ -35,8 +35,94 @@ const WEBAPP_SEVERITY = {
 
 const finding = (rule, severity, message) => ({rule, severity, message});
 
-function softChecks(item, value, glossary) {
+// Literal text only: an ICU message's arguments and tags are not words.
+function literalText(ast, out = []) {
+    for (const el of ast) {
+        if (el.type === 0) {
+            out.push(el.value);
+        }
+        if (el.options) {
+            for (const option of Object.values(el.options)) {
+                literalText(option.value, out);
+            }
+        }
+        if (el.children) {
+            literalText(el.children, out);
+        }
+    }
+    return out;
+}
+
+// A message's literal text, without its arguments, tags, template actions,
+// URLs or email addresses.
+function proseOf(value, surface) {
+    let text;
+    if (surface === 'webapp') {
+        try {
+            text = literalText(icu.parse(value, icu.PARSE_OPTIONS)).join(' ');
+        } catch {
+            text = value;
+        }
+    } else {
+        text = flatten(value).replace(/\{\{[^}]*\}\}/g, ' ');
+    }
+    return text.replace(/[a-z][a-z0-9+.-]*:\/\/\S*|\S+@\S+\.\S+/gi, ' ');
+}
+
+const WORD = /(?<![\p{L}\p{N}._/#@:\\-])[\p{L}\p{N}][\p{L}\p{N}'’._/-]*/gu;
+const CODE_LITERALS = new Set(['true', 'false', 'null', 'nil']);
+const QUOTED = /`[^`]*`|"[^"\n]*"|“[^”\n]*”|'[^'\s]*'/g;
+
+/**
+ * The words in a source string a translator would translate: its literal text,
+ * less URLs, email addresses, doNotTranslate names, and anything shaped like an
+ * identifier (SAML, AD/LDAP, maxFileSize, file.json, v2, .png, /header, @all,
+ * manage_system, [on|off]).
+ */
+function translatableWords(english, surface, glossary) {
+    let text = proseOf(english, surface);
+    for (const entry of glossary) {
+        if (entry.doNotTranslate) {
+            for (const {re} of entry.patterns) {
+                text = text.replace(new RegExp(re.source, 'gu'), ' ');
+            }
+        }
+    }
+    const tokens = (text.replace(/[\p{L}\p{N}]*_[\p{L}\p{N}_]*|[\p{L}\p{N}]+=|\[[^\]]*\|[^\]]*\]/gu, ' ').match(WORD) || []).map((w) => w.replace(/[._/'’-]+$/u, ''));
+    return tokens.filter((w) => (
+        w.length > 1 &&
+        !CODE_LITERALS.has(w) &&
+        !/\d/.test(w) &&
+        !/[._/]/.test(w) &&
+        !/^\p{Lu}{2,}s?$/u.test(w) &&
+        !/\p{Ll}\p{Lu}/u.test(w)
+    ));
+}
+
+// A Latin-script language can share a word or two with English, "Status" or
+// "Server", and be right. A language in any other script almost never can.
+const isLatinScript = (locale) => new Intl.Locale(locale).maximize().script === 'Latn';
+const isEnglish = (locale) => new Intl.Locale(locale).language === 'en';
+const unquoted = (value) => (typeof value === 'string' ? value.replace(QUOTED, ' ') : Object.fromEntries(Object.entries(value).map(([k, v]) => [k, v.replace(QUOTED, ' ')])));
+
+function softChecks(item, value, locale, surface, glossary) {
     const out = [];
+    if (!isEnglish(locale) && flatten(value) === flatten(item.english)) {
+        // A name is capitalised; three ordinary words are a sentence nobody translated.
+        const words = translatableWords(item.english, surface, glossary);
+        const severity = words.filter((w) => w === w.toLowerCase()).length >= 3 ? 'error' : 'soft';
+        if (words.length >= (isLatinScript(locale) ? 2 : 1)) {
+            out.push(finding('identical-to-english', severity, `identical to the English, which has words to translate (${words.slice(0, 4).join(' ')})`));
+        }
+    } else if (!isEnglish(locale) && !isLatinScript(locale)) {
+        // Lowercase words only: a capitalised one is usually a name, and a quoted
+        // one a value the user types.
+        const source = new Set(translatableWords(unquoted(item.english), surface, glossary).filter((w) => w === w.toLowerCase()));
+        const kept = [...new Set(translatableWords(unquoted(value), surface, glossary).filter((w) => source.has(w)))];
+        if (kept.length) {
+            out.push(finding('english-words', 'soft', `keeps English words from the source: ${kept.slice(0, 6).join(', ')}`));
+        }
+    }
     const dropped = droppedNames(glossary, item.english, value);
     if (dropped.length) {
         out.push(finding('do-not-translate', 'soft', `leaves out ${dropped.map((d) => `"${d}"`).join(', ')}, which the glossary keeps in English`));
@@ -142,6 +228,6 @@ export function checkTranslation({item, value, locale, surface, glossary}) {
     } else {
         out.push(...checkServer(item, value, locale));
     }
-    out.push(...softChecks(item, value, glossary));
+    out.push(...softChecks(item, value, locale, surface, glossary));
     return out;
 }

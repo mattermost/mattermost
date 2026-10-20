@@ -18,12 +18,12 @@ import {pathToFileURL} from 'node:url';
 
 // Resolved through react-intl: a bare import gets whichever copy npm hoisted.
 const reactIntlRequire = createRequire(import.meta.resolve('react-intl'));
-const {parse} = await import(pathToFileURL(reactIntlRequire.resolve('@formatjs/icu-messageformat-parser')).href);
+export const {parse} = await import(pathToFileURL(reactIntlRequire.resolve('@formatjs/icu-messageformat-parser')).href);
 
 // ignoreTag: false parses <b>...</b> as tags rather than literal text, so the
 // tag checks see them; requiresOtherClause: true rejects a plural or select with
 // no "other" arm, which ICU requires as the fallback.
-const PARSE_OPTIONS = {ignoreTag: false, requiresOtherClause: true};
+export const PARSE_OPTIONS = {ignoreTag: false, requiresOtherClause: true};
 
 // Element type ids from @formatjs/icu-messageformat-parser's TYPE enum. They
 // are inlined as numbers in the AST, so name them for legible messages.

@@ -74,6 +74,30 @@ describe('rules', () => {
         assert.deepEqual(check('ru', english, '{{.Count}} элементов', 'server'), ['error plural-demoted']);
     });
 
+    test('English left as it is', () => {
+        assert.deepEqual(check('ru', 'With CEL you can define conditions', 'With CEL you can define conditions'), ['error identical-to-english']);
+        assert.deepEqual(check('pl', 'Confirm sending notifications to groups', 'Confirm sending notifications to groups'), ['error identical-to-english']);
+        assert.deepEqual(check('ru', 'Azure Blob Storage', 'Azure Blob Storage'), ['soft identical-to-english']);
+        assert.deepEqual(check('de', 'Save changes', 'Save changes'), ['soft identical-to-english']);
+        assert.deepEqual(check('de', 'Status', 'Status'), []);
+        assert.deepEqual(check('fr', '[on|off|status] [@username]', '[on|off|status] [@username]', 'server'), []);
+        assert.deepEqual(check('en-AU', 'Save your changes now', 'Save your changes now'), []);
+    });
+
+    test('a glossary name is not English left untranslated', () => {
+        assert.deepEqual(check('ru', 'Mattermost', 'Mattermost'), []);
+        assert.deepEqual(check('de', 'Mattermost Boards', 'Mattermost Boards'), []);
+        assert.deepEqual(check('ja', 'Open Mattermost', 'Open Mattermost'), ['soft identical-to-english']);
+    });
+
+    test('English words left in a non-Latin script', () => {
+        assert.deepEqual(check('ru', '{count, plural, one {team} other {teams}}', '{count, plural, one {team} few {teams} many {teams} other {teams}}'), ['soft english-words']);
+        assert.deepEqual(check('ru', 'Open the {name} webhook settings', 'Откройте настройки вебхука {name}'), []);
+        assert.deepEqual(check('ru', 'Upload a .png file from https://example.com', 'Загрузите файл .png с https://example.com'), []);
+        assert.deepEqual(check('ru', 'Type /header to set it', 'Введите /header, чтобы задать его'), []);
+        assert.deepEqual(check('ru', 'Type "yes" to confirm', 'Введите "yes" для подтверждения'), []);
+    });
+
     test('leaving out a doNotTranslate name is soft', () => {
         assert.deepEqual(check('de', 'Open Mattermost', 'Öffne die App'), ['soft do-not-translate']);
         assert.deepEqual(check('de', 'Open MM', 'Öffne die App', 'server'), ['soft do-not-translate']);
