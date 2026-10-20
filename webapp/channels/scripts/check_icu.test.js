@@ -27,7 +27,12 @@ const SCRIPT = path.join(__dirname, 'check_icu.mjs');
  */
 function check(en, locales, {warnMissingKeys = false, extraFiles = {}} = {}) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'check-icu-'));
-    const serialize = (body) => (typeof body === 'string' ? body : JSON.stringify(body));
+
+    // Objects are written in canonical form, as the checker requires of every
+    // catalog; pass a string to test a file exactly as written.
+    const serialize = (body) => (typeof body === 'string' ? body : JSON.stringify(
+        Object.fromEntries(Object.keys(body).sort().map((k) => [k, body[k]])), null, 2,
+    ) + '\n');
     const serializeSource = (body) => (typeof body === 'string' ? body : JSON.stringify(
         Object.fromEntries(Object.entries(body).map(([key, defaultMessage]) => [key, {defaultMessage, description: ''}])),
     ));
@@ -48,7 +53,7 @@ describe('check_icu', () => {
         // The script's whole premise is that parsing here implies parsing under
         // react-intl, which only holds while the two agree on a version. Three
         // copies of this package exist in the tree, so a bare import picks up
-        // whichever npm hoisted -- for a long time, the older one
+        // whichever npm hoisted: for a long time, the older one
         // babel-plugin-formatjs pulls. The script sidesteps that by resolving
         // the parser from react-intl's own node_modules, which works only while
         // react-intl keeps depending on the parser directly.
@@ -63,7 +68,36 @@ describe('check_icu', () => {
         });
     });
 
+    describe('right-to-left', () => {
+        test('warns about a horizontal arrow in a right-to-left locale', () => {
+            const {code, stderr} = check({'a.b': 'Next →'}, {'fa.json': {'a.b': 'بعدی →'}});
+
+            expect(code).toBe(0);
+            expect(stderr).toContain('fa.json:a.b: horizontal arrow in a right-to-left locale');
+        });
+
+        test('ignores vertical arrows, and left-to-right locales', () => {
+            const {stderr} = check(
+                {'a.b': 'Use ↑↓ to browse', 'a.c': 'Next →'},
+                {'fa.json': {'a.b': 'از ↑↓ استفاده کنید', 'a.c': 'بعدی'}, 'fr.json': {'a.b': 'Utilisez ↑↓', 'a.c': 'Suivant →'}},
+            );
+
+            expect(stderr).not.toContain('horizontal arrow');
+        });
+    });
+
     describe('well-formedness', () => {
+        test.each([
+            ['keys out of order', '{\n  "a.c": "Deux",\n  "a.b": "Un"\n}\n'],
+            ['a four-space indent', '{\n    "a.b": "Un",\n    "a.c": "Deux"\n}\n'],
+            ['no trailing newline', '{\n  "a.b": "Un",\n  "a.c": "Deux"\n}'],
+        ])('rejects a catalog with %s', (_, text) => {
+            const {code, stderr} = check({'a.b': 'One', 'a.c': 'Two'}, {'fr.json': text});
+
+            expect(code).toBe(1);
+            expect(stderr).toContain('fr.json: not in canonical form');
+        });
+
         test('accepts a clean catalog', () => {
             const {code, stdout} = check(
                 {'a.b': 'Hello {name}'},
@@ -121,7 +155,7 @@ describe('check_icu', () => {
             fs.writeFileSync(path.join(dir, 'en.json'), JSON.stringify({
                 'a.b': {defaultMessage: 'Hello', description: "Rendered before the {unclosed brace and an ' apostrophe"},
             }));
-            fs.writeFileSync(path.join(dir, 'fr.json'), JSON.stringify({'a.b': 'Bonjour'}));
+            fs.writeFileSync(path.join(dir, 'fr.json'), JSON.stringify({'a.b': 'Bonjour'}, null, 2) + '\n');
 
             const result = spawnSync(process.execPath, [SCRIPT, dir], {encoding: 'utf8'});
 
@@ -166,12 +200,11 @@ describe('check_icu', () => {
             expect(stderr).toContain('fr.json:a.b: empty translation');
         });
 
-        test('an empty translation is a warning under --warn-missing-keys', () => {
+        test('an empty translation is still an error under --warn-missing-keys', () => {
             const {code, stderr} = check({'a.b': 'Hello'}, {'fr.json': {'a.b': ''}}, {warnMissingKeys: true});
 
-            expect(code).toBe(0);
+            expect(code).toBe(1);
             expect(stderr).toContain('fr.json:a.b: empty translation');
-            expect(stderr).toContain('1 warning(s)');
         });
 
         test('a whitespace-only translation is an error by default', () => {
@@ -282,13 +315,14 @@ describe('check_icu', () => {
             expect(stderr).toContain(`"count" is used as ${role}`);
         });
 
-        test('does not compare plural categories, which belong to the locale', () => {
-            const {code} = check(
+        test('accepts the plural forms the locale needs rather than the ones the source has', () => {
+            const {code, stderr} = check(
                 {'a.b': '{count, plural, one {# item} other {# items}}'},
                 {'ru.json': {'a.b': '{count, plural, one {# элемент} few {# элемента} many {# элементов} other {# элемента}}'}},
             );
 
             expect(code).toBe(0);
+            expect(stderr).toBe('');
         });
 
         test('does not treat # as a variable', () => {
@@ -298,6 +332,73 @@ describe('check_icu', () => {
             );
 
             expect(code).toBe(0);
+        });
+    });
+
+    describe('plural forms', () => {
+        const items = '{count, plural, one {# item} other {# items}}';
+
+        // ICU falls back to "other" for a missing form: it renders, in the wrong
+        // grammatical case. A warning, because the catalogs ship hundreds today.
+        test('warns about a form the locale needs for a count it shows', () => {
+            const {code, stderr} = check({'a.b': items}, {'ru.json': {'a.b': '{count, plural, one {# элемент} other {# элемента}}'}});
+
+            expect(code).toBe(0);
+            expect(stderr).toContain('ru.json:a.b: plural "count" has no few/many form, so counts such as 2, 5 render with "other"');
+        });
+
+        test('counts a variable rendered outside the plural as shown', () => {
+            const {stderr} = check(
+                {'a.b': '{count, number} {count, plural, one {channel} other {channels}}'},
+                {'ru.json': {'a.b': '{count, number} {count, plural, one {канал} other {каналы}}'}},
+            );
+
+            expect(stderr).toContain('plural "count" has no few/many form');
+        });
+
+        test('holds a promoted plural to the locale too', () => {
+            const {stderr} = check({'a.b': '{count} items'}, {'ru.json': {'a.b': '{count, plural, one {# элемент} other {# элемента}}'}});
+
+            expect(stderr).toContain('plural "count" has no few/many form');
+        });
+
+        test('takes an explicit =N arm as covering that count', () => {
+            const {stderr} = check(
+                {'a.b': '{count, plural, =1 {one item} other {# items}}'},
+                {'de.json': {'a.b': '{count, plural, =1 {ein Element} other {# Elemente}}'}},
+            );
+
+            expect(stderr).toBe('');
+        });
+
+        test('ignores a form only fractions or very large numbers select', () => {
+            const {stderr} = check({'a.b': items}, {'fr.json': {'a.b': '{count, plural, one {# élément} other {# éléments}}'}});
+
+            expect(stderr).toBe('');
+        });
+
+        test('ignores a plural whose count is not shown', () => {
+            const {stderr} = check(
+                {'a.b': '{count, plural, one {Delete file?} other {Delete files?}}'},
+                {'ru.json': {'a.b': '{count, plural, one {Удалить файл?} other {Удалить файлы?}}'}},
+            );
+
+            expect(stderr).toBe('');
+        });
+
+        test('does not hold a translation to more than an incomplete source', () => {
+            const {stderr} = check(
+                {'a.b': '{count, plural, =0 {} other {{count} Scheduled}}'},
+                {'ru.json': {'a.b': '{count, plural, =0 {} other {{count} запланировано}}'}},
+            );
+
+            expect(stderr).toBe('');
+        });
+
+        test('does not report a form the locale never selects', () => {
+            const {stderr} = check({'a.b': items}, {'ja.json': {'a.b': '{count, plural, one {# 件} other {# 件}}'}});
+
+            expect(stderr).toBe('');
         });
     });
 
