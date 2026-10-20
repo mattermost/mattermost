@@ -84,6 +84,24 @@ describe('Selectors.Rhs', () => {
         });
     });
 
+    describe('should start a new search on the current team rather than the team mentions are filtered to', () => {
+        test.each([
+            ['mention', 'mentionTeamId', 'currentTeamId'],
+            ['search', 'searchTeamId', 'searchTeamId'],
+            ['search', null, 'currentTeamId'],
+        ])('in the %p view with %p stored gives %p', (rhsState, searchTeam, expected) => {
+            const state = {
+                entities: {teams: {currentTeamId: 'currentTeamId'}},
+                views: {rhs: {
+                    rhsState,
+                    searchTeam,
+                }} as any,
+            } as GlobalState;
+
+            expect(Selectors.getRegularSearchTeam(state)).toEqual(expected);
+        });
+    });
+
     describe('should read the results of the search that was actually run', () => {
         function stateFor(rhsState: string, searchTeam: string | null) {
             return {

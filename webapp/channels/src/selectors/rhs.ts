@@ -141,6 +141,16 @@ export function getSearchTeam(state: GlobalState): string {
     return state.views.rhs.searchTeam ?? getCurrentTeamId(state);
 }
 
+// getRegularSearchTeam returns the team a new message search starts on. In the mentions view the stored
+// team is the one the mentions are filtered to, so a new search starts on the current team instead, as
+// it would from anywhere else.
+export function getRegularSearchTeam(state: GlobalState): string {
+    if (getRhsState(state) === RHSStates.MENTION) {
+        return getCurrentTeamId(state);
+    }
+    return getSearchTeam(state);
+}
+
 // getExplicitSearchTeam returns the team ID the search was explicitly scoped to, or null when it wasn't
 // scoped to one. Recent mentions search every team unless scoped, so callers need to tell the two apart.
 export function getExplicitSearchTeam(state: GlobalState): string | null {

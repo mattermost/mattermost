@@ -296,6 +296,8 @@ const Search = ({
         }
 
         if (isMentionSearch) {
+            // The team belongs to the mention filters, not to the search being started.
+            updateSearchTeam(null);
             updateRhsState(RHSStates.SEARCH);
         }
 
