@@ -18258,7 +18258,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 140+",
+    "translation": "Version 153+",
     "description": "Compact version requirement label on the Firefox card of the 'unsupported browser' page; the number is the minimum Firefox version."
   },
   {
