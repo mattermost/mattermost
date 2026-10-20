@@ -141,7 +141,10 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 // owners at all) and the grants the conversion derives from the field's other
 // attrs (see ownersFromGrants). A user or role owner converts to no grant, so
 // it is carried over from the stored owners attr instead (see
-// appendHumanOwners). field.write none becomes protected, except that a field
+// appendHumanOwners). It is carried over even after a v3 edit has changed what
+// the field allows, say by opening value.write to members, so in the v2 view
+// it can go stale, as the stored attrs already do. field.write none becomes
+// protected, except that a field
 // whose stored attrs mark it protected, and whose Protected column isn't set,
 // projects the unprotected, sysadmin-pinned columns access_control stores for
 // it, and carries the protection in the attr.
@@ -225,6 +228,13 @@ func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 // field as managed by an integration. Both attrs are still on the field, so
 // converting the projection back derives the same grants. A grant edited
 // past what the attrs give is a real owner, and is projected.
+//
+// One rare case is lost. A stored machine owner whose explicit Allow is no
+// wider than a derived grant of the same identity, such as a service owner
+// allowed only value.write on a field its own sync locks, merges into that
+// grant at conversion and is then left out here as derived. The v2 view
+// shows the field unowned, and converting it back opens the writes an owners
+// list closes to the plugin wildcard.
 func ownersFromGrants(field *PropertyField) []PropertyOwner {
 	derived := derivedGrantAllow(field)
 	var owners []PropertyOwner
@@ -288,7 +298,9 @@ func mergeSplitOwners(owners []PropertyOwner) []PropertyOwner {
 // derivedGrantAllow returns, for each identity grantsFromLegacy grants from
 // attrs other than owners, the actions it grants it: the source plugin of a
 // protected field (only its reads once the field has owners, see
-// sourcePluginGrantAllow), and the sync service of a synced one.
+// sourcePluginGrantAllow), and the sync service of a synced one. A machine
+// owner of the same identity merges into that grant, so one whose Allow fits
+// inside it is indistinguishable from it (see ownersFromGrants).
 func derivedGrantAllow(field *PropertyField) map[Identity][]string {
 	derived := map[Identity][]string{}
 	if pluginID, allow := sourcePluginGrantAllow(field); pluginID != "" {
@@ -315,7 +327,9 @@ func isSubsetOf(allow, of []string) bool {
 // v2 reader it is what locks the field to people, and reconverting a
 // projection without it would hand the field's writes to the plugin
 // wildcard. A machine owner in stored is left out: its grant is the
-// authority, and is already projected.
+// authority, and ownersFromGrants projects it, except for a narrow owner
+// merged into a derived grant, which is left out with that grant (see
+// ownersFromGrants).
 func appendHumanOwners(owners, stored []PropertyOwner) []PropertyOwner {
 	for _, owner := range stored {
 		if isMachineOwnerType(owner.Type) {
