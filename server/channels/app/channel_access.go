@@ -667,7 +667,7 @@ func (a *App) prepareChannelAccess(rctx request.CTX, userID string, channels []*
 	}
 
 	// The same cached read GetSubjectChannelRole makes, done once for the page.
-	memberRoles, err := a.Srv().Store().Channel().GetAllChannelMemberRolesForUser(rctx, userID, true)
+	memberRoles, err := a.Srv().Store().Channel().GetChannelMemberRoles(rctx, userID, channelIDs, true)
 	if err != nil {
 		rctx.Logger().Warn("Failed to fetch channel roles for channel-access evaluation; reading them per channel",
 			mlog.String("action", action),

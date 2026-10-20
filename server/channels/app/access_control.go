@@ -2871,8 +2871,9 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 //     SchemeGuest → channel_guest.
 //  2. Inspect the Roles tokens on the channel member for the channel role names.
 //
-// The role fields come from the user's cached channel memberships rather than a ChannelMember
-// read, because this runs for every recipient of every channel-scoped websocket event.
+// The role fields come from the cached membership of this one user in this one channel rather
+// than a ChannelMember read, because this runs on the websocket hub for every recipient of
+// every channel-scoped event.
 //
 // Returns ("", nil) when no channel role can be determined — either
 // because the user is not a member of the channel, or because the
@@ -2883,7 +2884,7 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 // a fabricated role. Inconsistent-row cases are logged at WARN with the
 // row's flags and Roles for operator triage.
 func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) (string, *model.AppError) {
-	memberRoles, err := a.Srv().Store().Channel().GetAllChannelMemberRolesForUser(rctx, userID, true)
+	memberRoles, err := a.Srv().Store().Channel().GetChannelMemberRoles(rctx, userID, []string{channelID}, true)
 	if err != nil {
 		return "", model.NewAppError("GetSubjectChannelRole", "app.access_control.get_channel_role.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

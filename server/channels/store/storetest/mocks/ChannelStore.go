@@ -590,36 +590,6 @@ func (_m *ChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([]string, 
 	return r0, r1
 }
 
-// GetAllChannelMemberRolesForUser provides a mock function with given fields: rctx, userID, allowFromCache
-func (_m *ChannelStore) GetAllChannelMemberRolesForUser(rctx request.CTX, userID string, allowFromCache bool) (map[string]store.ChannelMemberRoles, error) {
-	ret := _m.Called(rctx, userID, allowFromCache)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetAllChannelMemberRolesForUser")
-	}
-
-	var r0 map[string]store.ChannelMemberRoles
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) (map[string]store.ChannelMemberRoles, error)); ok {
-		return rf(rctx, userID, allowFromCache)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) map[string]store.ChannelMemberRoles); ok {
-		r0 = rf(rctx, userID, allowFromCache)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]store.ChannelMemberRoles)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
-		r1 = rf(rctx, userID, allowFromCache)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetAllChannelMembersForUser provides a mock function with given fields: rctx, userID, allowFromCache, includeDeleted
 func (_m *ChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
 	ret := _m.Called(rctx, userID, allowFromCache, includeDeleted)
@@ -941,6 +911,36 @@ func (_m *ChannelStore) GetByNamesIncludeDeleted(teamID string, names []string, 
 
 	if rf, ok := ret.Get(1).(func(string, []string, bool) error); ok {
 		r1 = rf(teamID, names, allowFromCache)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetChannelMemberRoles provides a mock function with given fields: rctx, userID, channelIDs, allowFromCache
+func (_m *ChannelStore) GetChannelMemberRoles(rctx request.CTX, userID string, channelIDs []string, allowFromCache bool) (map[string]store.ChannelMemberRoles, error) {
+	ret := _m.Called(rctx, userID, channelIDs, allowFromCache)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetChannelMemberRoles")
+	}
+
+	var r0 map[string]store.ChannelMemberRoles
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string, bool) (map[string]store.ChannelMemberRoles, error)); ok {
+		return rf(rctx, userID, channelIDs, allowFromCache)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string, bool) map[string]store.ChannelMemberRoles); ok {
+		r0 = rf(rctx, userID, channelIDs, allowFromCache)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]store.ChannelMemberRoles)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, []string, bool) error); ok {
+		r1 = rf(rctx, userID, channelIDs, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}

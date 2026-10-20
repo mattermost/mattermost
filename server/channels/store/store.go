@@ -211,6 +211,10 @@ type TeamStore interface {
 // the channel, resolved the same way GetMember resolves them: role names left in Roles by an
 // unmigrated row are folded into the scheme flags, and Roles also carries the roles the
 // channel's scheme implies.
+//
+// The scheme flags come from the membership row alone. The scheme roles in Roles come from the
+// channel's and team's schemes, and a cached value is not invalidated when those change, so
+// decide the member's role from the flags.
 type ChannelMemberRoles struct {
 	Roles       string
 	SchemeGuest bool
@@ -273,7 +277,9 @@ type ChannelStore interface {
 	GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
-	GetAllChannelMemberRolesForUser(rctx request.CTX, userID string, allowFromCache bool) (map[string]ChannelMemberRoles, error)
+	// GetChannelMemberRoles returns userID's role fields in each of channelIDs it is a member
+	// of, keyed by channel ID. A channel it does not belong to is absent from the map.
+	GetChannelMemberRoles(rctx request.CTX, userID string, channelIDs []string, allowFromCache bool) (map[string]ChannelMemberRoles, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
 	InvalidateAllChannelMembersForUser(userID string)
 	GetAllChannelMembersNotifyPropsForChannel(channelID string, allowFromCache bool) (map[string]model.StringMap, error)
