@@ -25,6 +25,7 @@ export const defaultFeatureFlags: Record<string, string> = {
     EnableSharedChannelsDMs: 'false',
     EnableShiftEscapeToMarkAllRead: 'false',
     EnableSyncAllUsersForRemoteCluster: 'false',
+    EnforceLogPathRoot: 'false',
     GlobalAttributes: 'false',
     IntegratedBoards: 'false',
     ManagedChannelCategories: 'false',
