@@ -247,8 +247,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a large Markdown image',
-            // TODO images that are too wide but above the minimum height cause layout shift
-            skipProjects: ['chrome', 'firefox', 'ipad'],
+            // MM-69979 Images that are too wide but above the minimum height cause layout shift
+            skipProjects: ['chrome', 'firefox', 'ipad', 'subpath'],
             getSeedOptions: (baseUrl) => ({
                 message: `![large image](${baseUrl}/huge-image.jpg)`,
             }),
@@ -286,7 +286,7 @@ test.describe('Post height', () => {
             // (SVG images are filtered from link metadata to mitigate the MM-67372 DoS),
             // so the client cannot reserve height before the SVG loads. That makes a
             // layout-shift-free render impossible for this case regardless of browser.
-            skipProjects: ['chrome', 'firefox', 'ipad'],
+            skipProjects: ['chrome', 'firefox', 'ipad', 'subpath'],
             getSeedOptions: (baseUrl) => ({
                 message: `![icon](${baseUrl}/icon.svg)`,
             }),
@@ -320,8 +320,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a large image preview',
-            // TODO images that are too wide but above the minimum height cause layout shift
-            skipProjects: ['chrome', 'firefox', 'ipad'],
+            // MM-69979 Images that are too wide but above the minimum height cause layout shift
+            skipProjects: ['chrome', 'firefox', 'ipad', 'subpath'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/huge-image.jpg`,
             }),
