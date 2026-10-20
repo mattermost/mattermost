@@ -48,7 +48,7 @@ func (ps *PlatformService) initLogging() error {
 
 	// Validate log and audit file paths before configuring any target. ConfigureTargets opens
 	// the target files, so a check placed after it would already have written outside the root.
-	logPathErr := config.ValidateLogPaths(ps.Config(), ps.getLogRootPath())
+	logPathErr := config.ValidateLogPaths(ps.Config(), nil, ps.getLogRootPath())
 	if logPathErr != nil && config.IsLogPathEnforcementEnabled(ps.Config()) {
 		// At startup this aborts the boot via platform.New. On a config reload it leaves the
 		// previously configured (valid) targets in place, so the offending file is never opened.
@@ -77,7 +77,7 @@ func (ps *PlatformService) initLogging() error {
 
 	// logged after the targets are configured so the line reaches them rather than the default logger
 	if logPathErr != nil {
-		ps.logger.Error(config.LogPathOutsideRootWarning, mlog.Err(logPathErr))
+		ps.logger.Error(config.LogPathInvalidWarning, mlog.Err(logPathErr))
 	}
 
 	return nil

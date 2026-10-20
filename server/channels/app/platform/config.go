@@ -107,10 +107,10 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 		}
 	}
 
-	if err := config.ValidateLogPaths(newCfg, ps.getLogRootPath()); err != nil {
+	if err := config.ValidateLogPaths(newCfg, ps.Config(), ps.getLogRootPath()); err != nil {
 		// mlog rather than ps.logger: after startup the global logger *is* ps.logger, and
 		// SaveConfig is reachable from paths that do not guarantee a configured logger.
-		mlog.Error(config.LogPathOutsideRootWarning, mlog.Err(err))
+		mlog.Error(config.LogPathInvalidWarning, mlog.Err(err))
 
 		// The flag is read from the *active* config, not newCfg, so a single patch cannot both
 		// disable enforcement and introduce an out-of-root path.
