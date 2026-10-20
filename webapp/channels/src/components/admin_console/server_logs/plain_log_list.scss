@@ -6,8 +6,7 @@
 .PlainLogViewer {
     @include log_viewer.viewer-shell;
 
-    // Padding and wrapping come from .admin-console__filters-rows, matching the
-    // System Users filter row.
+    // Padding and wrapping come from .admin-console__filters-rows, like System Users
     &__filters {
         column-gap: 12px;
 
@@ -20,7 +19,6 @@
         flex: 1;
     }
 
-    // Log content area
     &__content {
         overflow: auto;
         flex: 1;
@@ -80,8 +78,7 @@
         white-space: nowrap;
     }
 
-    // JSON lines use highlight.js via the .hljs class — themed by the user's code theme CSS.
-    // Override the background that hljs themes set so it inherits from the log viewer.
+    // hljs themes set their own background; inherit the viewer's instead
     .hljs {
         padding: 0;
         background: transparent;

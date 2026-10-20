@@ -73,13 +73,9 @@ function formatFilterDate(date: Date): string {
     return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}.000 +00:00`;
 }
 
-// The range covered by a time preset, ending at the current time
-function presetRange(minutes: number): {dateFrom: string; dateTo: string} {
-    const now = new Date();
-    return {
-        dateFrom: formatFilterDate(new Date(now.getTime() - (minutes * 60 * 1000))),
-        dateTo: formatFilterDate(now),
-    };
+// No end date, so the server ends the range at its own clock rather than the browser's
+function presetStart(minutes: number): string {
+    return formatFilterDate(new Date(Date.now() - (minutes * 60 * 1000)));
 }
 
 const ALL_SERVER_NAMES: LogServerNames = [];
@@ -115,14 +111,12 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
     const [pollInterval, setPollInterval] = useState(30000);
 
-    // Fetches run one at a time so a slow response can't land after, and
-    // overwrite, a newer one
+    // One fetch at a time, so a slow response can't overwrite a newer one
     const fetchQueueRef = useRef<Promise<unknown>>(Promise.resolve());
     const latestFetchRef = useRef(0);
     const pendingFetchesRef = useRef(0);
 
-    // `silent` keeps the loading state untouched, so a background poll never
-    // replaces the viewer with a spinner
+    // `silent` polls leave the loading state alone so the viewer never flashes a spinner
     const reload = useCallback((options?: {silent?: boolean}) => {
         const silent = options?.silent === true;
         if (silent && pendingFetchesRef.current > 0) {
@@ -143,13 +137,12 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
                 await actions.getPlainLogs(plainPage, PLAIN_LOGS_PER_PAGE);
                 return;
             }
-            const {dateFrom, dateTo} = activeTimePreset === null ? {dateFrom: '', dateTo: ''} : presetRange(activeTimePreset);
             const allLevels = LOG_LEVELS.every((level) => enabledLevels.has(level));
             await actions.getLogs({
                 serverNames: ALL_SERVER_NAMES,
                 logLevels: allLevels ? [] : LOG_LEVELS.filter((level) => enabledLevels.has(level)),
-                dateFrom,
-                dateTo,
+                dateFrom: activeTimePreset === null ? '' : presetStart(activeTimePreset),
+                dateTo: '',
             });
         };
 
@@ -164,8 +157,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
         return fetched;
     }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, actions]);
 
-    // Everything the query depends on is in reload's deps, so this covers the
-    // first load and every filter, format and page change
+    // reload's deps are the query's inputs, so this also covers every filter and page change
     useEffect(() => {
         reload();
     }, [reload]);

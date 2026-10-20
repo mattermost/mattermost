@@ -44,7 +44,6 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
             return undefined;
         }
 
-        // Immediate fetch when enabling
         tick();
 
         intervalRef.current = setInterval(tick, intervalMs);
@@ -52,7 +51,6 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
         return stop;
     }, [enabled, intervalMs, stop, tick]);
 
-    // Pause when tab is hidden
     useEffect(() => {
         if (!enabled) {
             return undefined;

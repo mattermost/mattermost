@@ -16,6 +16,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {LogObjectWithAdditionalInfo} from './types';
+import {formatLogValue} from './utils';
 
 import './log_list.scss';
 
@@ -34,11 +35,9 @@ type Props = {
     enabledLevels: Set<string>;
     onEnabledLevelsChange: React.Dispatch<React.SetStateAction<Set<string>>>;
 
-    // Actions
     onReload: () => void;
     downloadUrl: string;
 
-    // Live tail
     liveTailEnabled: boolean;
     onToggleLiveTail: () => void;
     pollInterval: number;
@@ -46,7 +45,6 @@ type Props = {
     pollIntervals: readonly number[];
     pollIntervalLabels: Record<number, MessageDescriptor>;
 
-    // Time presets
     timePresets: readonly TimePreset[];
     activeTimePreset: number | null;
     onTimePreset: (minutes: number) => void;
@@ -97,7 +95,6 @@ const DEFAULT_PREFS: StoredPrefs = {
 };
 
 // Stored prefs may predate the current shape, so every field is validated
-// before it is trusted
 export function loadPrefs(): StoredPrefs {
     let stored: Partial<StoredPrefs> = {};
     try {
@@ -124,16 +121,12 @@ export function loadPrefs(): StoredPrefs {
     };
 }
 
-// Identifies a row by its content instead of its position, so a reload or a
-// live-tail poll does not move the expanded row somewhere else. Every field
-// counts: concurrent requests log the same message from the same caller within
-// the same millisecond, and keying on those three alone made them collide.
+// Every field counts: concurrent requests log the same message, caller and millisecond
 function logKey(log: LogObjectWithAdditionalInfo): string {
-    return Object.keys(log).sort().map((field) => `${field}=${String(log[field])}`).join('|');
+    return Object.keys(log).sort().map((field) => `${field}=${formatLogValue(log[field])}`).join('|');
 }
 
-// Content based keys keep the rows mounted across a reload or a sort toggle.
-// Identical entries get a suffix, since React needs the keys to be unique.
+// Content keys keep rows mounted across reloads; identical entries get a suffix
 function getRowKeys(rows: LogObjectWithAdditionalInfo[]): string[] {
     const seen = new Map<string, number>();
     return rows.map((log) => {
@@ -174,13 +167,11 @@ export default function LogList({
     const [sortAsc, setSortAsc] = useState(initialPrefs.sortAsc);
     const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
-    // Tracked by content like the expanded row, so a reload or a live-tail poll
-    // keeps the selection on the same entry instead of on the same position
+    // Tracked by content so a reload keeps the selection on the same entry
     const [focusedKey, setFocusedKey] = useState<string | null>(null);
     const [wrapText, setWrapText] = useState(initialPrefs.wrapText);
 
-    // Kept local so typing repaints the input without waiting for the filtering
-    // that `search` drives in the parent
+    // Kept local so typing repaints the input without waiting for the debounced filtering
     const [searchInput, setSearchInput] = useState(search);
 
     const listRef = useRef<HTMLDivElement>(null);
@@ -206,7 +197,6 @@ export default function LogList({
         onSearchChange('');
     }, [debouncedSearchChange, onSearchChange]);
 
-    // Persist prefs
     useEffect(() => {
         savePrefs({
             pageSize,
@@ -216,7 +206,6 @@ export default function LogList({
         });
     }, [pageSize, wrapText, enabledLevels, sortAsc]);
 
-    // Count logs by level
     const levelCounts = useMemo(() => {
         const counts: Record<string, number> = {error: 0, warn: 0, info: 0, debug: 0};
         for (const log of logs) {
@@ -229,7 +218,6 @@ export default function LogList({
 
     const allLevelsEnabled = useMemo(() => LEVEL_ORDER.every((level) => enabledLevels.has(level)), [enabledLevels]);
 
-    // Filter and sort logs
     const processedLogs = useMemo(() => {
         let filtered = logs;
 
@@ -240,7 +228,7 @@ export default function LogList({
         if (search) {
             const lowerSearch = search.toLowerCase();
             filtered = filtered.filter((log) => Object.entries(log).some(([key, value]) =>
-                key !== 'level' && key !== 'timestamp' && String(value).toLowerCase().includes(lowerSearch),
+                key !== 'level' && key !== 'timestamp' && formatLogValue(value).toLowerCase().includes(lowerSearch),
             ));
         }
 
@@ -255,23 +243,27 @@ export default function LogList({
     const matchCount = search ? processedLogs.length : null;
     const totalCount = logs.length;
 
-    // Paginate
     const totalPages = Math.max(1, Math.ceil(processedLogs.length / pageSize));
     const startIndex = page * pageSize;
     const endIndex = Math.min(startIndex + pageSize, processedLogs.length);
-    const visibleLogs = processedLogs.slice(startIndex, endIndex);
 
-    const rowKeys = getRowKeys(visibleLogs);
+    // Reusing the previous object for an unchanged entry lets memo(LogRow) skip it after a poll
+    const rowsByKeyRef = useRef(new Map<string, LogObjectWithAdditionalInfo>());
+    const {visibleLogs, rowKeys} = useMemo(() => {
+        const pageLogs = processedLogs.slice(startIndex, endIndex);
+        const keys = getRowKeys(pageLogs);
+        const rows = pageLogs.map((log, i) => rowsByKeyRef.current.get(keys[i]) ?? log);
+        rowsByKeyRef.current = new Map(keys.map((key, i) => [key, rows[i]]));
+        return {visibleLogs: rows, rowKeys: keys};
+    }, [processedLogs, startIndex, endIndex]);
 
-    // Read by the row callbacks, which stay referentially stable so the memoized
-    // rows do not all re-render whenever the parent does
+    // Read by the row callbacks, which stay stable so memo(LogRow) holds
     const visibleLogsRef = useRef(visibleLogs);
     visibleLogsRef.current = visibleLogs;
     const rowKeysRef = useRef(rowKeys);
     rowKeysRef.current = rowKeys;
 
-    // A poll or a page change can move the selected entry off the current page,
-    // in which case nothing is highlighted until it comes back
+    // -1 while a poll or page change has moved the selected entry off this page
     const focusedIndex = focusedKey === null ? -1 : rowKeys.indexOf(focusedKey);
 
     const focusRow = useCallback((index: number) => {
@@ -287,8 +279,7 @@ export default function LogList({
         setFocusedKey(null);
     }, [search, enabledLevels, sortAsc]);
 
-    // Clamp the page when the logs dataset shrinks (reload, live-tail). The
-    // expanded and focused rows are tracked by content, so they survive a refresh.
+    // Clamp the page when a reload or poll shrinks the dataset
     useEffect(() => {
         const lastPage = Math.max(0, Math.ceil(processedLogs.length / pageSize) - 1);
         setPage((prev) => Math.max(0, Math.min(prev, lastPage)));
@@ -322,8 +313,7 @@ export default function LogList({
         });
     }, [setEnabledLevels]);
 
-    // Byte-identical entries share a log key, so the row's disambiguated key is
-    // what decides which single row is expanded
+    // Identical entries share a log key, so the row key decides which one expands
     const handleToggleExpand = useCallback((log: LogObjectWithAdditionalInfo) => {
         const idx = visibleLogsRef.current.indexOf(log);
         const key = idx === -1 ? logKey(log) : rowKeysRef.current[idx];
@@ -359,7 +349,6 @@ export default function LogList({
         setSortAsc((prev) => !prev);
     }, []);
 
-    // Keyboard navigation
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         const target = e.target as HTMLElement;
         if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
@@ -392,8 +381,7 @@ export default function LogList({
     const activePresetLabel = timePresets.find((preset) => preset.minutes === activeTimePreset)?.label;
     const enabledLevelCount = LEVEL_ORDER.filter((level) => enabledLevels.has(level)).length;
 
-    // The live tail selector folds the on/off toggle and the interval into one
-    // control, so picking an interval is what turns polling on
+    // One selector for on/off and the interval, so picking an interval turns polling on
     const setLiveTail = (interval: number | null) => {
         if (interval === null) {
             if (liveTailEnabled) {
@@ -654,7 +642,6 @@ export default function LogList({
         >
             {filters}
 
-            {/* Column header */}
             <div className='LogViewer__header'>
                 <span className='LogViewer__header-level'>
                     <FormattedMessage
@@ -725,7 +712,6 @@ export default function LogList({
                 </div>
             )}
 
-            {/* Log rows */}
             <div
                 className='LogViewer__list'
                 ref={listRef}
@@ -746,7 +732,6 @@ export default function LogList({
                 ))}
             </div>
 
-            {/* Footer */}
             <div className='LogViewer__footer'>
                 <span className='LogViewer__footer-info'>
                     {loading && (

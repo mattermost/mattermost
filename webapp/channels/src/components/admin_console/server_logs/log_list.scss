@@ -13,8 +13,7 @@
     // ---------------------
     // Filters
     // ---------------------
-    // Padding and wrapping come from .admin-console__filters-rows, matching the
-    // System Users filter row.
+    // Padding and wrapping come from .admin-console__filters-rows, like System Users
     &__filters {
         column-gap: 12px;
 
@@ -72,8 +71,7 @@
     // ---------------------
     // Column header
     // ---------------------
-    // Mirrors the `thead` of .adminConsoleListTable so the log list reads as a
-    // table alongside the other admin console lists.
+    // Mirrors the .adminConsoleListTable `thead` so it matches the other console lists
     &__header {
         display: flex;
         align-items: center;
@@ -215,8 +213,7 @@
         background: rgba(var(--center-channel-color-rgb), 0.04);
     }
 
-    // A tint on the rows that need attention, kept faint enough that hover and
-    // selection still read on top of it
+    // Faint enough that hover and selection still show on top of it
     &--error-bg {
         background: rgba(var(--semantic-color-danger), 0.04);
 
@@ -233,7 +230,6 @@
         }
     }
 
-    // Main row content
     &__main {
         display: flex;
         min-height: 36px;
@@ -250,8 +246,7 @@
         }
     }
 
-    // Level chip. Sized to the level column so the rows stay aligned, and
-    // otherwise built to the same metrics as the shared Tag widget.
+    // Sized to the level column, otherwise the same metrics as the shared Tag widget
     &__level {
         display: inline-flex;
         width: log_viewer.$level-column-width;
@@ -312,10 +307,7 @@
         white-space: nowrap;
     }
 
-    // Caller. Shrinkable (unlike the other columns) so it yields space to the
-    // expand indicator instead of pushing it past the row's right edge on
-    // narrow viewports. `direction: rtl` truncates from the start, keeping
-    // the useful file:line suffix visible.
+    // Shrinks to keep the expand indicator on screen; rtl truncates from the start to keep file:line
     &__caller {
         overflow: hidden;
         min-width: 60px;
@@ -349,8 +341,7 @@
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     }
 
-    // Level and timestamp are narrow, so the core fields get their own column
-    // widths instead of the even split the dynamic fields use
+    // The timestamp is narrow, so it doesn't get the even split the extra fields use
     &__details-core {
         display: grid;
         gap: 12px 24px;

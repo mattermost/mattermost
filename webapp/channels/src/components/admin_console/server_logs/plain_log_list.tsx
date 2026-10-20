@@ -36,8 +36,7 @@ const sortMessages = defineMessages({
     oldestFirst: {id: 'admin.logs.sortOldestFirst', defaultMessage: 'Sort oldest first'},
 });
 
-// Represents a highlighted line: either JSON (highlighted by highlight.js, keyed
-// by its own text) or a React node (plain log)
+// highlight.js HTML for a JSON line, or React nodes for a plain line
 type HighlightedLine = {
     isHtml: true;
     text: string;
@@ -58,8 +57,7 @@ function highlightLogLineSync(line: string): HighlightedLine {
     return {isHtml: false, node: highlightPlainLog(line)};
 }
 
-// Async highlight for JSON lines using highlight.js. Results are keyed by line
-// text rather than by position, so they never end up attached to another line.
+// Keyed by line text, not position, so a highlight never lands on another line
 async function highlightJsonLines(lines: string[]): Promise<Map<string, string>> {
     const jsonTexts: string[] = [];
     const seen = new Set<string>();
@@ -103,7 +101,6 @@ function highlightPlainLog(line: string): React.ReactNode {
     const levelIdx = levelMatch.index!;
     const levelEnd = levelIdx + levelMatch[0].length;
 
-    // Timestamp portion (before level)
     if (levelIdx > 0) {
         parts.push(
             <span
@@ -115,7 +112,6 @@ function highlightPlainLog(line: string): React.ReactNode {
         );
     }
 
-    // Level tag
     const levelClass = {
         EROR: 'PlainLogViewer__log-level--error',
         WARN: 'PlainLogViewer__log-level--warn',
@@ -143,7 +139,6 @@ function highlightPlainLog(line: string): React.ReactNode {
             parts.push(<span key={key++}>{rest.slice(lastIdx, match.index + 1)}</span>);
         }
 
-        // Key
         parts.push(
             <span
                 key={key++}
@@ -159,7 +154,6 @@ function highlightPlainLog(line: string): React.ReactNode {
         lastIdx = match.index + match[0].length;
     }
 
-    // Remaining text
     if (lastIdx < rest.length) {
         parts.push(<span key={key++}>{rest.slice(lastIdx)}</span>);
     }
@@ -206,8 +200,7 @@ export default function PlainLogList({
     loading, logs: rawLogs, page, perPage, nextPage, previousPage, goToPage, onReload, downloadUrl,
     logFormatMenu,
 }: Props) {
-    // A shared constant keeps the fallback stable, so the memos below are not
-    // invalidated on every render
+    // A shared constant so the fallback doesn't invalidate the memos below
     const logs = rawLogs || NO_LOGS;
     const intl = useIntl();
     const logPanelRef = useRef<HTMLDivElement>(null);
@@ -219,7 +212,6 @@ export default function PlainLogList({
     const [goToPageInput, setGoToPageInput] = useState('');
     const [showGoToPage, setShowGoToPage] = useState(false);
 
-    // Reverse logs if newest-first
     const displayLogs = useMemo(() => {
         return newestFirst ? [...logs].reverse() : logs;
     }, [logs, newestFirst]);
@@ -241,9 +233,7 @@ export default function PlainLogList({
             return;
         }
         const {scrollTop, scrollHeight, clientHeight} = logPanelRef.current;
-        const atTail = newestFirst ?
-            scrollTop < 40 :
-            scrollHeight - scrollTop - clientHeight < 40;
+        const atTail = newestFirst ? scrollTop < 40 : scrollHeight - scrollTop - clientHeight < 40;
         if (!atTail && followTail) {
             setFollowTail(false);
         } else if (atTail && !followTail) {
@@ -290,9 +280,7 @@ export default function PlainLogList({
     const hasPrevious = page > 0;
     const totalShowing = logs.length;
 
-    // Line numbers are relative to the current page. The API pages backwards from
-    // the newest line, so a page offset would number older lines higher than newer
-    // ones, and the file's true line numbers are not knowable from a single page.
+    // Page-relative: the API pages back from the newest line, so file line numbers are unknowable
     const getLineNumber = (i: number) => i + 1;
 
     // Synchronous initial highlighting (plain logs get React nodes, JSON gets sanitized HTML)
@@ -305,8 +293,7 @@ export default function PlainLogList({
     useEffect(() => {
         let cancelled = false;
 
-        // The previous highlights are left in place until the new ones are ready,
-        // so the lines do not flash back to their unhighlighted rendering
+        // Old highlights stay until the new ones are ready, so lines don't flash unhighlighted
         highlightJsonLines(logs).then((results) => {
             if (!cancelled) {
                 setJsonHighlights(results);
@@ -319,7 +306,6 @@ export default function PlainLogList({
 
     return (
         <div className='PlainLogViewer'>
-            {/* Filters */}
             <div className='PlainLogViewer__filters admin-console__filters-rows'>
                 {logFormatMenu}
                 <WithTooltip title={intl.formatMessage(newestFirst ? sortMessages.oldestFirst : sortMessages.newestFirst)}>
@@ -367,7 +353,6 @@ export default function PlainLogList({
                 </ExternalLink>
             </div>
 
-            {/* Log content */}
             <div
                 ref={logPanelRef}
                 className={[
@@ -419,13 +404,12 @@ export default function PlainLogList({
                                 >
                                     <span
                                         className='PlainLogViewer__line-text hljs'
-                                        dangerouslySetInnerHTML={{__html: jsonHtml}} // eslint-disable-line react/no-danger
+                                        dangerouslySetInnerHTML={{__html: jsonHtml}}
                                     />
                                 </div>
                             );
                         }
 
-                        // Plain log lines: render React nodes
                         return (
                             <div
                                 key={i} // eslint-disable-line react/no-array-index-key
@@ -441,7 +425,6 @@ export default function PlainLogList({
                 )}
             </div>
 
-            {/* Footer */}
             <div className='PlainLogViewer__footer'>
                 <span className='PlainLogViewer__footer-info'>
                     <FormattedMessage

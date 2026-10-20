@@ -292,6 +292,11 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         jest.useRealTimers();
     });
 
+    // Fakes only the clock, so the promises and timers the tests wait on keep running
+    function fakeNow(now: string) {
+        jest.useFakeTimers({now: new Date(now), doNotFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'clearImmediate', 'queueMicrotask', 'nextTick', 'requestAnimationFrame', 'cancelAnimationFrame', 'requestIdleCallback', 'cancelIdleCallback', 'performance', 'hrtime']});
+    }
+
     test('should send the enabled levels with the query', async () => {
         const getLogs = jest.fn().mockResolvedValue({});
         renderLogs(getLogs);
@@ -305,7 +310,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
     });
 
     test('should recompute the time preset when switching back to structured logs', async () => {
-        jest.useFakeTimers({now: new Date('2026-10-20T12:00:00Z'), doNotFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'clearImmediate', 'queueMicrotask', 'nextTick', 'requestAnimationFrame', 'cancelAnimationFrame', 'requestIdleCallback', 'cancelIdleCallback', 'performance', 'hrtime']});
+        fakeNow('2026-10-20T12:00:00Z');
         const getLogs = jest.fn().mockResolvedValue({});
         renderLogs(getLogs);
 
@@ -316,7 +321,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
 
         await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({
             dateFrom: '2026-10-20 12:25:00.000 +00:00',
-            dateTo: '2026-10-20 12:30:00.000 +00:00',
+            dateTo: '',
         })));
     });
 
@@ -335,6 +340,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
     });
 
     test('should skip a queued fetch that a newer one replaces', async () => {
+        fakeNow('2026-10-20T12:00:00Z');
         const first = deferred();
         const getLogs = jest.fn().mockReturnValueOnce(first.promise).mockResolvedValue({});
         renderLogs(getLogs);
@@ -345,8 +351,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
 
         first.resolve();
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
-        const {dateFrom, dateTo} = getLogs.mock.calls[1][0];
-        expect(Date.parse(dateTo.replace(' ', 'T').replace(' ', '')) - Date.parse(dateFrom.replace(' ', 'T').replace(' ', ''))).toBe(60 * 60 * 1000);
+        expect(getLogs.mock.calls[1][0].dateFrom).toBe('2026-10-20 11:00:00.000 +00:00');
         await new Promise((r) => setTimeout(r, 0));
         expect(getLogs).toHaveBeenCalledTimes(2);
     });

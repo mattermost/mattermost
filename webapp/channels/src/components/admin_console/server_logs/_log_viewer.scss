@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Shared metrics and chrome for the structured and plain text log viewers, so
-// the two formats look like the same page with a different body.
+// Shared by the structured and plain text viewers so both read as the same page
 
 $level-column-width: 56px;
 $timestamp-column-width: 96px;
 $caller-column-width: 200px;
 
-// Log content is monospaced; the chrome around it inherits the admin console's
-// Open Sans.
+// Log content only; the chrome around it keeps the admin console's Open Sans
 $mono-font: 'SFMono-Regular', consolas, 'Liberation Mono', menlo, monospace;
 
 // Indents the expanded details to line up with the message column

@@ -7,6 +7,7 @@ import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {LogObjectWithAdditionalInfo} from './types';
+import {formatLogValue} from './utils';
 
 import './log_list.scss';
 
@@ -104,7 +105,6 @@ function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode 
 
 const KNOWN_KEYS = new Set(['timestamp', 'level', 'msg', 'caller']);
 
-// Small inline copy button
 function CopyButton({value}: {value: string}) {
     const intl = useIntl();
     const [copied, setCopied] = useState(false);
@@ -234,7 +234,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
     const extraFields: Array<[string, string]> = [];
     for (const [key, value] of Object.entries(log)) {
         if (!KNOWN_KEYS.has(key) && value != null) {
-            extraFields.push([key, String(value)]);
+            extraFields.push([key, formatLogValue(value)]);
         }
     }
 
@@ -282,7 +282,6 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                     className='LogRow__details'
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {/* Core fields - compact summary */}
                     <div className='LogRow__details-core'>
                         <div className='LogRow__detail-item'>
                             <span className='LogRow__detail-label'>
@@ -307,7 +306,6 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                         </div>
                     </div>
 
-                    {/* Extra fields with copy + links */}
                     {extraFields.length > 0 && (
                         <div className='LogRow__details-extra'>
                             <div className='LogRow__details-grid'>
@@ -327,7 +325,6 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                         </div>
                     )}
 
-                    {/* Action buttons */}
                     <div className='LogRow__details-actions'>
                         <button
                             type='button'
