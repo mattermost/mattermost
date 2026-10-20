@@ -74,7 +74,7 @@ Disabling this configuration setting in larger deployments may improve server pe
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Enables plugin signature validation for managed and unmanaged plugins.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables plugin signature validation for managed and unmanaged plugins.</li></ul></td>
+<td><ul><li><strong>true</strong>: Plugins synced from the file store, including to other servers in a cluster, must have a valid signature. Plugin uploads are disabled.</li><li><strong>false</strong>: <strong>(Default)</strong> Plugins synced from the file store are installed without a signature check. Plugin uploads can be enabled separately. Marketplace installs, and pre-packaged plugins from v10.11, are still signature-checked.</li></ul></td>
 <td><ul><li>System Config path: <strong>Plugins &gt; Plugin Management</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>RequirePluginSignature</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_REQUIREPLUGINSIGNATURE</code></li></ul></td>
 </tr>
 </tbody>
@@ -82,7 +82,7 @@ Disabling this configuration setting in larger deployments may improve server pe
 
 <Note>
 
-\- This setting is applicable to self-hosted deployments only. - From Mattermost server v10.11, pre-packaged plugins require signature validation on startup. Distributions that bundle custom pre-packaged plugins must configure custom public keys via `PluginSettings.SignaturePublicKeyFiles` to validate their signatures. - **Mattermost server v10.10 and earlier**: Pre-packaged plugins are not subject to signature validation. - Plugins installed through the Marketplace are always subject to signature validation at the time of download. - Enabling this configuration will result in [plugin file uploads](#upload-plugin) being disabled in the System Console.
+\- This setting is applicable to self-hosted deployments only. - From Mattermost server v10.11, pre-packaged plugins require signature validation on startup. Distributions that bundle custom pre-packaged plugins must configure custom public keys via `PluginSettings.SignaturePublicKeyFiles`. See [Install plugins signed with a custom key](/administration-guide/configure/custom-plugin-signatures). - **Mattermost server v10.10 and earlier**: Pre-packaged plugins are installed without a signature check. - Plugins installed through the Marketplace are signature-checked at download time. - Setting this to `true` disables [plugin file uploads](#upload-plugin) in the System Console.
 
 </Note>
 
@@ -160,7 +160,7 @@ Disabling this configuration setting in larger deployments may improve server pe
 
 <Note>
 
-\- From Mattermost v9.1, set this configuration setting value to `true` to access a configured remote marketplace URL. - For Mattermost v9.0, the `MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE` feature flag must be set to `false`, and this configuration setting must be set to `true` to access a configured remote marketplace URL. - Each Mattermost host must have network access to the endpoint set in MarketplaceURL.
+\- From Mattermost v9.1, set this configuration setting value to `true` to access a configured remote marketplace URL. - For Mattermost v9.0, the `MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE` feature flag must be set to `false`, and this configuration setting must be set to `true` to access a configured remote marketplace URL. - Each Mattermost host must have network access to the endpoint set in MarketplaceURL. - While `PluginSettings.EnableUploads` is `false`, the config API keeps the existing `MarketplaceURL`. Change the URL in `config.json` or with `mmctl --local`.
 
 </Note>
 
@@ -173,7 +173,7 @@ Disabling this configuration setting in larger deployments may improve server pe
 </colgroup>
 <tbody>
 <tr>
-<td><p>This setting stores the URL for the remote Markeplace.</p><p>String input. Default is <strong>https://api.integrations.mattermost.com</strong></p></td>
+<td><p>The base URL of the Marketplace server. Mattermost requests <code>/api/v1/plugins</code> on this host. String input. Default is <strong>https://api.integrations.mattermost.com</strong>.</p><p>To install plugins signed with your own key, point this at a Marketplace you run. See <a href="/administration-guide/configure/custom-plugin-signatures">Install plugins signed with a custom key</a>.</p></td>
 <td><ul><li>System Config path: <strong>Plugins &gt; Plugin Management</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>MarketplaceURL</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_MARKETPLACEURL</code></li></ul></td>
 </tr>
 </tbody>
@@ -1848,22 +1848,24 @@ See the [Connect Zoom to Mattermost](/integrations-guide/zoom) product documenta
 
 ## config.json-only settings
 
-The following self-hosted deployment settings are only configurable in the `config.json` file and are not available in the System Console.
+The following self-hosted deployment settings are not available in the System Console. Set them in `config.json`, unless a setting below says otherwise.
 
 ### Signature public key files
 
-This setting isn't available in the System Console and can only be set in `config.json`.
+This setting isn't available in the System Console. `PUT /api/v4/config`, `PUT /api/v4/config/patch`, and `mmctl config set` without `--local` leave the stored list unchanged. Set it in `config.json`, with the `MM_PLUGINSETTINGS_SIGNATUREPUBLICKEYFILES` environment variable (space-separated names), or with `mmctl --local`.
 
-In addition to the Mattermost plugin signing key built into the server, each public key specified here is trusted to validate plugin signatures.
+Each entry is the name of an OpenPGP public key. Mattermost trusts that key, in addition to the plugin signing key built into the server, when it verifies a Marketplace or pre-packaged plugin. With a file-based configuration, a relative name is a file in the same directory as `config.json`, and an absolute path is also accepted. With a database-backed configuration, each name is a row in `ConfigurationFiles`.
+
+See [Install plugins signed with a custom key](/administration-guide/configure/custom-plugin-signatures) for how to install the key, sign a bundle, and publish it.
 
 <Important>
 
-From Mattermost v10.11, pre-packaged plugins require signature validation on startup. Distributions that bundle custom pre-packaged plugins **must** configure this setting with their custom public keys to ensure proper validation of their signed plugins. Use `PluginSettings.SignaturePublicKeyFiles` to define custom plugin signing keys.
+From Mattermost v10.11, pre-packaged plugins require signature validation on startup. Distributions that bundle custom pre-packaged plugins **must** configure this setting with their custom public keys to ensure proper validation of their signed plugins.
 
 When bundling custom plugins:
 
-- Drop both the plugin files and their corresponding `.sig` signature files into the `prepackaged_plugins` directory.
-- Add your custom public key using this configuration setting to validate the signatures.
+- Drop both the plugin bundle and its `.sig` signature file into the `prepackaged_plugins` directory.
+- Add the public key that signed those bundles to `PluginSettings.SignaturePublicKeyFiles`.
 
 </Important>
 
@@ -1873,7 +1875,7 @@ When bundling custom plugins:
 </colgroup>
 <tbody>
 <tr>
-<td>This feature's <code>config.json</code> setting is <code>"SignaturePublicKeyFiles": &#123;&#125;</code> with string array input consisting of contents that are relative or absolute paths to signature files.</td>
+<td>This feature's <code>config.json</code> setting is <code>"SignaturePublicKeyFiles": []</code>, a string array of public key file names.</td>
 </tr>
 </tbody>
 </table>

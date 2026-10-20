@@ -1,0 +1,278 @@
+---
+title: "Install plugins signed with a custom key"
+---
+
+Use this guide on a self-hosted Mattermost server when your organization signs its own plugins. Mattermost already trusts a plugin signing key built into the server. You can add your own OpenPGP public key, sign plugin bundles with the matching private key, and install those bundles from a Marketplace you run.
+
+Marketplace installs always check the signature. From Mattermost v10.11, plugins in the `prepackaged_plugins` directory are checked on startup as well. A bundle uploaded through the System Console or `mmctl plugin add` is installed without that check.
+
+<Note>
+
+This applies to self-hosted deployments. `PluginSettings.SignaturePublicKeyFiles` is not available on Mattermost Cloud.
+
+</Note>
+
+## Before you begin
+
+- You need a system admin account and shell access to the Mattermost server.
+- [GNU Privacy Guard (GPG)](https://gnupg.org) is installed on the machine that signs plugins. Keep the private key there. The Mattermost server only needs the public key.
+- **Enable plugins** (`PluginSettings.Enable`) is **true**.
+- Decide where configuration lives. A file-based server reads public keys from the directory that contains `config.json`. A server that stores configuration in the database reads them from the `ConfigurationFiles` table. See [Store configuration in your database](/administration-guide/configure/configuration-in-your-database).
+
+## Create a signing key
+
+On the signing machine, create an RSA key of at least 3072 bits:
+
+```sh
+gpg --full-generate-key
+```
+
+Choose `RSA and RSA`, enter `3072` or larger for the key size, and set the expiration and user ID you want.
+
+List the key and copy its hexadecimal ID. The ID in your output will differ from this example:
+
+```sh
+gpg --list-secret-keys
+```
+
+Export the public key. This is the file you will install on Mattermost:
+
+```sh
+gpg --export F3FACE45E0DE642C8BD6A8E64C7C6562C192CC1F > my-pub-key
+```
+
+Keep the private key on the signing machine. To back it up:
+
+```sh
+gpg --export-secret-keys F3FACE45E0DE642C8BD6A8E64C7C6562C192CC1F > my-priv-key
+```
+
+## Trust the public key
+
+`PluginSettings.SignaturePublicKeyFiles` is a list of public key names. The System Console does not show this setting. `PUT /api/v4/config`, `PUT /api/v4/config/patch`, and `mmctl config set` without `--local` leave the stored list unchanged.
+
+### File-based configuration
+
+Copy the public key into the same directory as `config.json`. On a standard Linux install that directory is `/opt/mattermost/config`.
+
+```sh
+cp my-pub-key /opt/mattermost/config/my-pub-key
+```
+
+Add the file name to `config.json`. A relative name is resolved next to `config.json`. An absolute path is also accepted.
+
+```json
+"PluginSettings": {
+    "SignaturePublicKeyFiles": ["my-pub-key"]
+}
+```
+
+Reload the configuration:
+
+```sh
+mmctl config reload
+```
+
+In a cluster that uses a separate `config.json` on each node, copy the public key file to every node and use the same list on every node.
+
+You can set the same list with an environment variable. Separate multiple file names with spaces:
+
+```sh
+MM_PLUGINSETTINGS_SIGNATUREPUBLICKEYFILES="my-pub-key"
+```
+
+The variable overrides the value loaded from `config.json`. The key file still has to be readable from the config directory. Restart the server after you add or change the variable. `mmctl config reload` reapplies variables already present in the server process.
+
+### Database-backed configuration
+
+Each name in `SignaturePublicKeyFiles` is the `Name` of a row in `ConfigurationFiles`. The database store does not read a file from disk, including when the name looks like a path.
+
+`mmctl --local config migrate` copies every file named in `SignaturePublicKeyFiles` into the destination store. Add the public key to a file-based config first, then migrate that config to the database. There is no System Console or mmctl command that uploads a new public key into `ConfigurationFiles` after the server is already using the database.
+
+`mmctl --local config set PluginSettings.SignaturePublicKeyFiles my-pub-key` can change the list of names. It does not write the key bytes. Verification skips a name it cannot read and continues with the remaining keys.
+
+## Sign a plugin bundle
+
+Sign the exact `.tar.gz` you will publish. The signature is detached and covers the bundle bytes:
+
+```sh
+gpg -u F3FACE45E0DE642C8BD6A8E64C7C6562C192CC1F \
+  --personal-digest-preferences SHA256 \
+  --detach-sign com.example.myplugin-1.0.0.tar.gz
+```
+
+GPG writes `com.example.myplugin-1.0.0.tar.gz.sig` next to the bundle.
+
+Encode that signature for a Marketplace listing. The value is the base64 encoding of the signature file, on one line:
+
+```sh
+base64 com.example.myplugin-1.0.0.tar.gz.sig | tr -d '\n'
+```
+
+Sign again whenever the bundle bytes change. A signature from an older build will fail verification.
+
+## Run a private Marketplace
+
+Mattermost lists and installs remote plugins from `PluginSettings.MarketplaceURL`. The default is `https://api.integrations.mattermost.com`. Point that setting at a Marketplace you host when the plugins are signed with your key.
+
+The [Marketplace server](https://github.com/mattermost/mattermost-marketplace) is the service Mattermost runs for the public catalog. You can run the same server with your own listing file. Pass `--upstream https://api.integrations.mattermost.com` when the public catalog should appear alongside your plugins.
+
+### What the server requests
+
+On each Marketplace refresh, Mattermost sends:
+
+```text
+GET {MarketplaceURL}/api/v1/plugins
+```
+
+The response is a JSON array. Mattermost installs a listed plugin by downloading `download_url` and checking `signature` against the built-in key and then each file in `SignaturePublicKeyFiles`. The first key that validates the bundle is accepted.
+
+`download_url` must be an HTTPS URL that the Mattermost server can fetch. The Marketplace process does not proxy the bundle. To allow an `http://` bundle URL, set `PluginSettings.AllowInsecureDownloadURL` to `true`.
+
+`signature` is the base64 encoding produced above. `manifest` is the plugin's `plugin.json`. `manifest.id` is the plugin ID you install. `manifest.version` is a strict semantic version, such as `1.0.0`.
+
+Mattermost sends the server version and `platform` (for example `linux-amd64`). The Marketplace server hides a plugin whose `manifest.min_server_version` is newer than the Mattermost server. Set `enterprise` to `false` for a plugin that should appear without an Enterprise license, and leave `hosting` empty so the listing is shown for both Cloud and self-hosted servers.
+
+A `platforms` object can replace `download_url` and `signature` for `linux-amd64`, `darwin-amd64`, or `windows-amd64` when both fields in that object are set. A single bundle that runs on every platform belongs in the top-level `download_url` and `signature` fields. Leave `platforms` empty for that bundle. Servers on other architectures, such as `linux-arm64`, use the top-level fields.
+
+### Add the listing
+
+Create `plugins.json` as a JSON array. Host `com.example.myplugin-1.0.0.tar.gz` at the `download_url` before you install.
+
+```json
+[
+  {
+    "homepage_url": "https://example.com/myplugin",
+    "download_url": "https://plugins.example.com/com.example.myplugin-1.0.0.tar.gz",
+    "release_notes_url": "https://example.com/myplugin/releases/1.0.0",
+    "hosting": "",
+    "author_type": "community",
+    "release_stage": "production",
+    "enterprise": false,
+    "signature": "<base64 of com.example.myplugin-1.0.0.tar.gz.sig>",
+    "manifest": {
+      "id": "com.example.myplugin",
+      "name": "My Plugin",
+      "description": "Internal plugin signed by Example Corp.",
+      "version": "1.0.0",
+      "min_server_version": "10.0.0"
+    },
+    "updated_at": "2026-01-15T00:00:00Z"
+  }
+]
+```
+
+`author_type` is `mattermost`, `partner`, or `community`. `release_stage` is `production`, `beta`, or `experimental`.
+
+### Start the Marketplace server
+
+Install Go, clone the Marketplace server, and start it with your listing file:
+
+```sh
+git clone https://github.com/mattermost/mattermost-marketplace.git
+cd mattermost-marketplace
+go run ./cmd/marketplace server --database /path/to/plugins.json --listen :8085
+```
+
+To keep the public catalog and add your plugins on top:
+
+```sh
+go run ./cmd/marketplace server \
+  --database /path/to/plugins.json \
+  --listen :8085 \
+  --upstream https://api.integrations.mattermost.com
+```
+
+The listening address defaults to `:8085`. Serve the Marketplace over HTTPS when Mattermost reaches it across a network.
+
+Mattermost can call `http://127.0.0.1` or `http://localhost` without listing that host in `ServiceSettings.AllowedUntrustedInternalConnections`. Add any other private address to that allowlist. Certificate verification still applies to HTTPS. `ServiceSettings.EnableInsecureOutgoingConnections` accepts a certificate the server would otherwise reject.
+
+Confirm the listing:
+
+```sh
+curl -s 'http://127.0.0.1:8085/api/v1/plugins?plugin_id=com.example.myplugin&server_version=10.11.0&per_page=100'
+```
+
+The response includes your plugin, with `download_url` and `signature` filled in.
+
+`go run ./cmd/generator/ add` registers a GitHub release and stores the signature already published with that release. Use it for plugins signed by the key that produced those release signatures. A bundle you signed with your own key is added by editing `plugins.json`, as shown above.
+
+### Point Mattermost at the Marketplace
+
+In `config.json`:
+
+```json
+"PluginSettings": {
+    "Enable": true,
+    "EnableMarketplace": true,
+    "EnableRemoteMarketplace": true,
+    "MarketplaceURL": "https://marketplace.example.com",
+    "SignaturePublicKeyFiles": ["my-pub-key"]
+}
+```
+
+`MarketplaceURL` has no path suffix. Mattermost appends `/api/v1/plugins`.
+
+While `PluginSettings.EnableUploads` is `false` (the default), the config API keeps the existing `MarketplaceURL`. The System Console and `mmctl config set` without `--local` therefore leave the URL unchanged. Set it in `config.json`, or with local mode:
+
+```sh
+mmctl --local config set PluginSettings.MarketplaceURL https://marketplace.example.com
+mmctl --local config set PluginSettings.EnableMarketplace true
+mmctl --local config set PluginSettings.EnableRemoteMarketplace true
+```
+
+Apply a `config.json` edit with:
+
+```sh
+mmctl config reload
+```
+
+Every Mattermost host that installs plugins needs a network path to `MarketplaceURL` and to each `download_url`.
+
+### Install the plugin
+
+1. In Mattermost, open the Product menu and select **App Marketplace**.
+2. Find the plugin and select **Install**.
+
+Or install by plugin ID:
+
+```sh
+mmctl plugin marketplace install com.example.myplugin
+```
+
+Mattermost downloads the bundle, checks the signature, and installs it. In a cluster, the installing server stores the bundle and signature in the file store and the other servers install from there.
+
+To require signatures for plugins that are already in the file store and synced to other servers, set `PluginSettings.RequirePluginSignature` to `true`. That setting also disables plugin uploads. Marketplace installs are checked either way.
+
+## Install on one server without a Marketplace
+
+For a single server, or a server that cannot reach a Marketplace, put the signed bundle in `prepackaged_plugins`. On a standard Linux install that directory is `/opt/mattermost/prepackaged_plugins`.
+
+Copy the bundle and its signature. The signature file name is the bundle file name plus `.sig`:
+
+```sh
+cp com.example.myplugin-1.0.0.tar.gz /opt/mattermost/prepackaged_plugins/
+cp com.example.myplugin-1.0.0.tar.gz.sig /opt/mattermost/prepackaged_plugins/
+```
+
+Restart Mattermost. On startup the server checks the signature with the built-in key and your public keys. A bundle that fails the check is logged and is not registered.
+
+Copying the files does not install the plugin. With `PluginSettings.AutomaticPrepackagedPlugins` set to `true`, add the plugin ID from `plugin.json` to `PluginSettings.PluginStates` and restart again:
+
+```json
+"PluginStates": {
+    "com.example.myplugin": {
+        "Enable": true
+    }
+}
+```
+
+You can also leave it disabled and install it from **App Marketplace** on that server. The prepackaged bundle is listed there when the remote Marketplace is unreachable or **Enable remote Marketplace** is `false`.
+
+In a cluster, place the bundle, the `.sig` file, and the public key on each server that has its own install directory and `config.json`.
+
+## Related documentation
+
+- [Install and manage plugins](/administration-guide/configure/manage-plugins)
+- [Plugins configuration settings](/administration-guide/configure/plugins-configuration-settings)
+- [Use and manage plugins](/developers/integrate/plugins/using-and-managing-plugins) for generating a key and signing a bundle during plugin development
