@@ -25,8 +25,8 @@ A fix request names:
 - `server_image_tag`, `server_images`: the server images that run tested (`enterprise`, `fips`). They
   may be missing; see [Test environment](#test-environment) for how to find them then.
 - `last_green_commit`, `first_red_commit`, `suspect_commits` (oldest first, `suspect_commits_total`
-  in all): the newest master commit where every failing test passed, the first where one failed,
-  and what landed in between. For `flaky`, the cause is usually older than this range.
+  in all): the newest master commit where none of the failing tests failed (they passed, flaked,
+  or were skipped behind a flag), the first where one failed, and what landed in between. For `flaky`, the cause is usually older than this range.
 - `open_prs_touching`: other open PRs into master that change these specs or their directories.
   They don't stop the request: most are feature work that happens to edit a spec.
 - `labels`: labels the PR must carry
@@ -70,21 +70,34 @@ these instructions uses this setup.
 **Images.** A master run tests the server images built from the commit it tested:
 `mattermostdevelopment/mattermost-enterprise-edition:<tag>` and, for the FIPS lane,
 `mattermostdevelopment/mattermost-enterprise-fips-edition:<tag>`. `<tag>` is
-`<mattermost sha, 7 chars>_<enterprise sha, 7 chars>`. Never use the `master` tag: it moves with
-every merge and may not match the code you have checked out. Find a commit's tag in the statuses
-its E2E run posted:
+`<mattermost sha, 7 chars>_<enterprise sha, 7 chars>`. Never use the `master` tag, or any tag not
+of that form: it moves with every merge and may not match the code you have checked out. Find a
+commit's tag in the statuses its E2E run posted:
 
 ```bash
-gh api "repos/mattermost/mattermost/commits/<sha>/statuses?per_page=100" --jq \
-  '[.[] | select(.context | startswith("e2e-test/playwright-full/")) | .description // ""
-    | capture("image_tag:(?<t>[A-Za-z0-9._-]+)")?.t] | first // empty'
+image_tag() {
+  gh api "repos/mattermost/mattermost/commits/$1/statuses?per_page=100" --jq \
+    '[.[] | select(.context | startswith("e2e-test/playwright-full/")) | .description // ""
+      | capture("image_tag:(?<t>[A-Za-z0-9._-]+)")?.t] | first // empty'
+}
 ```
 
 - **The run's build**: `server_images` from the request, with the specs checked out at `commit`.
-  If `server_images` is missing, use the command above on `commit`.
-- **Current master**: walk `git log --first-parent origin/master` from the top and take the newest
-  commit that has a tag (its images are built before its E2E run starts). Call it `<base>`. Run
-  the specs checked out at `<base>`, with `<base>`'s images, and branch your fix from `<base>`.
+  If `server_images` is missing, use `image_tag <commit>`.
+- **Current master** (`<base>`): the newest master commit whose images exist. Run the specs
+  checked out at `<base>`, with `<base>`'s images, and branch your fix from `<base>`:
+
+  ```bash
+  git fetch origin master
+  for sha in $(git log --first-parent --format=%H -30 origin/master); do
+    tag=$(image_tag "$sha")
+    [[ "$tag" =~ ^[0-9a-f]{7}_[0-9a-f]{7}$ ]] || continue
+    docker manifest inspect "mattermostdevelopment/mattermost-enterprise-edition:$tag" >/dev/null 2>&1 || continue
+    echo "base=$sha tag=$tag"; break
+  done
+  ```
+
+  If none of the last 30 commits has images, stop and say so.
 
 Specs and server must come from the same commit, or a failure can come from the mismatch.
 

@@ -33,7 +33,7 @@ jobs:
       # The run reports which branch it tested; runs of release branches are ignored.
       - name: ci/e2e-autofix-plan
         id: plan
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch@13c82ddd616e4823638884971f154357dbbff6fe # actions/e2e-master-watch
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch@947e867d51fe0e009c02e549e1af1aef85b4ec13 # actions/e2e-master-watch
         with:
           repository: ${{ github.repository }}
           gh-run-id: ${{ github.event.workflow_run.id }}
@@ -85,12 +85,13 @@ jobs:
             if [[ "$commit" =~ ^[0-9a-f]{7,40}$ ]]; then
               tag=$(image_tag_of "$commit")
             fi
-            if [[ "$tag" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            # A per-commit build (<mattermost sha>_<enterprise sha>), never a moving tag such as master.
+            if [[ "$tag" =~ ^[0-9a-f]{7,40}_[0-9a-f]{7,40}$ ]]; then
               payload=$(jq -c --arg tag "$tag" '. + {server_image_tag: $tag, server_images: {
                 enterprise: "mattermostdevelopment/mattermost-enterprise-edition:\($tag)",
                 fips: "mattermostdevelopment/mattermost-enterprise-fips-edition:\($tag)"}}' <<<"$payload")
             elif [ -n "$commit" ]; then
-              echo "$id: no image_tag in the Playwright statuses of $commit; sent without server_images"
+              echo "$id: no per-commit image_tag in the Playwright statuses of $commit (${tag:-none}); sent without server_images"
             fi
             status=$(printf '%s' "$payload" | curl -sS -o /dev/null -w '%{http_code}' --max-time 30 \
               -X POST "$WEBHOOK_URL" -H "Authorization: Bearer $WEBHOOK_KEY" -H 'Content-Type: application/json' \
@@ -103,6 +104,6 @@ jobs:
       # Runs on every trunk run, even one that sent nothing, to keep the record of sent requests alive.
       - name: ci/e2e-autofix-record
         if: always() && steps.plan.outcome == 'success'
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch/record@13c82ddd616e4823638884971f154357dbbff6fe # actions/e2e-master-watch/record
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch/record@947e867d51fe0e009c02e549e1af1aef85b4ec13 # actions/e2e-master-watch/record
         with:
           results: ${{ steps.send.outputs.results || '[]' }}
