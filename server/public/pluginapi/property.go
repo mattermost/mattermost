@@ -88,7 +88,7 @@ func (p *PropertyService) CountPropertyFieldsForTarget(groupID, targetType, targ
 // HasMore is true, passing its NextCursorCreateAt and NextCursorID back on the
 // next call: the page length alone does not say whether the listing is over.
 //
-// Minimum server version: 11.10
+// Minimum server version: 12.0
 func (p *PropertyService) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
 	return p.api.GetPropertyFieldOptions(groupID, fieldID, cursorCreateAt, cursorID, perPage)
 }
@@ -97,7 +97,7 @@ func (p *PropertyService) GetPropertyFieldOptions(groupID, fieldID string, curso
 // name the options it sits under, by name, in parents. Every option is created
 // or none is.
 //
-// Minimum server version: 11.10
+// Minimum server version: 12.0
 func (p *PropertyService) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
 	return p.api.CreatePropertyFieldOptions(groupID, fieldID, options)
 }
@@ -106,7 +106,7 @@ func (p *PropertyService) CreatePropertyFieldOptions(groupID, fieldID string, op
 // by id. A part the payload leaves out is left as it was; parents, when given,
 // replaces that option's parent set. Every option is updated or none is.
 //
-// Minimum server version: 11.10
+// Minimum server version: 12.0
 func (p *PropertyService) UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
 	return p.api.UpdatePropertyFieldOptions(groupID, fieldID, options)
 }
@@ -115,7 +115,7 @@ func (p *PropertyService) UpdatePropertyFieldOptions(groupID, fieldID string, op
 // The set is judged as a whole, so a whole branch of a hierarchy can be removed
 // in one call.
 //
-// Minimum server version: 11.10
+// Minimum server version: 12.0
 func (p *PropertyService) DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error {
 	return p.api.DeletePropertyFieldOptions(groupID, fieldID, optionIDs)
 }
