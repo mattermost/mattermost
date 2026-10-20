@@ -457,6 +457,34 @@ func (_m *PropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([]*
 	return r0, r1
 }
 
+// GetForGroupVersion provides a mock function with given fields: rctx, groupID
+func (_m *PropertyFieldStore) GetForGroupVersion(rctx request.CTX, groupID string) (string, error) {
+	ret := _m.Called(rctx, groupID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForGroupVersion")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (string, error)); ok {
+		return rf(rctx, groupID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) string); ok {
+		r0 = rf(rctx, groupID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, groupID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetLinkedFieldOptionNames provides a mock function with given fields: fieldID, names
 func (_m *PropertyFieldStore) GetLinkedFieldOptionNames(fieldID string, names []string) (map[string]string, error) {
 	ret := _m.Called(fieldID, names)

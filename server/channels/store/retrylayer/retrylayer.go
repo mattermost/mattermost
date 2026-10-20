@@ -11147,6 +11147,27 @@ func (s *RetryLayerPropertyFieldStore) GetForGroup(rctx request.CTX, groupID str
 
 }
 
+func (s *RetryLayerPropertyFieldStore) GetForGroupVersion(rctx request.CTX, groupID string) (string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetForGroupVersion(rctx, groupID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) GetLinkedFieldOptionNames(fieldID string, names []string) (map[string]string, error) {
 
 	tries := 0
