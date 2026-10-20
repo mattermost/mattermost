@@ -1,6 +1,9 @@
 FROM cgr.dev/mattermost.com/go-openssl-fips:1.27.2-dev@sha256:8f0c565a04be65a235834f899b91a4c7427ec1cdafa820c85b87c5fb28cbe986
 ARG NODE_VERSION=24.11.1
 
+# Select the OpenSSL backend of the Chainguard Go toolchain (the image's own GODEBUG defaults are kept)
+ENV GODEBUG=tarinsecurepath=0,zipinsecurepath=0,cgr_fips=openssl
+
 RUN apk add curl ca-certificates mailcap unrtf wv poppler-utils tzdata gpg xmlsec
 
 # Download and install node via nvm
