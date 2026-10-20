@@ -4,10 +4,11 @@
 import React from 'react';
 import type {ChangeEvent, ReactNode} from 'react';
 
+import Input from 'components/widgets/inputs/input/input';
+
 import Setting from './setting';
 
-const INPUT_TYPES = ['text', 'textarea', 'number', 'email', 'tel', 'url', 'password'] as const;
-export type InputTypes = typeof INPUT_TYPES[number];
+export type InputTypes = 'text' | 'textarea' | 'number' | 'email' | 'tel' | 'url' | 'password';
 
 export type Props = {
     id: string;
@@ -27,6 +28,9 @@ export type Props = {
     type?: InputTypes;
     autoFocus?: boolean;
     multiple?: boolean;
+    min?: number | string;
+    max?: number | string;
+    step?: number | string;
 };
 
 function TextSetting(props: Props) {
@@ -34,6 +38,8 @@ function TextSetting(props: Props) {
 
     function handleChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
         if (props.type === 'number') {
+            // Empty / intermediate values ("", "-") parse to NaN; keep prior
+            // master behavior of forwarding parseInt result (including NaN).
             props.onChange(props.id, parseInt(event.target.value, 10));
         } else if (props.type === 'text' && props.multiple) {
             if (event.target.value === '') {
@@ -46,45 +52,40 @@ function TextSetting(props: Props) {
         }
     }
 
-    let input = null;
-    if (type === 'textarea') {
-        input = (
-            <textarea
-                id={props.id}
-                data-testid={`${props.id}input`} // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
-                className='form-control'
-                autoFocus={props.autoFocus}
-                dir='auto'
-                rows={5}
-                placeholder={props.placeholder}
-                style={resizable === false ? {resize: 'none'} : undefined}
-                value={props.value}
-                maxLength={maxLength}
-                onChange={handleChange}
-                disabled={props.disabled}
-            />
-        );
-    } else {
-        const inputType = INPUT_TYPES.includes(type) ? type : 'text';
+    // All supported InputTypes go through the Compass Input adapter. Password
+    // uses TextInput (type=password), not PasswordInput — System Console API
+    // keys stay masked without a show/hide toggle (matches master).
+    // e2e: text/textarea → `${id}input`; password/number/… → `${id}${type}`
+    const testId = (type === 'text' || type === 'textarea') ? `${props.id}input` : `${props.id}${type}`;
+    const inputValue = Array.isArray(props.value) ? props.value.join(',') : props.value;
+    const resolvedMaxLength = maxLength >= 0 ? maxLength : undefined;
 
-        // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
-        const testId = inputType === 'text' ? `${props.id}input` : `${props.id}${inputType}`;
+    const input = (
+        <Input
+            id={props.id}
+            name={props.id}
+            data-testid={testId}
+            type={type}
+            value={inputValue}
+            placeholder={props.placeholder}
+            maxLength={resolvedMaxLength}
+            min={props.min}
+            max={props.max}
+            step={props.step}
+            disabled={props.disabled}
+            autoFocus={props.autoFocus}
+            onChange={handleChange}
+            rows={type === 'textarea' ? 5 : undefined}
+            useLegend={false}
 
-        input = (
-            <input
-                id={props.id}
-                data-testid={testId}
-                className='form-control'
-                autoFocus={props.autoFocus}
-                type={inputType}
-                placeholder={props.placeholder}
-                value={props.value}
-                maxLength={maxLength}
-                onChange={handleChange}
-                disabled={props.disabled}
-            />
-        );
-    }
+            // Setting's left-column <label htmlFor> owns the accessible name.
+            // Override the adapter's useLegend=false fallback that would set
+            // aria-label from the placeholder and steal naming from that label.
+            aria-label={undefined}
+            dir='auto'
+            style={type === 'textarea' && resizable === false ? {resize: 'none'} : undefined}
+        />
+    );
 
     return (
         <Setting

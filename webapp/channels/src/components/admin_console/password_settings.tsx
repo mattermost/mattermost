@@ -198,6 +198,9 @@ export default class PasswordSettings extends OLDAdminSettings<Props, State> {
                         onChange={this.handleChange}
                         setByEnv={this.isSetByEnv('PasswordSettings.MinimumLength')}
                         disabled={this.props.isDisabled}
+                        type='number'
+                        min={Constants.MIN_PASSWORD_LENGTH}
+                        max={Constants.MAX_PASSWORD_LENGTH}
                     />
                     <SettingSet
                         label={<FormattedMessage {...messages.passwordRequirements}/>}
@@ -276,6 +279,8 @@ export default class PasswordSettings extends OLDAdminSettings<Props, State> {
                         onChange={this.handleChange}
                         setByEnv={this.isSetByEnv('ServiceSettings.MaximumLoginAttempts')}
                         disabled={this.props.isDisabled}
+                        type='number'
+                        min={1}
                     />
                 )
                 }

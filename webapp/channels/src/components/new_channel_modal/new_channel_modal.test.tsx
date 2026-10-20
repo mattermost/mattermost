@@ -148,7 +148,7 @@ describe('components/new_channel_modal', () => {
 
         const channelNameHeading = screen.getByText('Channel name');
         expect(channelNameHeading).toBeInTheDocument();
-        expect(channelNameHeading).toHaveClass('Input_legend Input_legend___focus');
+        expect(channelNameHeading.closest('[class*="_text-input"]')).toBeTruthy();
 
         const channelNameInput = screen.getByPlaceholderText('Enter a name for your new channel');
         expect(channelNameInput).toBeInTheDocument();
@@ -156,7 +156,8 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toHaveAttribute('type', 'text');
         expect(channelNameInput).toHaveAttribute('name', 'new-channel-modal-name');
         expect(channelNameInput).toHaveAttribute('id', 'input_new-channel-modal-name');
-        expect(channelNameInput).toHaveClass('Input form-control medium new-channel-modal-name-input Input__focus');
+        expect(channelNameInput.closest('.new-channel-modal-name-input')).toBeTruthy();
+        expect(channelNameInput).not.toHaveClass('form-control');
 
         const editUrl = screen.getByText('Edit');
         expect(editUrl).toBeInTheDocument();
@@ -179,7 +180,8 @@ describe('components/new_channel_modal', () => {
 
         const purposeTextArea = screen.getByLabelText('Channel Purpose');
         expect(purposeTextArea).toBeInTheDocument();
-        expect(purposeTextArea).toHaveClass('Input form-control medium');
+        expect(purposeTextArea.closest('[class*="_text-area"]')).toBeTruthy();
+        expect(purposeTextArea).not.toHaveClass('form-control');
 
         const purposeDesc = screen.getByText('This will be displayed when browsing for channels.');
         expect(purposeDesc).toBeInTheDocument();

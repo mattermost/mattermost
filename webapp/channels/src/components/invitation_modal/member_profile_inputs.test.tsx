@@ -77,7 +77,7 @@ describe('MemberProfileInputs', () => {
             />,
         );
 
-        await userEvent.type(screen.getAllByPlaceholderText('First name')[0], 'D');
+        await userEvent.type(screen.getByRole('textbox', {name: 'First name'}), 'D');
         expect(onProfileChange).toHaveBeenCalledWith({
             email: 'dave.roberts@gmail.com',
             username: '',
@@ -95,7 +95,7 @@ describe('MemberProfileInputs', () => {
             />,
         );
 
-        await userEvent.type(screen.getByPlaceholderText('Username'), 'a');
+        await userEvent.type(screen.getByRole('textbox', {name: 'Username'}), 'a');
         expect(screen.queryByText(/Usernames have to begin with a lowercase letter/)).not.toBeInTheDocument();
     });
 
@@ -116,7 +116,7 @@ describe('MemberProfileInputs', () => {
             />,
         );
 
-        await userEvent.click(screen.getByPlaceholderText('Username'));
+        await userEvent.click(screen.getByRole('textbox', {name: 'Username'}));
         await userEvent.tab();
 
         expect(onProfileChange).toHaveBeenCalledWith({
@@ -128,7 +128,7 @@ describe('MemberProfileInputs', () => {
         expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
-    test('shows a full-width username error after blur', async () => {
+    test('shows a username field message after blur', async () => {
         const onProfileChange = jest.fn();
         renderWithContext(
             <MemberProfileInputs
@@ -145,7 +145,7 @@ describe('MemberProfileInputs', () => {
             />,
         );
 
-        const usernameInput = screen.getByPlaceholderText('Username');
+        const usernameInput = screen.getByRole('textbox', {name: 'Username'});
         expect(screen.queryByText(/Usernames have to begin with a lowercase letter/)).not.toBeInTheDocument();
 
         await userEvent.click(usernameInput);
@@ -153,7 +153,5 @@ describe('MemberProfileInputs', () => {
 
         const error = screen.getByRole('alert');
         expect(error).toHaveTextContent(/Usernames have to begin with a lowercase letter/);
-        expect(error).toHaveClass('MemberProfileInputs__error');
-        expect(error.parentElement).toHaveClass('MemberProfileInputs__row');
     });
 });

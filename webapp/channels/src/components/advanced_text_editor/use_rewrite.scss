@@ -13,15 +13,15 @@
     min-width: 400px;
     padding: 8px 12px 8px 12px;
 
-    .Input_wrapper {
+    [class*='_text-input__inner'] {
         padding-left: 8px;
     }
 
-    .Input_legend {
+    [class*='_text-input__label'] {
         display: none;
     }
 
-    .Input_container .Input_wrapper > :not(:first-child) {
+    .Input_container [class*='_text-input__inner'] > :not(:first-child) {
         margin-left: 10px;
     }
 

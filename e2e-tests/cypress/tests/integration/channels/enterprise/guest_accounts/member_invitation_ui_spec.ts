@@ -98,7 +98,7 @@ describe('Guest Account - Member Invitation Flow', () => {
         // * Verify the sign up options
         cy.findByText('AD/LDAP Credentials').scrollIntoView().should('be.visible');
         cy.findByText('Email address').should('be.visible');
-        cy.findByPlaceholderText('Choose a Password').should('be.visible');
+        cy.findByLabelText('Choose a Password').should('be.visible');
 
         // # Sign up via email
         const username = `temp-${getRandomId()}`;

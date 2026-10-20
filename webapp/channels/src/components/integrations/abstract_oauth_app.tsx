@@ -15,6 +15,7 @@ import type {Team} from '@mattermost/types/teams';
 import {Permissions} from 'mattermost-redux/constants';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import BackstageInput from 'components/backstage/components/backstage_input';
 import FormError from 'components/form_error';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import SpinnerButton from 'components/spinner_button';
@@ -78,7 +79,7 @@ type State = {
 
 export default class AbstractOAuthApp extends React.PureComponent<Props, State> {
     private image: HTMLImageElement;
-    private icon_url: React.RefObject<HTMLInputElement | null>;
+    private icon_url: React.RefObject<HTMLInputElement | HTMLTextAreaElement | null>;
 
     constructor(props: Props) {
         super(props);
@@ -209,7 +210,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
         this.props.action(app).then(() => this.setState({saving: false}));
     };
 
-    updateName = (e: ChangeEvent<HTMLInputElement>) => {
+    updateName = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             name: e.target.value,
         });
@@ -227,19 +228,19 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
         });
     };
 
-    updateDescription = (e: ChangeEvent<HTMLInputElement>) => {
+    updateDescription = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             description: e.target.value,
         });
     };
 
-    updateHomepage = (e: ChangeEvent<HTMLInputElement>) => {
+    updateHomepage = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             homepage: e.target.value,
         });
     };
 
-    updateIconUrl = (e: ChangeEvent<HTMLInputElement>) => {
+    updateIconUrl = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             has_icon: false,
             icon_url: e.target.value,
@@ -247,7 +248,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
         this.image.src = e.target.value;
     };
 
-    updateCallbackUrls = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    updateCallbackUrls = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             callbackUrls: e.target.value,
         });
@@ -397,11 +398,10 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='name'
                                     type='text'
                                     maxLength={64}
-                                    className='form-control'
                                     value={this.state.name}
                                     onChange={this.updateName}
                                 />
@@ -424,11 +424,10 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='description'
                                     type='text'
                                     maxLength={512}
-                                    className='form-control'
                                     value={this.state.description}
                                     onChange={this.updateDescription}
                                 />
@@ -451,11 +450,10 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='homepage'
                                     type='url'
                                     maxLength={256}
-                                    className='form-control'
                                     value={this.state.homepage}
                                     onChange={this.updateHomepage}
                                 />
@@ -478,12 +476,11 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='icon_url'
                                     ref={this.icon_url}
                                     type='url'
                                     maxLength={512}
-                                    className='form-control'
                                     value={this.state.icon_url}
                                     onChange={this.updateIconUrl}
                                 />
@@ -506,11 +503,11 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <textarea
+                                <BackstageInput
                                     id='callbackUrls'
+                                    type='textarea'
                                     rows={3}
                                     maxLength={1024}
-                                    className='form-control'
                                     value={this.state.callbackUrls}
                                     onChange={this.updateCallbackUrls}
                                 />

@@ -191,27 +191,29 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 class="Input_container"
               >
                 <div
-                  class="Input_fieldset signup-body-card-form-email-input Input_fieldset___legend"
-                  data-testid="input-wrapper"
+                  class="_text-input_3inqk_2 _text-input--size-large_3inqk_185 _text-input--label-floated_3inqk_73 Input signup-body-card-form-email-input"
                 >
-                  <label
-                    class="Input_legend Input_legend___focus"
-                    for="input_email"
-                  >
-                                            
-                    Email address
-                  </label>
                   <div
-                    class="Input_wrapper"
+                    class="_text-input__wrapper_3inqk_31"
                   >
-                    <input
-                      aria-label="Email address"
-                      class="Input form-control large Input__focus"
-                      id="input_email"
-                      name="email"
-                      type="text"
-                      value=""
-                    />
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="input_email"
+                    >
+                      Email address
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="input-wrapper"
+                        id="input_email"
+                        name="email"
+                        type="text"
+                        value=""
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -219,95 +221,111 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 class="Input_container"
               >
                 <div
-                  class="Input_fieldset signup-body-card-form-name-input"
-                  data-testid="input-wrapper"
+                  class="_text-input_3inqk_2 _text-input--size-large_3inqk_185 Input signup-body-card-form-name-input"
                 >
-                  <label
-                    class="Input_legend"
-                    for="input_name"
-                  >
-                                            
-                  </label>
                   <div
-                    class="Input_wrapper"
+                    class="_text-input__wrapper_3inqk_31"
                   >
-                    <input
-                      aria-describedby="error_name"
-                      aria-label="Choose a Username"
-                      class="Input form-control large"
-                      id="input_name"
-                      name="name"
-                      placeholder="Choose a Username"
-                      type="text"
-                      value=""
-                    />
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="input_name"
+                    >
+                      Choose a Username
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        aria-describedby="input_name-message"
+                        class="_text-input__input_3inqk_42"
+                        data-testid="input-wrapper"
+                        id="input_name"
+                        name="name"
+                        type="text"
+                        value=""
+                      />
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="Input___customMessage Input___info"
-                  id="error_name"
-                >
-                  <i
-                    aria-hidden="true"
-                    aria-label=""
-                    class="icon info icon-information-outline"
-                    role="img"
-                  />
-                  <span>
-                    You can use lowercase letters, numbers, periods, dashes, and underscores.
-                  </span>
+                  <div
+                    class="_text-input__footer_3inqk_124"
+                  >
+                    <div
+                      class="_field-message_10eh8_2 _field-message--tone-info_10eh8_29 _text-input__footer-message_3inqk_130"
+                      id="input_name-message"
+                    >
+                      <span
+                        class="_field-message__text_10eh8_14"
+                      >
+                        You can use lowercase letters, numbers, periods, dashes, and underscores.
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div
-                class="Input_container"
+                class="_password-input_d44ti_2 _password-input--size-large_d44ti_152 password-input signup-body-card-form-password-input"
               >
                 <div
-                  class="Input_fieldset password-input signup-body-card-form-password-input"
-                  data-testid="input-wrapper"
+                  class="_password-input__wrapper_d44ti_8"
                 >
                   <label
-                    class="Input_legend"
+                    class="_password-input__label_d44ti_28"
                     for="input_password-input"
                   >
-                                            
+                    Choose a Password
                   </label>
                   <div
-                    class="Input_wrapper password-input-with-toggle"
+                    class="_password-input__inner_d44ti_55"
                   >
                     <input
-                      aria-describedby="error_password-input"
-                      aria-label="Choose a Password"
-                      class="Input form-control large"
+                      aria-describedby="input_password-input-message"
+                      class="_password-input__input_d44ti_18"
                       id="input_password-input"
                       name="password-input"
-                      placeholder="Choose a Password"
                       type="password"
                       value=""
                     />
+                    <span
+                      class="_password-input__trailing-icon_d44ti_83"
+                    >
+                      <button
+                        aria-label="Show password"
+                        class="_password-input__reveal_d44ti_91"
+                        id="password_toggle"
+                        type="button"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </button>
+                    </span>
                   </div>
-                  <button
-                    aria-label="Show password"
-                    class="password-input-toggle"
-                    id="password_toggle"
-                    type="button"
-                  >
-                    <i
-                      aria-hidden="true"
-                      class="icon-eye-outline"
-                    />
-                  </button>
                 </div>
                 <div
-                  class="Input___customMessage Input___info"
-                  id="error_password-input"
+                  class="_field-message_10eh8_2 _field-message--tone-info_10eh8_29"
+                  id="input_password-input-message"
                 >
-                  <i
-                    aria-hidden="true"
-                    aria-label=""
-                    class="icon info icon-information-outline"
-                    role="img"
-                  />
-                  <span>
+                  <span
+                    class="_field-message__text_10eh8_14"
+                  >
                     Your password must be 5-72 characters long.
                   </span>
                 </div>
@@ -487,27 +505,29 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 class="Input_container"
               >
                 <div
-                  class="Input_fieldset signup-body-card-form-email-input Input_fieldset___legend"
-                  data-testid="input-wrapper"
+                  class="_text-input_3inqk_2 _text-input--size-large_3inqk_185 _text-input--label-floated_3inqk_73 Input signup-body-card-form-email-input"
                 >
-                  <label
-                    class="Input_legend Input_legend___focus"
-                    for="input_email"
-                  >
-                                            
-                    Email address
-                  </label>
                   <div
-                    class="Input_wrapper"
+                    class="_text-input__wrapper_3inqk_31"
                   >
-                    <input
-                      aria-label="Email address"
-                      class="Input form-control large Input__focus"
-                      id="input_email"
-                      name="email"
-                      type="text"
-                      value=""
-                    />
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="input_email"
+                    >
+                      Email address
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="input-wrapper"
+                        id="input_email"
+                        name="email"
+                        type="text"
+                        value=""
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -515,95 +535,111 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 class="Input_container"
               >
                 <div
-                  class="Input_fieldset signup-body-card-form-name-input"
-                  data-testid="input-wrapper"
+                  class="_text-input_3inqk_2 _text-input--size-large_3inqk_185 Input signup-body-card-form-name-input"
                 >
-                  <label
-                    class="Input_legend"
-                    for="input_name"
-                  >
-                                            
-                  </label>
                   <div
-                    class="Input_wrapper"
+                    class="_text-input__wrapper_3inqk_31"
                   >
-                    <input
-                      aria-describedby="error_name"
-                      aria-label="Choose a Username"
-                      class="Input form-control large"
-                      id="input_name"
-                      name="name"
-                      placeholder="Choose a Username"
-                      type="text"
-                      value=""
-                    />
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="input_name"
+                    >
+                      Choose a Username
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        aria-describedby="input_name-message"
+                        class="_text-input__input_3inqk_42"
+                        data-testid="input-wrapper"
+                        id="input_name"
+                        name="name"
+                        type="text"
+                        value=""
+                      />
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="Input___customMessage Input___info"
-                  id="error_name"
-                >
-                  <i
-                    aria-hidden="true"
-                    aria-label=""
-                    class="icon info icon-information-outline"
-                    role="img"
-                  />
-                  <span>
-                    You can use lowercase letters, numbers, periods, dashes, and underscores.
-                  </span>
+                  <div
+                    class="_text-input__footer_3inqk_124"
+                  >
+                    <div
+                      class="_field-message_10eh8_2 _field-message--tone-info_10eh8_29 _text-input__footer-message_3inqk_130"
+                      id="input_name-message"
+                    >
+                      <span
+                        class="_field-message__text_10eh8_14"
+                      >
+                        You can use lowercase letters, numbers, periods, dashes, and underscores.
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div
-                class="Input_container"
+                class="_password-input_d44ti_2 _password-input--size-large_d44ti_152 password-input signup-body-card-form-password-input"
               >
                 <div
-                  class="Input_fieldset password-input signup-body-card-form-password-input"
-                  data-testid="input-wrapper"
+                  class="_password-input__wrapper_d44ti_8"
                 >
                   <label
-                    class="Input_legend"
+                    class="_password-input__label_d44ti_28"
                     for="input_password-input"
                   >
-                                            
+                    Choose a Password
                   </label>
                   <div
-                    class="Input_wrapper password-input-with-toggle"
+                    class="_password-input__inner_d44ti_55"
                   >
                     <input
-                      aria-describedby="error_password-input"
-                      aria-label="Choose a Password"
-                      class="Input form-control large"
+                      aria-describedby="input_password-input-message"
+                      class="_password-input__input_d44ti_18"
                       id="input_password-input"
                       name="password-input"
-                      placeholder="Choose a Password"
                       type="password"
                       value=""
                     />
+                    <span
+                      class="_password-input__trailing-icon_d44ti_83"
+                    >
+                      <button
+                        aria-label="Show password"
+                        class="_password-input__reveal_d44ti_91"
+                        id="password_toggle"
+                        type="button"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </button>
+                    </span>
                   </div>
-                  <button
-                    aria-label="Show password"
-                    class="password-input-toggle"
-                    id="password_toggle"
-                    type="button"
-                  >
-                    <i
-                      aria-hidden="true"
-                      class="icon-eye-outline"
-                    />
-                  </button>
                 </div>
                 <div
-                  class="Input___customMessage Input___info"
-                  id="error_password-input"
+                  class="_field-message_10eh8_2 _field-message--tone-info_10eh8_29"
+                  id="input_password-input-message"
                 >
-                  <i
-                    aria-hidden="true"
-                    aria-label=""
-                    class="icon info icon-information-outline"
-                    role="img"
-                  />
-                  <span>
+                  <span
+                    class="_field-message__text_10eh8_14"
+                  >
                     Your password must be 5-72 characters long.
                   </span>
                 </div>

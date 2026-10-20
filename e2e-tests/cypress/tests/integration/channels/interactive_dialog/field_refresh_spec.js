@@ -72,7 +72,7 @@ describe('Interactive Dialog - Field Refresh', () => {
             });
 
             // # Enter project name first
-            cy.get('input[placeholder*="project name"]').type('Web App Project');
+            cy.findByTestId('project_nameinput').type('Web App Project');
 
             // # Trigger field refresh by changing project type (refresh: true field)
             cy.get('.form-group').contains('Project Type').parent().within(() => {
@@ -97,7 +97,7 @@ describe('Interactive Dialog - Field Refresh', () => {
                 cy.contains('Project Type').should('be.visible');
 
                 // * Project name value should be preserved
-                cy.get('input[placeholder*="project name"]').should('have.value', 'Web App Project');
+                cy.findByTestId('project_nameinput').should('have.value', 'Web App Project');
 
                 // * Selection should be made
                 cy.get('.react-select__single-value').should('contain', 'Web Application');
@@ -117,7 +117,7 @@ describe('Interactive Dialog - Field Refresh', () => {
 
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Fill in initial values
-            cy.get('input[placeholder*="project name"]').type('My Test Project');
+            cy.findByTestId('project_nameinput').type('My Test Project');
 
             // # Trigger refresh by selecting project type
             cy.get('.form-group').contains('Project Type').parent().within(() => {
@@ -130,7 +130,7 @@ describe('Interactive Dialog - Field Refresh', () => {
             cy.wait(TIMEOUTS.ONE_SEC);
 
             // * Verify project name value is preserved during refresh
-            cy.get('input[placeholder*="project name"]').should('have.value', 'My Test Project');
+            cy.findByTestId('project_nameinput').should('have.value', 'My Test Project');
 
             // * Verify project type selection is preserved
             cy.get('.react-select__single-value').should('contain', 'Mobile App');
@@ -164,7 +164,7 @@ describe('Interactive Dialog - Field Refresh', () => {
 
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Enter project name first
-            cy.get('input[placeholder*="project name"]').type('Multi-Test Project');
+            cy.findByTestId('project_nameinput').type('Multi-Test Project');
 
             const projectTypes = [
                 'Web Application',
@@ -189,7 +189,7 @@ describe('Interactive Dialog - Field Refresh', () => {
                 cy.contains('Project Type').should('be.visible');
 
                 // * Verify project name is preserved through refresh cycles
-                cy.get('input[placeholder*="project name"]').should('have.value', 'Multi-Test Project');
+                cy.findByTestId('project_nameinput').should('have.value', 'Multi-Test Project');
 
                 // * Verify selection was made
                 cy.get('.react-select__single-value').should('contain', projectType);

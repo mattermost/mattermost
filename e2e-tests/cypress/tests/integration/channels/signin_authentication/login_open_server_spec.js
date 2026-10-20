@@ -50,10 +50,10 @@ describe('Login page with open server', () => {
         cy.get('.login-body-card-title').click();
 
         // * Verify email/username field is present
-        cy.findByPlaceholderText('Email or Username').should('exist').and('be.visible');
+        cy.get('#input_loginId').should('exist').and('be.visible');
 
         // * Verify password is present
-        cy.findByPlaceholderText('Password').should('exist').and('be.visible');
+        cy.get('#input_password-input').should('exist').and('be.visible');
 
         // * Verify sign in button is present
         cy.get('#saveSetting').should('exist').and('be.visible');
@@ -99,10 +99,10 @@ describe('Login page with open server', () => {
 
     it('MM-T3306_3 Should keep enable Log in button when empty email/username and password field', () => {
         // # Clear email/username field
-        cy.findByPlaceholderText('Email or Username').clear();
+        cy.get('#input_loginId').clear();
 
         // # Clear password field
-        cy.findByPlaceholderText('Password').clear();
+        cy.get('#input_password-input').clear();
 
         // # Verify Log in button enabled
         cy.get('#saveSetting').should('not.be.disabled');
@@ -110,10 +110,10 @@ describe('Login page with open server', () => {
 
     it('MM-T3306_4 Should keep enable Log in button when empty email/username field', () => {
         // # Clear email/username field
-        cy.findByPlaceholderText('Email or Username').clear();
+        cy.get('#input_loginId').clear();
 
         // # Enter a password
-        cy.findByPlaceholderText('Password').clear().type('samplepassword');
+        cy.get('#input_password-input').clear().type('samplepassword');
 
         // # Verify Log in button enabled
         cy.get('#saveSetting').should('not.be.disabled');
@@ -121,10 +121,10 @@ describe('Login page with open server', () => {
 
     it('MM-T3306_5 Should keep enable Log in button when empty password field', () => {
         // # Enter any email/username in the email field
-        cy.findByPlaceholderText('Email or Username').clear().type('sampleusername');
+        cy.get('#input_loginId').clear().type('sampleusername');
 
         // # Clear password field
-        cy.findByPlaceholderText('Password').clear();
+        cy.get('#input_password-input').clear();
 
         // # Verify Log in button enabled
         cy.get('#saveSetting').should('not.be.disabled');
@@ -141,10 +141,10 @@ describe('Login page with open server', () => {
         expect(invalidPassword).to.not.equal(testUser.password);
 
         // # Enter invalid email/username in the email field
-        cy.findByPlaceholderText('Email or Username').clear().type(invalidEmail);
+        cy.get('#input_loginId').clear().type(invalidEmail);
 
         // # Enter invalid password in the password field
-        cy.findByPlaceholderText('Password').clear().type(invalidPassword);
+        cy.get('#input_password-input').clear().type(invalidPassword);
 
         // # Verify Log in button enabled and click
         cy.get('#saveSetting').should('not.be.disabled').click();
@@ -163,10 +163,10 @@ describe('Login page with open server', () => {
         expect(invalidPassword).to.not.equal(testUser.password);
 
         // # Enter actual users email/username in the email field
-        cy.findByPlaceholderText('Email or Username').clear().type(testUser.username);
+        cy.get('#input_loginId').clear().type(testUser.username);
 
         // # Enter invalid password in the password field
-        cy.findByPlaceholderText('Password').clear().type(invalidPassword);
+        cy.get('#input_password-input').clear().type(invalidPassword);
 
         // # Verify Log in button enabled and click
         cy.get('#saveSetting').should('not.be.disabled').click();
@@ -180,10 +180,10 @@ describe('Login page with open server', () => {
         cy.get('.login-body-card-title').click();
 
         // # Enter actual users email/username in the email field
-        cy.findByPlaceholderText('Email or Username').clear().type(testUser.username);
+        cy.get('#input_loginId').clear().type(testUser.username);
 
         // # Enter any password in the email field
-        cy.findByPlaceholderText('Password').clear().type(testUser.password);
+        cy.get('#input_password-input').clear().type(testUser.password);
 
         // # Verify Log in button enabled and click
         cy.get('#saveSetting').should('not.be.disabled').click();
@@ -206,10 +206,10 @@ describe('Login page with open server', () => {
         cy.get('.login-body-card-title').click();
 
         // # Enter actual users email/username in the email field
-        cy.findByPlaceholderText('Email or Username').clear().type(testUser.username);
+        cy.get('#input_loginId').clear().type(testUser.username);
 
         // # Enter any password in the email field and hit enter
-        cy.findByPlaceholderText('Password').clear().type(`${testUser.password}{enter}`);
+        cy.get('#input_password-input').clear().type(`${testUser.password}{enter}`);
 
         // * Check that it login successfully and it redirects into the main channel page
         cy.url().should('include', '/channels/town-square');

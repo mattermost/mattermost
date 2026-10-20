@@ -32,10 +32,10 @@ describe('Managing bot accounts', () => {
         cy.get('.login-body-card-title').click();
 
         // # Enter bot name in the email field
-        cy.findByPlaceholderText('Email, Username or AD/LDAP Username', {timeout: TIMEOUTS.ONE_MIN}).clear().type(botName);
+        cy.get('#input_loginId', {timeout: TIMEOUTS.ONE_MIN}).clear().type(botName);
 
         // # Enter random password in the password field
-        cy.findByPlaceholderText('Password').clear().type('invalidPassword@#%(^!');
+        cy.get('#input_password-input').clear().type('invalidPassword@#%(^!');
 
         // # Hit enter to login
         cy.get('#saveSetting').should('not.be.disabled').click();

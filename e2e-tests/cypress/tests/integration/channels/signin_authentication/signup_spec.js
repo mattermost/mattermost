@@ -66,10 +66,12 @@ describe('Signup Email page', () => {
         cy.get('#input_email').should('be.visible');
         cy.focused().should('have.attr', 'id', 'input_email');
 
-        cy.get('#input_name').should('be.visible').and('have.attr', 'placeholder', 'Choose a Username');
+        cy.get('#input_name').should('be.visible');
+        cy.findByLabelText('Choose a Username').should('be.visible');
         cy.findByText('You can use lowercase letters, numbers, periods, dashes, and underscores.').should('be.visible');
 
-        cy.get('#input_password-input').should('be.visible').and('have.attr', 'placeholder', 'Choose a Password');
+        cy.get('#input_password-input').should('be.visible');
+        cy.findByLabelText('Choose a Password').should('be.visible');
         cy.findByText('Your password must be 14-72 characters long.').should('be.visible');
 
         // * Check terms and privacy checkbox

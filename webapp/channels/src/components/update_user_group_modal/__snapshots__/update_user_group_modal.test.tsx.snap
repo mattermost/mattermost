@@ -75,27 +75,28 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="Input_fieldset Input_fieldset___legend"
-                  data-testid="input-wrapper"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
                 >
-                  <label
-                    class="Input_legend Input_legend___focus"
-                    for="input_"
-                  >
-                                            
-                    Name
-                  </label>
                   <div
-                    class="Input_wrapper"
+                    class="_text-input__wrapper_3inqk_31"
                   >
-                    <input
-                      aria-label="Name"
-                      class="Input form-control medium Input__focus"
-                      data-testid="nameInput"
-                      id="input_"
-                      type="text"
-                      value="Group Name"
-                    />
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="input_"
+                    >
+                      Name
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="nameInput"
+                        id="input_"
+                        type="text"
+                        value="Group Name"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -107,28 +108,28 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
                 class="Input_container"
               >
                 <div
-                  class="Input_fieldset Input_fieldset___legend"
-                  data-testid="input-wrapper"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input"
                 >
-                  <label
-                    class="Input_legend Input_legend___focus"
-                    for="input_"
-                  >
-                                            
-                    Mention
-                  </label>
                   <div
-                    class="Input_wrapper"
+                    class="_text-input__wrapper_3inqk_31"
                   >
-                    <input
-                      aria-label="Mention"
-                      class="Input form-control medium Input__focus"
-                      data-testid="nameInput"
-                      id="input_"
-                      placeholder="Mention"
-                      type="text"
-                      value="@group"
-                    />
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="input_"
+                    >
+                      Mention
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        class="_text-input__input_3inqk_42"
+                        data-testid="nameInput"
+                        id="input_"
+                        type="text"
+                        value="@group"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

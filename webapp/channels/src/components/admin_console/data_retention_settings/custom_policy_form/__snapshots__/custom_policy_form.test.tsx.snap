@@ -56,27 +56,30 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                 class="Input_container"
               >
                 <div
-                  class="Input_fieldset"
-                  data-testid="input-wrapper"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
-                  <label
-                    class="Input_legend"
-                    for="input_policyName"
-                  >
-                                            
-                  </label>
                   <div
-                    class="Input_wrapper"
+                    class="_text-input__wrapper_3inqk_31"
                   >
-                    <input
-                      aria-label="Policy name"
-                      class="Input form-control medium"
-                      id="input_policyName"
-                      name="policyName"
-                      placeholder="Policy name"
-                      type="text"
-                      value=""
-                    />
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="input_policyName"
+                    >
+                      Policy name
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        aria-label="Policy name"
+                        class="_text-input__input_3inqk_42"
+                        data-testid="input-wrapper"
+                        id="input_policyName"
+                        name="policyName"
+                        type="text"
+                        value=""
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -225,25 +228,53 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                   <div
                     class="DataGrid_searchBar"
                   >
-                    <span
-                      aria-hidden="true"
-                      class="DataGrid_searchIcon"
+                    <div
+                      class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157"
                     >
-                      <i
-                        class="fa fa-search"
-                        title="Search Icon"
-                      />
-                    </span>
-                    <input
-                      data-testid="searchInput"
-                      placeholder="Search"
-                      type="text"
-                      value=""
-                    />
-                    <i
-                      class="DataGrid_clearButton fa fa-times-circle hidden"
-                      data-testid="clear-search"
-                    />
+                      <div
+                        class="_search-input__wrapper_1h7hr_8"
+                      >
+                        <div
+                          class="_search-input__inner_1h7hr_55"
+                        >
+                          <span
+                            aria-hidden="true"
+                            class="_search-input__leading-icon_1h7hr_86"
+                          >
+                            <div
+                              aria-hidden="true"
+                              class="_icon_1i355_2 _icon--size-12_1i355_30"
+                            >
+                              <div
+                                class="_icon__glyph-area_1i355_9"
+                              >
+                                <svg
+                                  fill="currentColor"
+                                  height="14"
+                                  version="1.1"
+                                  viewBox="0 0 24 24"
+                                  width="14"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M20.224,18.829l-3.775-3.775C17.418,13.791,18,12.215,18,10.5C18,6.358,14.642,3,10.5,3S3,6.358,3,10.5S6.358,18,10.5,18c1.708,0,3.278-0.578,4.539-1.539l3.775,3.749c0.39,0.388,1.02,0.388,1.41,0C20.592,19.823,20.592,19.216,20.224,18.829z M5,10.5
+	C5,7.462,7.462,5,10.5,5S16,7.462,16,10.5S13.538,16,10.5,16S5,13.538,5,10.5z"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </span>
+                          <input
+                            class="_search-input__input_1h7hr_18"
+                            data-testid="searchInput"
+                            id="_r_1_"
+                            placeholder="Search"
+                            type="search"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div
@@ -317,25 +348,53 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                   <div
                     class="DataGrid_searchBar"
                   >
-                    <span
-                      aria-hidden="true"
-                      class="DataGrid_searchIcon"
+                    <div
+                      class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157"
                     >
-                      <i
-                        class="fa fa-search"
-                        title="Search Icon"
-                      />
-                    </span>
-                    <input
-                      data-testid="searchInput"
-                      placeholder="Search"
-                      type="text"
-                      value=""
-                    />
-                    <i
-                      class="DataGrid_clearButton fa fa-times-circle hidden"
-                      data-testid="clear-search"
-                    />
+                      <div
+                        class="_search-input__wrapper_1h7hr_8"
+                      >
+                        <div
+                          class="_search-input__inner_1h7hr_55"
+                        >
+                          <span
+                            aria-hidden="true"
+                            class="_search-input__leading-icon_1h7hr_86"
+                          >
+                            <div
+                              aria-hidden="true"
+                              class="_icon_1i355_2 _icon--size-12_1i355_30"
+                            >
+                              <div
+                                class="_icon__glyph-area_1i355_9"
+                              >
+                                <svg
+                                  fill="currentColor"
+                                  height="14"
+                                  version="1.1"
+                                  viewBox="0 0 24 24"
+                                  width="14"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M20.224,18.829l-3.775-3.775C17.418,13.791,18,12.215,18,10.5C18,6.358,14.642,3,10.5,3S3,6.358,3,10.5S6.358,18,10.5,18c1.708,0,3.278-0.578,4.539-1.539l3.775,3.749c0.39,0.388,1.02,0.388,1.41,0C20.592,19.823,20.592,19.216,20.224,18.829z M5,10.5
+	C5,7.462,7.462,5,10.5,5S16,7.462,16,10.5S13.538,16,10.5,16S5,13.538,5,10.5z"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </span>
+                          <input
+                            class="_search-input__input_1h7hr_18"
+                            data-testid="searchInput"
+                            id="_r_2_"
+                            placeholder="Search"
+                            type="search"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div
                     class="Filter"
@@ -638,27 +697,30 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                 class="Input_container"
               >
                 <div
-                  class="Input_fieldset"
-                  data-testid="input-wrapper"
+                  class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                 >
-                  <label
-                    class="Input_legend"
-                    for="input_policyName"
-                  >
-                                            
-                  </label>
                   <div
-                    class="Input_wrapper"
+                    class="_text-input__wrapper_3inqk_31"
                   >
-                    <input
-                      aria-label="Policy name"
-                      class="Input form-control medium"
-                      id="input_policyName"
-                      name="policyName"
-                      placeholder="Policy name"
-                      type="text"
-                      value=""
-                    />
+                    <label
+                      class="_text-input__label_3inqk_53"
+                      for="input_policyName"
+                    >
+                      Policy name
+                    </label>
+                    <div
+                      class="_text-input__inner_3inqk_80"
+                    >
+                      <input
+                        aria-label="Policy name"
+                        class="_text-input__input_3inqk_42"
+                        data-testid="input-wrapper"
+                        id="input_policyName"
+                        name="policyName"
+                        type="text"
+                        value=""
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -802,25 +864,53 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                   <div
                     class="DataGrid_searchBar"
                   >
-                    <span
-                      aria-hidden="true"
-                      class="DataGrid_searchIcon"
+                    <div
+                      class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157"
                     >
-                      <i
-                        class="fa fa-search"
-                        title="Search Icon"
-                      />
-                    </span>
-                    <input
-                      data-testid="searchInput"
-                      placeholder="Search"
-                      type="text"
-                      value=""
-                    />
-                    <i
-                      class="DataGrid_clearButton fa fa-times-circle hidden"
-                      data-testid="clear-search"
-                    />
+                      <div
+                        class="_search-input__wrapper_1h7hr_8"
+                      >
+                        <div
+                          class="_search-input__inner_1h7hr_55"
+                        >
+                          <span
+                            aria-hidden="true"
+                            class="_search-input__leading-icon_1h7hr_86"
+                          >
+                            <div
+                              aria-hidden="true"
+                              class="_icon_1i355_2 _icon--size-12_1i355_30"
+                            >
+                              <div
+                                class="_icon__glyph-area_1i355_9"
+                              >
+                                <svg
+                                  fill="currentColor"
+                                  height="14"
+                                  version="1.1"
+                                  viewBox="0 0 24 24"
+                                  width="14"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M20.224,18.829l-3.775-3.775C17.418,13.791,18,12.215,18,10.5C18,6.358,14.642,3,10.5,3S3,6.358,3,10.5S6.358,18,10.5,18c1.708,0,3.278-0.578,4.539-1.539l3.775,3.749c0.39,0.388,1.02,0.388,1.41,0C20.592,19.823,20.592,19.216,20.224,18.829z M5,10.5
+	C5,7.462,7.462,5,10.5,5S16,7.462,16,10.5S13.538,16,10.5,16S5,13.538,5,10.5z"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </span>
+                          <input
+                            class="_search-input__input_1h7hr_18"
+                            data-testid="searchInput"
+                            id="_r_4_"
+                            placeholder="Search"
+                            type="search"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div
@@ -904,25 +994,53 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                   <div
                     class="DataGrid_searchBar"
                   >
-                    <span
-                      aria-hidden="true"
-                      class="DataGrid_searchIcon"
+                    <div
+                      class="_search-input_1h7hr_2 _search-input--size-small_1h7hr_100 _search-input--has-leading-icon_1h7hr_157"
                     >
-                      <i
-                        class="fa fa-search"
-                        title="Search Icon"
-                      />
-                    </span>
-                    <input
-                      data-testid="searchInput"
-                      placeholder="Search"
-                      type="text"
-                      value=""
-                    />
-                    <i
-                      class="DataGrid_clearButton fa fa-times-circle hidden"
-                      data-testid="clear-search"
-                    />
+                      <div
+                        class="_search-input__wrapper_1h7hr_8"
+                      >
+                        <div
+                          class="_search-input__inner_1h7hr_55"
+                        >
+                          <span
+                            aria-hidden="true"
+                            class="_search-input__leading-icon_1h7hr_86"
+                          >
+                            <div
+                              aria-hidden="true"
+                              class="_icon_1i355_2 _icon--size-12_1i355_30"
+                            >
+                              <div
+                                class="_icon__glyph-area_1i355_9"
+                              >
+                                <svg
+                                  fill="currentColor"
+                                  height="14"
+                                  version="1.1"
+                                  viewBox="0 0 24 24"
+                                  width="14"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M20.224,18.829l-3.775-3.775C17.418,13.791,18,12.215,18,10.5C18,6.358,14.642,3,10.5,3S3,6.358,3,10.5S6.358,18,10.5,18c1.708,0,3.278-0.578,4.539-1.539l3.775,3.749c0.39,0.388,1.02,0.388,1.41,0C20.592,19.823,20.592,19.216,20.224,18.829z M5,10.5
+	C5,7.462,7.462,5,10.5,5S16,7.462,16,10.5S13.538,16,10.5,16S5,13.538,5,10.5z"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </span>
+                          <input
+                            class="_search-input__input_1h7hr_18"
+                            data-testid="searchInput"
+                            id="_r_5_"
+                            placeholder="Search"
+                            type="search"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div
                     class="Filter"

@@ -28,16 +28,11 @@
             width: auto;
             margin-right: 6px;
 
-            .url-input-editable-wrapper {
-                padding: 0 12px;
-
-                .url-input-editable-path {
-                    height: 26px;
-                    border: 0;
-                    border-radius: 0;
-                    font-size: 12px;
-                    line-height: 16px;
-                }
+            // Compact inline path editor: Compass small (32px) matches
+            // .url-input-container min-height so Edit doesn't grow the row.
+            // Size class is on the same node as url-input-editable-path (Input root).
+            .url-input-editable-path[class*='_text-input--size-small'] {
+                gap: 0;
             }
         }
 

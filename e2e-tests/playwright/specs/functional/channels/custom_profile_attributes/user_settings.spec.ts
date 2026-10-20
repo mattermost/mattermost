@@ -355,8 +355,9 @@ test('MM-T5772 URL Validation in Custom Profile Attributes @custom_profile_attri
     await profileModal.container.locator(`#customAttribute_${fieldId}`).blur();
 
     // * Save button doesn't complete the operation with invalid URL
-    await expect(profileModal.container.locator(`#error_customAttribute_${fieldId}`)).toBeVisible();
-    await expect(profileModal.container.locator(`#error_customAttribute_${fieldId}`)).toHaveText(
+    // Compass FieldMessage ids are `${inputId}-message` (not legacy `#error_*`).
+    await expect(profileModal.container.locator(`#customAttribute_${fieldId}-message`)).toBeVisible();
+    await expect(profileModal.container.locator(`#customAttribute_${fieldId}-message`)).toContainText(
         'Please enter a valid url.',
     );
 
@@ -368,6 +369,6 @@ test('MM-T5772 URL Validation in Custom Profile Attributes @custom_profile_attri
     await profileModal.saveButton.click();
 
     // * Valid URL saves successfully with no error message
-    await expect(profileModal.container.locator(`#error_customAttribute_${fieldId}`)).not.toBeVisible();
+    await expect(profileModal.container.locator(`#customAttribute_${fieldId}-message`)).not.toBeVisible();
     await expect(profileModal.container).toContainText(TEST_VALID_URL);
 });

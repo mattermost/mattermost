@@ -72,7 +72,7 @@ describe('Group Message Conversion To Private Channel', () => {
         cy.findByText(testTeam2.display_name).click();
 
         // Enter the new channel name and confirm
-        cy.findByPlaceholderText('Channel name').type('Converted Channel');
+        cy.findByRole('textbox', {name: 'Channel name'}).type('Converted Channel');
         cy.get('.GenericModal__button.delete').click();
 
         // verify the channel is in a team, as indicated by the presence
@@ -109,7 +109,7 @@ describe('Group Message Conversion To Private Channel', () => {
 
                     cy.contains('Select Team').should('not.exist');
 
-                    cy.findByPlaceholderText('Channel name').type('Converted Channel 2');
+                    cy.findByRole('textbox', {name: 'Channel name'}).type('Converted Channel 2');
                     cy.get('.GenericModal__button.delete').click();
 
                     cy.url().should('contain', `/${testTeam2.name}/channels/converted-channel-2`);

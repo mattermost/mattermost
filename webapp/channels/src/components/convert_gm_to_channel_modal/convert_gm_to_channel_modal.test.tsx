@@ -95,7 +95,7 @@ describe('component/ConvertGmToChannelModal', () => {
         );
 
         expect(screen.queryByText('Select Team')).toBeInTheDocument();
-        expect(screen.queryByPlaceholderText('Channel name')).toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: 'Channel name'})).toBeInTheDocument();
         expect(screen.queryByText('Edit')).toBeInTheDocument();
         expect(screen.queryByText('URL: http://localhost:8065/team_1/channels/')).toBeInTheDocument();
     });
@@ -121,7 +121,7 @@ describe('component/ConvertGmToChannelModal', () => {
         );
 
         expect(screen.queryByText('Select Team')).not.toBeInTheDocument();
-        expect(screen.queryByPlaceholderText('Channel name')).toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: 'Channel name'})).toBeInTheDocument();
         expect(screen.queryByText('Edit')).toBeInTheDocument();
     });
 
@@ -144,7 +144,7 @@ describe('component/ConvertGmToChannelModal', () => {
         );
 
         expect(screen.queryByText('Select Team')).not.toBeInTheDocument();
-        expect(screen.queryByPlaceholderText('Channel name')).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: 'Channel name'})).not.toBeInTheDocument();
         expect(screen.queryByText('Edit')).not.toBeInTheDocument();
     });
 
@@ -185,7 +185,7 @@ describe('component/ConvertGmToChannelModal', () => {
         expect(team1Option).toBeInTheDocument();
         await userEvent.click(team1Option!);
 
-        const channelNameInput = screen.queryByPlaceholderText('Channel name');
+        const channelNameInput = screen.queryByRole('textbox', {name: 'Channel name'});
         expect(channelNameInput).toBeInTheDocument();
         await userEvent.clear(channelNameInput!);
         await userEvent.type(channelNameInput!, 'Channel name set by me');
@@ -232,7 +232,7 @@ describe('component/ConvertGmToChannelModal', () => {
             {timeout: LOADING_TIMEOUT},
         );
 
-        expect(screen.queryByPlaceholderText('Channel name')).toBeVisible();
+        expect(screen.queryByRole('textbox', {name: 'Channel name'})).toBeVisible();
         expect(screen.queryByText('Edit')).not.toBeInTheDocument();
         expect(screen.queryByText(/URL:/)).not.toBeInTheDocument();
     });
@@ -262,7 +262,7 @@ describe('component/ConvertGmToChannelModal', () => {
             {timeout: LOADING_TIMEOUT},
         );
 
-        const channelNameInput = screen.queryByPlaceholderText('Channel name');
+        const channelNameInput = screen.queryByRole('textbox', {name: 'Channel name'});
         expect(channelNameInput).toBeInTheDocument();
         await userEvent.clear(channelNameInput!);
         await userEvent.type(channelNameInput!, 'Channel');

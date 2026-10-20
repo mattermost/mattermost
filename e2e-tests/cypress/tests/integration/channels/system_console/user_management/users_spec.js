@@ -131,7 +131,7 @@ describe('System Console > User Management > Users', () => {
         cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify the appropriate error is returned (new password error shows under the input).
-        cy.get('.Input___error').should('be.visible').and('contain', 'characters long');
+        cy.get('[class*="_field-message"]').should('be.visible').and('contain', 'characters long');
     });
 
     it('MM-T936 Users - System admin changes own password - Blank fields', () => {
@@ -151,7 +151,7 @@ describe('System Console > User Management > Users', () => {
         cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify the appropriate error is returned (new password error shows under the input).
-        cy.get('.Input___error').should('be.visible').and('contain', 'characters long');
+        cy.get('[class*="_field-message"]').should('be.visible').and('contain', 'characters long');
     });
 
     it('MM-T937 Users - System admin changes own password - Successfully changed', () => {

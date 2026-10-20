@@ -12,6 +12,7 @@ import type {OutgoingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import BackstageInput from 'components/backstage/components/backstage_input';
 import ChannelSelect from 'components/channel_select';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
@@ -208,13 +209,13 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
         this.props.action(hook).then(() => this.setState({saving: false}));
     };
 
-    updateDisplayName: ChangeEventHandler<HTMLInputElement> = (e) => {
+    updateDisplayName: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (e) => {
         this.setState({
             displayName: e.target.value,
         });
     };
 
-    updateDescription: ChangeEventHandler<HTMLInputElement> = (e) => {
+    updateDescription: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (e) => {
         this.setState({
             description: e.target.value,
         });
@@ -232,7 +233,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
         });
     };
 
-    updateTriggerWords: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
+    updateTriggerWords: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (e) => {
         this.setState({
             triggerWords: e.target.value,
         });
@@ -244,19 +245,19 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
         });
     };
 
-    updateCallbackUrls: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
+    updateCallbackUrls: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (e) => {
         this.setState({
             callbackUrls: e.target.value,
         });
     };
 
-    updateUsername: ChangeEventHandler<HTMLInputElement> = (e) => {
+    updateUsername: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (e) => {
         this.setState({
             username: e.target.value,
         });
     };
 
-    updateIconURL: ChangeEventHandler<HTMLInputElement> = (e) => {
+    updateIconURL: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (e) => {
         this.setState({
             iconURL: e.target.value,
         });
@@ -300,11 +301,10 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='displayName'
                                     type='text'
                                     maxLength={64}
-                                    className='form-control'
                                     value={this.state.displayName}
                                     onChange={this.updateDisplayName}
                                 />
@@ -327,11 +327,10 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='description'
                                     type='text'
                                     maxLength={500}
-                                    className='form-control'
                                     value={this.state.description}
                                     onChange={this.updateDescription}
                                 />
@@ -427,11 +426,11 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <textarea
+                                <BackstageInput
                                     id='triggerWords'
+                                    type='textarea'
                                     rows={3}
                                     maxLength={1000}
-                                    className='form-control'
                                     value={this.state.triggerWords}
                                     onChange={this.updateTriggerWords}
                                 />
@@ -490,11 +489,11 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <textarea
+                                <BackstageInput
                                     id='callbackUrls'
+                                    type='textarea'
                                     rows={3}
                                     maxLength={1000}
-                                    className='form-control'
                                     value={this.state.callbackUrls}
                                     onChange={this.updateCallbackUrls}
                                 />
@@ -531,11 +530,10 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                     />
                                 </label>
                                 <div className='col-md-5 col-sm-8'>
-                                    <input
+                                    <BackstageInput
                                         id='username'
                                         type='text'
                                         maxLength={22}
-                                        className='form-control'
                                         value={this.state.username}
                                         onChange={this.updateUsername}
                                     />
@@ -560,11 +558,10 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                     />
                                 </label>
                                 <div className='col-md-5 col-sm-8'>
-                                    <input
+                                    <BackstageInput
                                         id='iconURL'
                                         type='text'
                                         maxLength={1024}
-                                        className='form-control'
                                         value={this.state.iconURL}
                                         onChange={this.updateIconURL}
                                     />

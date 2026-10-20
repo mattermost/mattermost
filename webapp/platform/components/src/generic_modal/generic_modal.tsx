@@ -294,7 +294,9 @@ export const GenericModal: React.FC<Props> = ({
                 'a11y__modal GenericModal',
                 {
                     GenericModal__compassDesign: compassDesign,
-                    'modal--overflow': bodyOverflowVisible,
+
+                    // Must match `.modal-overflow` in generic_modal.scss (not BEM `modal--overflow`).
+                    'modal-overflow': bodyOverflowVisible,
                 },
                 className,
             )}
@@ -349,7 +351,12 @@ export const GenericModal: React.FC<Props> = ({
                         )}
                     </Modal.Header>
                 )}
-                <Modal.Body className={classNames({divider: bodyDivider, 'overflow-visible': bodyOverflowVisible})}>
+                <Modal.Body className={classNames({
+                    divider: bodyDivider,
+
+                    // Must match `.modal-body.overflow--visible` in channels `_modal.scss`.
+                    'overflow--visible': bodyOverflowVisible,
+                })}>
                     {compassDesign ? (
                         errorText && (
                             <div className='genericModalError'>

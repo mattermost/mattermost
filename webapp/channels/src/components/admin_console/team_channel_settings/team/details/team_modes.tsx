@@ -6,6 +6,7 @@ import {FormattedMessage, defineMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
 import LineSwitch from '../../line_switch';
 
@@ -100,13 +101,23 @@ const AllowedDomainsToggle = ({syncChecked, allAllowedChecked, allowedDomainsChe
                         defaultMessage='Comma Separated Email Domain List'
                     />
                 </div>
-                <input
+                <Input
+                    name='allowedDomains'
                     type='text'
                     value={allowedDomains}
+
+                    // Visible help-text owns the instruction; placeholder is the example domain.
+                    // label feeds aria-label when useLegend={false} (not a floating legend).
+                    label={defineMessage({
+                        id: 'admin.team_settings.team_details.csvDomains',
+                        defaultMessage: 'Comma Separated Email Domain List',
+                    })}
                     placeholder='mattermost.com'
-                    className='form-control'
+                    useLegend={false}
+                    inputSize={SIZE.SMALL}
                     onChange={(e) => onToggle(syncChecked, allAllowedChecked, allowedDomainsChecked, e.currentTarget.value)}
                     disabled={isDisabled}
+                    containerClassName='csvDomains'
                 />
             </>
         </LineSwitch>));

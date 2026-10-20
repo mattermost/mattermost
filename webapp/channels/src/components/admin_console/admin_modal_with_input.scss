@@ -6,52 +6,58 @@
 
 .ResetPasswordModal,
 .ResetEmailModal {
+    // Compass TextInput focus uses an outer 1px box-shadow on the control.
+    // Bootstrap / modal scrollports clip that ring unless every ancestor in
+    // the dialog chrome allows overflow. bodyOverflowVisible on GenericModal
+    // covers .modal-body; keep these as a scoped fallback for admin modals.
+    .modal-content,
+    .GenericModal__wrapper,
+    .modal-body,
+    .GenericModal__body {
+        overflow: visible;
+    }
+
+    .GenericModal__body.padding {
+        // Room above/below the field so the outer focus ring is not flush
+        // against the header or footer edge.
+        padding-top: 12px;
+        padding-bottom: 8px;
+    }
+
     &__body {
         display: flex;
         flex-direction: column;
         gap: 20px;
     }
 
-    // Override Input component styles to work properly in admin console modal
-    // The Input component uses a fieldset for the border, so we need to remove
-    // the default form-control border styling that GenericModal applies
+    // Compass TextInput owns field chrome. Neutralize GenericModal .form-control
+    // borders/backgrounds that can still land on the adapter input.
     .Input_container {
-        .Input_fieldset {
-            background-color: var(--center-channel-bg);
-        }
+        // Keep the 1px focus ring inside this box if a parent still clips.
+        padding: 1px;
+        margin: -1px;
 
-        .Input_legend {
-            background-color: var(--center-channel-bg);
-        }
-
-        .Input_wrapper {
-            background-color: transparent;
-        }
-
-        // Remove the GenericModal form-control border styling since Input uses fieldset for border
-        // Also remove any background color that might be inherited
         .Input.form-control,
         .form-control,
         input.form-control,
         input {
             height: auto;
-            border: none !important;
-            background: none !important;
-            background-color: transparent !important;
-            box-shadow: none !important;
+            border: none;
+            background: none;
+            background-color: transparent;
+            box-shadow: none;
 
             &:focus {
-                border: none !important;
-                background: none !important;
-                background-color: transparent !important;
-                box-shadow: none !important;
+                border: none;
+                background: none;
+                background-color: transparent;
+                box-shadow: none;
             }
 
             &:hover {
-                background: none !important;
-                background-color: transparent !important;
+                background: none;
+                background-color: transparent;
             }
         }
     }
 }
-

@@ -583,19 +583,11 @@
             }
         }
 
-        // Override Input widget styles for textarea
+        // Override Compass TextArea styles
         .Input_container {
-            .Input_fieldset {
-                textarea.Input {
-                    min-height: 80px;
-                    resize: vertical;
-                }
-
-                // Remove duplicate border - the Input_fieldset provides the border,
-                // but GenericModal adds a border to all .form-control elements
-                .Input_wrapper textarea.form-control {
-                    border: none;
-                }
+            [class*='_text-area__input'] {
+                min-height: 80px;
+                resize: vertical;
             }
         }
     }

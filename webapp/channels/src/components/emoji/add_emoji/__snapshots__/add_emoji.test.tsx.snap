@@ -43,13 +43,31 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="name"
-              maxlength="64"
-              type="text"
-              value=""
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="name"
+                      maxlength="64"
+                      name="name"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -158,13 +176,31 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="name"
-              maxlength="64"
-              type="text"
-              value=""
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="name"
+                      maxlength="64"
+                      name="name"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -298,13 +334,31 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="name"
-              maxlength="64"
-              type="text"
-              value="emojiName"
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="name"
+                      maxlength="64"
+                      name="name"
+                      type="text"
+                      value="emojiName"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >

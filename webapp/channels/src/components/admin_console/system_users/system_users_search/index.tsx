@@ -6,9 +6,9 @@ import React, {useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 
-import Input from 'components/widgets/inputs/input/input';
+import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
@@ -36,22 +36,22 @@ export function SystemUsersSearch(props: Props) {
     }
 
     function handleClear() {
+        clearTimeout(timeout.current);
         setInputValue('');
         dispatch(setAdminConsoleUsersManagementTableProperties({searchTerm: ''}));
     }
 
     return (
         <div className='system-users__filter'>
-            <Input
-                type='text'
-                clearable={true}
+            <SearchInput
+                id='input_searchTerm'
                 name='searchTerm'
-                containerClassName='systemUsersSearch'
+                className='systemUsersSearch'
                 placeholder={formatMessage({id: 'admin.system_users.search.placeholder', defaultMessage: 'Search users'})}
-                inputPrefix={<i className={'icon icon-magnify'}/>}
                 onChange={handleChange}
                 onClear={handleClear}
                 value={inputValue}
+                clearButtonProps={{tabIndex: 0}}
             />
         </div>
     );

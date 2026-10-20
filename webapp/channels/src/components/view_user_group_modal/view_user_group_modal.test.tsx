@@ -131,4 +131,46 @@ describe('component/view_user_group_modal', () => {
         await userEvent.type(searchInput, 'user1');
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(6);
     });
+
+    test('view user group modal search uses Compass SearchInput at medium size', () => {
+        // react-bootstrap Modal portals into document.body; query baseElement.
+        const {baseElement} = renderWithContext(
+            <ViewUserGroupModal
+                {...baseProps}
+            />,
+            initialState as any,
+            {useMockedStore: true},
+        );
+
+        expect(screen.getByTestId('searchInput')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Search group members')).toBeInTheDocument();
+        expect(baseElement.querySelector('[class*="_search-input"]')).not.toBeNull();
+        expect(baseElement.querySelector('[class*="_search-input--size-medium"]')).not.toBeNull();
+        expect(baseElement.querySelector('[class*="_text-input"]')).toBeNull();
+    });
+
+    test('clicking the clear icon clears the search term', async () => {
+        const setModalSearchTerm = jest.fn();
+        renderWithContext(
+            <ViewUserGroupModal
+                {...baseProps}
+                searchTerm='user1'
+                actions={{
+                    ...baseProps.actions,
+                    setModalSearchTerm,
+                }}
+            />,
+            initialState as any,
+            {useMockedStore: true},
+        );
+
+        const searchInput = screen.getByTestId('searchInput');
+        expect(searchInput).toHaveValue('user1');
+
+        const clearButton = screen.getByTestId('clear-search');
+        expect(clearButton).toHaveAttribute('tabindex', '0');
+        await userEvent.click(clearButton);
+
+        expect(setModalSearchTerm).toHaveBeenCalledWith('');
+    });
 });

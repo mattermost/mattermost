@@ -6,22 +6,20 @@ exports[`components/widgets/inputs/Input should match snapshot 1`] = `
     class="Input_container"
   >
     <div
-      class="Input_fieldset"
-      data-testid="input-wrapper"
+      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
     >
-      <label
-        class="Input_legend"
-        for="input_"
-      >
-                                
-      </label>
       <div
-        class="Input_wrapper"
+        class="_text-input__wrapper_3inqk_31"
       >
-        <input
-          class="Input form-control medium"
-          id="input_"
-        />
+        <div
+          class="_text-input__inner_3inqk_80"
+        >
+          <input
+            class="_text-input__input_3inqk_42"
+            data-testid="input-wrapper"
+            id="input_"
+          />
+        </div>
       </div>
     </div>
   </div>

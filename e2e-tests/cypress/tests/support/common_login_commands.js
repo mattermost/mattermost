@@ -24,11 +24,9 @@ Cypress.Commands.add('checkLoginPage', (settings = {}) => {
 Cypress.Commands.add('checkLoginFailed', () => {
     // * Check the alert banner
     cy.get('.AlertBanner.danger', {timeout: TIMEOUTS.ONE_MIN}).then(() => {
-        // * Check the login input in error
-        cy.get('.login-body-card-form-input .Input_fieldset').should('have.class', 'Input_fieldset___error');
-
-        // * Check the password input in error
-        cy.get('.login-body-card-form-password-input.Input_fieldset').should('have.class', 'Input_fieldset___error');
+        // * Compass TextInput / PasswordInput mark invalid via aria-invalid
+        cy.get('.login-body-card-form-input [aria-invalid="true"]').should('exist');
+        cy.get('.login-body-card-form-password-input [aria-invalid="true"]').should('exist');
 
         // * Check the Log in button enabled
         cy.get('#saveSetting').should('not.be.disabled');

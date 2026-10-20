@@ -67,7 +67,7 @@ describe('components/mfa/setup', () => {
             <Setup {...baseProps}/>,
         );
 
-        const input = screen.getByPlaceholderText('MFA Code');
+        const input = screen.getByRole('textbox', {name: 'MFA Code'});
         await userEvent.type(input, 'testcodeinput');
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
@@ -80,7 +80,7 @@ describe('components/mfa/setup', () => {
         renderWithContext(
             <Setup {...baseProps}/>,
         );
-        const input = screen.getByPlaceholderText('MFA Code');
+        const input = screen.getByRole('textbox', {name: 'MFA Code'});
 
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
@@ -106,7 +106,7 @@ describe('components/mfa/setup', () => {
         renderWithContext(
             <Setup {...props}/>,
         );
-        const input = screen.getByPlaceholderText('MFA Code');
+        const input = screen.getByRole('textbox', {name: 'MFA Code'});
 
         await userEvent.type(input, 'invalidcode');
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));

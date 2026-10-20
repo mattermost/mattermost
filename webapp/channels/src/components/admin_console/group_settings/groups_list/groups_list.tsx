@@ -3,19 +3,18 @@
 
 import classNames from 'classnames';
 import React, {type JSX} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 import {Button} from '@mattermost/shared/components/button';
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import GroupRow from 'components/admin_console/group_settings/group_row';
-import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-import SearchIcon from 'components/widgets/icons/search_icon';
 
 import {Constants} from 'utils/constants';
 
@@ -31,6 +30,62 @@ type Props = {
         unlink: (key: string) => Promise<ActionResult>;
     };
 };
+
+type GroupsListSearchProps = {
+    value: string;
+    onChange: (value: string) => void;
+    onClear: () => void;
+    onKeyUp: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+};
+
+function GroupsListSearch({value, onChange, onClear, onKeyUp}: GroupsListSearchProps) {
+    const {formatMessage} = useIntl();
+
+    return (
+        <SearchInput
+            size='small'
+            className='group-list-search__input'
+            placeholder={formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
+            onKeyUp={onKeyUp}
+            onChange={(e) => onChange(e.target.value)}
+            onClear={onClear}
+            value={value}
+            data-testid='searchInput'
+            clearButtonProps={{
+                'data-testid': 'clear-search',
+                tabIndex: 0,
+            }}
+        />
+    );
+}
+
+type GroupsListFilterToggleProps = {
+    showFilters: boolean;
+    onToggle: (e: React.MouseEvent<HTMLButtonElement>) => void;
+};
+
+function GroupsListFilterToggle({showFilters, onToggle}: GroupsListFilterToggleProps) {
+    const {formatMessage} = useIntl();
+
+    return (
+        <button
+            type='button'
+            className='group-filter-action'
+            aria-label={formatMessage({
+                id: 'admin.group_settings.groups_list.open_filters',
+                defaultMessage: 'Open group filters',
+            })}
+            aria-expanded={showFilters}
+            aria-controls='group-filters'
+            onClick={onToggle}
+        >
+            <i
+                className='fa fa-caret-down'
+                aria-hidden={true}
+            />
+        </button>
+    );
+}
 
 type FilterOption = {
     is_configured?: boolean;
@@ -76,6 +131,8 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         groups: [],
     };
 
+    private attachCloseFiltersListenerTimeout?: number;
+
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -96,8 +153,55 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         this.setState({showFilters: false});
     };
 
+    private handleOutsideFiltersClick = (e: MouseEvent) => {
+        const filtersEl = document.getElementById('group-filters');
+        if (filtersEl && e.target instanceof Node && filtersEl.contains(e.target)) {
+            return;
+        }
+        this.closeFilters();
+    };
+
+    private openFilters = (e: React.MouseEvent) => {
+        // Prevent the opening click from bubbling to document and immediately
+        // closing the menu (React root delegation still lets natives reach document).
+        e.stopPropagation();
+        e.nativeEvent.stopImmediatePropagation();
+
+        if (this.state.showFilters) {
+            this.closeFilters();
+            return;
+        }
+
+        this.setState({showFilters: true});
+    };
+
+    private syncOutsideClickListener = (showFilters: boolean) => {
+        window.clearTimeout(this.attachCloseFiltersListenerTimeout);
+        document.removeEventListener('click', this.handleOutsideFiltersClick);
+
+        if (!showFilters) {
+            return;
+        }
+
+        // Defer attach so the same user gesture that opened the menu cannot close it.
+        this.attachCloseFiltersListenerTimeout = window.setTimeout(() => {
+            document.addEventListener('click', this.handleOutsideFiltersClick);
+        }, 0);
+    };
+
     public componentDidMount() {
         this.props.actions.getLdapGroups(this.state.page, LDAP_GROUPS_PAGE_SIZE).then(this.handleGetGroupsResponse);
+    }
+
+    public componentDidUpdate(_prevProps: Props, prevState: State) {
+        if (prevState.showFilters !== this.state.showFilters) {
+            this.syncOutsideClickListener(this.state.showFilters);
+        }
+    }
+
+    public componentWillUnmount() {
+        window.clearTimeout(this.attachCloseFiltersListenerTimeout);
+        document.removeEventListener('click', this.handleOutsideFiltersClick);
     }
 
     public async previousPage(e: any): Promise<void> {
@@ -359,6 +463,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                 id='group-filters'
                 className='group-search-filters'
                 onClick={(e) => {
+                    e.stopPropagation();
                     e.nativeEvent.stopImmediatePropagation();
                 }}
             >
@@ -472,30 +577,19 @@ export default class GroupsList extends React.PureComponent<Props, State> {
             <div className='groups-list'>
                 <div className='groups-list--global-actions'>
                     <div className='group-list-search'>
-                        <LocalizedPlaceholderInput
-                            type='text'
-                            placeholder={defineMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
-                            onKeyUp={(e: any) => this.handleGroupSearchKeyUp(e)}
-                            onChange={(e) => this.setState({searchString: e.target.value})}
+                        <GroupsListSearch
                             value={this.state.searchString}
+                            onChange={(searchString) => this.setState({searchString})}
+                            onClear={() => this.resetFiltersAndSearch()}
+                            onKeyUp={(e) => this.handleGroupSearchKeyUp(e)}
                         />
-                        <SearchIcon
-                            className='search__icon'
-                            aria-hidden='true'
+                        <GroupsListFilterToggle
+                            showFilters={this.state.showFilters}
+                            onToggle={this.openFilters}
                         />
-                        <i
-                            className={'fa fa-times-circle group-filter-action ' + (this.state.searchString.length ? '' : 'hidden')}
-                            onClick={() => this.resetFiltersAndSearch()}
-                        />
-                        <i
-                            className={'fa fa-caret-down group-filter-action ' + (this.state.showFilters ? 'hidden' : '')}
-                            onClick={() => {
-                                document.addEventListener('click', this.closeFilters, {once: true});
-                                this.setState({showFilters: true});
-                            }}
-                        />
+                        {/* Overlay under the fixed-width search host — must not expand the flex row. */}
+                        {this.state.showFilters && this.renderSearchFilters()}
                     </div>
-                    {this.state.showFilters && this.renderSearchFilters()}
                     <div className='group-list-link-unlink'>
                         {this.renderSelectionActionButton()}
                     </div>

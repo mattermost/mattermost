@@ -17,6 +17,7 @@ import {General} from 'mattermost-redux/constants';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import BackstageInput from 'components/backstage/components/backstage_input';
 import type {ExpiryPreset} from 'components/common/token_expiry_picker/token_expiry';
 import {
     clampExpiresAtToMaxLifetime,
@@ -250,19 +251,19 @@ export default class AddBot extends React.PureComponent<Props, State> {
         });
     };
 
-    updateUsername = (e: ChangeEvent<HTMLInputElement>) => {
+    updateUsername = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             username: e.target.value,
         });
     };
 
-    updateDisplayName = (e: ChangeEvent<HTMLInputElement>) => {
+    updateDisplayName = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             displayName: e.target.value,
         });
     };
 
-    updateDescription = (e: ChangeEvent<HTMLInputElement>) => {
+    updateDescription = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             description: e.target.value,
         });
@@ -569,11 +570,10 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='username'
                                     type='text'
                                     maxLength={22}
-                                    className='form-control'
                                     value={this.state.username}
                                     onChange={this.updateUsername}
                                 />
@@ -632,11 +632,10 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='displayName'
                                     type='text'
                                     maxLength={64}
-                                    className='form-control'
                                     value={this.state.displayName}
                                     onChange={this.updateDisplayName}
                                 />
@@ -659,11 +658,10 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='description'
                                     type='text'
                                     maxLength={1024}
-                                    className='form-control'
                                     value={this.state.description}
                                     onChange={this.updateDescription}
                                 />

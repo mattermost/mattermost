@@ -10,6 +10,8 @@ import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl, useIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import {AtIcon, EmailOutlineIcon, ShieldOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
@@ -37,9 +39,7 @@ import TeamSelectorModal from 'components/team_selector_modal';
 import UserSettingsModal from 'components/user_settings/modal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import AtIcon from 'components/widgets/icons/at_icon';
-import EmailIcon from 'components/widgets/icons/email_icon';
-import ShieldOutlineIcon from 'components/widgets/icons/shield_outline_icon';
+import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {AcceptedProfileImageTypes, Constants, ModalIdentifiers} from 'utils/constants';
@@ -593,6 +593,55 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     renderTwoColumnLayout = () => {
         const fields: Array<React.ReactNode | null> = [];
 
+        // defineMessage so formatjs extracts this id (plain const objects are dropped).
+        const managedByProviderTitle = defineMessage({
+            id: 'admin.userManagement.userDetail.managedByProvider.title',
+            defaultMessage: 'Managed by login provider',
+        });
+        const usernamePlaceholder = this.props.intl.formatMessage({
+            id: 'admin.userManagement.userDetail.username.input',
+            defaultMessage: 'Enter username',
+        });
+        const firstNamePlaceholder = this.props.intl.formatMessage({
+            id: 'admin.userManagement.userDetail.firstName.input',
+            defaultMessage: 'Enter first name',
+        });
+        const lastNamePlaceholder = this.props.intl.formatMessage({
+            id: 'admin.userManagement.userDetail.lastName.input',
+            defaultMessage: 'Enter last name',
+        });
+        const authDataPlaceholder = this.props.intl.formatMessage({
+            id: 'admin.userManagement.userDetail.authData.input',
+            defaultMessage: 'Enter auth data',
+        });
+        const atLeadingIcon = <Icon glyph={<AtIcon/>}/>;
+        const emailLeadingIcon = <Icon glyph={<EmailOutlineIcon/>}/>;
+        const shieldLeadingIcon = <Icon glyph={<ShieldOutlineIcon/>}/>;
+        const isManagedByProvider = Boolean(this.state.user?.auth_service);
+        const authService = this.state.user?.auth_service?.toUpperCase() ?? '';
+
+        const fieldError = (id: string, message: string | null) => (
+            message ? (
+                <div
+                    id={id}
+                    className='field-error'
+                    data-testid='fieldError'
+                    role='alert'
+                    aria-live='polite'
+                >
+                    {message}
+                </div>
+            ) : null
+        );
+
+        // Compass chrome without floating legends — external <label> text owns the name
+        // (same pattern as System Console TextSetting: useLegend={false}, aria-label cleared).
+        const compassFieldProps = {
+            useLegend: false as const,
+            'aria-label': undefined,
+            containerClassName: 'SystemUserDetail__compassField',
+        };
+
         // Add system fields
         fields.push(
             <label key='username'>
@@ -600,61 +649,41 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     id='admin.userManagement.userDetail.username'
                     defaultMessage='Username'
                 />
-                <AtIcon/>
-                {this.state.user?.auth_service ? (
+                {isManagedByProvider ? (
                     <WithTooltip
-                        title={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.managedByProvider.title',
-                            defaultMessage: 'Managed by login provider',
-                        })}
+                        title={this.props.intl.formatMessage(managedByProviderTitle)}
                         hint={this.props.intl.formatMessage({
                             id: 'admin.userManagement.userDetail.managedByProvider.username',
                             defaultMessage: 'This username is managed by the {authService} login provider and cannot be changed here.',
-                        }, {
-                            authService: this.state.user.auth_service.toUpperCase(),
-                        })}
+                        }, {authService})}
                     >
-                        <input
-                            className='form-control'
+                        <Input
+                            name='username'
                             type='text'
                             value={this.state.usernameField}
+                            placeholder={usernamePlaceholder}
                             disabled={true}
                             readOnly={true}
-                            style={{cursor: 'not-allowed'}}
-                            placeholder={this.props.intl.formatMessage({
-                                id: 'admin.userManagement.userDetail.username.input',
-                                defaultMessage: 'Enter username',
-                            })}
+                            inputPrefix={atLeadingIcon}
+                            {...compassFieldProps}
                         />
                     </WithTooltip>
                 ) : (
                     <>
-                        <input
-                            className={classNames('form-control', {
-                                error: this.state.usernameError,
-                            })}
+                        <Input
+                            name='username'
                             type='text'
                             value={this.state.usernameField}
+                            placeholder={usernamePlaceholder}
                             onChange={this.handleUsernameChange}
                             disabled={this.state.isSaving}
-                            placeholder={this.props.intl.formatMessage({
-                                id: 'admin.userManagement.userDetail.username.input',
-                                defaultMessage: 'Enter username',
-                            })}
-                            aria-describedby='username-error'
+                            hasError={Boolean(this.state.usernameError)}
+                            inputPrefix={atLeadingIcon}
+                            aria-describedby={this.state.usernameError ? 'username-error' : undefined}
                             aria-invalid={this.state.usernameError ? 'true' : 'false'}
+                            {...compassFieldProps}
                         />
-                        {this.state.usernameError && (
-                            <div
-                                id='username-error'
-                                className='field-error'
-                                data-testid='fieldError'
-                                role='alert'
-                                aria-live='polite'
-                            >
-                                {this.state.usernameError}
-                            </div>
-                        )}
+                        {fieldError('username-error', this.state.usernameError)}
                     </>
                 )}
             </label>,
@@ -666,92 +695,82 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     id='admin.userManagement.userDetail.email'
                     defaultMessage='Email'
                 />
-                <EmailIcon/>
-                {this.state.user?.auth_service ? (
+                {isManagedByProvider ? (
                     <WithTooltip
-                        title={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.managedByProvider.title',
-                            defaultMessage: 'Managed by login provider',
-                        })}
+                        title={this.props.intl.formatMessage(managedByProviderTitle)}
                         hint={this.props.intl.formatMessage({
                             id: 'admin.userManagement.userDetail.managedByProvider.email',
                             defaultMessage: 'This email is managed by the {authService} login provider and cannot be changed here.',
-                        }, {
-                            authService: this.state.user.auth_service.toUpperCase(),
-                        })}
+                        }, {authService})}
                     >
-                        <input
-                            className='form-control'
+                        <Input
+                            name='email'
                             type='text'
                             value={this.state.emailField}
                             disabled={true}
                             readOnly={true}
-                            style={{cursor: 'not-allowed'}}
+                            inputPrefix={emailLeadingIcon}
+                            {...compassFieldProps}
                         />
                     </WithTooltip>
                 ) : (
                     <>
-                        <input
-                            className={classNames('form-control', {
-                                error: this.state.emailError,
-                            })}
+                        <Input
+                            name='email'
                             type='text'
                             value={this.state.emailField}
                             onChange={this.handleEmailChange}
                             disabled={this.state.isSaving}
-                            aria-describedby='email-error'
+                            hasError={Boolean(this.state.emailError)}
+                            inputPrefix={emailLeadingIcon}
+                            aria-describedby={this.state.emailError ? 'email-error' : undefined}
                             aria-invalid={this.state.emailError ? 'true' : 'false'}
+                            {...compassFieldProps}
                         />
-                        {this.state.emailError && (
-                            <div
-                                id='email-error'
-                                className='field-error'
-                                data-testid='fieldError'
-                                role='alert'
-                                aria-live='polite'
-                            >
-                                {this.state.emailError}
-                            </div>
-                        )}
+                        {fieldError('email-error', this.state.emailError)}
                     </>
                 )}
             </label>,
         );
 
-        const nameField = (fieldKey: 'firstNameField' | 'lastNameField', label: React.ReactNode, onChange: (event: ChangeEvent<HTMLInputElement>) => void, placeholder: string, maxLength: number) => (
+        const nameField = (
+            fieldKey: 'firstNameField' | 'lastNameField',
+            name: string,
+            label: React.ReactNode,
+            onChange: (event: ChangeEvent<HTMLInputElement>) => void,
+            placeholder: string,
+            maxLength: number,
+        ) => (
             <label key={fieldKey}>
                 {label}
-                {this.state.user?.auth_service ? (
+                {isManagedByProvider ? (
                     <WithTooltip
-                        title={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.managedByProvider.title',
-                            defaultMessage: 'Managed by login provider',
-                        })}
+                        title={this.props.intl.formatMessage(managedByProviderTitle)}
                         hint={this.props.intl.formatMessage({
                             id: 'admin.userManagement.userDetail.managedByProvider.name',
                             defaultMessage: 'This name is managed by the {authService} login provider and cannot be changed here.',
-                        }, {
-                            authService: this.state.user.auth_service.toUpperCase(),
-                        })}
+                        }, {authService})}
                     >
-                        <input
-                            className='form-control'
+                        <Input
+                            name={name}
                             type='text'
                             value={this.state[fieldKey]}
+                            placeholder={placeholder}
                             disabled={true}
                             readOnly={true}
-                            placeholder={placeholder}
+                            {...compassFieldProps}
                         />
                     </WithTooltip>
                 ) : (
-                    <input
-                        className='form-control'
+                    <Input
+                        name={name}
                         type='text'
                         value={this.state[fieldKey]}
+                        placeholder={placeholder}
                         onChange={onChange}
                         disabled={this.state.isSaving}
                         maxLength={maxLength}
-                        placeholder={placeholder}
+                        {...compassFieldProps}
                     />
                 )}
             </label>
@@ -759,77 +778,66 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         fields.push(nameField(
             'firstNameField',
+            'firstName',
             <FormattedMessage
                 id='admin.userManagement.userDetail.firstName'
                 defaultMessage='First Name'
             />,
             this.handleFirstNameChange,
-            this.props.intl.formatMessage({
-                id: 'admin.userManagement.userDetail.firstName.input',
-                defaultMessage: 'Enter first name',
-            }),
+            firstNamePlaceholder,
             Constants.MAX_FIRSTNAME_LENGTH,
         ));
 
         fields.push(nameField(
             'lastNameField',
+            'lastName',
             <FormattedMessage
                 id='admin.userManagement.userDetail.lastName'
                 defaultMessage='Last Name'
             />,
             this.handleLastNameChange,
-            this.props.intl.formatMessage({
-                id: 'admin.userManagement.userDetail.lastName.input',
-                defaultMessage: 'Enter last name',
-            }),
+            lastNamePlaceholder,
             Constants.MAX_LASTNAME_LENGTH,
         ));
 
+        // Authentication Method stays display-only (not a Compass text field).
         fields.push(
-            <label key='authMethod'>
+            <div
+                key='authMethod'
+                className='SystemUserDetail__fieldHeading'
+            >
                 <FormattedMessage
                     id='admin.userManagement.userDetail.authenticationMethod'
                     defaultMessage='Authentication Method'
                 />
-                <ShieldOutlineIcon/>
-                <span data-testid='authenticationMethodValue'>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
-            </label>,
+                <span className='SystemUserDetail__authMethodValue'>
+                    <Icon glyph={<ShieldOutlineIcon/>}/>
+                    <span data-testid='authenticationMethodValue'>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
+                </span>
+            </div>,
         );
 
-        if (this.state.user?.auth_service) {
+        if (isManagedByProvider) {
             fields.push(
                 <label key='authData'>
                     <FormattedMessage
                         id='admin.userManagement.userDetail.authData'
                         defaultMessage='Auth Data'
                     />
-                    <ShieldOutlineIcon/>
-                    <input
-                        className={classNames('form-control', {
-                            error: this.state.authDataError,
-                        })}
+                    <Input
+                        name='authData'
                         type='text'
                         value={this.state.authDataField}
+                        placeholder={authDataPlaceholder}
                         onChange={this.handleAuthDataChange}
                         disabled={this.state.isSaving}
-                        placeholder={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.authData.input',
-                            defaultMessage: 'Enter auth data',
-                        })}
-                        aria-describedby='authdata-error'
+                        hasError={Boolean(this.state.authDataError)}
+                        inputPrefix={shieldLeadingIcon}
+                        aria-describedby={this.state.authDataError ? 'authdata-error' : undefined}
                         aria-invalid={this.state.authDataError ? 'true' : 'false'}
+                        {...compassFieldProps}
                     />
-                    {this.state.authDataError && (
-                        <div
-                            id='authdata-error'
-                            className='field-error'
-                            data-testid='fieldError'
-                            role='alert'
-                            aria-live='polite'
-                        >
-                            {this.state.authDataError}
-                        </div>
-                    )}
+                    {fieldError('authdata-error', this.state.authDataError)}
                 </label>,
             );
         }

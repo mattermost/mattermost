@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ItemStatus} from 'utils/constants';
 
 import InputBusinessEmail from './input_business_email';
@@ -22,50 +22,45 @@ describe('/components/cloud_start_trial/input_business_email', () => {
     });
 
     test('test input business email displays the input element correctly', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <InputBusinessEmail {...baseProps}/>,
         );
-        const inputElement = container.querySelector('.Input');
-        expect(inputElement).toBeInTheDocument();
+        expect(screen.getByRole('textbox')).toBeInTheDocument();
     });
 
     test('test input business email displays the SUCCESS custom message correctly', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <InputBusinessEmail {...{...baseProps, customInputLabel: {type: ItemStatus.SUCCESS, value: 'success value'}}}/>,
         );
-        const customMessageElement = container.querySelector('.Input___customMessage.Input___success');
-        expect(customMessageElement).toBeInTheDocument();
+        expect(screen.getByText('success value')).toBeInTheDocument();
     });
 
     test('test input business email displays the WARNING custom message correctly', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <InputBusinessEmail {...{...baseProps, customInputLabel: {type: ItemStatus.WARNING, value: 'warning value'}}}/>,
         );
-        const customMessageElement = container.querySelector('.Input___customMessage.Input___warning');
-        expect(customMessageElement).toBeInTheDocument();
+        expect(screen.getByText('warning value')).toBeInTheDocument();
     });
 
     test('test input business email displays the ERROR custom message correctly', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <InputBusinessEmail {...{...baseProps, customInputLabel: {type: ItemStatus.ERROR, value: 'error value'}}}/>,
         );
-        const customMessageElement = container.querySelector('.Input___customMessage.Input___error');
-        expect(customMessageElement).toBeInTheDocument();
+        expect(screen.getByText('error value')).toBeInTheDocument();
     });
 
     test('test input business email displays the INFO custom message correctly', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <InputBusinessEmail {...{...baseProps, customInputLabel: {type: ItemStatus.INFO, value: 'info value'}}}/>,
         );
-        const customMessageElement = container.querySelector('.Input___customMessage.Input___info');
-        expect(customMessageElement).toBeInTheDocument();
+        expect(screen.getByText('info value')).toBeInTheDocument();
     });
 
     test('test the input element handles the onChange event correctly', async () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <InputBusinessEmail {...baseProps}/>,
         );
-        const inputElement = container.querySelector('input.Input')!;
+        const inputElement = screen.getByRole('textbox');
 
         await userEvent.type(inputElement, 'a');
         expect(handleEmailValuesMockFn).toHaveBeenCalled();

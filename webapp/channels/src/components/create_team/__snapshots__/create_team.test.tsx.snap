@@ -65,28 +65,25 @@ exports[`component/create_team should match snapshot default 1`] = `
                       class="Input_container"
                     >
                       <div
-                        class="Input_fieldset Input_fieldset___legend"
-                        data-testid="input-wrapper"
+                        class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
                       >
-                        <label
-                          class="Input_legend Input_legend___focus"
-                          for="input_teamNameInput"
-                        >
-                                                  
-                        </label>
                         <div
-                          class="Input_wrapper"
+                          class="_text-input__wrapper_3inqk_31"
                         >
-                          <input
-                            aria-invalid="false"
-                            class="Input form-control medium Input__focus"
-                            id="teamNameInput"
-                            maxlength="64"
-                            name="teamNameInput"
-                            spellcheck="false"
-                            type="text"
-                            value=""
-                          />
+                          <div
+                            class="_text-input__inner_3inqk_80"
+                          >
+                            <input
+                              class="_text-input__input_3inqk_42"
+                              data-testid="input-wrapper"
+                              id="teamNameInput"
+                              maxlength="64"
+                              name="teamNameInput"
+                              spellcheck="false"
+                              type="text"
+                              value=""
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>

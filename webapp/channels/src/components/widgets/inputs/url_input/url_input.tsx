@@ -10,7 +10,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getShortenedURL} from 'utils/url';
 
-import Input from '../input/input';
+import Input, {SIZE} from '../input/input';
 
 import './url_input.scss';
 
@@ -116,6 +116,8 @@ function UrlInput({
                         data-testid='channelURLInput'
                         name='url-input'
                         type='text'
+                        inputSize={SIZE.SMALL}
+                        useLegend={false}
                         containerClassName='url-input-editable-container'
                         wrapperClassName='url-input-editable-wrapper'
                         inputClassName='url-input-editable-path'
@@ -127,6 +129,7 @@ function UrlInput({
                         hasError={hasError}
                         onChange={handleOnInputChange}
                         onBlur={handleOnInputBlur}
+                        aria-label={formatMessage({id: 'url_input.inputLabel', defaultMessage: 'Channel URL'})}
                         aria-describedby='url-input-error'
                     />
                 )}

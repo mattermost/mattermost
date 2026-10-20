@@ -11,9 +11,9 @@ import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import BackstageInput from 'components/backstage/components/backstage_input';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
-import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import SpinnerButton from 'components/spinner_button';
 
 import {Constants, DeveloperLinks} from 'utils/constants';
@@ -251,25 +251,25 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
         this.props.action(command).then(() => this.setState({saving: false}));
     };
 
-    updateDisplayName = (e: ChangeEvent<HTMLInputElement>) => {
+    updateDisplayName = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             displayName: e.target.value,
         });
     };
 
-    updateDescription = (e: ChangeEvent<HTMLInputElement>) => {
+    updateDescription = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             description: e.target.value,
         });
     };
 
-    updateTrigger = (e: ChangeEvent<HTMLInputElement>) => {
+    updateTrigger = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             trigger: e.target.value,
         });
     };
 
-    updateUrl = (e: ChangeEvent<HTMLInputElement>) => {
+    updateUrl = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             url: e.target.value,
         });
@@ -284,13 +284,13 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
         }
     };
 
-    updateUsername = (e: ChangeEvent<HTMLInputElement>) => {
+    updateUsername = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             username: e.target.value,
         });
     };
 
-    updateIconUrl = (e: ChangeEvent<HTMLInputElement>) => {
+    updateIconUrl = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             iconUrl: e.target.value,
         });
@@ -302,13 +302,13 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
         });
     };
 
-    updateAutocompleteHint = (e: ChangeEvent<HTMLInputElement>) => {
+    updateAutocompleteHint = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             autocompleteHint: e.target.value,
         });
     };
 
-    updateAutocompleteDescription = (e: ChangeEvent<HTMLInputElement>) => {
+    updateAutocompleteDescription = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.setState({
             autocompleteDescription: e.target.value,
         });
@@ -331,11 +331,10 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                         />
                     </label>
                     <div className='col-md-5 col-sm-8'>
-                        <LocalizedPlaceholderInput
+                        <BackstageInput
                             id='autocompleteHint'
                             type='text'
                             maxLength={1024}
-                            className='form-control'
                             value={this.state.autocompleteHint}
                             onChange={this.updateAutocompleteHint}
                             placeholder={defineMessage({
@@ -365,11 +364,10 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                         />
                     </label>
                     <div className='col-md-5 col-sm-8'>
-                        <LocalizedPlaceholderInput
+                        <BackstageInput
                             id='description'
                             type='text'
                             maxLength={128}
-                            className='form-control'
                             value={this.state.autocompleteDescription}
                             onChange={this.updateAutocompleteDescription}
                             placeholder={defineMessage({
@@ -415,11 +413,10 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='displayName'
                                     type='text'
                                     maxLength={64}
-                                    className='form-control'
                                     value={this.state.displayName}
                                     onChange={this.updateDisplayName}
                                 />
@@ -442,11 +439,10 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <BackstageInput
                                     id='description'
                                     type='text'
                                     maxLength={128}
-                                    className='form-control'
                                     value={this.state.description}
                                     onChange={this.updateDescription}
                                 />
@@ -469,11 +465,10 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <LocalizedPlaceholderInput
+                                <BackstageInput
                                     id='trigger'
                                     type='text'
                                     maxLength={Constants.MAX_TRIGGER_LENGTH}
-                                    className='form-control'
                                     value={this.state.trigger}
                                     onChange={this.updateTrigger}
                                     placeholder={defineMessage({
@@ -595,11 +590,10 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <LocalizedPlaceholderInput
+                                <BackstageInput
                                     id='username'
                                     type='text'
                                     maxLength={64}
-                                    className='form-control'
                                     value={this.state.username}
                                     onChange={this.updateUsername}
                                     placeholder={defineMessage({
@@ -626,11 +620,10 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <LocalizedPlaceholderInput
+                                <BackstageInput
                                     id='iconUrl'
                                     type='text'
                                     maxLength={1024}
-                                    className='form-control'
                                     value={this.state.iconUrl}
                                     onChange={this.updateIconUrl}
                                     placeholder={defineMessage({

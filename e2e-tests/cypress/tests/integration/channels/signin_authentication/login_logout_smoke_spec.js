@@ -28,12 +28,11 @@ describe('SignIn Authentication', () => {
 
     it('MM-T3080 Sign in email/pwd account', () => {
         // # Enter actual user's email in the email field
-        cy.apiGetClientLicense().then(({isLicensed}) => {
-            const loginPlaceholder = isLicensed ? 'Email, Username or AD/LDAP Username' : 'Email or Username';
-            cy.findByPlaceholderText(loginPlaceholder).clear().type(testUser.email);
+        cy.apiGetClientLicense().then(() => {
+            cy.get('#input_loginId').clear().type(testUser.email);
 
             // # Enter user's password in the password field
-            cy.findByPlaceholderText('Password').clear().type(testUser.password);
+            cy.get('#input_password-input').clear().type(testUser.password);
 
             // # Click Sign In to login
             cy.get('#saveSetting').should('not.be.disabled').click();
@@ -51,10 +50,10 @@ describe('SignIn Authentication', () => {
             cy.get('.login-body-card-title').click();
 
             // # Enter actual user's username in the email field
-            cy.findByPlaceholderText(loginPlaceholder).clear().type(testUser.username);
+            cy.get('#input_loginId').clear().type(testUser.username);
 
             // # Enter user's password in the password field
-            cy.findByPlaceholderText('Password').clear().type(testUser.password);
+            cy.get('#input_password-input').clear().type(testUser.password);
 
             // # Click Sign In to login
             cy.get('#saveSetting').should('not.be.disabled').click();

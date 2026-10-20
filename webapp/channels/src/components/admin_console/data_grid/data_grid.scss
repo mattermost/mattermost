@@ -10,49 +10,21 @@
 
     .DataGrid_search {
         display: flex;
-        height: 48px;
+
+        // Small SearchInput is ~32px; keep room for vertical padding without clipping.
+        min-height: 48px;
         flex-direction: row;
+        align-items: center;
         justify-content: space-between;
         padding: 0.5em 0;
         border-bottom: solid 1px rgba(0, 0, 0, 0.1);
         background: variables.$white;
         font-weight: bold;
 
+        // Host layout only; chrome/icon/clear/placeholder come from Compass SearchInput.
         .DataGrid_searchBar {
-            position: relative;
-            display: flex;
             width: 300px;
-            height: 32px;
-            box-sizing: border-box;
-            border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.2);
-            border-radius: 4px;
             margin-left: 8px;
-
-            input {
-                width: 100%;
-                border: 0;
-                margin-right: 16px;
-                margin-left: 32px;
-                font-size: 0.95em;
-            }
-
-            input:focus {
-                outline: none;
-            }
-
-            .DataGrid_searchIcon {
-                position: absolute;
-                top: 5px;
-                left: 10px;
-                color: variables.$dark-gray;
-                pointer-events: none;
-            }
-
-            .DataGrid_clearButton {
-                display: flex;
-                align-items: center;
-                margin-right: 5px;
-            }
         }
     }
 

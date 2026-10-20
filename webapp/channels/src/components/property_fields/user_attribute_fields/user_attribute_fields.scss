@@ -1,6 +1,10 @@
 .UserAttributeField.cpa-field {
     position: relative;
 
+    .UserAttributeField__compassField {
+        max-width: 320px;
+    }
+
     .field-error {
         display: block;
         margin-top: 4px;

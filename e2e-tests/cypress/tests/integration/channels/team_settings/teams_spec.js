@@ -213,10 +213,7 @@ describe('Teams Suite', () => {
         // # Open team menu and click "Team Settings"
         cy.uiOpenTeamMenu('Team settings');
 
-        // # Click on the team name menu item
-        cy.findByText('Team Name').should('be.visible').click();
-
-        // # Change team name in the input
+        // # Change team name in the always-visible Team info field
         cy.get('#teamName').should('be.visible').clear().type(teamName);
 
         // Save new team name annd close<

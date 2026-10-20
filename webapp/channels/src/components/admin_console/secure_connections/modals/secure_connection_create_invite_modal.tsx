@@ -145,7 +145,7 @@ function SecureConnectionCreateInviteModal({
                                 value={inviteCode}
                                 data-testid='invite-code'
                                 readOnly={true}
-                                addon={(
+                                trailingAction={(
                                     <Button onClick={copyInvite}>
                                         {inviteCopied ? copied : copy}
                                     </Button>
@@ -164,7 +164,7 @@ function SecureConnectionCreateInviteModal({
                             onChange={handlePasswordChange}
                             data-testid='password'
                             readOnly={done}
-                            addon={done ? (
+                            trailingAction={done ? (
                                 <Button onClick={copyPassword}>
                                     {passwordCopied ? copied : copy}
                                 </Button>

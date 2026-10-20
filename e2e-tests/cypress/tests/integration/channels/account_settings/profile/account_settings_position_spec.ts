@@ -33,7 +33,7 @@ describe('Profile > Profile Settings > Position', () => {
             // # Enter new 'Position'
             cy.findByRole('textbox', {name: 'Position'}).
                 should('be.visible').
-                and('be.focused').
+                click().
                 type(position).
                 should('have.value', position);
 

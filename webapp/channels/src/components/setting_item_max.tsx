@@ -105,7 +105,9 @@ const SettingItemMax = ({
         };
 
         if (settingList.current) {
-            const focusableElements: NodeListOf<HTMLElement> = settingList.current.querySelectorAll('.btn:not(.save-button):not(.btn-tertiary), input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])');
+            // Include Compass TextInput/PasswordInput (.Input input / .password-input input),
+            // not only legacy input.form-control — otherwise focus falls back to the container.
+            const focusableElements: NodeListOf<HTMLElement> = settingList.current.querySelectorAll('.btn:not(.save-button):not(.btn-tertiary), input.form-control, .Input input, .password-input input, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])');
             if (focusableElements.length > 0) {
                 a11yFocus(focusableElements[0]);
             } else {

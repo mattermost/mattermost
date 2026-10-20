@@ -18,37 +18,85 @@
     .groups-list--global-actions {
         position: relative;
         display: flex;
-        padding: 8px 20px;
         background: variables.$white;
 
+        // Fixed-width host: SearchInput + separate filter caret (gap, not
+        // segmented). Filter panel overlays absolutely so opening it cannot
+        // grow this row (was expanding past 320px).
         .group-list-search {
             position: relative;
             display: flex;
-            max-width: 280px;
-            height: 30px;
-            flex-grow: 1;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: 15px;
-            margin-top: 2px;
-            stroke: variables.$dark-gray;
+            width: 320px;
+            max-width: 320px;
+            flex: 0 0 320px;
+            align-items: center;
+            gap: 4px;
 
-            input {
-                width: 100%;
-                border: 0;
-                margin-right: 15px;
-                margin-left: 25px;
-                font-size: 0.95em;
-            }
-
-            input:focus {
-                outline: none;
+            .group-list-search__input {
+                min-width: 0;
+                flex: 1 1 auto;
             }
 
             .group-filter-action {
-                padding: 8px 10px 0 0;
+                display: inline-flex;
+                flex-shrink: 0;
+                align-items: center;
+                justify-content: center;
+                padding: 8px;
+                border: none;
+                background: transparent;
+                color: inherit;
+                cursor: pointer;
 
                 &.hidden {
                     visibility: hidden;
+                }
+            }
+
+            .group-search-filters {
+                position: absolute;
+                z-index: 10;
+                top: 100%;
+                left: 0;
+                width: 320px;
+                padding: 20px;
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                margin-top: 4px;
+                background-color: white;
+                box-shadow: var(--elevation-2);
+
+                .search-groups-btn {
+                    right: 20px;
+                    bottom: 20px;
+                    float: right;
+                }
+
+                .cancel-filters {
+                    float: right;
+                }
+
+                .filter-row {
+                    height: 30px;
+                    vertical-align: middle;
+                }
+
+                .filter-check {
+                    display: inline-block;
+                    width: 18px;
+                    height: 18px;
+                    border: 2px solid variables.$dark-gray;
+                    border-radius: 3px;
+                    margin-right: 7px;
+                    vertical-align: middle;
+
+                    &.checked {
+                        border: 0;
+
+                        svg {
+                            background: variables.$white;
+                            fill: variables.$primary-color;
+                        }
+                    }
                 }
             }
         }
@@ -57,49 +105,6 @@
             display: flex;
             flex-grow: 1;
             justify-content: flex-end;
-        }
-
-        .group-search-filters {
-            position: absolute;
-            top: 40px;
-            width: 303px;
-            padding: 20px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            background-color: white;
-
-            .search-groups-btn {
-                right: 20px;
-                bottom: 20px;
-                float: right;
-            }
-
-            .cancel-filters {
-                float: right;
-            }
-
-            .filter-row {
-                height: 30px;
-                vertical-align: middle;
-            }
-
-            .filter-check {
-                display: inline-block;
-                width: 18px;
-                height: 18px;
-                border: 2px solid variables.$dark-gray;
-                border-radius: 3px;
-                margin-right: 7px;
-                vertical-align: middle;
-
-                &.checked {
-                    border: 0;
-
-                    svg {
-                        background: variables.$white;
-                        fill: variables.$primary-color;
-                    }
-                }
-            }
         }
     }
 
@@ -331,10 +336,6 @@
 #groupMention {
     .group-profile {
         padding-top: 0;
-    }
-
-    .group-at-mention-input {
-        padding-left: 26px;
     }
 }
 
@@ -715,13 +716,6 @@
 
 .group-users--header-padded {
     padding-left: 24px;
-}
-
-.icon-over-input {
-    position: absolute;
-    padding-top: 9px;
-    padding-left: 12px;
-    opacity: 0.8;
 }
 
 .AdminChannelDetails_archiveContainer {

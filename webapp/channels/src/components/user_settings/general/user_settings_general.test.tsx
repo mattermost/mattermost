@@ -173,8 +173,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const {container, rerender} = renderWithContext(
             <UserSettingsGeneral {...props}/>,
         );
-        expect(container.querySelectorAll('#position').length).toBe(1);
-        expect(container.querySelector('#position.Input')?.tagName).toBe('INPUT');
+        expect(container.querySelectorAll('input#position').length).toBe(1);
+        expect(container.querySelector('input#position')?.tagName).toBe('INPUT');
 
         props.ldapPositionAttributeSet = true;
         props.samlPositionAttributeSet = false;
@@ -1198,14 +1198,12 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             activeSection: 'customAttribute_field1',
         };
 
-        const {container} = renderWithContext(<UserSettingsGeneral {...props}/>);
+        renderWithContext(<UserSettingsGeneral {...props}/>);
 
         const maxTitle = await screen.findByRole('heading', {name: 'Friendly Display Name'});
         expect(maxTitle).toHaveAttribute('id', 'settingTitle');
 
-        const controlLabels = container.querySelectorAll('label.control-label');
-        expect(controlLabels.length).toBeGreaterThan(0);
-        expect(Array.from(controlLabels).some((el) => el.textContent === 'Friendly Display Name')).toBe(true);
+        expect(await screen.findByRole('textbox', {name: 'Friendly Display Name'})).toBeInTheDocument();
     });
 
     test('should set input aria-label using display_name when expanded', async () => {

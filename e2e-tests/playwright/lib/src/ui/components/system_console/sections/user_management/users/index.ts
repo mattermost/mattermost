@@ -79,7 +79,8 @@ export default class Users {
         this.header = container.getByText('Mattermost Users', {exact: true});
         this.revokeAllSessionsButton = container.getByRole('button', {name: 'Revoke All Sessions'});
 
-        this.searchInput = container.getByRole('textbox', {name: 'Search users'});
+        // Compass SearchInput is type=search → role=searchbox (not textbox).
+        this.searchInput = container.getByRole('searchbox', {name: 'Search users'});
         this.filtersButton = container.getByRole('button', {name: /Filters/});
         this.columnToggleMenuButton = container.locator('#systemUsersColumnTogglerMenuButton');
         this.dateRangeSelectorMenuButton = container.locator('#systemUsersDateRangeSelectorMenuButton');

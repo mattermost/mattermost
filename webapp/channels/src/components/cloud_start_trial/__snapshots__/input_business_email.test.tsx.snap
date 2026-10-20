@@ -6,29 +6,31 @@ exports[`/components/cloud_start_trial/input_business_email should match snapsho
     class="Input_container request-business-email-container"
   >
     <div
-      class="Input_fieldset Input_fieldset___legend"
-      data-testid="input-wrapper"
+      class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 _text-input--label-floated_3inqk_73 Input request-business-email-input"
     >
-      <label
-        class="Input_legend Input_legend___focus"
-        for="input_request-business-email"
-      >
-                                
-        Enter business email
-      </label>
       <div
-        class="Input_wrapper"
+        class="_text-input__wrapper_3inqk_31"
       >
-        <input
-          aria-label="Enter business email"
-          autocomplete="off"
-          class="Input form-control medium request-business-email-input Input__focus"
-          id="input_request-business-email"
-          name="request-business-email"
-          placeholder="name@companyname.com"
-          type="email"
-          value="foo@example.com"
-        />
+        <label
+          class="_text-input__label_3inqk_53"
+          for="input_request-business-email"
+        >
+          Enter business email
+        </label>
+        <div
+          class="_text-input__inner_3inqk_80"
+        >
+          <input
+            autocomplete="off"
+            class="_text-input__input_3inqk_42"
+            data-testid="input-wrapper"
+            id="input_request-business-email"
+            name="request-business-email"
+            placeholder="name@companyname.com"
+            type="email"
+            value="foo@example.com"
+          />
+        </div>
       </div>
     </div>
   </div>

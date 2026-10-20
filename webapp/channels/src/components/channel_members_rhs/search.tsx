@@ -5,7 +5,7 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
-import Input from 'components/widgets/inputs/input/input';
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 
 interface Props {
     className?: string;
@@ -16,35 +16,22 @@ interface Props {
 const SearchBar = ({className, terms, onInput}: Props) => {
     const {formatMessage} = useIntl();
 
-    let inputSuffix;
-    if (terms.length > 0) {
-        inputSuffix = (
-            <button
-                className='style--none'
-                onClick={() => onInput('')}
-                aria-label={formatMessage({
+    return (
+        <div className={className}>
+            <SearchInput
+                data-testid='channel-member-rhs-search'
+                value={terms}
+                onChange={(e) => onInput(e.currentTarget.value)}
+                onClear={() => onInput('')}
+                clearLabel={formatMessage({
                     id: 'channel_members_rhs.search_bar.aria.cancel_search_button',
                     defaultMessage: 'cancel members search',
                 })}
-            >
-                <i className={'icon icon-close-circle'}/>
-            </button>
-        );
-    }
-
-    return (
-        <div className={className}>
-            <Input
-                data-testid='channel-member-rhs-search'
-                value={terms}
-                onInput={(e) => onInput(e.currentTarget.value)}
-                inputPrefix={<i className={'icon icon-magnify'}/>}
-                inputSuffix={inputSuffix}
+                clearButtonProps={{tabIndex: 0}}
                 placeholder={formatMessage({
                     id: 'channel_members_rhs.search_bar.placeholder',
                     defaultMessage: 'Search members',
                 })}
-                useLegend={false}
             />
         </div>
     );
@@ -53,8 +40,4 @@ const SearchBar = ({className, terms, onInput}: Props) => {
 export default styled(SearchBar)`
     display: flex;
     padding: 0px 20px 12px;
-
-    .Input_container .Input_wrapper {
-        padding: 0 8px;
-    }
 `;

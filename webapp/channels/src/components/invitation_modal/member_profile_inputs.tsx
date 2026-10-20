@@ -82,8 +82,7 @@ function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
                     value={profile.first_name}
                     onChange={updateField('first_name')}
                     maxLength={Constants.MAX_FIRSTNAME_LENGTH}
-                    placeholder={formatMessage({id: 'invite_modal.preset_profile.first_name', defaultMessage: 'First name'})}
-                    aria-label={formatMessage({id: 'invite_modal.preset_profile.first_name', defaultMessage: 'First name'})}
+                    label={formatMessage({id: 'invite_modal.preset_profile.first_name', defaultMessage: 'First name'})}
                 />
                 <Input
                     name={`preset-last-name-${emailKey}`}
@@ -91,8 +90,7 @@ function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
                     value={profile.last_name}
                     onChange={updateField('last_name')}
                     maxLength={Constants.MAX_LASTNAME_LENGTH}
-                    placeholder={formatMessage({id: 'invite_modal.preset_profile.last_name', defaultMessage: 'Last name'})}
-                    aria-label={formatMessage({id: 'invite_modal.preset_profile.last_name', defaultMessage: 'Last name'})}
+                    label={formatMessage({id: 'invite_modal.preset_profile.last_name', defaultMessage: 'Last name'})}
                 />
                 <Input
                     name={`preset-username-${emailKey}`}
@@ -102,12 +100,13 @@ function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
                     onBlur={handleUsernameBlur}
                     maxLength={Constants.MAX_USERNAME_LENGTH}
                     autoCapitalize='off'
-                    placeholder={formatMessage({id: 'invite_modal.preset_profile.username', defaultMessage: 'Username'})}
-                    aria-label={formatMessage({id: 'invite_modal.preset_profile.username', defaultMessage: 'Username'})}
+                    label={formatMessage({id: 'invite_modal.preset_profile.username', defaultMessage: 'Username'})}
                     hasError={Boolean(usernameError)}
                     aria-describedby={usernameError ? usernameErrorId : undefined}
                 />
             </div>
+            {/* Keep the long validation copy full-width under the row (master layout),
+                not inside the one-third Username column via FieldMessage. */}
             {usernameError && (
                 <div
                     id={usernameErrorId}

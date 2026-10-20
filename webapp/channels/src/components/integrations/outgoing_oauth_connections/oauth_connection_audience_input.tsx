@@ -4,7 +4,7 @@
 import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {OauthIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
@@ -18,17 +18,18 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getOutgoingOAuthConnections} from 'mattermost-redux/selectors/entities/integrations';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
+import BackstageInput from 'components/backstage/components/backstage_input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 type Props = {
     value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     placeholder: MessageDescriptor;
 };
 
 const OAuthConnectionAudienceInput = (props: Props) => {
     const mounted = useRef(false);
+    const {formatMessage} = useIntl();
     const [matchedConnection, setMatchingOAuthConnection] = useState<OutgoingOAuthConnection | null>(null);
     const [loadingAudienceMatch, setLoadingAudienceMatch] = useState(false);
 
@@ -68,7 +69,7 @@ const OAuthConnectionAudienceInput = (props: Props) => {
         }
     }, [oauthConnectionsEnabled, props.value, teamId, matchConnectionsOnInput, dispatch, mounted]);
 
-    const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         props.onChange(e);
 
         if (oauthConnectionsEnabled) {
@@ -80,14 +81,13 @@ const OAuthConnectionAudienceInput = (props: Props) => {
     const connections = Object.values(oauthConnections);
 
     const input = (
-        <LocalizedPlaceholderInput
+        <BackstageInput
             autoComplete='off'
             id='url'
             maxLength={1024}
-            className='form-control'
             value={props.value}
             onChange={onChange}
-            placeholder={props.placeholder}
+            placeholder={formatMessage(props.placeholder)}
         />
     );
 

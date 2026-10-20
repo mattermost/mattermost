@@ -412,10 +412,9 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
                 state,
             );
 
-            const labelEl = await screen.findByTestId('custom_profile_attribute-my_fieldlabel');
-            expect(labelEl.tagName).toBe('LABEL');
-            expect(labelEl).toHaveTextContent('My Display Name');
-            expect(labelEl).not.toHaveTextContent('my_field');
+            const input = await screen.findByTestId('custom_profile_attribute-my_fieldinput');
+            expect(input).toHaveAccessibleName('My Display Name');
+            expect(input).not.toHaveAccessibleName('my_field');
 
             const helpTextEl = screen.getByTestId('custom_profile_attribute-my_fieldhelp-text');
             expect(helpTextEl).toHaveTextContent(/users cannot edit their My Display Name/);
@@ -441,9 +440,8 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
                 state,
             );
 
-            const labelEl = await screen.findByTestId('custom_profile_attribute-my_fieldlabel');
-            expect(labelEl.tagName).toBe('LABEL');
-            expect(labelEl).toHaveTextContent('my_field');
+            const input = await screen.findByTestId('custom_profile_attribute-my_fieldinput');
+            expect(input).toHaveAccessibleName('my_field');
 
             const helpTextEl = screen.getByTestId('custom_profile_attribute-my_fieldhelp-text');
             expect(helpTextEl).toHaveTextContent(/users cannot edit their my_field/);

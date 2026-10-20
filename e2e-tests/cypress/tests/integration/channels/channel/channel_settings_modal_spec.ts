@@ -241,8 +241,8 @@ describe('Channel Settings Modal', () => {
         // # Try Save changes
         cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
 
-        // * Verify error is shown
-        cy.get('.Input_fieldset').should('have.class', 'Input_fieldset___error');
+        // * Verify error is shown (Compass invalid field chrome)
+        cy.get('#input_channel-settings-name').should('have.attr', 'aria-invalid', 'true');
         cy.get('.SaveChangesPanel').should('contain', 'There are errors in the form above');
     });
 

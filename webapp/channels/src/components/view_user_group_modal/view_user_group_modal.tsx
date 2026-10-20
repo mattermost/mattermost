@@ -3,8 +3,9 @@
 
 import React, {useRef, useState, useEffect, useCallback, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 import {useFocusTrap} from '@mattermost/components';
 import type {Group} from '@mattermost/types/groups';
 import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
@@ -16,7 +17,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
-import Input from 'components/widgets/inputs/input/input';
 
 import Constants from 'utils/constants';
 
@@ -53,6 +53,7 @@ const ViewUserGroupModal: React.FC<Props> = ({
     backButtonAction,
     actions,
 }) => {
+    const {formatMessage} = useIntl();
     const divScrollRef = useRef<HTMLDivElement>(null);
     const searchTimeoutIdRef = useRef<number>(0);
     const [page, setPage] = useState(0);
@@ -86,6 +87,10 @@ const ViewUserGroupModal: React.FC<Props> = ({
     const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const term = e.target.value;
         actions.setModalSearchTerm(term);
+    }, [actions]);
+
+    const handleClearSearch = useCallback(() => {
+        actions.setModalSearchTerm('');
     }, [actions]);
 
     const getGroupMembers = useMemo(
@@ -212,14 +217,15 @@ const ViewUserGroupModal: React.FC<Props> = ({
                     ) : (
                         <>
                             <div className='user-groups-search'>
-                                <Input
-                                    type='text'
-                                    placeholder={defineMessage({id: 'search_bar.searchGroupMembers', defaultMessage: 'Search group members'})}
+                                <SearchInput
+                                    size='medium'
+                                    placeholder={formatMessage({id: 'search_bar.searchGroupMembers', defaultMessage: 'Search group members'})}
                                     onChange={handleSearch}
+                                    onClear={handleClearSearch}
                                     value={searchTerm}
                                     data-testid='searchInput'
-                                    className={'user-group-search-input'}
-                                    inputPrefix={<i className={'icon icon-magnify'}/>}
+                                    className='user-group-search-input'
+                                    clearButtonProps={{'data-testid': 'clear-search', tabIndex: 0}}
                                 />
                             </div>
                             <div

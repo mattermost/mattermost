@@ -1,26 +1,24 @@
-.error {
-    color: var(--error-text);
-}
-
-.info {
-    color: var(--sidebar-text-active-border);
-}
-
-.warning {
-    color: var(--away-indicator-dark);
-}
-
-.success {
-    color: var(--online-indicator);
-}
+// Adapter shell around Compass TextInput / TextArea.
+// Field chrome, messages, and clear live in @mattermost/compass-ui for the
+// deprecated Input adapter. Legacy fieldset chrome below is still required by
+// CategorySelector, DropdownInput, and similar non-Compass fieldsets.
 
 .Input_container {
     width: 100%;
 
-    textarea {
-        resize: none;
+    // Do not force resize:none here — Compass TextArea defaults to
+    // resize:vertical. Call sites that need a fixed height pass
+    // style={{resize:'none'}} (e.g. TextSetting resizable={false}).
+
+    // Compass TextInput/TextArea label opacities (.64) are below WCAG AA on white.
+    // Beat module specificity of --label-floated + __label (0,2,0).
+    .Input[class*='_text-input'] [class*='_text-input__label'],
+    .Input[class*='_text-area'] [class*='_text-area__label'] {
+        color: rgba(var(--center-channel-color-rgb), 0.8);
     }
 
+    // Used by CategorySelector / DropdownInput react-select shells that still
+    // nest under .Input_wrapper inside Input_fieldset (not Compass TextInput).
     .Input {
         position: relative;
         left: 0;
@@ -74,7 +72,8 @@
         }
 
         .form-control:focus {
-            box-shadow: none !important; /* the input wrapper manages its own focus box shadow, this prevent double box shadow in form controls */
+            // Fieldset chrome owns focus; avoid stacked control shadows.
+            box-shadow: none !important;
         }
     }
 
@@ -90,9 +89,14 @@
         border-color: var(--error-text);
     }
 
+    // Legacy call sites (e.g. bookmarks, CategorySelector help) still render
+    // standalone status rows with these class names outside the field.
     .Input___error,
     .Input___customMessage,
-    .Input___info {
+    .Input___info,
+    .Input___warning,
+    .Input___success {
+        display: flex;
         margin-top: 5px;
         font-size: 12px;
         line-height: 16px;
@@ -111,21 +115,15 @@
     }
 
     .Input___error {
-        @extend .error;
-
-        display: flex;
+        color: var(--error-text);
     }
 
     .Input___warning {
-        @extend .warning;
-
-        display: flex;
+        color: var(--away-indicator-dark);
     }
 
     .Input___success {
-        @extend .success;
-
-        display: flex;
+        color: var(--online-indicator);
     }
 
     .Input___info {
@@ -136,6 +134,13 @@
         }
     }
 
+    .Input_textPrefix {
+        margin-right: 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+    }
+
+    // Legacy floating-label fieldset chrome for CategorySelector, DropdownInput,
+    // dropdown_input_hybrid, etc. Not used by the Compass TextInput adapter.
     .Input_fieldset {
         position: relative;
         display: flex;

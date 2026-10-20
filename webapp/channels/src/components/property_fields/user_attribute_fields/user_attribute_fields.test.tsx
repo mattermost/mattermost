@@ -155,7 +155,6 @@ describe('UserAttributeFields', () => {
 
         expect(screen.getByRole('alert')).toHaveTextContent('Bad');
         expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'true');
-        expect(screen.getByRole('textbox')).toHaveClass('error');
     });
 
     test('shows an error for a select field and links it to the control', () => {

@@ -24,7 +24,7 @@ test('MM-T1762 regenerates the public link salt', {tag: '@authentication'}, asyn
 });
 
 /**
- * @objective Verify Maximum Login Attempts resets to the default when a non-numeric value is saved.
+ * @objective Verify Maximum Login Attempts resets to the default when an invalid value is saved.
  */
 test(
     'MM-T1775 resets Maximum Login Attempts to the default after an invalid value',
@@ -33,9 +33,11 @@ test(
         const {adminUser, adminClient} = await pw.initSetup();
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-        // # Save a non-numeric Maximum Login Attempts value
+        // # Save an invalid Maximum Login Attempts value.
+        // Compass renders this as type=number, which rejects non-numeric keystrokes
+        // like "ten"; clear the field to exercise the empty/invalid reset path.
         await systemConsolePage.gotoPasswordSettings();
-        await systemConsolePage.passwordSettings.maximumLoginAttempts.fill('ten');
+        await systemConsolePage.passwordSettings.maximumLoginAttempts.fill('');
         await systemConsolePage.passwordSettings.save();
         await expect(systemConsolePage.passwordSettings.saveButton).toBeDisabled();
 

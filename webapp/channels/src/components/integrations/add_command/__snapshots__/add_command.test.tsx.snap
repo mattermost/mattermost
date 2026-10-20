@@ -45,13 +45,31 @@ exports[`components/integrations/AddCommand should match snapshot 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="displayName"
-              maxlength="64"
-              type="text"
-              value=""
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="displayName"
+                      maxlength="64"
+                      name="displayName"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -71,13 +89,31 @@ exports[`components/integrations/AddCommand should match snapshot 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="description"
-              maxlength="128"
-              type="text"
-              value=""
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="description"
+                      maxlength="128"
+                      name="description"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -97,14 +133,32 @@ exports[`components/integrations/AddCommand should match snapshot 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="trigger"
-              maxlength="128"
-              placeholder="Command trigger e.g. \\"hello\\" not including the slash"
-              type="text"
-              value=""
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="trigger"
+                      maxlength="128"
+                      name="trigger"
+                      placeholder="Command trigger e.g. \\"hello\\" not including the slash"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -142,14 +196,32 @@ exports[`components/integrations/AddCommand should match snapshot 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              autocomplete="off"
-              class="form-control"
-              id="url"
-              maxlength="1024"
-              placeholder="Must start with http:// or https://"
-              value=""
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      autocomplete="off"
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="url"
+                      maxlength="1024"
+                      name="url"
+                      placeholder="Must start with http:// or https://"
+                      value=""
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -214,14 +286,32 @@ exports[`components/integrations/AddCommand should match snapshot 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="username"
-              maxlength="64"
-              placeholder="Username"
-              type="text"
-              value=""
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="username"
+                      maxlength="64"
+                      name="username"
+                      placeholder="Username"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -241,14 +331,32 @@ exports[`components/integrations/AddCommand should match snapshot 1`] = `
           <div
             class="col-md-5 col-sm-8"
           >
-            <input
-              class="form-control"
-              id="iconUrl"
-              maxlength="1024"
-              placeholder="https://www.example.com/myicon.png"
-              type="text"
-              value=""
-            />
+            <div
+              class="Input_container"
+            >
+              <div
+                class="_text-input_3inqk_2 _text-input--size-medium_3inqk_162 Input"
+              >
+                <div
+                  class="_text-input__wrapper_3inqk_31"
+                >
+                  <div
+                    class="_text-input__inner_3inqk_80"
+                  >
+                    <input
+                      class="_text-input__input_3inqk_42"
+                      data-testid="input-wrapper"
+                      id="iconUrl"
+                      maxlength="1024"
+                      name="iconUrl"
+                      placeholder="https://www.example.com/myicon.png"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               class="form__help"
             >

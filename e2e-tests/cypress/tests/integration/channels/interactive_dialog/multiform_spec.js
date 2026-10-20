@@ -85,7 +85,7 @@ describe('Interactive Dialog - Multiform (Step-by-step Form Submissions)', () =>
             cy.get('#appsModalLabel').should('contain', 'Step 1 - Personal Info');
 
             // # Fill out Step 1 form
-            cy.get('input[placeholder*="first name"]').type('John');
+            cy.findByTestId('first_nameinput').type('John');
             cy.get('input[placeholder*="email"]').type('john.doe@example.com');
 
             // # Submit Step 1 - this should create a new dialog (Step 2)
@@ -201,7 +201,7 @@ describe('Interactive Dialog - Multiform (Step-by-step Form Submissions)', () =>
         // # Start multiform again and progress to Step 2
         cy.postMessage(`/${createdCommand.trigger} `);
         cy.get('#appsModal').should('be.visible').within(() => {
-            cy.get('input[placeholder*="first name"]').type('Jane');
+            cy.findByTestId('first_nameinput').type('Jane');
             cy.get('input[placeholder*="email"]').type('jane@test.com');
             cy.get('#appsModalSubmit').click();
         });
@@ -229,7 +229,7 @@ describe('Interactive Dialog - Multiform (Step-by-step Form Submissions)', () =>
             cy.contains('Email').should('be.visible');
 
             // # Fill and submit Step 1
-            cy.get('input[placeholder*="first name"]').type('Bob');
+            cy.findByTestId('first_nameinput').type('Bob');
             cy.get('input[placeholder*="email"]').type('bob@company.com');
             cy.get('#appsModalSubmit').click();
         });

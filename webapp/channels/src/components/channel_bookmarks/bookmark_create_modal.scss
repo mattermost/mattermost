@@ -1,20 +1,27 @@
-.app__body .modal .GenericModal.channel-bookmarks-create-modal .modal-body .form-control {
-    height: 40px;
-    border: unset;
-}
-
 .channel-bookmarks-create-modal {
     .linkInput {
-        margin-bottom: 3rem;
+        // Keep gap before Title; messages paint into this reserved space so
+        // wrapped error / checking copy does not push the Title field down.
+        position: relative;
+        margin-bottom: 3.5rem;
         color: rgba(var(--center-channel-color-rgb), 0.72);
+
+        > .Input {
+            position: relative;
+
+            // Take the footer out of document flow so info ↔ checking ↔ error
+            // message length cannot change the Link control / modal height.
+            [class*='_text-input__footer'] {
+                position: absolute;
+                top: calc(var(--text-input-control-height, 40px) + var(--spacing-xs, 8px));
+                right: 0;
+                left: 0;
+                min-height: 2.5rem;
+            }
+        }
     }
 
     .Input___customMessage {
         line-height: 14px;
-    }
-
-    .LoadingSpinner {
-        padding: 10px 12px;
-        font-size: 16px;
     }
 }

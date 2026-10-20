@@ -198,23 +198,11 @@
 }
 
 .backstage-filter__search {
-    position: relative;
     width: 270px;
     flex-grow: 0;
     flex-shrink: 0;
 
-    .fa {
-        position: absolute;
-        top: 11px;
-        left: 11px;
-        opacity: 0.4;
-    }
-
-    input {
-        padding-left: 30px;
-        background: var(--center-channel-bg);
-        color: var(--center-channel-color);
-    }
+    // Compass SearchInput owns chrome; do not override input padding/background.
 }
 
 .backstage-list {
@@ -325,7 +313,8 @@
         }
     }
 
-    .form-control {
+    // Narrowed to selects — text inputs/textareas use Compass via BackstageInput.
+    select.form-control {
         background: var(--center-channel-bg);
         color: var(--center-channel-color);
 

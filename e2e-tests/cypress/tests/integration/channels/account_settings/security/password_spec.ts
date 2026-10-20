@@ -58,9 +58,9 @@ describe('Profile', () => {
         enterPasswords(testUser.password, newPassword, newPassword);
 
         // * Check that there are no errors
-        cy.get('#error_currentPassword').should('not.exist');
-        cy.get('#error_newPassword').should('not.exist');
-        cy.get('#error_confirmPassword').should('not.exist');
+        cy.get('#currentPassword-message').should('not.exist');
+        cy.get('#newPassword-message').should('not.exist');
+        cy.get('#confirmPassword-message').should('not.exist');
 
         // # Save the settings
         cy.uiSave();
@@ -74,7 +74,7 @@ describe('Profile', () => {
         enterPasswords(testUser.password, 'MismatchPass14!', 'MISmatchPass14!');
 
         // * Verify for error message: "The new passwords you entered do not match."
-        cy.get('#error_confirmPassword').should('be.visible').should('have.text', 'The new passwords you entered do not match.');
+        cy.get('#confirmPassword-message').should('be.visible').and('contain.text', 'The new passwords you entered do not match.');
     });
 
     it('MM-T2083 Password: Too few characters in new password produces error', () => {
@@ -82,7 +82,7 @@ describe('Profile', () => {
         enterPasswords(testUser.password, 'pw', 'pw');
 
         // * Verify for error message about password length
-        cy.get('#error_newPassword').should('be.visible').should('have.text', 'Your password must be 14-72 characters long.');
+        cy.get('#newPassword-message').should('be.visible').and('contain.text', 'Your password must be 14-72 characters long.');
     });
 
     it('MM-T2084 Password: Cancel out of password changes causes no changes to be made', () => {

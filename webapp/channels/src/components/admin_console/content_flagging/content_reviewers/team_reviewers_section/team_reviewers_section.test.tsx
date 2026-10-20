@@ -84,7 +84,7 @@ describe('TeamReviewersSection', () => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
         });
 
-        const searchInput = screen.getByRole('textbox');
+        const searchInput = screen.getByRole('searchbox');
         await userEvent.clear(searchInput);
         await userEvent.type(searchInput, 'search term');
 
@@ -343,7 +343,7 @@ describe('TeamReviewersSection', () => {
         });
 
         // Search - should reset to page 0
-        const searchInput = screen.getByRole('textbox');
+        const searchInput = screen.getByRole('searchbox');
         await userEvent.clear(searchInput);
         await userEvent.type(searchInput, 'search');
 

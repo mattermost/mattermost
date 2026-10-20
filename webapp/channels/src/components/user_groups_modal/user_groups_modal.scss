@@ -141,32 +141,10 @@
             padding-bottom: 60px;
         }
 
+        // Host layout only; chrome/icon/clear come from Compass SearchInput.
         .user-groups-search {
             position: relative;
             margin: 6px 32px 8px;
-
-            .Input_container {
-                .Input_wrapper {
-                    margin: 6px 0;
-                    line-height: 38px;
-                }
-
-                .Input.form-control {
-                    height: 34px;
-                    border: none;
-                    font-size: 14px;
-                    line-height: 38px;
-                }
-            }
-
-            .fa-search {
-                position: absolute;
-                top: 15px;
-                left: 16px;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
-                font-size: 16px;
-                pointer-events: none;
-            }
         }
 
         .more-modal__dropdown {

@@ -5,7 +5,7 @@
 
 import React from 'react';
 import type {IntlShape} from 'react-intl';
-import {FormattedDate, FormattedMessage, FormattedTime, injectIntl} from 'react-intl';
+import {defineMessage, FormattedDate, FormattedMessage, FormattedTime, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {buttonClassNames} from '@mattermost/shared/components/button';
@@ -21,7 +21,7 @@ import ExternalLink from 'components/external_link';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import ToggleModalButton from 'components/toggle_modal_button';
-import Input from 'components/widgets/inputs/input/input';
+import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
 import icon50 from 'images/icon50x50.png';
 import Constants from 'utils/constants';
@@ -78,6 +78,9 @@ type State = {
     currentPassword: string;
     newPassword: string;
     confirmPassword: string;
+    currentPasswordError: React.ReactNode;
+    newPasswordError: React.ReactNode;
+    confirmPasswordError: React.ReactNode;
     serverError: string | null;
     tokenError: string;
     savingPassword: boolean;
@@ -95,6 +98,9 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             currentPassword: '',
             newPassword: '',
             confirmPassword: '',
+            currentPasswordError: null,
+            newPasswordError: null,
+            confirmPasswordError: null,
             serverError: '',
             tokenError: '',
             authService: this.props.user.auth_service,
@@ -173,15 +179,57 @@ export class SecurityTab extends React.PureComponent<Props, State> {
     };
 
     updateCurrentPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({currentPassword: e.target.value});
+        this.setState({currentPassword: e.target.value, currentPasswordError: null});
     };
 
     updateNewPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({newPassword: e.target.value});
+        this.setState({newPassword: e.target.value, newPasswordError: null});
     };
 
     updateConfirmPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({confirmPassword: e.target.value});
+        this.setState({confirmPassword: e.target.value, confirmPasswordError: null});
+    };
+
+    validateCurrentPassword = () => {
+        if (this.state.currentPassword === '') {
+            this.setState({
+                currentPasswordError: (
+                    <FormattedMessage
+                        id='user.settings.security.currentPasswordError'
+                        defaultMessage='Please enter your current password.'
+                    />
+                ),
+            });
+            return;
+        }
+        this.setState({currentPasswordError: null});
+    };
+
+    validateNewPassword = () => {
+        const {valid, error} = isValidPassword(
+            this.state.newPassword,
+            this.props.passwordConfig,
+        );
+        if (!valid) {
+            this.setState({newPasswordError: error});
+            return;
+        }
+        this.setState({newPasswordError: null});
+    };
+
+    validateConfirmPassword = () => {
+        if (this.state.newPassword !== this.state.confirmPassword) {
+            this.setState({
+                confirmPasswordError: (
+                    <FormattedMessage
+                        id='user.settings.security.passwordMatchError'
+                        defaultMessage='The new passwords you entered do not match.'
+                    />
+                ),
+            });
+            return;
+        }
+        this.setState({confirmPasswordError: null});
     };
 
     deauthorizeApp = async (e: React.MouseEvent) => {
@@ -219,6 +267,9 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     currentPassword: '',
                     newPassword: '',
                     confirmPassword: '',
+                    currentPasswordError: null,
+                    newPasswordError: null,
+                    confirmPasswordError: null,
                     serverError: null,
                 });
                 break;
@@ -244,43 +295,24 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         key='currentPasswordUpdateForm'
                         className='form-group'
                     >
-                        <label
-                            className='col-sm-5 control-label'
-                            htmlFor='currentPassword'
-                        >
-                            <FormattedMessage
-                                id='user.settings.security.currentPassword'
-                                defaultMessage='Current Password'
-                            />
-                        </label>
-                        <div className='col-sm-7'>
-                            <Input
-                                id='currentPassword'
-                                name='currentPassword'
-                                autoFocus={true}
-                                type='password'
-                                onChange={this.updateCurrentPassword}
-                                value={this.state.currentPassword}
-                                aria-label={this.props.intl.formatMessage({
-                                    id: 'user.settings.security.currentPassword',
-                                    defaultMessage: 'Current Password',
-                                })}
-                                validate={(value) => {
-                                    if (typeof value !== 'string' || value === '') {
-                                        return {
-                                            type: 'error' as const,
-                                            value: (
-                                                <FormattedMessage
-                                                    id='user.settings.security.currentPasswordError'
-                                                    defaultMessage='Please enter your current password.'
-                                                />
-                                            ),
-                                        };
-                                    }
-                                    return undefined;
-                                }}
-                            />
-                        </div>
+                        <PasswordInput
+                            id='currentPassword'
+                            name='currentPassword'
+                            autoFocus={true}
+                            onChange={this.updateCurrentPassword}
+                            onBlur={() => {
+                                // Defer so a mouseup on Save isn't displaced by the
+                                // FieldMessage layout shift from blur validation.
+                                window.setTimeout(() => this.validateCurrentPassword(), 0);
+                            }}
+                            value={this.state.currentPassword}
+                            label={defineMessage({
+                                id: 'user.settings.security.currentPassword',
+                                defaultMessage: 'Current Password',
+                            })}
+                            hasError={Boolean(this.state.currentPasswordError)}
+                            error={this.state.currentPasswordError || undefined}
+                        />
                     </div>,
                 );
                 inputs.push(
@@ -288,41 +320,21 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         key='newPasswordUpdateForm'
                         className='form-group'
                     >
-                        <label
-                            className='col-sm-5 control-label'
-                            htmlFor='newPassword'
-                        >
-                            <FormattedMessage
-                                id='user.settings.security.newPassword'
-                                defaultMessage='New Password'
-                            />
-                        </label>
-                        <div className='col-sm-7'>
-                            <Input
-                                id='newPassword'
-                                name='newPassword'
-                                type='password'
-                                onChange={this.updateNewPassword}
-                                value={this.state.newPassword}
-                                aria-label={this.props.intl.formatMessage({
-                                    id: 'user.settings.security.newPassword',
-                                    defaultMessage: 'New Password',
-                                })}
-                                validate={(value) => {
-                                    const {valid, error} = isValidPassword(
-                                        value as string,
-                                        this.props.passwordConfig,
-                                    );
-                                    if (!valid) {
-                                        return {
-                                            type: 'error' as const,
-                                            value: error,
-                                        };
-                                    }
-                                    return undefined;
-                                }}
-                            />
-                        </div>
+                        <PasswordInput
+                            id='newPassword'
+                            name='newPassword'
+                            onChange={this.updateNewPassword}
+                            onBlur={() => {
+                                window.setTimeout(() => this.validateNewPassword(), 0);
+                            }}
+                            value={this.state.newPassword}
+                            label={defineMessage({
+                                id: 'user.settings.security.newPassword',
+                                defaultMessage: 'New Password',
+                            })}
+                            hasError={Boolean(this.state.newPasswordError)}
+                            error={this.state.newPasswordError || undefined}
+                        />
                     </div>,
                 );
                 inputs.push(
@@ -330,45 +342,21 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         key='retypeNewPasswordUpdateForm'
                         className='form-group'
                     >
-                        <label
-                            className='col-sm-5 control-label'
-                            htmlFor='confirmPassword'
-                        >
-                            <FormattedMessage
-                                id='user.settings.security.retypePassword'
-                                defaultMessage='Retype New Password'
-                            />
-                        </label>
-                        <div className='col-sm-7'>
-                            <Input
-                                id='confirmPassword'
-                                name='confirmPassword'
-                                type='password'
-                                onChange={this.updateConfirmPassword}
-                                value={this.state.confirmPassword}
-                                aria-label={this.props.intl.formatMessage({
-                                    id: 'user.settings.security.retypePassword',
-                                    defaultMessage: 'Retype New Password',
-                                })}
-                                validate={(value) => {
-                                    if (typeof value !== 'string') {
-                                        return undefined;
-                                    }
-                                    if (this.state.newPassword !== value) {
-                                        return {
-                                            type: 'error' as const,
-                                            value: (
-                                                <FormattedMessage
-                                                    id='user.settings.security.passwordMatchError'
-                                                    defaultMessage='The new passwords you entered do not match.'
-                                                />
-                                            ),
-                                        };
-                                    }
-                                    return undefined;
-                                }}
-                            />
-                        </div>
+                        <PasswordInput
+                            id='confirmPassword'
+                            name='confirmPassword'
+                            onChange={this.updateConfirmPassword}
+                            onBlur={() => {
+                                window.setTimeout(() => this.validateConfirmPassword(), 0);
+                            }}
+                            value={this.state.confirmPassword}
+                            label={defineMessage({
+                                id: 'user.settings.security.retypePassword',
+                                defaultMessage: 'Retype New Password',
+                            })}
+                            hasError={Boolean(this.state.confirmPasswordError)}
+                            error={this.state.confirmPasswordError || undefined}
+                        />
                     </div>,
                 );
             } else {

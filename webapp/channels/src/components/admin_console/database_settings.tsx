@@ -10,19 +10,20 @@ import type {AdminConfig} from '@mattermost/types/config';
 import {recycleDatabaseConnection, ping} from 'actions/admin_actions';
 
 import ExternalLink from 'components/external_link';
+import Input from 'components/widgets/inputs/input/input';
 
 import {DocLinks} from 'utils/constants';
 
 import BooleanSetting from './boolean_setting';
 import MigrationsTable from './database';
-import type {BaseState} from './old_admin_settings';
+import type {BaseProps, BaseState} from './old_admin_settings';
 import OLDAdminSettings from './old_admin_settings';
 import RequestButton from './request_button/request_button';
 import SettingSet from './setting_set';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
-type Props = {
+type Props = BaseProps & {
     license: {
         IsLicensed: string;
     };
@@ -216,11 +217,16 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                         <FormattedMessage {...messages.driverName}/>
                     </label>
                     <div className='col-sm-8'>
-                        <input
+                        <Input
+                            id='DriverName'
+                            name='DriverName'
                             type='text'
-                            className='form-control'
                             value={this.state.driverName}
                             disabled={true}
+                            useLegend={false}
+
+                            // Left-column label owns the accessible name.
+                            aria-label={undefined}
                         />
                         <div className='help-text'>
                             <FormattedMessage {...messages.driverNameDescription}/>
@@ -235,11 +241,16 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                         <FormattedMessage {...messages.dataSource}/>
                     </label>
                     <div className='col-sm-8'>
-                        <input
+                        <Input
+                            id='DataSource'
+                            name='DataSource'
                             type='text'
-                            className='form-control'
                             value={dataSource}
                             disabled={true}
+                            useLegend={false}
+
+                            // Left-column label owns the accessible name.
+                            aria-label={undefined}
                         />
                         <div className='help-text'>
                             <FormattedMessage {...messages.dataSourceDescription}/>
@@ -259,7 +270,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.MaxIdleConns')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <TextSetting
                     id='maxOpenConns'
@@ -274,7 +285,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.MaxOpenConns')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <TextSetting
                     id='queryTimeout'
@@ -289,7 +300,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.QueryTimeout')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <TextSetting
                     id='analyticsQueryTimeout'
@@ -304,7 +315,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.AnalyticsQueryTimeout')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <TextSetting
                     id='connMaxLifetimeMilliseconds'
@@ -319,7 +330,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.ConnMaxLifetimeMilliseconds')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <TextSetting
                     id='connMaxIdleTimeMilliseconds'
@@ -334,7 +345,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('SqlSettings.ConnMaxIdleTimeMilliseconds')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <TextSetting
                     id='minimumHashtagLength'
@@ -349,7 +360,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.MinimumHashtagLength')}
                     disabled={this.props.isDisabled}
-                    type='text'
+                    type='number'
                 />
                 <BooleanSetting
                     id='trace'
@@ -420,12 +431,16 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                         />
                     </label>
                     <div className='col-sm-8'>
-                        <input
+                        <Input
                             id='activeSearchBackend'
+                            name='activeSearchBackend'
                             type='text'
-                            className='form-control'
                             value={this.state.searchBackend}
                             disabled={true}
+                            useLegend={false}
+
+                            // Left-column label owns the accessible name.
+                            aria-label={undefined}
                         />
                         <div className='help-text'>
                             <FormattedMessage

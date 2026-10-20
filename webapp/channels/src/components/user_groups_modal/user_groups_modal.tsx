@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 import {GenericModal} from '@mattermost/components';
 import {Button} from '@mattermost/shared/components/button';
 import type {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearchParams} from '@mattermost/types/groups';
@@ -14,7 +15,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import CreateUserGroupsModal from 'components/create_user_groups_modal';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
-import Input from 'components/widgets/inputs/input/input';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
@@ -52,6 +52,7 @@ export type Props = {
 };
 
 const UserGroupsModal = (props: Props) => {
+    const {formatMessage} = useIntl();
     const [searchTimeoutId, setSearchTimeoutId] = useState(0);
     const [loading, setLoading] = useState(false);
     const [show, setShow] = useState(true);
@@ -161,6 +162,10 @@ const UserGroupsModal = (props: Props) => {
         props.actions.setModalSearchTerm(term);
     }, [props.actions.setModalSearchTerm]);
 
+    const handleClearSearch = useCallback(() => {
+        props.actions.setModalSearchTerm('');
+    }, [props.actions.setModalSearchTerm]);
+
     const loadMoreGroups = useCallback(() => {
         const newPage = page + 1;
         setPage(newPage);
@@ -174,10 +179,6 @@ const UserGroupsModal = (props: Props) => {
             getGroups(newPage, 'archived');
         }
     }, [selectedFilter, page, getGroups, loading]);
-
-    const inputPrefix = useMemo(() => {
-        return <i className={'icon icon-magnify'}/>;
-    }, []);
 
     const noResultsType = useMemo(() => {
         if (selectedFilter === 'archived') {
@@ -252,14 +253,15 @@ const UserGroupsModal = (props: Props) => {
                         )
                     )}
                 </div>
-                <Input
-                    type='text'
-                    placeholder={defineMessage({id: 'user_groups_modal.searchGroups', defaultMessage: 'Search Groups'})}
+                <SearchInput
+                    size='medium'
+                    placeholder={formatMessage({id: 'user_groups_modal.searchGroups', defaultMessage: 'Search Groups'})}
                     onChange={handleSearch}
+                    onClear={handleClearSearch}
                     value={props.searchTerm}
                     data-testid='searchInput'
-                    className={'user-group-search-input'}
-                    inputPrefix={inputPrefix}
+                    className='user-group-search-input'
+                    clearButtonProps={{'data-testid': 'clear-search', tabIndex: 0}}
                 />
             </div>
             <UserGroupsFilter

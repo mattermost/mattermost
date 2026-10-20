@@ -23,7 +23,6 @@ import FileAttachment from 'components/file_attachment';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileProgressPreview from 'components/file_preview/file_progress_preview';
 import Input from 'components/widgets/inputs/input/input';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -350,14 +349,11 @@ function ChannelBookmarkCreateModal({
 
     const confirmDisabled = saving || !isValid || !hasChanges;
 
-    let linkStatusIndicator;
-    if (checkingLink) {
-        // loading
-        linkStatusIndicator = <LoadingSpinner/>;
-    } else if (validatedLink && !linkError) {
-        // validated
-        linkStatusIndicator = checkedIcon;
-    }
+    // Keep trailing chrome limited to the compact check icon. Loading used to
+    // render a padded LoadingSpinner as an in-field addon, which changed the
+    // control height while validating. Compass FieldMessage has no loading
+    // tone, so checking state is an info field message instead.
+    const linkStatusIndicator = (validatedLink && !linkError && !checkingLink) ? checkedIcon : undefined;
 
     let linkMessage = formatMessage(msg.linkInfoMessage);
     if (linkErrorBypass) {
@@ -367,13 +363,15 @@ function ChannelBookmarkCreateModal({
         }
     }
 
-    let linkCustomMessage;
-    if (linkError) {
-        linkCustomMessage = {type: 'error' as const, value: linkError};
-    } else if (validatedLink && !linkErrorBypass) {
-        linkCustomMessage = null;
+    // Always keep a field message so the footer stays mounted while realtime
+    // validation toggles between checking / info / error states.
+    let linkCustomMessage: {type: 'error' | 'info'; value: ReactNode};
+    if (checkingLink) {
+        linkCustomMessage = {type: 'info', value: formatMessage(msg.linkChecking)};
+    } else if (linkError) {
+        linkCustomMessage = {type: 'error', value: linkError};
     } else {
-        linkCustomMessage = {type: 'info' as const, value: linkMessage};
+        linkCustomMessage = {type: 'info', value: linkMessage};
     }
 
     return (
@@ -622,6 +620,7 @@ const msg = defineMessages({
     editHeading: {id: 'channel_bookmarks.create.edit.title', defaultMessage: 'Edit bookmark'},
     linkPlaceholder: {id: 'channel_bookmarks.create.link_placeholder', defaultMessage: 'Link'},
     linkInfoMessage: {id: 'channel_bookmarks.create.link_info', defaultMessage: 'Add a link to any post, file, or any external link'},
+    linkChecking: {id: 'channel_bookmarks.create.link_checking', defaultMessage: 'Checking link…'},
     invalidLinkMessage: {id: 'channel_bookmarks.create.error.invalid_url.continuing_anyway', defaultMessage: 'This may not be a valid link: {link}.'},
     addBookmarkText: {id: 'channel_bookmarks.create.confirm_add.button', defaultMessage: 'Add bookmark'},
     saveText: {id: 'channel_bookmarks.create.confirm_save.button', defaultMessage: 'Save bookmark'},

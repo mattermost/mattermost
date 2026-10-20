@@ -72,9 +72,9 @@ export const GroupProfileAndSettings = ({
     >
         <GroupProfile
             name={displayname}
-            title={defineMessage({id: 'admin.group_settings.group_details.group_profile.name', defaultMessage: 'Name:'})}
+            title={defineMessage({id: 'admin.group_settings.group_details.group_profile.name', defaultMessage: 'Name'})}
             customID={'groupDisplayName'}
-            isDisabled={true}
+            isReadOnly={true}
             showAtMention={false}
         />
         <div className='group-settings'>
@@ -93,7 +93,7 @@ export const GroupProfileAndSettings = ({
         {allowReference && (
             <GroupProfile
                 name={mentionname}
-                title={defineMessage({id: 'admin.group_settings.group_details.group_mention.name', defaultMessage: 'Group Mention:'})}
+                title={defineMessage({id: 'admin.group_settings.group_details.group_mention.name', defaultMessage: 'Group Mention'})}
                 customID={'groupMention'}
                 isDisabled={readOnly}
                 showAtMention={true}

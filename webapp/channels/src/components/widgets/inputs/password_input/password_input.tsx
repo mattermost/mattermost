@@ -2,14 +2,19 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState} from 'react';
-import type {ChangeEventHandler, FocusEventHandler} from 'react';
+import React from 'react';
+import type {ChangeEventHandler, FocusEventHandler, ReactNode} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
-import {ItemStatus} from 'utils/constants';
+import type {FieldMessageTone} from '@mattermost/compass-ui/components/field-message';
+import {PasswordInput as CompassPasswordInput} from '@mattermost/compass-ui/components/password-input';
+import type {PasswordInputSize} from '@mattermost/compass-ui/components/password-input';
 
-import Input from '../input/input';
-import type {CustomMessageInputType, SIZE} from '../input/input';
+import {ItemStatus} from 'utils/constants';
+import {formatAsString} from 'utils/i18n';
+
+import {SIZE} from '../input/input';
 
 import './password_input.scss';
 
@@ -20,13 +25,36 @@ type PasswordInputProps = {
     onBlur?: FocusEventHandler<HTMLInputElement>;
     onFocus?: FocusEventHandler<HTMLInputElement>;
     hasError?: boolean;
-    info?: string;
-    error?: string;
+    info?: ReactNode;
+    error?: ReactNode;
     createMode?: boolean;
     disabled?: boolean;
     inputSize?: SIZE;
+    id?: string;
+    name?: string;
+    label?: string | MessageDescriptor;
+    autoFocus?: boolean;
+    placeholder?: string;
+    maxLength?: number;
+
+    /**
+     * When false, omit the floating label so an external label (e.g. Setting's
+     * left-column label) owns the accessible name. Default: true.
+     */
+    useLegend?: boolean;
+    'data-testid'?: string;
 };
 
+const INPUT_SIZE_MAP: Record<SIZE, PasswordInputSize> = {
+    [SIZE.SMALL]: 'small',
+    [SIZE.MEDIUM]: 'medium',
+    [SIZE.LARGE]: 'large',
+};
+
+/**
+ * @deprecated Prefer `@mattermost/compass-ui/components/password-input` for new UI.
+ * Thin host wrapper that maps legacy `error` / `info` / `hasError` onto Compass.
+ */
 const PasswordInput = React.forwardRef((
     {
         className,
@@ -39,60 +67,80 @@ const PasswordInput = React.forwardRef((
         error,
         createMode,
         disabled,
-        inputSize,
+        inputSize = SIZE.MEDIUM,
+        id,
+        name = 'password-input',
+        label: labelProp,
+        autoFocus,
+        placeholder,
+        maxLength,
+        useLegend = true,
+        'data-testid': dataTestId,
         ...otherProps
     }: PasswordInputProps,
     ref?: React.Ref<HTMLInputElement>,
 ) => {
     const {formatMessage} = useIntl();
 
-    const [showPassword, setShowPassword] = useState(false);
+    const message = error || info;
+    let messageTone: FieldMessageTone | undefined;
+    if (error) {
+        messageTone = ItemStatus.ERROR as FieldMessageTone;
+    } else if (info) {
+        messageTone = ItemStatus.INFO as FieldMessageTone;
+    }
 
-    const toggleShowPassword = () => setShowPassword(!showPassword);
+    const defaultLabel = createMode ?
+        formatMessage({id: 'widget.passwordInput.createPassword', defaultMessage: 'Choose a Password'}) :
+        formatMessage({id: 'widget.passwordInput.password', defaultMessage: 'Password'});
+    let label: string | undefined;
+    if (useLegend) {
+        label = labelProp ? formatAsString(formatMessage, labelProp) : defaultLabel;
+    }
 
-    const customMessageError: CustomMessageInputType | null = error ? {type: ItemStatus.ERROR, value: error} : null;
-    const customMessageInfo: CustomMessageInputType | null = info ? {type: ItemStatus.INFO, value: info} : null;
-    const customMessage = error ? customMessageError : customMessageInfo;
+    // Match legacy Input adapter: id defaults to input_${name} (login/signup Cypress
+    // and Playwright target #input_password-input). Reveal toggle stays #password_toggle.
+    const resolvedId = id ?? `input_${name}`;
 
-    const placeHolder = createMode ? formatMessage({id: 'widget.passwordInput.createPassword', defaultMessage: 'Choose a Password'}) : formatMessage({id: 'widget.passwordInput.password', defaultMessage: 'Password'});
+    // When a floating label is shown, never fall back to defaultLabel as the
+    // placeholder — that duplicates the label text on focus (e.g. "Password").
+    // Explicit placeholder props are still passed through.
+    const resolvedPlaceholder = useLegend ? placeholder : (placeholder ?? defaultLabel);
 
     return (
-        <Input
+        <CompassPasswordInput
+            ref={ref}
+            id={resolvedId}
             className={classNames('password-input', className)}
-            wrapperClassName={'password-input-with-toggle'}
-            name='password-input'
-            type={showPassword && !disabled ? 'text' : 'password'}
-            inputSize={inputSize}
-            addon={
-                <button
-                    id='password_toggle'
-                    type='button'
-                    aria-label={formatMessage({
-                        id: showPassword ? 'widget.passwordInput.hidePassword' : 'widget.passwordInput.showPassword',
-                        defaultMessage: showPassword ? 'Hide password' : 'Show password',
-                    })}
-                    className='password-input-toggle'
-                    onClick={toggleShowPassword}
-                    disabled={disabled}
-                >
-                    <i
-                        className={showPassword && !disabled ? 'icon-eye-off-outline' : 'icon-eye-outline'}
-                        aria-hidden='true'
-                    />
-                </button>
-            }
+            name={name}
+            size={INPUT_SIZE_MAP[inputSize]}
             value={value}
             onChange={onChange}
             onBlur={onBlur}
             onFocus={onFocus}
-            placeholder={placeHolder}
-            hasError={hasError}
-            customMessage={error || info ? customMessage : undefined}
+            label={label}
+            placeholder={resolvedPlaceholder}
+            maxLength={maxLength}
+            invalid={Boolean(hasError) || Boolean(error)}
+            message={message}
+            messageTone={message ? messageTone : undefined}
             disabled={disabled}
-            ref={ref}
+            autoFocus={autoFocus}
+            data-testid={dataTestId}
+            showPasswordLabel={formatMessage({
+                id: 'widget.passwordInput.showPassword',
+                defaultMessage: 'Show password',
+            })}
+            hidePasswordLabel={formatMessage({
+                id: 'widget.passwordInput.hidePassword',
+                defaultMessage: 'Hide password',
+            })}
+            revealButtonProps={{id: 'password_toggle'}}
             {...otherProps}
         />
     );
 });
+
+PasswordInput.displayName = 'PasswordInput';
 
 export default PasswordInput;
