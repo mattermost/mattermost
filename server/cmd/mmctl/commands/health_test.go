@@ -4,12 +4,17 @@
 package commands
 
 import (
+	"archive/zip"
 	"context"
+	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -316,5 +321,210 @@ Notifications
 
 		s.Require().Len(printer.GetLines(), 1)
 		s.Equal(&model.HealthFindingList{Findings: []*model.HealthFinding{}}, printer.GetLines()[0])
+	})
+}
+
+const healthTestPacketGeneratedAt = 1790330400000
+
+func healthTestPacketFiles() map[string]string {
+	return map[string]string{
+		model.PacketMetadataFileName: "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
+		model.SupportPacketDiagnosticsFileName: `version: 2
+license:
+  users: 500
+  sku_short_name: enterprise
+  expires_at: 1821866400000
+  features:
+    metrics: true
+    compliance: true
+    data_retention: true
+    message_export: true
+server:
+  os: linux
+  hostname: mm.example.com
+  open_file_descriptors: 120
+  max_file_descriptors: 65536
+  version: 11.0.4
+database:
+  type: postgres
+  version: "15.8"
+  master_connections_in_use: 1
+elastic:
+  status: disabled
+file_store:
+  file_status: OK
+notifications:
+  email:
+    status: OK
+`,
+		model.SupportPacketStatsFileName:   "registered_users: 100\nactive_users: 100\nsingle_channel_guests: 0\nposts: 1000\n",
+		model.SupportPacketJobsFileName:    "data_retention_jobs: []\n",
+		model.SupportPacketConfigFileName:  healthTestPacketConfig(),
+		model.SupportPacketPluginsFileName: `{"enabled": [], "disabled": []}`,
+	}
+}
+
+// healthTestPacketConfig starts from defaults so new rules see a realistic config without editing this fixture.
+func healthTestPacketConfig() string {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.ServiceSettings.SiteURL = model.NewPointer("https://chat.example.com")
+	cfg.GuestAccountsSettings.Enable = model.NewPointer(true)
+	cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+	cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
+	cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.IdLoadedNotification)
+	cfg.SqlSettings.DataSource = model.NewPointer("postgres://****:****@db.example.com:5432/mattermost")
+	cfg.RateLimitSettings.Enable = model.NewPointer(true)
+	cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+	cfg.MetricsSettings.Enable = model.NewPointer(true)
+
+	b, err := json.Marshal(cfg)
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
+}
+
+func (s *MmctlUnitTestSuite) writeHealthTestPacket(files map[string]string) string {
+	path := filepath.Join(s.T().TempDir(), "packet.zip")
+	f, err := os.Create(path)
+	s.Require().NoError(err)
+	defer f.Close()
+
+	zw := zip.NewWriter(f)
+	for name, body := range files {
+		w, createErr := zw.Create(name)
+		s.Require().NoError(createErr)
+		_, err = w.Write([]byte(body))
+		s.Require().NoError(err)
+	}
+	s.Require().NoError(zw.Close())
+
+	return path
+}
+
+func healthPacketTestCommand(path string, includeResolved, includeMuted bool) *cobra.Command {
+	cmd := healthTestCommand(includeResolved, includeMuted)
+	cmd.Flags().String("packet", path, "")
+	return cmd
+}
+
+func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
+	packetPath := s.writeHealthTestPacket(healthTestPacketFiles())
+	evaluatedAt := time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04")
+
+	s.Run("runs with no server configured", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		viper.Set("config", filepath.Join(s.T().TempDir(), "missing-config"))
+		viper.Set("local-socket-path", filepath.Join(s.T().TempDir(), "missing.socket"))
+		s.T().Cleanup(func() {
+			viper.Set("config", "")
+			viper.Set("local-socket-path", model.LocalModeSocketPath)
+		})
+
+		err := healthCheckRunE(healthTestCommand(false, false), []string{})
+		s.Require().ErrorContains(err, "failed to create client")
+
+		err = healthCheckRunE(healthPacketTestCommand(packetPath, false, false), []string{})
+		s.Require().NoError(err)
+		s.Contains(s.printedHealthFindings(), "PushNotificationServer does not use https://")
+	})
+
+	s.Run("plain output opens with the disclaimer and uses the packet's time", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, false, false), []string{})
+		s.Require().NoError(err)
+
+		s.Equal(healthPacketDisclaimer+`
+
+Last evaluated `+evaluatedAt+` (0 minutes ago)
+
+Notifications
+  CRITICAL  PushNotificationServer does not use https://
+            PushNotificationServer http://push.example.com uses http://, so push notifications are sent in cleartext.
+            → Prefix PushNotificationServer with https:// and verify reachability from the app node.
+
+Version
+  CRITICAL  Mattermost version is past end-of-life
+            Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15. No security patches ship for this release line. Upgrade to the latest release.
+            → Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.
+
+2 critical`, s.printedHealthFindings())
+	})
+
+	s.Run("an old packet is not reported as stopped evaluation", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, false, false), []string{})
+		s.Require().NoError(err)
+		s.NotContains(s.printedHealthFindings(), "Evaluation appears to have stopped")
+	})
+
+	s.Run("--include-resolved finds nothing resolved in a single evaluation", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, true, false), []string{})
+		s.Require().NoError(err)
+		output := s.printedHealthFindings()
+		s.Contains(output, "PushNotificationServer does not use https://")
+		s.NotContains(output, "\nResolved\n")
+	})
+
+	s.Run("--include-muted is rejected", func() {
+		printer.Clean()
+
+		err := healthCheckRunE(healthPacketTestCommand(packetPath, false, true), []string{})
+		s.Require().ErrorContains(err, "--include-muted cannot be used with --packet")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("--json prints findings and sends the notes to stderr", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatJSON)
+
+		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, false, false), []string{})
+		s.Require().NoError(err)
+
+		s.Require().Len(printer.GetLines(), 1)
+		list, ok := printer.GetLines()[0].(*model.HealthFindingList)
+		s.Require().True(ok)
+		s.Equal(int64(healthTestPacketGeneratedAt), list.EvaluatedAt)
+		findings := list.Findings
+		s.Require().Len(findings, 2)
+		s.Equal("VERSION_EOL", findings[0].Code)
+		s.Equal("PUSH_BAD_SCHEME", findings[1].Code)
+		s.Equal("PushNotificationServer does not use https://", findings[1].Title)
+		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[1].FirstSeenAt)
+		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
+	})
+
+	s.Run("packet warnings follow the disclaimer and contain no em dash", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		files := healthTestPacketFiles()
+		delete(files, model.PacketMetadataFileName)
+		files[model.SupportPacketDiagnosticsFileName] = "version: 99\n"
+
+		err := healthCheckPacketCmdF(healthPacketTestCommand(s.writeHealthTestPacket(files), true, false), []string{})
+		s.Require().NoError(err)
+
+		output := s.printedHealthFindings()
+		s.True(strings.HasPrefix(output, healthPacketDisclaimer+"\n\n"))
+		s.Contains(output, "newer server")
+		s.Contains(output, "no metadata.yaml")
+		s.NotContains(output, "—")
+	})
+
+	s.Run("an unreadable packet is an error", func() {
+		printer.Clean()
+
+		err := healthCheckPacketCmdF(healthPacketTestCommand(filepath.Join(s.T().TempDir(), "missing.zip"), false, false), []string{})
+		s.Require().ErrorContains(err, "failed to read Support Packet")
+		s.Empty(printer.GetLines())
 	})
 }

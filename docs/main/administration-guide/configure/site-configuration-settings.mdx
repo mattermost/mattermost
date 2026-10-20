@@ -783,7 +783,7 @@ Access the following configuration settings in the System Console by going to **
 </colgroup>
 <tbody>
 <tr>
-<td><p>Specify the default configuration of system messages displayed when users join or leave channels.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Join/Leave messages are displayed.</li><li><strong>false</strong>: Join/Leave messages are hidden.</li></ul><p>Users can override this default by going to <strong>Settings &gt; Advanced &gt; Enable Join/Leave Messages</strong>.</p></td>
+<td><p>Specify the default configuration of system messages displayed when users join or leave channels.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Join/Leave messages are displayed.</li><li><strong>false</strong>: Join/Leave messages are hidden.</li></ul><p>Users can override this default by going to <strong>Settings &gt; Advanced &gt; Enable Join/Leave Messages</strong>.</p><p>From Mattermost v12.0, channel members with permission to manage channel settings can also <a href={useBaseUrl('/end-user-guide/collaborate/join-leave-channels#hide-join-and-leave-messages-in-a-channel')}>hide join/leave messages in a specific channel</a> for all channel members, regardless of this setting or users' own preferences.</p></td>
 <td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>EnableJoinLeaveMessageByDefault</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_ENABLEJOINLEAVEMESSAGEBYDEFAULT</code></li></ul></td>
 </tr>
 </tbody>
@@ -2074,6 +2074,73 @@ Access the following configuration settings in the System Console by going to **
 </tbody>
 </table>
 
+From Mattermost v12.0, the following settings control post delivery audit logging, which records an audit log entry for each delivery of a message in an eligible channel. Delivery records require an audit log target that consumes the `audit-delivery` log level. See [Post delivery audit logging](/administration-guide/comply/post-delivery-audit-logging) for details.
+
+<Important>
+
+Post delivery audit logging is currently in [Beta](/administration-guide/manage/feature-labels#beta). It requires the [feature flag](https://developers.mattermost.com/contribute/more-info/server/feature-flags/#changing-feature-flag-values) `MM_FEATUREFLAGS_POSTDELIVERYTRACKING`, which is disabled by default, and a server restart after you enable it. It also requires an audit log target that consumes the `audit-delivery` log level.
+
+</Important>
+
+### Enable post delivery audit logging
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: An audit log entry is recorded each time a message is delivered to a user.</li><li><strong>false</strong>: <strong>(Default)</strong> Message deliveries aren't recorded.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Data Spillage Handling</strong></li><li><code>config.json</code> setting: <code>DeliveryTrackingSettings</code> &gt; <code>Enable</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_DELIVERYTRACKINGSETTINGS_ENABLE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+Delivery records are written to the audit log only, and aren't surfaced anywhere in the Mattermost interface.
+
+<Warning>
+
+Delivery records are discarded unless an audit log target consumes the `audit-delivery` log level. Setting this to **true** without configuring such a target records nothing, and Mattermost doesn't block the configuration. See [Post delivery audit logging](/administration-guide/comply/post-delivery-audit-logging).
+
+</Warning>
+
+### Record deliveries in
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Deliveries are recorded in all eligible channels.</li><li><strong>false</strong>: Deliveries are recorded only in the selected channels.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Data Spillage Handling</strong></li><li><code>config.json</code> setting: <code>DeliveryTrackingSettings</code> &gt; <code>EnableForAllChannels</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_DELIVERYTRACKINGSETTINGS_ENABLEFORALLCHANNELS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Recording deliveries in all eligible channels is the most complete option, and also the most expensive. Direct and group messages are never eligible, regardless of this setting.
+
+</Note>
+
+### Channels to record deliveries in
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The channels in which message deliveries are recorded. Applies only when <strong>Record deliveries in</strong> is set to <strong>Selected channels</strong>, in which case at least one channel is required.</p><p>Stored in the database, so there's no <code>config.json</code> setting and no environment variable. Manage the list in the System Console, or through the <code>/api/v4/delivery_tracking/config</code> API endpoints.</p><p>Direct and group message channels can't be selected.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Data Spillage Handling</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ------------------------------------------------------------------------------------------------------------------------
 
 ## File sharing and downloads
@@ -2094,6 +2161,23 @@ Access the following configuration settings in the System Console by going to **
 </tr>
 </tbody>
 </table>
+
+### Enable file search
+
+<table>
+<colgroup>
+<col style={{width: '64%'}} />
+<col style={{width: '35%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Users can search for files attached to messages by filename.</li><li><strong>false</strong>: File search is disabled. The web and desktop apps hide the Files tab in search results and the channel Files views.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; File Sharing and Downloads</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableFileSearch</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEFILESEARCH</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+To let users search documents by their content as well as by filename, also enable [document search by content](/administration-guide/configure/environment-configuration-settings#enable-document-search-by-content). Disabling file search in larger deployments may improve performance by removing file search queries against the database or search engine.
 
 ### Allow file uploads on mobile
 
@@ -2379,7 +2463,7 @@ Classification markings define reusable classification levels that can be displa
 
 <Note>
 
-Classification markings are informational only and aren't tied to access control decisions at this time.
+Classification markings and channel attributes are informational in this release. They aren't evaluated by access policies and don't control access to channels, messages, or files.
 
 </Note>
 
@@ -2397,6 +2481,16 @@ Configure classification markings:
 
 7. Select the **Global classification level** to display.
 8. Select **Save**.
+
+### Classification and channel attributes
+
+From Mattermost v12.0, when the `ChannelAttributes` feature flag is enabled, Classification is also represented as a global attribute under **System Attributes \> Attribute Management**. Its definition is read-only there: classification levels, ranks, colors, and the global banner continue to be managed on the Classification Markings page. The resources Classification applies to and its channel display locations are managed from Attribute Management.
+
+When Classification Markings are enabled, Mattermost adds a **Channels** resource to Classification and configures it for banner display by default. Channel admins then assign the classification value from Channel Info or **Channel Settings \> Info**. The previous Classification control under **Channel Settings \> Configuration** is hidden.
+
+When Classification is included in a channel banner, the selected level's color controls the banner color. A channel banner manager can customize the banner text and combine Classification with other channel attributes. Removing the Classification token from the banner returns control of the banner color to the channel without clearing the classification value.
+
+See [Channel attributes](/administration-guide/manage/admin/channel-attributes#classification-markings-and-channel-attributes) for configuration, assignment, upgrade, and banner behavior.
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -62,6 +62,30 @@ func findingFingerprints(findings []*model.HealthFinding) []string {
 	return fingerprints
 }
 
+func checkHealthDashboardNotImplemented(t *testing.T, th *TestHelper) {
+	t.Helper()
+
+	finding := newHealthFinding("SITE_URL_HTTP", healthcheck.SurfaceProduct)
+	storeHealthFindings(t, th, finding)
+
+	_, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
+
+	resp, err = th.SystemAdminClient.MuteHealthFinding(context.Background(), finding.Fingerprint)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
+
+	resp, err = th.SystemAdminClient.UnmuteHealthFinding(context.Background(), finding.Fingerprint)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
+
+	stored, err := th.App.Srv().Store().HealthFinding().GetByFingerprints([]string{finding.Fingerprint})
+	require.NoError(t, err)
+	require.Len(t, stored, 1)
+	assert.False(t, stored[0].IsMuted())
+}
+
 func TestHealthDashboardAccess(t *testing.T) {
 	t.Run("unauthenticated", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
@@ -99,28 +123,19 @@ func TestHealthDashboardAccess(t *testing.T) {
 
 	t.Run("flag off", func(t *testing.T) {
 		th := setupHealthDashboard(t, false)
-
-		_, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
-		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		checkHealthDashboardNotImplemented(t, th)
 	})
 
 	t.Run("no license", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
 		th.App.Srv().SetLicense(nil)
-
-		_, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
-		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		checkHealthDashboardNotImplemented(t, th)
 	})
 
 	t.Run("license below Enterprise", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-
-		_, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
-		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		checkHealthDashboardNotImplemented(t, th)
 	})
 
 	t.Run("admin with the flag and license", func(t *testing.T) {
@@ -207,6 +222,8 @@ func TestGetHealthFindingsRendering(t *testing.T) {
 			assert.Empty(t, f.Title)
 			assert.Empty(t, f.Remediation)
 			assert.Empty(t, f.Message)
+			assert.Empty(t, f.DocsURL)
+			assert.Empty(t, f.ConsolePath)
 		}
 	})
 
@@ -218,28 +235,30 @@ func TestGetHealthFindingsRendering(t *testing.T) {
 
 		rendered := list.Findings[0]
 		assert.Equal(t, finding.Fingerprint, rendered.Fingerprint)
-		assert.Equal(t, "SiteURL uses http:// (not https)", rendered.Title)
-		assert.Equal(t, "Serve via HTTPS and update SiteURL accordingly.", rendered.Remediation)
-		assert.Equal(t, "SiteURL is http://example.com. Session cookies and auth tokens traverse cleartext.", rendered.Message)
+		assert.Equal(t, "SiteURL uses http:// (not https://)", rendered.Title)
+		assert.Equal(t, "Serve Mattermost over HTTPS and update SiteURL to the https:// address.", rendered.Remediation)
+		assert.Equal(t, "SiteURL is http://example.com. Session cookies and auth tokens travel over the network unencrypted.", rendered.Message)
 		assert.Equal(t, finding.MessageID, rendered.MessageID)
+		assert.Equal(t, "https://mattermost.com/pl/configure-site-url", rendered.DocsURL)
+		assert.Equal(t, "/admin_console/environment/web_server", rendered.ConsolePath)
 	})
 
-	t.Run("untranslated locale falls back to English", func(t *testing.T) {
+	t.Run("unsupported locale falls back to English", func(t *testing.T) {
 		english, _, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
 		require.NoError(t, err)
 
 		client := th.CreateClient()
 		client.SetToken(th.SystemAdminClient.AuthToken)
-		client.HTTPHeader = map[string]string{"Accept-Language": "fr"}
-		french, resp, err := client.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+		client.HTTPHeader = map[string]string{"Accept-Language": "sw"}
+		swahili, resp, err := client.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		require.Len(t, french.Findings, 1)
+		require.Len(t, swahili.Findings, 1)
 		require.Len(t, english.Findings, 1)
-		assert.Equal(t, english.Findings[0].Title, french.Findings[0].Title)
-		assert.Equal(t, english.Findings[0].Message, french.Findings[0].Message)
-		assert.Equal(t, english.Findings[0].Remediation, french.Findings[0].Remediation)
+		assert.Equal(t, english.Findings[0].Title, swahili.Findings[0].Title)
+		assert.Equal(t, english.Findings[0].Message, swahili.Findings[0].Message)
+		assert.Equal(t, english.Findings[0].Remediation, swahili.Findings[0].Remediation)
 	})
 }
 
@@ -449,7 +468,7 @@ func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 
 		byCode := map[string]*model.HealthFinding{}
 		for _, f := range list.Findings {
-			if strings.HasPrefix(f.Code, "PUSH_") {
+			if f.Subject == "EmailSettings.PushNotificationServer" {
 				byCode[f.Code] = f
 			}
 		}
@@ -457,27 +476,23 @@ func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 	}
 
 	setPushServer("https://push.example.com")
-	before := checkPushFindings()
-	require.Contains(t, before, "PUSH_BAD_SCHEME")
-	for code, f := range before {
-		assert.Equal(t, string(healthcheck.StateResolved), f.State, code)
-	}
+	assert.Empty(t, checkPushFindings())
 
 	setPushServer("http://push.example.com")
 	firing := checkPushFindings()
+	require.Len(t, firing, 1)
 	badScheme := firing["PUSH_BAD_SCHEME"]
 	require.NotNil(t, badScheme)
 	assert.Equal(t, string(healthcheck.StateFiring), badScheme.State)
 	assert.Equal(t, "health.rule.push_bad_scheme.message.http", badScheme.MessageID)
 	assert.NotEmpty(t, badScheme.Message)
-	assert.Equal(t, string(healthcheck.StateResolved), firing["PUSH_EMPTY_URL"].State)
-	assert.Equal(t, string(healthcheck.StateResolved), firing["PUSH_TEST_PROXY"].State)
 
 	setPushServer("https://push.example.com")
 	after := checkPushFindings()
-	for code, f := range after {
-		assert.Equal(t, string(healthcheck.StateResolved), f.State, code)
-	}
-	assert.Equal(t, before["PUSH_BAD_SCHEME"].Fingerprint, after["PUSH_BAD_SCHEME"].Fingerprint)
-	assert.Equal(t, before["PUSH_BAD_SCHEME"].FirstSeenAt, after["PUSH_BAD_SCHEME"].FirstSeenAt)
+	require.Len(t, after, 1)
+	cleared := after["PUSH_BAD_SCHEME"]
+	require.NotNil(t, cleared)
+	assert.Equal(t, string(healthcheck.StateResolved), cleared.State)
+	assert.Equal(t, badScheme.Fingerprint, cleared.Fingerprint)
+	assert.Equal(t, badScheme.FirstSeenAt, cleared.FirstSeenAt)
 }

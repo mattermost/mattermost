@@ -1012,5 +1012,35 @@
       "Server",
       "servers"
     ]
+  },
+  "health dashboard": {
+    "definition": "System Console page that runs built-in checks against the server's configuration and environment and lists what it finds.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false
+  },
+  "health finding": {
+    "definition": "One issue the health dashboard reports, with a title, a message and remediation steps; an admin can mute or unmute it.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false
+  },
+  "Agents plugin": {
+    "definition": "The Mattermost plugin that provides AI agents and AI services. 'Agents' is a product name and stays in English; 'plugin' is translated with this glossary's 'plugin' target, in the locale's natural word order.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": false
+  },
+  "Hosted Push Notification Service": {
+    "definition": "Name of Mattermost's production push notification service for licensed and Cloud servers, abbreviated HPNS. A service name: keep it in English and, where grammar needs it, describe it with a translated head noun around the name (e.g. 'the Mattermost Hosted Push Notification Service' as 'service Mattermost Hosted Push Notification Service'). The acronym HPNS stays as is.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "Test Push Notification Service": {
+    "definition": "Name of Mattermost's free push notification service for testing self-hosted servers, not for production, abbreviated TPNS. A service name: keep it in English, like Hosted Push Notification Service. The acronym TPNS stays as is.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
+  },
+  "PushNotificationServer": {
+    "definition": "Configuration setting that holds the push proxy URL; admin-facing text quotes it verbatim.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true
   }
 }
