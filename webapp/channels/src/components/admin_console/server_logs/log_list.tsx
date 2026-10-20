@@ -30,6 +30,10 @@ type Props = {
     onSearchChange: (term: string) => void;
     search: string;
 
+    // Owned by the parent, which sends them with the query
+    enabledLevels: Set<string>;
+    onEnabledLevelsChange: React.Dispatch<React.SetStateAction<Set<string>>>;
+
     // Actions
     onReload: () => void;
     downloadUrl: string;
@@ -94,7 +98,7 @@ const DEFAULT_PREFS: StoredPrefs = {
 
 // Stored prefs may predate the current shape, so every field is validated
 // before it is trusted
-function loadPrefs(): StoredPrefs {
+export function loadPrefs(): StoredPrefs {
     let stored: Partial<StoredPrefs> = {};
     try {
         const raw = localStorage.getItem(PREFS_KEY);
@@ -155,6 +159,7 @@ function savePrefs(prefs: StoredPrefs) {
 
 export default function LogList({
     loading, logs, onSearchChange, search,
+    enabledLevels, onEnabledLevelsChange: setEnabledLevels,
     onReload, downloadUrl,
     liveTailEnabled, onToggleLiveTail, pollInterval, onPollIntervalChange,
     pollIntervals, pollIntervalLabels,
@@ -172,7 +177,6 @@ export default function LogList({
     // Tracked by content like the expanded row, so a reload or a live-tail poll
     // keeps the selection on the same entry instead of on the same position
     const [focusedKey, setFocusedKey] = useState<string | null>(null);
-    const [enabledLevels, setEnabledLevels] = useState<Set<string>>(new Set(initialPrefs.enabledLevels));
     const [wrapText, setWrapText] = useState(initialPrefs.wrapText);
 
     // Kept local so typing repaints the input without waiting for the filtering
@@ -233,13 +237,20 @@ export default function LogList({
             filtered = filtered.filter((log) => enabledLevels.has(log.level));
         }
 
+        if (search) {
+            const lowerSearch = search.toLowerCase();
+            filtered = filtered.filter((log) => Object.entries(log).some(([key, value]) =>
+                key !== 'level' && key !== 'timestamp' && String(value).toLowerCase().includes(lowerSearch),
+            ));
+        }
+
         // Ties fall back to file order so same-millisecond entries reverse too
         const direction = sortAsc ? 1 : -1;
         return filtered.
             map((log, index) => ({log, index, time: parseTimestamp(log.timestamp)})).
             sort((a, b) => direction * ((a.time - b.time) || (a.index - b.index))).
             map(({log}) => log);
-    }, [logs, allLevelsEnabled, enabledLevels, sortAsc]);
+    }, [logs, allLevelsEnabled, enabledLevels, search, sortAsc]);
 
     const matchCount = search ? processedLogs.length : null;
     const totalCount = logs.length;
@@ -295,11 +306,11 @@ export default function LogList({
             }
             return next;
         });
-    }, []);
+    }, [setEnabledLevels]);
 
     const enableAllLevels = useCallback(() => {
         setEnabledLevels(new Set<string>(LEVEL_ORDER));
-    }, []);
+    }, [setEnabledLevels]);
 
     // Ctrl/Cmd-click a level pill to show only that level; ctrl/cmd-click it again to restore all.
     const soloLevel = useCallback((level: string) => {
@@ -309,7 +320,7 @@ export default function LogList({
             }
             return new Set([level]);
         });
-    }, []);
+    }, [setEnabledLevels]);
 
     // Byte-identical entries share a log key, so the row's disambiguated key is
     // what decides which single row is expanded
@@ -459,7 +470,9 @@ export default function LogList({
                             <i className={enabledLevels.has(level) ? 'icon icon-checkbox-marked' : 'icon icon-checkbox-blank-outline'}/>
                         }
                         labels={<FormattedMessage {...LEVEL_LABELS[level]}/>}
-                        trailingElements={<span className='LogViewer__level-count'>{levelCounts[level]}</span>}
+
+                        // Disabled levels aren't fetched, so there is nothing to count
+                        trailingElements={enabledLevels.has(level) && <span className='LogViewer__level-count'>{levelCounts[level]}</span>}
 
                         // Ctrl/Cmd-click narrows to a single level; clicking it again restores all
                         onClick={(event) => {

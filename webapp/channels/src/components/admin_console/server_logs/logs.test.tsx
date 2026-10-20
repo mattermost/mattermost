@@ -258,3 +258,96 @@ describe('components/admin_console/server_logs/Logs refetching', () => {
         expect(rows[1].querySelector('.LogRow__details')).toBeInTheDocument();
     });
 });
+
+describe('components/admin_console/server_logs/Logs fetching', () => {
+    function deferred() {
+        let resolve!: () => void;
+        const promise = new Promise<void>((r) => {
+            resolve = r;
+        });
+        return {promise, resolve};
+    }
+
+    function renderLogs(getLogs: jest.Mock) {
+        return renderWithContext(
+            <Logs
+                logs={[]}
+                plainLogs={[]}
+                isPlainLogs={false}
+                actions={{getLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
+            />,
+        );
+    }
+
+    async function pickMenuItem(menuLabel: string, item: string, role: 'menuitemradio' | 'menuitemcheckbox' = 'menuitemradio') {
+        await userEvent.click(screen.getByLabelText(menuLabel));
+        await userEvent.click(screen.getByRole(role, {name: new RegExp(`^${item}`)}));
+    }
+
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    test('should send the enabled levels with the query', async () => {
+        const getLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs.mock.calls[0][0].logLevels).toEqual([]);
+
+        await pickMenuItem('Open menu to select which log levels to show', 'Debug', 'menuitemcheckbox');
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+        expect(getLogs.mock.calls[1][0].logLevels).toEqual(['error', 'warn', 'info']);
+    });
+
+    test('should recompute the time preset when switching back to structured logs', async () => {
+        jest.useFakeTimers({now: new Date('2026-10-20T12:00:00Z'), doNotFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'clearImmediate', 'queueMicrotask', 'nextTick', 'requestAnimationFrame', 'cancelAnimationFrame', 'requestIdleCallback', 'cancelIdleCallback', 'performance', 'hrtime']});
+        const getLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs);
+
+        await pickMenuItem('Open menu to select a time range', 'Last 5 minutes');
+        await pickMenuItem('Open menu to select the log format', 'Plain text');
+        jest.setSystemTime(new Date('2026-10-20T12:30:00Z'));
+        await pickMenuItem('Open menu to select the log format', 'Structured');
+
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({
+            dateFrom: '2026-10-20 12:25:00.000 +00:00',
+            dateTo: '2026-10-20 12:30:00.000 +00:00',
+        })));
+    });
+
+    test('should not start a fetch until the previous one has finished', async () => {
+        const first = deferred();
+        const getLogs = jest.fn().mockReturnValueOnce(first.promise).mockResolvedValue({});
+        renderLogs(getLogs);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        await pickMenuItem('Open menu to select a time range', 'Last 5 minutes');
+        expect(getLogs).toHaveBeenCalledTimes(1);
+
+        first.resolve();
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+        expect(getLogs.mock.calls[1][0].dateFrom).not.toBe('');
+    });
+
+    test('should skip a queued fetch that a newer one replaces', async () => {
+        const first = deferred();
+        const getLogs = jest.fn().mockReturnValueOnce(first.promise).mockResolvedValue({});
+        renderLogs(getLogs);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        await pickMenuItem('Open menu to select a time range', 'Last 5 minutes');
+        await pickMenuItem('Open menu to select a time range', 'Last hour');
+
+        first.resolve();
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+        const {dateFrom, dateTo} = getLogs.mock.calls[1][0];
+        expect(Date.parse(dateTo.replace(' ', 'T').replace(' ', '')) - Date.parse(dateFrom.replace(' ', 'T').replace(' ', ''))).toBe(60 * 60 * 1000);
+        await new Promise((r) => setTimeout(r, 0));
+        expect(getLogs).toHaveBeenCalledTimes(2);
+    });
+});

@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useState} from 'react';
 
 import {LogLevelEnum} from '@mattermost/types/admin';
 
 import {renderWithContext, fireEvent, screen, waitFor} from 'tests/react_testing_utils';
 
-import LogList from './log_list';
+import LogList, {loadPrefs} from './log_list';
 import type {LogObjectWithAdditionalInfo} from './types';
 
 const PREFS_KEY = 'mm_admin_logs_prefs';
@@ -50,9 +50,21 @@ const baseProps = {
     onClearTimePreset: jest.fn(),
 };
 
+// Holds the levels the way Logs does, since LogList only renders them
+function StatefulLogList(props: Omit<React.ComponentProps<typeof LogList>, 'enabledLevels' | 'onEnabledLevelsChange'>) {
+    const [enabledLevels, setEnabledLevels] = useState(() => new Set(loadPrefs().enabledLevels));
+    return (
+        <LogList
+            {...props}
+            enabledLevels={enabledLevels}
+            onEnabledLevelsChange={setEnabledLevels}
+        />
+    );
+}
+
 function renderList(logs: LogObjectWithAdditionalInfo[]) {
     return renderWithContext(
-        <LogList
+        <StatefulLogList
             {...baseProps}
             logs={logs}
         />,
@@ -135,7 +147,7 @@ describe('components/admin_console/server_logs/LogList', () => {
 
             // A poll delivers an older entry, so every row below it shifts down a position
             rerender(
-                <LogList
+                <StatefulLogList
                     {...baseProps}
                     logs={[makeLog('msg 0', '2026-03-12T10:00:00.000Z'), first, second, third]}
                 />,
@@ -152,7 +164,7 @@ describe('components/admin_console/server_logs/LogList', () => {
 
             // A poll with an active time preset drops the oldest entry off the front
             rerender(
-                <LogList
+                <StatefulLogList
                     {...baseProps}
                     logs={[second, third]}
                 />,
@@ -173,7 +185,7 @@ describe('components/admin_console/server_logs/LogList', () => {
 
             // A live-tail poll adds a newer entry, which lands above the selection
             rerender(
-                <LogList
+                <StatefulLogList
                     {...baseProps}
                     logs={[first, second, third, makeLog('msg 4', '2026-03-12T10:00:04.000Z')]}
                 />,
@@ -189,7 +201,7 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(focusedRowMessage()).toBe('msg 1');
 
             rerender(
-                <LogList
+                <StatefulLogList
                     {...baseProps}
                     logs={[second, third]}
                 />,
@@ -264,6 +276,21 @@ describe('components/admin_console/server_logs/LogList', () => {
             await waitFor(() => {
                 expect(rowMessages()).toEqual(['an error', 'a warning', 'some info', 'a debug line']);
             });
+        });
+    });
+
+    describe('footer', () => {
+        test('should count every loaded entry as the total while searching', () => {
+            renderWithContext(
+                <StatefulLogList
+                    {...baseProps}
+                    logs={[first, second, third]}
+                    search='msg 2'
+                />,
+            );
+
+            expect(rowMessages()).toEqual(['msg 2']);
+            expect(screen.getByText(/of 1 entries matching your filters \(3 total\)/)).toBeInTheDocument();
         });
     });
 
@@ -355,7 +382,7 @@ describe('components/admin_console/server_logs/LogList', () => {
 
             // A poll returns fewer entries than the current page starts at
             rerender(
-                <LogList
+                <StatefulLogList
                     {...baseProps}
                     logs={makeLogs(30)}
                 />,

@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {LogLevelEnum} from '@mattermost/types/admin';
 import type {
     LogFilter,
     LogLevels,
@@ -15,7 +16,7 @@ import {Client4} from 'mattermost-redux/client';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import LogFormatMenu from './log_format_menu';
-import LogList from './log_list';
+import LogList, {loadPrefs} from './log_list';
 import PlainLogList from './plain_log_list';
 import type {LogObjectWithAdditionalInfo} from './types';
 import useLogPolling from './use_log_polling';
@@ -81,10 +82,8 @@ function presetRange(minutes: number): {dateFrom: string; dateTo: string} {
     };
 }
 
-// The level and server-name filters are applied client side, so the query never
-// narrows them
 const ALL_SERVER_NAMES: LogServerNames = [];
-const ALL_LOG_LEVELS: LogLevels = [];
+const LOG_LEVELS: LogLevels = [LogLevelEnum.ERROR, LogLevelEnum.WARN, LogLevelEnum.INFO, LogLevelEnum.DEBUG];
 
 const PLAIN_LOGS_PER_PAGE = 1000;
 
@@ -110,103 +109,77 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
     const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs));
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-
-    // Filter state
-    const [dateFrom, setDateFrom] = useState('');
-    const [dateTo, setDateTo] = useState('');
-
-    // Refs for latest date values (used by reload during live tail)
-    const dateFromRef = useRef(dateFrom);
-    const dateToRef = useRef(dateTo);
-    dateFromRef.current = dateFrom;
-    dateToRef.current = dateTo;
-
-    // Plain log pagination
+    const [enabledLevels, setEnabledLevels] = useState(() => new Set(loadPrefs().enabledLevels));
+    const [activeTimePreset, setActiveTimePreset] = useState<number | null>(null);
     const [plainPage, setPlainPage] = useState(0);
-
-    // Live tail state
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
     const [pollInterval, setPollInterval] = useState(30000);
 
-    // Active time preset
-    const [activeTimePreset, setActiveTimePreset] = useState<number | null>(null);
-
-    // Ref for active time preset so reload can recompute dates dynamically
-    const activeTimePresetRef = useRef<number | null>(null);
+    // Fetches run one at a time so a slow response can't land after, and
+    // overwrite, a newer one
+    const fetchQueueRef = useRef<Promise<unknown>>(Promise.resolve());
+    const latestFetchRef = useRef(0);
+    const pendingFetchesRef = useRef(0);
 
     // `silent` keeps the loading state untouched, so a background poll never
     // replaces the viewer with a spinner
-    const reload = useCallback(async (options?: {silent?: boolean}) => {
+    const reload = useCallback((options?: {silent?: boolean}) => {
         const silent = options?.silent === true;
+        if (silent && pendingFetchesRef.current > 0) {
+            return Promise.resolve();
+        }
+
+        const id = silent ? latestFetchRef.current : ++latestFetchRef.current;
         if (!silent) {
             setLoading(true);
         }
-        if (isPlainLogs) {
-            await actions.getPlainLogs(plainPage, PLAIN_LOGS_PER_PAGE);
-        } else {
-            // If a time preset is active, recompute the date range for fresh data
-            let effectiveDateFrom = dateFromRef.current;
-            let effectiveDateTo = dateToRef.current;
-            if (activeTimePresetRef.current !== null) {
-                ({dateFrom: effectiveDateFrom, dateTo: effectiveDateTo} = presetRange(activeTimePresetRef.current));
+
+        const fetchLogs = async () => {
+            // A newer fetch is queued behind this one and would overwrite its result
+            if (id !== latestFetchRef.current) {
+                return;
             }
+            if (isPlainLogs) {
+                await actions.getPlainLogs(plainPage, PLAIN_LOGS_PER_PAGE);
+                return;
+            }
+            const {dateFrom, dateTo} = activeTimePreset === null ? {dateFrom: '', dateTo: ''} : presetRange(activeTimePreset);
+            const allLevels = LOG_LEVELS.every((level) => enabledLevels.has(level));
             await actions.getLogs({
                 serverNames: ALL_SERVER_NAMES,
-                logLevels: ALL_LOG_LEVELS,
-                dateFrom: effectiveDateFrom,
-                dateTo: effectiveDateTo,
+                logLevels: allLevels ? [] : LOG_LEVELS.filter((level) => enabledLevels.has(level)),
+                dateFrom,
+                dateTo,
             });
-        }
-        if (!silent) {
-            setLoading(false);
-        }
-    }, [isPlainLogs, plainPage, actions]);
+        };
+
+        pendingFetchesRef.current++;
+        const fetched = fetchQueueRef.current.then(fetchLogs).finally(() => {
+            pendingFetchesRef.current--;
+            if (!silent && id === latestFetchRef.current) {
+                setLoading(false);
+            }
+        });
+        fetchQueueRef.current = fetched.catch(() => undefined);
+        return fetched;
+    }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, actions]);
+
+    // Everything the query depends on is in reload's deps, so this covers the
+    // first load and every filter, format and page change
+    useEffect(() => {
+        reload();
+    }, [reload]);
 
     const pollLogs = useCallback(() => reload({silent: true}), [reload]);
 
     // Click handlers must not forward their event as reload options
     const handleReload = useCallback(() => reload(), [reload]);
 
-    // Initial load + reload when plain page changes
-    const hasMountedRef = useRef(false);
-    useEffect(() => {
-        if (!hasMountedRef.current) {
-            hasMountedRef.current = true;
-            reload();
-            return;
-        }
-        if (isPlainLogs) {
-            reload();
-        }
-    }, [plainPage]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    // Live tail polling
     useLogPolling({
         fetchLogs: pollLogs,
         enabled: liveTailEnabled && !isPlainLogs,
         intervalMs: pollInterval,
     });
-
-    const onSearchChange = useCallback((term: string) => {
-        setSearch(term);
-    }, []);
-
-    // Filter logs based on search term
-    const searchFilteredLogs = useMemo(() => {
-        if (!search) {
-            return logs;
-        }
-        const excludedKeys = new Set(['level', 'timestamp']);
-        const lowerSearch = search.toLowerCase();
-        return logs.filter((log) =>
-            Object.entries(log).some(([key, value]) => {
-                if (excludedKeys.has(key)) {
-                    return false;
-                }
-                return String(value).toLowerCase().includes(lowerSearch);
-            }),
-        );
-    }, [logs, search]);
 
     const onLogFormatChange = useCallback((plain: boolean) => {
         setIsPlainLogs(plain);
@@ -217,52 +190,10 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
         }
         if (plain) {
             setLiveTailEnabled(false);
-            setLoading(true);
-            actions.getPlainLogs(plainPage, PLAIN_LOGS_PER_PAGE).then(() => setLoading(false));
-        } else {
-            setLoading(true);
-            actions.getLogs({
-                serverNames: ALL_SERVER_NAMES,
-                logLevels: ALL_LOG_LEVELS,
-                dateFrom,
-                dateTo,
-            }).then(() => setLoading(false));
         }
-    }, [actions, plainPage, dateFrom, dateTo]);
+    }, []);
 
-    // Time presets
-    const handleTimePreset = useCallback((minutes: number) => {
-        const {dateFrom: newDateFrom, dateTo: newDateTo} = presetRange(minutes);
-
-        setActiveTimePreset(minutes);
-        activeTimePresetRef.current = minutes;
-        setDateFrom(newDateFrom);
-        setDateTo(newDateTo);
-
-        setLoading(true);
-        actions.getLogs({
-            serverNames: ALL_SERVER_NAMES,
-            logLevels: ALL_LOG_LEVELS,
-            dateFrom: newDateFrom,
-            dateTo: newDateTo,
-        }).then(() => setLoading(false));
-    }, [actions]);
-
-    const clearTimePreset = useCallback(() => {
-        setActiveTimePreset(null);
-        activeTimePresetRef.current = null;
-        setDateFrom('');
-        setDateTo('');
-        setLoading(true);
-        actions.getLogs({
-            serverNames: ALL_SERVER_NAMES,
-            logLevels: ALL_LOG_LEVELS,
-            dateFrom: '',
-            dateTo: '',
-        }).then(() => setLoading(false));
-    }, [actions]);
-
-    const displayLogs = searchFilteredLogs;
+    const clearTimePreset = useCallback(() => setActiveTimePreset(null), []);
 
     const logFormatMenu = configIsPlainLogs ? null : (
         <LogFormatMenu
@@ -287,9 +218,11 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
     ) : (
         <LogList
             loading={loading}
-            logs={displayLogs as LogObjectWithAdditionalInfo[]}
-            onSearchChange={onSearchChange}
+            logs={logs}
+            onSearchChange={setSearch}
             search={search}
+            enabledLevels={enabledLevels}
+            onEnabledLevelsChange={setEnabledLevels}
             onReload={handleReload}
             downloadUrl={Client4.getUrl() + '/api/v4/logs/download'}
             liveTailEnabled={liveTailEnabled}
@@ -300,7 +233,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             pollIntervalLabels={POLL_INTERVAL_LABELS}
             timePresets={TIME_PRESETS}
             activeTimePreset={activeTimePreset}
-            onTimePreset={handleTimePreset}
+            onTimePreset={setActiveTimePreset}
             onClearTimePreset={clearTimePreset}
             logFormatMenu={logFormatMenu}
         />
