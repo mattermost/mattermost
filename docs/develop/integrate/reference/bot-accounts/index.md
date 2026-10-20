@@ -50,8 +50,9 @@ Below are different ways to create bot accounts. After the bot account is create
 5. (Optional) Set a **Display Name** and **Description**.
 6. (Optional) Choose what role the bot should have. Defaults to **Member**. If you assign **System Admin**, the bot will have read and write access for any Public channels, Private channels, and Direct Messages.
 7. (Optional) Select additional permissions for the account. Enable the bot to post to all Mattermost channels, or post to all Mattermost Public channels.
-8. Select **Create Bot Account**.
-9. Copy the token displayed on the **Setup Successful** page before you select **Done** as you won't have access to the token again once you close the screen.
+8. From Mattermost v12.0, under **Default access token**, choose when the token expires using **Default token expires**. If your System Admin enforces a maximum token lifetime, select an expiry within that limit. Otherwise, you can select **No expiry**.
+9. Select **Create Bot Account**.
+10. Copy the token displayed on the **Setup Successful** page before you select **Done** as you won't have access to the token again once you close the screen.
 
 ### RESTful API
 
@@ -78,6 +79,17 @@ Bot accounts which were converted from user accounts will have their authenticat
 Plugins can create bot accounts through an `EnsureBot` helper function. For an example, see [the Demo Plugin](https://github.com/mattermost/mattermost-plugin-demo/blob/master/server/configuration.go#L210-L217).
 
 Bots created by a plugin use the plugin's ID as the creator, unless otherwise specified by the plugin.
+
+## Manage bot access tokens
+
+From Mattermost v12.0, you can create tokens with an expiry date and regenerate tokens for user-owned bot accounts from **Product menu > Integrations > Bot Accounts**.
+
+- To create a token, select **Create New Token** for the bot, enter a **Token Description**, choose an expiry using **Expires**, then select **Save**.
+- To regenerate a token, select **Regenerate** beside it, choose an expiry, then select **Yes, Regenerate**. The previous token secret stops working immediately. Copy the new token and update any integrations using the previous secret.
+
+An expiry date is required when your System Admin enforces a maximum token lifetime. Otherwise, you can select **No expiry**.
+
+The token list shows each token's status (**Active**, **Expired**, or **Disabled**) and its expiry date, or **Never** for tokens without an expiry. Copy new or regenerated tokens before closing the one-time display.
 
 ## Technical notes
 
@@ -140,10 +152,16 @@ Replace the following parameters:
 
 ### Do bot access tokens expire?
 
-No, but you can automate your integration to cycle its token through the REST API:
+From Mattermost v12.0, tokens for user-owned bot accounts can have an expiry date and must comply with the maximum personal access token lifetime configured by your System Admin. Plugin-owned bot tokens are exempt from this policy.
+
+Configuring a maximum lifetime doesn't automatically change existing tokens. System Admins can revoke existing tokens that don't comply with the policy.
+
+Active bot owners receive direct message reminders before their tokens expire. Regenerate the token before expiry, then update your integration with the new token.
+
+You can also rotate tokens through the REST API:
 1. Use [GetUserAccessTokensForUser](https://api.mattermost.com/#operation/GetUserAccessTokensForUser) to list the existing tokens for the `bot` user.
 2. Use [CreateUserAccessToken](https://api.mattermost.com/#operation/CreateUserAccessToken) to generate a new token.
-3. Update the services that leverage the token with the new `token` value from step 1.
+3. Update the services that leverage the token with the new `token` value from step 2.
 4. Use [RevokeUserAccessToken](https://api.mattermost.com/#operation/RevokeUserAccessToken) to revoke the old token based on the `token_id`.
 
 For more information about access tokens, see [the personal access tokens documentation](/developers/integrate/reference/personal-access-token).
