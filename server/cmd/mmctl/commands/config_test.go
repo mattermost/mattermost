@@ -960,6 +960,63 @@ func TestCloudRestricted(t *testing.T) {
 	})
 }
 
+func TestKeepMaskedSettings(t *testing.T) {
+	newConfig := func() *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		return cfg
+	}
+
+	t.Run("Should keep the saved values of settings that aren't masked", func(t *testing.T) {
+		saved := newConfig()
+		*saved.TeamSettings.SiteName = "Old Site"
+		*saved.ServiceSettings.MaximumLoginAttempts = 5
+		current := newConfig()
+		*current.TeamSettings.SiteName = "New Site"
+
+		kept, err := keepMaskedSettings(saved, current)
+		require.NoError(t, err)
+		require.Equal(t, saved, kept)
+	})
+
+	t.Run("Should keep the current values of settings masked on either side", func(t *testing.T) {
+		saved := newConfig()
+		*saved.TeamSettings.SiteName = "Old Site"
+		*saved.EmailSettings.SMTPPassword = ""
+		*saved.LdapSettings.BindPassword = model.FakeSetting
+		saved.SqlSettings.DataSourceReplicas = []string{model.FakeSetting, model.FakeSetting}
+		saved.SqlSettings.ReplicaLagSettings = []*model.ReplicaLagSettings{{DataSource: new(model.FakeSetting), QueryAbsoluteLag: new("select 1")}}
+		saved.PluginSettings.Plugins = map[string]map[string]any{
+			"com.example.plugin":  {"apikey": model.FakeSetting, "greeting": "hello"},
+			"com.example.cleared": {"apikey": model.FakeSetting, "greeting": "hello"},
+		}
+		current := newConfig()
+		*current.TeamSettings.SiteName = "New Site"
+		*current.EmailSettings.SMTPPassword = model.FakeSetting
+		*current.LdapSettings.BindPassword = ""
+		current.SqlSettings.DataSourceReplicas = []string{model.FakeSetting}
+		current.PluginSettings.Plugins = map[string]map[string]any{
+			"com.example.plugin": {"apikey": model.FakeSetting, "greeting": "hi"},
+			"com.example.added":  {"apikey": model.FakeSetting, "greeting": "hey"},
+		}
+
+		kept, err := keepMaskedSettings(saved, current)
+		require.NoError(t, err)
+
+		expected := saved.Clone()
+		*expected.EmailSettings.SMTPPassword = model.FakeSetting
+		*expected.LdapSettings.BindPassword = ""
+		expected.SqlSettings.DataSourceReplicas = []string{model.FakeSetting}
+		expected.SqlSettings.ReplicaLagSettings = []*model.ReplicaLagSettings{}
+		expected.PluginSettings.Plugins = map[string]map[string]any{
+			"com.example.plugin":  {"apikey": model.FakeSetting, "greeting": "hello"},
+			"com.example.cleared": {"greeting": "hello"},
+			"com.example.added":   {"apikey": model.FakeSetting},
+		}
+		require.Equal(t, expected, kept)
+	})
+}
+
 func TestSetConfigValue(t *testing.T) {
 	tests := map[string]struct {
 		path           string

@@ -597,6 +597,39 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 		}, printer.GetLines()[0])
 	})
 
+	s.Run("Keep sensitive values that the server can't match without local mode", func() {
+		printer.Clean()
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.SqlSettings.DataSourceReplicas = []string{}
+			cfg.SqlSettings.ReplicaLagSettings = []*model.ReplicaLagSettings{}
+		})
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.SiteName = "Old Site"
+			*cfg.EmailSettings.SMTPPassword = ""
+			cfg.SqlSettings.DataSourceReplicas = []string{"postgres://replica0", "postgres://replica1"}
+		})
+		oldConfigID := s.latestConfigID()
+		replicaLagSettings := []*model.ReplicaLagSettings{{DataSource: new("postgres://replica0"), QueryAbsoluteLag: new("select 1")}}
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.SiteName = "New Site"
+			*cfg.EmailSettings.SMTPPassword = "new-password"
+			cfg.SqlSettings.DataSourceReplicas = []string{"postgres://replica0"}
+			cfg.SqlSettings.ReplicaLagSettings = replicaLagSettings
+		})
+
+		err := configRollbackCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		cfg := s.th.App.Config()
+		s.Require().Equal("Old Site", *cfg.TeamSettings.SiteName)
+		s.Require().Equal("new-password", *cfg.EmailSettings.SMTPPassword)
+		s.Require().Equal([]string{"postgres://replica0"}, cfg.SqlSettings.DataSourceReplicas)
+		s.Require().Equal(replicaLagSettings, cfg.SqlSettings.ReplicaLagSettings)
+		s.Require().Equal(&configRollbackResult{
+			ConfigId: oldConfigID,
+			Changes:  []*model.ConfigChange{{Path: "TeamSettings.SiteName", OldValue: "New Site", NewValue: "Old Site"}},
+		}, printer.GetLines()[0])
+	})
+
 	s.RunForSystemAdminAndLocal("Roll back to an unknown configuration", func(c client.Client) {
 		printer.Clean()
 

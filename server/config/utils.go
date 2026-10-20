@@ -90,6 +90,16 @@ func Desanitize(actual, target *model.Config) {
 		}
 	}
 
+	if len(target.SqlSettings.ReplicaLagSettings) == len(actual.SqlSettings.ReplicaLagSettings) {
+		for i, settings := range target.SqlSettings.ReplicaLagSettings {
+			actualSettings := actual.SqlSettings.ReplicaLagSettings[i]
+			if settings != nil && settings.DataSource != nil && *settings.DataSource == model.FakeSetting &&
+				actualSettings != nil && actualSettings.DataSource != nil {
+				*settings.DataSource = *actualSettings.DataSource
+			}
+		}
+	}
+
 	if target.MessageExportSettings.GlobalRelaySettings != nil &&
 		target.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil &&
 		*target.MessageExportSettings.GlobalRelaySettings.SMTPPassword == model.FakeSetting &&

@@ -4,12 +4,14 @@
 package commands
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"text/template"
@@ -150,7 +152,7 @@ var ConfigRollbackCmd = &cobra.Command{
 	Short: "Roll back to a saved configuration",
 	Long: `Replaces the server configuration with a saved configuration from "config history". The configuration it replaces stays in the history.
 
-Settings set through environment variables keep the values set there. Without --local, sensitive values such as passwords, and settings that can't be changed through the API, also keep their current values.`,
+Settings set through environment variables keep the values set there. Without --local, settings with sensitive values, such as passwords and database connection strings, and settings that can't be changed through the API, also keep their current values.`,
 	Example: "  config rollback hpgt7dw7si8odbc9gg938iqjhr",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(configRollbackCmdF),
@@ -699,6 +701,11 @@ func configRollbackCmdF(c client.Client, _ *cobra.Command, args []string) error 
 		return fmt.Errorf("failed to get the current configuration: %w", err)
 	}
 
+	savedConfig, err = keepMaskedSettings(savedConfig, oldConfig)
+	if err != nil {
+		return fmt.Errorf("failed to keep the current values of sensitive settings: %w", err)
+	}
+
 	if _, _, err = c.UpdateConfig(context.TODO(), savedConfig); err != nil {
 		return fmt.Errorf("failed to roll back to saved configuration %s: %w", configID, err)
 	}
@@ -721,6 +728,109 @@ func configRollbackCmdF(c client.Client, _ *cobra.Command, args []string) error 
 	printer.PrintPreparedT(tpl, &configRollbackResult{ConfigId: configID, Changes: diffs.ToConfigChanges()})
 
 	return nil
+}
+
+// keepMaskedSettings returns a copy of saved in which each setting that is masked in saved or
+// in current has its value in current. On save, the server puts the current value back in place
+// of a mask only when it can match the mask to a current value, and saves any other mask as the
+// value itself, such as one for a database replica removed since. A sensitive value that was
+// empty, and so not masked, would clear the current one.
+func keepMaskedSettings(saved, current *model.Config) (*model.Config, error) {
+	savedMap, err := configAsMap(saved)
+	if err != nil {
+		return nil, err
+	}
+	currentMap, err := configAsMap(current)
+	if err != nil {
+		return nil, err
+	}
+
+	keepMaskedValues(savedMap, currentMap)
+
+	b, err := json.Marshal(savedMap)
+	if err != nil {
+		return nil, err
+	}
+	var kept *model.Config
+	if err := json.Unmarshal(b, &kept); err != nil {
+		return nil, err
+	}
+	return kept, nil
+}
+
+// configAsMap returns cfg as JSON objects, keeping numbers as written.
+func configAsMap(cfg *model.Config) (map[string]any, error) {
+	b, err := json.Marshal(cfg)
+	if err != nil {
+		return nil, err
+	}
+	decoder := json.NewDecoder(bytes.NewReader(b))
+	decoder.UseNumber()
+	var m map[string]any
+	if err := decoder.Decode(&m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// keepMaskedValues sets each value in saved that is or holds a mask, in saved or in current,
+// to its value in current. Objects, such as each plugin's settings, are compared key by key, an
+// object missing on one side counting as empty.
+func keepMaskedValues(saved, current map[string]any) {
+	keys := make(map[string]bool, len(saved)+len(current))
+	for key := range saved {
+		keys[key] = true
+	}
+	for key := range current {
+		keys[key] = true
+	}
+
+	for key := range keys {
+		savedValue := saved[key]
+		currentValue, inCurrent := current[key]
+
+		savedMap, savedIsMap := savedValue.(map[string]any)
+		currentMap, currentIsMap := currentValue.(map[string]any)
+		if savedIsMap && currentValue == nil {
+			currentMap, currentIsMap = map[string]any{}, true
+		}
+		if currentIsMap && savedValue == nil {
+			savedMap, savedIsMap = map[string]any{}, true
+		}
+		if savedIsMap && currentIsMap {
+			keepMaskedValues(savedMap, currentMap)
+			if savedValue != nil || len(savedMap) > 0 {
+				saved[key] = savedMap
+			}
+			continue
+		}
+
+		if !holdsMask(savedValue) && !holdsMask(currentValue) {
+			continue
+		}
+		if inCurrent {
+			saved[key] = currentValue
+		} else {
+			delete(saved, key)
+		}
+	}
+}
+
+// holdsMask reports whether v is a masked value or holds one.
+func holdsMask(v any) bool {
+	switch v := v.(type) {
+	case string:
+		return v == model.FakeSetting
+	case []any:
+		return slices.ContainsFunc(v, holdsMask)
+	case map[string]any:
+		for _, value := range v {
+			if holdsMask(value) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func formatSavedAt(millis int64) string {
