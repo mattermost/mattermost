@@ -36,6 +36,7 @@ import {
     elasticsearchServerConfig,
     enableAIBridgeTestMode,
     ensureAzurite,
+    ensureChannelIntroActions,
     ensureDemoPlugin,
     ensureElasticsearch,
     ensureFeatureFlag,
@@ -200,6 +201,7 @@ export class PlaywrightExtended {
     readonly getFileFromAsset;
 
     // ./server
+    readonly ensureChannelIntroActions;
     readonly ensurePluginsLoaded;
     readonly getAdminClient;
     readonly resetConfig;
@@ -330,6 +332,7 @@ export class PlaywrightExtended {
         this.getFileFromAsset = getFileFromAsset;
 
         // ./server
+        this.ensureChannelIntroActions = ensureChannelIntroActions;
         this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;

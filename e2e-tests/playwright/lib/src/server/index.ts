@@ -16,6 +16,7 @@ export {createNewTeam, createRandomTeam} from './team';
 export {
     createNewUserProfile,
     createRandomUser,
+    ensureChannelIntroActions,
     getDefaultAdminUser,
     isOutsideRemoteUserHour,
     setDefaultOnboardingPreferences,
