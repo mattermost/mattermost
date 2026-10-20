@@ -487,9 +487,10 @@ ifneq ($(SKIP_SETUP_GO_WORK),true)
 	fi
 endif
 
+# embedlit, errorsastype and stringscut are new in Go 1.27; they are adopted separately, not as part of the toolchain bump.
 .PHONY: check-go-fix
 check-go-fix: setup-go-work ## Check if go fix would modify any files.
-	$(GO) fix -diff ./...
+	$(GO) fix -diff -embedlit=false -errorsastype=false -stringscut=false ./...
 
 .PHONY: check-style
 check-style: plugin-checker vet golangci-lint check-go-fix ## Runs style/lint checks
