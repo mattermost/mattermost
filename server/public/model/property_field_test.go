@@ -2633,28 +2633,70 @@ func TestPropertyField_OptionParentLinks(t *testing.T) {
 }
 
 func TestPropertyFieldChangeIsOptionsOnly(t *testing.T) {
+	// The answer decides whether an update is held to option.write or to
+	// field.write, so every compared field gets a row: a change to any of them
+	// alongside an option change must report false, or a caller holding only
+	// option.write could make it.
 	stored := func() *PropertyField {
 		return &PropertyField{
-			ID:   "fieldid",
-			Name: "Programs",
-			Type: PropertyFieldTypeSelect,
+			ID:                "fieldid",
+			Name:              "Programs",
+			Type:              PropertyFieldTypeSelect,
+			TargetID:          "targetid",
+			TargetType:        string(PropertyFieldTargetLevelSystem),
+			ObjectType:        PropertyFieldObjectTypeUser,
+			LinkedFieldID:     new("templateid"),
+			PermissionField:   new(PermissionLevelSysadmin),
+			PermissionValues:  new(PermissionLevelMember),
+			PermissionOptions: new(PermissionLevelAdmin),
+			Permissions:       &Permissions{Restrictions: &Restrictions{Field: WriteOnly{Write: PermissionLevelSysadmin}}},
 			Attrs: StringInterface{
 				PropertyFieldAttributeOptions: []any{map[string]any{"id": "opt1", "name": "Air"}},
+				"sort_order":                  1,
 			},
 		}
+	}
+	changeOptions := func(f *PropertyField) {
+		f.Attrs[PropertyFieldAttributeOptions] = []any{map[string]any{"id": "opt2", "name": "Sea"}}
 	}
 
 	t.Run("an option list change alone reports true", func(t *testing.T) {
 		updated := stored()
-		updated.Attrs[PropertyFieldAttributeOptions] = []any{map[string]any{"id": "opt2", "name": "Sea"}}
+		changeOptions(updated)
 		assert.True(t, PropertyFieldChangeIsOptionsOnly(stored(), updated))
 	})
 
-	t.Run("an option list change alongside a delete timestamp reports false", func(t *testing.T) {
-		updated := stored()
-		updated.Attrs[PropertyFieldAttributeOptions] = []any{map[string]any{"id": "opt2", "name": "Sea"}}
-		updated.DeleteAt = 1
-		assert.False(t, PropertyFieldChangeIsOptionsOnly(stored(), updated),
-			"a caller holding only option.write must not be able to delete a field by updating it")
+	t.Run("nothing changed reports false", func(t *testing.T) {
+		assert.False(t, PropertyFieldChangeIsOptionsOnly(stored(), stored()))
 	})
+
+	t.Run("a nil field reports false", func(t *testing.T) {
+		assert.False(t, PropertyFieldChangeIsOptionsOnly(nil, stored()))
+		assert.False(t, PropertyFieldChangeIsOptionsOnly(stored(), nil))
+	})
+
+	alongside := map[string]func(*PropertyField){
+		"Name":              func(f *PropertyField) { f.Name = "Renamed" },
+		"Type":              func(f *PropertyField) { f.Type = PropertyFieldTypeMultiselect },
+		"TargetID":          func(f *PropertyField) { f.TargetID = "othertarget" },
+		"TargetType":        func(f *PropertyField) { f.TargetType = string(PropertyFieldTargetLevelTeam) },
+		"ObjectType":        func(f *PropertyField) { f.ObjectType = PropertyFieldObjectTypeChannel },
+		"Protected":         func(f *PropertyField) { f.Protected = true },
+		"DeleteAt":          func(f *PropertyField) { f.DeleteAt = 1 },
+		"LinkedFieldID":     func(f *PropertyField) { f.LinkedFieldID = nil },
+		"Permissions":       func(f *PropertyField) { f.Permissions = nil },
+		"PermissionField":   func(f *PropertyField) { f.PermissionField = new(PermissionLevelMember) },
+		"PermissionValues":  func(f *PropertyField) { f.PermissionValues = new(PermissionLevelSysadmin) },
+		"PermissionOptions": func(f *PropertyField) { f.PermissionOptions = new(PermissionLevelMember) },
+		"a sibling attr":    func(f *PropertyField) { f.Attrs["sort_order"] = 2 },
+		"an added attr":     func(f *PropertyField) { f.Attrs[PropertyAttrsProtected] = true },
+	}
+	for name, change := range alongside {
+		t.Run("an option list change alongside "+name+" reports false", func(t *testing.T) {
+			updated := stored()
+			changeOptions(updated)
+			change(updated)
+			assert.False(t, PropertyFieldChangeIsOptionsOnly(stored(), updated))
+		})
+	}
 }
