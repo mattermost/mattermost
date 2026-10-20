@@ -115,7 +115,7 @@ Sign again whenever the bundle bytes change. A signature from an older build wil
 
 Mattermost lists and installs remote plugins from `PluginSettings.MarketplaceURL`. The default is `https://api.integrations.mattermost.com`. Point that setting at a Marketplace you host when the plugins are signed with your key.
 
-The [Marketplace server](https://github.com/mattermost/mattermost-marketplace) is the service Mattermost runs for the public catalog. You can run the same server with your own listing file. Pass `--upstream https://api.integrations.mattermost.com` when the public catalog should appear alongside your plugins.
+The [Marketplace server](https://github.com/mattermost/mattermost-marketplace) is the service Mattermost runs for the public catalog. You can run the same server with your own listing file. To include the public catalog and pick up new Mattermost releases without copying them, see [Keep the public catalog current](#keep-the-public-catalog-current).
 
 ### What the server requests
 
@@ -174,15 +174,6 @@ cd mattermost-marketplace
 go run ./cmd/marketplace server --database /path/to/plugins.json --listen :8085
 ```
 
-To keep the public catalog and add your plugins on top:
-
-```sh
-go run ./cmd/marketplace server \
-  --database /path/to/plugins.json \
-  --listen :8085 \
-  --upstream https://api.integrations.mattermost.com
-```
-
 The listening address defaults to `:8085`. Serve the Marketplace over HTTPS when Mattermost reaches it across a network.
 
 Mattermost can call `http://127.0.0.1` or `http://localhost` without listing that host in `ServiceSettings.AllowedUntrustedInternalConnections`. Add any other private address to that allowlist. Certificate verification still applies to HTTPS. `ServiceSettings.EnableInsecureOutgoingConnections` accepts a certificate the server would otherwise reject.
@@ -194,6 +185,23 @@ curl -s 'http://127.0.0.1:8085/api/v1/plugins?plugin_id=com.example.myplugin&ser
 ```
 
 The response includes your plugin, with `download_url` and `signature` filled in.
+
+### Keep the public catalog current
+
+Pass `--upstream` so each listing request also fetches the public Marketplace. Put only your own plugins in `plugins.json`. You do not copy or refresh Mattermost's catalog file. A new official release is returned the next time an admin opens the Marketplace, as long as this process can reach the upstream host.
+
+```sh
+go run ./cmd/marketplace server \
+  --database /path/to/plugins.json \
+  --listen :8085 \
+  --upstream https://api.integrations.mattermost.com
+```
+
+When the same plugin ID is in your file and in the upstream catalog, the higher `manifest.version` is the one returned. When the versions are equal, the upstream listing is the one returned. A custom build of an official plugin is shown when its version is strictly newer than the public one.
+
+If the upstream request fails, the whole listing fails, including your plugins.
+
+A Marketplace host that cannot reach the internet stays current another way: replace `plugins.json` with the file from [mattermost/mattermost-marketplace](https://github.com/mattermost/mattermost-marketplace) and restart the server. That file is a snapshot of the public catalog. It changes when you replace it. To keep your own plugins in that snapshot, merge your listings into the file before you restart.
 
 `go run ./cmd/generator/ add` registers a GitHub release and stores the signature already published with that release. Use it for plugins signed by the key that produced those release signatures. A bundle you signed with your own key is added by editing `plugins.json`, as shown above.
 
