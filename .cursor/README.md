@@ -52,8 +52,10 @@ Notes:
 - `go.work` is gitignored, so wiring a fork into the workspace cannot leak into
   a commit. A `replace` directive in `server/go.mod` can, which is why this uses
   `go work use` instead.
-- `make setup-go-work` rewrites `go.work` from scratch and drops the fork. Re-run
-  the script after any target that depends on it.
+- `make setup-go-work` rewrites `go.work` from scratch and drops the fork. Any
+  `make` target that depends on it does the same. Pass
+  `SKIP_SETUP_GO_WORK=true` to those targets while a fork is wired in, or
+  re-run the script after they finish.
 - The pin in `server/go.mod` is what ships. A change to a fork is only in the
   product once it is merged there and `go.mod` is moved to the new commit, which
   is a separate pull request against this repository.
