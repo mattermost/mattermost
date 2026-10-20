@@ -39,7 +39,6 @@ const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 // if it's standalone. Forgetting logs `WARN: N file(s) missing from *_ORDER`
 // and appends it at the section root, so it surfaces as a build warning
 // rather than disappearing.
-
 const TOP_LEVEL = [
   {dir: 'product-overview',     label: 'Overview'},
   {dir: 'use-case-guide',       label: 'Use Case Guide'},
@@ -80,6 +79,7 @@ const OVERVIEW_GROUPS = {
       'release-policy',
       {label: 'Server', landing: 'server', items: [
         'mattermost-server-releases',
+        'mattermost-v12-changelog',
         'mattermost-v11-changelog',
         'mattermost-v10-changelog',
         'unsupported-legacy-releases',
@@ -352,7 +352,9 @@ const DEPLOYMENT_GROUPS = {
 // constraints that shape the whole deployment, above the level of the
 // server-specific planning pages.
 const DEPLOYMENT_ROOT_ORDER = [
-  'quick-start-evaluation',
+  // Overview index + child pages (1-hour preview, Docker/Azure); auto keeps
+  // sidebar_position order without a hand-maintained items list.
+  {auto: 'quick-start-evaluation'},
   {group: 'deploymentScenarios'},
   {group: 'serverDeployment'},
   {group: 'calls'},
@@ -493,11 +495,14 @@ const ADMIN_MANAGE_GROUPS = {
       ]},
       {doc: 'administration-guide/onboard/delegated-granular-administration'},
       {label: 'Attribute-based access control', landing: 'admin/attribute-based-access-control', items: [
+        'admin/attribute-management',
         'admin/user-attributes',
+        'admin/channel-attributes',
         'admin/abac-system-wide-policies',
         'admin/abac-team-membership',
         'admin/abac-team-channel-policies',
         'admin/abac-channel-access-rules',
+        'admin/session-attributes',
       ]},
     ],
   },
@@ -546,7 +551,12 @@ const ADMIN_MANAGE_GROUPS = {
 };
 
 // `admin/`-prefixed basenames live in the nested sub-folder.
+//
+// Workspace organization is a standalone leaf rather than an Access control
+// child: it's structural guidance that spans teams, channels, and permissions,
+// and it's the entry point admins look for before any of the policy pages.
 const ADMIN_MANAGE_ORDER = [
+  'admin/workspace-organization',
   {group: 'accessControl'},
   {group: 'serverOps'},
   {group: 'licensing'},
@@ -557,9 +567,10 @@ const ADMIN_MANAGE_ORDER = [
 
 const ADMIN_MANAGE_HIDDEN = new Set([
   'admin/server-maintenance',
-  'admin/user-management', 'admin/user-attributes', 'team-channel-members',
+  'admin/user-management', 'admin/attribute-management', 'admin/user-attributes', 'admin/channel-attributes', 'team-channel-members',
   'admin/attribute-based-access-control', 'admin/abac-system-wide-policies',
   'admin/abac-team-channel-policies', 'admin/abac-team-membership', 'admin/abac-channel-access-rules',
+  'admin/session-attributes',
   'command-line-tools', 'mmctl-command-line-tool', 'logging',
   'admin/self-hosted-billing', 'admin/installing-license-key',
   'cloud-workspace-management', 'cloud-data-export', 'cloud-data-residency', 'cloud-ip-filtering',
@@ -597,7 +608,6 @@ const COLLABORATE_GROUPS = {
       'browse-channels',
       'join-leave-channels',
       'create-channels',
-      'channel-naming-conventions',
       'channel-header-purpose',
       'rename-channels',
       'navigate-between-channels',
@@ -681,7 +691,7 @@ const COLLABORATE_ORDER = [
 // Agents.
 const COLLABORATE_HIDDEN = new Set([
   'channel-types', 'browse-channels', 'create-channels', 'join-leave-channels',
-  'navigate-between-channels', 'channel-naming-conventions', 'channel-header-purpose',
+  'navigate-between-channels', 'channel-header-purpose',
   'rename-channels', 'archive-unarchive-channels', 'favorite-channels',
   'mark-channels-unread', 'manage-channel-members', 'manage-channel-bookmarks',
   'display-channel-banners', 'autotranslate-messages', 'convert-public-channels',
@@ -773,9 +783,9 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
   'delegated-granular-administration',
   // Listed under Configure.
   'connected-workspaces',
-  // Listed under Migration.
-  'migrating-to-mattermost', 'migrate-from-slack', 'migrate-from-rocketchat', 'migrate-gitlab-omnibus',
-  'migration-announcement-email', 'bulk-loading-data',
+  // Listed under Migration (or unlisted).
+  'migrating-to-mattermost', 'slack-migration-overview', 'migrate-from-slack', 'migrate-from-rocketchat',
+  'migrate-gitlab-omnibus', 'migration-announcement-email', 'bulk-loading-data',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -844,6 +854,7 @@ const ADMIN_COMPLY_ORDER = [
   'legal-hold',
   'custom-terms-of-service',
   'embedded-json-audit-log-schema',
+  'post-delivery-audit-logging',
 ];
 
 const ADMIN_COMPLY_HIDDEN = new Set([]);
@@ -894,19 +905,18 @@ const ADMIN_MIGRATION = {
   label: 'Migrate',
   landing: 'administration-guide/manage/admin/migration',
   items: [
-    'administration-guide/onboard/bulk-loading-data',
-    'administration-guide/manage/bulk-export-tool',
-    {label: 'Migrate from MySQL to PostgreSQL', landing: 'administration-guide/manage/admin/postgres-migration', items: [
+    {label: 'Migrate from Slack', landing: 'administration-guide/onboard/slack-migration-overview', items: [
+      {doc: 'administration-guide/onboard/migrate-from-slack', label: 'Slack migration guide'},
+    ]},
+    {doc: 'administration-guide/onboard/migrate-from-rocketchat', label: 'Migrate from RocketChat'},
+    {doc: 'administration-guide/onboard/migrate-gitlab-omnibus', label: 'Migrate from GitLab Omnibus'},
+    {label: 'Migrate to PostgreSQL', landing: 'administration-guide/manage/admin/postgres-migration', items: [
       'administration-guide/manage/admin/postgres-migration-assist-tool',
       'administration-guide/manage/admin/manual-postgres-migration',
     ]},
     'administration-guide/manage/admin/fips-migration',
-    {label: 'Migrate from another platform', landing: 'administration-guide/onboard/migrating-to-mattermost', items: [
-      'administration-guide/onboard/migrate-from-slack',
-      'administration-guide/onboard/migrate-from-rocketchat',
-      'administration-guide/onboard/migrate-gitlab-omnibus',
-      'administration-guide/onboard/migration-announcement-email',
-    ]},
+    'administration-guide/onboard/bulk-loading-data',
+    'administration-guide/manage/bulk-export-tool',
   ],
 };
 
@@ -1030,7 +1040,6 @@ const INTEGRATIONS_GROUPS = {
         'github',
         'gitlab',
         'jira',
-        'servicenow',
         'zoom',
       ]},
     ],
@@ -1067,7 +1076,7 @@ const INTEGRATIONS_HIDDEN = new Set([
   'popular-integrations',
   'mattermost-mission-collaboration-for-m365', 'microsoft-calendar',
   'microsoft-teams-meetings', 'microsoft-teams-sync',
-  'github', 'gitlab', 'jira', 'servicenow', 'zoom',
+  'github', 'gitlab', 'jira', 'zoom',
   'webhook-integrations', 'incoming-webhooks', 'outgoing-webhooks',
   'slash-commands', 'run-slash-commands', 'built-in-slash-commands',
 ]);

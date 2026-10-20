@@ -313,6 +313,10 @@ func (c *Client4) deliveryTrackingRoute() clientRoute {
 	return newClientRoute("delivery_tracking")
 }
 
+func (c *Client4) healthFindingsRoute() clientRoute {
+	return newClientRoute("health").Join("findings")
+}
+
 func (c *Client4) postsEphemeralRoute() clientRoute {
 	return newClientRoute("posts").Join("ephemeral")
 }
@@ -3646,6 +3650,23 @@ func (c *Client4) GetPostIncludeDeleted(ctx context.Context, postId string, etag
 	return DecodeJSONFromResponse[*Post](r)
 }
 
+// GetPostWithOptions gets a single post, applying every option the endpoint supports.
+func (c *Client4) GetPostWithOptions(ctx context.Context, postId string, etag string, opts GetPostOptions) (*Post, *Response, error) {
+	values := url.Values{}
+	if opts.IncludeDeleted {
+		values.Set("include_deleted", c.boolString(true))
+	}
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.postRoute(postId), values, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
+
 // DeletePost deletes a post from the provided post id string.
 func (c *Client4) DeletePost(ctx context.Context, postId string) (*Response, error) {
 	r, err := c.doAPIDelete(ctx, c.postRoute(postId))
@@ -3710,7 +3731,38 @@ func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag
 	if opts.Direction != "" {
 		values.Set("direction", opts.Direction)
 	}
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
+	}
 	r, err := c.doAPIGetWithQuery(ctx, c.postRoute(postID).Join("thread"), values, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PostList](r)
+}
+
+// GetPostsForChannelWithOpts gets a page of posts for a channel, applying every option the endpoint supports.
+func (c *Client4) GetPostsForChannelWithOpts(ctx context.Context, channelId, etag string, opts GetPostsOptions) (*PostList, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(opts.Page))
+	values.Set("per_page", strconv.Itoa(opts.PerPage))
+	if opts.CollapsedThreads {
+		values.Set("collapsedThreads", "true")
+	}
+	if opts.SkipFetchThreads {
+		values.Set("skipFetchThreads", "true")
+	}
+	if opts.CollapsedThreadsExtended {
+		values.Set("collapsedThreadsExtended", "true")
+	}
+	if opts.IncludeDeleted {
+		values.Set("include_deleted", "true")
+	}
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.channelRoute(channelId).Join("posts"), values, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8596,6 +8648,42 @@ func (c *Client4) RevealPost(ctx context.Context, postID string) (*Post, *Respon
 // If the user is not the author, the post will be expired for that user by updating their read receipt expiration time.
 func (c *Client4) BurnPost(ctx context.Context, postID string) (*Response, error) {
 	r, err := c.doAPIDelete(ctx, c.postRoute(postID).Join("burn"))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// Health Dashboard Section
+
+// GetHealthFindings returns the stored health findings, rendered in the client's locale, and
+// when the server last evaluated them. Only filter.Muted is sent; the server decides which
+// surfaces are returned.
+func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFilter) (*HealthFindingList, *Response, error) {
+	query := url.Values{}
+	if filter.Muted != MutedExcluded {
+		query.Set("muted", string(filter.Muted))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.healthFindingsRoute(), query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*HealthFindingList](r)
+}
+
+func (c *Client4) MuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {
+	r, err := c.doAPIPost(ctx, c.healthFindingsRoute().Join(fingerprint, "mute"), "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) UnmuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.healthFindingsRoute().Join(fingerprint, "mute"))
 	if err != nil {
 		return BuildResponse(r), err
 	}

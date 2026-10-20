@@ -905,7 +905,7 @@ MySQL databases must be configured to support searching strings shorter than thr
 </colgroup>
 <tbody>
 <tr>
-<td>When <a href="/administration-guide/scale/enterprise-search">enterprise-scale search</a>, | - System Config path: <strong>Environment &gt; Database</strong> database search can be disabled from performing searches. | - <code>config.json</code> setting: <code>SqlSettings</code> &gt; <code>DisableDatabaseSearch</code> &gt; <code>false</code> | | - Environment variable: <code>MM_SQLSETTINGS_DISABLEDATABASESEARCH</code> | - <strong>true</strong>: Disables the use of the database to perform | | searches. If another search engine isn't configured, | | setting this value to <code>true</code> will result in empty search | | results. | | - <strong>false</strong>: <strong>(Default)</strong> Database search isn't disabled. | |</td>
+<td>When <a href={useBaseUrl('/administration-guide/scale/enterprise-search')}>enterprise-scale search</a>, | - System Config path: <strong>Environment &gt; Database</strong> database search can be disabled from performing searches. | - <code>config.json</code> setting: <code>SqlSettings</code> &gt; <code>DisableDatabaseSearch</code> &gt; <code>false</code> | | - Environment variable: <code>MM_SQLSETTINGS_DISABLEDATABASESEARCH</code> | - <strong>true</strong>: Disables the use of the database to perform | | searches. If another search engine isn't configured, | | setting this value to <code>true</code> will result in empty search | | results. | | - <strong>false</strong>: <strong>(Default)</strong> Database search isn't disabled. | |</td>
 </tr>
 </tbody>
 </table>
@@ -1445,6 +1445,23 @@ Autocompletion results may be incomplete until a bulk index of the existing user
 This setting has no effect when [Compliance Mode](/administration-guide/configure/compliance-configuration-settings#enable-compliance-reporting) is enabled. When Compliance Mode is active, search results are always restricted to channels the user is a member of.
 
 </Note>
+
+### Enable file indexing
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Configure whether Mattermost indexes file attachments in Elasticsearch or AWS OpenSearch.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> New and updated file attachments are indexed, and bulk indexing jobs include files.</li><li><strong>false</strong>: New or updated file attachments aren't indexed, and bulk indexing jobs skip files. File search continues to return previously indexed files, and files deleted from Mattermost are still removed from the index.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Elasticsearch</strong></li><li><code>config.json</code> setting: <code>ElasticsearchSettings</code> &gt; <code>EnableFileIndexing</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_ELASTICSEARCHSETTINGS_ENABLEFILEINDEXING</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+Files uploaded while this setting is **false** don't appear in file search results. After setting it back to **true**, run a bulk index from **System Console > Environment > Elasticsearch** to make those files searchable.
 
 ### Post index replicas
 
@@ -2391,40 +2408,8 @@ See the [image proxy](/deployment-guide/server/image-proxy) documentation to lea
 </colgroup>
 <tbody>
 <tr>
-<td><p>The type of image proxy used by Mattermost.</p><ul><li><strong>local</strong>: <strong>(Default)</strong> The Mattermost server itself acts as the image proxy.</li><li><strong>atmos/camo</strong>: An external atmos/camo image proxy is used.</li></ul></td>
+<td><p>The type of image proxy used by Mattermost.</p><ul><li><strong>local</strong>: <strong>(Default)</strong> The Mattermost server itself acts as the image proxy.</li></ul><p>From Mattermost v12.0, <code>atmos/camo</code> is no longer supported. If this setting is set to <code>atmos/camo</code>, the server automatically changes it to <code>local</code> on startup and logs a warning.</p></td>
 <td><ul><li>System Config path: <strong>Environment &gt; Image Proxy</strong></li><li><code>config.json</code> setting: <code>ImageProxySettings</code> &gt; <code>ImageProxyType</code> &gt; <code>"local"</code></li><li>Environment variable: <code>MM_IMAGEPROXYSETTINGS_IMAGEPROXYTYPE</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-See the [image proxy](/deployment-guide/server/image-proxy) documentation to learn more.
-
-### Remote image proxy URL
-
-<table>
-<colgroup>
-<col style={{width: '45%'}} />
-<col style={{width: '54%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>The URL of the atmos/camo proxy. This setting isn't needed when using the <strong>local</strong> image proxy.</td>
-<td><ul><li>System Config path: <strong>Environment &gt; Image Proxy</strong></li><li><code>config.json</code> setting: <code>ImageProxySettings</code> &gt; <code>RemoteImageProxyURL</code></li><li>Environment variable: <code>MM_IMAGEPROXYSETTINGS_REMOTEIMAGEPROXYURL</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-### Remote image proxy options
-
-<table>
-<colgroup>
-<col style={{width: '43%'}} />
-<col style={{width: '56%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>The URL signing key passed to an atmos/camo image proxy. This setting isn't needed when using the <strong>local</strong> image proxy type.</td>
-<td><ul><li>System Config path: <strong>Environment &gt; Image Proxy</strong></li><li><code>config.json</code> setting: <code>ImageProxySettings</code> &gt; <code>RemoteImageProxyOptions</code></li><li>Environment variable: <code>MM_IMAGEPROXYSETTINGS_REMOTEIMAGEPROXYOPTIONS</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2895,8 +2880,9 @@ Typically set to **true** in a production environment.
 <Note>
 
 - The path you configure must exist, and Mattermost must have write permissions for this directory.
-- From Mattermost v11.4, you can use the `MM_LOG_PATH` environment variable to restrict log file locations to a designated root directory. This security enhancement ensures that all log files configured via `LogSettings.FileLocation` or `LogSettings.AdvancedLoggingJSON` remain within an authorized logging directory.
+- From Mattermost v11.4, you can use the `MM_LOG_PATH` environment variable to restrict log file locations to a designated root directory. This security enhancement ensures that all log files configured via `LogSettings.FileLocation`, `LogSettings.AdvancedLoggingJSON`, `ExperimentalAuditSettings.FileName`, or `ExperimentalAuditSettings.AdvancedLoggingJSON` remain within an authorized logging directory.
   - If `MM_LOG_PATH` isn't set, the default `logs` directory is used. Paths outside the root directory generate error logs and are excluded from [support packet](/administration-guide/manage/admin/generating-support-packet) downloads. See the [log path restrictions](/administration-guide/manage/logging#log-path-restrictions) documentation for details.
+  - By default, a path outside the root directory is only logged as an error and the configuration is still accepted. Set the `EnforceLogPathRoot` feature flag (`MM_FEATUREFLAGS_ENFORCELOGPATHROOT=true`) to reject it instead: the server refuses to start, and configuration changes that introduce such a path are rejected with an error. Enforcement is opt-in today and will become the default in a future release, so we recommend enabling it once you've confirmed every log path resolves inside `MM_LOG_PATH`.
 
 </Note>
 
@@ -3272,6 +3258,7 @@ When [output audit logs to file](#output-audit-logs-to-file) is enabled, the fil
 - See the [Mattermost logging](/administration-guide/manage/logging) documentation for details on advanced logging configuration. These targets have been chosen as they support the vast majority of log aggregators, and other log analysis tools, without needing additional software installed.
 - Audit logs are recorded asynchronously to reduce latency to the caller.
 - Advanced audit logging supports hot-reloading of logger configuration.
+- From Mattermost v12.0, the `audit-delivery` log level isn't written by the built-in audit log file target, so [post delivery audit records](/administration-guide/comply/post-delivery-audit-logging#configure-an-audit-log-target) are discarded unless you add a target here whose `levels` list includes `{"id": 104, "name": "audit-delivery"}`.
 
 </Note>
 
@@ -3819,7 +3806,7 @@ This setting improves an organization's mobile security posture by restricting f
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, | - System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong> | even when the | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code> | <a href="/administration-guide/configure/site-configuration-settings#allow-file-downloads-on-mobile">Allow file downloads on mobile</a> | - Environment variable: <code>MM_FILESETTINGS_MOBILEENABLESECUREFILEPREVIEW</code> configuration setting is enabled. Allows in-app previews for PDFs, | | videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared. | |</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled. | |</li></ul></td>
+<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, | - System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong> | even when the | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code> | <a href={useBaseUrl('/administration-guide/configure/site-configuration-settings#allow-file-downloads-on-mobile')}>Allow file downloads on mobile</a> | - Environment variable: <code>MM_FILESETTINGS_MOBILEENABLESECUREFILEPREVIEW</code> configuration setting is enabled. Allows in-app previews for PDFs, | | videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared. | |</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled. | |</li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -4087,7 +4074,7 @@ Adding a prefix to all Redis cache keys reduces key collisions, simplifies debug
 </colgroup>
 <tbody>
 <tr>
-<td><p>Enables the ability to specify an alternate filestore target for Mattermost <a href="/administration-guide/manage/bulk-export-tool">bulk exports</a> and <a href="/administration-guide/comply/compliance-export">compliance exports</a>.</p><ul><li><strong>True</strong>: A new <code>ExportFileBackend()</code> is generated under <code>FileSettings</code> using new configuration values for the following configuration settings:<ul><li><code>ExportDriverName</code></li><li><code>ExportDirectory</code></li><li><code>ExportAmazonS3AccessKeyId</code></li><li><code>ExportAmazonS3SecretAccessKey</code></li><li><code>ExportAmazonS3Bucket</code></li><li><code>ExportAmazonS3PathPrefix</code></li><li><code>ExportAmazonS3Region</code></li><li><code>ExportAmazonS3Endpoint</code></li><li><code>ExportAmazonS3SSL</code></li><li><code>ExportAmazonS3SignV2</code></li><li><code>ExportAmazonS3SSE</code></li><li><code>ExportAmazonS3Trace</code></li><li><code>ExportAmazonS3RequestTimeoutMilliseconds</code></li><li><code>ExportAmazonS3PresignExpiresSeconds</code></li><li><code>ExportAzureStorageAccount</code></li><li><code>ExportAzureAuthMode</code></li><li><code>ExportAzureAccessKey</code></li><li><code>ExportAzureContainer</code></li><li><code>ExportAzurePathPrefix</code></li><li><code>ExportAzureCloud</code></li><li><code>ExportAzureEndpoint</code></li><li><code>ExportAzureSSL</code></li><li><code>ExportAzureRequestTimeoutMilliseconds</code></li><li><code>ExportAzurePresignExpiresSeconds</code></li></ul></li><li><strong>False</strong>: (<strong>Default</strong>) Standard <a href="/administration-guide/configure/environment-configuration-settings#file-storage">file storage</a> is used. Standard file storage will also be used when the configuration setting or value is omitted.</li></ul></td>
+<td><p>Enables the ability to specify an alternate filestore target for Mattermost <a href={useBaseUrl('/administration-guide/manage/bulk-export-tool')}>bulk exports</a> and <a href={useBaseUrl('/administration-guide/comply/compliance-export')}>compliance exports</a>.</p><ul><li><strong>True</strong>: A new <code>ExportFileBackend()</code> is generated under <code>FileSettings</code> using new configuration values for the following configuration settings:<ul><li><code>ExportDriverName</code></li><li><code>ExportDirectory</code></li><li><code>ExportAmazonS3AccessKeyId</code></li><li><code>ExportAmazonS3SecretAccessKey</code></li><li><code>ExportAmazonS3Bucket</code></li><li><code>ExportAmazonS3PathPrefix</code></li><li><code>ExportAmazonS3Region</code></li><li><code>ExportAmazonS3Endpoint</code></li><li><code>ExportAmazonS3SSL</code></li><li><code>ExportAmazonS3SignV2</code></li><li><code>ExportAmazonS3SSE</code></li><li><code>ExportAmazonS3Trace</code></li><li><code>ExportAmazonS3RequestTimeoutMilliseconds</code></li><li><code>ExportAmazonS3PresignExpiresSeconds</code></li><li><code>ExportAzureStorageAccount</code></li><li><code>ExportAzureAuthMode</code></li><li><code>ExportAzureAccessKey</code></li><li><code>ExportAzureContainer</code></li><li><code>ExportAzurePathPrefix</code></li><li><code>ExportAzureCloud</code></li><li><code>ExportAzureEndpoint</code></li><li><code>ExportAzureSSL</code></li><li><code>ExportAzureRequestTimeoutMilliseconds</code></li><li><code>ExportAzurePresignExpiresSeconds</code></li></ul></li><li><strong>False</strong>: (<strong>Default</strong>) Standard <a href={useBaseUrl('/administration-guide/configure/environment-configuration-settings#file-storage')}>file storage</a> is used. Standard file storage will also be used when the configuration setting or value is omitted.</li></ul></td>
 <td><ul><li>System Config path: <strong>N/A</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>DedicatedExportStore</code></li><li>Environment variable: <code>MM_FILESETTINGS_DEDICATEDEXPORTSTORE</code></li></ul></td>
 </tr>
 </tbody>

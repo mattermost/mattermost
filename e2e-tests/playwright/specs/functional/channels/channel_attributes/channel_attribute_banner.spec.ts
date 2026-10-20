@@ -6,12 +6,6 @@ import type {PropertyField} from '@mattermost/types/properties';
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {
-    TEST_LEVELS,
-    deleteClassificationFieldsIfExist,
-    setupClassificationWithChannelField,
-} from '../channel_classification/helpers';
-
-import {
     DISPLAY_BANNER_TOP,
     DISPLAY_LABEL_INFO,
     assertNoForeignRequiredAttributes,
@@ -34,8 +28,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * @objective Verify an attribute token can be inserted from Channel Settings and previews its resolved value.
      */
     test('inserts an attribute token from the Attributes menu and previews the resolved text', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -80,12 +74,11 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
 
     /**
      * @objective Verify every banner-designated attribute shares one banner, and that
-     * Channel Settings shows them as chips the channel cannot remove.
+     * Channel Settings seeds them as removable defaults rather than locked chips.
      */
-    test('composes one banner from every designated attribute and locks their chips', async ({pw}) => {
+    test('composes one banner from every designated attribute and offers to remove them', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -125,9 +118,9 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             await expect(configuration.bannerTokenChip(marking.name)).toBeVisible();
             await expect(configuration.bannerTokenChip(programme.name)).toBeVisible();
 
-            // * Designated attributes cannot be taken out of the banner
-            await expect(configuration.bannerTokenChipRemove(marking.name)).toHaveCount(0);
-            await expect(configuration.bannerTokenChipRemove(programme.name)).toHaveCount(0);
+            // * Designation is a default: either chip can be taken out of the banner
+            await expect(configuration.bannerTokenChipRemove(marking.name)).toBeVisible();
+            await expect(configuration.bannerTokenChipRemove(programme.name)).toBeVisible();
 
             // * Seeding those chips is not an edit, so the tab opens clean
             await expect(configuration.container.getByTestId('SaveChangesPanel__save-btn')).toHaveCount(0);
@@ -141,9 +134,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * banner, even though banner_info stays disabled for that channel.
      */
     test('shows the banner section as on when an attribute drives the banner', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -196,9 +188,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * @objective Verify a banner authored as custom text plus a token renders both in the channel.
      */
     test('saves a banner mixing custom text with a token', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -243,9 +234,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * @objective Verify a separator between two tokens is dropped when one of them has no value.
      */
     test('tidies the separator when one of two tokens is unset', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -302,9 +292,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * @objective Verify a template whose tokens are all unset says so rather than previewing a blank line.
      */
     test('says so when every token in the template is unset', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -329,10 +318,15 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             const settings = await channelsPage.openChannelSettings();
             const configuration = await settings.openConfigurationTab();
             await configuration.enableChannelBanner();
+
+            // The designated attribute is seeded already; start from a known template.
+            await configuration.clearBannerText();
             await configuration.insertBannerToken(marking.name);
 
-            // * The preview names the empty result instead of rendering nothing
-            await expect(configuration.bannerTokenPreview).toContainText('no values are set');
+            // * The preview says the banner will not show instead of rendering nothing
+            const emptyNotice = configuration.container.getByTestId('bannerPreviewEmptyNotice');
+            await expect(emptyNotice).toContainText('The banner will not be displayed');
+            await expect(configuration.bannerTokenPreview).toHaveCount(0);
 
             await settings.close();
 
@@ -348,9 +342,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * because tokens key off the machine name.
      */
     test('keeps resolving after the attribute display name changes', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -407,9 +400,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * attributes are on, rather than through its own dedicated controls.
      */
     test('treats classification as one attribute among many', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -455,9 +447,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
     test('color picker is editable and toggle is unlocked when a non-classification attribute drives the banner', async ({
         pw,
     }) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -496,66 +487,12 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
     });
 
     /**
-     * @objective Verify that when classification is banner-designated, Channel Settings
-     * locks the color picker to the selected level's color and the user cannot override it.
-     */
-    test('color picker is locked to the classification level color when classification is banner-designated', async ({
-        pw,
-    }) => {
-        await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
-        const {adminClient, adminUser, team} = await pw.initSetup();
-        const suffix = pw.random.id();
-
-        // Provision the classification template + channel-linked field ourselves:
-        // this test must not depend on state left behind by other spec files.
-        const {channelFieldId, levels} = await setupClassificationWithChannelField(adminClient, TEST_LEVELS);
-        const level = levels.find((l) => l.color);
-        if (!level) {
-            throw new Error('setupClassificationWithChannelField did not return a coloured level');
-        }
-
-        try {
-            // Designate classification for the banner
-            await adminClient.patchPropertyField('access_control', 'channel', channelFieldId, {
-                attrs: {actions: ['display_banner_top']},
-            } as never);
-
-            const channel = await createChannelForAttributes(adminClient, team, `class-banner-${suffix}`);
-            await adminClient.addToChannel(adminUser.id, channel.id);
-            await adminClient.patchPropertyValues('access_control', 'channel', channel.id, [
-                {field_id: channelFieldId, value: level.id},
-            ] as never);
-
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
-
-            const settings = await channelsPage.openChannelSettings();
-            const configuration = await settings.openConfigurationTab();
-
-            const colorInput = configuration.container.locator(
-                '#channel_banner_banner_background_color_picker-inputColorValue',
-            );
-
-            // * Color picker is disabled — the level colour is authoritative
-            await expect(colorInput).toBeDisabled();
-
-            // * It shows the classification level's colour
-            await expect(colorInput).toHaveValue(level.color.toUpperCase());
-        } finally {
-            await deleteClassificationFieldsIfExist(adminClient);
-        }
-    });
-
-    /**
      * @objective Verify that when a required attribute is banner-designated, the banner
      * toggle in Channel Settings is locked and cannot be turned off.
      */
     test('banner toggle is disabled when a required attribute designates the banner', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();

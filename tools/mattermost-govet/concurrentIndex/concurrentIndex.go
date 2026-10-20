@@ -26,6 +26,7 @@ var (
 	concurrentlyRegex     = regexp.MustCompile(`(?i)\bCREATE\s+(UNIQUE\s+)?INDEX\s+CONCURRENTLY\b`)
 	dropIndexRegex        = regexp.MustCompile(`(?i)\bDROP\s+INDEX\b`)
 	dropConcurrentlyRegex = regexp.MustCompile(`(?i)\bDROP\s+INDEX\s+CONCURRENTLY\b`)
+	ignoreRegex           = regexp.MustCompile(`--\s*concurrentIndex:ignore\b`)
 )
 
 var sqlPath string
@@ -45,6 +46,9 @@ func init() {
 }
 
 func checkStatement(stmt string) string {
+	if ignoreRegex.MatchString(stmt) {
+		return ""
+	}
 	if createIndexRegex.MatchString(stmt) && !concurrentlyRegex.MatchString(stmt) {
 		return diagCreateIndex
 	}

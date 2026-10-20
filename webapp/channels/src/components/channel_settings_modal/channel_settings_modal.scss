@@ -98,7 +98,7 @@
     &__infoTab {
         display: flex;
         flex-direction: column;
-        padding-bottom: 60px;
+        padding-bottom: 80px;
 
         #PreviewInputTextButton {
             position: absolute;
@@ -121,6 +121,10 @@
 
         .textbox-preview-area {
             box-shadow: none;
+        }
+
+        .ChannelSettingsModal__attributesSection {
+            margin-top: 24px;
         }
     }
 
