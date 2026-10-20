@@ -18,7 +18,6 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/boxes-ltd/imaging v1.7.5
 	github.com/cespare/xxhash/v2 v2.3.0
-	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
 	github.com/elastic/go-elasticsearch/v8 v8.19.7
 	github.com/fatih/color v1.19.0
