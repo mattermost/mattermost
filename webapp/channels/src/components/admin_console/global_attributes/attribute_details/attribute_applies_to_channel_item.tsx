@@ -5,12 +5,12 @@ import classNames from 'classnames';
 import React, {useMemo, useState, type JSX} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {ChevronDownIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import {resourceTypeLabels} from './attribute_applies_to_constants';
-import type {AttributeAppliesToChannelItemProps} from './attribute_applies_to_constants';
+import {resourceTypeLabels, type AttributeAppliesToChannelItemProps} from './attribute_applies_to_constants';
+import ResourceTypeIcon from './resource_type_icon';
 
 import ChannelsResourceSettings from '../applies_to/channels/channels_resource_settings';
 import {summarizeChannelResource} from '../applies_to/channels/summary';
@@ -20,13 +20,12 @@ import './attribute_applies_to_item.scss';
 const BODY_ID = 'attribute-applies-to-channel-panel';
 
 // The Channels row of the Applies-to list -- owns its own expand/collapse
-// state (deliberately not the shared Accordion component, see the plan's
-// Decisions table: AccordionCard renders the row itself from plain data with
-// no slot for a child component to own it, and its open-row tracking is by
-// array index, which misattributes state when a row is removed from the
-// middle of the list). Remove is only reachable once expanded -- there is no
-// collapsed-row remove affordance.
-function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disabled = false, lockedTooltip, onRemove}: AttributeAppliesToChannelItemProps): JSX.Element {
+// state (deliberately not the shared Accordion component: AccordionCard
+// renders the row itself from plain data with no slot for a child component to
+// own it, and its open-row tracking is by array index, which misattributes
+// state when a row is removed from the middle of the list). Remove is only
+// reachable once expanded -- there is no collapsed-row remove affordance.
+function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disabled = false, lockedTooltip, removeLockedTooltip, onRemove}: AttributeAppliesToChannelItemProps): JSX.Element {
     const intl = useIntl();
     const {formatMessage} = intl;
     const [isOpen, setIsOpen] = useState(false);
@@ -39,9 +38,8 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
     const toggleLabel = formatMessage(isOpen ? messages.collapseLabel : messages.expandLabel, {label});
 
     const toggleButton = (
-        <Button
+        <button
             type='button'
-            emphasis='quaternary'
             className='AttributeAppliesToItem__toggle'
             onClick={() => setIsOpen((prev) => !prev)}
             disabled={disabled}
@@ -54,16 +52,33 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
                 size={16}
                 className={classNames('AttributeAppliesToItem__chevron', {'AttributeAppliesToItem__chevron--open': isOpen})}
             />
-            <ProductChannelsIcon size={18}/>
-            <span className='AttributeAppliesToItem__label'>{label}</span>
-            {!isOpen && (
+            <span className='AttributeAppliesToItem__heading'>
+                <span className='AttributeAppliesToItem__name'>
+                    <ResourceTypeIcon type='channel'/>
+                    <span className='AttributeAppliesToItem__label'>{label}</span>
+                </span>
                 <span
                     className='AttributeAppliesToItem__summary'
                     data-testid='attributeAppliesToRow-channel-summary'
                 >
                     {summary}
                 </span>
-            )}
+            </span>
+        </button>
+    );
+
+    const removeButton = (
+        <Button
+            type='button'
+            emphasis='tertiary'
+            variant='destructive'
+            size='sm'
+            className='AttributeAppliesToItem__remove'
+            onClick={onRemove}
+            disabled={disabled || Boolean(removeLockedTooltip)}
+            data-testid='attributeAppliesToRow-channel-remove'
+        >
+            <FormattedMessage {...messages.removeLabel}/>
         </Button>
     );
 
@@ -84,20 +99,17 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
                         </span>
                     </WithTooltip>
                 ) : toggleButton}
-                {isOpen && (
-                    <Button
-                        type='button'
-                        emphasis='tertiary'
-                        variant='destructive'
-                        size='sm'
-                        className='AttributeAppliesToItem__remove'
-                        onClick={onRemove}
-                        disabled={disabled}
-                        data-testid='attributeAppliesToRow-channel-remove'
-                    >
-                        <FormattedMessage {...messages.removeLabel}/>
-                    </Button>
-                )}
+                {isOpen && (removeLockedTooltip ? (
+                    <WithTooltip title={removeLockedTooltip}>
+                        <span
+                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled Remove is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                            tabIndex={0}
+                            data-testid='attributeAppliesToRow-channel-removeLockWrap'
+                        >
+                            {removeButton}
+                        </span>
+                    </WithTooltip>
+                ) : removeButton)}
             </div>
             {isOpen && (
                 <div

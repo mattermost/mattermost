@@ -73,6 +73,7 @@ export type ClientConfig = {
     EnableEmailInvitations: string;
     EnableEmojiPicker: string;
     EnableFileAttachments: string;
+    EnableFileSearch: string;
     EnableFile: string;
     EnableGifPicker: string;
     EnableGuestAccounts: string;
@@ -133,7 +134,9 @@ export type ClientConfig = {
     FeatureFlagPostDeliveryTracking: string;
     FeatureFlagClassificationMarkings: string;
     FeatureFlagChannelAttributes: string;
+    FeatureFlagChannelAttributesRequired: string;
     FeatureFlagPropertyFieldRank: string;
+    FeatureFlagPropertyFieldGraph: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
     FeatureFlagPostAttributes: string;
@@ -939,6 +942,7 @@ export type ElasticsearchSettings = {
     Trace: string;
     IgnoredPurgeIndexes: string;
     EnableSearchPublicChannelsWithoutMembership: boolean;
+    EnableFileIndexing: boolean;
 };
 
 export type DataRetentionSettings = {
@@ -976,6 +980,7 @@ export type MessageExportSettings = {
         CustomSMTPPort: string;
         CustomHeaderName: string;
         CustomHeaderValue: string;
+        SenderAddress: string;
     };
 };
 

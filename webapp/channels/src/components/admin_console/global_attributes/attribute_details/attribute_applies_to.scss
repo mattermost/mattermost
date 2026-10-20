@@ -36,8 +36,11 @@
 
 .AttributeAppliesTo__list {
     display: flex;
+    overflow: hidden;
     flex-direction: column;
-    gap: 8px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: 8px;
+    background: var(--center-channel-bg);
 }
 
 .AttributeAppliesTo__list + .AttributeAppliesTo__trigger {

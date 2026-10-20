@@ -475,9 +475,9 @@ func (_m *PostStore) GetOldestEntityCreationTime() (int64, error) {
 	return r0, r1
 }
 
-// GetParentsForExportAfter provides a mock function with given fields: limit, afterID, includeArchivedChannels
-func (_m *PostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.PostForExport, error) {
-	ret := _m.Called(limit, afterID, includeArchivedChannels)
+// GetParentsForExportAfter provides a mock function with given fields: limit, afterID, includeArchivedChannels, teamName, channelNameFilter
+func (_m *PostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamName string, channelNameFilter string) ([]*model.PostForExport, error) {
+	ret := _m.Called(limit, afterID, includeArchivedChannels, teamName, channelNameFilter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetParentsForExportAfter")
@@ -485,19 +485,19 @@ func (_m *PostStore) GetParentsForExportAfter(limit int, afterID string, include
 
 	var r0 []*model.PostForExport
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int, string, bool) ([]*model.PostForExport, error)); ok {
-		return rf(limit, afterID, includeArchivedChannels)
+	if rf, ok := ret.Get(0).(func(int, string, bool, string, string) ([]*model.PostForExport, error)); ok {
+		return rf(limit, afterID, includeArchivedChannels, teamName, channelNameFilter)
 	}
-	if rf, ok := ret.Get(0).(func(int, string, bool) []*model.PostForExport); ok {
-		r0 = rf(limit, afterID, includeArchivedChannels)
+	if rf, ok := ret.Get(0).(func(int, string, bool, string, string) []*model.PostForExport); ok {
+		r0 = rf(limit, afterID, includeArchivedChannels, teamName, channelNameFilter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PostForExport)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int, string, bool) error); ok {
-		r1 = rf(limit, afterID, includeArchivedChannels)
+	if rf, ok := ret.Get(1).(func(int, string, bool, string, string) error); ok {
+		r1 = rf(limit, afterID, includeArchivedChannels, teamName, channelNameFilter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -535,27 +535,29 @@ func (_m *PostStore) GetPostAfterTime(channelID string, timestamp int64, collaps
 	return r0, r1
 }
 
-// GetPostIdAfterTime provides a mock function with given fields: channelID, timestamp, collapsedThreads
-func (_m *PostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
-	ret := _m.Called(channelID, timestamp, collapsedThreads)
+// GetPostAuthorIDsForChannel provides a mock function with given fields: teamName, channelName, includeArchivedChannels
+func (_m *PostStore) GetPostAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
+	ret := _m.Called(teamName, channelName, includeArchivedChannels)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetPostIdAfterTime")
+		panic("no return value specified for GetPostAuthorIDsForChannel")
 	}
 
-	var r0 string
+	var r0 []string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, int64, bool) (string, error)); ok {
-		return rf(channelID, timestamp, collapsedThreads)
+	if rf, ok := ret.Get(0).(func(string, string, bool) ([]string, error)); ok {
+		return rf(teamName, channelName, includeArchivedChannels)
 	}
-	if rf, ok := ret.Get(0).(func(string, int64, bool) string); ok {
-		r0 = rf(channelID, timestamp, collapsedThreads)
+	if rf, ok := ret.Get(0).(func(string, string, bool) []string); ok {
+		r0 = rf(teamName, channelName, includeArchivedChannels)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, int64, bool) error); ok {
-		r1 = rf(channelID, timestamp, collapsedThreads)
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
+		r1 = rf(teamName, channelName, includeArchivedChannels)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -563,9 +565,67 @@ func (_m *PostStore) GetPostIdAfterTime(channelID string, timestamp int64, colla
 	return r0, r1
 }
 
-// GetPostIdBeforeTime provides a mock function with given fields: channelID, timestamp, collapsedThreads
-func (_m *PostStore) GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
-	ret := _m.Called(channelID, timestamp, collapsedThreads)
+// GetPostAuthorIDsForTeam provides a mock function with given fields: teamName, includeArchivedChannels
+func (_m *PostStore) GetPostAuthorIDsForTeam(teamName string, includeArchivedChannels bool) ([]string, error) {
+	ret := _m.Called(teamName, includeArchivedChannels)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostAuthorIDsForTeam")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, bool) ([]string, error)); ok {
+		return rf(teamName, includeArchivedChannels)
+	}
+	if rf, ok := ret.Get(0).(func(string, bool) []string); ok {
+		r0 = rf(teamName, includeArchivedChannels)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(teamName, includeArchivedChannels)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPostIdAfterTime provides a mock function with given fields: channelID, timestamp, collapsedThreads, excludeMembershipSystemPosts
+func (_m *PostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool, excludeMembershipSystemPosts bool) (string, error) {
+	ret := _m.Called(channelID, timestamp, collapsedThreads, excludeMembershipSystemPosts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostIdAfterTime")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64, bool, bool) (string, error)); ok {
+		return rf(channelID, timestamp, collapsedThreads, excludeMembershipSystemPosts)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64, bool, bool) string); ok {
+		r0 = rf(channelID, timestamp, collapsedThreads, excludeMembershipSystemPosts)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64, bool, bool) error); ok {
+		r1 = rf(channelID, timestamp, collapsedThreads, excludeMembershipSystemPosts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPostIdBeforeTime provides a mock function with given fields: channelID, timestamp, collapsedThreads, excludeMembershipSystemPosts
+func (_m *PostStore) GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool, excludeMembershipSystemPosts bool) (string, error) {
+	ret := _m.Called(channelID, timestamp, collapsedThreads, excludeMembershipSystemPosts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPostIdBeforeTime")
@@ -573,17 +633,17 @@ func (_m *PostStore) GetPostIdBeforeTime(channelID string, timestamp int64, coll
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, int64, bool) (string, error)); ok {
-		return rf(channelID, timestamp, collapsedThreads)
+	if rf, ok := ret.Get(0).(func(string, int64, bool, bool) (string, error)); ok {
+		return rf(channelID, timestamp, collapsedThreads, excludeMembershipSystemPosts)
 	}
-	if rf, ok := ret.Get(0).(func(string, int64, bool) string); ok {
-		r0 = rf(channelID, timestamp, collapsedThreads)
+	if rf, ok := ret.Get(0).(func(string, int64, bool, bool) string); ok {
+		r0 = rf(channelID, timestamp, collapsedThreads, excludeMembershipSystemPosts)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, int64, bool) error); ok {
-		r1 = rf(channelID, timestamp, collapsedThreads)
+	if rf, ok := ret.Get(1).(func(string, int64, bool, bool) error); ok {
+		r1 = rf(channelID, timestamp, collapsedThreads, excludeMembershipSystemPosts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1048,9 +1108,9 @@ func (_m *PostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*
 	return r0, r1
 }
 
-// GetVisiblePostIdAroundTime provides a mock function with given fields: channelID, timestamp, before, collapsedThreads, userID
-func (_m *PostStore) GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string) (string, error) {
-	ret := _m.Called(channelID, timestamp, before, collapsedThreads, userID)
+// GetVisiblePostIdAroundTime provides a mock function with given fields: channelID, timestamp, before, collapsedThreads, userID, excludeMembershipSystemPosts
+func (_m *PostStore) GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string, excludeMembershipSystemPosts bool) (string, error) {
+	ret := _m.Called(channelID, timestamp, before, collapsedThreads, userID, excludeMembershipSystemPosts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetVisiblePostIdAroundTime")
@@ -1058,17 +1118,17 @@ func (_m *PostStore) GetVisiblePostIdAroundTime(channelID string, timestamp int6
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, int64, bool, bool, string) (string, error)); ok {
-		return rf(channelID, timestamp, before, collapsedThreads, userID)
+	if rf, ok := ret.Get(0).(func(string, int64, bool, bool, string, bool) (string, error)); ok {
+		return rf(channelID, timestamp, before, collapsedThreads, userID, excludeMembershipSystemPosts)
 	}
-	if rf, ok := ret.Get(0).(func(string, int64, bool, bool, string) string); ok {
-		r0 = rf(channelID, timestamp, before, collapsedThreads, userID)
+	if rf, ok := ret.Get(0).(func(string, int64, bool, bool, string, bool) string); ok {
+		r0 = rf(channelID, timestamp, before, collapsedThreads, userID, excludeMembershipSystemPosts)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, int64, bool, bool, string) error); ok {
-		r1 = rf(channelID, timestamp, before, collapsedThreads, userID)
+	if rf, ok := ret.Get(1).(func(string, int64, bool, bool, string, bool) error); ok {
+		r1 = rf(channelID, timestamp, before, collapsedThreads, userID, excludeMembershipSystemPosts)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -42,7 +42,8 @@ func BenchmarkLRUStriped(b *testing.B) {
 		bucketKey := xxhash.Sum64String(key) % uint64(opts.StripedBuckets)
 		bucketKeys[bucketKey] = append(bucketKeys[bucketKey], key)
 	}
-	for i := 0; i < opts.Size; i++ {
+	size := opts.Size
+	for i := range size {
 		cache.SetWithDefaultExpiry(keys[i], "preflight")
 	}
 
@@ -75,7 +76,8 @@ func BenchmarkLRUStriped(b *testing.B) {
 		b.StopTimer()
 		wgSet.Add(1)
 		go set()
-		for j := 0; j < opts.StripedBuckets; j++ {
+		stripedBuckets := opts.StripedBuckets
+		for j := range stripedBuckets {
 			wgGet.Add(1)
 			go get(j)
 		}

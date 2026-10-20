@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -15,7 +16,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -916,8 +917,8 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			},
 			InstalledVersion: manifest.Version,
 		})
-		sort.SliceStable(expectedPlugins, func(i, j int) bool {
-			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		slices.SortStableFunc(expectedPlugins, func(a, b *model.MarketplacePlugin) int {
+			return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 		})
 
 		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
@@ -954,8 +955,8 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			InstalledVersion: manifest.Version,
 		}
 		expectedPlugins := append(samplePlugins, newPlugin)
-		sort.SliceStable(expectedPlugins, func(i, j int) bool {
-			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		slices.SortStableFunc(expectedPlugins, func(a, b *model.MarketplacePlugin) int {
+			return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 		})
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -1076,8 +1077,8 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 			InstalledVersion: manifest.Version,
 		}
 		expectedPlugins = append(expectedPlugins, plugin2)
-		sort.SliceStable(expectedPlugins, func(i, j int) bool {
-			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		slices.SortStableFunc(expectedPlugins, func(a, b *model.MarketplacePlugin) int {
+			return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 		})
 
 		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})

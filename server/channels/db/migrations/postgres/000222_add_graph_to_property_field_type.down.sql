@@ -1,0 +1,15 @@
+-- Deliberately empty: Postgres cannot remove a value from an enum type in
+-- place, so there is nothing to reverse here that is worth reversing.
+--
+-- Dropping 'graph' would mean rebuilding property_field_type without it, which
+-- in turn means dropping and recreating both UserAttributeView and
+-- ChannelAttributeView (they read PropertyFields.Type, and Postgres refuses to
+-- alter the type of a column a view depends on), and coercing every field row
+-- still holding 'graph' to some other type. That coercion is a data change
+-- dressed up as a schema reversal: it rewrites what those fields mean, and
+-- nothing brings them back.
+--
+-- Leaving the value in place costs nothing. An enum value no row uses is inert,
+-- and the up migration adds it with IF NOT EXISTS, so re-applying is a no-op.
+-- The consequence to accept is that 'graph' is permanent in the schema from
+-- here on, whatever the API layer later calls the type.

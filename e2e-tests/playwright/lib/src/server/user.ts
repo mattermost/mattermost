@@ -11,26 +11,29 @@ import {REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY, REMOTE_USERS_HOUR_LIMIT_BEGINNIN
 
 export async function createNewUserProfile(
     client: Client4,
-    options: {prefix?: string; disableTutorial?: boolean; disableOnboarding?: boolean} = {
-        prefix: 'user',
-        disableTutorial: true,
-        disableOnboarding: true,
-    },
+    options: {prefix?: string; disableTutorial?: boolean; disableOnboarding?: boolean} = {},
 ) {
-    const randomUser = await createRandomUser(options.prefix);
+    const {prefix = 'user', disableTutorial = true, disableOnboarding = true} = options;
+
+    const randomUser = await createRandomUser(prefix);
 
     const newUser = await client.createUser(randomUser, '', '');
     // Set password to the created user profile so it can be used to login later
     newUser.password = randomUser.password;
 
-    if (options.disableTutorial) {
+    if (disableTutorial && disableOnboarding) {
+        await setDefaultOnboardingPreferences(client, newUser.id);
+        return newUser;
+    }
+
+    if (disableTutorial) {
         await client.savePreferences(newUser.id, [
             {user_id: newUser.id, category: 'tutorial_step', name: newUser.id, value: '999'},
             {user_id: newUser.id, category: 'crt_thread_pane_step', name: newUser.id, value: '999'},
         ]);
     }
 
-    if (options.disableOnboarding) {
+    if (disableOnboarding) {
         await client.savePreferences(newUser.id, [
             {user_id: newUser.id, category: 'onboarding_task_list', name: 'onboarding_task_list_show', value: 'false'},
             {user_id: newUser.id, category: 'onboarding_task_list', name: 'onboarding_task_list_open', value: 'false'},
@@ -38,6 +41,20 @@ export async function createNewUserProfile(
     }
 
     return newUser;
+}
+
+/**
+ * Marks the tutorial and first-time onboarding task list as already seen for the given
+ * user, so they don't cover the UI on their first visit to a channel. Useful for users
+ * that aren't created via createNewUserProfile, e.g. SSO-provisioned accounts.
+ */
+export async function setDefaultOnboardingPreferences(client: Client4, userId: UserProfile['id']) {
+    await client.savePreferences(userId, [
+        {user_id: userId, category: 'tutorial_step', name: userId, value: '999'},
+        {user_id: userId, category: 'crt_thread_pane_step', name: userId, value: '999'},
+        {user_id: userId, category: 'onboarding_task_list', name: 'onboarding_task_list_show', value: 'false'},
+        {user_id: userId, category: 'onboarding_task_list', name: 'onboarding_task_list_open', value: 'false'},
+    ]);
 }
 
 export async function createRandomUser(prefix = 'user') {

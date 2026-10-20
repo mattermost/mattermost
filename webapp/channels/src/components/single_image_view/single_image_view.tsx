@@ -4,6 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent} from 'react';
+import {injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -43,13 +45,13 @@ type State = {
     thumbnailRejected: boolean;
 };
 
-export default class SingleImageView extends React.PureComponent<Props, State> {
+class SingleImageView extends React.PureComponent<Props & WrappedComponentProps, State> {
     private mounted = false;
     static defaultProps = {
         compactDisplay: false,
     };
 
-    constructor(props: Props) {
+    constructor(props: Props & WrappedComponentProps) {
         super(props);
         this.state = {
             loaded: false,
@@ -218,7 +220,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 key='toggle'
                 className='style--none single-image-view__toggle'
                 data-expanded={this.props.isEmbedVisible}
-                aria-label='Toggle Embed Visibility'
+                aria-label={this.props.intl.formatMessage({id: 'accessibility.toggle_embed_visibility', defaultMessage: 'Toggle Embed Visibility'})}
                 onClick={this.toggleEmbedVisibility}
             >
                 <span
@@ -269,9 +271,12 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                     width: '100%',
                 };
             } else {
+                // A dimensionless SVG has no intrinsic size, so reserving a fixed 350px height left
+                // the browser-default preview floating in a tall, mostly empty box. Let the
+                // container shrink to the rendered SVG instead.
                 imageContainerStyle = {
-                    height: 350,
-                    maxWidth: '100%',
+                    height: 'auto',
+                    width: '100%',
                 };
             }
         }
@@ -327,3 +332,5 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(SingleImageView);

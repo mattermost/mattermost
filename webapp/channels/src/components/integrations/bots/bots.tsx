@@ -16,10 +16,14 @@ import AlertBanner from 'components/alert_banner';
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
 
+import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import Bot, {matchesFilter} from './bot';
+import type {BotCreateWarnings} from './bot_create_warnings';
+import {parseBotCreateWarnings, stripBotCreateWarningsParam} from './bot_create_warnings';
+import BotCreateWarningsBanner from './bot_create_warnings_banner';
 
 // The server clamps per_page to PerPageMaximum (200), so bots must be fetched
 // in pages of that size and accumulated rather than in a single large request.
@@ -58,6 +62,7 @@ type Props = {
     users: Record<string, UserProfile>;
     pluginDisplayNames?: Record<string, string>;
     createBots?: boolean;
+    maxLifetimeDays: number;
 
     actions: {
 
@@ -74,11 +79,12 @@ type Props = {
         /**
         * Access token managment
         */
-        createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
+        createUserAccessToken: (userId: string, description: string, expiresAt?: number) => Promise<ActionResult<UserAccessToken>>;
 
         revokeUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         enableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        rotateUserAccessToken: (tokenId: string, expiresAt?: number) => Promise<ActionResult<UserAccessToken>>;
 
         /**
         * Load owner of bot account
@@ -105,6 +111,11 @@ type Props = {
     *  Only used for routing since backstage is team based.
     */
     team: Team;
+
+    /**
+     * From react-router. `search` may carry create warnings from the Add Bot page.
+     */
+    location?: {pathname: string; search: string};
 };
 
 // Distinguishes a clean load from a total failure (no bots fetched) and a
@@ -114,6 +125,7 @@ type LoadError = 'none' | 'full' | 'partial';
 type State = {
     loading: boolean;
     loadError: LoadError;
+    createWarnings?: BotCreateWarnings;
 };
 
 export default class Bots extends React.PureComponent<Props, State> {
@@ -123,6 +135,7 @@ export default class Bots extends React.PureComponent<Props, State> {
         this.state = {
             loading: true,
             loadError: 'none',
+            createWarnings: props.location ? parseBotCreateWarnings(props.location.search) : undefined,
         };
     }
 
@@ -131,6 +144,12 @@ export default class Bots extends React.PureComponent<Props, State> {
 
         if (this.props.appsEnabled) {
             this.props.actions.fetchAppsBotIDs();
+        }
+
+        const {location} = this.props;
+        const search = location ? stripBotCreateWarningsParam(location.search) : undefined;
+        if (location && search !== undefined) {
+            getHistory().replace(location.pathname + search);
         }
     }
 
@@ -167,10 +186,10 @@ export default class Bots extends React.PureComponent<Props, State> {
 
         const promises = [];
         for (const bot of allBots) {
-            // We don't need to wait for this and we need to accept failure in the case where bot.owner_id is a plugin id
-            this.props.actions.getUser(bot.owner_id);
+            // A resolved owner is what marks a bot user-owned, so the row would render as
+            // plugin-owned (no expiry control) while this is still in flight.
+            promises.push(this.props.actions.getUser(bot.owner_id));
 
-            // We want to wait for these.
             promises.push(this.props.actions.getUser(bot.user_id));
             promises.push(this.props.actions.getUserAccessTokensForUser(bot.user_id));
         }
@@ -208,6 +227,22 @@ export default class Bots extends React.PureComponent<Props, State> {
                     />
                 }
             />
+        );
+    }
+
+    private dismissCreateWarnings = (): void => {
+        this.setState({createWarnings: undefined});
+    };
+
+    private renderBanners(): JSX.Element {
+        return (
+            <>
+                <BotCreateWarningsBanner
+                    warnings={this.state.createWarnings}
+                    onDismiss={this.dismissCreateWarnings}
+                />
+                {this.renderLoadError()}
+            </>
         );
     }
 
@@ -256,6 +291,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                 actions={this.props.actions}
                 team={this.props.team}
                 fromApp={this.props.appsBotIDs.includes(bot.user_id)}
+                maxLifetimeDays={this.props.maxLifetimeDays}
             />
         );
     };
@@ -343,7 +379,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                 }
                 searchPlaceholder={Utils.localizeMessage({id: 'bots.manage.search', defaultMessage: 'Search Bot Accounts'})}
                 loading={this.state.loading}
-                error={this.renderLoadError()}
+                error={this.renderBanners()}
             >
                 {this.bots}
             </BackstageList>

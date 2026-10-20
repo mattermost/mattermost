@@ -9,6 +9,7 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 import {
     getPropertyFieldsForObjectTypeAndGroup,
+    makeGetPropertyFieldsForObjectTypeAndGroup,
     getPropertyFieldById,
     getPropertyFieldsByIds,
     getPropertyGroupById,
@@ -19,6 +20,7 @@ import {
     getPropertyValuesForField,
     getChannelAttributeFields,
     getChannelLabelFields,
+    getUnlinkedSystemFieldsForGroup,
     makeGetResolvedChannelAttributes,
 } from './properties';
 
@@ -114,6 +116,36 @@ describe('Field selectors', () => {
             };
 
             expect(getPropertyFieldsForObjectTypeAndGroup(state as GlobalState, 'post', 'unknown')).toEqual([]);
+        });
+    });
+
+    describe('makeGetPropertyFieldsForObjectTypeAndGroup', () => {
+        test('keeps a stable array when two instances read different object types', () => {
+            const postField = makeField({id: 'f1', object_type: 'post'});
+            const userField = makeField({id: 'f2', object_type: 'user'});
+            const state: DeepPartial<GlobalState> = {
+                entities: {
+                    properties: {
+                        fields: {
+                            byObjectType: {
+                                post: {'group-1': {f1: postField}},
+                                user: {'group-1': {f2: userField}},
+                            },
+                            byId: {f1: postField, f2: userField},
+                        },
+                        values: {byTargetId: {}, byFieldId: {}},
+                        groups: {byId: {}, byName: {}},
+                    },
+                },
+            };
+
+            const getPostFields = makeGetPropertyFieldsForObjectTypeAndGroup();
+            const getUserFields = makeGetPropertyFieldsForObjectTypeAndGroup();
+
+            const firstPost = getPostFields(state as GlobalState, 'post', 'group-1');
+            const firstUser = getUserFields(state as GlobalState, 'user', 'group-1');
+            expect(getPostFields(state as GlobalState, 'post', 'group-1')).toBe(firstPost);
+            expect(getUserFields(state as GlobalState, 'user', 'group-1')).toBe(firstUser);
         });
     });
 
@@ -538,6 +570,86 @@ describe('getChannelAttributeFields', () => {
         ]);
 
         expect(getChannelAttributeFields(state).map((f) => f.id)).toEqual(['live']);
+    });
+});
+
+function makeUnlinkedFieldsState(fields: PropertyField[]): GlobalState {
+    const byObjectType: Record<string, Record<string, Record<string, PropertyField>>> = {};
+    for (const field of fields) {
+        byObjectType[field.object_type] = {
+            ...byObjectType[field.object_type],
+            [GROUP_ID]: {
+                ...byObjectType[field.object_type]?.[GROUP_ID],
+                [field.id]: field,
+            },
+        };
+    }
+
+    return deepFreeze({
+        entities: {
+            properties: {
+                groups: {byId: {}, byName: {}},
+                fields: {
+                    byId: Object.fromEntries(fields.map((f) => [f.id, f])),
+                    byObjectType,
+                },
+                values: {byTargetId: {}, byFieldId: {}},
+            },
+        },
+    }) as unknown as GlobalState;
+}
+
+describe('getUnlinkedSystemFieldsForGroup', () => {
+    test('returns fields from all three object types in one list', () => {
+        const state = makeUnlinkedFieldsState([
+            attrField({id: 'u1', object_type: 'user'}),
+            attrField({id: 'c1', object_type: 'channel'}),
+            attrField({id: 'p1', object_type: 'post'}),
+        ]);
+
+        expect(getUnlinkedSystemFieldsForGroup(state, GROUP_ID).map((f) => f.id).sort()).toEqual(['c1', 'p1', 'u1']);
+    });
+
+    test('excludes a field with linked_field_id set', () => {
+        const state = makeUnlinkedFieldsState([
+            attrField({id: 'linked', object_type: 'user', linked_field_id: 'template1'}),
+            attrField({id: 'standalone', object_type: 'user'}),
+        ]);
+
+        expect(getUnlinkedSystemFieldsForGroup(state, GROUP_ID).map((f) => f.id)).toEqual(['standalone']);
+    });
+
+    test('excludes a deleted field', () => {
+        const state = makeUnlinkedFieldsState([
+            attrField({id: 'live', object_type: 'user'}),
+            attrField({id: 'gone', object_type: 'user', delete_at: 12345}),
+        ]);
+
+        expect(getUnlinkedSystemFieldsForGroup(state, GROUP_ID).map((f) => f.id)).toEqual(['live']);
+    });
+
+    test('excludes a field whose target_type is not system', () => {
+        const state = makeUnlinkedFieldsState([
+            attrField({id: 'system_field', object_type: 'user'}),
+            attrField({id: 'other_target', object_type: 'user', target_type: 'other'}),
+        ]);
+
+        expect(getUnlinkedSystemFieldsForGroup(state, GROUP_ID).map((f) => f.id)).toEqual(['system_field']);
+    });
+
+    test('excludes a template-object-type field in the same group', () => {
+        const state = makeUnlinkedFieldsState([
+            attrField({id: 'template1', object_type: 'template'}),
+            attrField({id: 'user1', object_type: 'user'}),
+        ]);
+
+        expect(getUnlinkedSystemFieldsForGroup(state, GROUP_ID).map((f) => f.id)).toEqual(['user1']);
+    });
+
+    test('returns the identical array reference across calls against an unchanged state', () => {
+        const state = makeUnlinkedFieldsState([attrField({id: 'u1', object_type: 'user'})]);
+
+        expect(getUnlinkedSystemFieldsForGroup(state, GROUP_ID)).toBe(getUnlinkedSystemFieldsForGroup(state, GROUP_ID));
     });
 });
 

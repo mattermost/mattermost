@@ -5,6 +5,8 @@
 export const ACCESS_CONTROL_PROPERTY_GROUP = 'access_control';
 
 export const CHANNEL_OBJECT_TYPE = 'channel';
+export const USER_OBJECT_TYPE = 'user';
+export const POST_OBJECT_TYPE = 'post';
 export const SYSTEM_TARGET_TYPE = 'system';
 export const SYSTEM_TARGET_ID = '';
 

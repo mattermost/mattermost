@@ -4,6 +4,9 @@
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
+import {clearGraphOptionNameCache, commitGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
+
 import {renderHookWithContext} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
@@ -14,15 +17,22 @@ jest.mock('mattermost-redux/actions/properties', () => ({
     fetchPropertyFields: jest.fn(() => () => Promise.resolve({data: []})),
 }));
 
+jest.mock('components/property_fields/graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('components/property_fields/graph/page_all_access_control_field_options'),
+    pageAllAccessControlFieldOptions: jest.fn(),
+}));
+
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
+
 const GROUP_ID = 'group1';
 const CHANNEL_ID = 'channel1';
 
-function field(id: string, actions: string[]): PropertyField {
+function field(id: string, actions: string[], type: PropertyField['type'] = 'select'): PropertyField {
     return {
         id,
         group_id: GROUP_ID,
         name: id,
-        type: 'select',
+        type,
         target_id: '',
         target_type: 'system',
         object_type: 'channel',
@@ -76,6 +86,12 @@ function makeState(fields: PropertyField[], values: Array<PropertyValue<unknown>
 }
 
 describe('useChannelLabels', () => {
+    beforeEach(() => {
+        clearPropertyFieldOptionWalks();
+        clearGraphOptionNameCache();
+        mockPageAll.mockRejectedValue(new Error('no walk expected'));
+    });
+
     test('returns only fields designated for the requested surface', () => {
         const state = makeState(
             [field('header_only', ['display_label_header']), field('info_only', ['display_label_info'])],
@@ -105,10 +121,46 @@ describe('useChannelLabels', () => {
         expect(result.current).toEqual([]);
     });
 
+    test('returns fields from every requested surface, once, in display order', () => {
+        const state = makeState(
+            [
+                field('info_only', ['display_label_info']),
+                field('both', ['display_label_header', 'display_label_info']),
+                field('header_only', ['display_label_header']),
+            ],
+            [value('info_only', 'opt'), value('both', 'opt'), value('header_only', 'opt')],
+        );
+
+        const {result} = renderHookWithContext(() => useChannelLabels(CHANNEL_ID, ['info', 'header']), state);
+        expect(result.current.map((a) => a.field.id)).toEqual(['both', 'header_only', 'info_only']);
+    });
+
     test('returns nothing when the feature flag is off', () => {
         const state = makeState([field('program', ['display_label_header'])], [value('program', 'opt')], 'false');
 
         const {result} = renderHookWithContext(() => useChannelLabels(CHANNEL_ID, 'header'), state);
         expect(result.current).toEqual([]);
+    });
+
+    test('a graph attribute shows committed option names, one per value', () => {
+        commitGraphOptionNames('dept', {a: 'Alpha', b: 'Beta'});
+        const state = makeState(
+            [field('dept', ['display_label_header'], 'graph')],
+            [value('dept', ['a', 'b'])],
+        );
+
+        const {result} = renderHookWithContext(() => useChannelLabels(CHANNEL_ID, 'header'), state);
+        expect(result.current[0].displayValues).toEqual(['Alpha', 'Beta']);
+        expect(result.current[0].displayValue).toBe('Alpha, Beta');
+    });
+
+    test('a graph attribute with no names yet keeps its raw ids and stays a label', () => {
+        const state = makeState(
+            [field('dept', ['display_label_header'], 'graph')],
+            [value('dept', ['a', 'b'])],
+        );
+
+        const {result} = renderHookWithContext(() => useChannelLabels(CHANNEL_ID, 'header'), state);
+        expect(result.current[0].displayValue).toBe('a, b');
     });
 });

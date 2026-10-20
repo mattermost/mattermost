@@ -7,17 +7,19 @@ import {IntlProvider} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
-import {TestHelper} from 'utils/test_helper';
-
-import UserAccessTokenSection, {
+import {
     clampExpiresAtToMaxLifetime,
     deriveTokenStatus,
     endOfLocalDayFromIsoDate,
     endOfLocalDayPlusDays,
     mapServerErrorIdToMessage,
     PRESET_DAYS,
-} from './user_access_token_section';
+} from 'components/common/token_expiry_picker/token_expiry';
+
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
+
+import UserAccessTokenSection from './user_access_token_section';
 
 describe('user_access_token_section helpers', () => {
     // Freeze time so date arithmetic (Date.now, endOfLocalDayPlusDays) doesn't

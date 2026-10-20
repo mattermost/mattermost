@@ -31,7 +31,7 @@
     flex: 0 0 auto;
 }
 
-.AdminUserCard__picture-input {
+input.AdminUserCard__picture-input[type='file'] {
     display: none;
 }
 

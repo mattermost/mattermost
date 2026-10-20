@@ -36,6 +36,7 @@ export type ChannelBanner = {
     enabled?: boolean;
     text?: string;
     background_color?: string;
+    attribute_banner_disabled?: boolean;
 };
 
 export function channelBannerEnabled(banner: ChannelBanner | undefined): boolean {
@@ -88,11 +89,20 @@ export type Channel = {
      * attached" semantic.
      */
     policy_actions?: Record<string, boolean>;
+
+    /**
+     * True when the channel's policy opts into the membership sync job's add
+     * pass, i.e. matching users are added to the channel automatically.
+     */
+    policy_auto_add?: boolean;
+
+    /** @deprecated Use {@link policy_auto_add}, which this now mirrors. */
     policy_is_active?: boolean;
     default_category_name?: string;
     managed_category_name?: string;
     autotranslation?: boolean;
     discoverable?: boolean;
+    disable_join_leave_messages?: boolean;
 
     // Create-only: attribute values to store with the channel. Sent so the server
     // can refuse a channel that would not satisfy its own required attributes.
@@ -318,4 +328,3 @@ export type ChannelSearchOpts = {
     exclude_access_control_policy_enforced?: boolean;
     parent_access_control_policy_id?: string;
 };
-

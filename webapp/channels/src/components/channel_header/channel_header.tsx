@@ -10,6 +10,7 @@ import type {WrappedComponentProps} from 'react-intl';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import ChannelAttributeLabels from 'components/channel_attributes/channel_attribute_labels';
+import {ChannelLabelSurface} from 'components/common/hooks/useChannelLabels';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import PopoutButton from 'components/popout_button';
@@ -406,7 +407,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     {muteTrigger}
                                     {memberListButton}
                                     {pinnedButton}
-                                    {this.props.isFileAttachmentsEnabled &&
+                                    {this.props.canSearchFiles &&
                                         <HeaderIconWrapper
                                             buttonClass={channelFilesIconClass}
                                             buttonId={'channelHeaderFilesButton'}
@@ -424,7 +425,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     {!isDirect && !isGroup && (
                                         <ChannelAttributeLabels
                                             channelId={channel.id}
-                                            surface='info'
+                                            surface={[ChannelLabelSurface.INFO, ChannelLabelSurface.HEADER]}
                                         />
                                     )}
                                 </div>
@@ -442,14 +443,6 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     />
                                 </div>
                             </div>
-                            {!isDirect && !isGroup && (
-                                <div className='channel-header__attributes'>
-                                    <ChannelAttributeLabels
-                                        channelId={channel.id}
-                                        surface='header'
-                                    />
-                                </div>
-                            )}
                         </div>
                     </div>
                     <ChannelHeaderPlug

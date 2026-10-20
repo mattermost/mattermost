@@ -34,7 +34,7 @@ import {
     formatGithubCodePaste,
     formatMarkdownMessage,
     getHtmlTable,
-    hasHtmlLink,
+    hasMarkdownFormatting,
     isGitHubCodeBlock,
 } from 'utils/paste';
 import {postMessageOnKeyPress, splitMessageBasedOnCaretPosition} from 'utils/post_utils';
@@ -185,7 +185,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         caretPosition.current = target.selectionEnd;
     };
 
-    const handlePaste = useCallback((e: ClipboardEvent) => {
+    const handlePaste = useCallback((e: React.ClipboardEvent<TextboxElement>) => {
         const {clipboardData, target} = e;
         if (
             !clipboardData ||
@@ -196,9 +196,8 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             return;
         }
 
-        const hasLinks = hasHtmlLink(clipboardData);
         const table = getHtmlTable(clipboardData);
-        if (!table && !hasLinks) {
+        if (!hasMarkdownFormatting(clipboardData)) {
             return;
         }
 

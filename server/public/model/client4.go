@@ -313,6 +313,10 @@ func (c *Client4) deliveryTrackingRoute() clientRoute {
 	return newClientRoute("delivery_tracking")
 }
 
+func (c *Client4) healthFindingsRoute() clientRoute {
+	return newClientRoute("health").Join("findings")
+}
+
 func (c *Client4) postsEphemeralRoute() clientRoute {
 	return newClientRoute("posts").Join("ephemeral")
 }
@@ -688,6 +692,10 @@ func (c *Client4) propertyFieldsRoute(groupName, objectType string) clientRoute 
 
 func (c *Client4) propertyFieldRoute(groupName, objectType, fieldID string) clientRoute {
 	return c.propertyFieldsRoute(groupName, objectType).Join(fieldID)
+}
+
+func (c *Client4) propertyFieldOptionsRoute(groupName, objectType, fieldID string) clientRoute {
+	return c.propertyFieldRoute(groupName, objectType, fieldID).Join("options")
 }
 
 func (c *Client4) propertyFieldsSearchRoute(groupName string) clientRoute {
@@ -3642,6 +3650,23 @@ func (c *Client4) GetPostIncludeDeleted(ctx context.Context, postId string, etag
 	return DecodeJSONFromResponse[*Post](r)
 }
 
+// GetPostWithOptions gets a single post, applying every option the endpoint supports.
+func (c *Client4) GetPostWithOptions(ctx context.Context, postId string, etag string, opts GetPostOptions) (*Post, *Response, error) {
+	values := url.Values{}
+	if opts.IncludeDeleted {
+		values.Set("include_deleted", c.boolString(true))
+	}
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.postRoute(postId), values, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
+
 // DeletePost deletes a post from the provided post id string.
 func (c *Client4) DeletePost(ctx context.Context, postId string) (*Response, error) {
 	r, err := c.doAPIDelete(ctx, c.postRoute(postId))
@@ -3706,7 +3731,38 @@ func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag
 	if opts.Direction != "" {
 		values.Set("direction", opts.Direction)
 	}
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
+	}
 	r, err := c.doAPIGetWithQuery(ctx, c.postRoute(postID).Join("thread"), values, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PostList](r)
+}
+
+// GetPostsForChannelWithOpts gets a page of posts for a channel, applying every option the endpoint supports.
+func (c *Client4) GetPostsForChannelWithOpts(ctx context.Context, channelId, etag string, opts GetPostsOptions) (*PostList, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(opts.Page))
+	values.Set("per_page", strconv.Itoa(opts.PerPage))
+	if opts.CollapsedThreads {
+		values.Set("collapsedThreads", "true")
+	}
+	if opts.SkipFetchThreads {
+		values.Set("skipFetchThreads", "true")
+	}
+	if opts.CollapsedThreadsExtended {
+		values.Set("collapsedThreadsExtended", "true")
+	}
+	if opts.IncludeDeleted {
+		values.Set("include_deleted", "true")
+	}
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.channelRoute(channelId).Join("posts"), values, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8285,6 +8341,65 @@ func (c *Client4) DeletePropertyField(ctx context.Context, groupName, objectType
 	return BuildResponse(r), nil
 }
 
+// GetPropertyFieldOptions returns one page of a property field's options, in
+// creation order. Continue while the page's HasMore is true, passing its
+// NextCursorCreateAt and NextCursorID back on the next call: the page length
+// alone does not say whether the listing is over, and the cursor names the last
+// row the page query examined rather than the last option it returned.
+func (c *Client4) GetPropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*PropertyFieldOptionPage, *Response, error) {
+	values := url.Values{}
+	if perPage > 0 {
+		values.Set("per_page", strconv.Itoa(perPage))
+	}
+	if cursorID != "" {
+		values.Set("cursor_id", cursorID)
+	}
+	if cursorCreateAt > 0 {
+		values.Set("cursor_create_at", strconv.FormatInt(cursorCreateAt, 10))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PropertyFieldOptionPage](r)
+}
+
+// CreatePropertyFieldOptions adds options to a property field. Each option may
+// name the options it sits below, by name, including others in the same call.
+func (c *Client4) CreatePropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, options []*PropertyFieldOption) ([]*PropertyFieldOption, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), options)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyFieldOption](r)
+}
+
+// PatchPropertyFieldOptions changes options a property field owns. Only the
+// options named are touched, and only the parts of each that the option
+// carries — except Name, which every option must carry, since it is how the
+// payload names the option to begin with.
+func (c *Client4) PatchPropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, options []*PropertyFieldOption) ([]*PropertyFieldOption, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), options)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyFieldOption](r)
+}
+
+// DeletePropertyFieldOptions removes options a property field owns. The whole
+// list is judged together, so a branch of a hierarchy goes in one call.
+func (c *Client4) DeletePropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, optionIDs []string) (*Response, error) {
+	r, err := c.doAPIDeleteJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), optionIDs)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, targetID string, search PropertyValueSearch) ([]*PropertyValue, *Response, error) {
 	values := url.Values{}
 	if search.PerPage > 0 {
@@ -8533,6 +8648,42 @@ func (c *Client4) RevealPost(ctx context.Context, postID string) (*Post, *Respon
 // If the user is not the author, the post will be expired for that user by updating their read receipt expiration time.
 func (c *Client4) BurnPost(ctx context.Context, postID string) (*Response, error) {
 	r, err := c.doAPIDelete(ctx, c.postRoute(postID).Join("burn"))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// Health Dashboard Section
+
+// GetHealthFindings returns the stored health findings, rendered in the client's locale, and
+// when the server last evaluated them. Only filter.Muted is sent; the server decides which
+// surfaces are returned.
+func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFilter) (*HealthFindingList, *Response, error) {
+	query := url.Values{}
+	if filter.Muted != MutedExcluded {
+		query.Set("muted", string(filter.Muted))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.healthFindingsRoute(), query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*HealthFindingList](r)
+}
+
+func (c *Client4) MuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {
+	r, err := c.doAPIPost(ctx, c.healthFindingsRoute().Join(fingerprint, "mute"), "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) UnmuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.healthFindingsRoute().Join(fingerprint, "mute"))
 	if err != nil {
 		return BuildResponse(r), err
 	}

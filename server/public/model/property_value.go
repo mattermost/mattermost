@@ -27,6 +27,12 @@ const (
 	// the Mattermost instance itself rather than to a user/channel/post,
 	// so there is no 26-char entity ID available; this sentinel stands in.
 	PropertyValueSystemTargetID = "system"
+
+	// PropertyValueWithheldJSON replaces a value a websocket broadcast may
+	// not carry (see BroadcastValue). It is a JSON object so it cannot be
+	// read as a client's `null` clear or as an empty-id delete tombstone,
+	// the two meanings a real value's JSON already carries.
+	PropertyValueWithheldJSON = `{"withheld":true}`
 )
 
 type PropertyValue struct {
@@ -272,4 +278,19 @@ func SanitizePropertyValue(raw json.RawMessage) json.RawMessage {
 	}
 
 	return raw
+}
+
+// BroadcastValue returns what a websocket broadcast may carry in place of
+// value: the value itself for a public field, the withheld marker
+// otherwise.
+//
+// Accepted ceiling: a caller who writes the literal JSON
+// `{"withheld":true}` into a text field makes clients refetch that field
+// once and get the real value back. That is the worst outcome, so no
+// escaping scheme is built for it.
+func BroadcastValue(field *PropertyField, value json.RawMessage) json.RawMessage {
+	if field != nil && field.GetAccessMode() == PropertyAccessModePublic {
+		return value
+	}
+	return json.RawMessage(PropertyValueWithheldJSON)
 }

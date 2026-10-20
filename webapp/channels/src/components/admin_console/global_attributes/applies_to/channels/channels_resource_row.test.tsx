@@ -3,15 +3,32 @@
 
 import React from 'react';
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {DISPLAY_BANNER_TOP, DISPLAY_LABEL_HEADER, DISPLAY_LABEL_INFO} from 'mattermost-redux/constants/properties';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelsResourceRow from './channels_resource_row';
 import type {ChannelResourceConfig} from './types';
 import {DEFAULT_CHANNEL_RESOURCE_CONFIG} from './types';
 
 describe('ChannelsResourceRow', () => {
+    // The Required toggle itself is gated on this flag; its own on/off behavior
+    // is covered in channels_resource_settings.test.tsx, so it is left on here.
+    const requiredEnabledState: DeepPartial<GlobalState> = {
+        entities: {
+            general: {
+                config: {
+                    FeatureFlagChannelAttributes: 'true',
+                    FeatureFlagChannelAttributesRequired: 'true',
+                },
+            },
+        },
+    };
+
     const renderRow = (overrides: Partial<ChannelResourceConfig> = {}, props: {disabled?: boolean; ordered?: boolean} = {}) => {
         const onChange = jest.fn();
         const onRemove = jest.fn();
@@ -26,7 +43,7 @@ describe('ChannelsResourceRow', () => {
             />
         );
 
-        const view = renderWithContext(row(overrides));
+        const view = renderWithContext(row(overrides), requiredEnabledState);
 
         return {
             onChange,
@@ -35,15 +52,20 @@ describe('ChannelsResourceRow', () => {
         };
     };
 
-    it('offers every display location the server renders, and not the one it does not', () => {
+    it('offers the display locations the server renders, and not the ones it does not', () => {
         renderRow();
 
         expect(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`)).toBeInTheDocument();
-        expect(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_INFO}`)).toBeInTheDocument();
         expect(screen.getByTestId(`channelsResourceLocation-${DISPLAY_BANNER_TOP}`)).toBeInTheDocument();
+
+        // Channel Info lists every attribute, so a checkbox would not change where it appears.
+        expect(screen.queryByTestId('channelsResourceLocation-display_label_info')).not.toBeInTheDocument();
 
         // Validates server-side, but always renders at the top.
         expect(screen.queryByTestId('channelsResourceLocation-display_banner_bottom')).not.toBeInTheDocument();
+
+        expect(screen.getByText(/You can always view and set the attribute value in the Channel Info sidebar/)).toBeInTheDocument();
+        expect(screen.getByText(/Unset values do not appear in the channel/)).toBeInTheDocument();
     });
 
     it('toggles required', async () => {
@@ -110,6 +132,16 @@ describe('ChannelsResourceRow', () => {
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({displayLocations: [DISPLAY_BANNER_TOP]}));
     });
 
+    it('keeps a UI-hidden display_label_info action when toggling another location', async () => {
+        const {onChange} = renderRow({displayLocations: [DISPLAY_LABEL_INFO, DISPLAY_BANNER_TOP]});
+
+        await userEvent.click(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`));
+
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+            displayLocations: [DISPLAY_LABEL_HEADER, DISPLAY_BANNER_TOP, DISPLAY_LABEL_INFO],
+        }));
+    });
+
     it('stores display locations in a stable order regardless of tick order', async () => {
         const {onChange} = renderRow({displayLocations: [DISPLAY_BANNER_TOP]});
 
@@ -130,7 +162,7 @@ describe('ChannelsResourceRow', () => {
         expect(screen.queryByText('Who can set the value')).not.toBeInTheDocument();
     });
 
-    it('names its icon-only disclosure control', async () => {
+    it('names its disclosure control', async () => {
         renderRow();
 
         expect(screen.getByRole('button', {name: 'Collapse channel settings'})).toBeInTheDocument();
@@ -149,10 +181,10 @@ describe('ChannelsResourceRow', () => {
     it('summarises its own state for the collapsed view', () => {
         renderRow({
             required: true,
-            displayLocations: [DISPLAY_LABEL_HEADER, DISPLAY_LABEL_INFO],
+            displayLocations: [DISPLAY_LABEL_HEADER, DISPLAY_BANNER_TOP],
         });
 
-        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Required · Display: Header + Channel Info');
+        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Required · Display: Header + Banner');
     });
 
     it('says so in the summary when the attribute is displayed nowhere or locked', () => {

@@ -268,7 +268,7 @@ func (a *App) ExecuteCommand(rctx request.CTX, args *model.CommandArgs) (*model.
 
 	trigger = strings.TrimPrefix(trigger, "/")
 
-	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
+	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, args.ChannelId, a.AsymmetricSigningKey())
 	if appErr != nil {
 		rctx.Logger().Warn("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
 	}
@@ -630,11 +630,18 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 	// Handle the response
 	body := io.LimitReader(resp.Body, MaxIntegrationResponseSize)
 
-	if resp.StatusCode != http.StatusOK {
+	// Any 2xx status is a success; integrations legitimately answer a webhook with 201 or 202.
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		// Ignore the error below because the resulting string will just be the empty string if bodyBytes is nil
 		bodyBytes, _ := io.ReadAll(body)
 
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]any{"Trigger": cmd.Trigger, "Status": resp.Status}, string(bodyBytes), http.StatusInternalServerError)
+	}
+
+	// 204 and 205 carry no body by definition, so there is nothing to parse even when the
+	// integration still advertises a Content-Type. An empty response posts nothing.
+	if resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusResetContent {
+		return cmd, &model.CommandResponse{}, nil
 	}
 
 	response, err := model.CommandResponseFromHTTPBody(resp.Header.Get("Content-Type"), body)
