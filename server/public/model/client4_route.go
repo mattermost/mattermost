@@ -14,7 +14,7 @@ type clientRoute struct {
 }
 
 func cleanSegment(segment string) (string, error) {
-	for _, part := range strings.Split(segment, "/") {
+	for part := range strings.SplitSeq(segment, "/") {
 		if part == "." || part == ".." {
 			return "", errInvalidClientRouteSegment
 		}
