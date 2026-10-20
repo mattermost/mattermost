@@ -137,7 +137,10 @@ func TestApplySyncLock(t *testing.T) {
 		},
 	}
 
-	locked := ApplySyncLock(source, "ldap")
+	locked := ApplySyncLock(source, &PropertyField{
+		ObjectType: PropertyFieldObjectTypeUser,
+		Attrs:      StringInterface{PropertyFieldAttrLDAP: "employeeID"},
+	})
 
 	assert.Equal(t, PermissionLevelNone, locked.Restrictions.Value.Write)
 	assert.Equal(t, PermissionLevelEveryone, locked.Restrictions.Value.Read)
@@ -147,6 +150,50 @@ func TestApplySyncLock(t *testing.T) {
 	assert.Equal(t, []string{PropertyActionFieldWrite, PropertyActionValueRead, PropertyActionValueWrite}, locked.Grants[0].Allow)
 	assert.Equal(t, PermissionLevelSysadmin, source.Restrictions.Value.Write, "source must not be mutated")
 	assert.Equal(t, []string{PropertyActionValueWrite}, source.Grants[0].Allow, "source must not be mutated")
+}
+
+func TestApplySyncLockSourcePlugin(t *testing.T) {
+	// A linked user field under a protected template inherits the grant the
+	// template gives its source plugin, every action included, since a
+	// template is never sync-locked. On a synced field the source plugin holds
+	// no value.write, as PermissionsFromLegacy gives it, and a v2 reader
+	// doesn't see it as an owner.
+	templateField := &PropertyField{
+		ObjectType: PropertyFieldObjectTypeTemplate,
+		Attrs: StringInterface{
+			PropertyAttrsProtected:      true,
+			PropertyAttrsSourcePluginID: "plugin1",
+			PropertyFieldAttrLDAP:       "employeeID",
+		},
+	}
+	template := PermissionsFromLegacy(templateField, LegacyConversionOpts{ConvertAttrs: true})
+	require.NotNil(t, template.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionValueWrite))
+
+	field := &PropertyField{
+		ObjectType: PropertyFieldObjectTypeUser,
+		Attrs: StringInterface{
+			PropertyAttrsProtected:      true,
+			PropertyAttrsSourcePluginID: "plugin1",
+			PropertyFieldAttrLDAP:       "employeeID",
+		},
+	}
+	inherited := &Permissions{Restrictions: template.Restrictions}
+	for _, g := range template.Grants {
+		g.Allow = removeAction(g.Allow, PropertyActionOptionRead)
+		inherited.Grants = append(inherited.Grants, g)
+	}
+
+	field.Permissions = ApplySyncLock(inherited, field)
+
+	assert.Nil(t, field.Permissions.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionValueWrite))
+	assert.NotNil(t, field.Permissions.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionFieldWrite))
+	assert.NotNil(t, field.Permissions.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionValueWrite))
+	assert.False(t, HasPropertyFieldOwners(ProjectLegacyPermissions(field)))
+
+	t.Run("an unsynced field is left as it is", func(t *testing.T) {
+		unsynced := &PropertyField{ObjectType: PropertyFieldObjectTypeUser, Attrs: StringInterface{PropertyAttrsSourcePluginID: "plugin1"}}
+		assert.Same(t, inherited, ApplySyncLock(inherited, unsynced))
+	})
 }
 
 func TestPermissionsFromLegacyAccessMode(t *testing.T) {
@@ -1110,7 +1157,7 @@ func TestProjectLegacyPermissionsOmitsDerivedGrants(t *testing.T) {
 			ObjectType: PropertyFieldObjectTypeUser,
 			Attrs:      StringInterface{PropertyFieldAttrLDAP: "employeeID"},
 		}
-		field.Permissions = ApplySyncLock(&Permissions{Restrictions: &Restrictions{}}, "ldap")
+		field.Permissions = ApplySyncLock(&Permissions{Restrictions: &Restrictions{}}, field)
 
 		assert.False(t, HasPropertyFieldOwners(ProjectLegacyPermissions(field)))
 	})

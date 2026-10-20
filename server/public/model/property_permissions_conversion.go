@@ -602,10 +602,21 @@ func syncLockSource(field *PropertyField) string {
 }
 
 // ApplySyncLock returns a copy of p carrying the sync lock PermissionsFromLegacy
-// gives a field synced from syncSource: value.write none for humans, the sync
-// identity's grant, and no value.write on the plugin wildcard grant. It is how
-// a linked user field takes the lock its template's permissions don't carry.
-func ApplySyncLock(p *Permissions, syncSource string) *Permissions {
+// gives field: value.write none for humans, the sync identity's grant, and no
+// value.write on the plugin wildcard grant or on the grant of field's source
+// plugin. It is how a linked user field takes the lock its template's
+// permissions don't carry. A template is never sync-locked, so a protected
+// template gives its source plugin value.write, which on a synced field it
+// doesn't hold (see sourcePluginGrantAllow). The sync source and the source
+// plugin are read from field's attrs, and p is returned unchanged when field
+// isn't synced.
+func ApplySyncLock(p *Permissions, field *PropertyField) *Permissions {
+	syncSource := syncLockSource(field)
+	if syncSource == "" {
+		return p
+	}
+	sourcePluginID, _ := field.Attrs[PropertyAttrsSourcePluginID].(string)
+
 	var restrictions Restrictions
 	if p.Restrictions != nil {
 		restrictions = *p.Restrictions
@@ -616,13 +627,13 @@ func ApplySyncLock(p *Permissions, syncSource string) *Permissions {
 	grants := make([]Grant, 0, len(p.Grants)+1)
 	hasSyncGrant := false
 	for _, g := range p.Grants {
-		switch g.Identity {
-		case Identity{Type: PropertyOwnerTypePlugin, ID: "*"}:
+		switch {
+		case g.Type == PropertyOwnerTypePlugin && (g.ID == "*" || (sourcePluginID != "" && g.ID == sourcePluginID)):
 			g.Allow = removeAction(g.Allow, PropertyActionValueWrite)
 			if len(g.Allow) == 0 {
 				continue
 			}
-		case syncIdentity:
+		case g.Identity == syncIdentity:
 			g.Allow = unionActions(g.Allow, syncLockGrantAllow)
 			hasSyncGrant = true
 		}
