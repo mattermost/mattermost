@@ -13,17 +13,24 @@ This page explains the concepts and walks through the server plugin API. For the
 
 A **group** is a namespace for fields. Every field and value belongs to exactly one group, and most plugin API methods take the group's ID.
 
-A plugin registers its own group with `RegisterPropertyGroup`. Calling it again with the same name returns the existing group, so it's safe to call on every activation. Group names may contain only lowercase letters, digits and underscores, and must start with a letter or digit.
+New attributes should use one of Mattermost's built-in groups, such as `access_control`. Get a built-in group with `GetPropertyGroup`.
 
-Groups registered by plugins are version 1 groups. That affects what they can do:
+The built-in `access_control` group (`model.AccessControlPropertyGroupName`) holds user attributes, Global Attribute templates and channel attributes, and it's the only group that access control policies read. A field that access control decisions depend on, such as an attribute used in an [attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) policy, must be in the `access_control` group. Working with it needs a Mattermost Entry, Enterprise or Enterprise Advanced license. The old name `custom_profile_attributes` is refused by both `RegisterPropertyGroup` and `GetPropertyGroup`.
 
-- **No REST access.** The REST API's `/api/v4/properties/groups/...` routes serve only version 2 groups, such as the built-in `access_control` group. Your plugin's web app reads and writes its data through your plugin's own HTTP endpoints (`ServeHTTP`), not through the core REST API.
+#### Custom groups (deprecated)
+
+Custom groups are deprecated. They're part of version 1 of the property system, so don't create one for new fields. Existing custom groups keep working.
+
+A plugin creates a custom group with `RegisterPropertyGroup`. Calling it again with the same name returns the existing group. Group names may contain only lowercase letters, digits and underscores, and must start with a letter or digit.
+
+Custom groups are version 1 groups, which limits what they can do:
+
+- **No REST access.** The REST API's `/api/v4/properties/groups/...` routes serve only version 2 groups. A plugin's web app reads and writes its data through the plugin's own HTTP endpoints (`ServeHTTP`), not through the core REST API.
 - **No object type.** Fields in a version 1 group must leave `ObjectType` empty. A field with an `ObjectType` is refused.
 - **Options live on the field.** A field's options are read and written as part of the field, in `Attrs["options"]`. The option methods, such as `GetPropertyFieldOptions`, refuse fields in a version 1 group.
 - **No field events.** Changes to fields in a version 1 group don't send the property field websocket events. See [React to changes](#react-to-changes).
-- **Values aren't checked against the field.** Mattermost stores any JSON value. Your plugin decides what a valid value is.
-
-The built-in `access_control` group (`model.AccessControlPropertyGroupName`) is a version 2 group. It holds user attributes, Global Attribute templates and channel attributes. Get it with `GetPropertyGroup`. Working with it needs a Mattermost Entry, Enterprise or Enterprise Advanced license. The old name `custom_profile_attributes` is refused by both `RegisterPropertyGroup` and `GetPropertyGroup`.
+- **Values aren't checked against the field.** Mattermost stores any JSON value. The plugin decides what a valid value is.
+- **No access control.** Policies can't use fields in a custom group.
 
 ### Fields
 
