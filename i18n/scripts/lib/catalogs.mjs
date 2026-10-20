@@ -6,6 +6,8 @@
 //         order; a translation is a string or a map of plural forms. en.json
 //         entries also carry a description.
 
+export const GLOSSARY_DIR = 'i18n/glossary';
+
 // A server plural map is checked as all of its forms at once.
 export function flatten(value) {
     return value && typeof value === 'object' ? Object.values(value).join('\n') : String(value ?? '');

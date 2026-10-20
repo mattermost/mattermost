@@ -17,6 +17,7 @@ import path from 'path';
 import {fileURLToPath, pathToFileURL} from 'url';
 
 import {flatten} from './catalogs.mjs';
+import {droppedNames} from './glossary.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const icu = await import(pathToFileURL(path.join(here, '../../../webapp/channels/scripts/icu_rules.mjs')).href);
@@ -33,6 +34,15 @@ const WEBAPP_SEVERITY = {
 };
 
 const finding = (rule, severity, message) => ({rule, severity, message});
+
+function softChecks(item, value, glossary) {
+    const out = [];
+    const dropped = droppedNames(glossary, item.english, value);
+    if (dropped.length) {
+        out.push(finding('do-not-translate', 'soft', `leaves out ${dropped.map((d) => `"${d}"`).join(', ')}, which the glossary keeps in English`));
+    }
+    return out;
+}
 
 const TOKEN = /\{\{\s*\.([A-Za-z0-9_]+)\s*\}\}/g;
 const ACTION = /\{\{(.*?)\}\}/g;
@@ -102,9 +112,10 @@ function sourceFor(english) {
 
 /**
  * Check one translation of item, {english, description}, where english is the
- * en.json message. Returns findings of {rule, severity, message}.
+ * en.json message, against the locale's glossary from readGlossary. Returns
+ * findings of {rule, severity, message}.
  */
-export function checkTranslation({item, value, locale, surface}) {
+export function checkTranslation({item, value, locale, surface, glossary}) {
     const isPluralMap = surface === 'server' && value && typeof value === 'object' && !Array.isArray(value) &&
         Object.values(value).every((form) => typeof form === 'string');
     if (typeof value !== 'string' && !isPluralMap) {
@@ -131,5 +142,6 @@ export function checkTranslation({item, value, locale, surface}) {
     } else {
         out.push(...checkServer(item, value, locale));
     }
+    out.push(...softChecks(item, value, glossary));
     return out;
 }

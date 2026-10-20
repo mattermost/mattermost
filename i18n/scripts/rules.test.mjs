@@ -1,14 +1,31 @@
 // node --test i18n/scripts/*.test.mjs
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import {describe, test} from 'node:test';
+import {fileURLToPath} from 'node:url';
 
+import {readGlossary} from './lib/glossary.mjs';
 import {checkTranslation} from './lib/rules.mjs';
 
-const check = (locale, english, value, surface = 'webapp') => checkTranslation({
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const files = (contents) => ({read: (rel) => (rel in contents ? JSON.stringify(contents[rel]) : null)});
+const repoTree = {read: (rel) => (fs.existsSync(path.join(root, rel)) ? fs.readFileSync(path.join(root, rel), 'utf8') : null)};
+
+const fixtureGlossary = (locale) => readGlossary(files({
+    'i18n/glossary/en.json': {
+        Mattermost: {definition: 'The product.', partOfSpeech: 'noun', doNotTranslate: true, aliases: ['MM']},
+        Boards: {definition: 'A product.', partOfSpeech: 'noun', doNotTranslate: true, commonWord: true},
+        channel: {definition: 'A place to talk.', partOfSpeech: 'noun', doNotTranslate: false},
+    },
+}), locale);
+
+const check = (locale, english, value, surface = 'webapp', glossary = fixtureGlossary(locale)) => checkTranslation({
     item: {english, description: ''},
     value,
     locale,
     surface,
+    glossary,
 }).map((f) => `${f.severity} ${f.rule}`);
 
 describe('rules', () => {
@@ -55,5 +72,21 @@ describe('rules', () => {
         assert.deepEqual(check('es', english, {one: '{{.Count}} elemento', many: '{{.Count}} elementos', other: '{{.Count}} elementos'}, 'server'), ['error plural-category']);
         assert.deepEqual(check('xx', english, {one: '{{.Count}} x', other: '{{.Count}} x'}, 'server'), ['error plural-category']);
         assert.deepEqual(check('ru', english, '{{.Count}} элементов', 'server'), ['error plural-demoted']);
+    });
+
+    test('leaving out a doNotTranslate name is soft', () => {
+        assert.deepEqual(check('de', 'Open Mattermost', 'Öffne die App'), ['soft do-not-translate']);
+        assert.deepEqual(check('de', 'Open MM', 'Öffne die App', 'server'), ['soft do-not-translate']);
+        assert.deepEqual(check('de', 'Open Mattermost', 'Mattermost öffnen'), []);
+        assert.deepEqual(check('de', 'Visit mattermost.com', 'Besuche unsere Website'), []);
+        assert.deepEqual(check('de', 'Open the channel', 'Öffne den Kanal'), []);
+    });
+
+    test('a doNotTranslate name that is also a common word may be left out', () => {
+        assert.deepEqual(check('de', 'Boards are shared', 'Tafeln werden geteilt'), []);
+
+        const real = readGlossary(repoTree, 'de');
+        assert.deepEqual(check('de', 'Channels are listed here', 'Kanäle werden hier aufgelistet', 'webapp', real), []);
+        assert.deepEqual(check('de', 'Ask Mattermost support', 'Frag den Support', 'webapp', real), ['soft do-not-translate']);
     });
 });
