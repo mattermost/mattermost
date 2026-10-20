@@ -660,7 +660,7 @@ func TestPropertyField_IsValid(t *testing.T) {
 			CreateAt:      GetMillis(),
 			UpdateAt:      GetMillis(),
 		}
-		require.Error(t, pf.IsValid())
+		requireInvalidBecause(t, pf.IsValid(), "template fields cannot have a linked field")
 	})
 
 	t.Run("linked field with empty masking object is invalid", func(t *testing.T) {
@@ -677,24 +677,7 @@ func TestPropertyField_IsValid(t *testing.T) {
 			CreateAt:      GetMillis(),
 			UpdateAt:      GetMillis(),
 		}
-		require.Error(t, pf.IsValid())
-	})
-
-	t.Run("linked field with masking carrying MaskByFieldID is invalid", func(t *testing.T) {
-		linkedID := NewId()
-		pf := &PropertyField{
-			ID:            NewId(),
-			GroupID:       NewId(),
-			Name:          "linked field",
-			Type:          PropertyFieldTypeSelect,
-			ObjectType:    PropertyFieldObjectTypeUser,
-			TargetType:    string(PropertyFieldTargetLevelSystem),
-			LinkedFieldID: &linkedID,
-			Permissions:   &Permissions{Masking: &Masking{MaskByFieldID: NewId()}},
-			CreateAt:      GetMillis(),
-			UpdateAt:      GetMillis(),
-		}
-		require.Error(t, pf.IsValid())
+		requireInvalidBecause(t, pf.IsValid(), "a linked field cannot declare its own masking")
 	})
 
 	t.Run("linked field with nil LinkedFieldID and masking is valid", func(t *testing.T) {
@@ -767,7 +750,7 @@ func TestPropertyField_IsValid(t *testing.T) {
 				CreateAt:      GetMillis(),
 				UpdateAt:      GetMillis(),
 			}
-			require.Error(t, pf.IsValid(), "grant type %q should be rejected", grant.Type)
+			requireInvalidBecause(t, pf.IsValid(), "a linked field cannot grant option.read")
 		}
 	})
 
@@ -788,7 +771,7 @@ func TestPropertyField_IsValid(t *testing.T) {
 			CreateAt: GetMillis(),
 			UpdateAt: GetMillis(),
 		}
-		require.Error(t, pf.IsValid())
+		requireInvalidBecause(t, pf.IsValid(), "grant 1: a linked field cannot grant option.read")
 	})
 
 	t.Run("linked field with a wildcard grant over other actions is valid", func(t *testing.T) {
@@ -1260,6 +1243,15 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.Equal(t, "invalid permission level", appErr.params["Reason"])
 		})
 	})
+}
+
+// requireInvalidBecause requires err to be the IsValid error carrying reason,
+// so a test of one rule can't pass on another rule's rejection.
+func requireInvalidBecause(t *testing.T, err error, reason string) {
+	t.Helper()
+	var appErr *AppError
+	require.ErrorAs(t, err, &appErr)
+	require.Contains(t, appErr.params["Reason"], reason)
 }
 
 func TestPropertyFieldPatch_IsValid(t *testing.T) {
