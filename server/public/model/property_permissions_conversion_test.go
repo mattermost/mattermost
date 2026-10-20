@@ -516,6 +516,67 @@ func TestPermissionsFromLegacyGrantsSourcePlugin(t *testing.T) {
 	})
 }
 
+func TestPermissionsFromLegacyGrantsOwnedProtectedField(t *testing.T) {
+	// master reaches a protected field with owners when an admin sets owners
+	// on a field its source plugin created, that plugin, as a listed owner,
+	// sets protected, and the admin then changes the owners. Its write checks
+	// then read only the owners list, never protected or the source plugin,
+	// while its read path still gives the source plugin every value and
+	// option.
+	newField := func(accessMode string, owners ...PropertyOwner) *PropertyField {
+		field := &PropertyField{
+			ObjectType:        PropertyFieldObjectTypeUser,
+			PermissionField:   new(PermissionLevelSysadmin),
+			PermissionOptions: new(PermissionLevelSysadmin),
+			PermissionValues:  new(PermissionLevelSysadmin),
+			Attrs: StringInterface{
+				PropertyAttrsProtected:      true,
+				PropertyAttrsSourcePluginID: "plugin1",
+				PropertyAttrsAccessMode:     accessMode,
+				PropertyAttrsOwners:         owners,
+			},
+		}
+		requireMasterLegacyShape(t, field)
+		return field
+	}
+	opts := LegacyConversionOpts{ConvertAttrs: true}
+
+	t.Run("owned by another plugin, the source plugin keeps only its reads", func(t *testing.T) {
+		field := newField(PropertyAccessModeSourceOnly, PropertyOwner{Type: PropertyOwnerTypePlugin, ID: "plugin2"})
+
+		p := PermissionsFromLegacy(field, opts)
+
+		for _, action := range []string{PropertyActionFieldWrite, PropertyActionOptionWrite, PropertyActionValueWrite} {
+			assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", action), action)
+			assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin2", "", action), action)
+		}
+		assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionValueRead))
+		assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionOptionRead))
+
+		// A v2 reader sees the owner master stores, not the source plugin.
+		projected := ProjectLegacyPermissions(&PropertyField{ObjectType: field.ObjectType, Attrs: field.Attrs, Permissions: p})
+		assert.Equal(t, []Identity{{Type: PropertyOwnerTypePlugin, ID: "plugin2"}}, ownerIdentities(GetPropertyFieldOwners(projected)))
+		assert.Equal(t, p, PermissionsFromLegacy(projected, opts))
+	})
+
+	t.Run("a scoped owner that is the source plugin keeps its value.write scoped", func(t *testing.T) {
+		field := newField(PropertyAccessModeSourceOnly, PropertyOwner{Type: PropertyOwnerTypePlugin, ID: "plugin1", Scopes: []string{"entra"}})
+
+		p := PermissionsFromLegacy(field, opts)
+
+		require.NoError(t, p.IsValid(field.ObjectType))
+		assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "entra", PropertyActionValueWrite))
+		assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "okta", PropertyActionValueWrite))
+		assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionValueWrite))
+		// Its reads are the source plugin's, which no scope narrows.
+		assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "okta", PropertyActionValueRead))
+		assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionFieldWrite))
+
+		projected := ProjectLegacyPermissions(&PropertyField{ObjectType: field.ObjectType, Attrs: field.Attrs, Permissions: p})
+		assert.Equal(t, p, PermissionsFromLegacy(projected, opts))
+	})
+}
+
 func TestPermissionsFromLegacyGrantsSyncLock(t *testing.T) {
 	// An ldap-synced field converts to a service grant allowing value.write
 	// and field.write — the lock never gated human value writes, and the
@@ -1297,6 +1358,17 @@ func TestProjectLegacyPermissionsPreservesV2View(t *testing.T) {
 			valuesIgnoredFor: true,
 		},
 		{
+			name: "a protected field an admin gave another owner",
+			field: accessControl(sysadmin, StringInterface{
+				PropertyAttrsSourcePluginID: "plugin1",
+				PropertyAttrsProtected:      true,
+				PropertyAttrsAccessMode:     PropertyAccessModeSourceOnly,
+				PropertyAttrsOwners:         []PropertyOwner{{Type: PropertyOwnerTypePlugin, ID: "plugin2"}},
+			}),
+			convertAttrs:     true,
+			valuesIgnoredFor: true,
+		},
+		{
 			name: "a field owned by a user and a role",
 			field: accessControl(sysadmin, StringInterface{
 				PropertyAttrsOwners: []PropertyOwner{
@@ -1380,15 +1452,10 @@ func ownerIdentities(owners []PropertyOwner) []Identity {
 	return identities
 }
 
-// requireMasterLegacyShape fails a fixture master would never store in
-// access_control, so a conversion test can't pin behaviour for an input that
-// doesn't exist. Master's access mode validator runs on every access_control
-// write, and a protected field can't gain owners: plugins may not set them,
-// and admins may not edit a protected field.
+// requireMasterLegacyShape fails a fixture master's access mode validator
+// refuses, so a conversion test can't pin behaviour for an input no
+// access_control write accepts.
 func requireMasterLegacyShape(t *testing.T, field *PropertyField) {
 	t.Helper()
 	require.NoError(t, ValidatePropertyFieldAccessMode(field))
-	if IsPropertyFieldProtected(field) {
-		require.False(t, HasPropertyFieldOwners(field), "master stores no owners on a protected field")
-	}
 }

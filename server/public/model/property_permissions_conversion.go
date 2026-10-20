@@ -285,7 +285,8 @@ func mergeSplitOwners(owners []PropertyOwner) []PropertyOwner {
 
 // derivedGrantAllow returns, for each identity grantsFromLegacy grants from
 // attrs other than owners, the actions it grants it: the source plugin of a
-// protected field, and the sync service of a synced one.
+// protected field (only its reads once the field has owners, see
+// sourcePluginGrantAllow), and the sync service of a synced one.
 func derivedGrantAllow(field *PropertyField) map[Identity][]string {
 	derived := map[Identity][]string{}
 	if pluginID, allow := sourcePluginGrantAllow(field); pluginID != "" {
@@ -390,20 +391,25 @@ func maskingFromLegacy(field *PropertyField, restrictions *Restrictions, opts Le
 // before it is merged in: an owner's Scopes only ever narrows the value
 // actions, since field.write and the option actions are measured against the
 // field's own target rather than a value's object, so scope has nothing to
-// say about them. The two halves are tracked separately per identity and
-// recombined into one grant at the end whenever neither ends up carrying a
-// scope — e.g. a scoped owner that is also the sync service, whose unscoped
-// value.write cancels the owner scope out of the value half. An identity
-// whose two halves do end up scoped differently is the case this split
-// exists for: a scoped owner keeps its field.write and option grants
-// unscoped even though its value grant is not, matching how the store's
-// grants table (keyed on FieldID, Type, ID, Action, not Scopes) lets two
-// grants for one identity coexist as long as their actions are disjoint.
+// say about them. The value actions are tracked in two parts per identity,
+// the scoped and the unscoped ones, so an unscoped action one input gives an
+// identity never lifts the scope off the actions another input scoped: the
+// source plugin's unscoped value.read on an owned protected field leaves its
+// scoped owner grant's value.write scoped. A scoped action the identity also
+// holds unscoped is dropped from the scoped part, which the unscoped grant
+// already covers.
+//
+// The unscoped value actions and the definition actions recombine into one
+// unscoped grant, and the scoped value actions, if any, become a second
+// grant: a scoped owner keeps its field.write and option grants unscoped even
+// though its value grant is not, matching how the store's grants table
+// (keyed on FieldID, Type, ID, Action, not Scopes) lets two grants for one
+// identity coexist as long as their actions are disjoint.
 func grantsFromLegacy(field *PropertyField) []Grant {
 	type identityKey struct{ typ, id string }
 	var order []identityKey
-	valueByIdentity := map[identityKey]*Grant{}
-	otherByIdentity := map[identityKey]*Grant{}
+	scopedByIdentity := map[identityKey]*Grant{}
+	unscopedByIdentity := map[identityKey]*Grant{}
 
 	addTo := func(byIdentity map[identityKey]*Grant, key identityKey, scopes, allow []string) {
 		if len(allow) == 0 {
@@ -426,8 +432,8 @@ func grantsFromLegacy(field *PropertyField) []Grant {
 			return
 		}
 		key := identityKey{identityType, id}
-		if _, ok := valueByIdentity[key]; !ok {
-			if _, ok := otherByIdentity[key]; !ok {
+		if _, ok := scopedByIdentity[key]; !ok {
+			if _, ok := unscopedByIdentity[key]; !ok {
 				order = append(order, key)
 			}
 		}
@@ -439,10 +445,14 @@ func grantsFromLegacy(field *PropertyField) []Grant {
 				otherAllow = append(otherAllow, action)
 			}
 		}
-		addTo(valueByIdentity, key, scopes, valueAllow)
+		if len(scopes) > 0 {
+			addTo(scopedByIdentity, key, scopes, valueAllow)
+		} else {
+			addTo(unscopedByIdentity, key, nil, valueAllow)
+		}
 		// field.write/option grants are never scope-gated, no matter what
 		// scope the same call passed for the value half above.
-		addTo(otherByIdentity, key, nil, otherAllow)
+		addTo(unscopedByIdentity, key, nil, otherAllow)
 	}
 
 	for _, owner := range GetPropertyFieldOwners(field) {
@@ -483,18 +493,18 @@ func grantsFromLegacy(field *PropertyField) []Grant {
 
 	grants := make([]Grant, 0, len(order))
 	for _, key := range order {
-		value, other := valueByIdentity[key], otherByIdentity[key]
-		switch {
-		case value == nil:
-			grants = append(grants, *other)
-		case other == nil:
-			grants = append(grants, *value)
-		case len(value.Scopes) == 0 && len(other.Scopes) == 0:
-			// Neither half ended up scoped, so one grant says exactly what two
-			// would.
-			grants = append(grants, Grant{Identity: value.Identity, Allow: unionActions(value.Allow, other.Allow)})
-		default:
-			grants = append(grants, *value, *other)
+		scoped, unscoped := scopedByIdentity[key], unscopedByIdentity[key]
+		if scoped != nil && unscoped != nil {
+			scoped.Allow = slices.DeleteFunc(scoped.Allow, func(a string) bool { return slices.Contains(unscoped.Allow, a) })
+			if len(scoped.Allow) == 0 {
+				scoped = nil
+			}
+		}
+		if scoped != nil {
+			grants = append(grants, *scoped)
+		}
+		if unscoped != nil {
+			grants = append(grants, *unscoped)
 		}
 	}
 	return grants
@@ -566,16 +576,25 @@ func unguardedGroupPluginAllow(field *PropertyField) []string {
 }
 
 // sourcePluginGrantAllow returns field's source plugin and the actions its
-// grant allows, or "" when it gets none. The source plugin can read, write
-// the definition and write values on a protected field; anything less takes
-// access away, and it is never scope-restricted. It has no standing on an
-// unprotected field: there the owners list, or the wildcard on an unowned
-// field, already says what it may do. The sync lock still reserves the
-// values for the sync service.
+// grant allows, or "" when it gets none. It has standing of its own only on a
+// protected field; on an unprotected one the owners list, or the wildcard on
+// an unowned field, already says what it may do.
+//
+// On a protected field with no owners it may read, write the definition and
+// write values; anything less takes access away, and it is never
+// scope-restricted. The legacy sync lock refuses it a synced field's value
+// writes, so value.write is left out there. Once the field has owners, the
+// legacy write checks read only the owners list, never protected or the
+// source plugin, so the source plugin keeps only the reads the legacy read
+// path still gives it on any access mode: value.read and option.read. If it
+// is also a listed owner, that owner gets its own grant.
 func sourcePluginGrantAllow(field *PropertyField) (string, []string) {
 	pluginID, _ := field.Attrs[PropertyAttrsSourcePluginID].(string)
 	if pluginID == "" || !IsPropertyFieldProtected(field) {
 		return "", nil
+	}
+	if HasPropertyFieldOwners(field) {
+		return pluginID, []string{PropertyActionOptionRead, PropertyActionValueRead}
 	}
 	if syncLockSource(field) != "" {
 		return pluginID, removeAction(validPropertyActions, PropertyActionValueWrite)
