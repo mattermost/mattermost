@@ -289,4 +289,19 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArg_PrefersIdWhenArgLooksLikeId() {
 			s.Require().Equal(namedUser.Id, user.Id)
 		})
 	}
+
+	s.Run("getUserFromArg returns an error when the id lookup is forbidden", func() {
+		targetID := model.NewId()
+		forbiddenErr := errors.New("forbidden")
+
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), targetID, "").
+			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
+			Times(1)
+
+		user, err := getUserFromArg(s.client, targetID)
+		s.Require().Nil(user)
+		s.Require().EqualError(err, "forbidden")
+	})
 }

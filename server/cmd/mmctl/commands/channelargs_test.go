@@ -325,4 +325,26 @@ func (s *MmctlUnitTestSuite) TestGetChannelFromArg_PrefersIdWhenChannelPartLooks
 			s.Require().Equal(namedChannel.Id, channel.Id)
 		})
 	}
+
+	s.Run("getChannelFromArg returns an error when the id lookup is forbidden", func() {
+		teamID := model.NewId()
+		channelID := model.NewId()
+		team := &model.Team{Id: teamID}
+		forbiddenErr := errors.New("channel forbidden")
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelID).
+			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
+			Times(1)
+
+		channel, err := getChannelFromArg(s.client, fmt.Sprintf("%s:%s", teamID, channelID))
+		s.Require().Nil(channel)
+		s.Require().EqualError(err, "channel forbidden")
+	})
 }
