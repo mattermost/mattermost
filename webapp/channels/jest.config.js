@@ -31,7 +31,8 @@ const config = {
         '^.+\\.(css|less|scss)$': 'identity-obj-proxy',
         '^.*i18n.*\\.(json)$': '<rootDir>/src/tests/i18n_mock.json',
     },
-    moduleDirectories: ['src', 'node_modules'],
+    moduleDirectories: ['node_modules'],
+    modulePaths: ['<rootDir>/src'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
     transformIgnorePatterns: [
         'node_modules/(?!react-native|react-router|pdfjs-dist|p-queue|p-timeout|@mattermost/compass-icons|cidr-regex|ip-regex|serialize-error|@tiptap|marked|lowlight|devlop|fault|hast-util-to-text|@types/hast|unist-util-find-after)',

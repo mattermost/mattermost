@@ -86,8 +86,8 @@ func TestAPIHandlersWithGzip(t *testing.T) {
 		testAPIHandlerGzipMode(t, "ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForGzip(t)), session.Token)
 	})
 
-	t.Run("with WebserverMode == \"nogzip\"", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "nogzip" })
+	t.Run("with WebserverMode == \"uncompressed\"", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "uncompressed" })
 
 		testAPIHandlerNoGzipMode(t, "ApiHandler", api.APIHandler(handlerForGzip(t)), "")
 		testAPIHandlerNoGzipMode(t, "ApiSessionRequired", api.APISessionRequired(handlerForGzip(t)), session.Token)
