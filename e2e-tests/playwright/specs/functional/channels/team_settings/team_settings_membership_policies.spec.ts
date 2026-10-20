@@ -6,7 +6,7 @@
  * @reference MM-67669
  */
 
-import {ChannelsPage, expect, getAdminClient, getRandomId, test} from '@mattermost/playwright-lib';
+import {ChannelsPage, expect, getRandomId, test} from '@mattermost/playwright-lib';
 
 import {
     enableABACConfig,
@@ -35,20 +35,6 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
     // Serial: several tests toggle ABAC; parallel runs in this file race the same server config.
     test.describe.configure({mode: 'serial'});
 
-    test.afterAll(async () => {
-        try {
-            const {adminClient} = await getAdminClient({skipLog: true});
-            await adminClient.patchConfig({
-                AccessControlSettings: {
-                    EnableAttributeBasedAccessControl: true,
-                    EnableUserManagedAttributes: true,
-                },
-            } as any);
-        } catch {
-            // Best-effort cleanup.
-        }
-    });
-
     test('MM-67669_1 Membership Policies tab visible for admin with ABAC enabled', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await setupMembershipPoliciesTest(pw);
@@ -71,53 +57,45 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
     test('MM-67669_2 Membership Policies tab hidden when ABAC disabled', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await setupMembershipPoliciesTest(pw);
-        const original = await adminClient.getConfig();
-        const originalEnabled = original.AccessControlSettings?.EnableAttributeBasedAccessControl ?? false;
 
-        try {
-            await adminClient.patchConfig({
-                AccessControlSettings: {EnableAttributeBasedAccessControl: false},
-            });
-            await pw.waitUntil(async () => {
-                const cfg = await adminClient.getConfig();
-                return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === false;
-            });
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+        });
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === false;
+        });
 
-            const {page} = await pw.testBrowser.login(adminUser);
-            const channelsPage = new ChannelsPage(page);
-            await channelsPage.goto(team.name);
-            await channelsPage.toBeVisible();
-            // Force a full navigation so the team settings bundle reads the latest
-            // AccessControlSettings (WebSocket config updates can lag in CI).
-            // Re-apply guard immediately before reload: a concurrent initSetup() may have
-            // re-enabled ABAC between the waitUntil check above and here.
-            await adminClient.patchConfig({
-                AccessControlSettings: {EnableAttributeBasedAccessControl: false},
-            });
-            await page.reload();
-            await page.waitForLoadState('networkidle');
-            await channelsPage.toBeVisible();
-            // Re-apply once more after the page has settled to prevent a WebSocket
-            // CONFIG_CHANGED event (from a concurrent initSetup()) from flipping it back.
-            await adminClient.patchConfig({
-                AccessControlSettings: {EnableAttributeBasedAccessControl: false},
-            });
-            await pw.waitUntil(async () => {
-                const cfg = await adminClient.getConfig();
-                return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === false;
-            });
+        const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await channelsPage.toBeVisible();
+        // Force a full navigation so the team settings bundle reads the latest
+        // AccessControlSettings (WebSocket config updates can lag in CI).
+        // Re-apply guard immediately before reload: a concurrent initSetup() may have
+        // re-enabled ABAC between the waitUntil check above and here.
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+        });
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
+        // Re-apply once more after the page has settled to prevent a WebSocket
+        // CONFIG_CHANGED event (from a concurrent initSetup()) from flipping it back.
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+        });
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === false;
+        });
 
-            const teamSettings = await channelsPage.openTeamSettings();
+        const teamSettings = await channelsPage.openTeamSettings();
 
-            // * Tab is not visible (WebSocket config update can lag)
-            await expect(teamSettings.accessPoliciesTab).not.toBeVisible({timeout: 30000});
+        // * Tab is not visible (WebSocket config update can lag)
+        await expect(teamSettings.accessPoliciesTab).not.toBeVisible({timeout: 30000});
 
-            await teamSettings.close();
-        } finally {
-            await adminClient.patchConfig({
-                AccessControlSettings: {EnableAttributeBasedAccessControl: originalEnabled},
-            });
-        }
+        await teamSettings.close();
     });
 
     test('MM-67669_4 Empty state displayed when no policies exist', async ({pw}) => {

@@ -316,7 +316,10 @@ test.describe('System Console - Membership Policy graph operators', () => {
         // Only this test in the file needs the flag: comparing against the accessed
         // channel's attribute is what it gates, and saving such a rule is rejected
         // while it is off. The two tests above name option names literally.
-        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
+        await pw.ensureFeatureFlag('ResourceAttributesInPolicies', true);
+        // May have just restarted the server, leaving the describe-scoped adminClient
+        // (from beforeEach) stale. Refresh it for this test's cleanup and afterEach's.
+        adminClient = (await pw.getAdminClient()).adminClient;
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;

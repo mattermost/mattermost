@@ -111,11 +111,18 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
             // (which fails under testcontainers).
             const permalinkUrl = `${testConfig.internalBaseURL}/${team.name}/pl/${originalPostId}`;
             await adminChannelsPage.centerView.postCreate.postMessage(permalinkUrl);
+            await adminChannelsPage.centerView.waitUntilLastPostContains(permalinkUrl);
+
+            // Permalink embeds resolve asynchronously. Wait until the admin view has the
+            // preview so later assertions are not racing the first metadata fetch.
+            const permalinkPostAdmin = await adminChannelsPage.centerView.getLastPost();
+            await expect(permalinkPostAdmin.postPreview).toBeVisible({timeout: pw.duration.half_min});
 
             // Both posts are addressed by ID: the embed repeats the original's text, so filtering
             // by text cannot tell the two of them apart.
             const permalinkPosts = await adminClient.getPosts(channelId, 0, 1);
             const permalinkPostId = permalinkPosts.order[0];
+            expect(permalinkPostId).not.toBe(originalPostId);
 
             // # Enable ABAC and deny download for everyone
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -143,7 +150,7 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
 
             // * Verify the embedded preview is redacted too, and not merely file-less
             const permalinkPost = await channelsPage.centerView.getPostById(permalinkPostId);
-            await expect(permalinkPost.postPreview).toBeVisible();
+            await expect(permalinkPost.postPreview).toBeVisible({timeout: pw.duration.half_min});
             await permalinkPost.toHaveFilesRedacted(permalinkPost.postPreview);
         },
     );

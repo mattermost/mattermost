@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -13,12 +14,17 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -295,6 +301,89 @@ func TestOAuthDeleteApp(t *testing.T) {
 
 	_, appErr = th.App.GetSession(session.Token)
 	require.NotNil(t, appErr, "should not get session from cache or db")
+}
+
+func TestOAuthDeleteAppInvalidatesWebConnSessions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	*th.App.Config().ServiceSettings.EnableOAuthServiceProvider = true
+
+	oauthApp, appErr := th.App.CreateOAuthApp(&model.OAuthApp{
+		CreatorId:    th.SystemAdminUser.Id,
+		Name:         "TestApp" + model.NewId(),
+		CallbackUrls: []string{"https://nowhere.com"},
+		Homepage:     "https://nowhere.com",
+	})
+	require.Nil(t, appErr)
+
+	oauthSession, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:  th.BasicUser.Id,
+		Roles:   model.SystemUserRoleId,
+		IsOAuth: true,
+	})
+	require.Nil(t, appErr)
+	_, err := th.App.Srv().Store().OAuth().SaveAccessData(&model.AccessData{
+		ClientId:     oauthApp.Id,
+		UserId:       th.BasicUser.Id,
+		Token:        oauthSession.Token,
+		RefreshToken: model.NewId(),
+		RedirectUri:  "https://nowhere.com",
+	})
+	require.NoError(t, err)
+
+	otherSession, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id})
+	require.Nil(t, appErr)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
+		if err != nil {
+			return
+		}
+		defer c.Close()
+		for {
+			if _, _, err := c.NextReader(); err != nil {
+				return
+			}
+		}
+	}))
+	defer server.Close()
+
+	ps := th.App.Srv().Platform()
+	connect := func(session *model.Session) *platform.WebConn {
+		ws, _, err := (&websocket.Dialer{}).Dial("ws://"+server.Listener.Addr().String(), nil)
+		require.NoError(t, err)
+		s := *session
+		// Pin a future expiry so the WebConn trusts its cached session
+		// until something resets it.
+		s.ExpiresAt = model.GetMillis() + time.Hour.Milliseconds()
+		wc := ps.NewWebConn(&platform.WebConnConfig{
+			WebSocket:    ws,
+			Session:      s,
+			TFunc:        i18n.IdentityTfunc(),
+			Locale:       "en",
+			ConnectionID: model.NewId(),
+		}, th.App, th.App.Channels())
+		require.NoError(t, ps.HubRegister(wc))
+		go wc.Pump()
+		t.Cleanup(wc.Close)
+		require.Eventually(t, func() bool { return ps.SessionIsRegistered(s) }, 2*time.Second, 10*time.Millisecond)
+		return wc
+	}
+
+	oauthWC := connect(oauthSession)
+	otherWC := connect(otherSession)
+
+	appErr = th.App.DeleteOAuthApp(th.Context, oauthApp.Id)
+	require.Nil(t, appErr)
+
+	// Hub messages are processed in order, so these round-trips guarantee
+	// each hub has finished the invalidation.
+	ps.SessionIsRegistered(model.Session{UserId: th.BasicUser.Id})
+	ps.SessionIsRegistered(model.Session{UserId: th.BasicUser2.Id})
+
+	require.False(t, oauthWC.IsBasicAuthenticated(), "webconn session for the deleted app should be invalidated")
+	require.True(t, otherWC.IsBasicAuthenticated(), "webconn session for another user should remain valid")
 }
 
 func TestAuthorizeOAuthUser(t *testing.T) {
@@ -2321,5 +2410,65 @@ func TestRedactOAuthTokenResponse(t *testing.T) {
 			assert.NotContains(t, actual, "abc")
 			assert.NotContains(t, actual, "def")
 		}
+	})
+}
+
+func TestCompleteOAuthUserCreated(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GitLabSettings.Enable = true
+	})
+
+	gitlabBody := func(id int64, username, email string) io.ReadCloser {
+		js, err := json.Marshal(oauthgitlab.GitLabUser{Id: id, Username: username, Email: email, Name: "Test User"})
+		require.NoError(t, err)
+		return io.NopCloser(bytes.NewReader(js))
+	}
+
+	t.Run("login JIT-creates then subsequent login does not", func(t *testing.T) {
+		id := model.GetMillis()
+		username := "o" + model.NewId()
+		email := model.NewId() + "@simulator.amazonses.com"
+		props := map[string]string{"action": model.OAuthActionLogin}
+
+		user, userCreated, appErr := th.App.CompleteOAuth(th.Context, model.UserAuthServiceGitlab, gitlabBody(id, username, email), props, nil)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+		assert.True(t, userCreated)
+
+		user2, userCreated, appErr := th.App.CompleteOAuth(th.Context, model.UserAuthServiceGitlab, gitlabBody(id, username, email), props, nil)
+		require.Nil(t, appErr)
+		assert.False(t, userCreated)
+		assert.Equal(t, user.Id, user2.Id)
+	})
+
+	t.Run("signup reports user created", func(t *testing.T) {
+		id := model.GetMillis()
+		username := "o" + model.NewId()
+		email := model.NewId() + "@simulator.amazonses.com"
+
+		user, userCreated, appErr := th.App.CompleteOAuth(th.Context, model.UserAuthServiceGitlab, gitlabBody(id, username, email), map[string]string{"action": model.OAuthActionSignup}, nil)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+		assert.True(t, userCreated)
+	})
+
+	t.Run("email-to-sso does not report user created", func(t *testing.T) {
+		existing := th.CreateUser(t)
+		id := model.GetMillis()
+		username := "o" + model.NewId()
+		email := model.NewId() + "@simulator.amazonses.com"
+		props := map[string]string{
+			"action": model.OAuthActionEmailToSSO,
+			"email":  existing.Email,
+		}
+
+		user, userCreated, appErr := th.App.CompleteOAuth(th.Context, model.UserAuthServiceGitlab, gitlabBody(id, username, email), props, nil)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+		assert.Equal(t, existing.Id, user.Id)
+		assert.False(t, userCreated)
 	})
 }
