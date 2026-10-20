@@ -1982,9 +1982,9 @@ func (f permanentDeleteFixture) requireFullyDeleted(t *testing.T, th *TestHelper
 		require.False(t, exists, "file %s was left in storage", info.Path)
 	}
 
-	exists, appErr := th.App.FileExists(getProfileImagePath(userID))
+	exists, appErr := th.App.FileExists(getProfileImageDirectory(userID))
 	require.Nil(t, appErr)
-	require.False(t, exists, "profile image was left in storage")
+	require.False(t, exists, "profile image directory was left in storage")
 }
 
 // injectDeleteFailures adds a trigger to every table that makes the nth DELETE statement after
@@ -2117,6 +2117,25 @@ func TestPermanentDeleteUserFailureCanBeRetried(t *testing.T) {
 
 	require.Nil(t, th.App.PermanentDeleteUser(th.Context, user))
 	fixture.fileInfos = append(fixture.fileInfos, blocked)
+	fixture.requireFullyDeleted(t, th)
+}
+
+func TestPermanentDeleteUserRemovesHalfRemovedProfileImageDirectory(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	ss := th.App.Srv().Store()
+	otherRootPost, err := ss.Post().Save(th.Context, &model.Post{UserId: th.SystemAdminUser.Id, ChannelId: th.BasicChannel.Id, Message: "root by someone else"})
+	require.NoError(t, err)
+	tos, err := ss.TermsOfService().Save(&model.TermsOfService{Text: "the terms", UserId: th.SystemAdminUser.Id})
+	require.NoError(t, err)
+	fixture := newPermanentDeleteFixture(t, th, otherRootPost, tos.Id)
+
+	// The state an earlier removal leaves behind when it deletes the image but cannot remove
+	// the directory it sits in.
+	require.Nil(t, th.App.RemoveFile(getProfileImagePath(fixture.user.Id)))
+
+	require.Nil(t, th.App.PermanentDeleteUser(th.Context, fixture.user))
 	fixture.requireFullyDeleted(t, th)
 }
 

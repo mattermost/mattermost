@@ -2318,16 +2318,10 @@ func (a *App) permanentDeleteUserFiles(rctx request.CTX, userID string) error {
 	}
 }
 
+// permanentDeleteUserProfileImage removes the user's profile image directory. It is removed
+// unconditionally: a removal that only got as far as deleting the image leaves the directory
+// behind, and every backend tolerates the directory already being gone.
 func (a *App) permanentDeleteUserProfileImage(userID string) error {
-	exists, appErr := a.FileExists(getProfileImagePath(userID))
-	if appErr != nil {
-		return errors.Wrap(appErr, "failed to check for the profile image")
-	}
-
-	if !exists {
-		return nil
-	}
-
 	if appErr := a.RemoveDirectory(getProfileImageDirectory(userID)); appErr != nil {
 		return errors.Wrap(appErr, "failed to remove the profile image")
 	}
