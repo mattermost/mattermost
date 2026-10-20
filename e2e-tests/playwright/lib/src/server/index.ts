@@ -86,7 +86,7 @@ export {ensureFeatureFlag} from './feature_flags';
 export {ensureDefaultServerEnv} from './default_server_env';
 export {defaultFeatureFlags} from './default_feature_flags';
 export {ensurePhase2MigrationCompleted} from './migrations';
-export {ensureInternalSiteUrl, ensureServerEnv, ensureSiteUrl} from './server_env';
+export {ensureInternalSiteUrl, ensureServerEnv, ensureSiteUrl, requireSubpathServer} from './server_env';
 export {generateTotp, enableUserMfa} from './mfa';
 export {runMmctl, runMmctlLocal, ensureMmctl} from './mmctl';
 export type {MmctlResult} from './mmctl';
