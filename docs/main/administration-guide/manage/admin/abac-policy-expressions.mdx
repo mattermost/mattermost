@@ -137,7 +137,7 @@ Here's how the rules evaluate for three users. Alex holds *Air*, Blake holds *F-
 Keep the following in mind:
 
 - **`in` ignores the hierarchy.** `"Air" in user.attributes.Programs` matches only users who hold *Air* itself. Each `in` tests one option; to test several, join them with `&&` or `||`. The Simple Mode **has any of** and **has all of** operators do this for you.
-- **Compare against a channel attribute** by passing it instead of a list, for example `user.attributes.Programs.coversAll(resource.attributes.Programs)`. Both must come from the same global attribute. `hasAnyOf` and `hasAllOf` also accept a hierarchical channel attribute, and match options exactly, ignoring the hierarchy.
+- **Compare against a channel attribute** by passing it instead of a list, for example `user.attributes.Programs.coversAll(resource.attributes.Programs)`. Both must come from the same global attribute.
 - **No other operators work with hierarchical attributes.** `==`, `!=`, `<`, `>`, `startsWith`, and the rest are rejected when you save, because a hierarchy has no single order to compare against.
 - **The list can't be empty.**
 - **Option names aren't checked when you save.** If a rule names an option that doesn't exist, because it's misspelled or was later deleted, the whole rule evaluates to false for everyone. Use **Test access rule** or **Simulate access** to catch this before it removes members.
