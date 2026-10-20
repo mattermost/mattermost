@@ -12,8 +12,9 @@ import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
-import ConnectedThreadViewer from './index';
 import ThreadViewerVirtualized from './virtualized_thread_viewer';
+
+import ConnectedThreadViewer from './index';
 
 jest.mock('./virtualized_thread_viewer', () => ({
     __esModule: true,
