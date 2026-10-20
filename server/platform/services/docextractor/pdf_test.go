@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -659,7 +659,7 @@ func buildXrefStreamPDF(objs map[int]string, compressed map[int][2]int, prevObj 
 	for n := range objs {
 		nums = append(nums, n)
 	}
-	sort.Ints(nums)
+	slices.Sort(nums)
 	for _, n := range nums {
 		offsets[n] = body.Len()
 		fmt.Fprintf(&body, "%d 0 obj\n%s\nendobj\n", n, objs[n])
@@ -726,7 +726,7 @@ func xrefStreamPDFPrevRing(objs map[int]string, sections int) []byte {
 	for n := range objs {
 		nums = append(nums, n)
 	}
-	sort.Ints(nums)
+	slices.Sort(nums)
 	for _, n := range nums {
 		offsets[n] = body.Len()
 		fmt.Fprintf(&body, "%d 0 obj\n%s\nendobj\n", n, objs[n])
