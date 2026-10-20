@@ -3082,6 +3082,19 @@ func TestSearchPostsForUser(t *testing.T) {
 		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.SystemAdminUser.Id, notAMemberChannel)
 		require.Nil(t, appErr)
 
+		notAMemberPrivateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		th.CreateMessagePost(t, notAMemberPrivateChannel, searchTerm)
+		appErr = th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.SystemAdminUser.Id, notAMemberPrivateChannel)
+		require.Nil(t, appErr)
+
+		// A channel on a team the user has left, which an unscoped search must not reach either.
+		leftTeam := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, leftTeam)
+		leftTeamChannel := th.CreateChannel(t, leftTeam)
+		th.CreateMessagePost(t, leftTeamChannel, searchTerm)
+		appErr = th.App.RemoveUserFromTeam(th.Context, leftTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
 		// The only other channel on the basic team the user can see, so an exclusion of the basic
 		// channel has something left to return rather than nothing.
 		siblingChannel := th.CreateChannel(t, th.BasicTeam)
@@ -3116,6 +3129,17 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		t.Run("returns nothing for a channel the user does not belong to", func(t *testing.T) {
 			assert.Empty(t, search(searchTerm+" in:"+notAMemberChannel.Id, th.BasicTeam.Id))
+			assert.Empty(t, search(searchTerm+" in:"+notAMemberChannel.Id, ""))
+		})
+
+		t.Run("returns nothing for a private channel the user does not belong to", func(t *testing.T) {
+			assert.Empty(t, search(searchTerm+" in:"+notAMemberPrivateChannel.Id, th.BasicTeam.Id))
+			assert.Empty(t, search(searchTerm+" in:"+notAMemberPrivateChannel.Id, ""))
+		})
+
+		t.Run("returns nothing for a channel on a team the user is not on", func(t *testing.T) {
+			assert.Empty(t, search(searchTerm+" in:"+leftTeamChannel.Id, ""))
+			assert.Empty(t, search(searchTerm+" in:"+leftTeamChannel.Id, leftTeam.Id))
 		})
 
 		t.Run("reaches a channel on another team when the search is not scoped to one", func(t *testing.T) {

@@ -131,6 +131,7 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                         <button
                             type='button'
                             id='mentionFiltersTeamSelector'
+                            data-testid='mentionFiltersTeamSelector'
                             className={classNames('MentionFilters__fieldButton', {'MentionFilters__fieldButton--open': expanded === 'team'})}
                             aria-expanded={expanded === 'team'}
                             onClick={() => toggleSection('team')}
@@ -181,6 +182,7 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                     <button
                         type='button'
                         id='mentionFiltersChannelSelector'
+                        data-testid='mentionFiltersChannelSelector'
                         className={classNames('MentionFilters__fieldButton', {'MentionFilters__fieldButton--open': expanded === 'channels'})}
                         aria-expanded={expanded === 'channels'}
                         onClick={() => toggleSection('channels')}

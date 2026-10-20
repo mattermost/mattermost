@@ -105,6 +105,7 @@ export default function MentionFiltersButton() {
                             ref={refs.setFloating}
                             style={floatingStyles}
                             className='MentionFilters'
+                            data-testid='mentionFiltersPopover'
                             {...getFloatingProps()}
                         >
                             <MentionFiltersPopover
