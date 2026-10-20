@@ -90,14 +90,24 @@ describe('AttributeExternalSource', () => {
         expect(screen.queryByText(/converted to a TEXT attribute/i)).not.toBeInTheDocument();
     });
 
-    it('shows the type-mismatch warning when the current field type is not Text', async () => {
-        renderComponent({fieldType: 'select'});
+    it('shows the type-mismatch warning when the current field type cannot be synced', async () => {
+        renderComponent({fieldType: 'rank'});
 
         await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
         await userEvent.click(screen.getByRole('menuitem', {name: /AD\/LDAP/}));
 
         await screen.findByRole('textbox');
         expect(screen.getByText(/converted to a TEXT attribute/i)).toBeInTheDocument();
+    });
+
+    it.each(['select', 'multiselect', 'phone'] as const)('shows no type-mismatch warning for %s, which a source can populate as it is', async (fieldType) => {
+        renderComponent({fieldType});
+
+        await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+        await userEvent.click(screen.getByRole('menuitem', {name: /AD\/LDAP/}));
+
+        await screen.findByRole('textbox');
+        expect(screen.queryByText(/converted to a TEXT attribute/i)).not.toBeInTheDocument();
     });
 
     it('opens a linked chip\'s edit action pre-filled with the current value', async () => {
@@ -160,8 +170,8 @@ describe('AttributeExternalSource', () => {
         await waitFor(() => expect(screen.getByTestId('attributeExternalSourceTrigger')).toHaveFocus());
     });
 
-    it('renders an explicit status message when both links are cleared by a Type switch, and does not steal focus from the Type control', async () => {
-        const {rerender} = renderComponent({ldapAttr: 'department', samlAttr: 'dept'});
+    it('moves focus to the trigger, rather than announcing a Type switch, when the last chip of a synced Select is removed', async () => {
+        const {rerender} = renderComponent({ldapAttr: 'department', fieldType: 'select'});
 
         rerender(
             <div>
@@ -175,11 +185,30 @@ describe('AttributeExternalSource', () => {
             </div>,
         );
 
+        await waitFor(() => expect(screen.getByTestId('attributeExternalSourceTrigger')).toHaveFocus());
+        expect(screen.getByTestId('attributeExternalSourceStatus')).toHaveTextContent('');
+    });
+
+    it('renders an explicit status message when both links are cleared by a Type switch, and does not steal focus from the Type control', async () => {
+        const {rerender} = renderComponent({ldapAttr: 'department', samlAttr: 'dept'});
+
+        rerender(
+            <div>
+                <AttributeExternalSource
+                    ldapAttr=''
+                    samlAttr=''
+                    fieldType='rank'
+                    onLink={onLink}
+                />
+                <ModalController/>
+            </div>,
+        );
+
         await waitFor(() => expect(screen.getByTestId('attributeExternalSourceStatus')).toHaveTextContent('External source links removed'));
         expect(screen.getByTestId('attributeExternalSourceTrigger')).not.toHaveFocus();
     });
 
-    it('renders the status message (not a focus move) when a Type switch clears a single link -- distinguished from a chip removal by fieldType, not link count', async () => {
+    it('renders the status message (not a focus move) when a Type switch clears a single link -- distinguished from a chip removal by the fieldType change, not link count', async () => {
         const {rerender} = renderComponent({ldapAttr: 'department'});
 
         rerender(
@@ -187,7 +216,7 @@ describe('AttributeExternalSource', () => {
                 <AttributeExternalSource
                     ldapAttr=''
                     samlAttr=''
-                    fieldType='select'
+                    fieldType='rank'
                     onLink={onLink}
                 />
                 <ModalController/>
@@ -206,7 +235,7 @@ describe('AttributeExternalSource', () => {
                 <AttributeExternalSource
                     ldapAttr=''
                     samlAttr=''
-                    fieldType='select'
+                    fieldType='rank'
                     onLink={onLink}
                 />
                 <ModalController/>
