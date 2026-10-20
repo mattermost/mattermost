@@ -6500,7 +6500,7 @@ Manage user attribute fields and the values users have for them. The command is 
 
 <Important>
 
-From Mattermost v12.0, user attributes are managed in **System Console \> System Attributes \> Attribute Management**. User attributes that existed before the upgrade to v12.0, and user attributes created in Attribute Management, are linked to a shared attribute definition there. For these attributes, `mmctl user attributes field edit` and `mmctl user attributes field delete` fail with the error "This field is linked to a Global Attribute template and cannot be modified through the User Attributes API." Edit or delete them in [Attribute Management](/administration-guide/manage/admin/attribute-management) instead. This doesn't affect listing fields, or listing and setting values.
+From Mattermost v12.0, user attributes are managed in **System Console \> System Attributes \> Attribute Management**. User attributes that existed before the upgrade to v12.0, and user attributes created in Attribute Management, are linked to a shared attribute definition there. Attributes created by plugins and protected attributes aren't converted. For linked attributes, `mmctl user attributes field edit` and `mmctl user attributes field delete` fail with the error "This field is linked to a Global Attribute template and cannot be modified through the User Attributes API." Edit or delete them in [Attribute Management](/administration-guide/manage/admin/attribute-management) instead. This doesn't affect listing fields, or listing and setting values.
 
 These commands use the User Attributes API (`/api/v4/custom_profile_attributes`), which is deprecated.
 

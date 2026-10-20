@@ -461,7 +461,7 @@
                 entries. A `text`, `select`, `rank`, `date` or `user` value is
                 a string (an option ID for `select` and `rank`); a
                 `multiselect`, `graph` or `multiuser` value is an array of
-                strings (option IDs or user IDs).
+                strings (option IDs or user IDs). JSON `null` clears a value.
               minProperties: 1
               maxProperties: 50
               additionalProperties:
@@ -470,6 +470,9 @@
                   - type: array
                     items:
                       type: string
+                  - nullable: true
+                    enum:
+                      - null
       responses:
         "200":
           description: Custom Profile Attribute values patch successful
@@ -477,13 +480,18 @@
             application/json:
               schema:
                 type: object
-                description: A map from field ID to the value that was saved.
+                description: >
+                  A map from field ID to the value that was saved. JSON `null`
+                  means the value was cleared.
                 additionalProperties:
                   oneOf:
                     - type: string
                     - type: array
                       items:
                         type: string
+                    - nullable: true
+                      enum:
+                        - null
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -627,7 +635,7 @@
                 entries. A `text`, `select`, `rank`, `date` or `user` value is
                 a string (an option ID for `select` and `rank`); a
                 `multiselect`, `graph` or `multiuser` value is an array of
-                strings (option IDs or user IDs).
+                strings (option IDs or user IDs). JSON `null` clears a value.
               minProperties: 1
               maxProperties: 50
               additionalProperties:
@@ -636,6 +644,9 @@
                   - type: array
                     items:
                       type: string
+                  - nullable: true
+                    enum:
+                      - null
       responses:
         '200':
           description: Custom profile attribute values updated successfully
@@ -643,15 +654,22 @@
             application/json:
               schema:
                 type: object
-                description: A map from field ID to the value that was saved.
+                description: >
+                  A map from field ID to the value that was saved. JSON `null`
+                  means the value was cleared.
                 additionalProperties:
                   oneOf:
                     - type: string
                     - type: array
                       items:
                         type: string
+                    - nullable: true
+                      enum:
+                        - null
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
