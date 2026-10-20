@@ -1114,3 +1114,67 @@ func TestProjectLegacyPermissionsProtectedColumns(t *testing.T) {
 		assert.Equal(t, PermissionLevelMember, *projected.PermissionOptions)
 	})
 }
+
+func TestProjectLegacyPermissionsOmitsDerivedGrants(t *testing.T) {
+	// The source plugin's grant on a protected field and the sync service's on
+	// a synced one come from the field's other attrs. master never listed
+	// either as an owner, and a v2 client reads any owner as managed by an
+	// integration, which would lock an ldap-synced field's "who can set".
+	sysadmin, member := PermissionLevelSysadmin, PermissionLevelMember
+	opts := LegacyConversionOpts{ConvertAttrs: true}
+
+	tests := map[string]StringInterface{
+		"protected":           {PropertyAttrsProtected: true, PropertyAttrsSourcePluginID: "plugin1"},
+		"ldap-synced":         {PropertyFieldAttrLDAP: "employeeID"},
+		"protected and saml":  {PropertyAttrsProtected: true, PropertyAttrsSourcePluginID: "plugin1", PropertyFieldAttrSAML: "employeeID"},
+		"unprotected, plugin": {PropertyAttrsSourcePluginID: "plugin1"},
+	}
+	for name, attrs := range tests {
+		t.Run(name, func(t *testing.T) {
+			field := &PropertyField{
+				ObjectType:        PropertyFieldObjectTypeUser,
+				PermissionField:   &sysadmin,
+				PermissionOptions: &sysadmin,
+				PermissionValues:  &member,
+				Attrs:             attrs,
+			}
+			field.Permissions = PermissionsFromLegacy(field, opts)
+
+			projected := ProjectLegacyPermissions(field)
+
+			assert.False(t, HasPropertyFieldOwners(projected))
+			assert.Equal(t, field.Permissions, PermissionsFromLegacy(projected, opts))
+		})
+	}
+
+	t.Run("a linked field locked by its template's sync attr", func(t *testing.T) {
+		field := &PropertyField{
+			ObjectType: PropertyFieldObjectTypeUser,
+			Attrs:      StringInterface{PropertyFieldAttrLDAP: "employeeID"},
+		}
+		field.Permissions = ApplySyncLock(&Permissions{Restrictions: &Restrictions{}}, "ldap")
+
+		assert.False(t, HasPropertyFieldOwners(ProjectLegacyPermissions(field)))
+	})
+
+	t.Run("a derived grant edited past what the attrs give is projected", func(t *testing.T) {
+		field := &PropertyField{
+			ObjectType:        PropertyFieldObjectTypeUser,
+			PermissionField:   &sysadmin,
+			PermissionOptions: &sysadmin,
+			PermissionValues:  &member,
+			Attrs:             StringInterface{PropertyFieldAttrLDAP: "employeeID"},
+		}
+		field.Permissions = PermissionsFromLegacy(field, opts)
+		for i, g := range field.Permissions.Grants {
+			if g.Type == PropertyOwnerTypeService {
+				field.Permissions.Grants[i].Allow = validPropertyActions
+			}
+		}
+
+		owners := GetPropertyFieldOwners(ProjectLegacyPermissions(field))
+
+		require.Len(t, owners, 1)
+		assert.Equal(t, "ldap", owners[0].ID)
+	})
+}
