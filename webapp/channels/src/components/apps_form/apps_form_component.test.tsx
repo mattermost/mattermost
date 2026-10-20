@@ -1945,6 +1945,7 @@ describe('AppsFormComponent', () => {
 
         const initialForm: Props['form'] = {
             ...baseProps.form,
+            refresh_on_return: true,
             fields: [textField('text_a', 'server a'), textField('text_b', 'server b')],
         };
 
@@ -2225,6 +2226,33 @@ describe('AppsFormComponent', () => {
             });
             expect(document.querySelector('.apps-form-modal-body-loading')).toBeNull();
             expect(screen.getByDisplayValue('server a')).toBeVisible();
+        });
+
+        test('should not refresh when the current form does not set refresh_on_return', () => {
+            const refreshForm = jest.fn();
+            const {bump} = renderForm(refreshForm, {form: {...initialForm, refresh_on_return: undefined}});
+
+            bump(1);
+
+            expect(refreshForm).not.toHaveBeenCalled();
+        });
+
+        test('should follow refresh_on_return of the form the container is showing now', async () => {
+            // The first refresh returns a form without refresh_on_return, so the next
+            // return to this dialog must not refresh again.
+            const refreshForm = jest.fn().mockResolvedValue({
+                data: {type: AppCallResponseTypes.FORM, form: {...initialForm, refresh_on_return: undefined, fields: [textField('text_a', 'refreshed a')]}},
+            });
+            const {bump} = renderForm(refreshForm);
+
+            bump(1);
+            await waitFor(() => {
+                expect(screen.getByDisplayValue('refreshed a')).toBeVisible();
+            });
+
+            bump(2);
+
+            expect(refreshForm).toHaveBeenCalledTimes(1);
         });
 
         test('should not refresh when refreshNonce is 0', () => {

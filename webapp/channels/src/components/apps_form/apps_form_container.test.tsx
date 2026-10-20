@@ -198,11 +198,13 @@ describe('components/apps_form/AppsFormContainer', () => {
             }));
             const nextForm = {title: 'Step 2', fields: [], submit: {path: '/form_url'}};
             const doAppSubmit = jest.fn().mockResolvedValue({data: {type: AppCallResponseTypes.FORM, form: nextForm}});
+            const onFormChange = jest.fn();
             const ref = React.createRef<RawAppsFormContainer>();
             renderWithContext(
                 <RawAppsFormContainer
                     {...baseProps}
                     form={{...baseProps.form, source} as any}
+                    onFormChange={onFormChange}
                     actions={{...baseProps.actions, doAppFetchForm, doAppSubmit}}
                     ref={ref}
                 />,
@@ -216,6 +218,29 @@ describe('components/apps_form/AppsFormContainer', () => {
             await waitFor(() => {
                 expect(ref.current!.state.form).toEqual(nextForm);
             });
+
+            // * Only the applied form is reported; the discarded refresh form is not
+            expect(onFormChange).toHaveBeenCalledTimes(1);
+            expect(onFormChange).toHaveBeenCalledWith(nextForm);
+        });
+
+        test('should report an applied refresh form through onFormChange', async () => {
+            const onFormChange = jest.fn();
+            const doAppFetchForm = jest.fn().mockResolvedValue({data: {type: AppCallResponseTypes.FORM, form: refreshedForm}});
+            const ref = React.createRef<RawAppsFormContainer>();
+            renderWithContext(
+                <RawAppsFormContainer
+                    {...baseProps}
+                    form={{...baseProps.form, source} as any}
+                    onFormChange={onFormChange}
+                    actions={{...baseProps.actions, doAppFetchForm}}
+                    ref={ref}
+                />,
+            );
+
+            await ref.current!.refreshForm({});
+
+            expect(onFormChange).toHaveBeenCalledWith(refreshedForm);
         });
     });
 

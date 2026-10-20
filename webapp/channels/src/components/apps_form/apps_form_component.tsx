@@ -46,7 +46,8 @@ export type AppsFormProps = {
     timezone?: string;
     isEmbedded?: boolean;
 
-    // When this changes, the form is re-fetched from its source with the current values.
+    // When this changes and the form has refresh_on_return set, the form is re-fetched
+    // from its source with the current values.
     refreshNonce?: number;
 
     // Hides the modal (and its backdrop) without unmounting it, e.g. while a child
@@ -368,7 +369,9 @@ export class AppsForm extends React.PureComponent<Props, State> {
             this.flattenedFields = flattenFields(this.props.form.fields);
         }
 
-        if (this.props.refreshNonce && prevProps.refreshNonce !== this.props.refreshNonce) {
+        // form is the container's current form, so a discarded refresh response can't
+        // turn this on or off.
+        if (this.props.refreshNonce && prevProps.refreshNonce !== this.props.refreshNonce && this.props.form.refresh_on_return) {
             this.refreshForm();
         }
     }

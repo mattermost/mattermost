@@ -58,8 +58,6 @@ type ServerDialogResponse = {
     notify_on_cancel?: boolean;
     state?: string;
     submit_buttons?: string;
-
-    // Read by the adapter, not converted: AppForm has no equivalent.
     refresh_on_return?: boolean;
 };
 
@@ -75,6 +73,7 @@ type TransformedDialogProps = {
     notifyOnCancel?: boolean;
     state?: string;
     submitButtons?: string;
+    refreshOnReturn?: boolean;
 };
 
 export const DIALOG_REFRESH_PLACEHOLDER_PATH = '/refresh';
@@ -614,6 +613,7 @@ export function transformServerDialogToProps(serverDialog: ServerDialogResponse)
         notifyOnCancel: serverDialog.notify_on_cancel,
         state: serverDialog.state,
         submitButtons: serverDialog.submit_buttons,
+        refreshOnReturn: serverDialog.refresh_on_return,
     };
 }
 
@@ -630,6 +630,7 @@ export function convertDialogToAppForm(
     dialogState: string,
     options: ConversionOptions,
     submitButtons?: string,
+    refreshOnReturn?: boolean,
 ): ConversionResult {
     const allErrors: ValidationError[] = [];
     const convertedFields: AppField[] = [];
@@ -702,6 +703,11 @@ export function convertDialogToAppForm(
         };
     }
 
+    // Refresh on return needs a real source_url to refresh from.
+    if (refreshOnReturn && sourceUrl && sourceUrl.trim()) {
+        form.refresh_on_return = true;
+    }
+
     return {form, errors: allErrors};
 }
 
@@ -759,6 +765,7 @@ export function convertServerDialogResponseToAppForm(
         transformedDialog.state || '',
         options,
         transformedDialog.submitButtons,
+        transformedDialog.refreshOnReturn,
     );
 
     return {form, errors};

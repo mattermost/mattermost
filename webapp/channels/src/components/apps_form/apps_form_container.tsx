@@ -22,6 +22,10 @@ type Props = {
     timezone?: string;
     refreshNonce?: number;
     hidden?: boolean;
+
+    // Called with each form that replaces the current one (from a submit or refresh).
+    // A refresh response superseded by a newer form is never applied or reported.
+    onFormChange?: (form: AppForm) => void;
     onExited: () => void;
     onHide?: () => void;
     actions: {
@@ -48,6 +52,13 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
     componentWillUnmount() {
         this.unmounted = true;
     }
+
+    applyForm = (form?: AppForm) => {
+        this.setState({form});
+        if (form) {
+            this.props.onFormChange?.(form);
+        }
+    };
 
     submitForm = async (submission: {values: AppFormValues}): Promise<DoAppCallResult<FormResponseData>> => {
         const makeErrorMsg = (msg: string) => {
@@ -92,7 +103,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         case AppCallResponseTypes.FORM:
             // A newer form replaces the current one; drop any refresh still in flight.
             this.refreshSeq++;
-            this.setState({form: callResp.form});
+            this.applyForm(callResp.form);
             break;
         case AppCallResponseTypes.NAVIGATE:
             break;
@@ -155,7 +166,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         case AppCallResponseTypes.FORM:
             // A newer form replaces the current one; drop any refresh still in flight.
             this.refreshSeq++;
-            this.setState({form: callResp.form});
+            this.applyForm(callResp.form);
             break;
         case AppCallResponseTypes.OK:
         case AppCallResponseTypes.NAVIGATE:
@@ -195,7 +206,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
             return {data: {type: AppCallResponseTypes.OK}};
         }
         if (!res.error && res.data?.type === AppCallResponseTypes.FORM && res.data.form) {
-            this.setState({form: res.data.form});
+            this.applyForm(res.data.form);
         }
         return res;
     };

@@ -579,6 +579,25 @@ describe('dialog_conversion', () => {
             expect(form.submit_buttons).toBe('choice');
         });
 
+        it('should set refresh_on_return only when the dialog has a source_url', () => {
+            const convert = (sourceUrl: string, refreshOnReturn?: boolean) =>
+                convertDialogToAppForm([], 'Test Dialog', undefined, undefined, undefined, sourceUrl, '', legacyOptions, undefined, refreshOnReturn).form;
+
+            expect(convert('https://example.com/source', true).refresh_on_return).toBe(true);
+            expect(convert('', true).refresh_on_return).toBeUndefined();
+            expect(convert('https://example.com/source').refresh_on_return).toBeUndefined();
+        });
+
+        it('should carry refresh_on_return through convertServerDialogResponseToAppForm', () => {
+            const {form} = convertServerDialogResponseToAppForm({
+                title: 'Server Dialog',
+                source_url: 'https://example.com/source',
+                refresh_on_return: true,
+            }, legacyOptions);
+
+            expect(form.refresh_on_return).toBe(true);
+        });
+
         it('should pass introduction text without escaping (Markdown.format handles sanitization)', () => {
             const {form} = convertDialogToAppForm(
                 [],

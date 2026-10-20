@@ -111,9 +111,10 @@ class InteractiveDialogAdapter extends React.PureComponent<Props, State> {
     componentDidUpdate(prevProps: Props) {
         if (prevProps.elements !== this.props.elements) {
             this.currentDialogElements = flattenDialogElements(this.props.elements || []);
-            this.currentRefreshOnReturn = Boolean(this.props.refreshOnReturn && this.props.sourceUrl);
         }
-        if (prevProps.isTopDialog === false && this.props.isTopDialog && this.currentRefreshOnReturn) {
+
+        // AppsForm only refreshes if the form it is showing has refresh_on_return set.
+        if (prevProps.isTopDialog === false && this.props.isTopDialog) {
             this.setState((prev) => ({refreshNonce: prev.refreshNonce + 1}));
         }
     }
@@ -124,14 +125,10 @@ class InteractiveDialogAdapter extends React.PureComponent<Props, State> {
         ...this.props.conversionOptions,
     };
 
-    // Track current dialog elements for validation. Set here and when the elements
-    // prop changes, not in render: render also runs when isTopDialog flips, and must
-    // not discard the elements of a form returned by a submit or refresh.
+    // Elements of the form currently shown, used to validate and convert submissions.
+    // Set from the opened dialog, then from each form AppsFormContainer applies (see
+    // handleFormChange), so a refresh response the container discards never changes it.
     private currentDialogElements: DialogElement[] | undefined = flattenDialogElements(this.props.elements || []);
-
-    // Whether the form currently shown refreshes when a child dialog closes. Starts from
-    // the opened dialog and follows each form returned by a submit or refresh.
-    private currentRefreshOnReturn = Boolean(this.props.refreshOnReturn && this.props.sourceUrl);
 
     // Accumulate form values across multiform steps (client-side accumulation)
     private accumulatedValues: Record<string, any> = {};
@@ -178,7 +175,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props, State> {
     };
 
     private convertToAppForm = (): {form?: AppForm; error?: string} => {
-        const {elements, title, introductionText, iconUrl, submitLabel, sourceUrl, state, submitButtons} = this.props;
+        const {elements, title, introductionText, iconUrl, submitLabel, sourceUrl, state, submitButtons, refreshOnReturn} = this.props;
         const {form, errors} = convertDialogToAppForm(
             elements,
             title,
@@ -189,6 +186,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props, State> {
             state || '',
             this.conversionContext,
             submitButtons,
+            refreshOnReturn,
         );
 
         const {error} = this.handleValidationErrors(errors);
@@ -252,18 +250,22 @@ class InteractiveDialogAdapter extends React.PureComponent<Props, State> {
     };
 
     /**
-     * Common logic for converting server dialog response to AppForm
+     * Called by AppsFormContainer when it shows a new form (from a submit or refresh).
+     * Tracks that form's elements, flattening collapsible children.
      */
-    private convertServerResponseToForm = (serverForm: any) => {
-        const {form, errors} = convertServerDialogResponseToAppForm(serverForm, this.conversionContext);
-        this.currentRefreshOnReturn = Boolean(serverForm?.refresh_on_return && serverForm?.source_url);
-
-        // Update current elements for reference, flattening collapsible children
+    private handleFormChange = (form: AppForm) => {
         this.currentDialogElements = flattenAppFields(form.fields || []).map((field) => ({
             name: field.name,
             type: field.type === 'static_select' ? 'select' : field.type,
             display_name: field.label,
         } as any));
+    };
+
+    /**
+     * Common logic for converting server dialog response to AppForm
+     */
+    private convertServerResponseToForm = (serverForm: any) => {
+        const {form, errors} = convertServerDialogResponseToAppForm(serverForm, this.conversionContext);
 
         // Handle validation errors if any
         if (errors.length > 0) {
@@ -738,6 +740,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props, State> {
                 timezone={this.props.timezone}
                 refreshNonce={this.state.refreshNonce}
                 hidden={this.props.isTopDialog === false}
+                onFormChange={this.handleFormChange}
                 onExited={this.props.onExited || (() => {})}
                 onHide={this.cancelAdapter}
                 actions={{
