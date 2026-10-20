@@ -256,7 +256,9 @@
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccessControlFieldsAutocompleteResponse"
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyField"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
