@@ -34,12 +34,15 @@ The dashboard runs built-in checks against your configuration and the live state
 
 | Category | Examples of what is checked |
 | --- | --- |
-| Platform | Site URL is set and uses HTTPS, file storage is reachable, plugins are enabled and running, file logging level, API rate limiting, file descriptor usage, and the host operating system. |
+| Platform | Site URL is set and uses HTTPS, file storage is reachable, plugin health checks and plugins that fail to run, whether file logging is enabled, rate limiting memory store size, file descriptor usage, and the host operating system. |
 | Database | Connection pool sizing and saturation, read and search replicas, query timeout, SQL tracing, and the PostgreSQL version. |
 | Search | Search availability, Elasticsearch or OpenSearch version and plugins, connection security, indexing batch size, and whether your post volume calls for Elasticsearch. |
 | Cluster | High availability nodes that can't reach each other, a cluster running with a single node, mixed Mattermost versions across nodes, unencrypted cluster traffic, and the cache backend at scale. |
+| Authentication | LDAP and SAML connectivity and security settings, LDAP sync configuration, session length settings, and whether single sign-on is set up at scale. |
 | Notifications | Push notification server address and security, push notification contents, SMTP connectivity, and channel-wide mentions in large channels. |
+| Compliance | Audit logging, the compliance export directory, and data retention and Global Relay export settings. |
 | Jobs | Background jobs that failed, are stuck in progress, or have made no progress. |
+| Licensing | Whether your license has expired or expires soon, and whether licensed seats are nearly full, reached, or exceeded. |
 | Version | Whether your Mattermost version is past end of life, an Extended Support Release is nearing end of life, or newer releases are available. |
 
 ## Understanding findings
@@ -127,8 +130,8 @@ By default, only firing and unknown findings are shown. Use the following flags 
 | --- | --- |
 | `--include-resolved` | Include resolved findings. |
 | `--include-muted` | Include muted findings. |
-| `--packet <file>` | Evaluate a [Support Packet](/administration-guide/manage/admin/generating-support-packet) zip file on your own machine instead of querying a server. No server connection is needed. |
+| `--packet <file>` | Evaluate a [Support Packet](/administration-guide/manage/admin/generating-support-packet) zip file on your own machine instead of querying a server. No server connection is needed, and findings intended for support engineers are also included. Can't be combined with `--include-muted`, because findings from a Support Packet are never muted. |
 
 Add `--json` for machine-readable output.
 
-Findings from `--packet` describe the server at the time the Support Packet was generated, not its current state.
+Findings from `--packet` describe the server at the time the Support Packet was generated, not its current state. Version support is judged as of the day you run the command.
