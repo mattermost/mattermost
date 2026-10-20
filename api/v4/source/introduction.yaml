@@ -465,10 +465,11 @@ tags:
       searching access control policies, the CEL tools used to write and test
       policy rules (CEL is the expression language the rules are written in),
       simulating how permission policies apply to users, and checking whether
-      users can perform actions. Endpoints that use the policy engine return
+      users can perform actions. Most endpoints that use the policy engine return
       501 without an Entry or Enterprise Advanced license, and 406 while the
-      `EnableAttributeBasedAccessControl` setting is off. See [our attribute-based
-      access control documentation](https://docs.mattermost.com/administration-guide/manage/admin/attribute-based-access-control)
+      `EnableAttributeBasedAccessControl` setting is off. The action decisions
+      endpoint instead allows every action while the setting is off. See [our
+      attribute-based access control documentation](https://docs.mattermost.com/administration-guide/manage/admin/attribute-based-access-control)
       for more information.
   - name: properties
     description: >

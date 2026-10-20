@@ -490,6 +490,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/custom_profile_attributes/group":
     get:
       deprecated: true
