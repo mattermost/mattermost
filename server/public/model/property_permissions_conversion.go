@@ -138,7 +138,9 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 // specific identity becomes an owner, including synthesized ones such as the
 // source plugin's, and field.write none becomes protected; both read back as
 // human write locks. A caller reconverting a projection must strip those
-// first. A wildcard grant is never projected: v2 has no owner meaning "any
+// first. A field whose stored attrs mark it protected projects the
+// unprotected, sysadmin-pinned columns access_control stores for it, and
+// carries the protection in the attr. A wildcard grant is never projected: v2 has no owner meaning "any
 // plugin", and expresses that access by listing no owners at all. A user or
 // role owner converts to no grant, so it is carried over from the stored
 // owners attr instead (see appendHumanOwners).
@@ -161,12 +163,28 @@ func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 	projected.PermissionValues = &valueWrite
 	projected.PermissionOptions = &optionWrite
 
-	// Protected is derived from field.write: none, which is how IsValid
-	// cross-validates protected against permission_field on the projected result.
-	projected.Protected = fieldWrite == PermissionLevelNone
-	if projected.Protected {
+	switch {
+	case fieldWrite == PermissionLevelNone && IsPropertyFieldProtected(field):
+		// access_control keeps protection in the attr alone. Its hook pins the
+		// field and option columns to sysadmin, so master stores such a field
+		// as unprotected, sysadmin-editable columns and reads the attr instead.
+		// Reporting the column as protected would make master refuse every
+		// edit of it after a rollback, the source plugin's included.
+		sysadmin := PermissionLevelSysadmin
+		projected.Protected = false
+		projected.PermissionField = &sysadmin
+		if optionWrite == PermissionLevelNone {
+			projected.PermissionOptions = &sysadmin
+		}
 		projected.Attrs[PropertyAttrsProtected] = true
-	} else {
+	case fieldWrite == PermissionLevelNone:
+		// Protected is derived from field.write: none, which is how IsValid
+		// cross-validates protected against permission_field on the projected
+		// result.
+		projected.Protected = true
+		projected.Attrs[PropertyAttrsProtected] = true
+	default:
+		projected.Protected = false
 		delete(projected.Attrs, PropertyAttrsProtected)
 	}
 
