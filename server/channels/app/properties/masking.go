@@ -511,9 +511,8 @@ func (h *AccessControlHook) maskScalarValue(rctx request.CTX, c maskingContext, 
 // storedValue returns the value currently stored at (fieldID, targetID), nil
 // when there is none. The row comes from the cache when a delete path
 // primed it with primeStoredValue, and from the store otherwise. An empty
-// targetID never has a single row to load (PreDeletePropertyValuesForField's
-// exception passes one in to mean "no single object"), so it short-circuits
-// to nothing stored.
+// targetID never has a single row to load, so it short-circuits to nothing
+// stored.
 func (c maskingContext) storedValue(rctx request.CTX, h *AccessControlHook, groupID, fieldID, targetID string) (*model.PropertyValue, error) {
 	if targetID == "" {
 		return nil, nil
