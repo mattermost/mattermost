@@ -43,6 +43,7 @@ export const TESTCONTAINERS_SERVICE_NAMES = [
     'minio',
     'azurite',
     'nginx',
+    'splitmock',
 ] as const;
 export type TestContainersServiceName = (typeof TESTCONTAINERS_SERVICE_NAMES)[number];
 
@@ -176,6 +177,10 @@ export class TestConfig {
     nginxUrl: string;
     /** Whether the nginx proxy serves over HTTPS (self-signed/devcert cert) instead of plain HTTP. */
     sslServer: boolean;
+    /** Control API of the mock Split service (the `splitmock` service), which pw.ensureFeatureFlag() drives. */
+    splitMockUrl: string;
+    /** How often the server re-reads flags from the mock Split service, in seconds. */
+    featureFlagSyncIntervalSeconds: number;
 
     constructor() {
         // containerRunner, sslServer, serverDeployment, subpathMode, and nginxUrl are computed
@@ -230,6 +235,11 @@ export class TestConfig {
         if (this.subpathMode && !this.testcontainersServices.includes('nginx')) {
             this.testcontainersServices = [...this.testcontainersServices, 'nginx'];
         }
+        // The server always takes its feature flags from the Split mock, which is what lets pw.ensureFeatureFlag()
+        // change them without a restart, so it starts whatever PW_TESTCONTAINERS_SERVICES says.
+        if (this.useTestContainers && !this.testcontainersServices.includes('splitmock')) {
+            this.testcontainersServices = [...this.testcontainersServices, 'splitmock'];
+        }
 
         // Testcontainers — container (postgres, inbucket, webhook, mattermost)
         this.postgresUrl =
@@ -277,6 +287,16 @@ export class TestConfig {
         this.opensearchUrl = process.env.PW_OPENSEARCH_URL || 'http://localhost:9201';
         this.minioUrl = process.env.PW_MINIO_URL || 'http://localhost:9000';
         this.azuriteUrl = process.env.PW_AZURITE_URL || 'http://localhost:10000';
+        this.splitMockUrl = process.env.PW_SPLIT_MOCK_URL || 'http://localhost:4000';
+        this.featureFlagSyncIntervalSeconds = parseNumber(process.env.PW_FEATURE_FLAG_SYNC_INTERVAL_SECONDS, 1);
+    }
+
+    /**
+     * True when the server syncs feature flags from the mock Split service, so pw.ensureFeatureFlag() can change
+     * them at runtime. Otherwise a flag change restarts the server with MM_FEATUREFLAGS_* set.
+     */
+    get splitMockEnabled(): boolean {
+        return this.useTestContainers && this.testcontainersServices.includes('splitmock');
     }
 
     /** Path prefix baseURL is served under: '' normally, '/subpath' in subpath mode. */

@@ -10,6 +10,8 @@ import type {BoundPorts, StartedTestContainer, WaitStrategy} from 'testcontainer
 import {isUpgradeToPhaseProjectActive} from '../upgrade_env';
 
 import {
+    SPLIT_MOCK_CA_DIR,
+    SPLIT_MOCK_KEY,
     INBUCKET_ALIAS,
     INBUCKET_SMTP_PORT,
     MATTERMOST_DATA_DIR,
@@ -38,7 +40,7 @@ import {wait} from '@/util';
 // connectivity. Does not configure additional services (LDAP/Keycloak/etc.) — each spec enables
 // those itself via pw.ensure<Service>().
 export function resolveMattermostBootEnv(extraEnv: Record<string, string> = {}): Record<string, string> {
-    return {
+    const env: Record<string, string> = {
         ...SERVER_ENV_BASELINE,
         // testConfig.subpathMode boots directly on the subpath; serverEnv/extraEnv can still
         // override this explicitly.
@@ -47,12 +49,59 @@ export function resolveMattermostBootEnv(extraEnv: Record<string, string> = {}):
         ...extraEnv,
         ...structuralEnv(),
     };
+
+    if (testConfig.splitMockEnabled) {
+        // The server boots on its default flags and specs change them through pw.ensureFeatureFlag(). A flag set
+        // in the environment would win over the mock Split service on every config load, so it is never passed.
+        for (const key of Object.keys(env)) {
+            if (key.startsWith(FEATURE_FLAG_ENV_PREFIX)) {
+                delete env[key];
+            }
+        }
+    }
+
+    return env;
 }
+
+const FEATURE_FLAG_ENV_PREFIX = 'MM_FEATUREFLAGS_';
 
 const POSTGRES_DSN = `postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_ALIAS}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable&connect_timeout=10&binary_parameters=yes`;
 
+// Makes the server sync feature flags from the mock Split service (see split_mock_container.ts): any non-empty
+// SplitKey turns the synchronizer on, the interval sets how soon a flag change reaches the config, and the
+// extra certificate directory lets the SDK trust the mock's CA for the split.io hostnames.
+function splitMockEnv(): Record<string, string> {
+    if (!testConfig.splitMockEnabled) {
+        return {};
+    }
+
+    return {
+        MM_SERVICESETTINGS_SPLITKEY: SPLIT_MOCK_KEY,
+        MM_SERVICESETTINGS_FEATUREFLAGSYNCINTERVALSECONDS: String(testConfig.featureFlagSyncIntervalSeconds),
+        // Replaces Go's default directory list, so the system one stays in it.
+        SSL_CERT_DIR: `${SPLIT_MOCK_CA_DIR}:/etc/ssl/certs`,
+    };
+}
+
+// The mock's CA, fetched on every start because the mock generates a new one each time it boots.
+async function splitMockCertificates(): Promise<Array<{content: string; target: string}>> {
+    if (!testConfig.splitMockEnabled) {
+        return [];
+    }
+
+    const response = await fetch(`${testConfig.splitMockUrl}/ca.pem`);
+    if (!response.ok) {
+        throw new Error(
+            `Could not fetch the mock Split service's CA (${response.status}) from ${testConfig.splitMockUrl}.`,
+        );
+    }
+
+    return [{content: await response.text(), target: `${SPLIT_MOCK_CA_DIR}/split-mock-ca.pem`}];
+}
+
 function structuralEnv(): Record<string, string> {
     return {
+        ...splitMockEnv(),
         // Config lives in Postgres (DatabaseStore) rather than /mattermost/config/config.json, so
         // it survives restartMattermostContainer() and the upgrade swap instead of being reset to
         // the image's shipped defaults.
@@ -196,6 +245,7 @@ function startServerWithRetry(networkName: string, env: Record<string, string>):
         await removeLeftoverServerContainers();
         await removeOrphanedServerContainers();
         await waitForHostPortFree(MATTERMOST_FIXED_HOST_PORT);
+        const certificates = await splitMockCertificates();
 
         let builder = new GenericContainer(testConfig.serverImage)
             .withPlatform('linux/amd64') // The published server images are amd64-only.
@@ -213,6 +263,7 @@ function startServerWithRetry(networkName: string, env: Record<string, string>):
             // restartMattermostContainer()'s docker rm -f; a harmless empty directory when a
             // different FileSettings backend (Minio/Azurite) is active.
             .withBindMounts([{source: MATTERMOST_DATA_DIR, target: '/mattermost/data', mode: 'rw'}])
+            .withCopyContentToContainer(certificates)
             .withStartupTimeout(5 * 60_000)
             .withWaitStrategy(new ServerWaitStrategy());
 
