@@ -7,7 +7,7 @@ import {promisify} from 'node:util';
 import {GenericContainer, Wait} from 'testcontainers';
 import type {BoundPorts, StartedTestContainer, WaitStrategy} from 'testcontainers';
 
-import {isUpgradeToPhaseProjectSelected} from '../upgrade_env';
+import {isUpgradeToPhaseProjectActive} from '../upgrade_env';
 
 import {
     INBUCKET_ALIAS,
@@ -21,6 +21,7 @@ import {
     POSTGRES_PASSWORD,
     POSTGRES_PORT,
     POSTGRES_USER,
+    SUBPATH_DEFAULT,
     TESTCONTAINERS_LABELS,
 } from './constants';
 import {SERVER_ENV_BASELINE} from './env_baseline';
@@ -39,6 +40,9 @@ import {wait} from '@/util';
 export function resolveMattermostBootEnv(extraEnv: Record<string, string> = {}): Record<string, string> {
     return {
         ...SERVER_ENV_BASELINE,
+        // testConfig.subpathMode boots directly on the subpath; serverEnv/extraEnv can still
+        // override this explicitly.
+        ...(testConfig.subpathMode ? {MM_SERVICESETTINGS_SITEURL: testConfig.subpathSiteURL} : {}),
         ...testConfig.serverEnv,
         ...extraEnv,
         ...structuralEnv(),
@@ -79,7 +83,11 @@ const EXIT_LOG_LINES = 40;
 // them call pw.ensurePhase2MigrationCompleted().
 // Fails at once, with the container's last log lines, if the server exits instead of waiting out the startup timeout.
 class ServerWaitStrategy implements WaitStrategy {
-    private readonly ping = Wait.forHttp('/api/v4/system/ping', MATTERMOST_PORT).forStatusCode(200);
+    // Subpath mode 302-redirects the bare path instead of returning 200.
+    private readonly ping = Wait.forHttp(
+        testConfig.subpathMode ? `${SUBPATH_DEFAULT}/api/v4/system/ping` : '/api/v4/system/ping',
+        MATTERMOST_PORT,
+    ).forStatusCode(200);
 
     withStartupTimeout(startupTimeoutMs: number): this {
         this.ping.withStartupTimeout(startupTimeoutMs);
@@ -210,8 +218,10 @@ function startServerWithRetry(networkName: string, env: Record<string, string>):
 
         // Upgrade-swap-to skips reuse: the old container was rm -f'd and reuse could reattach to an
         // unrelated leftover on the same image tag. upgrade-from still needs withReuse() so Ryuk
-        // doesn't reap the server before upgrade-to can adopt the stack.
-        if (testConfig.testcontainersReuse && !isUpgradeToPhaseProjectSelected()) {
+        // doesn't reap the server before upgrade-to can adopt the stack. *Active: this restart can
+        // run from a worker process (see restartMattermostContainer()), where only the env-var-aware
+        // check resolves correctly (see upgrade_env.ts).
+        if (testConfig.testcontainersReuse && !isUpgradeToPhaseProjectActive()) {
             builder = builder.withReuse();
         }
 

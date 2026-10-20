@@ -4,7 +4,6 @@
 package app
 
 import (
-	"errors"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -75,11 +74,7 @@ func (a *App) checkLdapTestBindPassword(where string, settings model.LdapSetting
 
 func (a *App) TestLdapConnection(rctx request.CTX, settings model.LdapSettings) *model.AppError {
 	if err := a.checkLdapTestBindPassword("TestLdapConnection", settings); err != nil {
-		var appErr *model.AppError
-		if errors.As(err, &appErr) {
-			return appErr
-		}
-		return model.NewAppError("TestLdapConnection", "ent.ldap.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.AsAppError(err)
 	}
 
 	license := a.Srv().License()
@@ -97,11 +92,7 @@ func (a *App) TestLdapConnection(rctx request.CTX, settings model.LdapSettings) 
 
 func (a *App) TestLdapDiagnostics(rctx request.CTX, testType model.LdapDiagnosticTestType, settings model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
 	if err := a.checkLdapTestBindPassword("TestLdapDiagnostics", settings); err != nil {
-		var appErr *model.AppError
-		if errors.As(err, &appErr) {
-			return nil, appErr
-		}
-		return nil, model.NewAppError("TestLdapDiagnostics", "ent.ldap.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.AsAppError(err)
 	}
 
 	license := a.Srv().License()

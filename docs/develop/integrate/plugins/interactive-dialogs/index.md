@@ -66,6 +66,8 @@ Each dialog supports elements for users to enter information.
 - `select`: Message menu. Use this for pre-selected choices. Can either be static menus or dynamic menus generated from users and Public channels of the system. For more information on message menus, see [the documentation](/developers/integrate/plugins/interactive-messages).
 - `bool`: Checkbox option. Use this for binary selection.
 - `radio`: Radio button option. Use this to quickly select an option from pre-selected choices.
+- `checkbox_group`: List of checkboxes. Use this to select any number of options from pre-selected choices. (Minimum server version 12.0.)
+- `checkbox_matrix`: Grid of checkboxes with configurable rows and columns. Use this to select one or more columns for each row. (Minimum server version 12.0.)
 - `date`: Date picker field. Use this for selecting dates without time information.
 - `datetime`: Date and time picker field. Use this for selecting both date and time with timezone support.
 - `file`: File upload field. Use this to allow users to attach one or more files as part of a dialog submission.
@@ -367,6 +369,7 @@ The full list of supported fields is included below:
 | `help_text`    | String  | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
 | `default`      | String  | (Optional) Set a default value for this form element. `true` or `false`.                                                           |
 | `placeholder`  | String  | (Optional) A string displayed to include a label besides the checkbox. Maximum 150 characters.                                     |
+| `label_position` | String | (Optional) Set to `before` to render the label before the checkbox, or `after` to render it after. Default is `after`. Minimum server version 12.0. |
 
 ### Radio element
 
@@ -408,6 +411,119 @@ The full list of supported fields are included below:
 | `options`      | Array  | (Optional) An array of options for the radio element.                                                                              |
 | `help_text`    | String | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
 | `default`      | String | (Optional) Set a default value for this form element.                                                                              |
+| `label_position` | String | (Optional) Set to `before` to render each option's label before its radio button, or `after` to render it after. Default is `after`. Minimum server version 12.0. |
+
+### Checkbox group elements
+#### Minimum Server Version: 12.0
+
+Checkbox group elements render a list of checkboxes, letting users select any number of options. Below is an example of a `checkbox_group` element that asks which platforms a user works on.
+
+```json
+{
+    "display_name": "Platforms",
+    "name": "platforms",
+    "type": "checkbox_group",
+    "options": [
+        {
+            "text": "Web",
+            "value": "web"
+        },
+        {
+            "text": "Desktop",
+            "value": "desktop"
+        },
+        {
+            "text": "Mobile",
+            "value": "mobile"
+        }
+    ],
+    "default": "web,mobile"
+}
+```
+
+The full list of supported fields is included below:
+
+| Field            | Type    | Description                                                                                                                        |
+|------------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
+| `display_name`   | String  | Display name of the field shown to the user in the dialog. Maximum 24 characters.                                                  |
+| `name`           | String  | Name of the field element used by the integration. Maximum 300 characters. You should use unique `name` fields in the same dialog. |
+| `type`           | String  | Set this value to `checkbox_group` for a checkbox group element.                                                                   |
+| `options`        | Array   | An array of options, each with `text` and `value`. Requires between 1 and 50 options. Option values must be unique and can't contain `,`. |
+| `optional`       | Boolean | (Optional) Set to `true` if this form element is not required. Default is `false`.                                                 |
+| `help_text`      | String  | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
+| `default`        | String  | (Optional) Comma-separated list of option values to select by default. Each value must exist in `options`.                         |
+| `label_position` | String  | (Optional) Set to `before` to render each option's label before its checkbox, or `after` to render it after. Default is `after`.   |
+
+Checkbox group elements don't support `placeholder`, `data_source`, or `multiselect`.
+
+When the dialog is submitted, the element's value is an array of the selected option values, for example `["web", "mobile"]`. A required checkbox group must have at least one option selected.
+
+### Checkbox matrix elements
+#### Minimum Server Version: 12.0
+
+Checkbox matrix elements render a grid of checkboxes. Each row is a question and each column is an answer that can be selected for that row. Instead of `options`, a checkbox matrix is configured with a `matrix_config` object. Below is an example of a `checkbox_matrix` element that asks which days each team member is available.
+
+```json
+{
+    "display_name": "Availability",
+    "name": "availability",
+    "type": "checkbox_matrix",
+    "matrix_config": {
+        "rows": [
+            {
+                "text": "Alice",
+                "value": "alice"
+            },
+            {
+                "text": "Bob",
+                "value": "bob"
+            }
+        ],
+        "columns": [
+            {
+                "text": "Mon",
+                "value": "mon"
+            },
+            {
+                "text": "Tue",
+                "value": "tue"
+            },
+            {
+                "text": "Wed",
+                "value": "wed"
+            }
+        ],
+        "row_selection": "multiple"
+    },
+    "default": "alice:mon,tue;bob:wed"
+}
+```
+
+The full list of supported fields is included below:
+
+| Field           | Type    | Description                                                                                                                        |
+|-----------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
+| `display_name`  | String  | Display name of the field shown to the user in the dialog. Maximum 24 characters.                                                  |
+| `name`          | String  | Name of the field element used by the integration. Maximum 300 characters. You should use unique `name` fields in the same dialog. |
+| `type`          | String  | Set this value to `checkbox_matrix` for a checkbox matrix element.                                                                 |
+| `matrix_config` | Object  | Matrix configuration. Required for this element type. See the fields below.                                                        |
+| `optional`      | Boolean | (Optional) Set to `true` if this form element is not required. Default is `false`.                                                 |
+| `help_text`     | String  | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
+| `default`       | String  | (Optional) Selections to make by default, as a `;`-separated list of `row:column1,column2` entries using row and column values. For example, `alice:mon,tue;bob:wed`. Each row may appear only once. |
+
+The `matrix_config` object supports:
+
+| Field           | Type   | Description                                                                                                                         |
+|-----------------|--------|-------------------------------------------------------------------------------------------------------------------------------------|
+| `rows`          | Array  | An array of rows, each with `text` and `value`. Requires between 1 and 30 rows.                                                     |
+| `columns`       | Array  | An array of columns, each with `text` and `value`. Requires between 1 and 10 columns.                                               |
+| `row_selection` | String | (Optional) Set to `multiple` to allow any number of columns to be selected in each row, or `single` to allow at most one column per row. Default is `multiple`. |
+
+Row values and column values must be unique within `rows` and `columns` respectively, and can't contain `:`, `,`, or `;`, as these characters are used to encode the element's value.
+
+Checkbox matrix elements don't support `options`, `placeholder`, `data_source`, or `multiselect`.
+
+When the dialog is submitted, the element's value is an array with one `row:column1,column2` entry for each row that has at least one column selected, for example `["alice:mon,tue", "bob:wed"]`. Rows with no selection are omitted. A required checkbox matrix must have at least one checkbox selected.
 
 ### Date elements
 ##### Minimum Server Version: 11.1

@@ -159,7 +159,7 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.5
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.6
 PLUGIN_PACKAGES += mattermost-plugin-github-v3.0.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v5.0.0
@@ -172,7 +172,7 @@ PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v3.0.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-dataminr-v2.0.0
+PLUGIN_PACKAGES += mattermost-plugin-dataminr-v3.0.0
 PLUGIN_PACKAGES += mattermost-plugin-legal-hold-v1.1.6
 
 # Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
