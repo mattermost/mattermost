@@ -67,7 +67,7 @@ func TestAuditLogOff(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assertResult(t, tc.want, evalAuditLogOff(tc.snapshot))
+			assertResult(t, tc.want, auditLogOff.Eval(tc.snapshot))
 		})
 	}
 }

@@ -50,7 +50,7 @@ var ldapPortTLSMismatch = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        ldapPortSubject,
-	Eval:           gated(ldapEnabled, evalLdapPortTLSMismatch),
+	Eval:           ldapRule(ldapEnabled, evalLdapPortTLSMismatch),
 }
 
 var ldapPortPlainMismatch = healthcheck.Rule{
@@ -67,7 +67,7 @@ var ldapPortPlainMismatch = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        ldapPortSubject,
-	Eval:           gated(ldapEnabled, evalLdapPortPlainMismatch),
+	Eval:           ldapRule(ldapEnabled, evalLdapPortPlainMismatch),
 }
 
 var ldapSkipCert = healthcheck.Rule{
@@ -84,7 +84,7 @@ var ldapSkipCert = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        "LdapSettings.SkipCertificateVerification",
-	Eval:           gated(ldapEnabled, evalLdapSkipCert),
+	Eval:           ldapRule(ldapEnabled, evalLdapSkipCert),
 }
 
 var ldapQueryTimeoutLow = healthcheck.Rule{
@@ -101,7 +101,7 @@ var ldapQueryTimeoutLow = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        "LdapSettings.QueryTimeout",
-	Eval:           gated(ldapEnabled, evalLdapQueryTimeoutLow),
+	Eval:           ldapRule(ldapEnabled, evalLdapQueryTimeoutLow),
 }
 
 var ldapSyncNoBaseDN = healthcheck.Rule{
@@ -118,7 +118,7 @@ var ldapSyncNoBaseDN = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        "LdapSettings.BaseDN",
-	Eval:           gated(ldapSyncEnabled, evalLdapSyncNoBaseDN),
+	Eval:           ldapRule(ldapSyncEnabled, evalLdapSyncNoBaseDN),
 }
 
 var ldapRecommendedAtScale = healthcheck.Rule{
@@ -135,7 +135,7 @@ var ldapRecommendedAtScale = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityThreshold,
 	AppliesToCloud: true,
 	Subject:        "LdapSettings.Enable",
-	Eval:           evalLdapRecommendedAtScale,
+	Eval:           healthcheck.Single(evalLdapRecommendedAtScale),
 }
 
 var ldapIDIsEmail = healthcheck.Rule{
@@ -152,7 +152,7 @@ var ldapIDIsEmail = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        "LdapSettings.IdAttribute",
-	Eval:           gated(ldapEnabled, evalLdapIDIsEmail),
+	Eval:           ldapRule(ldapEnabled, evalLdapIDIsEmail),
 }
 
 var ldapSyncDutyCycle = healthcheck.Rule{
@@ -169,7 +169,7 @@ var ldapSyncDutyCycle = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityThreshold,
 	AppliesToCloud: true,
 	Subject:        "LdapSettings.SyncIntervalMinutes",
-	Eval:           gated(ldapSyncEnabled, evalLdapSyncDutyCycle),
+	Eval:           ldapRule(ldapSyncEnabled, evalLdapSyncDutyCycle),
 }
 
 func ldapPortSecurity(s *healthcheck.Snapshot) (port int, security string, ok bool) {
@@ -262,25 +262,25 @@ func evalLdapIDIsEmail(s *healthcheck.Snapshot) healthcheck.Result {
 }
 
 // Identity gates come before stats so a packet without stats still resolves an SSO install.
-func evalLdapRecommendedAtScale(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalLdapRecommendedAtScale(s *healthcheck.Snapshot) healthcheck.Result {
 	sso, ok := ssoEnabled(s)
 	if !ok {
-		return []healthcheck.Result{unknownConfig()}
+		return unknownConfig()
 	}
 	if sso {
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 
 	users, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.ActiveUsers })
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)
 	}
 
 	result := healthcheck.Resolved()
 	if users > ldapRecommendedUsers {
 		result = healthcheck.Firing(healthcheck.TranslationId("health.rule.ldap_recommended_at_scale.message")).WithDetail("users", strconv.FormatInt(users, 10))
 	}
-	return []healthcheck.Result{result.WithValue(float64(users))}
+	return result.WithValue(float64(users))
 }
 
 // ssoEnabled ignores LDAP sync, which signs no one in: sync-only users still use local passwords.

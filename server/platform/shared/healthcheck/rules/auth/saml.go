@@ -38,7 +38,7 @@ var samlSignatureSHA1 = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        "SamlSettings.SignatureAlgorithm",
-	Eval:           gated(samlEnabled, evalSamlSignatureSHA1),
+	Eval:           samlRule(evalSamlSignatureSHA1),
 }
 
 var samlVerifyOff = healthcheck.Rule{
@@ -55,7 +55,7 @@ var samlVerifyOff = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        "SamlSettings.Verify",
-	Eval:           gated(samlEnabled, evalSamlVerifyOff),
+	Eval:           samlRule(evalSamlVerifyOff),
 }
 
 var samlEncryptOff = healthcheck.Rule{
@@ -72,7 +72,7 @@ var samlEncryptOff = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        "SamlSettings.Encrypt",
-	Eval:           gated(samlEnabled, evalSamlEncryptOff),
+	Eval:           samlRule(evalSamlEncryptOff),
 }
 
 var samlIDIsEmail = healthcheck.Rule{
@@ -89,7 +89,7 @@ var samlIDIsEmail = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        samlIDSubject,
-	Eval:           gated(samlEnabled, evalSamlIDIsEmail),
+	Eval:           samlRule(evalSamlIDIsEmail),
 }
 
 var samlIDMutable = healthcheck.Rule{
@@ -106,7 +106,7 @@ var samlIDMutable = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        samlIDSubject,
-	Eval:           gated(samlEnabled, evalSamlIDMutable),
+	Eval:           samlRule(evalSamlIDMutable),
 }
 
 // SignatureAlgorithm only signs requests, so it is inert while SignRequest is off.
