@@ -23,6 +23,13 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </thead>
 <tbody>
 <tr>
+<td rowspan="2">v12.1</td>
+<td><p>This migration adds a new partial composite index, <code>idx_propertyvalues_groupid_fieldid</code>, on the <code>PropertyValues</code> table covering the columns <code>GroupID</code> and <code>FieldID</code> for rows where <code>DeleteAt</code> is 0. The <code>PropertyValues</code> table is part of the Properties/Custom Attributes feature. This index improves lookups that filter by group and field, which is a common access pattern for that feature. The index is created using <code>CONCURRENTLY</code>, so the build does not block concurrent reads or writes against the <code>PropertyValues</code> table. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>{"-- morph:nontransactional\nCREATE INDEX CONCURRENTLY IF NOT EXISTS idx_propertyvalues_groupid_fieldid ON PropertyValues(GroupID, FieldID) WHERE DeleteAt = 0;"}</code></pre><pre><code>{"-- morph:nontransactional\nDROP INDEX CONCURRENTLY IF EXISTS idx_propertyvalues_groupid_fieldid;"}</code></pre></td>
+</tr>
+<tr>
+<td><p>The minimum supported Firefox version is now v153. Users on an earlier Firefox version see the unsupported browser page instead of the web app. Firefox 153 is the current Extended Support Release, so deployments that standardise on Firefox ESR should confirm their fleet is on 153 or later before upgrading.</p></td>
+</tr>
+<tr>
 <td rowspan="27">v12.0</td>
 <td><p>This release includes a database migration that increases the maximum message length from 16,383 to 262,144 characters by widening the <code>message</code> column from <code>VARCHAR(65535)</code> to <code>VARCHAR(1048576)</code>. The message limit is a quarter of the column size, to allow for characters of up to four bytes. Widening <code>VARCHAR</code> is metadata-only on supported PostgreSQL versions, but the migration still takes a brief <code>ACCESS EXCLUSIVE</code> lock on each affected table, including <code>posts</code>. Acquiring this lock can be delayed by active or idle-in-transaction database sessions, and reads and writes on the table wait while it is pending. To keep the lock short, the full-text index on post messages (<code>idx_posts_message_txt</code>) is dropped before the column is widened and rebuilt concurrently by a later migration, so database full-text search of posts runs without that index until the rebuild completes. Large or busy deployments should test the migration and schedule a maintenance window.</p></td>
 </tr>
