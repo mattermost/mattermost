@@ -95,18 +95,21 @@ const IPFiltering = () => {
     }, [ipFilters]);
 
     useEffect(() => {
-        // Wait until filters have loaded. Mapping while `ipFilters` is still
-        // null would replace it with [] and race the fetch callback, which can
-        // snap the enable switch back off when data arrives.
-        if (ipFilters === null) {
-            return;
+        if (filterToggle === false) {
+            setIpFilters(ipFilters?.map((filter: AllowedIPRange): AllowedIPRange => {
+                return {
+                    ...filter,
+                    enabled: false,
+                };
+            }) || []);
+        } else {
+            setIpFilters(ipFilters?.map((filter: AllowedIPRange): AllowedIPRange => {
+                return {
+                    ...filter,
+                    enabled: true,
+                };
+            }) || []);
         }
-        setIpFilters(ipFilters.map((filter: AllowedIPRange): AllowedIPRange => {
-            return {
-                ...filter,
-                enabled: filterToggle,
-            };
-        }));
     }, [filterToggle]);
 
     function pollInstallationStatus() {
