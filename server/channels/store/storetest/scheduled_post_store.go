@@ -52,7 +52,7 @@ func testCreateScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s S
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
 
-		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdScheduledPost.Id)
 
@@ -60,7 +60,7 @@ func testCreateScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s S
 			_ = ss.ScheduledPost().PermanentlyDeleteScheduledPosts([]string{createdScheduledPost.Id})
 		}()
 
-		scheduledPostsFromDatabase, err := ss.ScheduledPost().GetScheduledPostsForUser(userId, "team_id_1")
+		scheduledPostsFromDatabase, err := ss.ScheduledPost().GetScheduledPostsForUser(rctx, userId, "team_id_1")
 		assert.NoError(t, err)
 		require.Equal(t, 1, len(scheduledPostsFromDatabase))
 		assert.Equal(t, scheduledPost.Id, scheduledPostsFromDatabase[0].Id)
@@ -80,7 +80,7 @@ func testCreateScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s S
 			ScheduledAt: model.GetMillis() - 100000, // 100 seconds in the past
 		}
 
-		_, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+		_, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 		assert.NoError(t, err)
 
 		defer func() {
@@ -102,7 +102,7 @@ func testCreateScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s S
 			RepeatTimezone: "America/New_York",
 		}
 
-		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdScheduledPost.Id)
 
@@ -110,7 +110,7 @@ func testCreateScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s S
 			_ = ss.ScheduledPost().PermanentlyDeleteScheduledPosts([]string{createdScheduledPost.Id})
 		}()
 
-		scheduledPostsFromDatabase, err := ss.ScheduledPost().GetScheduledPostsForUser(userId, "team_id_1")
+		scheduledPostsFromDatabase, err := ss.ScheduledPost().GetScheduledPostsForUser(rctx, userId, "team_id_1")
 		assert.NoError(t, err)
 		require.Len(t, scheduledPostsFromDatabase, 1)
 		assert.Equal(t, model.ScheduledPostRepeatTypeWeekly, scheduledPostsFromDatabase[0].RepeatType)
@@ -122,7 +122,7 @@ func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 	t.Run("should handle no scheduled posts exist", func(t *testing.T) {
 		apr2022 := time.Date(2100, time.April, 1, 1, 0, 0, 0, time.UTC)
 		afterTime := time.Date(2100, time.March, 1, 1, 0, 0, 0, time.UTC)
-		scheduledPosts, err := ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillisForTime(apr2022), model.GetMillisForTime(afterTime), "", 10)
+		scheduledPosts, err := ss.ScheduledPost().GetPendingScheduledPosts(rctx, model.GetMillisForTime(apr2022), model.GetMillisForTime(afterTime), "", 10)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(scheduledPosts))
 	})
@@ -141,7 +141,7 @@ func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 			ScheduledAt: model.GetMillisForTime(jan2100),
 		}
 
-		createdScheduledPost1, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost1)
+		createdScheduledPost1, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost1)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdScheduledPost1.Id)
 
@@ -156,7 +156,7 @@ func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 			ScheduledAt: model.GetMillisForTime(feb2100),
 		}
 
-		createdScheduledPost2, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost2)
+		createdScheduledPost2, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost2)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdScheduledPost2.Id)
 
@@ -171,7 +171,7 @@ func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 			ScheduledAt: model.GetMillisForTime(mar2100),
 		}
 
-		createdScheduledPost3, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost3)
+		createdScheduledPost3, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost3)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdScheduledPost3.Id)
 
@@ -185,19 +185,19 @@ func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 
 		apr2022 := time.Date(2100, time.April, 1, 1, 0, 0, 0, time.UTC)
 		afterTime := time.Date(2100, time.January, 1, 0, 0, 0, 0, time.UTC)
-		scheduledPosts, err := ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillisForTime(apr2022), model.GetMillisForTime(afterTime), "", 10)
+		scheduledPosts, err := ss.ScheduledPost().GetPendingScheduledPosts(rctx, model.GetMillisForTime(apr2022), model.GetMillisForTime(afterTime), "", 10)
 		assert.NoError(t, err)
 		assert.Equal(t, 3, len(scheduledPosts))
 
 		mar2100midnight := time.Date(2100, time.March, 1, 0, 0, 0, 0, time.UTC)
 		afterTime = time.Date(2100, time.January, 1, 0, 0, 0, 0, time.UTC)
-		scheduledPosts, err = ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillisForTime(mar2100midnight), model.GetMillisForTime(afterTime), "", 10)
+		scheduledPosts, err = ss.ScheduledPost().GetPendingScheduledPosts(rctx, model.GetMillisForTime(mar2100midnight), model.GetMillisForTime(afterTime), "", 10)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(scheduledPosts))
 
 		jan2100Midnight := time.Date(2100, time.January, 1, 0, 0, 0, 0, time.UTC)
 		afterTime = time.Date(2099, time.December, 31, 0, 0, 0, 0, time.UTC)
-		scheduledPosts, err = ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillisForTime(jan2100Midnight), model.GetMillisForTime(afterTime), "", 10)
+		scheduledPosts, err = ss.ScheduledPost().GetPendingScheduledPosts(rctx, model.GetMillisForTime(jan2100Midnight), model.GetMillisForTime(afterTime), "", 10)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(scheduledPosts))
 	})
@@ -219,7 +219,7 @@ func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 				ScheduledAt: scheduledAt,
 			}
 
-			createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+			createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 			require.NoError(t, err)
 			createdIDs = append(createdIDs, createdScheduledPost.Id)
 		}
@@ -237,7 +237,7 @@ func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 
 		var seenIDs []string
 		for {
-			page, err := ss.ScheduledPost().GetPendingScheduledPosts(beforeTime, afterTime, lastScheduledPostId, perPage)
+			page, err := ss.ScheduledPost().GetPendingScheduledPosts(rctx, beforeTime, afterTime, lastScheduledPostId, perPage)
 			require.NoError(t, err)
 			if len(page) == 0 {
 				break
@@ -267,7 +267,7 @@ func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 			RepeatTimezone: "UTC",
 		}
 
-		createdRecurringScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(recurringScheduledPost)
+		createdRecurringScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(rctx, recurringScheduledPost)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdRecurringScheduledPost.Id)
 
@@ -277,7 +277,7 @@ func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 
 		beforeTime := model.GetMillisForTime(time.Date(2100, time.March, 1, 1, 0, 0, 0, time.UTC))
 		afterTime := model.GetMillisForTime(time.Date(2100, time.February, 1, 1, 0, 0, 0, time.UTC))
-		scheduledPosts, err := ss.ScheduledPost().GetPendingScheduledPosts(beforeTime, afterTime, "", 10)
+		scheduledPosts, err := ss.ScheduledPost().GetPendingScheduledPosts(rctx, beforeTime, afterTime, "", 10)
 		assert.NoError(t, err)
 		require.Len(t, scheduledPosts, 1)
 		assert.Equal(t, createdRecurringScheduledPost.Id, scheduledPosts[0].Id)
@@ -297,7 +297,7 @@ func testPermanentlyDeleteScheduledPosts(t *testing.T, rctx request.CTX, ss stor
 		ScheduledAt: model.GetMillis() + 100000,
 	}
 
-	createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+	createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, createdScheduledPost.Id)
 	scheduledPostIDs = append(scheduledPostIDs, createdScheduledPost.Id)
@@ -312,7 +312,7 @@ func testPermanentlyDeleteScheduledPosts(t *testing.T, rctx request.CTX, ss stor
 		ScheduledAt: model.GetMillis() + 100000,
 	}
 
-	createdScheduledPost, err = ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+	createdScheduledPost, err = ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, createdScheduledPost.Id)
 	scheduledPostIDs = append(scheduledPostIDs, createdScheduledPost.Id)
@@ -327,7 +327,7 @@ func testPermanentlyDeleteScheduledPosts(t *testing.T, rctx request.CTX, ss stor
 		ScheduledAt: model.GetMillis() + 100000,
 	}
 
-	createdScheduledPost, err = ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+	createdScheduledPost, err = ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, createdScheduledPost.Id)
 	scheduledPostIDs = append(scheduledPostIDs, createdScheduledPost.Id)
@@ -342,13 +342,13 @@ func testPermanentlyDeleteScheduledPosts(t *testing.T, rctx request.CTX, ss stor
 		ScheduledAt: model.GetMillis() + 100000,
 	}
 
-	createdScheduledPost, err = ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+	createdScheduledPost, err = ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, createdScheduledPost.Id)
 	scheduledPostIDs = append(scheduledPostIDs, createdScheduledPost.Id)
 
 	// verify 4 scheduled posts exist
-	scheduledPosts, err := ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillis()+50000000, model.GetMillis()-100000000, "", 10)
+	scheduledPosts, err := ss.ScheduledPost().GetPendingScheduledPosts(rctx, model.GetMillis()+50000000, model.GetMillis()-100000000, "", 10)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, len(scheduledPosts))
 
@@ -357,7 +357,7 @@ func testPermanentlyDeleteScheduledPosts(t *testing.T, rctx request.CTX, ss stor
 	assert.NoError(t, err)
 
 	// now there should be no posts
-	scheduledPosts, err = ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillis()+50000000, model.GetMillis()-100000000, "", 10)
+	scheduledPosts, err = ss.ScheduledPost().GetPendingScheduledPosts(rctx, model.GetMillis()+50000000, model.GetMillis()-100000000, "", 10)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(scheduledPosts))
 }
@@ -389,7 +389,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 			ScheduledAt: model.GetMillis(),
 		}
 
-		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdScheduledPost.Id)
 
@@ -422,11 +422,11 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 			},
 		}
 
-		err = ss.ScheduledPost().UpdatedScheduledPost(updateSchedulePost)
+		err = ss.ScheduledPost().UpdatedScheduledPost(rctx, updateSchedulePost)
 		assert.NoError(t, err)
 
 		// now we'll get it and verify that intended fields updated and other fields did not
-		userScheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(userId, channel.TeamId)
+		userScheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(rctx, userId, channel.TeamId)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(userScheduledPosts))
 
@@ -458,7 +458,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 			ScheduledAt: model.GetMillis() - (24 * 60 * 60 * 1000), // 1 day in the past
 		}
 
-		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdScheduledPost.Id)
 
@@ -467,10 +467,10 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 		scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
 		scheduledPost.ProcessedAt = now
 
-		err = ss.ScheduledPost().UpdatedScheduledPost(scheduledPost)
+		err = ss.ScheduledPost().UpdatedScheduledPost(rctx, scheduledPost)
 		assert.NoError(t, err)
 
-		updatedScheduledPost, err := ss.ScheduledPost().Get(scheduledPost.Id)
+		updatedScheduledPost, err := ss.ScheduledPost().Get(rctx, scheduledPost.Id)
 		assert.NoError(t, err)
 		assert.LessOrEqual(t, now, updatedScheduledPost.ProcessedAt)
 		assert.Equal(t, model.ScheduledPostErrorUnknownError, updatedScheduledPost.ErrorCode)
@@ -505,7 +505,7 @@ func testUpdateRecurringScheduledPosts(t *testing.T, rctx request.CTX, ss store.
 			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
 			RepeatTimezone: "UTC",
 		}
-		firstCreated, err := ss.ScheduledPost().CreateScheduledPost(firstScheduledPost)
+		firstCreated, err := ss.ScheduledPost().CreateScheduledPost(rctx, firstScheduledPost)
 		require.NoError(t, err)
 		require.NotEmpty(t, firstCreated.Id)
 
@@ -520,7 +520,7 @@ func testUpdateRecurringScheduledPosts(t *testing.T, rctx request.CTX, ss store.
 			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
 			RepeatTimezone: "UTC",
 		}
-		secondCreated, err := ss.ScheduledPost().CreateScheduledPost(secondScheduledPost)
+		secondCreated, err := ss.ScheduledPost().CreateScheduledPost(rctx, secondScheduledPost)
 		require.NoError(t, err)
 		require.NotEmpty(t, secondCreated.Id)
 
@@ -537,10 +537,10 @@ func testUpdateRecurringScheduledPosts(t *testing.T, rctx request.CTX, ss store.
 		secondCreated.ErrorCode = ""
 		secondCreated.ProcessedAt = 0
 
-		err = ss.ScheduledPost().UpdateRecurringScheduledPosts([]*model.ScheduledPost{firstCreated, secondCreated})
+		err = ss.ScheduledPost().UpdateRecurringScheduledPosts(rctx, []*model.ScheduledPost{firstCreated, secondCreated})
 		require.NoError(t, err)
 
-		updatedFirst, err := ss.ScheduledPost().Get(firstCreated.Id)
+		updatedFirst, err := ss.ScheduledPost().Get(rctx, firstCreated.Id)
 		require.NoError(t, err)
 		require.NotNil(t, updatedFirst)
 		assert.Equal(t, firstNextAt, updatedFirst.ScheduledAt)
@@ -548,7 +548,7 @@ func testUpdateRecurringScheduledPosts(t *testing.T, rctx request.CTX, ss store.
 		assert.Zero(t, updatedFirst.ProcessedAt)
 		assert.GreaterOrEqual(t, updatedFirst.UpdateAt, firstCreated.UpdateAt)
 
-		updatedSecond, err := ss.ScheduledPost().Get(secondCreated.Id)
+		updatedSecond, err := ss.ScheduledPost().Get(rctx, secondCreated.Id)
 		require.NoError(t, err)
 		require.NotNil(t, updatedSecond)
 		assert.Equal(t, secondNextAt, updatedSecond.ScheduledAt)
@@ -558,7 +558,7 @@ func testUpdateRecurringScheduledPosts(t *testing.T, rctx request.CTX, ss store.
 	})
 
 	t.Run("should not fail for empty input", func(t *testing.T) {
-		err := ss.ScheduledPost().UpdateRecurringScheduledPosts(nil)
+		err := ss.ScheduledPost().UpdateRecurringScheduledPosts(rctx, nil)
 		require.NoError(t, err)
 	})
 }
@@ -585,7 +585,7 @@ func testUpdateOldScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store,
 			ScheduledAt: baseTime + 86400000, // 1 day in the future
 		}
 
-		createdScheduledPost1, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost1)
+		createdScheduledPost1, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost1)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdScheduledPost1.Id)
 
@@ -602,7 +602,7 @@ func testUpdateOldScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store,
 			ScheduledAt: baseTime + (2 * 86400000), // 2 days in the future
 		}
 
-		createdScheduledPost2, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost2)
+		createdScheduledPost2, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost2)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdScheduledPost2.Id)
 
@@ -619,7 +619,7 @@ func testUpdateOldScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store,
 			ScheduledAt: baseTime + (3 * 86400000), // 3 days in the future
 		}
 
-		createdScheduledPost3, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost3)
+		createdScheduledPost3, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost3)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdScheduledPost3.Id)
 
@@ -636,7 +636,7 @@ func testUpdateOldScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store,
 			ScheduledAt: baseTime + (4 * 86400000), // 4 days in the future
 		}
 
-		createdScheduledPost4, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost4)
+		createdScheduledPost4, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost4)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdScheduledPost4.Id)
 
@@ -659,10 +659,10 @@ func testUpdateOldScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store,
 		cleanup := setupScheduledPosts(now, userId, teamId)
 		defer cleanup()
 
-		err := ss.ScheduledPost().UpdateOldScheduledPosts(now + 2.5*86400000) // marking all posts older than 2 days from now
+		err := ss.ScheduledPost().UpdateOldScheduledPosts(rctx, now+2.5*86400000) // marking all posts older than 2 days from now
 		assert.NoError(t, err)
 
-		scheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(userId, teamId)
+		scheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(rctx, userId, teamId)
 		assert.NoError(t, err)
 		assert.Equal(t, 4, len(scheduledPosts))
 		assert.Equal(t, model.ScheduledPostErrorUnableToSend, scheduledPosts[0].ErrorCode)
@@ -694,7 +694,7 @@ func testUpdateOldScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store,
 			RepeatTimezone: "UTC",
 		}
 
-		createdRecurringScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(recurringScheduledPost)
+		createdRecurringScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(rctx, recurringScheduledPost)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdRecurringScheduledPost.Id)
 
@@ -703,10 +703,10 @@ func testUpdateOldScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store,
 			_ = ss.Channel().PermanentDelete(rctx, createdChannel.Id)
 		}()
 
-		err = ss.ScheduledPost().UpdateOldScheduledPosts(model.GetMillis())
+		err = ss.ScheduledPost().UpdateOldScheduledPosts(rctx, model.GetMillis())
 		assert.NoError(t, err)
 
-		storedRecurringScheduledPost, err := ss.ScheduledPost().Get(createdRecurringScheduledPost.Id)
+		storedRecurringScheduledPost, err := ss.ScheduledPost().Get(rctx, createdRecurringScheduledPost.Id)
 		assert.NoError(t, err)
 		require.NotNil(t, storedRecurringScheduledPost)
 		assert.Empty(t, storedRecurringScheduledPost.ErrorCode)
@@ -730,7 +730,7 @@ func testPermanentDeleteScheduledPostsByUser(t *testing.T, rctx request.CTX, ss 
 			ScheduledAt: model.GetMillis() + 100000,
 		}
 
-		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, createdScheduledPost.Id)
 
@@ -739,7 +739,7 @@ func testPermanentDeleteScheduledPostsByUser(t *testing.T, rctx request.CTX, ss 
 		assert.NoError(t, err)
 
 		// Verify that no scheduled posts exist for the user
-		scheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(userId, teamId)
+		scheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(rctx, userId, teamId)
 		assert.NoError(t, err)
 		assert.Empty(t, scheduledPosts)
 	})
@@ -768,7 +768,7 @@ func testPermanentDeleteScheduledPostsByUser(t *testing.T, rctx request.CTX, ss 
 				ScheduledAt: model.GetMillis() + 100000,
 			}
 
-			createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+			createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(rctx, scheduledPost)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, createdScheduledPost.Id)
 		}
@@ -778,7 +778,7 @@ func testPermanentDeleteScheduledPostsByUser(t *testing.T, rctx request.CTX, ss 
 		assert.NoError(t, err)
 
 		// Verify that no scheduled posts exist for the user
-		scheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(userId, teamId)
+		scheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(rctx, userId, teamId)
 		assert.NoError(t, err)
 		assert.Empty(t, scheduledPosts)
 	})

@@ -190,16 +190,14 @@ export type ViewsState = {
         filter: string;
     };
 
-    productMenu: {
-        switcherOpen: boolean;
-    };
-
     channelSidebar: {
         unreadFilterEnabled: boolean;
         draggingState: DraggingState;
         newCategoryIds: string[];
         multiSelectedChannelIds: string[];
         lastSelectedChannel: string;
+        initChannelsLoaded: boolean;
+        initChannelMembershipsLoaded: boolean;
     };
 
     addChannelCtaDropdown: {
@@ -218,14 +216,5 @@ export type ViewsState = {
         lastUpdateAt: {[id: string]: number};
         manuallyUnread: {[id: string]: boolean};
         toastStatus: boolean;
-    };
-
-    textbox: {
-        shouldShowPreviewOnCreateComment: boolean;
-        shouldShowPreviewOnCreatePost: boolean;
-        shouldShowPreviewOnEditChannelHeaderModal: boolean;
-        shouldShowPreviewOnEditPostModal: boolean;
-        shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
-        shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
     };
 };

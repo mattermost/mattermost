@@ -148,7 +148,9 @@ type BasePluggableProps = {
 
 export type PluggableText = string | React.ReactNode;
 
-export type AppBarChannelAction = (channel: Channel, member: ChannelMembership) => void;
+// The App Bar is rendered outside of channels too, such as in Threads and Drafts,
+// so these actions can run with no channel in context.
+export type AppBarChannelAction = (channel?: Channel, member?: ChannelMembership) => void;
 export type AppBarAction = PluginComponent & {
     iconUrl: string;
     supportedProductIds: ProductScope;
@@ -184,7 +186,7 @@ export type ChannelHeaderButtonAction = PluginComponent & {
     icon: React.ReactNode;
     dropdownText: PluggableText;
     tooltipText: PluggableText;
-    action: (channel: Channel, member?: ChannelMembership) => void;
+    action: AppBarChannelAction;
 };
 
 export type ChannelHeaderIconComponent = PluginComponent & {
@@ -235,10 +237,18 @@ export type UserGuideDropdownAction = PluginComponent & {
     action: (fileInfo: FileInfo) => void;
 };
 
+export type PhoneCallRequest = {
+    number: string;
+    userId: string;
+    label: string;
+    fieldId: string;
+};
+
 export type CallButtonAction = PluginComponent & {
     button: React.ReactNode;
     dropdownButton: React.ReactNode;
     action: (channel?: Channel | null, member?: ChannelMembership) => void;
+    phoneAction?: (call: PhoneCallRequest) => void;
 };
 
 export type MobileChannelHeaderButtonAction = PluginComponent & {

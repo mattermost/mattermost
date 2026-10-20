@@ -93,13 +93,13 @@ func (a *App) SetCustomStatus(rctx request.CTX, userID string, cs *model.CustomS
 		}
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return err
 	}
 
 	if err := user.SetCustomStatus(cs); err != nil {
-		rctx.Logger().Error("Failed to set custom status", mlog.String("userID", userID), mlog.Err(err))
+		rctx.Logger().Error("Failed to set custom status", mlog.String("user_id", userID), mlog.Err(err))
 	}
 	_, updateErr := a.UpdateUser(rctx, user, true)
 	if updateErr != nil {
@@ -107,14 +107,14 @@ func (a *App) SetCustomStatus(rctx request.CTX, userID string, cs *model.CustomS
 	}
 
 	if err = a.addRecentCustomStatus(rctx, userID, cs); err != nil {
-		rctx.Logger().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
+		rctx.Logger().Error("Can't add recent custom status for", mlog.String("user_id", userID), mlog.Err(err))
 	}
 
 	return nil
 }
 
 func (a *App) RemoveCustomStatus(rctx request.CTX, userID string) *model.AppError {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return err
 	}
@@ -128,8 +128,8 @@ func (a *App) RemoveCustomStatus(rctx request.CTX, userID string) *model.AppErro
 	return nil
 }
 
-func (a *App) GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
-	user, err := a.GetUser(userID)
+func (a *App) GetCustomStatus(rctx request.CTX, userID string) (*model.CustomStatus, *model.AppError) {
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return &model.CustomStatus{}, err
 	}

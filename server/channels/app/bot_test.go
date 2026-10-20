@@ -67,6 +67,19 @@ func TestCreateBot(t *testing.T) {
 			require.Nil(t, bot)
 			require.Equal(t, "model.bot.is_valid.username.app_error", err.Id)
 		})
+
+		t.Run("username reserved for a system-owned bot", func(t *testing.T) {
+			th := Setup(t).InitBasic(t)
+
+			bot, err := th.App.CreateBot(th.Context, &model.Bot{
+				Username:    model.BotSystemBotUsername,
+				Description: "a bot",
+				OwnerId:     th.BasicUser.Id,
+			})
+			require.NotNil(t, err)
+			require.Nil(t, bot)
+			require.Equal(t, "app.bot.createbot.reserved_username.app_error", err.Id)
+		})
 	})
 
 	t.Run("create bot", func(t *testing.T) {
@@ -86,7 +99,7 @@ func TestCreateBot(t *testing.T) {
 		assert.Equal(t, "a bot", bot.Description)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
 
-		user, err := th.App.GetUser(bot.UserId)
+		user, err := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, err)
 
 		// Check that a post was created to add bot to team and channels
@@ -254,6 +267,52 @@ func TestPatchBot(t *testing.T) {
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
 		require.NotNil(t, err)
 		require.Equal(t, "model.bot.is_valid.description.app_error", err.Id)
+	})
+
+	t.Run("patch bot to username reserved for a system-owned bot", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		botPatch := &model.BotPatch{
+			Username: new(model.BotSystemBotUsername),
+		}
+
+		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
+		require.NotNil(t, err)
+		require.Equal(t, "app.bot.patchbot.reserved_username.app_error", err.Id)
+	})
+
+	t.Run("patch bot to reserved username with different casing is still blocked", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		botPatch := &model.BotPatch{
+			Username: new("System-Bot"),
+		}
+
+		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
+		require.NotNil(t, err)
+		require.Equal(t, "app.bot.patchbot.reserved_username.app_error", err.Id)
 	})
 
 	t.Run("patch bot", func(t *testing.T) {
@@ -658,7 +717,7 @@ func TestUpdateBotActive(t *testing.T) {
 			require.Nil(t, err)
 			require.Zero(t, refetched.DeleteAt)
 
-			botUser, err := th.App.GetUser(protectedBot.UserId)
+			botUser, err := th.App.GetUser(th.Context, protectedBot.UserId)
 			require.Nil(t, err)
 			require.Zero(t, botUser.DeleteAt)
 		})
@@ -833,7 +892,7 @@ func TestDisableUserBots(t *testing.T) {
 	require.Nil(t, err)
 	require.Zero(t, bot.DeleteAt)
 
-	user, err := th.App.GetUser(u2bot1.UserId)
+	user, err := th.App.GetUser(th.Context, u2bot1.UserId)
 	require.Nil(t, err)
 	require.Zero(t, user.DeleteAt)
 
@@ -1059,7 +1118,7 @@ func TestConvertUserToBot(t *testing.T) {
 		require.Nil(t, err)
 
 		// Verify OAuth credentials are set
-		oauthUser, appErr := th.App.GetUser(oauthUser.Id)
+		oauthUser, appErr := th.App.GetUser(th.Context, oauthUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "google", oauthUser.AuthService)
 		require.NotNil(t, oauthUser.AuthData)
@@ -1073,7 +1132,7 @@ func TestConvertUserToBot(t *testing.T) {
 		}()
 
 		// Get updated user and verify OAuth credentials are cleared
-		updatedUser, err := th.App.GetUser(oauthUser.Id)
+		updatedUser, err := th.App.GetUser(th.Context, oauthUser.Id)
 		require.Nil(t, err)
 		assert.Empty(t, updatedUser.AuthService)
 		// AuthData may be empty string instead of nil in the database
@@ -1127,7 +1186,7 @@ func TestGetSystemBot(t *testing.T) {
 		// before the protection guard existed: deactivate the underlying user
 		// and mark the bot record deleted directly in the store (bypassing
 		// UpdateBotActive's guard).
-		botUser, err := th.App.GetUser(bot.UserId)
+		botUser, err := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, err)
 		_, err = th.App.UpdateActive(th.Context, botUser, false)
 		require.Nil(t, err)
@@ -1148,7 +1207,7 @@ func TestGetSystemBot(t *testing.T) {
 		require.Nil(t, err)
 		require.Zero(t, healed.DeleteAt)
 
-		healedUser, err := th.App.GetUser(bot.UserId)
+		healedUser, err := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, err)
 		require.Zero(t, healedUser.DeleteAt)
 	})
@@ -1167,7 +1226,7 @@ func TestSystemBotProtectedFromOwnerDeactivation(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, model.BotSystemBotUsername, systemBot.Username)
 
-	owner, err := th.App.GetUser(systemBot.OwnerId)
+	owner, err := th.App.GetUser(th.Context, systemBot.OwnerId)
 	require.Nil(t, err)
 
 	// A regular bot owned by the same user, to confirm the guard is scoped to

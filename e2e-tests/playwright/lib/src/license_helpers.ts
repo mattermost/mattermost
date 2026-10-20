@@ -17,6 +17,14 @@ export function hasAutotranslationLicense(skuShortName: string): boolean {
 }
 
 /**
+ * Mirrors webapp `isEnterpriseLicense` (utils/license_utils), which also accepts the legacy `E20` SKU.
+ * Use with test.skip(!hasEnterpriseLicense(license.SkuShortName), '...') for Enterprise-gated UI.
+ */
+export function hasEnterpriseLicense(skuShortName: string): boolean {
+    return ['enterprise', 'E20', 'entry', 'advanced'].includes(skuShortName);
+}
+
+/**
  * Returns true if the server has a license that includes Shared Channels.
  * The client receives SharedChannels === 'true' when the server's HasSharedChannels() is true
  * (see server/public/model/license.go and server/channels/utils/license.go).

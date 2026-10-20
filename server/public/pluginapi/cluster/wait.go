@@ -1,7 +1,7 @@
 package cluster
 
 import (
-	"math/rand"
+	"math/rand/v2"
 	"time"
 )
 
@@ -37,7 +37,7 @@ func nextWaitInterval(lastWaitInterval time.Duration, err error) time.Duration {
 	}
 
 	// Add some jitter to avoid unnecessary collision between competing plugin instances.
-	nextWaitInterval += time.Duration(rand.Int63n(int64(jitterWaitInterval)) - int64(jitterWaitInterval)/2)
+	nextWaitInterval += time.Duration(rand.Int64N(int64(jitterWaitInterval)) - int64(jitterWaitInterval)/2)
 
 	return nextWaitInterval
 }

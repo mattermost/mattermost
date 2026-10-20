@@ -101,7 +101,7 @@ func (a *App) GetUserForLogin(rctx request.CTX, id, loginId string) (*model.User
 	if enableEmail || enableUsername {
 		// If we are given a userID then fail if we can't find a user with that ID
 		if id != "" {
-			user, err := a.GetUser(id)
+			user, err := a.GetUser(rctx, id)
 			if err != nil {
 				if err.Id != MissingAccountError {
 					err.StatusCode = http.StatusInternalServerError
@@ -212,6 +212,13 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 	if session, err = a.CreateSession(rctx, session); err != nil {
 		err.StatusCode = http.StatusInternalServerError
 		return nil, err
+	}
+
+	if user.LastLogin == 0 && len(user.Props) > 0 && user.Props[model.UserPropsKeyImportedInactive] == "true" {
+		delete(user.Props, model.UserPropsKeyImportedInactive)
+		if _, appErr := a.UpdateUser(rctx, user, false); appErr != nil {
+			rctx.Logger().Warn("Failed to clear importedInactive prop on first login", mlog.Err(appErr))
+		}
 	}
 
 	if updateErr := a.Srv().Store().User().UpdateLastLogin(user.Id, session.CreateAt); updateErr != nil {

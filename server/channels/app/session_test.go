@@ -588,6 +588,21 @@ func TestSendMobileWipeSignal(t *testing.T) {
 		require.Empty(t, n.Message)
 	})
 
+	// The client echoes this signature back to the session wipe audit endpoint, which has no
+	// session to authenticate against by then.
+	t.Run("wipe push is signed for the revoked session's user and device", func(t *testing.T) {
+		handler := setupPushServer(t, th)
+
+		session := &model.Session{UserId: th.BasicUser.Id, DeviceId: "android:testdevice", ExpiresAt: model.GetMillis() + 100000}
+		th.App.sendMobileWipeSignal(th.Context, session)
+
+		require.Equal(t, 1, handler.numReqs())
+		claims, err := th.App.VerifyWipeSignature(handler.notifications()[0].Signature)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser.Id, claims.UserId)
+		require.Equal(t, "testdevice", claims.DeviceId)
+	})
+
 	t.Run("continues to remaining sessions when proxy returns PushStatusRemove", func(t *testing.T) {
 		handler := &testPushNotificationHandler{t: t} // alternates: req 1 → REMOVE, req 2 → OK
 		pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))

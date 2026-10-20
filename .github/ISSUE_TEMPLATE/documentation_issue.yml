@@ -1,0 +1,53 @@
+name: Documentation issue
+description: Report a problem with the Mattermost documentation
+title: "[Docs]: "
+labels: ["kind/documentation"]
+body:
+- type: checkboxes
+  attributes:
+    label: Before you file a documentation issue
+    description: Please ensure you can confirm the following
+    options:
+      - label: I have checked the [existing documentation issues](https://github.com/mattermost/mattermost/issues?q=is%3Aissue+label%3Akind%2Fdocumentation) and have not found one that matches the one I'm filing.
+        required: true
+      - label: This issue is about the Mattermost documentation (missing, incorrect, outdated, or unclear content), not a bug in the product itself.
+        required: true
+      - label: I have read the [contribution guidelines](https://github.com/mattermost/mattermost/blob/master/CONTRIBUTING.md) and the [Mattermost Handbook Contribution Guidelines](https://handbook.mattermost.com/contributors/contributors/guidelines/contribution-guidelines).
+        required: true
+- type: input
+  attributes:
+    label: Documentation URL
+    description: |
+      Link to the affected documentation page (for example, https://docs.mattermost.com/...).
+  validations:
+    required: true
+- type: dropdown
+  attributes:
+    label: Type of issue
+    description: What kind of documentation issue is this?
+    options:
+      - Incorrect or inaccurate content
+      - Missing content
+      - Outdated content
+      - Unclear or confusing content
+      - Broken link
+      - Typo or formatting issue
+      - Other
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Describe the issue
+    description: |
+      Include a clear description of what is wrong with the documentation.
+      Quoting the relevant section is helpful.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Suggested improvement
+    description: If you have a suggestion for how to fix or improve the documentation, describe it here.
+- type: textarea
+  attributes:
+    label: Additional Information
+    description: If you have anything else to add to the ticket, you may do so here.

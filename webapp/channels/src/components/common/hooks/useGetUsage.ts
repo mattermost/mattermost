@@ -8,6 +8,7 @@ import type {CloudUsage} from '@mattermost/types/cloud';
 
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getUsage} from 'mattermost-redux/selectors/entities/usage';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {
     getMessagesUsage,
@@ -15,12 +16,10 @@ import {
     getTeamsUsage,
 } from 'actions/cloud';
 
-import {useIsLoggedIn} from 'components/global_header/hooks';
-
 export default function useGetUsage(): CloudUsage {
     const usage = useSelector(getUsage);
     const isCloud = useSelector(isCurrentLicenseCloud);
-    const isLoggedIn = useIsLoggedIn();
+    const isLoggedIn = Boolean(useSelector(getCurrentUser));
 
     const dispatch = useDispatch();
 

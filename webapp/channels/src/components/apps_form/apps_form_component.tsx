@@ -24,11 +24,13 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {filterEmptyOptions} from 'utils/apps';
 import {momentToString, stringToMoment, resolveRelativeDate} from 'utils/date_utils';
+import {flattenCollapsible} from 'utils/dialog_conversion';
 
 import type {DoAppCallResult} from 'types/apps';
 
 import AppsFormField from './apps_form_field';
 import AppsFormHeader from './apps_form_header';
+import CollapsibleSection from './collapsible_section';
 
 import './apps_form_component.scss';
 
@@ -37,6 +39,10 @@ const DEFAULT_TIME_INTERVAL_MINUTES = 60;
 
 export type AppsFormProps = {
     form: AppForm;
+
+    // Channel this form belongs to, used by action buttons so their request targets the
+    // form's channel rather than whichever channel the user is currently viewing.
+    channelId?: string;
     timezone?: string;
     isEmbedded?: boolean;
     onExited: () => void;
@@ -93,10 +99,10 @@ const validateDateFieldValue = (fieldName: string, valueType: string, value: str
 const validateAppField = (field: AppField): string[] => {
     const errors: string[] = [];
 
-    // Resolve effective datetime values (datetime_config takes precedence over deprecated top-level fields)
-    const effectiveTimeInterval = field.datetime_config?.time_interval ?? field.time_interval;
-    const effectiveMinDate = field.datetime_config?.min_date ?? field.min_date;
-    const effectiveMaxDate = field.datetime_config?.max_date ?? field.max_date;
+    // Resolve effective datetime values
+    const effectiveTimeInterval = field.datetime_config?.time_interval;
+    const effectiveMinDate = field.datetime_config?.min_date;
+    const effectiveMaxDate = field.datetime_config?.max_date;
 
     // Validate time_interval for datetime fields (no mutation)
     if (field.type === AppFieldTypes.DATETIME && effectiveTimeInterval !== undefined) {
@@ -167,10 +173,10 @@ const getSafeDateValue = (dateString: string): string => {
 const createSanitizedField = (field: AppField): AppField => {
     const sanitized = {...field};
 
-    // Resolve effective datetime values (datetime_config takes precedence over deprecated top-level fields)
-    const effectiveInterval = field.datetime_config?.time_interval ?? field.time_interval;
-    const effectiveMin = field.datetime_config?.min_date ?? field.min_date;
-    const effectiveMax = field.datetime_config?.max_date ?? field.max_date;
+    // Resolve effective datetime values
+    const effectiveInterval = field.datetime_config?.time_interval;
+    const effectiveMin = field.datetime_config?.min_date;
+    const effectiveMax = field.datetime_config?.max_date;
 
     // Sanitize time_interval for datetime fields
     if (field.type === AppFieldTypes.DATETIME && effectiveInterval !== undefined) {
@@ -179,7 +185,6 @@ const createSanitizedField = (field: AppField): AppField => {
         if (sanitized.datetime_config) {
             sanitized.datetime_config = {...sanitized.datetime_config, time_interval: sanitizedInterval};
         }
-        sanitized.time_interval = sanitizedInterval;
     }
 
     // Sanitize date values for date fields only — datetime fields need the full pattern preserved
@@ -189,14 +194,12 @@ const createSanitizedField = (field: AppField): AppField => {
             if (sanitized.datetime_config) {
                 sanitized.datetime_config = {...sanitized.datetime_config, min_date: safeMin};
             }
-            sanitized.min_date = safeMin;
         }
         if (effectiveMax) {
             const safeMax = getSafeDateValue(effectiveMax);
             if (sanitized.datetime_config) {
                 sanitized.datetime_config = {...sanitized.datetime_config, max_date: safeMax};
             }
-            sanitized.max_date = safeMax;
         }
         if (field.type === AppFieldTypes.DATE && field.value && typeof field.value === 'string') {
             sanitized.value = getSafeDateValue(field.value);
@@ -209,9 +212,12 @@ const createSanitizedField = (field: AppField): AppField => {
 const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
     const values: AppFormValues = {};
     if (form && form.fields) {
+        // Seed from leaf fields only; collapsible containers have no value.
+        const leafFields = flattenFields(form.fields);
+
         // Validate all fields first and log any validation errors (no mutations)
         const allErrors: string[] = [];
-        form.fields.forEach((f) => {
+        leafFields.forEach((f) => {
             const fieldErrors = validateAppField(f);
             allErrors.push(...fieldErrors);
         });
@@ -223,7 +229,7 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
         }
 
         // Work with sanitized copies for safe usage
-        form.fields.forEach((originalField) => {
+        leafFields.forEach((originalField) => {
             if (originalField.type === AppFieldTypes.ACTION_BUTTON) {
                 return;
             }
@@ -236,8 +242,8 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
                 // Set default to current time for required datetime fields
                 const currentTime = timezone ? moment.tz(timezone) : moment();
 
-                // Use sanitized time_interval (guaranteed to be valid; datetime_config takes precedence)
-                const timePickerInterval = field.datetime_config?.time_interval ?? field.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
+                // Use sanitized time_interval (guaranteed to be valid)
+                const timePickerInterval = field.datetime_config?.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
 
                 // Round up to next time interval
                 const minutesMod = currentTime.minutes() % timePickerInterval;
@@ -245,9 +251,9 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
                     currentTime.clone().seconds(0).milliseconds(0) :
                     currentTime.clone().add(timePickerInterval - minutesMod, 'minutes').seconds(0).milliseconds(0);
 
-                // Clamp default to min_date/max_date bounds (datetime_config takes precedence)
-                const effectiveMin = field.datetime_config?.min_date ?? field.min_date;
-                const effectiveMax = field.datetime_config?.max_date ?? field.max_date;
+                // Clamp default to min_date/max_date bounds
+                const effectiveMin = field.datetime_config?.min_date;
+                const effectiveMax = field.datetime_config?.max_date;
                 const minMoment = effectiveMin ? stringToMoment(effectiveMin, timezone) : null;
                 const maxMoment = effectiveMax ? stringToMoment(effectiveMax, timezone) : null;
                 if (minMoment && defaultMoment.isBefore(minMoment)) {
@@ -273,12 +279,15 @@ export class AppsForm extends React.PureComponent<Props, State> {
     // causing AppsFormSelectField to remount its AsyncSelect (via refreshNonce),
     // which re-triggers dynamic select lookups on every keystroke in any field.
     private sanitizedFieldCache = new Map<AppField, AppField>();
+    private flattenedFields: AppField[];
 
     constructor(props: Props) {
         super(props);
 
         const {form, timezone} = props;
         const values = initFormValues(form, timezone);
+
+        this.flattenedFields = flattenFields(form.fields);
 
         this.state = {
             loading: false,
@@ -310,10 +319,9 @@ export class AppsForm extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        // Clear sanitized field cache when the form changes (e.g., refresh or multistep)
-        // so stale entries don't accumulate.
         if (prevProps.form !== this.props.form) {
             this.sanitizedFieldCache.clear();
+            this.flattenedFields = flattenFields(this.props.form.fields);
         }
     }
 
@@ -363,7 +371,6 @@ export class AppsForm extends React.PureComponent<Props, State> {
             return;
         }
 
-        const {fields} = this.props.form;
         const values = this.state.values;
         if (submitName && value) {
             values[submitName] = value;
@@ -371,7 +378,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
 
         const fieldErrors: {[name: string]: React.ReactNode} = {};
 
-        const elements = fieldsAsElements(fields);
+        const elements = fieldsAsElements(this.flattenedFields);
         elements?.forEach((element) => {
             const error = checkDialogElementForError( // TODO: make sure all required values are present in `element`
                 element,
@@ -450,7 +457,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
 
     performLookup = async (name: string, userInput: string): Promise<AppSelectOption[]> => {
         const intl = this.props.intl;
-        const field = this.props.form.fields?.find((f) => f.name === name);
+        const field = this.flattenedFields.find((f) => f.name === name);
         if (!field) {
             return [];
         }
@@ -537,7 +544,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
     };
 
     onChange = (name: string, value: any) => {
-        const field = this.props.form.fields?.find((f) => f.name === name);
+        const field = this.flattenedFields.find((f) => f.name === name);
         if (!field) {
             return;
         }
@@ -552,7 +559,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     const errorResponse = res.error;
                     const errorMsg = errorResponse.text;
                     const errors = errorResponse.data?.errors;
-                    const elements = fieldsAsElements(this.props.form.fields);
+                    const elements = fieldsAsElements(this.flattenedFields);
                     this.updateErrors(elements, errors, errorMsg);
                     return;
                 }
@@ -606,10 +613,9 @@ export class AppsForm extends React.PureComponent<Props, State> {
     };
 
     hasDateTimeFields = (): boolean => {
-        const {fields} = this.props.form;
-        return fields ? fields.some((field) =>
+        return flattenFields(this.props.form.fields).some((field) =>
             field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME,
-        ) : false;
+        );
     };
 
     renderModal() {
@@ -639,7 +645,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 >
                     <Modal.Header
                         closeButton={true}
-                        style={{borderBottom: fields && fields.length ? '' : '0px'}}
+                        style={{borderBottom: flattenFields(fields).length ? '' : '0px'}}
                     >
                         <Modal.Title
                             componentClass='h1'
@@ -719,38 +725,64 @@ export class AppsForm extends React.PureComponent<Props, State> {
         );
     }
 
+    // Collapsible children go through this helper so they share state.values/fieldErrors.
+    // depth tracks the collapsible nesting level (0 = top level) for indentation.
+    renderField = (originalField: AppField, autoFocus: boolean, depth = 0) => {
+        const {isEmbedded} = this.props;
+
+        if (originalField.type === AppFieldTypes.COLLAPSIBLE) {
+            const childFields = (originalField.collapsible_config?.fields || []).filter(
+                (f) => f.name !== this.props.form.submit_buttons,
+            );
+            return (
+                <CollapsibleSection
+                    key={originalField.name}
+                    label={originalField.label || originalField.name}
+                    expanded={originalField.collapsible_config?.expanded ?? true}
+                    bordered={originalField.collapsible_config?.bordered ?? true}
+                    depth={depth}
+                >
+                    {childFields.map((child, i) => this.renderField(child, autoFocus && i === 0, depth + 1))}
+                </CollapsibleSection>
+            );
+        }
+
+        // Use cached sanitized field to preserve object identity across renders.
+        // This prevents AsyncSelect remounts that trigger spurious lookup calls.
+        let field = this.sanitizedFieldCache.get(originalField);
+        if (!field) {
+            field = createSanitizedField(originalField);
+            this.sanitizedFieldCache.set(originalField, field);
+        }
+
+        return (
+            <AppsFormField
+                field={field}
+                key={field.name}
+                autoFocus={autoFocus}
+                channelId={this.props.channelId}
+                name={field.name}
+                errorText={this.state.fieldErrors[field.name]}
+                value={this.state.values[field.name]}
+                performLookup={this.performLookup}
+                onChange={this.onChange}
+                setIsInteracting={this.setIsInteracting}
+                setFieldUploading={this.setFieldUploading}
+                listComponent={isEmbedded ? SuggestionList : ModalSuggestionList}
+            />
+        );
+    };
+
     renderElements() {
-        const {isEmbedded, form} = this.props;
+        const {form} = this.props;
 
         const {fields} = form;
         if (!fields) {
             return null;
         }
 
-        return fields.filter((f) => f.name !== form.submit_buttons).map((originalField, index) => {
-            // Use cached sanitized field to preserve object identity across renders.
-            // This prevents AsyncSelect remounts that trigger spurious lookup calls.
-            let field = this.sanitizedFieldCache.get(originalField);
-            if (!field) {
-                field = createSanitizedField(originalField);
-                this.sanitizedFieldCache.set(originalField, field);
-            }
-
-            return (
-                <AppsFormField
-                    field={field}
-                    key={field.name}
-                    autoFocus={index === 0}
-                    name={field.name}
-                    errorText={this.state.fieldErrors[field.name]}
-                    value={this.state.values[field.name]}
-                    performLookup={this.performLookup}
-                    onChange={this.onChange}
-                    setIsInteracting={this.setIsInteracting}
-                    setFieldUploading={this.setFieldUploading}
-                    listComponent={isEmbedded ? SuggestionList : ModalSuggestionList}
-                />
-            );
+        return fields.filter((f) => f.name !== form.submit_buttons).map((field, index) => {
+            return this.renderField(field, index === 0);
         });
     }
 
@@ -784,7 +816,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 id='appsModalSubmit'
                 key='submit'
                 type='submit'
-                autoFocus={!fields || fields.length === 0}
+                autoFocus={flattenFields(fields).length === 0}
                 spinning={Boolean(this.state.submitting)}
                 disabled={this.state.uploadingFields.size > 0}
                 spinningText={defineMessage({
@@ -797,7 +829,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         )];
 
         if (this.props.form.submit_buttons) {
-            const field = fields?.find((f) => f.name === this.props.form.submit_buttons);
+            const field = flattenFields(fields).find((f) => f.name === this.props.form.submit_buttons);
             if (field) {
                 const buttons = field.options?.map((o) => (
                     <SpinnerButton
@@ -850,6 +882,15 @@ export class AppsForm extends React.PureComponent<Props, State> {
     }
 }
 
+// Returns all leaf fields, expanding collapsible sections.
+function flattenFields(fields?: AppField[]): AppField[] {
+    return flattenCollapsible(
+        fields || [],
+        (field) => field.type === AppFieldTypes.COLLAPSIBLE,
+        (field) => field.collapsible_config?.fields,
+    );
+}
+
 function fieldsAsElements(fields?: AppField[]): DialogElement[] {
     return fields?.filter((f) => f.type !== AppFieldTypes.ACTION_BUTTON).map((f) => ({
         name: f.name,
@@ -857,9 +898,13 @@ function fieldsAsElements(fields?: AppField[]): DialogElement[] {
         subtype: f.subtype,
         optional: !f.is_required,
         datetime_config: f.datetime_config,
-        min_date: f.datetime_config?.min_date ?? f.min_date,
-        max_date: f.datetime_config?.max_date ?? f.max_date,
-        time_interval: f.datetime_config?.time_interval ?? f.time_interval,
+        options: f.options?.map((opt) => ({text: opt.label, value: opt.value})),
+        matrix_config: f.matrix_config ? {
+            rows: f.matrix_config.rows?.map((row) => ({text: row.label, value: row.value})),
+            columns: f.matrix_config.columns?.map((col) => ({text: col.label, value: col.value})),
+            row_selection: f.matrix_config.row_selection,
+        } : undefined,
+        label_position: f.label_position,
     })) as DialogElement[];
 }
 

@@ -180,7 +180,7 @@ export const useUserPropertyFields = () => {
 
                 if (supportsOptions(field)) {
                     const options = field.attrs?.options;
-                    if (!options?.length) {
+                    if (!options?.length && !field.attrs?.options_omitted) {
                         acc[field.id] = {attrs: ValidationWarningOptionsRequired};
                     }
                 }
@@ -313,6 +313,15 @@ export const isDeletePending = <T extends {delete_at: number; create_at: number}
     // has been created and needs to be deleted
     return item.create_at !== 0 && item.delete_at !== 0;
 };
+
+/**
+ * A field created as a link to a template field (e.g. the Clearance attribute
+ * minted by Classification Markings) inherits its type and option values from
+ * that template. The server rejects any change to either, so the UI locks the
+ * type selector and the values cell. Everything else — name, display name,
+ * visibility, sort order, delete — stays editable.
+ */
+export const isLinkedField = (field: Pick<UserPropertyField, 'linked_field_id'>) => Boolean(field.linked_field_id);
 
 export const newPendingId = () => `${PENDING}${generateId()}`;
 

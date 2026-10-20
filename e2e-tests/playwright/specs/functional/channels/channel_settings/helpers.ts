@@ -196,13 +196,16 @@ export async function createPolicyAssignedToChannels(
 }
 
 /**
- * Flip the auto-add (Active) flag on a channel-scope ABAC policy. Channel-scope
- * policies share the channel's ID, so this is keyed by channelId. Active=true
- * is what makes the access-control sync job auto-add matching users.
+ * Flip the auto-add flag on a channel-scope ABAC policy. Channel-scope policies
+ * share the channel's ID, so this is keyed by channelId. Auto-add is what makes
+ * the access-control sync job add matching users.
  *
- * Children inherit the parent's Active flag at assign time, but the parent
- * default on a fresh `createPolicyAssignedToChannels` is false — flip the
- * child here when the test needs auto-add ON.
+ * The endpoint keeps its legacy `active` wire field, which the server now maps
+ * onto the policy's membership rule.
+ *
+ * A child copies the parent's auto-add setting at assign time, but the parent
+ * default on a fresh `createPolicyAssignedToChannels` is off — flip the child
+ * here when the test needs auto-add ON.
  */
 export async function setChannelPolicyActive(client: Client4, channelId: string, active: boolean): Promise<void> {
     await doFetchOrThrow(client, `${client.getBaseRoute()}/access_control_policies/activate`, {

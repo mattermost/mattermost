@@ -163,8 +163,8 @@ func (c *Context) RemoteClusterTokenRequired() {
 	}
 }
 
-func (c *Context) MfaRequired() {
-	if appErr := c.App.MFARequired(c.AppContext); appErr != nil {
+func (c *Context) MfaRequired(method string) {
+	if appErr := c.App.MFARequired(c.AppContext, method); appErr != nil {
 		c.Err = appErr
 	}
 }
@@ -189,6 +189,10 @@ func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, cookie)
+}
+
+func (c *Context) SetError(err error) {
+	c.Err = model.AsAppError(err)
 }
 
 func (c *Context) SetInvalidParam(parameter string) {

@@ -24,7 +24,7 @@ Plugins are the most comprehensive way to add new features and customization, bu
 
 
 <Note title="Tip">
-See the [Mattermost Server SDK Reference](/developers/integrate/reference/server/server-reference) and [Mattermost Client UI SDK Reference](/developers/integrate/reference/webapp/webapp-reference) documentation for details on available server API endpoints and client methods.
+See the [Mattermost Server SDK Reference](/developers/integrate/reference/server) and [Mattermost Client UI SDK Reference](/developers/integrate/reference/webapp) documentation for details on available server API endpoints and client methods.
 </Note>
 
 

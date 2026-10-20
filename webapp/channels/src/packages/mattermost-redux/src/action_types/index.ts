@@ -18,6 +18,7 @@ import ErrorTypes from './errors';
 import FileTypes from './files';
 import GeneralTypes from './general';
 import GroupTypes from './groups';
+import HealthTypes from './health';
 import HostedCustomerTypes from './hosted_customer';
 import IntegrationTypes from './integrations';
 import JobTypes from './jobs';
@@ -28,6 +29,7 @@ import PostTypes from './posts';
 import PreferenceTypes from './preferences';
 import PropertyTypes from './properties';
 import RecapTypes from './recaps';
+import RenderPermissionTypes from './render_permissions';
 import RoleTypes from './roles';
 import SchemeTypes from './schemes';
 import ScheduledPostTypes from './scheudled_posts';
@@ -72,6 +74,8 @@ export {
     ContentFlaggingTypes,
     PropertyTypes,
     AgentTypes,
+    RenderPermissionTypes,
+    HealthTypes,
     WebSocketTypes,
 };
 

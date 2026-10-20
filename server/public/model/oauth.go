@@ -106,7 +106,13 @@ func (a *OAuthApp) IsValid() *AppError {
 	}
 
 	for _, callback := range a.CallbackUrls {
-		if !IsValidHTTPURL(callback) {
+		// Dynamically registered (DCR) clients may use custom URI schemes such as
+		// cursor://; manually created OAuth apps remain restricted to http/https.
+		valid := IsValidHTTPURL(callback)
+		if a.IsDynamicallyRegistered {
+			valid = IsValidDCRRedirectURI(callback)
+		}
+		if !valid {
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.callback.app_error", nil, "", http.StatusBadRequest)
 		}
 	}

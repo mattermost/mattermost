@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {MmButtonBlock} from '@mattermost/types/mm_blocks';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {ButtonElement} from './button_element';
 import {MmBlocksInteractionsDisabledContext} from './context';
@@ -120,8 +120,7 @@ describe('ButtonElement', () => {
         expect(screen.getByText('Approve')).toBeInTheDocument();
 
         resolveAction();
-        await screen.findByRole('button', {name: 'Approve'});
-        expect(screen.getByRole('button', {name: 'Approve'})).not.toBeDisabled();
+        await waitFor(() => expect(button).not.toBeDisabled());
         expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
     });
 

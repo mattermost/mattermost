@@ -38,15 +38,47 @@ function readTestcontainersNetworkName() {
     return matches.at(-1)?.[1]?.trim() || undefined;
 }
 
+const SENSITIVE_BOOT_ENV_KEYS = new Set([
+    'MM_LICENSE',
+    'MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY',
+    'MM_FILESETTINGS_AZUREACCESSKEY',
+]);
+
+function redactBootEnvValue(key, value) {
+    if (SENSITIVE_BOOT_ENV_KEYS.has(key)) {
+        return '***';
+    }
+    if (key === 'MM_SQLSETTINGS_DATASOURCE') {
+        return value.replace(/:([^:@/]+)@/, ':***@');
+    }
+    return value;
+}
+
+function redactEnvFileForArchive(contents) {
+    return contents.replace(/^PW_TESTCONTAINERS_BOOT_ENV='(.*)'$/gm, (_match, json) => {
+        try {
+            const parsed = JSON.parse(json);
+            const redacted = Object.fromEntries(
+                Object.entries(parsed).map(([key, value]) => [key, redactBootEnvValue(key, value)]),
+            );
+            return `PW_TESTCONTAINERS_BOOT_ENV='${JSON.stringify(redacted)}'`;
+        } catch {
+            return "PW_TESTCONTAINERS_BOOT_ENV='{}'";
+        }
+    });
+}
+
 // Archives, then removes, .env.testcontainers — a stale copy left behind would seed the next
 // fresh boot's config overrides from a container that no longer exists, wrongly convincing a
-// later pw.ensure*() call that some old setting is already active.
+// later pw.ensure*() call that some old setting is already active. Secrets stay in the live
+// file for stack adoption; the logs/ copy is redacted for ci/upload-debug-artifacts.
 function archiveEnvFile() {
     if (!fs.existsSync(ENV_FILE_PATH)) {
         return;
     }
     fs.mkdirSync(LOG_DIR, {recursive: true});
-    fs.copyFileSync(ENV_FILE_PATH, path.join(LOG_DIR, 'testcontainers_env_history.log'));
+    const redacted = redactEnvFileForArchive(fs.readFileSync(ENV_FILE_PATH, 'utf-8'));
+    fs.writeFileSync(path.join(LOG_DIR, 'testcontainers_env_history.log'), redacted, 'utf-8');
     fs.rmSync(ENV_FILE_PATH);
 }
 

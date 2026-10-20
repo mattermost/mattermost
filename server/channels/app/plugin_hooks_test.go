@@ -13,7 +13,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -889,7 +889,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 	assert.NotNil(t, session)
 
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		user, _ := th.App.GetUser(th.BasicUser.Id)
+		user, _ := th.App.GetUser(th.Context, th.BasicUser.Id)
 		assert.Equal(c, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
 	}, 2*time.Second, 100*time.Millisecond)
 }
@@ -938,7 +938,7 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 	require.Nil(t, err)
 
 	time.Sleep(2 * time.Second)
-	user, err = th.App.GetUser(user.Id)
+	user, err = th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, err)
 	require.Equal(t, "plugin-callback-success", user.Nickname)
 }
@@ -983,7 +983,7 @@ func TestUserHasBeenCreated(t *testing.T) {
 	require.Nil(t, err)
 
 	time.Sleep(2 * time.Second)
-	user, err = th.App.GetUser(user.Id)
+	user, err = th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, err)
 	require.Equal(t, "plugin-callback-success", user.Nickname)
 }
@@ -1169,7 +1169,7 @@ func TestActiveHooks(t *testing.T) {
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(2 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
+		user1, appErr = th.App.GetUser(th.Context, user1.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
@@ -1275,7 +1275,7 @@ func TestHookMetrics(t *testing.T) {
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(2 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
+		user1, appErr = th.App.GetUser(th.Context, user1.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
@@ -1515,6 +1515,68 @@ func TestHookOnCloudLimitsUpdated(t *testing.T) {
 	require.True(t, hookCalled)
 }
 
+func TestHookOnLicenseChanged(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t, StartMetrics)
+
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnLicenseChanged(oldLicense, newLicense *model.License) {
+			oldID := "nil"
+			if oldLicense != nil {
+				oldID = oldLicense.Id
+			}
+			newID := "nil"
+			if newLicense != nil {
+				newID = newLicense.Id
+			}
+			p.API.KVSet("old_license_id", []byte(oldID))
+			p.API.KVSet("new_license_id", []byte(newID))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`,
+		}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	require.NoError(t, activationErrors[0])
+	pluginID := pluginIDs[0]
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+	oldLicense := model.NewTestLicense()
+	oldLicense.Id = model.NewId()
+	require.True(t, th.App.Srv().SetLicense(oldLicense))
+
+	newLicense := model.NewTestLicense()
+	newLicense.Id = model.NewId()
+	require.True(t, th.App.Srv().SetLicense(newLicense))
+
+	oldID, appErr := th.App.GetPluginKey(pluginID, "old_license_id")
+	require.Nil(t, appErr)
+	require.Equal(t, []byte(oldLicense.Id), oldID)
+
+	newID, appErr := th.App.GetPluginKey(pluginID, "new_license_id")
+	require.Nil(t, appErr)
+	require.Equal(t, []byte(newLicense.Id), newID)
+
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+}
+
 //go:embed test_templates/hook_notification_will_be_pushed.tmpl
 var hookNotificationWillBePushedTmpl string
 
@@ -1720,6 +1782,103 @@ func TestHookNotificationWillBePushedTransportPreserved(t *testing.T) {
 			notifications := handler.notifications()
 			assert.Equal(t, model.PushTransportVoIP, notifications[0].Transport, "plugin must not be able to change the transport")
 			assert.Equal(t, "voiptoken", notifications[0].DeviceId, "VoIP routing must be preserved despite the plugin")
+		})
+	}
+}
+
+func TestHookNotificationWillBePushedIdentityPreservedForDelivery(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping TestHookNotificationWillBePushedIdentityPreservedForDelivery test in short mode")
+	}
+
+	// A plugin returning a replacement notification must not be able to point the delivery audit
+	// record at another post, nor suppress it by dropping the identifiers the record is built from.
+	tests := []struct {
+		name           string
+		testCode       string
+		expectedRecord bool
+	}{
+		{
+			name: "plugin rewriting the identifiers keeps the original in the record",
+			testCode: `notification.PostId = "abcdefghijklmnopqrstuvwxyz"
+	notification.ChannelId = "zyxwvutsrqponmlkjihgfedcba"
+	return notification, ""`,
+			expectedRecord: true,
+		},
+		{
+			name: "plugin zeroing PostId still records the delivery",
+			testCode: `notification.PostId = ""
+	return notification, ""`,
+			expectedRecord: true,
+		},
+		{
+			name: "plugin marking the post as a system message still records the delivery",
+			testCode: `notification.PostType = "system_join_channel"
+	return notification, ""`,
+			expectedRecord: true,
+		},
+		{
+			name:           "plugin rejecting the notification records nothing",
+			testCode:       `return nil, "rejected"`,
+			expectedRecord: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			th := setupDeliveryTracking(t)
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.FullNotification)
+			})
+
+			templatedPlugin := fmt.Sprintf(hookNotificationWillBePushedTmpl, tt.testCode)
+			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
+			defer tearDown()
+
+			handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+			pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+			defer pushServer.Close()
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+			})
+
+			_, err := th.App.CreateSession(th.Context, &model.Session{
+				UserId:    th.BasicUser2.Id,
+				DeviceId:  model.PushNotifyAppleReactNative + ":standardtoken",
+				ExpiresAt: model.GetMillis() + 100000,
+			})
+			require.Nil(t, err)
+
+			capture := startDeliveryAuditCapture(t, th)
+
+			// BasicUser wrote BasicPost; BasicUser2 is notified about it.
+			msg := &model.PushNotification{
+				Type:      model.PushTypeMessage,
+				PostId:    th.BasicPost.Id,
+				ChannelId: th.BasicPost.ChannelId,
+				SenderId:  th.BasicPost.UserId,
+				Message:   "notification content",
+			}
+			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser2.Id, "")
+			require.Nil(t, appErr)
+
+			if !tt.expectedRecord {
+				require.Never(t, func() bool {
+					return len(capture.records()) > 0
+				}, 2*time.Second, 100*time.Millisecond)
+				return
+			}
+
+			require.Eventually(t, func() bool {
+				return len(capture.records()) == 1
+			}, 5*time.Second, 20*time.Millisecond, "the push carried the post, so the delivery must be recorded")
+
+			actorUserID, meta := capture.requireOne()
+			require.Equal(t, th.BasicUser2.Id, actorUserID)
+			require.Equal(t, th.BasicPost.Id, meta[model.PostDeliveryKeyPostID], "plugin must not change the recorded post")
+			require.Equal(t, th.BasicPost.ChannelId, meta[model.PostDeliveryKeyChannelID], "plugin must not change the recorded channel")
+			require.Equal(t, model.DeliveryMechanismPush, meta[model.PostDeliveryKeyMechanism])
 		})
 	}
 }
@@ -4671,6 +4830,154 @@ func TestHookScheduledPostWillBeCreated(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Contains(t, appErr.Id, "rejected_by_plugin")
 	})
+
+	t.Run("burn-on-read skips the hook on save and update", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ScheduledPostWillBeCreated(c *plugin.Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string) {
+				p.API.KVSet("called_"+scheduledPost.Id, []byte("true"))
+				scheduledPost.Message = "modified-by-plugin"
+				return scheduledPost, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.NoError(t, errs[0])
+		pluginID := pluginIDs[0]
+
+		// The hook is synchronous, so the key is written by the time the call returns. Checking
+		// it separates "the plugin never ran" from "the plugin ran and its reply was discarded":
+		// merely learning that a burn-on-read post exists is the leak.
+		hookCalledFor := func(t *testing.T, scheduledPostID string) bool {
+			t.Helper()
+			value, appErr := th.App.GetPluginKey(pluginID, "called_"+scheduledPostID)
+			require.Nil(t, appErr)
+			return value != nil
+		}
+
+		// Control: a regular scheduled post in the same channel does reach the plugin, so the
+		// burn-on-read assertions below cannot pass just because the hook is unwired.
+		regular, appErr := th.App.SaveScheduledPost(th.Context, &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "regular",
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}, "")
+		require.Nil(t, appErr)
+		require.Equal(t, "modified-by-plugin", regular.Message)
+		require.True(t, hookCalledFor(t, regular.Id))
+
+		saved, appErr := th.App.SaveScheduledPost(th.Context, &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "burn-on-read secret",
+				Type:      model.PostTypeBurnOnRead,
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, saved)
+		assert.Equal(t, "burn-on-read secret", saved.Message)
+		assert.False(t, hookCalledFor(t, saved.Id), "plugin must not learn a burn-on-read post was scheduled")
+
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, saved.Id)
+		require.NoError(t, storeErr)
+		assert.Equal(t, "burn-on-read secret", fetched.Message)
+
+		// Clients omit Type on update; UpdateScheduledPost restores it from the stored row before
+		// dispatching, so the hook must stay skipped for that shape too.
+		saved.Type = ""
+		saved.Message = "burn-on-read secret edited"
+		updated, appErr := th.App.UpdateScheduledPost(th.Context, th.BasicUser.Id, saved, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, updated)
+		assert.Equal(t, model.PostTypeBurnOnRead, updated.Type)
+		assert.Equal(t, "burn-on-read secret edited", updated.Message)
+		assert.False(t, hookCalledFor(t, saved.Id), "plugin must not learn a burn-on-read post was edited")
+
+		fetched, storeErr = th.App.Srv().Store().ScheduledPost().Get(th.Context, saved.Id)
+		require.NoError(t, storeErr)
+		assert.Equal(t, "burn-on-read secret edited", fetched.Message)
+	})
+
+	t.Run("burn-on-read cannot be rejected by the hook", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, errs := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ScheduledPostWillBeCreated(c *plugin.Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string) {
+				return nil, "scheduled post not permitted"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.NoError(t, errs[0])
+
+		// Control: the same plugin does reject a regular scheduled post in this channel.
+		_, appErr := th.App.SaveScheduledPost(th.Context, &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "regular",
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}, "")
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "rejected_by_plugin")
+
+		saved, appErr := th.App.SaveScheduledPost(th.Context, &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "burn-on-read secret",
+				Type:      model.PostTypeBurnOnRead,
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, saved)
+
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, saved.Id)
+		require.NoError(t, storeErr)
+		assert.Equal(t, "burn-on-read secret", fetched.Message)
+	})
 }
 
 func TestHookDraftWillBeUpserted(t *testing.T) {
@@ -6405,7 +6712,7 @@ func main() {
 		require.Nil(t, th.App.RegisterChannelGuard(th.Context, th.BasicChannel.Id, id1))
 
 		sortedIDs := []string{id0, id1}
-		sort.Strings(sortedIDs)
+		slices.Sort(sortedIDs)
 		// Each plugin prepends its tag to whatever message it receives. Walking in
 		// sorted order: the first plugin sees "original" and produces "G?:original";
 		// the second plugin sees that and prepends its own tag. Build the expected
@@ -6481,7 +6788,7 @@ func main() {
 			pluginIDs[2]: g3CountFile.Name(),
 		}
 		sortedIDs := []string{pluginIDs[0], pluginIDs[1], pluginIDs[2]}
-		sort.Strings(sortedIDs)
+		slices.Sort(sortedIDs)
 
 		// Find rejecter's index in the sorted order.
 		rejecterIdx := -1

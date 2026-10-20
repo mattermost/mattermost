@@ -388,7 +388,7 @@ function isAppForm(v: unknown): v is AppForm {
     return true;
 }
 
-export type AppFormValue = string | AppSelectOption | AppSelectOption[] | boolean | null;
+export type AppFormValue = string | string[] | AppSelectOption | AppSelectOption[] | boolean | null;
 
 function isAppFormValue(v: unknown): v is AppFormValue {
     if (typeof v === 'string') {
@@ -404,7 +404,7 @@ function isAppFormValue(v: unknown): v is AppFormValue {
     }
 
     if (Array.isArray(v)) {
-        return v.every(isAppSelectOption);
+        return v.every((e) => typeof e === 'string' || isAppSelectOption(e));
     }
 
     return isAppSelectOption(v);
@@ -439,15 +439,24 @@ export function isAppSelectOption(v: unknown): v is AppSelectOption {
 export type AppFieldType = string;
 
 // DateTime field configuration
+export type CollapsibleConfig = {
+    fields?: AppField[]; // Child fields grouped inside this collapsible section
+    expanded?: boolean; // Whether the section starts expanded (default: true)
+    bordered?: boolean; // Whether the section renders with a border (default: true)
+};
+
 export type DateTimeConfig = {
     min_date?: string; // Minimum allowed date (ISO date, datetime, or relative like "+2H", "today")
     max_date?: string; // Maximum allowed date (ISO date, datetime, or relative like "+7d", "tomorrow")
     time_interval?: number; // Minutes between time options (default: 60)
     location_timezone?: string; // IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
     manual_time_entry?: boolean; // Allow text entry for time
+};
 
-    /** @deprecated Use manual_time_entry instead. Kept for backward compatibility. */
-    allow_manual_time_entry?: boolean;
+export type MatrixConfig = {
+    rows: AppSelectOption[];
+    columns: AppSelectOption[];
+    row_selection?: 'multiple' | 'single';
 };
 
 // This should go in mattermost-redux
@@ -487,14 +496,11 @@ export type AppField = {
     // Date/datetime configuration
     datetime_config?: DateTimeConfig;
 
-    /** @deprecated Use datetime_config.min_date instead. Kept for backward compatibility. */
-    min_date?: string;
-
-    /** @deprecated Use datetime_config.max_date instead. Kept for backward compatibility. */
-    max_date?: string;
-
-    /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
-    time_interval?: number;
+    // Collapsible section config. A field of type 'collapsible' groups child
+    // fields behind an expandable title and contributes no value of its own.
+    collapsible_config?: CollapsibleConfig;
+    label_position?: 'before' | 'after';
+    matrix_config?: MatrixConfig;
 
     // Action button props
     action_button_url?: string;
@@ -619,34 +625,6 @@ function isAppField(v: unknown): v is AppField {
         if (field.datetime_config.manual_time_entry !== undefined && typeof field.datetime_config.manual_time_entry !== 'boolean') {
             return false;
         }
-        if (field.datetime_config.allow_manual_time_entry !== undefined && typeof field.datetime_config.allow_manual_time_entry !== 'boolean') {
-            return false;
-        }
-    }
-
-    // Validate deprecated top-level fields (kept for backward compatibility)
-    if (field.min_date !== undefined) {
-        if (typeof field.min_date !== 'string') {
-            return false;
-        }
-
-        if (!isValidDateString(field.min_date)) {
-            return false;
-        }
-    }
-
-    if (field.max_date !== undefined) {
-        if (typeof field.max_date !== 'string') {
-            return false;
-        }
-
-        if (!isValidDateString(field.max_date)) {
-            return false;
-        }
-    }
-
-    if (field.time_interval !== undefined && typeof field.time_interval !== 'number') {
-        return false;
     }
 
     // Validate action button fields

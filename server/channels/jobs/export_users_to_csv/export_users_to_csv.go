@@ -97,6 +97,7 @@ func parseJobMetadata(data model.StringMap) (*model.UserReportOptions, error) {
 		Role:         data["role"],
 		Team:         data["team"],
 		GuestFilter:  data["guest_filter"],
+		SearchTerm:   data["search_term"],
 	}
 
 	return &options, nil

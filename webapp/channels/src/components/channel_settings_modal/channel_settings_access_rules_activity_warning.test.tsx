@@ -200,8 +200,7 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
         mockActions.getChannelPolicy.mockResolvedValue({
             data: {
                 id: 'channel_id',
-                rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                active: true,
+                rules: [{actions: ['membership'], expression: 'user.department == "Engineering"', metadata: {auto_add: 'always'}}],
             },
         });
 
@@ -275,8 +274,7 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
         mockActions.getChannelPolicy.mockResolvedValue({
             data: {
                 id: 'channel_id',
-                rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                active: true,
+                rules: [{actions: ['membership'], expression: 'user.department == "Engineering"', metadata: {auto_add: 'always'}}],
             },
         });
 

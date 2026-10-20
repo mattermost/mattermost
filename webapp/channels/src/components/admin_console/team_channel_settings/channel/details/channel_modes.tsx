@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
@@ -48,7 +48,7 @@ const SyncGroupsToggle = (props: Props): JSX.Element => {
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
-                                href='https://www.mattermost.com/pl/default-ldap-group-constrained-team-channel.html'
+                                href='https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html'
                                 location='channel_modes'
                             >
                                 {msg}

@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -16,6 +17,8 @@ import (
 	"strings"
 	"text/template"
 	"time"
+
+	"golang.org/x/term"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
@@ -125,6 +128,12 @@ func init() {
 	ImportProcessCmd.Flags().Bool("bypass-upload", false, "If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.")
 	ImportProcessCmd.Flags().Bool("extract-content", true, "If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance.")
 	ImportProcessCmd.Flags().Int("workers", 0, "The number of concurrent import worker goroutines. Controls database load during import. When set to 0 (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.")
+	ImportProcessCmd.Flags().String("destination-team-name", "", "Map the source team in the export to an existing team on the destination server (by name/slug). Works with both channel-scoped and full-team exports. Mutually exclusive with --destination-team-id.")
+	ImportProcessCmd.Flags().String("destination-team-id", "", "Map the source team in the export to an existing team on the destination server (by ID). Mutually exclusive with --destination-team-name.")
+	ImportProcessCmd.Flags().String("destination-channel-name", "", "Map the source channel in the export to a different channel name on the destination server (by name). Only valid for channel-scoped exports. Mutually exclusive with --destination-channel-id.")
+	ImportProcessCmd.Flags().String("destination-channel-id", "", "Map the source channel in the export to a different channel on the destination server (by ID). Only valid for channel-scoped exports. Mutually exclusive with --destination-channel-name.")
+	ImportProcessCmd.Flags().Bool("skip-preflight", false, "Skip SSO provider configuration checks. By default the import fails if an auth provider present in the export is not enabled on the destination. Use this flag only after reviewing the preflight error and accepting the risk.")
+	ImportProcessCmd.Flags().String("imported-users", "", "Required for a scoped (team- or channel-scoped) export: the access posture for accounts the import creates. Use \"active\" when importing into a new instance these users are moving to, so they can sign in. Use \"inactive\" when importing into an existing instance, so accounts created from weak identity matches stay deactivated until an admin reviews them. Users deactivated on the source stay deactivated either way, and accounts that already exist on the destination are not affected. Ignored for a full-instance import.")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
@@ -319,6 +328,51 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 		return fmt.Errorf("workers value %d exceeds maximum allowed (%d = 4 * CPU count)", workers, maxWorkers)
 	}
 
+	destinationTeamName, _ := command.Flags().GetString("destination-team-name")
+	destinationTeamNameID, _ := command.Flags().GetString("destination-team-id")
+	skipPreflight, _ := command.Flags().GetBool("skip-preflight")
+
+	// Only the value is validated here. Whether a choice is *required* depends on
+	// whether the archive is scoped, which only the server can see — it enforces
+	// that at the version line. Catching a typo locally still beats having the job
+	// fail server-side with the flag silently dropped.
+	importedUsersFlag, _ := command.Flags().GetString("imported-users")
+	importedUsers := model.ImportedUsersPosture(importedUsersFlag)
+	if importedUsers != model.ImportedUsersUnset && !importedUsers.IsValid() {
+		return fmt.Errorf("invalid --imported-users value %q: must be %q or %q", importedUsers, model.ImportedUsersActive, model.ImportedUsersInactive)
+	}
+
+	if destinationTeamName != "" && destinationTeamNameID != "" {
+		return fmt.Errorf("--destination-team-name and --destination-team-id are mutually exclusive")
+	}
+	if destinationTeamNameID != "" {
+		team, _, err := c.GetTeam(context.TODO(), destinationTeamNameID, "")
+		if err != nil {
+			return fmt.Errorf("failed to lookup destination team by ID %q: %w", destinationTeamNameID, err)
+		}
+		if team == nil {
+			return fmt.Errorf("destination team with ID %q not found", destinationTeamNameID)
+		}
+		destinationTeamName = team.Name
+	}
+
+	destinationChannelName, _ := command.Flags().GetString("destination-channel-name")
+	destinationChannelID, _ := command.Flags().GetString("destination-channel-id")
+
+	if destinationChannelName != "" && destinationChannelID != "" {
+		return fmt.Errorf("--destination-channel-name and --destination-channel-id are mutually exclusive")
+	}
+	if destinationChannelID != "" {
+		channel, _, err := c.GetChannel(context.TODO(), destinationChannelID)
+		if err != nil {
+			return fmt.Errorf("failed to lookup destination channel by ID %q: %w", destinationChannelID, err)
+		}
+		if channel == nil {
+			return fmt.Errorf("destination channel with ID %q not found", destinationChannelID)
+		}
+		destinationChannelName = channel.Name
+	}
+
 	jobData := map[string]string{
 		"import_file":     importFile,
 		"local_mode":      strconv.FormatBool(isLocal && bypassUpload),
@@ -326,6 +380,58 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 	if workers > 0 {
 		jobData["workers"] = strconv.Itoa(workers)
+	}
+	if destinationTeamName != "" {
+		jobData["destination_team_name"] = destinationTeamName
+	}
+	if destinationChannelName != "" {
+		jobData["destination_channel_name"] = destinationChannelName
+	}
+	if skipPreflight {
+		jobData["skip_preflight"] = "true"
+	}
+	if importedUsers != model.ImportedUsersUnset {
+		jobData["imported_users"] = string(importedUsers)
+	}
+
+	// Check for a previous failed import of the same file with a checkpoint.
+	// If stdin is not a terminal (CI/pipes) skip the prompt entirely — auto-resuming
+	// on EOF would silently replay a partial import without the user's consent.
+	if checkpoint, checkpointFile, totalLines, maybeRunning := findImportCheckpoint(c, importFile); checkpoint > 0 && checkpointFile == importFile && term.IsTerminal(int(os.Stdin.Fd())) {
+		progress := fmt.Sprintf("line %d", checkpoint)
+		if totalLines > 0 {
+			progress = fmt.Sprintf("line %d of %d (%.0f%% complete)", checkpoint, totalLines, float64(checkpoint)/float64(totalLines)*100)
+		}
+
+		// Written straight to stderr, not through printer: printer buffers until the
+		// command returns, so a prompt sent through it would only appear after the
+		// operator had already answered.
+		//
+		// A job still marked in_progress may genuinely be running: checkpoints are
+		// only written at segment boundaries, so a large import can sit idle for
+		// longer than staleInProgressThreshold without being abandoned. Say so, and
+		// require an explicit yes rather than defaulting to resume.
+		resume := false
+		if maybeRunning {
+			fmt.Fprintf(os.Stderr, "\nAn import of '%s' is still marked in progress, with a checkpoint at %s.\n", importFile, progress)
+			fmt.Fprintln(os.Stderr, "It may still be running — checkpoints are only written between segments, so a large import can look idle for a long time. Check 'mmctl import job list' before continuing; resuming a live import duplicates its work.")
+			fmt.Fprintln(os.Stderr, "Resume from the checkpoint anyway? Answering no starts a fresh import from the beginning.")
+			fmt.Fprint(os.Stderr, "[y/N]: ")
+			resume = readYesNo(os.Stdin, false)
+		} else {
+			fmt.Fprintf(os.Stderr, "\nA previous import of '%s' failed at %s.\n", importFile, progress)
+			fmt.Fprintln(os.Stderr, "Resume from that point? Starting fresh will re-import everything from the beginning.")
+			fmt.Fprint(os.Stderr, "[Y/n]: ")
+			resume = readYesNo(os.Stdin, true)
+		}
+
+		if resume {
+			jobData["checkpoint"] = strconv.Itoa(checkpoint)
+			jobData["checkpoint_file"] = checkpointFile
+			printer.Print(fmt.Sprintf("Resuming from line %d.", checkpoint))
+		} else {
+			printer.Print("Starting fresh.")
+		}
 	}
 
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{
@@ -339,6 +445,89 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	printer.PrintT("Import process job successfully created, ID: {{.Id}}", job)
 
 	return nil
+}
+
+// readYesNo reads a yes/no answer from in, falling back to def for anything that
+// isn't an explicit yes or no — a bare enter, or an EOF from closed stdin. Note
+// that def is returned for EOF too, so a caller whose risky answer is "yes" must
+// pass def=false to keep an answer the operator never gave from meaning consent.
+func readYesNo(in io.Reader, def bool) bool {
+	answer, _ := bufio.NewReader(in).ReadString('\n')
+	switch strings.TrimSpace(strings.ToLower(answer)) {
+	case "y", "yes":
+		return true
+	case "n", "no":
+		return false
+	default:
+		return def
+	}
+}
+
+// staleInProgressThreshold is how long an import_process job must have gone
+// without a checkpoint update before findImportCheckpoint treats a job still
+// marked "in_progress" as abandoned (e.g. the server process was killed) rather
+// than genuinely still running. A hard process kill never transitions the job
+// to JobStatusError — only a recovered panic does — so without this, a
+// checkpoint saved by a crashed job would never be found.
+const staleInProgressThreshold = 10 * time.Minute
+
+// findImportCheckpoint searches recent import jobs for an interrupted run of
+// the given file that has a checkpoint stored — either a job that failed
+// outright, or one still marked "in_progress" whose last checkpoint update is
+// old enough to indicate the process died rather than being genuinely still
+// running. Also checks for a prior successful run to derive the total line
+// count for percentage display.
+// Returns (checkpoint, checkpointFile, totalLines, maybeRunning). totalLines is 0
+// if unknown. maybeRunning is true when the checkpoint came from a job still
+// marked in_progress: staleInProgressThreshold can only guess that such a job was
+// abandoned, so resuming it may duplicate an import that is still running.
+func findImportCheckpoint(c client.Client, importFile string) (int, string, int, bool) {
+	extract := func(job *model.Job) (int, string, int, bool) {
+		if job.Data["import_file"] != importFile {
+			return 0, "", 0, false
+		}
+		cpStr := job.Data["checkpoint"]
+		if cpStr == "" {
+			return 0, "", 0, false
+		}
+		n, err := strconv.Atoi(cpStr)
+		if err != nil || n <= 0 {
+			return 0, "", 0, false
+		}
+		// total_lines is stored by the pre-creation pass at the start of the
+		// import — available even on first failure, no prior successful run needed.
+		totalLines := 0
+		if tlStr := job.Data["total_lines"]; tlStr != "" {
+			if tl, err := strconv.Atoi(tlStr); err == nil {
+				totalLines = tl
+			}
+		}
+		return n, job.Data["checkpoint_file"], totalLines, true
+	}
+
+	if jobs, _, err := c.GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10); err == nil {
+		for _, job := range jobs {
+			if n, file, total, ok := extract(job); ok {
+				return n, file, total, false
+			}
+		}
+	}
+
+	if jobs, _, err := c.GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusInProgress, 0, 10); err == nil {
+		staleBefore := model.GetMillis() - staleInProgressThreshold.Milliseconds()
+		for _, job := range jobs {
+			if job.LastActivityAt > staleBefore {
+				// Recently active — likely still genuinely running; don't offer to
+				// resume it out from under itself.
+				continue
+			}
+			if n, file, total, ok := extract(job); ok {
+				return n, file, total, true
+			}
+		}
+	}
+
+	return 0, "", 0, false
 }
 
 func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {

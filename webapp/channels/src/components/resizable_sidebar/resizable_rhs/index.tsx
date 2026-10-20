@@ -13,7 +13,7 @@ import {shouldRhsOverlapChannelView} from '../utils';
 
 interface Props extends HTMLAttributes<'div'> {
     children: React.ReactNode;
-    rightWidthHolderRef: React.RefObject<HTMLDivElement>;
+    rightWidthHolderRef: React.RefObject<HTMLDivElement | null>;
     ariaLabel?: string;
     ariaLabeledby?: string;
 }

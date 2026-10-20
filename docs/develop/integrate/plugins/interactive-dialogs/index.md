@@ -1,5 +1,7 @@
 ---
-title: "Interactive dialogs"
+title: "Use interactive dialogs"
+description: "Interactive dialogs let applications gather structured input from Mattermost users and submit it back to an integration through single-step forms or multi-step workflows."
+sidebar_label: "Interactive dialogs"
 sidebar_position: 70
 ---
 
@@ -7,6 +9,8 @@ Integrations open dialogs by sending an `HTTP POST`, containing some data in the
 [custom slash command](/developers/integrate/slash-commands).
 
 Moreover, [plugins](/developers/integrate/plugins/using-and-managing-plugins) can trigger a dialog based on user actions. For instance, if a plugin adds a button in the channel header, clicking that button may open a dialog.
+
+From Mattermost v11.10, dialogs can be stacked: an [`action_button`](#action-button-elements) element inside a dialog lets a user open a child dialog on top of the current one. Up to three dialogs may be open at once; any request to open a dialog beyond this limit is silently ignored by the client.
 
 Here is an example of what a dialog looks like for creating a Jira issue within the Mattermost user interface:
 
@@ -62,8 +66,12 @@ Each dialog supports elements for users to enter information.
 - `select`: Message menu. Use this for pre-selected choices. Can either be static menus or dynamic menus generated from users and Public channels of the system. For more information on message menus, see [the documentation](/developers/integrate/plugins/interactive-messages).
 - `bool`: Checkbox option. Use this for binary selection.
 - `radio`: Radio button option. Use this to quickly select an option from pre-selected choices.
+- `checkbox_group`: List of checkboxes. Use this to select any number of options from pre-selected choices. (Minimum server version 12.0.)
+- `checkbox_matrix`: Grid of checkboxes with configurable rows and columns. Use this to select one or more columns for each row. (Minimum server version 12.0.)
 - `date`: Date picker field. Use this for selecting dates without time information.
 - `datetime`: Date and time picker field. Use this for selecting both date and time with timezone support.
+- `file`: File upload field. Use this to allow users to attach one or more files as part of a dialog submission.
+- `action_button`: Clickable button that opens a child (stacked) dialog. Use this to branch into a follow-up dialog without submitting the current one. (Minimum server version 11.10.)
 
 Each element is required by default, otherwise the client will return an error as shown below. Note that the error message will appear below the help text, if one is specified. To make an element optional, set the field `"optional": "true"`.
 
@@ -361,6 +369,7 @@ The full list of supported fields is included below:
 | `help_text`    | String  | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
 | `default`      | String  | (Optional) Set a default value for this form element. `true` or `false`.                                                           |
 | `placeholder`  | String  | (Optional) A string displayed to include a label besides the checkbox. Maximum 150 characters.                                     |
+| `label_position` | String | (Optional) Set to `before` to render the label before the checkbox, or `after` to render it after. Default is `after`. Minimum server version 12.0. |
 
 ### Radio element
 
@@ -402,6 +411,119 @@ The full list of supported fields are included below:
 | `options`      | Array  | (Optional) An array of options for the radio element.                                                                              |
 | `help_text`    | String | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
 | `default`      | String | (Optional) Set a default value for this form element.                                                                              |
+| `label_position` | String | (Optional) Set to `before` to render each option's label before its radio button, or `after` to render it after. Default is `after`. Minimum server version 12.0. |
+
+### Checkbox group elements
+#### Minimum Server Version: 12.0
+
+Checkbox group elements render a list of checkboxes, letting users select any number of options. Below is an example of a `checkbox_group` element that asks which platforms a user works on.
+
+```json
+{
+    "display_name": "Platforms",
+    "name": "platforms",
+    "type": "checkbox_group",
+    "options": [
+        {
+            "text": "Web",
+            "value": "web"
+        },
+        {
+            "text": "Desktop",
+            "value": "desktop"
+        },
+        {
+            "text": "Mobile",
+            "value": "mobile"
+        }
+    ],
+    "default": "web,mobile"
+}
+```
+
+The full list of supported fields is included below:
+
+| Field            | Type    | Description                                                                                                                        |
+|------------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
+| `display_name`   | String  | Display name of the field shown to the user in the dialog. Maximum 24 characters.                                                  |
+| `name`           | String  | Name of the field element used by the integration. Maximum 300 characters. You should use unique `name` fields in the same dialog. |
+| `type`           | String  | Set this value to `checkbox_group` for a checkbox group element.                                                                   |
+| `options`        | Array   | An array of options, each with `text` and `value`. Requires between 1 and 50 options. Option values must be unique and can't contain `,`. |
+| `optional`       | Boolean | (Optional) Set to `true` if this form element is not required. Default is `false`.                                                 |
+| `help_text`      | String  | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
+| `default`        | String  | (Optional) Comma-separated list of option values to select by default. Each value must exist in `options`.                         |
+| `label_position` | String  | (Optional) Set to `before` to render each option's label before its checkbox, or `after` to render it after. Default is `after`.   |
+
+Checkbox group elements don't support `placeholder`, `data_source`, or `multiselect`.
+
+When the dialog is submitted, the element's value is an array of the selected option values, for example `["web", "mobile"]`. A required checkbox group must have at least one option selected.
+
+### Checkbox matrix elements
+#### Minimum Server Version: 12.0
+
+Checkbox matrix elements render a grid of checkboxes. Each row is a question and each column is an answer that can be selected for that row. Instead of `options`, a checkbox matrix is configured with a `matrix_config` object. Below is an example of a `checkbox_matrix` element that asks which days each team member is available.
+
+```json
+{
+    "display_name": "Availability",
+    "name": "availability",
+    "type": "checkbox_matrix",
+    "matrix_config": {
+        "rows": [
+            {
+                "text": "Alice",
+                "value": "alice"
+            },
+            {
+                "text": "Bob",
+                "value": "bob"
+            }
+        ],
+        "columns": [
+            {
+                "text": "Mon",
+                "value": "mon"
+            },
+            {
+                "text": "Tue",
+                "value": "tue"
+            },
+            {
+                "text": "Wed",
+                "value": "wed"
+            }
+        ],
+        "row_selection": "multiple"
+    },
+    "default": "alice:mon,tue;bob:wed"
+}
+```
+
+The full list of supported fields is included below:
+
+| Field           | Type    | Description                                                                                                                        |
+|-----------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
+| `display_name`  | String  | Display name of the field shown to the user in the dialog. Maximum 24 characters.                                                  |
+| `name`          | String  | Name of the field element used by the integration. Maximum 300 characters. You should use unique `name` fields in the same dialog. |
+| `type`          | String  | Set this value to `checkbox_matrix` for a checkbox matrix element.                                                                 |
+| `matrix_config` | Object  | Matrix configuration. Required for this element type. See the fields below.                                                        |
+| `optional`      | Boolean | (Optional) Set to `true` if this form element is not required. Default is `false`.                                                 |
+| `help_text`     | String  | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
+| `default`       | String  | (Optional) Selections to make by default, as a `;`-separated list of `row:column1,column2` entries using row and column values. For example, `alice:mon,tue;bob:wed`. Each row may appear only once. |
+
+The `matrix_config` object supports:
+
+| Field           | Type   | Description                                                                                                                         |
+|-----------------|--------|-------------------------------------------------------------------------------------------------------------------------------------|
+| `rows`          | Array  | An array of rows, each with `text` and `value`. Requires between 1 and 30 rows.                                                     |
+| `columns`       | Array  | An array of columns, each with `text` and `value`. Requires between 1 and 10 columns.                                               |
+| `row_selection` | String | (Optional) Set to `multiple` to allow any number of columns to be selected in each row, or `single` to allow at most one column per row. Default is `multiple`. |
+
+Row values and column values must be unique within `rows` and `columns` respectively, and can't contain `:`, `,`, or `;`, as these characters are used to encode the element's value.
+
+Checkbox matrix elements don't support `options`, `placeholder`, `data_source`, or `multiselect`.
+
+When the dialog is submitted, the element's value is an array with one `row:column1,column2` entry for each row that has at least one column selected, for example `["alice:mon,tue", "bob:wed"]`. Rows with no selection are omitted. A required checkbox matrix must have at least one checkbox selected.
 
 ### Date elements
 ##### Minimum Server Version: 11.1
@@ -613,6 +735,118 @@ The `datetime_config` object groups date/datetime configuration into a single ne
 - `"time_interval": 60` creates options: 00:00, 01:00, 02:00, 03:00, etc.
 - Invalid: `"time_interval": 7` (7 is not a divisor of 1440)
 
+### File elements
+#### Minimum Server Version: 11.10
+
+File elements allow users to upload one or more files as part of an interactive dialog submission. Below is an example of a `file` element that requests a single file attachment.
+
+```json
+{
+    "display_name": "Attachment",
+    "name": "attachment",
+    "type": "file",
+    "optional": true
+}
+```
+
+To allow multiple file uploads, set `allow_multiple` to `true`:
+
+```json
+{
+    "display_name": "Attachments",
+    "name": "attachments",
+    "type": "file",
+    "allow_multiple": true,
+    "optional": true
+}
+```
+
+The full list of supported fields is included below:
+
+| Field            | Type    | Description                                                                                                                        |
+|------------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
+| `display_name`   | String  | Display name of the field shown to the user in the dialog. Maximum 24 characters.                                                  |
+| `name`           | String  | Name of the field element used by the integration. Maximum 300 characters. You should use unique `name` fields in the same dialog. |
+| `type`           | String  | Set this value to `file` for a file upload element.                                                                                |
+| `optional`       | Boolean | (Optional) Set to `true` if this form element is not required. Default is `false`.                                                 |
+| `help_text`      | String  | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
+| `default`        | String  | (Optional) Comma-separated list of file IDs, from files the user previously uploaded, used to pre-populate the field. Limited to a single ID unless `allow_multiple` is `true`, and no more than 10 IDs. Maximum 300 characters. |
+| `placeholder`    | String  | (Optional) Hint text shown beneath the upload button while no file is selected. Maximum 300 characters.                            |
+| `allow_multiple` | Boolean | (Optional) Set to `true` to allow the user to upload more than one file. Default is `false`.                                       |
+
+#### File upload limits
+
+- A maximum of 10 file IDs may be submitted per dialog submission.
+- The server validates that each submitted file ID was uploaded by the submitting user. Referencing a file uploaded by a different user will be rejected.
+- Duplicate file IDs are automatically deduplicated before validation.
+
+#### File IDs in the submission payload
+
+When a dialog containing file elements is submitted, the uploaded file IDs are sent in a top-level `file_ids` array alongside the standard `submission` map. Use `file_ids` as the authoritative source of uploaded file IDs — each ID can be used with the [Files API](https://api.mattermost.com/#tag/files) to attach files to posts or retrieve file metadata.
+
+### Action button elements
+#### Minimum Server Version: 11.10
+
+Action button elements render a clickable button inside a dialog. Instead of submitting the current dialog, clicking the button asks your integration to open a *child* dialog that is stacked on top of the current one. Use this to branch into a follow-up workflow (for example, "Add another item" or "Configure advanced options") while preserving the dialog the user is already working in.
+
+```json
+{
+    "display_name": "Add attachment",
+    "name": "add_attachment",
+    "type": "action_button",
+    "action_button": {
+        "url": "https://your-mattermost-server.com/plugins/your-plugin-id/api/attach",
+        "context": {
+            "action": "open_attachment_dialog"
+        }
+    }
+}
+```
+
+The full list of supported fields is included below:
+
+| Field           | Type   | Description                                                                                                                                       |
+|-----------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `display_name`  | String | Display name shown on the button. Maximum 24 characters.                                                                                          |
+| `name`          | String | Name of the field element used by the integration. Maximum 300 characters. You should use unique `name` fields in the same dialog.                |
+| `type`          | String | Set this value to `action_button` for an action button element.                                                                                   |
+| `action_button` | Object | Action button configuration. Required for this element type. See the fields below.                                                                |
+
+The `action_button` object supports:
+
+| Field     | Type   | Description                                                                                                                             |
+|-----------|--------|---------------------------------------------------------------------------------------------------------------------------------------|
+| `url`     | String | The URL the action is sent to when the button is clicked. Required. Must be a valid lookup URL — an HTTPS URL or a `/plugins/` path.   |
+| `context` | Object | (Optional) String map of arbitrary key/value pairs forwarded to your integration when the button is clicked. Use this to identify which button was pressed or to carry state. |
+
+Action button elements are not input fields: their values are never included in the dialog submission payload, and they are not subject to the required/optional validation applied to other elements.
+
+#### Action button flow
+
+When a user clicks an action button, the Mattermost client sends an `HTTP POST` to the `/api/v4/actions/dialogs/execute` endpoint. The server validates the request, generates a new trigger ID, and forwards the button's `context` to the `url` configured on the button. The payload your integration receives is a `PostActionIntegrationRequest`:
+
+```json
+{
+    "type": "dialog_action",
+    "trigger_id": "<new trigger ID generated by the server>",
+    "user_id": "<user ID of the user who clicked the button>",
+    "user_name": "<username of that user>",
+    "channel_id": "<channel ID the user clicked the button from>",
+    "channel_name": "<name of that channel>",
+    "team_id": "<team ID the channel belongs to, empty for DM/GM channels>",
+    "team_name": "<name of that team, empty for DM/GM channels>",
+    "context": {
+        "action": "open_attachment_dialog"
+    }
+}
+```
+
+Use the `trigger_id` from this payload to [open a child dialog](#open-a-dialog) — send an `HTTP POST` to `/api/v4/actions/dialogs/open` exactly as you would for a top-level dialog. The child dialog is displayed stacked on top of the dialog the user clicked the button in.
+
+:::note
+Up to three dialogs may be open at once. If three dialogs are already open, the request to open a further child dialog is silently ignored by the client, so design your workflows to stay within this limit.
+:::
+
 ## Dialog submission
 
 When a user submits a dialog, Mattermost will perform client-side input validation to make sure:
@@ -629,14 +863,19 @@ The submission payload sent to the integration is:
     "state": "<state provided by the integration>",
     "user_id": "<user ID of the user who submitted the dialog>",
     "channel_id": "<channel ID the user was in when submitting the dialog>",
-    "team_id": "<team ID the user was on when submitting the dialog>",
+    "team_id": "<team ID the channel belongs to, empty for DM/GM channels>",
     "submission": {
         "some_element_name": "<value of that element>",
         "some_other_element": "<value of some other element>"
     },
+    "file_ids": ["<file ID 1>", "<file ID 2>"],
     "cancelled": false
 }
 ```
+
+:::note[`team_id` behavior change (server version 11.10)]
+For the `/api/v4/actions/dialogs/submit`, `/api/v4/actions/dialogs/lookup`, and `/api/v4/actions/dialogs/execute` endpoints, the `team_id` forwarded to your integration is now always derived by the server from the channel the dialog was opened in, rather than from the value supplied by the client. Any client-supplied `team_id` is ignored. For direct (DM) and group (GM) message channels — which do not belong to a team — `team_id` is sent as an empty string. If your integration previously relied on a client-supplied `team_id` for team-specific logic, update it to use this channel-derived value (and to handle the empty case for DM/GM channels).
+:::
 
 Optionally, the dialog can send an event back to the integration if `notify_on_cancel` parameter is set to `true`. If this happens, `cancelled` will be set to `true` on the above payload, and `submission` will be empty.
 
@@ -654,7 +893,7 @@ The integration may also return a generic error message to the user that is not 
 
 Support for generic error messages was added in Mattermost v5.18.
 
-Finally, once the request is submitted, we recommend that the integration responds with a system message or an ephemeral message confirming the submission. This should be a separate request back to Mattermost once the service has received and responded to a submission request from a dialog. This can be done either via [the REST API](https://api.mattermost.com/#tag/posts%2Fpaths%2F~1posts~1ephemeral%2Fpost), or via the [Plugin API](/developers/integrate/reference/server/server-reference#API.SendEphemeralPost) if you're developing a plugin.
+Finally, once the request is submitted, we recommend that the integration responds with a system message or an ephemeral message confirming the submission. This should be a separate request back to Mattermost once the service has received and responded to a submission request from a dialog. This can be done either via [the REST API](https://api.mattermost.com/#tag/posts%2Fpaths%2F~1posts~1ephemeral%2Fpost), or via the [Plugin API](/developers/integrate/reference/server#API.SendEphemeralPost) if you're developing a plugin.
 
 ## Multi-step dialogs
 ##### Minimum Server Version: 11.1

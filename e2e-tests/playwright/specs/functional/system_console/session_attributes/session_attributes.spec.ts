@@ -75,11 +75,13 @@ test.describe('System Console - Session Attributes', () => {
             // * Verify a seeded-but-client-native field does NOT carry the Server label
             await expect(sa.serverLabel(clientIpAddress.id)).toHaveCount(0);
 
-            // * Verify the derived Type column maps text/select fields correctly
-            await expect(sa.type(ipAddress.id)).toContainText('IP');
+            // * Verify the derived Type column maps text/select fields correctly. getDisplayType()
+            // (session_attributes/utils.ts) only distinguishes Boolean/Enum via select options;
+            // every other field type, including ip_address and os_version, renders as String.
+            await expect(sa.type(ipAddress.id)).toContainText('String');
             await expect(sa.type(vpnActive.id)).toContainText('Boolean');
             await expect(sa.type(networkInterfaceType.id)).toContainText('Enum');
-            await expect(sa.type(osVersion.id)).toContainText('Version');
+            await expect(sa.type(osVersion.id)).toContainText('String');
 
             // * Verify seeded fields render as Disabled by default
             await expect(sa.status(ipAddress.id)).toContainText('Disabled');
@@ -197,7 +199,7 @@ test.describe('System Console - Session Attributes', () => {
         await expect(sa.saveButton).toBeEnabled();
 
         // # Attempt to navigate away via the sidebar while dirty
-        await systemConsolePage.sidebar.systemAttributes.userAttributes.click();
+        await systemConsolePage.sidebar.systemAttributes.attributeManagement.click();
 
         // * Verify the unsaved-changes navigation guard appears
         const discardModal = page.getByRole('dialog').filter({hasText: 'Discard Changes?'});

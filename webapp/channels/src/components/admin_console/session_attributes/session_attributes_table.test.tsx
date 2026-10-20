@@ -61,6 +61,8 @@ const fields: SessionAttributeField[] = [
     makeField('client_ip_address', 'text', {
         sort_order: 1,
         platforms: ['desktop', 'mobile', 'browser'],
+        ttl_seconds: 300,
+        grace_period_seconds: 60,
         enabled: false,
     }),
     makeField('os_version', 'text', {sort_order: 2, enabled: true}),
@@ -189,9 +191,22 @@ describe('SessionAttributesTable', () => {
             />,
         );
 
-        const row = rowFor('Client IP');
+        const row = rowFor('client_ip_address');
         expect(within(row).getByTestId('session-attribute-ttl')).toHaveTextContent('5m');
         expect(within(row).getByTestId('session-attribute-grace')).toHaveTextContent('1m');
+    });
+
+    it('shows a dash for TTL and Grace on server-sourced attributes', () => {
+        renderWithContext(
+            <SessionAttributesTable
+                data={fields}
+                onStageChange={onStageChange}
+            />,
+        );
+
+        const row = rowFor('Client IP');
+        expect(within(row).getByTestId('session-attribute-ttl')).toHaveTextContent('—');
+        expect(within(row).getByTestId('session-attribute-grace')).toHaveTextContent('—');
     });
 
     it('falls back to the field name when display_name is absent', () => {

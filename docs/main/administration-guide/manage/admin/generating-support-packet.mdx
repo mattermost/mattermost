@@ -1,5 +1,5 @@
 ---
-title: "Generate a Support Packet"
+title: "Generate a support packet"
 ---
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -95,13 +95,13 @@ The following cluster-wide files are located in the root directory of the Suppor
 
 The following node-specific files are located in node subdirectories:
 
-- `&lt;node-id&gt;/mattermost.log` (Mattermost logs for each node)
-- `&lt;node-id&gt;/audit.log` (Mattermost audit logs for each node)
-- `&lt;node-id&gt;/ldap.log` (AD/LDAP logs for each node)
-- `&lt;node-id&gt;/notifications.log` (notifications logs for each node)
-- `&lt;node-id&gt;/cpu.prof` ([Go performance metrics](#go-performance-metrics) for each node)
-- `&lt;node-id&gt;/heap.prof` ([Go performance metrics](#go-performance-metrics) for each node)
-- `&lt;node-id&gt;/goroutines` ([Go performance metrics](#go-performance-metrics) for each node)
+- `<node-id>/mattermost.log` (Mattermost logs for each node)
+- `<node-id>/audit.log` (Mattermost audit logs for each node)
+- `<node-id>/ldap.log` (AD/LDAP logs for each node)
+- `<node-id>/notifications.log` (notifications logs for each node)
+- `<node-id>/cpu.prof` ([Go performance metrics](#go-performance-metrics) for each node)
+- `<node-id>/heap.prof` ([Go performance metrics](#go-performance-metrics) for each node)
+- `<node-id>/goroutines` ([Go performance metrics](#go-performance-metrics) for each node)
 
 ### Diagnostics highlights
 
@@ -140,13 +140,13 @@ From v10.11, Support Packets include PostgreSQL database schema dump information
 
 **Cluster-specific files (in node subdirectories):**
 
-- `&lt;node-id&gt;/mattermost.log` (Mattermost logs for each node)
-- `&lt;node-id&gt;/audit.log` (Mattermost audit logs for each node)
-- `&lt;node-id&gt;/ldap.log` (AD/LDAP logs for each node)
-- `&lt;node-id&gt;/notifications.log` (notifications logs for each node)
-- `&lt;node-id&gt;/cpu.prof` ([Go performance metrics](#go-performance-metrics) for each node)
-- `&lt;node-id&gt;/heap.prof` ([Go performance metrics](#go-performance-metrics) for each node)
-- `&lt;node-id&gt;/goroutines` ([Go performance metrics](#go-performance-metrics) for each node)
+- `<node-id>/mattermost.log` (Mattermost logs for each node)
+- `<node-id>/audit.log` (Mattermost audit logs for each node)
+- `<node-id>/ldap.log` (AD/LDAP logs for each node)
+- `<node-id>/notifications.log` (notifications logs for each node)
+- `<node-id>/cpu.prof` ([Go performance metrics](#go-performance-metrics) for each node)
+- `<node-id>/heap.prof` ([Go performance metrics](#go-performance-metrics) for each node)
+- `<node-id>/goroutines` ([Go performance metrics](#go-performance-metrics) for each node)
 
 The following additional plugin diagnostic data is included in the generated Support Packet when the plugin is enabled and operational:
 
@@ -162,11 +162,11 @@ The following additional plugin diagnostic data is included in the generated Sup
 </TabItem>
 <TabItem value="v10-10" label="v10.10">
 
-From Mattermost v10.10, Support Packets from [high availability](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) deployments organize cluster-specific files (such as log files) in subdirectories named after each cluster node, while cluster-wide files remain in the root directory.
+From Mattermost v10.10, Support Packets from [high availability](/deployment-guide/server/high-availability-cluster-based-deployment) deployments organize cluster-specific files (such as log files) in subdirectories named after each cluster node, while cluster-wide files remain in the root directory.
 
 Support packet file organization has been improved to make it easier to identify cluster-wide versus cluster-specific files:
 
-- **Cluster-wide files** (identical across all nodes in a [high-availability cluster](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment)) remain in the root directory of the support packet.
+- **Cluster-wide files** (identical across all nodes in a [high-availability cluster](/deployment-guide/server/high-availability-cluster-based-deployment)) remain in the root directory of the support packet.
 - **Cluster-specific files** (unique per node) are now organized in subdirectories named after each cluster node.
 
 **Cluster-wide files (root directory):**
@@ -183,13 +183,13 @@ Support packet file organization has been improved to make it easier to identify
 
 **Cluster-specific files (in node subdirectories):**
 
-- `&lt;node-id&gt;/mattermost.log` (Mattermost logs for each node)
-- `&lt;node-id&gt;/audit.log` (Mattermost audit logs for each node)
-- `&lt;node-id&gt;/ldap.log` (AD/LDAP logs for each node)
-- `&lt;node-id&gt;/notifications.log` (notifications logs for each node)
-- `&lt;node-id&gt;/cpu.prof` ([Go performance metrics](#go-performance-metrics) for each node)
-- `&lt;node-id&gt;/heap.prof` ([Go performance metrics](#go-performance-metrics) for each node)
-- `&lt;node-id&gt;/goroutines` ([Go performance metrics](#go-performance-metrics) for each node)
+- `<node-id>/mattermost.log` (Mattermost logs for each node)
+- `<node-id>/audit.log` (Mattermost audit logs for each node)
+- `<node-id>/ldap.log` (AD/LDAP logs for each node)
+- `<node-id>/notifications.log` (notifications logs for each node)
+- `<node-id>/cpu.prof` ([Go performance metrics](#go-performance-metrics) for each node)
+- `<node-id>/heap.prof` ([Go performance metrics](#go-performance-metrics) for each node)
+- `<node-id>/goroutines` ([Go performance metrics](#go-performance-metrics) for each node)
 
 The following additional plugin diagnostic data is included in the generated support packet when the plugin is enabled and operational:
 

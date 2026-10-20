@@ -540,7 +540,7 @@ func enableMFAEnforcement(th *TestHelper) {
 // Helper function to set up MFA for a user
 func setupUserWithMFA(t *testing.T, th *TestHelper, user *model.User) string {
 	// Setup MFA properly - following authentication_test.go pattern
-	secret, appErr := th.App.GenerateMfaSecret(user.Id)
+	secret, appErr := th.App.GenerateMfaSecret(th.Context, user.Id)
 	require.Nil(t, appErr)
 	err := th.Server.Store().User().UpdateMfaActive(user.Id, true)
 	require.NoError(t, err)

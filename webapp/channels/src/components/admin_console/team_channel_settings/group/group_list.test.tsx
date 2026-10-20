@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {Group} from '@mattermost/types/groups';
 
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import GroupList from './group_list';
@@ -38,9 +38,8 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
+        await screen.findByText('DN');
+        expect(actions.getData).toHaveBeenCalled();
 
         expect(container).toMatchSnapshot();
     });
@@ -74,9 +73,8 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
+        await screen.findByText('DN0');
+        expect(actions.getData).toHaveBeenCalled();
 
         expect(container).toMatchSnapshot();
     });

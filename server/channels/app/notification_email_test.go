@@ -14,14 +14,17 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
+	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
 // Helper function to create PostNotification for testing
@@ -1324,4 +1327,82 @@ func TestMarkdownConversion(t *testing.T) {
 			require.Contains(t, got, tt.want)
 		})
 	}
+}
+
+func TestSendNotificationEmailDeliveryRecordFollowsSentContent(t *testing.T) {
+	// contentsAtBuild decides whether the email carries the post; contentsAfterSend is what the
+	// config says by the time the send completes.
+	setup := func(t *testing.T, contentsAtBuild, contentsAfterSend string) (*TestHelper, *deliveryAuditCapture, chan struct{}) {
+		t.Helper()
+
+		th := setupDeliveryTracking(t)
+		th.App.Srv().SetLicense(model.NewTestLicense())
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.EmailNotificationContentsType = contentsAtBuild
+		})
+		require.Equal(t, contentsAtBuild, th.App.emailNotificationContentsType())
+
+		sent := make(chan struct{})
+		realEmailService := th.App.Srv().EmailService
+		emailServiceMock := &emailmocks.ServiceInterface{}
+		emailServiceMock.On("GetMessageForNotification", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			Return(func(post *model.Post, teamName, siteURL string, translateFunc i18n.TranslateFunc) string {
+				return realEmailService.GetMessageForNotification(post, teamName, siteURL, translateFunc)
+			})
+		emailServiceMock.On("NewEmailTemplateData", mock.Anything).
+			Return(func(locale string) templates.Data {
+				return realEmailService.NewEmailTemplateData(locale)
+			})
+		// Flip the setting while the mail is in flight, then report a successful send.
+		emailServiceMock.On("SendMailWithEmbeddedFiles", mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			Run(func(mock.Arguments) {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.EmailSettings.EmailNotificationContentsType = contentsAfterSend
+				})
+				close(sent)
+			}).Return(nil)
+		// Flipping the config fires the config listener, which re-inits batching.
+		emailServiceMock.On("InitEmailBatching").Return()
+		emailServiceMock.On("Stop").Return()
+		th.App.Srv().EmailService = emailServiceMock
+
+		return th, startDeliveryAuditCapture(t, th), sent
+	}
+
+	// BasicUser authors the post, BasicUser2 receives the email.
+	sendTo := func(t *testing.T, th *TestHelper) {
+		t.Helper()
+
+		notification := buildTestPostNotification(th.BasicPost, th.BasicChannel, th.BasicUser)
+		emailNotification, err := th.App.sendNotificationEmail(th.Context, notification, th.BasicUser2, th.BasicTeam, nil)
+		require.NoError(t, err)
+		require.NotNil(t, emailNotification)
+	}
+
+	t.Run("records the delivery when the sent email carried the post", func(t *testing.T) {
+		th, capture, sent := setup(t, model.EmailNotificationContentsFull, model.EmailNotificationContentsGeneric)
+
+		sendTo(t, th)
+
+		<-sent
+		require.Eventually(t, func() bool {
+			return len(capture.records()) == 1
+		}, 5*time.Second, 20*time.Millisecond, "the email carried the post, so the delivery must be recorded")
+
+		_, meta := capture.requireOne()
+		require.Equal(t, th.BasicPost.Id, meta[model.PostDeliveryKeyPostID])
+		require.Equal(t, model.DeliveryMechanismEmail, meta[model.PostDeliveryKeyMechanism])
+	})
+
+	t.Run("records nothing when the sent email carried no post content", func(t *testing.T) {
+		th, capture, sent := setup(t, model.EmailNotificationContentsGeneric, model.EmailNotificationContentsFull)
+
+		sendTo(t, th)
+
+		<-sent
+		require.Never(t, func() bool {
+			return len(capture.records()) > 0
+		}, 2*time.Second, 100*time.Millisecond, "the email carried no post content, so nothing may be recorded")
+	})
 }

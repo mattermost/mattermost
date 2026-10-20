@@ -150,7 +150,7 @@ describe('PostMessagePreview', () => {
                 post: postPreview,
                 interactionsDisabled: true,
             }),
-            expect.anything(),
+            undefined,
         );
         expect(screen.getByTestId('interactive-messages-preview')).toBeInTheDocument();
     });

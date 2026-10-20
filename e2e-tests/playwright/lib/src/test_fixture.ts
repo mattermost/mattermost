@@ -6,7 +6,9 @@ import {test as base} from '@playwright/test';
 import type {AxeResults} from 'axe-core';
 import {AxeBuilder} from '@axe-core/playwright';
 
-import {TestBrowser} from './browser_context';
+import {TestBrowser, patchGotoToUseBaseUrl} from './browser_context';
+import {isUpgradePathProjectSelected} from './upgrade_env';
+import {readGlobalSetupFailure} from './global_setup_failure';
 import {
     ensureLicense,
     ensurePluginsLoaded,
@@ -14,7 +16,6 @@ import {
     shouldHaveCallsEnabled,
     shouldHaveFeatureFlag,
     shouldRunInLinux,
-    skipIfFeatureFlagNotSet,
     skipIfNoLicense,
 } from './flag';
 import {getBlobFromAsset, getFileFromAsset} from './file';
@@ -23,8 +24,8 @@ import {
     createKeycloakUser,
     createLdapUser,
     createMockAIAgent,
-    createNewUserProfile,
     createNewTeam,
+    createNewUserProfile,
     createRandomChannel,
     createRandomPost,
     createRandomTeam,
@@ -32,37 +33,57 @@ import {
     createUserWithAttributes,
     deleteKeycloakUser,
     deleteLdapUser,
+    elasticsearchServerConfig,
     enableAIBridgeTestMode,
-    listMinioObjectKeys,
-    ensureMinio,
     ensureAzurite,
-    listAzuriteBlobNames,
-    ensureLocalFile,
-    ensurePostgresSearch,
+    ensureDemoPlugin,
+    ensureElasticsearch,
     ensureFeatureFlag,
-    generateLdapUser,
-    getAIBridgeMock,
-    getAdminClient,
-    initSetup,
-    isOutsideRemoteUserHour,
-    ldapServerConfig,
+    ensureDefaultServerEnv,
+    ensureInternalSiteUrl,
+    ensurePhase2MigrationCompleted,
+    ensureKeycloak,
+    ensureKeycloakOpenId,
+    ensureLocalFile,
+    ensureMinio,
+    ensureMmctl,
     ensureOpenldap,
+    ensureOpensearch,
+    ensurePostgresSearch,
+    enableUserMfa,
+    ensureServerEnv,
+    ensureSiteUrl,
+    requireSubpathServer,
+    generateKeycloakUser,
+    generateLdapUser,
+    getAdminClient,
+    getAdminClientHealing,
+    getAIBridgeMock,
+    initSetup,
+    installAndEnablePlugin,
+    isOutsideRemoteUserHour,
+    isPluginActive,
+    keycloakSamlDescriptorUrl,
+    ldapServerConfig,
+    listAzuriteBlobNames,
+    listMattermostDataFiles,
+    listMinioObjectKeys,
     makeClient,
-    mergeWithOnPremServerConfig,
+    openidServerConfig,
+    opensearchServerConfig,
     recapCompletion,
     resetAIBridgeMock,
+    resetConfig,
+    resetRoles,
+    restorePendingConfigPatches,
     rewriteCompletion,
-    installAndEnablePlugin,
-    isPluginActive,
-    samlServerConfig,
-    ensureKeycloak,
-    elasticsearchServerConfig,
-    opensearchServerConfig,
-    ensureElasticsearch,
-    ensureOpensearch,
     runMmctl,
-    ensureMmctl,
+    samlServerConfig,
+    saveUpgradePhaseLogs,
+    setDefaultOnboardingPreferences,
+    suspendKeycloakUser,
     updateLdapUser,
+    upgradeServerImage,
 } from './server';
 import {
     toBeFocusedWithFocusVisible,
@@ -71,6 +92,7 @@ import {
     waitUntil,
     logFocusedElement,
 } from './test_action';
+import {testConfig} from './test_config';
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
 import {
@@ -84,11 +106,13 @@ import {
 } from './mock_browser_api';
 import {duration, getRandomId, newTestPassword, simpleEmailRe, wait} from './util';
 
-export {expect} from '@playwright/test';
+export {expect} from './expect';
 
 export type ExtendedFixtures = {
     axe: AxeBuilderExtended;
     pw: PlaywrightExtended;
+    cleanServerEnv: void;
+    resetConfigAndRoles: void;
 };
 
 type AxeBuilderOptions = {
@@ -96,7 +120,23 @@ type AxeBuilderOptions = {
     disableLinkInTextBlock?: boolean;
 };
 
+let lastSpecFile: string | undefined;
+
 export const test = base.extend<ExtendedFixtures>({
+    // Overrides the built-in baseURL fixture (normally frozen to testConfig.baseURL's value at
+    // config-load time, see test_config.ts) to read it fresh per test instead. Fixtures resolve at
+    // test-run time, after global setup has resolved/corrected testConfig.baseURL (testcontainers
+    // host, subpath mode, etc.), so this reflects whatever value is current, not a stale snapshot.
+    baseURL: async ({}, use) => {
+        await use(testConfig.baseURL);
+    },
+    // Every page (default fixture, or wrapped in a page object) goes through here, so goto() always
+    // resolves against the current testConfig.baseURL instead of Playwright's own frozen/path-dropping
+    // baseURL merge. See patchGotoToUseBaseUrl().
+    page: async ({page}, use) => {
+        patchGotoToUseBaseUrl(page);
+        await use(page);
+    },
     axe: async ({}, use) => {
         const ab = new AxeBuilderExtended();
         await use(ab);
@@ -106,6 +146,41 @@ export const test = base.extend<ExtendedFixtures>({
         await use(pw);
         await pw.testBrowser.close();
     },
+    // Reset config and roles before every test. Role defaults are generated from current
+    // master and can reference permissions an upgrade-path from-image predates, so skip the
+    // role reset there -- those projects verify an unmodified upgrade, not role content.
+    // Once per spec file, so a spec only sees the server env it sets itself (ensureFeatureFlag(), ensureMinio(), ...).
+    cleanServerEnv: [
+        async ({}, use, testInfo) => {
+            if (testInfo.file !== lastSpecFile && !readGlobalSetupFailure()) {
+                lastSpecFile = testInfo.file;
+                await ensureDefaultServerEnv();
+            }
+            await use();
+        },
+        {auto: true},
+    ],
+    resetConfigAndRoles: [
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- listed so it runs before this fixture
+        async ({cleanServerEnv}, use) => {
+            // globalSetup() records here instead of throwing when it fails, so Playwright still
+            // attempts this spec's tests. Fail them loudly with the recorded reason rather than
+            // silently proceeding against a server that never got into a known-good state.
+            const globalSetupFailure = readGlobalSetupFailure();
+            if (globalSetupFailure) {
+                throw new Error(globalSetupFailure);
+            }
+
+            const {adminClient} = await getAdminClientHealing();
+            await resetConfig(adminClient);
+            if (!isUpgradePathProjectSelected()) {
+                await resetRoles(adminClient);
+            }
+            await use();
+            await restorePendingConfigPatches();
+        },
+        {auto: true},
+    ],
 });
 
 export class PlaywrightExtended {
@@ -119,7 +194,6 @@ export class PlaywrightExtended {
     readonly ensureLicense;
     readonly ensureServerDeployment;
     readonly skipIfNoLicense;
-    readonly skipIfFeatureFlagNotSet;
 
     // ./file
     readonly getBlobFromAsset;
@@ -128,7 +202,8 @@ export class PlaywrightExtended {
     // ./server
     readonly ensurePluginsLoaded;
     readonly getAdminClient;
-    readonly mergeWithOnPremServerConfig;
+    readonly resetConfig;
+    readonly resetRoles;
     readonly initSetup;
     readonly enableAIBridgeTestMode;
     readonly configureAIBridgeMock;
@@ -137,33 +212,51 @@ export class PlaywrightExtended {
     readonly createMockAIAgent;
     readonly rewriteCompletion;
     readonly recapCompletion;
+    readonly ensureDemoPlugin;
     readonly installAndEnablePlugin;
     readonly isPluginActive;
 
     // ./server/openldap, ./server/keycloak, ./server/elasticsearch, ./server/opensearch, ./server/minio
-    readonly generateLdapUser;
-    readonly createLdapUser;
-    readonly updateLdapUser;
-    readonly deleteLdapUser;
-    readonly ldapServerConfig;
-    readonly ensureOpenldap;
     readonly createKeycloakUser;
+    readonly createLdapUser;
     readonly deleteKeycloakUser;
-    readonly samlServerConfig;
-    readonly ensureKeycloak;
+    readonly deleteLdapUser;
     readonly elasticsearchServerConfig;
-    readonly opensearchServerConfig;
-    readonly ensureElasticsearch;
-    readonly ensureOpensearch;
-    readonly listMinioObjectKeys;
-    readonly ensureMinio;
     readonly ensureAzurite;
-    readonly ensureLocalFile;
-    readonly ensurePostgresSearch;
+    readonly ensureElasticsearch;
     readonly ensureFeatureFlag;
-    readonly listAzuriteBlobNames;
-    readonly runMmctl;
+    readonly ensureKeycloak;
+    readonly ensureKeycloakOpenId;
+    readonly ensureLocalFile;
+    readonly ensureMinio;
     readonly ensureMmctl;
+    readonly ensureOpenldap;
+    readonly ensureOpensearch;
+    readonly ensurePostgresSearch;
+    readonly enableUserMfa;
+    readonly ensureInternalSiteUrl;
+    readonly ensurePhase2MigrationCompleted;
+    readonly ensureServerEnv;
+    readonly ensureSiteUrl;
+    readonly requireSubpathServer;
+    readonly generateKeycloakUser;
+    readonly generateLdapUser;
+    readonly keycloakSamlDescriptorUrl;
+    readonly ldapServerConfig;
+    readonly listAzuriteBlobNames;
+    readonly listMattermostDataFiles;
+    readonly listMinioObjectKeys;
+    readonly openidServerConfig;
+    readonly opensearchServerConfig;
+    readonly runMmctl;
+    readonly samlServerConfig;
+    readonly suspendKeycloakUser;
+    readonly updateLdapUser;
+
+    // ./server/version
+    readonly upgradeServerImage;
+    // ./server/upgrade_logs
+    readonly saveUpgradePhaseLogs;
 
     // ./test_action
     readonly toBeFocusedWithFocusVisible;
@@ -186,6 +279,7 @@ export class PlaywrightExtended {
     readonly createNewTeam;
     readonly isOutsideRemoteUserHour;
     readonly makeClient;
+    readonly setDefaultOnboardingPreferences;
 
     // ./visual
     readonly matchSnapshot;
@@ -201,9 +295,21 @@ export class PlaywrightExtended {
 
     // unauthenticated page
     readonly loginPage;
+    readonly keycloakLoginPage;
     readonly landingLoginPage;
     readonly signupPage;
+    readonly selectTeamPage;
+    readonly verifyEmailPage;
+    readonly mfaSetupPage;
     readonly resetPasswordPage;
+    readonly errorPage;
+    readonly emailToOAuthPage;
+    readonly oauthToEmailPage;
+    readonly emailToLdapPage;
+    readonly ldapToEmailPage;
+
+    // Same default page as above, post-login, for specs that authenticate it directly.
+    readonly channelsPage;
 
     readonly hasSeenLandingPage;
 
@@ -218,7 +324,6 @@ export class PlaywrightExtended {
         this.ensureLicense = ensureLicense;
         this.ensureServerDeployment = ensureServerDeployment;
         this.skipIfNoLicense = skipIfNoLicense;
-        this.skipIfFeatureFlagNotSet = skipIfFeatureFlagNotSet;
 
         // ./file
         this.getBlobFromAsset = getBlobFromAsset;
@@ -228,7 +333,8 @@ export class PlaywrightExtended {
         this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
-        this.mergeWithOnPremServerConfig = mergeWithOnPremServerConfig;
+        this.resetConfig = resetConfig;
+        this.resetRoles = resetRoles;
         this.enableAIBridgeTestMode = enableAIBridgeTestMode;
         this.configureAIBridgeMock = configureAIBridgeMock;
         this.getAIBridgeMock = getAIBridgeMock;
@@ -237,33 +343,51 @@ export class PlaywrightExtended {
         this.rewriteCompletion = rewriteCompletion;
         this.recapCompletion = recapCompletion;
         this.isOutsideRemoteUserHour = isOutsideRemoteUserHour;
+        this.ensureDemoPlugin = ensureDemoPlugin;
         this.installAndEnablePlugin = installAndEnablePlugin;
         this.isPluginActive = isPluginActive;
 
         // ./server/openldap, ./server/keycloak, ./server/elasticsearch, ./server/opensearch, ./server/minio
-        this.generateLdapUser = generateLdapUser;
-        this.createLdapUser = createLdapUser;
-        this.updateLdapUser = updateLdapUser;
-        this.deleteLdapUser = deleteLdapUser;
-        this.ldapServerConfig = ldapServerConfig;
-        this.ensureOpenldap = ensureOpenldap;
         this.createKeycloakUser = createKeycloakUser;
+        this.createLdapUser = createLdapUser;
         this.deleteKeycloakUser = deleteKeycloakUser;
-        this.samlServerConfig = samlServerConfig;
-        this.ensureKeycloak = ensureKeycloak;
+        this.deleteLdapUser = deleteLdapUser;
         this.elasticsearchServerConfig = elasticsearchServerConfig;
-        this.opensearchServerConfig = opensearchServerConfig;
-        this.ensureElasticsearch = ensureElasticsearch;
-        this.ensureOpensearch = ensureOpensearch;
-        this.listMinioObjectKeys = listMinioObjectKeys;
-        this.ensureMinio = ensureMinio;
         this.ensureAzurite = ensureAzurite;
-        this.ensureLocalFile = ensureLocalFile;
-        this.ensurePostgresSearch = ensurePostgresSearch;
+        this.ensureElasticsearch = ensureElasticsearch;
         this.ensureFeatureFlag = ensureFeatureFlag;
-        this.listAzuriteBlobNames = listAzuriteBlobNames;
-        this.runMmctl = runMmctl;
+        this.ensureKeycloak = ensureKeycloak;
+        this.ensureKeycloakOpenId = ensureKeycloakOpenId;
+        this.ensureLocalFile = ensureLocalFile;
+        this.ensureMinio = ensureMinio;
         this.ensureMmctl = ensureMmctl;
+        this.ensureOpenldap = ensureOpenldap;
+        this.ensureOpensearch = ensureOpensearch;
+        this.ensurePostgresSearch = ensurePostgresSearch;
+        this.enableUserMfa = enableUserMfa;
+        this.ensureInternalSiteUrl = ensureInternalSiteUrl;
+        this.ensurePhase2MigrationCompleted = ensurePhase2MigrationCompleted;
+        this.ensureServerEnv = ensureServerEnv;
+        this.ensureSiteUrl = ensureSiteUrl;
+        this.requireSubpathServer = requireSubpathServer;
+        this.generateKeycloakUser = generateKeycloakUser;
+        this.generateLdapUser = generateLdapUser;
+        this.keycloakSamlDescriptorUrl = keycloakSamlDescriptorUrl;
+        this.ldapServerConfig = ldapServerConfig;
+        this.listAzuriteBlobNames = listAzuriteBlobNames;
+        this.listMattermostDataFiles = listMattermostDataFiles;
+        this.listMinioObjectKeys = listMinioObjectKeys;
+        this.openidServerConfig = openidServerConfig;
+        this.opensearchServerConfig = opensearchServerConfig;
+        this.runMmctl = runMmctl;
+        this.samlServerConfig = samlServerConfig;
+        this.suspendKeycloakUser = suspendKeycloakUser;
+        this.updateLdapUser = updateLdapUser;
+
+        // ./server/version
+        this.upgradeServerImage = upgradeServerImage;
+        // ./server/upgrade_logs
+        this.saveUpgradePhaseLogs = saveUpgradePhaseLogs;
 
         // ./test_action
         this.toBeFocusedWithFocusVisible = toBeFocusedWithFocusVisible;
@@ -274,9 +398,21 @@ export class PlaywrightExtended {
 
         // unauthenticated page
         this.loginPage = new pages.LoginPage(page);
+        this.keycloakLoginPage = new pages.KeycloakLoginPage(page);
         this.landingLoginPage = new pages.LandingLoginPage(page, isMobile);
         this.signupPage = new pages.SignupPage(page);
+        this.selectTeamPage = new pages.SelectTeamPage(page);
+        this.verifyEmailPage = new pages.VerifyEmailPage(page);
+        this.mfaSetupPage = new pages.MfaSetupPage(page);
         this.resetPasswordPage = new pages.ResetPasswordPage(page);
+        this.errorPage = new pages.ErrorPage(page);
+        this.emailToOAuthPage = new pages.EmailToOAuthPage(page);
+        this.oauthToEmailPage = new pages.OAuthToEmailPage(page);
+        this.emailToLdapPage = new pages.EmailToLdapPage(page);
+        this.ldapToEmailPage = new pages.LdapToEmailPage(page);
+
+        // Same default page as above, post-login
+        this.channelsPage = new pages.ChannelsPage(page);
 
         // ./mock_browser_api
         this.stubNotification = stubNotification;
@@ -291,6 +427,7 @@ export class PlaywrightExtended {
         this.createNewUserProfile = createNewUserProfile;
         this.createNewTeam = createNewTeam;
         this.makeClient = makeClient;
+        this.setDefaultOnboardingPreferences = setDefaultOnboardingPreferences;
 
         // ./visual
         this.matchSnapshot = matchSnapshot;
@@ -310,9 +447,9 @@ export class PlaywrightExtended {
             userWithAttributes: createUserWithAttributes,
         };
 
-        this.hasSeenLandingPage = async () => {
+        this.hasSeenLandingPage = async (url = '/') => {
             // Visit the base URL to be able to set the localStorage
-            await page.goto('/');
+            await page.goto(url);
             return waitUntilLocalStorageIsSet(page, '__landingPageSeen__', 'true');
         };
     }

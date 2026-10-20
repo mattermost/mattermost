@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"cmp"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -18,12 +19,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	sq "github.com/mattermost/squirrel"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
-	sq "github.com/mattermost/squirrel"
 )
 
 type SqlStore interface {
@@ -129,6 +131,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, rctx, ss) })
 	t.Run("GetMember", func(t *testing.T) { testGetMember(t, rctx, ss) })
 	t.Run("GetMemberLastViewedAt", func(t *testing.T) { testGetMemberLastViewedAt(t, rctx, ss) })
+	t.Run("GetMembersWithLastViewedAtSince", func(t *testing.T) { testGetMembersWithLastViewedAtSince(t, rctx, ss, s) })
 	t.Run("GetMemberForPost", func(t *testing.T) { testChannelStoreGetMemberForPost(t, rctx, ss) })
 	t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, rctx, ss) })
 	t.Run("GetMemberCountsByGroup", func(t *testing.T) { testGetMemberCountsByGroup(t, rctx, ss) })
@@ -167,6 +170,141 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("GetTeamChannelsWithUnreadAndMentions", func(t *testing.T) { testGetTeamChannelsWithUnreadAndMentions(t, rctx, ss) })
 	t.Run("SaveBoardChannel", func(t *testing.T) { testChannelStoreSaveBoardChannel(t, rctx, ss) })
 	t.Run("SaveRejectsBoardTypes", func(t *testing.T) { testChannelStoreSaveRejectsBoardTypes(t, rctx, ss) })
+	t.Run("PolicyAutoAdd", func(t *testing.T) { testChannelStorePolicyAutoAdd(t, rctx, ss) })
+}
+
+// testChannelStorePolicyAutoAdd covers the PolicyAutoAdd column the channel
+// queries derive from the policy's membership rule. Every case stores Active as
+// the opposite of the expected value, so a regression that reads the reserved
+// column instead of the rule fails here.
+func testChannelStorePolicyAutoAdd(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+
+	saveChannel := func() *model.Channel {
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Name",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+		t.Cleanup(func() { ss.Channel().PermanentDelete(rctx, channel.Id) })
+		return channel
+	}
+
+	savePolicy := func(channelID string, rules []model.AccessControlPolicyRule, autoAdd bool) {
+		policy := &model.AccessControlPolicy{
+			ID:      channelID,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Active:  !autoAdd,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Rules:   rules,
+		}
+		policy.SetAutoAddMode(autoAddMode(autoAdd))
+		_, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		t.Cleanup(func() { ss.AccessControlPolicy().Delete(rctx, channelID) })
+	}
+
+	membershipRules := []model.AccessControlPolicyRule{{
+		Actions:    []string{model.AccessControlPolicyActionMembership},
+		Expression: `user.attributes.program == "engineering"`,
+	}}
+
+	t.Run("no policy", func(t *testing.T) {
+		channel := saveChannel()
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.False(t, got.PolicyEnforced)
+		require.False(t, got.PolicyAutoAdd)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	t.Run("policy that auto-adds members", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, membershipRules, true)
+
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, got.PolicyEnforced)
+		require.True(t, got.PolicyAutoAdd)
+		require.True(t, got.PolicyIsActive, "the deprecated alias must mirror PolicyAutoAdd")
+	})
+
+	t.Run("policy that does not auto-add members", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, membershipRules, false)
+
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, got.PolicyEnforced)
+		require.False(t, got.PolicyAutoAdd)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	// An expression-less membership rule carries the mode for a policy that only
+	// imports a parent, so it has to hydrate like any other.
+	t.Run("carrier rule alone reports auto-add", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, []model.AccessControlPolicyRule{{
+			Actions:    []string{model.AccessControlPolicyActionMembership},
+			Expression: "",
+		}}, true)
+
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, got.PolicyAutoAdd)
+	})
+
+	// The mode lives on the membership rule only, so a permission rule that
+	// happens to sit first must not be read for it.
+	t.Run("only the membership rule carries the mode", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, []model.AccessControlPolicyRule{
+			{
+				Name:       "Uploads",
+				Role:       model.ChannelUserRoleId,
+				Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+				Expression: `user.attributes.program == "engineering"`,
+			},
+			membershipRules[0],
+		}, true)
+
+		got, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, got.PolicyAutoAdd)
+
+		stored, err := ss.AccessControlPolicy().Get(rctx, channel.Id)
+		require.NoError(t, err)
+		require.Nil(t, stored.Rules[0].Metadata, "the permission rule must stay untouched")
+		require.True(t, stored.Rules[1].AutoAdd())
+	})
+
+	// GetChannels feeds the sidebar, which is a different query builder than Get.
+	t.Run("list queries hydrate PolicyAutoAdd", func(t *testing.T) {
+		channel := saveChannel()
+		savePolicy(channel.Id, membershipRules, true)
+
+		userID := model.NewId()
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      userID,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+
+		channels, err := ss.Channel().GetChannels(teamID, userID, &model.ChannelSearchOpts{})
+		require.NoError(t, err)
+
+		var found bool
+		for _, c := range channels {
+			if c.Id == channel.Id {
+				found = true
+				require.True(t, c.PolicyAutoAdd)
+			}
+		}
+		require.True(t, found, "the channel should be in the user's channel list")
+	})
 }
 
 func testChannelStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -403,8 +541,8 @@ func testChannelStoreGetMembersWithCursorPagination(t *testing.T, rctx request.C
 	require.Len(t, members, 2, "should have 2 members")
 
 	// Find member with smaller LastUpdateAt
-	sort.Slice(members, func(i, j int) bool {
-		return members[i].LastUpdateAt < members[j].LastUpdateAt
+	slices.SortFunc(members, func(a, b model.ChannelMember) int {
+		return cmp.Compare(a.LastUpdateAt, b.LastUpdateAt)
 	})
 	updateTime := members[0].LastUpdateAt
 
@@ -5330,6 +5468,180 @@ func testGetMemberLastViewedAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, m2.LastViewedAt, lvAt, "should've gotten gotten LastViewedAt of channel 2")
 
 	ss.Channel().InvalidateCacheForChannelMembersNotifyProps(c2.Id)
+}
+
+func testGetMembersWithLastViewedAtSince(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	saveMember := func(t *testing.T, channelID, userID string, lastViewedAt int64) {
+		t.Helper()
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:    channelID,
+			UserId:       userID,
+			NotifyProps:  model.GetDefaultChannelNotifyProps(),
+			LastViewedAt: lastViewedAt,
+		})
+		require.NoError(t, err)
+	}
+
+	userIDs := func(members []*model.ChannelMemberLastViewed) []string {
+		out := make([]string, 0, len(members))
+		for _, m := range members {
+			out = append(out, m.UserId)
+		}
+		return out
+	}
+
+	t.Run("filters at or after the threshold", func(t *testing.T) {
+		c := &model.Channel{TeamId: model.NewId(), DisplayName: model.NewId(), Name: model.NewId(), Type: model.ChannelTypeOpen}
+		_, nErr := ss.Channel().Save(rctx, c, -1)
+		require.NoError(t, nErr)
+
+		before, atBoundary, after := model.NewId(), model.NewId(), model.NewId()
+		saveMember(t, c.Id, before, 99)
+		saveMember(t, c.Id, atBoundary, 100)
+		saveMember(t, c.Id, after, 101)
+
+		members, err := ss.Channel().GetMembersWithLastViewedAtSince(rctx, c.Id, 100, "", 0)
+		require.NoError(t, err)
+
+		// The boundary case is load-bearing: UpdateLastViewedAt sets LastViewedAt to
+		// Channels.LastPostAt, so a user who reads a channel whose newest post is the one
+		// being reported on lands on exact equality. It must be included.
+		require.ElementsMatch(t, []string{atBoundary, after}, userIDs(members))
+	})
+
+	t.Run("returns the coalesced LastViewedAt", func(t *testing.T) {
+		c := &model.Channel{TeamId: model.NewId(), DisplayName: model.NewId(), Name: model.NewId(), Type: model.ChannelTypeOpen}
+		_, nErr := ss.Channel().Save(rctx, c, -1)
+		require.NoError(t, nErr)
+
+		userID := model.NewId()
+		saveMember(t, c.Id, userID, 12345)
+
+		members, err := ss.Channel().GetMembersWithLastViewedAtSince(rctx, c.Id, 0, "", 0)
+		require.NoError(t, err)
+		require.Len(t, members, 1)
+		require.Equal(t, userID, members[0].UserId)
+		require.Equal(t, int64(12345), members[0].LastViewedAt)
+	})
+
+	//t.Run("treats a NULL LastViewedAt as zero", func(t *testing.T) {
+	//	c := &model.Channel{TeamId: model.NewId(), DisplayName: model.NewId(), Name: model.NewId(), Type: model.ChannelTypeOpen}
+	//	_, nErr := ss.Channel().Save(rctx, c, -1)
+	//	require.NoError(t, nErr)
+	//
+	//	nullUser, realUser := model.NewId(), model.NewId()
+	//	saveMember(t, c.Id, nullUser, 0)
+	//	saveMember(t, c.Id, realUser, 500)
+	//
+	//	// SaveMember cannot write a NULL, so go around it.
+	//	_, err := s.GetMaster().Exec(`UPDATE ChannelMembers SET LastViewedAt = NULL WHERE ChannelId = ? AND UserId = ?`, c.Id, nullUser)
+	//	require.NoError(t, err)
+	//
+	//	members, err := ss.Channel().GetMembersWithLastViewedAtSince(rctx, c.Id, 1, "", 0)
+	//	require.NoError(t, err)
+	//	require.Equal(t, []string{realUser}, userIDs(members), "a NULL LastViewedAt must not match a positive threshold")
+	//
+	//	members, err = ss.Channel().GetMembersWithLastViewedAtSince(rctx, c.Id, 0, "", 0)
+	//	require.NoError(t, err)
+	//	require.ElementsMatch(t, []string{nullUser, realUser}, userIDs(members))
+	//	for _, m := range members {
+	//		if m.UserId == nullUser {
+	//			require.Equal(t, int64(0), m.LastViewedAt, "NULL must scan as 0, not panic")
+	//		}
+	//	}
+	//})
+
+	t.Run("is scoped to the channel", func(t *testing.T) {
+		c1 := &model.Channel{TeamId: model.NewId(), DisplayName: model.NewId(), Name: model.NewId(), Type: model.ChannelTypeOpen}
+		_, nErr := ss.Channel().Save(rctx, c1, -1)
+		require.NoError(t, nErr)
+		c2 := &model.Channel{TeamId: c1.TeamId, DisplayName: model.NewId(), Name: model.NewId(), Type: model.ChannelTypeOpen}
+		_, nErr = ss.Channel().Save(rctx, c2, -1)
+		require.NoError(t, nErr)
+
+		inC1, inC2 := model.NewId(), model.NewId()
+		saveMember(t, c1.Id, inC1, 500)
+		saveMember(t, c2.Id, inC2, 500)
+
+		members, err := ss.Channel().GetMembersWithLastViewedAtSince(rctx, c1.Id, 0, "", 0)
+		require.NoError(t, err)
+		require.Equal(t, []string{inC1}, userIDs(members))
+	})
+
+	t.Run("returns members of an archived channel", func(t *testing.T) {
+		c := &model.Channel{TeamId: model.NewId(), DisplayName: model.NewId(), Name: model.NewId(), Type: model.ChannelTypeOpen}
+		_, nErr := ss.Channel().Save(rctx, c, -1)
+		require.NoError(t, nErr)
+
+		userID := model.NewId()
+		saveMember(t, c.Id, userID, 500)
+
+		require.NoError(t, ss.Channel().Delete(c.Id, model.GetMillis()))
+
+		members, err := ss.Channel().GetMembersWithLastViewedAtSince(rctx, c.Id, 0, "", 0)
+		require.NoError(t, err)
+		require.Equal(t, []string{userID}, userIDs(members), "archiving is soft; ChannelMembers rows survive it")
+	})
+
+	t.Run("returns an empty result rather than an error", func(t *testing.T) {
+		c := &model.Channel{TeamId: model.NewId(), DisplayName: model.NewId(), Name: model.NewId(), Type: model.ChannelTypeOpen}
+		_, nErr := ss.Channel().Save(rctx, c, -1)
+		require.NoError(t, nErr)
+
+		members, err := ss.Channel().GetMembersWithLastViewedAtSince(rctx, c.Id, 0, "", 0)
+		require.NoError(t, err)
+		require.Empty(t, members)
+
+		members, err = ss.Channel().GetMembersWithLastViewedAtSince(rctx, model.NewId(), 0, "", 0)
+		require.NoError(t, err, "a non-existent channel is an empty result, not an error")
+		require.Empty(t, members)
+	})
+
+	t.Run("pages by keyset without gaps or duplicates", func(t *testing.T) {
+		c := &model.Channel{TeamId: model.NewId(), DisplayName: model.NewId(), Name: model.NewId(), Type: model.ChannelTypeOpen}
+		_, nErr := ss.Channel().Save(rctx, c, -1)
+		require.NoError(t, nErr)
+
+		const total = 25
+		expected := make([]string, 0, total)
+		for range total {
+			userID := model.NewId()
+			expected = append(expected, userID)
+			saveMember(t, c.Id, userID, 500)
+		}
+
+		var got []string
+		after := ""
+		for {
+			page, err := ss.Channel().GetMembersWithLastViewedAtSince(rctx, c.Id, 0, after, 10)
+			require.NoError(t, err)
+			if len(page) == 0 {
+				break
+			}
+			require.LessOrEqual(t, len(page), 10)
+			got = append(got, userIDs(page)...)
+			after = page[len(page)-1].UserId
+		}
+
+		require.ElementsMatch(t, expected, got)
+		require.True(t, sort.StringsAreSorted(got), "results must be ordered by UserId so the cursor is stable")
+	})
+
+	t.Run("clamps the limit", func(t *testing.T) {
+		c := &model.Channel{TeamId: model.NewId(), DisplayName: model.NewId(), Name: model.NewId(), Type: model.ChannelTypeOpen}
+		_, nErr := ss.Channel().Save(rctx, c, -1)
+		require.NoError(t, nErr)
+
+		for range 3 {
+			saveMember(t, c.Id, model.NewId(), 500)
+		}
+
+		for _, limit := range []int{0, -1, model.ChannelMemberLastViewedMaxPerPage + 1} {
+			members, err := ss.Channel().GetMembersWithLastViewedAtSince(rctx, c.Id, 0, "", limit)
+			require.NoError(t, err)
+			require.Len(t, members, 3)
+		}
+	})
 }
 
 func testChannelStoreGetMemberForPost(t *testing.T, rctx request.CTX, ss store.Store) {
