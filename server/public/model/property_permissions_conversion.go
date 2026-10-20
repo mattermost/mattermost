@@ -142,9 +142,9 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 // attrs (see ownersFromGrants). A user or role owner converts to no grant, so
 // it is carried over from the stored owners attr instead (see
 // appendHumanOwners). field.write none becomes protected, except that a field
-// whose stored attrs mark it protected projects the unprotected,
-// sysadmin-pinned columns access_control stores for it, and carries the
-// protection in the attr.
+// whose stored attrs mark it protected, and whose Protected column isn't set,
+// projects the unprotected, sysadmin-pinned columns access_control stores for
+// it, and carries the protection in the attr.
 func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 	if field.Permissions == nil {
 		return field
@@ -165,12 +165,14 @@ func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 	projected.PermissionOptions = &optionWrite
 
 	switch {
-	case fieldWrite == PermissionLevelNone && IsPropertyFieldProtected(field):
+	case fieldWrite == PermissionLevelNone && IsPropertyFieldProtected(field) && !field.Protected:
 		// access_control keeps protection in the attr alone. Its hook pins the
 		// field and option columns to sysadmin, so master stores such a field
 		// as unprotected, sysadmin-editable columns and reads the attr instead.
 		// Reporting the column as protected would make master refuse every
-		// edit of it after a rollback, the source plugin's included.
+		// edit of it after a rollback, the source plugin's included. A field
+		// whose Protected column is already set was protected by the column,
+		// not by access_control, and keeps it.
 		sysadmin := PermissionLevelSysadmin
 		projected.Protected = false
 		projected.PermissionField = &sysadmin

@@ -1179,6 +1179,29 @@ func TestProjectLegacyPermissionsProtectedColumns(t *testing.T) {
 		assert.Equal(t, PermissionLevelNone, *projected.PermissionField)
 		assert.Equal(t, PermissionLevelMember, *projected.PermissionOptions)
 	})
+
+	t.Run("a field with the Protected column set keeps it, even with the attr", func(t *testing.T) {
+		// Outside access_control the Protected column is what protects a field,
+		// and the attr may sit next to it unenforced. Projecting access_control's
+		// unprotected columns would open the field to edits.
+		field := &PropertyField{
+			Protected:         true,
+			PermissionField:   new(PermissionLevelNone),
+			PermissionOptions: &member,
+			PermissionValues:  &member,
+			Attrs:             StringInterface{PropertyAttrsProtected: true},
+		}
+		opts := LegacyConversionOpts{}
+		field.Permissions = PermissionsFromLegacy(field, opts)
+
+		projected := ProjectLegacyPermissions(field)
+
+		assert.True(t, projected.Protected)
+		assert.Equal(t, PermissionLevelNone, *projected.PermissionField)
+		assert.Equal(t, PermissionLevelMember, *projected.PermissionOptions)
+		assert.True(t, IsPropertyFieldProtected(projected))
+		assert.Equal(t, field.Permissions, PermissionsFromLegacy(projected, opts))
+	})
 }
 
 func TestProjectLegacyPermissionsOmitsDerivedGrants(t *testing.T) {
