@@ -330,6 +330,10 @@ export type AppForm = {
     // command is executed.
     submit?: AppCall;
 
+    // refresh_on_return re-fetches the form from source when a dialog stacked on
+    // top of it closes. Set by interactive dialogs (Dialog.refresh_on_return).
+    refresh_on_return?: boolean;
+
     depends_on?: string[];
 };
 
@@ -361,6 +365,10 @@ function isAppForm(v: unknown): v is AppForm {
     }
 
     if (form.submit_buttons !== undefined && typeof form.submit_buttons !== 'string') {
+        return false;
+    }
+
+    if (form.refresh_on_return !== undefined && typeof form.refresh_on_return !== 'boolean') {
         return false;
     }
 

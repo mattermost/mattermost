@@ -64,6 +64,8 @@ type ServerDialogResponse = {
     notify_on_cancel?: boolean;
     state?: string;
     size?: AppForm['size'];
+    submit_buttons?: string;
+    refresh_on_return?: boolean;
 };
 
 // Transformed dialog props structure
@@ -78,7 +80,11 @@ type TransformedDialogProps = {
     notifyOnCancel?: boolean;
     state?: string;
     size?: AppForm['size'];
+    submitButtons?: string;
+    refreshOnReturn?: boolean;
 };
+
+export const DIALOG_REFRESH_PLACEHOLDER_PATH = '/refresh';
 
 export type ConversionOptions = {
 
@@ -616,6 +622,8 @@ export function transformServerDialogToProps(serverDialog: ServerDialogResponse)
         notifyOnCancel: serverDialog.notify_on_cancel,
         state: serverDialog.state,
         size: serverDialog.size,
+        submitButtons: serverDialog.submit_buttons,
+        refreshOnReturn: serverDialog.refresh_on_return,
     };
 }
 
@@ -631,6 +639,8 @@ export function convertDialogToAppForm(
     sourceUrl: string,
     dialogState: string,
     options: ConversionOptions,
+    submitButtons?: string,
+    refreshOnReturn?: boolean,
     size?: AppForm['size'],
 ): ConversionResult {
     const allErrors: ValidationError[] = [];
@@ -684,6 +694,7 @@ export function convertDialogToAppForm(
         icon: iconUrl,
         header: introductionText ? String(introductionText) : undefined,
         submit_label: submitLabel ? String(submitLabel) : undefined,
+        submit_buttons: submitButtons || undefined,
         submit: {
             path: '/submit',
             expand: {},
@@ -693,14 +704,20 @@ export function convertDialogToAppForm(
         size,
     };
 
-    // Set source if sourceUrl is provided or if any fields have refresh enabled
+    // Set source if sourceUrl is provided or if any fields have refresh enabled. Without a
+    // sourceUrl the path is a placeholder; the adapter falls back to the dialog's sourceUrl.
     const hasRefreshFields = flattenAppFields(convertedFields).some((field) => field.refresh === true);
     if ((sourceUrl && sourceUrl.trim()) || hasRefreshFields) {
         form.source = {
-            path: sourceUrl || '/refresh',
+            path: sourceUrl || DIALOG_REFRESH_PLACEHOLDER_PATH,
             expand: {},
             state: dialogState || undefined,
         };
+    }
+
+    // Refresh on return needs a real source_url to refresh from.
+    if (refreshOnReturn && sourceUrl && sourceUrl.trim()) {
+        form.refresh_on_return = true;
     }
 
     return {form, errors: allErrors};
@@ -759,6 +776,8 @@ export function convertServerDialogResponseToAppForm(
         transformedDialog.sourceUrl || '',
         transformedDialog.state || '',
         options,
+        transformedDialog.submitButtons,
+        transformedDialog.refreshOnReturn,
         transformedDialog.size,
     );
 

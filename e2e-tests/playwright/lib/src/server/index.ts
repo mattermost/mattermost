@@ -4,13 +4,19 @@
 export {makeClient} from './client';
 export {PlaywrightClient4} from './playwright_client';
 export {createRandomChannel} from './channel';
-export {getOnPremServerConfig} from './default_config';
 export {initSetup, getAdminClient} from './init';
+export {clearAdminLoginLockout, getAdminClientHealing} from './admin_lockout';
+export {clearAdminLockout} from './lockout';
+export {restorePendingConfigPatches} from './patch_config';
+export type {RestoreConfig} from './patch_config';
+export {resetConfig} from './reset_config';
+export {resetRoles} from './roles';
 export {createRandomPost} from './post';
 export {createNewTeam, createRandomTeam} from './team';
 export {
     createNewUserProfile,
     createRandomUser,
+    ensureChannelIntroActions,
     getDefaultAdminUser,
     isOutsideRemoteUserHour,
     setDefaultOnboardingPreferences,
@@ -45,10 +51,12 @@ export {
 export {
     defaultEnabledPluginIds,
     disableUnexpectedPlugins,
+    ensureDemoPlugin,
     installAndEnablePlugin,
     isPluginActive,
     getPluginStatus,
 } from './plugin';
+export type {EnsureDemoPluginOptions} from './plugin';
 export {isWebhookTestServerReachable, setupWebhookTestServer} from './webhook_server';
 export {
     generateLdapUser,
@@ -78,8 +86,11 @@ export {ensureAzurite, listAzuriteBlobNames} from './azurite';
 export {ensureLocalFile, listMattermostDataFiles} from './filestore';
 export {ensurePostgresSearch} from './postgres_search';
 export {ensureFeatureFlag} from './feature_flags';
-export {ensureServerEnv, ensureSiteUrl} from './server_env';
-export {generateTotp, enableUserMfa, disableMfa} from './mfa';
+export {ensureDefaultServerEnv} from './default_server_env';
+export {defaultFeatureFlags} from './default_feature_flags';
+export {ensurePhase2MigrationCompleted} from './migrations';
+export {ensureInternalSiteUrl, ensureServerEnv, ensureSiteUrl, requireSubpathServer} from './server_env';
+export {generateTotp, enableUserMfa} from './mfa';
 export {runMmctl, runMmctlLocal, ensureMmctl} from './mmctl';
 export type {MmctlResult} from './mmctl';
 export {upgradeServerImage} from './version';

@@ -485,6 +485,15 @@ type Dialog struct {
 	// Tiers rather than a pixel width, so the client stays free to theme them
 	// and to fall back sensibly on a narrow viewport.
 	Size string `json:"size,omitempty"`
+
+	// SubmitButtons names a select element whose options are rendered as submit
+	// buttons in place of the single submit button. The clicked option's value is
+	// submitted under that element's name, and the element itself is not rendered.
+	SubmitButtons string `json:"submit_buttons,omitempty"`
+
+	// RefreshOnReturn re-fetches the dialog from SourceURL when a dialog opened on top
+	// of it closes. The refresh request has no selected_field.
+	RefreshOnReturn bool `json:"refresh_on_return,omitempty"`
 }
 
 // DialogDateTimeConfig groups date/datetime specific configuration
@@ -805,7 +814,36 @@ func (d *Dialog) IsValid() error {
 			}
 		}
 	}
+
+	if d.SubmitButtons != "" {
+		// The named element is hidden and its options become the submit buttons, so it
+		// must be a static, single-value select with at least one option.
+		element := findDialogElement(d.Elements, d.SubmitButtons)
+		if element == nil || element.Type != "select" || element.DataSource != "" || element.MultiSelect || len(element.Options) == 0 {
+			multiErr = multierror.Append(multiErr, errors.Errorf("submit_buttons %q must name a static select element with at least one option", d.SubmitButtons))
+		}
+	}
+
+	if d.RefreshOnReturn && d.SourceURL == "" {
+		multiErr = multierror.Append(multiErr, errors.New("refresh_on_return requires source_url"))
+	}
 	return multiErr.ErrorOrNil()
+}
+
+// findDialogElement returns the element with the given name, searching inside
+// collapsible sections, or nil if there is none.
+func findDialogElement(elements []DialogElement, name string) *DialogElement {
+	for i := range elements {
+		if elements[i].Name == name {
+			return &elements[i]
+		}
+		if elements[i].CollapsibleConfig != nil {
+			if found := findDialogElement(elements[i].CollapsibleConfig.Elements, name); found != nil {
+				return found
+			}
+		}
+	}
+	return nil
 }
 
 func (e *DialogElement) IsValid() error {

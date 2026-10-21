@@ -166,6 +166,8 @@ export type Dialog = {
     // Width tier. Absent means 'small', the width every dialog had before this
     // existed, so an existing dialog is unaffected.
     size?: 'small' | 'medium' | 'large';
+    submit_buttons?: string;
+    refresh_on_return?: boolean;
 };
 
 export type DialogSubmission = {
