@@ -5,6 +5,7 @@ package model
 
 import (
 	"maps"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -183,7 +184,8 @@ func TestPermissionsFromLegacyLinkedSyncedField(t *testing.T) {
 func TestPermissionsFromLegacyLinkedProtectedSyncedField(t *testing.T) {
 	// A linked user field under a protected template carries its template's
 	// protected, source_plugin_id and sync attrs. On a synced field the source
-	// plugin holds no value.write, and a v2 reader doesn't see it as an owner.
+	// plugin holds no value.write, nor does the sync on a protected one, and a
+	// v2 reader doesn't see the source plugin as an owner.
 	templateField := &PropertyField{
 		ID:         NewId(),
 		ObjectType: PropertyFieldObjectTypeTemplate,
@@ -210,7 +212,7 @@ func TestPermissionsFromLegacyLinkedProtectedSyncedField(t *testing.T) {
 	require.NoError(t, field.Permissions.IsValid(field.ObjectType))
 	assert.Nil(t, field.Permissions.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionValueWrite))
 	assert.NotNil(t, field.Permissions.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionFieldWrite))
-	assert.NotNil(t, field.Permissions.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionValueWrite))
+	assert.Nil(t, field.Permissions.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionValueWrite))
 	// Master lets only the source plugin edit a protected field's definition.
 	assert.Nil(t, field.Permissions.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionFieldWrite))
 	assert.False(t, HasPropertyFieldOwners(ProjectLegacyPermissions(field)))
@@ -506,7 +508,7 @@ func TestPermissionsFromLegacyGrantsSourcePlugin(t *testing.T) {
 
 		assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionValueWrite))
 		assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionFieldWrite))
-		assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionValueWrite))
+		assert.Nil(t, p.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionValueWrite))
 	})
 
 	t.Run("an unprotected field gives its source plugin nothing of its own", func(t *testing.T) {
@@ -632,7 +634,8 @@ func TestPermissionsFromLegacyGrantsSyncLock(t *testing.T) {
 func TestSyncGrantAllow(t *testing.T) {
 	// What master's hook lets the sync caller do on a field synced from its
 	// source: read every option and value whatever the access mode, write
-	// values on a field that holds values, and change options, and the
+	// values on a field that holds values unless it is attr-protected and
+	// unowned, and change options, and the
 	// definition of a field that holds values, unless owners or protection
 	// stand in the way.
 	owners := []PropertyOwner{{Type: PropertyOwnerTypePlugin, ID: "scim"}}
@@ -650,6 +653,10 @@ func TestSyncGrantAllow(t *testing.T) {
 		},
 		"attr-protected user field": {
 			field: &PropertyField{ObjectType: PropertyFieldObjectTypeUser, Attrs: StringInterface{PropertyFieldAttrLDAP: "employeeID", PropertyAttrsProtected: true, PropertyAttrsSourcePluginID: "plugin1"}},
+			want:  []string{PropertyActionOptionRead, PropertyActionValueRead},
+		},
+		"owned attr-protected user field": {
+			field: &PropertyField{ObjectType: PropertyFieldObjectTypeUser, Attrs: StringInterface{PropertyFieldAttrLDAP: "employeeID", PropertyAttrsProtected: true, PropertyAttrsSourcePluginID: "plugin1", PropertyAttrsOwners: owners}},
 			want:  []string{PropertyActionOptionRead, PropertyActionValueRead, PropertyActionValueWrite},
 		},
 		"column-protected user field": {
@@ -670,6 +677,77 @@ func TestSyncGrantAllow(t *testing.T) {
 			assert.Equal(t, tc.want, syncGrantAllow(tc.field))
 		})
 	}
+}
+
+func TestPermissionsFromLegacyProtectedSyncedFieldValueWrite(t *testing.T) {
+	// On master a value write on a protected synced field with no owners passes
+	// the protected check only for the source plugin, which the sync lock then
+	// refuses, so nobody writes it. With owners, the owner check supersedes
+	// both and counts the sync among the owners.
+	member := PermissionLevelMember
+	newField := func(attrs StringInterface) *PropertyField {
+		attrs[PropertyFieldAttrLDAP] = "employeeID"
+		return &PropertyField{ObjectType: PropertyFieldObjectTypeUser, PermissionValues: &member, Attrs: attrs}
+	}
+	valueWriters := func(p *Permissions) []Identity {
+		var writers []Identity
+		for _, g := range p.Grants {
+			if slices.Contains(g.Allow, PropertyActionValueWrite) {
+				writers = append(writers, g.Identity)
+			}
+		}
+		return writers
+	}
+	ldap := Identity{Type: PropertyOwnerTypeService, ID: "ldap"}
+
+	t.Run("protected and unowned, nobody writes values", func(t *testing.T) {
+		field := newField(StringInterface{PropertyAttrsProtected: true, PropertyAttrsSourcePluginID: "plugin1"})
+		requireMasterLegacyShape(t, field)
+
+		p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+		require.NoError(t, p.IsValid(field.ObjectType))
+		assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionValueWrite))
+		assert.Empty(t, valueWriters(p))
+	})
+
+	t.Run("protected and owned, the owners and the sync write values", func(t *testing.T) {
+		field := newField(StringInterface{
+			PropertyAttrsProtected:      true,
+			PropertyAttrsSourcePluginID: "plugin1",
+			PropertyAttrsOwners:         []PropertyOwner{{Type: PropertyOwnerTypePlugin, ID: "scim"}},
+		})
+		requireMasterLegacyShape(t, field)
+
+		p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+		require.NoError(t, p.IsValid(field.ObjectType))
+		assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionValueWrite))
+		assert.ElementsMatch(t, []Identity{{Type: PropertyOwnerTypePlugin, ID: "scim"}, ldap}, valueWriters(p))
+	})
+
+	t.Run("protected by the column alone, the sync writes values", func(t *testing.T) {
+		// Master's protected check reads the attr alone, so the sync lock is all
+		// that stands in the way.
+		field := newField(StringInterface{})
+		field.Protected = true
+
+		p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+		require.NoError(t, p.IsValid(field.ObjectType))
+		assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionValueWrite))
+		assert.Equal(t, []Identity{ldap}, valueWriters(p))
+	})
+
+	t.Run("unprotected, the sync writes values", func(t *testing.T) {
+		field := newField(StringInterface{})
+
+		p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+		require.NoError(t, p.IsValid(field.ObjectType))
+		assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionValueWrite))
+		assert.Equal(t, []Identity{ldap}, valueWriters(p))
+	})
 }
 
 func TestPermissionsFromLegacySyncReadsRestrictedField(t *testing.T) {
