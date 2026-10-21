@@ -4302,7 +4302,7 @@
   {
     "id": "api.property_field.patch.invalid_permissions.app_error",
     "translation": "The submitted permissions object is invalid.",
-    "description": ""
+    "description": "API error (400) when a property field patch carries a permissions object whose restrictions, grants or masking cannot be read, for example grants sent as something other than a list."
   },
   {
     "id": "api.property_field.patch.legacy_field.app_error",
@@ -4322,7 +4322,7 @@
   {
     "id": "api.property_field.patch.permissions_not_supported.app_error",
     "translation": "This property group does not support submitting a permissions object.",
-    "description": ""
+    "description": "API error (400) when a request to create or patch a property field carries a permissions object for a property group that does not accept one, such as custom profile attributes."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
