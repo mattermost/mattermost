@@ -213,8 +213,8 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 
 			// A template's permissions carry no sync lock, since it holds no values;
 			// the lock applies to the user values of the fields linked to it.
-			if syncSource := model.GetPropertyFieldSyncSource(field); convertAttrs && syncSource != "" && field.ObjectType == model.PropertyFieldObjectTypeUser {
-				field.Permissions = model.ApplySyncLock(field.Permissions, syncSource)
+			if convertAttrs && model.GetPropertyFieldSyncSource(field) != "" && field.ObjectType == model.PropertyFieldObjectTypeUser {
+				field.Permissions = model.ApplySyncLock(field.Permissions, field)
 			}
 		}
 
