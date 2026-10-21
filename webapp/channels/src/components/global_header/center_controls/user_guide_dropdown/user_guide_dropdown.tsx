@@ -22,22 +22,16 @@ export const MATTERMOST_DOCS_URL = 'https://docs.mattermost.com';
 
 export function getMattermostDocumentationURL(siteURL: string): string {
     const trimmed = (siteURL || '').trim().replace(/\/+$/, '');
-    if (!trimmed) {
-        return MATTERMOST_DOCS_URL;
-    }
 
-    let pathname: string;
     try {
-        pathname = new URL(trimmed).pathname;
+        if (new URL(trimmed).pathname.replace(/\/+$/, '') === '') {
+            return `${trimmed}/_documentation/`;
+        }
     } catch {
-        return MATTERMOST_DOCS_URL;
+        // new URL throws for an empty or unparseable SiteURL.
     }
 
-    if (pathname.replace(/\/+$/, '') !== '') {
-        return MATTERMOST_DOCS_URL;
-    }
-
-    return `${trimmed}/_documentation/`;
+    return MATTERMOST_DOCS_URL;
 }
 
 const trainingResourcesLink = 'https://academy.mattermost.com/';
