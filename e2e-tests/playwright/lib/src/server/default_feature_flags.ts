@@ -36,6 +36,7 @@ export const defaultFeatureFlags: Record<string, string> = {
     MoveThreadsEnabled: 'false',
     NormalizeLdapDNs: 'false',
     NotificationMonitoring: 'true',
+    OpenIdAttributeSync: 'true',
     PermissionPolicies: 'true',
     PolicySimulation: 'true',
     PostAttributes: 'false',
