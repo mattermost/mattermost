@@ -112,6 +112,25 @@ describe('MentionFiltersButton', () => {
         expect(screen.getByLabelText('Directly mentioning you')).not.toBeChecked();
     });
 
+    test('Escape closes an open combobox first and the popover on the next press', async () => {
+        renderWithContext(<MentionFiltersButton/>, crossTeamState);
+
+        await openPopover();
+        await openCombobox('Team');
+        expect(screen.getByRole('option', {name: /Product/})).toBeInTheDocument();
+
+        await userEvent.keyboard('{Escape}');
+
+        // * Verify only the menu closed and the popover is still open
+        await waitFor(() => expect(screen.queryByRole('option', {name: /Product/})).not.toBeInTheDocument());
+        expect(screen.getByText('Mention type')).toBeInTheDocument();
+
+        await userEvent.keyboard('{Escape}');
+
+        // * Verify the second press closes the popover
+        await waitFor(() => expect(screen.queryByText('Mention type')).not.toBeInTheDocument());
+    });
+
     test('keeps channels picked after a team change when Apply is selected', async () => {
         // The apply used to compare the incoming team against the applied one, which made it clear
         // the channels on the Apply click, after the popover had already cleared the old team's.

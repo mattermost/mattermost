@@ -85,6 +85,7 @@ export default function MentionFilterChips() {
         >
             {team && (
                 <Chip
+                    size='small'
                     aria-label={removeLabel(team.display_name)}
                     onRemove={removeTeam}
                 >
@@ -96,6 +97,7 @@ export default function MentionFilterChips() {
                 return (
                     <Chip
                         key={channelId}
+                        size='small'
                         aria-label={removeLabel(label)}
                         onRemove={() => removeChannel(channelId)}
                     >
@@ -108,6 +110,7 @@ export default function MentionFilterChips() {
                 return (
                     <Chip
                         key={type}
+                        size='small'
                         aria-label={removeLabel(label)}
                         onRemove={() => removeMentionType(type)}
                     >
@@ -117,6 +120,7 @@ export default function MentionFilterChips() {
             })}
             {filters.date !== 'any' && (
                 <Chip
+                    size='small'
                     aria-label={removeLabel(formatMessage(dateRangeLabels[filters.date]))}
                     leadingIcon={<CalendarOutlineIcon/>}
                     onRemove={removeDate}

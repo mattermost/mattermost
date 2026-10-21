@@ -31,7 +31,7 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {searchHintOptions, DataSearchTypes, RHSStates} from 'utils/constants';
 import {canSearchFiles} from 'utils/file_utils';
-import {mentionFiltersToSearchParams} from 'utils/mention_search';
+import {hasMentionFilters, mentionFiltersToSearchParams} from 'utils/mention_search';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
 
 import type {RhsState, SearchType} from 'types/store/rhs';
@@ -199,7 +199,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     };
 
     if (isMentionSearch) {
-        noResultsProps.variant = NoResultsVariant.Mentions;
+        noResultsProps.variant = hasMentionFilters(mentionFilters, explicitSearchTeamId) ? NoResultsVariant.MentionsFiltered : NoResultsVariant.Mentions;
 
         titleDescriptor = defineMessage({
             id: 'search_header.title2',

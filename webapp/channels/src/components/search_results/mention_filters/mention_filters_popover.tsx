@@ -16,8 +16,6 @@ import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import {getCurrentLocale} from 'selectors/i18n';
 
-import ChannelTypeIcon from 'components/channel_type_icon';
-
 import {Preferences} from 'utils/constants';
 import {dateRangeOrder, defaultMentionFilters, mentionTypeOrder} from 'utils/mention_search';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
@@ -70,7 +68,6 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
     const channelOptions = useMemo<ComboboxOption[]>(() => channels.map((channel) => ({
         value: channel.id,
         label: channel.display_name,
-        leadingVisual: <ChannelTypeIcon channel={channel}/>,
         secondaryLabel: draftTeamId === null && channel.team_id ? teamNames[channel.team_id] : undefined,
     })), [channels, draftTeamId, teamNames]);
 
@@ -158,6 +155,7 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                         onChange={selectChannels}
                         filter={filterChannels}
                         emptyMessage={noChannelsLabel}
+                        menuItemProps={{secondaryLabelPosition: 'inline'}}
                         portalContainer={portalContainer}
                         zIndex={1200}
                     />
@@ -171,16 +169,18 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                         defaultMessage='Mention type'
                     />
                 </legend>
-                {mentionTypeOrder.map((type) => (
-                    <Checkbox
-                        key={type}
-                        className='MentionFilters__choice'
-                        checked={draft.mentionTypes.includes(type)}
-                        onChange={() => toggleMentionType(type)}
-                    >
-                        {formatMessage(mentionTypeLabels[type])}
-                    </Checkbox>
-                ))}
+                <div className='MentionFilters__choices'>
+                    {mentionTypeOrder.map((type) => (
+                        <Checkbox
+                            key={type}
+                            className='MentionFilters__choice'
+                            checked={draft.mentionTypes.includes(type)}
+                            onChange={() => toggleMentionType(type)}
+                        >
+                            {formatMessage(mentionTypeLabels[type])}
+                        </Checkbox>
+                    ))}
+                </div>
             </fieldset>
 
             <fieldset className='MentionFilters__section'>
@@ -190,17 +190,19 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                         defaultMessage='Date'
                     />
                 </legend>
-                {dateRangeOrder.map((range) => (
-                    <Radio
-                        key={range}
-                        className='MentionFilters__choice'
-                        name='mentionFiltersDate'
-                        checked={draft.date === range}
-                        onChange={() => selectDate(range)}
-                    >
-                        {formatMessage(dateRangeLabels[range])}
-                    </Radio>
-                ))}
+                <div className='MentionFilters__choices'>
+                    {dateRangeOrder.map((range) => (
+                        <Radio
+                            key={range}
+                            className='MentionFilters__choice'
+                            name='mentionFiltersDate'
+                            checked={draft.date === range}
+                            onChange={() => selectDate(range)}
+                        >
+                            {formatMessage(dateRangeLabels[range])}
+                        </Radio>
+                    ))}
+                </div>
             </fieldset>
 
             <div className='MentionFilters__footer'>

@@ -26807,6 +26807,14 @@
     "defaultMessage": "No saved messages yet",
     "description": "Empty-state title of the Saved messages panel when the user has not saved any messages."
   },
+  "no_results.mentions_filtered.subtitle": {
+    "defaultMessage": "Try removing or changing a filter to see more of your mentions.",
+    "description": "Explanatory text in the empty Recent Mentions panel when the applied filters match no mentions."
+  },
+  "no_results.mentions_filtered.title": {
+    "defaultMessage": "No mentions match your filters",
+    "description": "Empty-state title of the Recent Mentions panel when the applied filters match no mentions, as opposed to the user having no mentions at all."
+  },
   "no_results.mentions.subtitle": {
     "defaultMessage": "Messages where someone mentions you or includes your trigger words are saved here.",
     "description": "Explanatory text in the empty Recent Mentions panel describing what appears there."
@@ -29467,6 +29475,10 @@
     "defaultMessage": "All teams",
     "description": "Option in the Team selector of the Recent Mentions filters popover, meaning mentions from every team the user belongs to."
   },
+  "search_results.mention_filters.apply": {
+    "defaultMessage": "Apply",
+    "description": "Button that applies the filters and closes the Recent Mentions filters popover."
+  },
   "search_results.mention_filters.button": {
     "defaultMessage": "Filters",
     "description": "Label of the button at the top of the Recent Mentions panel that opens the filters popover, shown when no filter is applied."
@@ -29498,10 +29510,6 @@
   "search_results.mention_filters.date.today": {
     "defaultMessage": "Today",
     "description": "Date option in the Recent Mentions filters popover: only mentions from today, in the user's own timezone."
-  },
-  "search_results.mention_filters.apply": {
-    "defaultMessage": "Apply",
-    "description": "Button that applies the filters and closes the Recent Mentions filters popover."
   },
   "search_results.mention_filters.mention_type": {
     "defaultMessage": "Mention type",
