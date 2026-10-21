@@ -161,9 +161,42 @@ func TestApplySyncLock(t *testing.T) {
 	assert.Equal(t, []string{PropertyActionValueWrite}, source.Grants[0].Allow, "source must not be mutated")
 	assert.Equal(t, []string{PropertyActionFieldWrite, PropertyActionValueWrite}, source.Grants[2].Allow, "source must not be mutated")
 
-	t.Run("a scoped sync grant is kept, and the unscoped one added", func(t *testing.T) {
+	t.Run("a scoped sync grant folds into the unscoped one added", func(t *testing.T) {
 		// The sync caller never acts under a scope, so widening a scoped grant
-		// would never let it write.
+		// would never let it write. The scoped grant keeps only what the
+		// unscoped one lacks, the way the conversion splits them.
+		templateField := &PropertyField{
+			ObjectType: PropertyFieldObjectTypeTemplate,
+			Attrs: StringInterface{
+				PropertyFieldAttrLDAP: "employeeID",
+				PropertyAttrsOwners: []PropertyOwner{{
+					Type:   PropertyOwnerTypeService,
+					ID:     "ldap",
+					Scopes: []string{"entra"},
+					Allow:  []string{PropertyActionValueRead, PropertyActionValueWrite},
+				}},
+			},
+		}
+		template := PermissionsFromLegacy(templateField, LegacyConversionOpts{ConvertAttrs: true})
+		require.Contains(t, template.Grants, Grant{Identity: ldap, Scopes: []string{"entra"}, Allow: []string{PropertyActionValueRead, PropertyActionValueWrite}})
+
+		field := &PropertyField{
+			ObjectType: PropertyFieldObjectTypeUser,
+			Attrs:      StringInterface{PropertyFieldAttrLDAP: "employeeID"},
+		}
+		field.Permissions = ApplySyncLock(template, field)
+
+		assert.Contains(t, field.Permissions.Grants, Grant{Identity: ldap, Scopes: []string{"entra"}, Allow: []string{PropertyActionValueRead}})
+		assert.Contains(t, field.Permissions.Grants, Grant{Identity: ldap, Allow: syncLockGrantAllow})
+		assert.NotNil(t, field.Permissions.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionValueWrite))
+		assert.Equal(t, field.Permissions, ApplySyncLock(field.Permissions, field), "applying the lock twice changes nothing")
+
+		// Projecting the locked field and converting it back gives the same grants.
+		converted := PermissionsFromLegacy(ProjectLegacyPermissions(field), LegacyConversionOpts{ConvertAttrs: true})
+		assert.ElementsMatch(t, field.Permissions.Grants, converted.Grants)
+	})
+
+	t.Run("a scoped sync grant left with nothing is dropped", func(t *testing.T) {
 		scoped := Grant{Identity: ldap, Scopes: []string{"entra"}, Allow: []string{PropertyActionValueWrite}}
 
 		locked := ApplySyncLock(&Permissions{Grants: []Grant{scoped}}, &PropertyField{
@@ -171,8 +204,7 @@ func TestApplySyncLock(t *testing.T) {
 			Attrs:      StringInterface{PropertyFieldAttrLDAP: "employeeID"},
 		})
 
-		assert.Equal(t, []Grant{scoped, {Identity: ldap, Allow: syncLockGrantAllow}}, locked.Grants)
-		assert.NotNil(t, locked.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionValueWrite))
+		assert.Equal(t, []Grant{{Identity: ldap, Allow: syncLockGrantAllow}}, locked.Grants)
 	})
 }
 
