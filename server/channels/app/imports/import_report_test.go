@@ -57,12 +57,10 @@ func TestWriteUnmatchedUsersCSV(t *testing.T) {
 func TestUnmatchedUsers_ConcurrentAdd(t *testing.T) {
 	var report ImportReport
 	var wg sync.WaitGroup
-	for i := 0; i < 50; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 50 {
+		wg.Go(func() {
 			report.UnmatchedUsers.Add(UnmatchedUser{Username: "u", Reason: "username_not_found", Action: UnmatchedUserCreatedActive})
-		}()
+		})
 	}
 	wg.Wait()
 	assert.Len(t, report.UnmatchedUsers.All(), 50)
