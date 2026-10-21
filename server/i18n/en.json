@@ -4300,6 +4300,16 @@
     "description": "API error when a single request tries to add, update or delete more property field options than allowed. {{.Max}} is the maximum number of options per request."
   },
   {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "You cannot change a property field's permissions in a way that would prevent you from editing it.",
+    "description": "API error (403) when a user updates the permissions of a custom property field (e.g. a channel attribute) in a way that would leave them unable to edit or delete the field afterwards."
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "A submitted restrictions object must set all five permission levels: value read, value write, option read, option write and field write.",
+    "description": "API error (400) when a property field update sends the restrictions part of a permissions object with some of its five permission levels left out. Leaving a level out would otherwise remove that permission, so the whole object must be sent."
+  },
+  {
     "id": "api.property_field.patch.invalid_permissions.app_error",
     "translation": "The submitted permissions object is invalid.",
     "description": "API error (400) when a property field patch carries a permissions object whose restrictions, grants or masking cannot be read, for example grants sent as something other than a list."
@@ -4323,6 +4333,11 @@
     "id": "api.property_field.patch.permissions_not_supported.app_error",
     "translation": "This property group does not support submitting a permissions object.",
     "description": "API error (400) when a request to create or patch a property field carries a permissions object for a property group that does not accept one, such as custom profile attributes."
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "The permissions object must let system administrators edit the field, so its field write level cannot be none.",
+    "description": "API error (400) when a request to create or update a custom property field (e.g. a channel attribute) submits permissions whose field write level is none, which would leave no system administrator able to edit or delete the field."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",

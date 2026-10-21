@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 func TestSessionAttributesFieldEditing(t *testing.T) {
@@ -1224,11 +1225,20 @@ func TestCreatePropertyField(t *testing.T) {
 			_, _, err := client.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
 			require.NoError(t, err)
 
-			created, resp, err := client.CreatePropertyField(context.Background(), v3Group.Name, "post", lockingField(channelAdmin.Id))
+			// field.write none is refused even from a scope admin: no
+			// permissions object submitted through the API may leave a field
+			// that no system admin can edit.
+			_, resp, err := client.CreatePropertyField(context.Background(), v3Group.Name, "post", lockingField(channelAdmin.Id))
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+
+			field := lockingField(channelAdmin.Id)
+			field.Permissions.Restrictions.Field.Write = model.PermissionLevelAdmin
+			created, resp, err := client.CreatePropertyField(context.Background(), v3Group.Name, "post", field)
 			require.NoError(t, err)
 			CheckCreatedStatus(t, resp)
 			require.NotNil(t, created.Permissions)
-			require.Equal(t, model.PermissionLevelNone, created.Permissions.Restrictions.Field.Write)
+			require.Equal(t, model.PermissionLevelAdmin, created.Permissions.Restrictions.Field.Write)
 		})
 	})
 
@@ -4068,6 +4078,286 @@ func TestPatchPropertyField(t *testing.T) {
 		_, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", field.ID, &model.PropertyFieldPatch{Name: &newName})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestPropertyFieldPermissionsLockout(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+	}).InitBasic(t)
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_permissions_lockout", Version: model.PropertyGroupVersionV3})
+	require.Nil(t, appErr)
+
+	restrictions := func(fieldWrite model.PermissionLevel) *model.Restrictions {
+		return &model.Restrictions{
+			Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelMember},
+			Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelMember},
+			Field:  model.WriteOnly{Write: fieldWrite},
+		}
+	}
+
+	selfGrant := func(userID string) []model.Grant {
+		return []model.Grant{{
+			Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: userID},
+			Allow:    []string{model.PropertyActionFieldWrite},
+		}}
+	}
+
+	raw := func(t *testing.T, v any) json.RawMessage {
+		t.Helper()
+		b, err := json.Marshal(v)
+		require.NoError(t, err)
+		return b
+	}
+
+	// newField stores a channel-scoped field directly, so each subtest
+	// starts from a known permissions object that th.BasicUser, a plain
+	// member of th.BasicChannel, may or may not edit depending on fieldWrite.
+	newField := func(t *testing.T, fieldWrite model.PermissionLevel) *model.PropertyField {
+		t.Helper()
+		created, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:        model.NewId(),
+			Type:        model.PropertyFieldTypeText,
+			GroupID:     group.ID,
+			ObjectType:  "post",
+			TargetType:  "channel",
+			TargetID:    th.BasicChannel.Id,
+			Permissions: &model.Permissions{Restrictions: restrictions(fieldWrite)},
+		}, false, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, created.Permissions)
+		return created
+	}
+
+	requireUnchanged := func(t *testing.T, field *model.PropertyField) {
+		t.Helper()
+		stored, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+		require.Nil(t, appErr)
+		require.Equal(t, field.Permissions, stored.Permissions)
+	}
+
+	requireSysadminCanRename := func(t *testing.T, field *model.PropertyField) {
+		t.Helper()
+		newName := model.NewId()
+		patched, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "post", field.ID, &model.PropertyFieldPatch{Name: &newName})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newName, patched.Name)
+	}
+
+	t.Run("a member cannot take field.write to a grant naming only themselves", func(t *testing.T) {
+		field := newField(t, model.PermissionLevelMember)
+
+		th.LoginBasic(t)
+		patch := &model.PropertyFieldPatch{Permissions: &model.PermissionsPatch{
+			Restrictions: raw(t, restrictions(model.PermissionLevelNone)),
+			Grants:       raw(t, selfGrant(th.BasicUser.Id)),
+		}}
+		_, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", field.ID, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.permissions.field_write_none.app_error")
+
+		requireUnchanged(t, field)
+		requireSysadminCanRename(t, field)
+	})
+
+	t.Run("a member cannot patch themselves off field.write", func(t *testing.T) {
+		field := newField(t, model.PermissionLevelMember)
+
+		th.LoginBasic(t)
+		patch := &model.PropertyFieldPatch{Permissions: &model.PermissionsPatch{
+			Restrictions: raw(t, restrictions(model.PermissionLevelSysadmin)),
+		}}
+		_, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", field.ID, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.patch.caller_cannot_edit.app_error")
+
+		requireUnchanged(t, field)
+	})
+
+	t.Run("a member holding field.write may still change permissions", func(t *testing.T) {
+		field := newField(t, model.PermissionLevelMember)
+
+		th.LoginBasic(t)
+		patch := &model.PropertyFieldPatch{Permissions: &model.PermissionsPatch{
+			Restrictions: raw(t, restrictions(model.PermissionLevelSysadmin)),
+			Grants:       raw(t, selfGrant(th.BasicUser.Id)),
+		}}
+		patched, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", field.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, model.PermissionLevelSysadmin, patched.Permissions.Restrictions.Field.Write)
+
+		requireSysadminCanRename(t, field)
+	})
+
+	t.Run("a restrictions object that leaves out leaves is refused", func(t *testing.T) {
+		field := newField(t, model.PermissionLevelSysadmin)
+
+		for name, body := range map[string]string{
+			"only the value leaves":  `{"value":{"read":"member","write":"member"}}`,
+			"field.write left out":   `{"value":{"read":"member","write":"member"},"option":{"read":"member","write":"member"},"field":{}}`,
+			"one leaf sent as empty": `{"value":{"read":"member","write":""},"option":{"read":"member","write":"member"},"field":{"write":"sysadmin"}}`,
+			"an empty object":        `{}`,
+		} {
+			t.Run(name, func(t *testing.T) {
+				patch := &model.PropertyFieldPatch{Permissions: &model.PermissionsPatch{Restrictions: json.RawMessage(body)}}
+				_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "post", field.ID, patch)
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+				CheckErrorID(t, err, "api.property_field.patch.incomplete_restrictions.app_error")
+
+				requireUnchanged(t, field)
+			})
+		}
+
+		requireSysadminCanRename(t, field)
+	})
+
+	t.Run("sending back the served restrictions with one leaf changed is accepted", func(t *testing.T) {
+		field := newField(t, model.PermissionLevelSysadmin)
+
+		newName := model.NewId()
+		served, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "post", field.ID, &model.PropertyFieldPatch{Name: &newName})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, served.Permissions)
+		require.NotNil(t, served.Permissions.Restrictions)
+
+		edited := *served.Permissions.Restrictions
+		edited.Value.Read = model.PermissionLevelSysadmin
+		patch := &model.PropertyFieldPatch{Permissions: &model.PermissionsPatch{Restrictions: raw(t, edited)}}
+		patched, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "post", field.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, edited, *patched.Permissions.Restrictions)
+	})
+
+	t.Run("a system admin cannot set field.write to none", func(t *testing.T) {
+		field := newField(t, model.PermissionLevelSysadmin)
+
+		for name, permissions := range map[string]*model.PermissionsPatch{
+			"none with a grant naming themselves": {
+				Restrictions: raw(t, restrictions(model.PermissionLevelNone)),
+				Grants:       raw(t, selfGrant(th.SystemAdminUser.Id)),
+			},
+			"restrictions cleared": {
+				Restrictions: json.RawMessage("null"),
+				Grants:       raw(t, selfGrant(th.SystemAdminUser.Id)),
+			},
+		} {
+			t.Run(name, func(t *testing.T) {
+				patch := &model.PropertyFieldPatch{Permissions: permissions}
+				_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "post", field.ID, patch)
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+				CheckErrorID(t, err, "api.property_field.permissions.field_write_none.app_error")
+
+				requireUnchanged(t, field)
+			})
+		}
+	})
+
+	t.Run("a system admin cannot create a field with field.write none", func(t *testing.T) {
+		for name, permissions := range map[string]*model.Permissions{
+			"none with a grant naming themselves": {
+				Restrictions: restrictions(model.PermissionLevelNone),
+				Grants:       selfGrant(th.SystemAdminUser.Id),
+			},
+			"no restrictions at all": {
+				Grants: selfGrant(th.SystemAdminUser.Id),
+			},
+		} {
+			t.Run(name, func(t *testing.T) {
+				field := &model.PropertyField{
+					Name:        model.NewId(),
+					Type:        model.PropertyFieldTypeText,
+					TargetType:  "channel",
+					TargetID:    th.BasicChannel.Id,
+					Permissions: permissions,
+				}
+				_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+				CheckErrorID(t, err, "api.property_field.permissions.field_write_none.app_error")
+			})
+		}
+	})
+
+	t.Run("the plugin API may still leave field.write at none", func(t *testing.T) {
+		pluginID := "com.example.lockout"
+		pluginAPI := app.NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+		newPluginField := func(t *testing.T, fieldWrite model.PermissionLevel) *model.PropertyField {
+			t.Helper()
+			created, err := pluginAPI.CreatePropertyField(&model.PropertyField{
+				Name:       model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				GroupID:    group.ID,
+				ObjectType: "post",
+				TargetType: "channel",
+				TargetID:   th.BasicChannel.Id,
+				Permissions: &model.Permissions{
+					Restrictions: restrictions(fieldWrite),
+					Grants: []model.Grant{{
+						Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: pluginID},
+						Allow:    []string{model.PropertyActionFieldWrite},
+					}},
+				},
+			})
+			require.NoError(t, err)
+			return created
+		}
+
+		t.Run("on create", func(t *testing.T) {
+			created := newPluginField(t, model.PermissionLevelNone)
+			require.Equal(t, model.PermissionLevelNone, created.Permissions.Restrictions.Field.Write)
+		})
+
+		t.Run("on update, where a partial restrictions object keeps its meaning", func(t *testing.T) {
+			created := newPluginField(t, model.PermissionLevelSysadmin)
+
+			// The leaves it leaves out, field.write among them, are stored
+			// as none.
+			created.Permissions.Restrictions = &model.Restrictions{Value: model.ReadWrite{Read: model.PermissionLevelMember}}
+			updated, err := pluginAPI.UpdatePropertyField(group.ID, created)
+			require.NoError(t, err)
+			require.Equal(t, model.PermissionLevelMember, updated.Permissions.Restrictions.Value.Read)
+			require.Equal(t, model.PermissionLevelNone, updated.Permissions.Restrictions.Field.Write)
+		})
+	})
+}
+
+func TestPermissionsLockOutSystemAdmins(t *testing.T) {
+	withFieldWrite := func(level model.PermissionLevel) *model.Permissions {
+		return &model.Permissions{Restrictions: &model.Restrictions{Field: model.WriteOnly{Write: level}}}
+	}
+	session := model.Session{UserId: model.NewId()}
+
+	t.Run("none is below the floor", func(t *testing.T) {
+		require.True(t, permissionsLockOutSystemAdmins(session, withFieldWrite(model.PermissionLevelNone)))
+		require.True(t, permissionsLockOutSystemAdmins(session, withFieldWrite("")))
+		require.True(t, permissionsLockOutSystemAdmins(session, &model.Permissions{}))
+	})
+
+	t.Run("every other tier admits a system admin", func(t *testing.T) {
+		for _, level := range []model.PermissionLevel{
+			model.PermissionLevelSysadmin,
+			model.PermissionLevelAdmin,
+			model.PermissionLevelCreator,
+			model.PermissionLevelMember,
+		} {
+			require.False(t, permissionsLockOutSystemAdmins(session, withFieldWrite(level)), level)
+		}
+	})
+
+	t.Run("local mode is exempt", func(t *testing.T) {
+		require.False(t, permissionsLockOutSystemAdmins(model.Session{Local: true}, withFieldWrite(model.PermissionLevelNone)))
+		require.False(t, permissionsLockOutSystemAdmins(model.Session{Local: true}, &model.Permissions{}))
 	})
 }
 
