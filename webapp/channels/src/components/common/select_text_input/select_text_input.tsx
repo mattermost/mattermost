@@ -3,14 +3,10 @@
 
 import React, {useCallback, useMemo} from 'react';
 import type {KeyboardEventHandler} from 'react';
-import type {StylesConfig} from 'react-select';
-import CreatableSelect from 'react-select/creatable';
+
+import {Combobox} from '@mattermost/compass-ui/components/combobox';
 
 import './select_text_input.scss';
-
-const components = {
-    DropdownIndicator: null,
-};
 
 export interface SelectTextInputOption {
     label: string;
@@ -25,62 +21,18 @@ type Props = {
     id?: string;
     isClearable?: boolean;
     description?: string;
+    'aria-label'?: string;
 };
 
-const styles = {
-    control: (baseStyles) => ({
-        ...baseStyles,
-        background: 'var(--center-channel-color-rgb)',
-    }),
-    input: (baseStyles) => ({
-        ...baseStyles,
-        color: 'rgba(var(--center-channel-color-rgb), 0.64)',
-    }),
-    multiValue: (baseStyles) => ({
-        ...baseStyles,
-        borderRadius: '10px',
-        background: 'rgba(var(--center-channel-color-rgb), 0.08)',
-        display: 'flex',
-        alignItems: 'center',
-    }),
-    multiValueLabel: (baseStyles) => ({
-        ...baseStyles,
-        padding: '4px 6px 4px 10px',
-        color: 'var(--center-channel-color)',
-        fontFamily: 'Open Sans',
-        fontSize: '10px',
-        fontWeight: 600,
-        lineHeight: '12px',
-        letterSpacing: '0.2px',
-    }),
-    multiValueRemove: (baseStyles) => ({
-        ...baseStyles,
-        borderRadius: '50%',
-        background: 'rgba(var(--center-channel-color-rgb), 0.32)',
-        fontFamily: 'compass-icons',
-        fontSize: '12px',
-        fontWeight: 400,
-        color: 'white',
-        width: '10px',
-        height: '10px',
-        padding: 0,
-        marginRight: '4px',
-        ':hover': {
-            background: 'rgba(var(--center-channel-color-rgb), 0.32)',
-            color: 'white',
-        },
-    }),
-} satisfies StylesConfig<SelectTextInputOption, true>;
-
-const SelectTextInput = ({placeholder, value, handleNewSelection, onChange, id, isClearable, description}: Props) => {
+const SelectTextInput = ({placeholder, value, handleNewSelection, onChange, id, description, 'aria-label': ariaLabel}: Props) => {
     const [inputValue, setInputValue] = React.useState('');
 
-    const handleTextEnter = useCallback(() => {
-        // do not add the value if already exists
-        if (value?.includes(inputValue.trim()) || inputValue.length === 0) {
+    const commitInput = useCallback(() => {
+        const trimmed = inputValue.trim();
+        if (value?.includes(trimmed) || trimmed.length === 0) {
             return;
         }
-        handleNewSelection(inputValue);
+        handleNewSelection(trimmed);
         setInputValue('');
     }, [handleNewSelection, inputValue, value]);
 
@@ -92,35 +44,56 @@ const SelectTextInput = ({placeholder, value, handleNewSelection, onChange, id, 
         case ' ':
         case ',':
         case 'Enter':
-            handleTextEnter();
+            commitInput();
             event.preventDefault();
         }
-    }, [inputValue, handleTextEnter]);
+    }, [inputValue, commitInput]);
 
-    const selectValues = useMemo(() => {
+    const selectedOptions = useMemo(() => {
         return value.map((singleValue) => ({label: singleValue, value: singleValue}));
     }, [value]);
 
+    const handleComboboxChange = useCallback((newValue: string | string[] | null) => {
+        if (!Array.isArray(newValue)) {
+            onChange([]);
+            return;
+        }
+        onChange(newValue.map((singleValue) => ({label: singleValue, value: singleValue})));
+    }, [onChange]);
+
+    const handleCreateOption = useCallback((createdValue: string) => {
+        const trimmed = createdValue.trim();
+        if (trimmed.length === 0 || value.includes(trimmed)) {
+            setInputValue('');
+            return;
+        }
+        handleNewSelection(trimmed);
+        setInputValue('');
+    }, [handleNewSelection, value]);
+
     return (
-        <>
-            <CreatableSelect<SelectTextInputOption, true>
+        <div
+            className='select-text-input'
+            onKeyDown={handleKeyDown}
+            onBlur={commitInput}
+        >
+            <Combobox
                 id={id}
-                className='select-text-input'
-                styles={styles}
-                components={components}
-                isClearable={isClearable}
-                onChange={useCallback((value: readonly SelectTextInputOption[]) => onChange(value), [onChange])}
+                multiple={true}
+                creatable={true}
+                options={[]}
+                selectedOptions={selectedOptions}
+                value={value}
                 inputValue={inputValue}
-                isMulti={true}
-                menuIsOpen={false}
                 onInputChange={setInputValue}
-                onKeyDown={handleKeyDown}
+                onCreateOption={handleCreateOption}
+                onChange={handleComboboxChange}
                 placeholder={placeholder}
-                value={selectValues}
-                onBlur={handleTextEnter}
+                aria-label={ariaLabel}
+                filter={false}
             />
             {description ? <p className='select-text-description'>{description}</p> : undefined}
-        </>
+        </div>
     );
 };
 
