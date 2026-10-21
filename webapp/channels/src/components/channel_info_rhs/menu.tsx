@@ -16,6 +16,7 @@ import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {canSearchFiles} from 'utils/file_utils';
 
@@ -135,6 +136,7 @@ export default function Menu(props: MenuProps) {
         actions,
     } = props;
 
+    const isBoard = useIsBoardChannel(channel);
     const [loadingStats, setLoadingStats] = useState(true);
 
     const showNotificationPreferences = channel.type !== Constants.DM_CHANNEL && !isArchived;
@@ -171,7 +173,10 @@ export default function Menu(props: MenuProps) {
         <MenuContainer
             className={className}
             data-testid='channel_info_rhs-menu'
-            aria-label={formatMessage({
+            aria-label={isBoard ? formatMessage({
+                id: 'channel_info_rhs.menu.title.board',
+                defaultMessage: 'Board Info Actions',
+            }) : formatMessage({
                 id: 'channel_info_rhs.menu.title',
                 defaultMessage: 'Channel Info Actions',
             })}
@@ -180,7 +185,10 @@ export default function Menu(props: MenuProps) {
                 <MenuItem
                     id='channelInfoRHSChannelSettings'
                     icon={<i className='icon icon-cog-outline'/>}
-                    text={formatMessage({
+                    text={isBoard ? formatMessage({
+                        id: 'channel_header.channel_settings.board',
+                        defaultMessage: 'Board Settings',
+                    }) : formatMessage({
                         id: 'channel_header.channel_settings',
                         defaultMessage: 'Channel Settings',
                     })}
