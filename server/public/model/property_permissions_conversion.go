@@ -252,7 +252,7 @@ func ownersFromGrants(field *PropertyField) []PropertyOwner {
 			Allow:  grant.Allow,
 		})
 	}
-	return mergeSplitOwners(owners)
+	return mergeSplitOwners(owners, derived)
 }
 
 // mergeSplitOwners rejoins the two grants grantsFromLegacy splits a scoped
@@ -261,12 +261,22 @@ func ownersFromGrants(field *PropertyField) []PropertyOwner {
 // copy of it. The merged owner carries the scopes and every action of both,
 // and converts back to the same two grants. Any other pair for one identity
 // is left as it is.
-func mergeSplitOwners(owners []PropertyOwner) []PropertyOwner {
+//
+// The unscoped half also holds the unscoped value actions of the identity's
+// derived grant, if it has one: the source plugin's reads when the scoped
+// owner is the source plugin, or the sync service's value.write when it is
+// the sync service. Those are ignored when telling the halves apart, since
+// the attrs derive them again on conversion, so such an owner still merges
+// into one scoped owner.
+func mergeSplitOwners(owners []PropertyOwner, derived map[Identity][]string) []PropertyOwner {
 	isValueHalf := func(o PropertyOwner) bool {
 		return len(o.Scopes) > 0 && !slices.ContainsFunc(o.Allow, func(a string) bool { return !PropertyActionMeasuredAgainstValueObject(a) })
 	}
 	isOtherHalf := func(o PropertyOwner) bool {
-		return len(o.Scopes) == 0 && !slices.ContainsFunc(o.Allow, PropertyActionMeasuredAgainstValueObject)
+		derivedAllow := derived[Identity{Type: o.Type, ID: o.ID}]
+		return len(o.Scopes) == 0 && !slices.ContainsFunc(o.Allow, func(a string) bool {
+			return PropertyActionMeasuredAgainstValueObject(a) && !slices.Contains(derivedAllow, a)
+		})
 	}
 
 	merged := make([]PropertyOwner, 0, len(owners))
