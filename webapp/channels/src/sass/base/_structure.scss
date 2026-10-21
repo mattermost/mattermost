@@ -103,7 +103,8 @@ body.admin-onboarding #root {
 .app__body {
     #root.channel-view {
         &:has(.backstage-body) {
-            background-color: variables.$bg--gray;
+            background-color: var(--center-channel-bg);
+            color: var(--center-channel-color);
         }
     }
 }
@@ -271,6 +272,12 @@ body.app__body #root {
                 grid-template: "main";
                 padding: 0;
                 border-radius: 0;
+
+                &:has(.backstage-body) {
+                    grid-template:
+                        "header" min-content
+                        "main";
+                }
 
                 #channel_view,
                 #SidebarContainer,

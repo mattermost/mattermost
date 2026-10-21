@@ -367,6 +367,9 @@ func NewServer(options ...Option) (*Server, error) {
 			RequiredAttributeEnforcement: func() bool {
 				return s.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
 			},
+			OpenIDAttributeSync: func() bool {
+				return s.Config().FeatureFlags.OpenIdAttributeSync
+			},
 		}, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
 

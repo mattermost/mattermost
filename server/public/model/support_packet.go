@@ -32,6 +32,15 @@ type SupportPacketLicense struct {
 	Features *Features `yaml:"features,omitempty"`
 }
 
+func (l *SupportPacketLicense) IsMattermostEntry() bool {
+	return l != nil && l.SkuShortName == LicenseShortSkuMattermostEntry
+}
+
+// MinimumEnterprise reports whether the license is at least Enterprise, as MinimumEnterpriseLicense does for a License.
+func (l *SupportPacketLicense) MinimumEnterprise() bool {
+	return l != nil && MinimumEnterpriseLicense(&License{SkuShortName: l.SkuShortName})
+}
+
 // SupportPacketDiagnostics reports one node's diagnostics. A nil pointer field was not collected, which is not the same as zero.
 type SupportPacketDiagnostics struct {
 	Version int `yaml:"version"`
@@ -87,6 +96,7 @@ type SupportPacketDiagnostics struct {
 		ReplicaPoolWaitDurationMs           *int64     `yaml:"replica_pool_wait_duration_ms,omitempty"`
 		ReplicaConnectionsClosedMaxIdle     *int64     `yaml:"replica_connections_closed_max_idle,omitempty"`
 		ReplicaConnectionsClosedMaxLifetime *int64     `yaml:"replica_connections_closed_max_lifetime,omitempty"`
+		ReplicasOnline                      *int       `yaml:"replicas_online,omitempty"`
 		CacheHitRatio                       *float64   `yaml:"cache_hit_ratio,omitempty"`
 		Deadlocks                           *int64     `yaml:"deadlocks,omitempty"`
 		TempFiles                           *int64     `yaml:"temp_files,omitempty"`
