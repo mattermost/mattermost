@@ -2061,7 +2061,11 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 
 			fm, err := mc.resolve(h, rctx, field)
 			if err != nil {
-				return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
+				// Hide, as for a filter failure below: a field whose masking
+				// cannot be resolved must not fail the read of every other
+				// field's values.
+				logMaskingFailure(rctx, field, value, err)
+				continue
 			}
 			if fm.masking == nil || h.exempt(rctx, fm.masking.Except, callerID) {
 				filtered = append(filtered, value)

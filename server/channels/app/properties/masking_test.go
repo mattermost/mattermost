@@ -716,6 +716,40 @@ func TestMaskValueReads(t *testing.T) {
 		requireMaskingFailureLogged(t, th, buffer, field.ID, malformed.ID)
 	})
 
+	t.Run("a field whose template cannot be read hides its own values and logs, and the rest of the read still succeeds", func(t *testing.T) {
+		// Straight to the store: the service refuses to link to a missing
+		// template, so this is the state a template row removed entirely leaves.
+		missingID := model.NewId()
+		broken := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Mask-Missing-Template",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &missingID,
+			Permissions:   &model.Permissions{},
+		})
+		other, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Mask-Beside-Missing-Template", model.PropertyFieldTypeText, nil))
+		require.NoError(t, err)
+
+		brokenFirst := writeValueDirect(t, th, broken.ID, "user", model.NewId(), "codename-orca")
+		brokenSecond := writeValueDirect(t, th, broken.ID, "user", model.NewId(), "codename-heron")
+		otherValue := writeValueDirect(t, th, other.ID, "user", model.NewId(), "anything")
+
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		buffer := captureMaskingFailureLog(t, th)
+
+		retrieved, err := th.service.GetPropertyValues(RequestContextWithCallerID(th.Context, model.NewId()), th.CPAGroupID, []string{brokenFirst.ID, otherValue.ID, brokenSecond.ID})
+		require.NoError(t, err, "one field's unresolvable masking must not fail the whole read")
+		require.Len(t, retrieved, 1)
+		assert.Equal(t, otherValue.ID, retrieved[0].ID)
+		requireMaskingFailureLogged(t, th, buffer, broken.ID, brokenFirst.ID)
+		assert.Equal(t, 1, counter.gets, "the missing template must be read once for the batch, not once per value")
+	})
+
 	t.Run("holdings from another field: a linked field's masking reads holdings off its template's mask_by_field_id", func(t *testing.T) {
 		template, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
 			GroupID:    th.CPAGroupID,
