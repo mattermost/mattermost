@@ -1086,6 +1086,39 @@ func (h *AccessControlHook) permissionsGrantAllows(field *model.PropertyField, c
 	return field.Permissions.MatchingGrant(ownerType, ownerID, effectiveScope, action) != nil
 }
 
+// lateLinkedSyncAllows reports whether the sync caller may take action, a
+// value read or write, on field when no grant of its own allows it. That is
+// the case for a user field linked to its template before the template got
+// its sync link: the field carries no copy of the template's ldap/saml attr,
+// so it has neither the sync lock nor the sync's grant, and the sync follows
+// the template for it (see isDefinitionSync). Master leaves such a field open
+// to every machine caller, the sync included, so the sync is let in only
+// where any plugin would be, that is where the field's catch-all plugin grant
+// allows action. An owned or protected field has no such grant for a value
+// write, so the sync is still refused there, as master's owners and
+// protected checks refuse it. Only a user field takes a sync link, so a
+// channel or post field never admits it.
+func (h *AccessControlHook) lateLinkedSyncAllows(rctx request.CTX, field *model.PropertyField, callerID, action string) bool {
+	if model.PropertySyncSourceForCallerID(callerID) == "" || field.Permissions == nil ||
+		field.ObjectType != model.PropertyFieldObjectTypeUser || field.LinkSourceID() == "" ||
+		!wildcardPluginGrantAllows(field.Permissions, action) {
+		return false
+	}
+	return h.propertyService.isDefinitionSync(rctx, field, callerID)
+}
+
+// wildcardPluginGrantAllows reports whether p's unscoped catch-all plugin
+// grant allows action, which is to say whether p admits any plugin to it.
+func wildcardPluginGrantAllows(p *model.Permissions, action string) bool {
+	wildcard := model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"}
+	for _, g := range p.Grants {
+		if g.Identity == wildcard && len(g.Scopes) == 0 && slices.Contains(g.Allow, action) {
+			return true
+		}
+	}
+	return false
+}
+
 // isListedOwner reports whether the machine caller matches an explicit owner
 // entry on the field (by id and type). Scope is not consulted: being a listed
 // owner is what authorizes managing the field; scope only gates value writes.
@@ -1297,7 +1330,8 @@ func (c valueWriteAccessCache) check(h *AccessControlHook, rctx request.CTX, mc 
 func (h *AccessControlHook) checkValueWriteAccess(rctx request.CTX, mc maskingContext, field *model.PropertyField, callerID, scope, valueTargetID string) error {
 	if field.Permissions != nil {
 		if isMachineCaller(h.pluginChecker, callerID) {
-			if !h.permissionsGrantAllows(field, callerID, scope, model.PropertyActionValueWrite) {
+			if !h.permissionsGrantAllows(field, callerID, scope, model.PropertyActionValueWrite) &&
+				!h.lateLinkedSyncAllows(rctx, field, callerID, model.PropertyActionValueWrite) {
 				return fmt.Errorf("field %s carries permissions and caller %q acting as scope %q matches no value.write grant: %w", field.ID, callerID, scope, ErrAccessDenied)
 			}
 		} else if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueWrite, valueTargetID) {
@@ -1610,7 +1644,8 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 			return nil, fmt.Errorf("applyValueReadAccessControl: field not found for value %s", value.ID)
 		}
 
-		if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueRead, value.TargetID) {
+		if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueRead, value.TargetID) &&
+			!h.lateLinkedSyncAllows(rctx, field, callerID, model.PropertyActionValueRead) {
 			continue
 		}
 		if field.Permissions == nil {

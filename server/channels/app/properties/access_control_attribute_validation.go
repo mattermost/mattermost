@@ -838,7 +838,7 @@ func isFieldSync(field *model.PropertyField, callerID string) bool {
 // no copy of, the template's. Attribute Management edits the template alone, so
 // a user field created before the template was linked carries no copy, and the
 // sync follows the template for it.
-func (h *AccessControlAttributeValidationHook) isDefinitionSync(rctx request.CTX, field *model.PropertyField, callerID string) bool {
+func (ps *PropertyService) isDefinitionSync(rctx request.CTX, field *model.PropertyField, callerID string) bool {
 	if model.PropertySyncSourceForCallerID(callerID) == "" {
 		return false
 	}
@@ -848,7 +848,7 @@ func (h *AccessControlAttributeValidationHook) isDefinitionSync(rctx request.CTX
 	if field.LinkSourceID() == "" {
 		return false
 	}
-	template, err := h.propertyService.getPropertyFieldFromMaster(rctx, field.GroupID, field.LinkSourceID())
+	template, err := ps.getPropertyFieldFromMaster(rctx, field.GroupID, field.LinkSourceID())
 	if err != nil {
 		return false
 	}
@@ -1179,7 +1179,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		// stay behind to satisfy an access policy.
 		if (field.ObjectType != model.PropertyFieldObjectTypeChannel || h.requiredEnforced()) &&
 			model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) &&
-			!h.isDefinitionSync(rctx, field, callerID) {
+			!h.propertyService.isDefinitionSync(rctx, field, callerID) {
 			return newRequiredValueError(field)
 		}
 		if len(optionIDs) == 0 {
