@@ -805,6 +805,12 @@ func TestPropertySyncer_BroadcastWithholdsRestrictedValues(t *testing.T) {
 	stored, err := h.Store.PropertyField().Get(request.TestContext(t), h.groupID, field.ID)
 	require.NoError(t, err)
 	stored.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSourceOnly
+	// Access is decided from the permissions object, so the restriction goes
+	// there too.
+	require.NotNil(t, stored.Permissions)
+	restrictions := *stored.Permissions.Restrictions
+	restrictions.Value.Read = model.PermissionLevelNone
+	stored.Permissions.Restrictions = &restrictions
 	_, err = h.Store.PropertyField().Update(h.groupID, []*model.PropertyField{stored}, nil)
 	require.NoError(t, err)
 
