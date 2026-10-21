@@ -4338,6 +4338,36 @@ func TestPropertyFieldPermissionsLockout(t *testing.T) {
 		}
 	})
 
+	t.Run("an unchanged permissions echo on an options patch is judged as options only", func(t *testing.T) {
+		// The member holds option.write but not field.write, so a
+		// presence-keyed anti-lockout check would refuse them.
+		created, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "post",
+			TargetType: "channel",
+			TargetID:   th.BasicChannel.Id,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": model.NewId(), "name": "Air"}},
+			},
+			Permissions: &model.Permissions{Restrictions: restrictions(model.PermissionLevelSysadmin)},
+		}, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+		patch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": model.NewId(), "name": "Sea"}},
+			},
+			Permissions: &model.PermissionsPatch{Restrictions: raw(t, created.Permissions.Restrictions)},
+		}
+		patched, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", created.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, created.Permissions.Restrictions, patched.Permissions.Restrictions)
+	})
+
 	t.Run("callers outside the HTTP API may still leave field.write at none", func(t *testing.T) {
 		pluginID := "com.example.lockout"
 		pluginAPI := app.NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
@@ -9007,5 +9037,77 @@ func TestCreateAccessControlFieldWithPermissions(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, model.PermissionLevelSysadmin, stored.Permissions.Restrictions.Field.Write)
 		require.Equal(t, field.Permissions.Grants, stored.Permissions.Grants)
+	})
+}
+
+func TestPatchAccessControlFieldPermissionsEcho(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// A field kept at field.write none, as one only a plugin may redefine
+	// is, but whose options a system admin may still change. Written
+	// straight to the store, since no API caller may set field.write none.
+	newField := func(t *testing.T, grants []model.Grant) *model.PropertyField {
+		t.Helper()
+		field, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+			GroupID:    group.ID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": model.NewId(), "name": "Air"}},
+			},
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
+			}, Grants: grants},
+		})
+		require.NoError(t, err)
+		return field
+	}
+
+	optionsPatch := func(t *testing.T, restrictions *model.Restrictions) *model.PropertyFieldPatch {
+		t.Helper()
+		raw, err := json.Marshal(restrictions)
+		require.NoError(t, err)
+		return &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": model.NewId(), "name": "Sea"}},
+			},
+			Permissions: &model.PermissionsPatch{Restrictions: raw},
+		}
+	}
+
+	t.Run("sending back the stored restrictions with new options is accepted", func(t *testing.T) {
+		field := newField(t, nil)
+
+		patched, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, field.ID, optionsPatch(t, field.Permissions.Restrictions))
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, model.PermissionLevelNone, patched.Permissions.Restrictions.Field.Write)
+	})
+
+	t.Run("changing the restrictions while leaving field.write at none is refused", func(t *testing.T) {
+		// A grant lets the caller past field.write, so it is the floor that
+		// refuses them.
+		field := newField(t, []model.Grant{{
+			Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: th.SystemAdminUser.Id},
+			Allow:    []string{model.PropertyActionFieldWrite},
+		}})
+
+		changed := *field.Permissions.Restrictions
+		changed.Value.Read = model.PermissionLevelSysadmin
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, field.ID, optionsPatch(t, &changed))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.permissions.field_write_none.app_error")
 	})
 }
