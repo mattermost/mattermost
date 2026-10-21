@@ -1127,6 +1127,34 @@ describe('AttributeDetails', () => {
             expect(mockSetNavigationBlocked).not.toHaveBeenCalled();
         });
 
+        it('sends attrs.openid in the create payload when an OpenID Connect claim is linked', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            renderWithContext(
+                <div>
+                    <AttributeDetails/>
+                    <ModalController/>
+                </div>,
+                mergeObjects(ALL_RESOURCES_STATE, {
+                    entities: {
+                        admin: {config: {FeatureFlags: {OpenIdAttributeSync: true}, OpenIdSettings: {Enable: true}}},
+                        general: {license: {IsLicensed: 'true', OpenId: 'true'}},
+                    },
+                }),
+            );
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Country');
+
+            await linkViaMenu(/^OpenID Connect/, 'address.country');
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            const attrs = createPropertyField.mock.calls[0][2].attrs as Record<string, unknown>;
+            expect(attrs).toEqual(expect.objectContaining({openid: 'address.country'}));
+            expect(attrs).not.toHaveProperty('ldap');
+            expect(attrs).not.toHaveProperty('saml');
+        });
+
         it('sends attrs.ldap and attrs.saml in the create payload when linked, omitting both when not', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
@@ -2912,6 +2940,93 @@ describe('AttributeDetails', () => {
             expect(patchPropertyField).not.toHaveBeenCalledWith('access_control', 'user', expect.anything(), expect.anything());
         });
 
+        it('mirrors the server-updated Users field into the CPA cache after a template options PATCH', async () => {
+            const originalUser = makeLinked('user', 'user-field', {
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            });
+            const refreshedUser = makeLinked('user', 'user-field', {
+                type: 'select',
+                attrs: {
+                    display_name: 'Department',
+                    options: [{id: 'opt-1', name: 'Engineering'}, {id: 'opt-2', name: 'Sales'}],
+                },
+            });
+            const template = makeTemplate({
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            });
+
+            let afterTemplatePatch = false;
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'template') {
+                    return Promise.resolve([template]);
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve([afterTemplatePatch ? refreshedUser : originalUser]);
+                }
+                return Promise.resolve([]);
+            });
+            jest.spyOn(Client4, 'patchPropertyField').mockImplementation(async () => {
+                afterTemplatePatch = true;
+                return template;
+            });
+
+            const {store} = renderEdit({
+                entities: {
+                    general: {
+                        customProfileAttributes: {
+                            [originalUser.id]: originalUser,
+                        },
+                    },
+                },
+            });
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Sales{Enter}');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(store.getState().entities.general.customProfileAttributes['user-field']).toEqual(refreshedUser);
+        });
+
+        it('still saves when the post-PATCH Users refetch fails', async () => {
+            const originalUser = makeLinked('user', 'user-field', {
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            });
+            const template = makeTemplate({
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            });
+
+            let afterTemplatePatch = false;
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (afterTemplatePatch) {
+                    return Promise.reject(new Error('boom'));
+                }
+                if (objectType === 'template') {
+                    return Promise.resolve([template]);
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve([originalUser]);
+                }
+                return Promise.resolve([]);
+            });
+            jest.spyOn(Client4, 'patchPropertyField').mockImplementation(async () => {
+                afterTemplatePatch = true;
+                return template;
+            });
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Sales{Enter}');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+        });
+
         it('folds matching display_name into the existing Channels config PATCH', async () => {
             mockLoadedField(makeTemplate(), [makeLinked('channel', 'channel-field')]);
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
@@ -3020,6 +3135,45 @@ describe('AttributeDetails', () => {
             }));
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
                 attrs: {ldap: 'newDept'},
+            });
+        });
+
+        it('PATCHes a newly linked OpenID Connect claim onto the template and the already-persisted Users field', async () => {
+            mockLoadedField(
+                makeTemplate({type: 'multiselect', attrs: {display_name: 'Groups'}}),
+                [makeLinked('user', 'user-field', {type: 'multiselect', attrs: {display_name: 'Groups'}})],
+            );
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                Promise.resolve(objectType === 'user' ?
+                    makeLinked('user', 'user-field', {attrs: {openid: 'groups'}}) :
+                    makeTemplate({type: 'multiselect', attrs: {display_name: 'Groups', openid: 'groups'}}))
+            ));
+
+            renderEdit({
+                entities: {
+                    admin: {config: {FeatureFlags: {OpenIdAttributeSync: true}, OpenIdSettings: {Enable: true}}},
+                    general: {license: {IsLicensed: 'true', OpenId: 'true'}},
+                },
+            });
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+            await userEvent.click(screen.getByRole('menuitem', {name: /^OpenID Connect/}));
+            await userEvent.type(await screen.findByPlaceholderText('department'), 'groups');
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
+
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Multiselect');
+            expect(screen.getByTestId('attributeOptionsSyncedHelp')).toHaveTextContent('Options are managed by the OpenID Connect sync.');
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
+                attrs: expect.objectContaining({ldap: null, saml: null, openid: 'groups'}),
+            }));
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
+                attrs: {openid: 'groups'},
             });
         });
 

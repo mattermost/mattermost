@@ -3,7 +3,8 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedList, FormattedMessage, useIntl} from 'react-intl';
+import {FormattedList, FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 import ReactSelect from 'react-select';
 
@@ -12,6 +13,8 @@ import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getInputTypeFromValueType} from 'mattermost-redux/utils/helpers';
+import {getPropertyFieldSyncSources} from 'mattermost-redux/utils/property_utils';
+import type {PropertySyncSource} from 'mattermost-redux/utils/property_utils';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
@@ -74,6 +77,10 @@ const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
             aria-invalid={errorId ? true : undefined}
             aria-errormessage={errorId}
             isClearable={false}
+
+            // A disabled select keeps its values; a remove button on each would
+            // suggest otherwise.
+            components={disabled ? {MultiValueRemove: () => null} : undefined}
             placeholder={placeholder}
             noOptionsMessage={() => noOptionsMessage}
             styles={{
@@ -167,6 +174,12 @@ const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
     return <>{displayName}</>;
 };
 
+const syncSourceChipMessages: Record<PropertySyncSource, MessageDescriptor> = defineMessages({
+    ldap: {id: 'admin.userManagement.userDetail.ldap', defaultMessage: 'AD/LDAP: {propertyName}'},
+    saml: {id: 'admin.userManagement.userDetail.saml', defaultMessage: 'SAML: {propertyName}'},
+    openid: {id: 'admin.userManagement.userDetail.openid', defaultMessage: 'OpenID Connect: {propertyName}'},
+});
+
 type CpaFieldManagementIndicatorProps = {
     field: UserPropertyField;
 
@@ -177,7 +190,8 @@ type CpaFieldManagementIndicatorProps = {
 const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = ({field, omitLocksField, adminManagedLocked}) => {
     const pluginsById = useSelector((state: GlobalState) => state.plugins?.plugins ?? {});
     const owners = field.attrs?.owners ?? [];
-    const hasSyncedSources = Boolean(field.attrs?.ldap || field.attrs?.saml || owners.length > 0);
+    const syncSources = getPropertyFieldSyncSources(field);
+    const hasSyncedSources = syncSources.length > 0 || owners.length > 0;
     const isProtected = Boolean(field.attrs?.protected);
 
     if (hasSyncedSources) {
@@ -210,34 +224,20 @@ const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = 
         });
 
         const syncedProperties = [
-            field.attrs?.ldap && (
+            ...syncSources.map((source) => (
                 <span
                     className='user-detail-cpa-field__chip'
-                    key={`${field.name}-ldap`}
-                    data-testid={`user-detail-cpa-field__ldap-${field.name}`}
+                    key={`${field.name}-${source}`}
+                    data-testid={`user-detail-cpa-field__${source}-${field.name}`}
                 >
                     <FormattedMessage
-                        id='admin.userManagement.userDetail.ldap'
-                        defaultMessage='AD/LDAP: {propertyName}'
-                        values={{propertyName: field.attrs.ldap}}
+                        {...syncSourceChipMessages[source]}
+                        values={{propertyName: field.attrs?.[source]}}
                     />
                 </span>
-            ),
-            field.attrs?.saml && (
-                <span
-                    className='user-detail-cpa-field__chip'
-                    key={`${field.name}-saml`}
-                    data-testid={`user-detail-cpa-field__saml-${field.name}`}
-                >
-                    <FormattedMessage
-                        id='admin.userManagement.userDetail.saml'
-                        defaultMessage='SAML: {propertyName}'
-                        values={{propertyName: field.attrs.saml}}
-                    />
-                </span>
-            ),
+            )),
             ...ownerPills,
-        ].filter(Boolean);
+        ];
 
         return (
             <div className='user-property-field-values__sync-indicator'>
