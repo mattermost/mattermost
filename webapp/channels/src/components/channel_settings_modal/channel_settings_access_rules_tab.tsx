@@ -19,7 +19,7 @@ import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/acce
 import {getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import {excludeSessionAttributes, isSimpleExpression} from 'components/admin_console/access_control/editors/shared';
+import {canTableEditorRender, excludeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ConfirmModal from 'components/confirm_modal';
 import SystemPolicyIndicator from 'components/system_policy_indicator';
@@ -71,7 +71,7 @@ function ChannelSettingsAccessRulesTab({
     const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>([]);
     const [userAttributes, setUserAttributes] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
-    const [savedRuleUnparsable, setSavedRuleUnparsable] = useState(false);
+    const [savedRuleStatus, setSavedRuleStatus] = useState<'checking' | 'editable' | 'locked'>('checking');
 
     // Auto-sync members toggle state
     const [autoSyncMembers, setAutoSyncMembers] = useState(false);
@@ -129,25 +129,29 @@ function ChannelSettingsAccessRulesTab({
     // Load existing channel access rules
     useEffect(() => {
         const loadChannelPolicy = async () => {
+            setSavedRuleStatus('checking');
             try {
                 const result = await actions.getChannelPolicy(channel.id);
                 if (result.data) {
                     const existingExpression = getMembershipRule(result.data.rules)?.expression || '';
                     const existingAutoSync = getAutoAddFromRules(result.data.rules);
 
+                    // An empty table on a rule it can't show would let "Add attribute" replace it.
+                    const editable = await canTableEditorRender(actions.getVisualAST, existingExpression);
+                    setSavedRuleStatus(editable ? 'editable' : 'locked');
                     setExpression(existingExpression);
                     setOriginalExpression(existingExpression);
                     setExistingRules(result.data.rules || []);
                     setAutoSyncMembers(existingAutoSync);
                     setOriginalAutoSyncMembers(existingAutoSync);
+                } else {
+                    setSavedRuleStatus('editable');
                 }
             } catch {
                 // If no policy exists (404), that's fine - use defaults
                 setExpression('');
                 setOriginalExpression('');
-            } finally {
-                // Lands in the same render as the new rule; the remounted TableEditor re-locks if needed.
-                setSavedRuleUnparsable(false);
+                setSavedRuleStatus('editable');
             }
         };
 
@@ -178,20 +182,14 @@ function ChannelSettingsAccessRulesTab({
         if (errorMessage?.includes('403') || errorMessage?.includes('Forbidden')) {
             return;
         }
-        if (originalExpression.trim() && expression === originalExpression) {
-            setSavedRuleUnparsable(true);
-            return;
-        }
-
         setFormError(formatMessage({
             id: 'channel_settings.access_rules.parse_error',
             defaultMessage: 'Invalid expression format',
         }));
-    }, [formatMessage, expression, originalExpression]);
+    }, [formatMessage]);
 
-    // An Advanced rule renders as an empty table, and adding a row would silently
-    // replace it; lock the tab rather than let a channel admin overwrite what they can't see.
-    const rulesLocked = savedRuleUnparsable || (originalExpression.trim() !== '' && !isSimpleExpression(originalExpression));
+    const rulesLocked = savedRuleStatus === 'locked';
+    const rulesEditable = savedRuleStatus === 'editable';
 
     // Helper function to detect empty rules state
     const isEmptyRulesState = useMemo((): boolean => {
@@ -216,12 +214,12 @@ function ChannelSettingsAccessRulesTab({
 
     const handleAutoSyncToggle = useCallback(() => {
         // Don't allow toggling if in empty rules state
-        if (isEmptyRulesState || rulesLocked) {
+        if (isEmptyRulesState || !rulesEditable) {
             return;
         }
 
         setAutoSyncMembers((prev) => !prev);
-    }, [isEmptyRulesState, rulesLocked]);
+    }, [isEmptyRulesState, rulesEditable]);
 
     // Helper function to combine system policy expressions with channel expression
     const combineSystemAndChannelExpressions = useCallback((channelExpression: string): string => {
@@ -769,7 +767,7 @@ function ChannelSettingsAccessRulesTab({
             )}
 
             {/* TableEditor for creating access rules */}
-            {attributesLoaded && !rulesLocked && (
+            {attributesLoaded && rulesEditable && (
                 <div className='ChannelSettingsModal__accessRulesEditor'>
                     <TableEditor
                         value={expression}
@@ -803,7 +801,7 @@ function ChannelSettingsAccessRulesTab({
                         className='ChannelSettingsModal__autoSyncCheckbox'
                         checked={autoSyncMembers}
                         onChange={handleAutoSyncToggle}
-                        disabled={isEmptyRulesState || rulesLocked}
+                        disabled={isEmptyRulesState || !rulesEditable}
                         id='autoSyncMembersCheckbox'
                         name='autoSyncMembers'
                     />
@@ -827,7 +825,7 @@ function ChannelSettingsAccessRulesTab({
                             return undefined;
                         })()}
                     >
-                        <span className={`ChannelSettingsModal__autoSyncText ${((isEmptyRulesState && systemPolicies.length === 0) || rulesLocked) ? 'disabled' : ''}`}>
+                        <span className={`ChannelSettingsModal__autoSyncText ${((isEmptyRulesState && systemPolicies.length === 0) || !rulesEditable) ? 'disabled' : ''}`}>
                             {formatMessage({
                                 id: 'channel_settings.access_rules.auto_sync',
                                 defaultMessage: 'Auto-add members based on access rules',

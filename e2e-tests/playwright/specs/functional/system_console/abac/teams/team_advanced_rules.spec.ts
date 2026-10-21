@@ -36,6 +36,8 @@ import {
     waitForAttributeViewToInclude,
 } from '../../../channels/team_settings/helpers';
 import {createUserAttributeField, testAccessRule} from '../support';
+import {getStoredPolicyRuleExpressions, setFieldAsSharedOnly} from '../masking/masking_db_setup';
+import {createMaskingTextField, deleteCPAField, enableMaskingFlag} from '../masking/masking_helpers';
 
 import {
     addTeamMemberRaw,
@@ -710,6 +712,99 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         await expect(teamSettings.container.locator('#autoAddMembersCheckbox')).toBeDisabled();
 
         expect(await getMembershipExpression(adminClient, team.id)).toBe(orRule());
+    });
+
+    test('MM-71104-T16b the Team Admin settings modal keeps the table for a rule the parser accepts', async ({pw}) => {
+        test.setTimeout(180_000);
+        const {adminClient, team} = await setupFixture(pw);
+
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
+
+        // A plain table rule whose value happens to contain "&&"
+        const rule = `user.attributes.${DEPT} == "R&&D"`;
+        await createTeamMembershipPolicy(adminClient, team.id, rule, false);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.container.getByTestId('team_membership-tab-button').click();
+        await expect(teamSettings.container.locator('.TeamMembershipTab')).toBeVisible({timeout: 10_000});
+
+        // * The rule is editable in the table, not locked
+        await expect(teamSettings.container.getByTestId('table-editor')).toBeVisible({timeout: 15_000});
+        await expect(teamSettings.container.getByTestId('team-membership-locked-rules')).toHaveCount(0);
+        await expect(teamSettings.container.locator('#autoAddMembersCheckbox')).toBeEnabled();
+    });
+
+    test('MM-71104-T16c the Team Admin settings modal keeps a masked rule editable and saves without losing hidden values', async ({
+        pw,
+    }) => {
+        test.setTimeout(180_000);
+        const {adminClient, team} = await setupFixture(pw);
+        await enableMaskingFlag(adminClient);
+
+        // # The team admin holds Alpha but not Bravo, so Bravo is masked for them
+        const fieldName = `Prog${getRandomId()}`;
+        const fieldId = await createMaskingTextField(adminClient, fieldName);
+        try {
+            const teamAdmin = await createTeamAdmin(adminClient, team.id);
+            createdUserIds.push(teamAdmin.id);
+            await setUserAttribute(adminClient, teamAdmin.id, fieldName, 'Alpha');
+
+            const rule = `user.attributes.${fieldName} in ["Alpha", "Bravo"]`;
+            await createTeamMembershipPolicy(adminClient, team.id, rule, false);
+
+            // Masking only hides values of fields whose values are shared only with holders.
+            await setFieldAsSharedOnly(fieldId);
+
+            const {page} = await pw.testBrowser.login(teamAdmin);
+            const channelsPage = new ChannelsPage(page);
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.toBeVisible();
+
+            const teamSettings = await channelsPage.openTeamSettings();
+            await teamSettings.container.getByTestId('team_membership-tab-button').click();
+            const tab = teamSettings.container.locator('.TeamMembershipTab');
+            await expect(tab).toBeVisible({timeout: 10_000});
+
+            // * The masked rule is shown in the table, not locked
+            await expect(tab.getByTestId('table-editor')).toBeVisible({timeout: 15_000});
+            await expect(tab.locator('.select__multi-value--masked').first()).toBeVisible({timeout: 10_000});
+            await expect(tab.getByTestId('team-membership-locked-rules')).toHaveCount(0);
+
+            // # Turn on auto-add and save
+            const autoAdd = tab.locator('#autoAddMembersCheckbox');
+            await expect(autoAdd).toBeEnabled();
+            await autoAdd.click();
+            await expect(autoAdd).toBeChecked();
+
+            await tab.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+            const confirmModal = page.locator('.ConfirmModal');
+            await expect(confirmModal).toBeVisible({timeout: 15_000});
+            await confirmModal.getByRole('button', {name: 'Save'}).click();
+            await expect(confirmModal).not.toBeVisible({timeout: 10_000});
+            await expect(tab.locator('[data-testid="SaveChangesPanel__save-btn"]')).not.toBeVisible({timeout: 10_000});
+
+            // * The hidden value survived the save. Read the DB: the API masks for every
+            //   admin, and the sysadmin holds neither value.
+            //   Storage references the field by id, not by name.
+            const stored = await getStoredPolicyRuleExpressions(team.id);
+            expect(stored).toHaveLength(1);
+            expect(stored[0]).toContain(`id_${fieldId}`);
+            expect(stored[0]).toContain('in ["Alpha", "Bravo"]');
+
+            // * Auto-add is on
+            const response: any = await getTeamAccessControlPolicy(adminClient, team.id);
+            const membershipRule = response?.policy?.rules?.find((r: any) => r.actions?.includes('membership'));
+            expect(membershipRule?.metadata?.auto_add).toBe('always');
+        } finally {
+            // A shared_only field can't be deleted through the API; this falls back to the DB.
+            await deleteCPAField(adminClient, fieldId);
+        }
     });
 
     test('MM-71104-T17 discarding Advanced edits leaves the saved rule', async ({pw}) => {

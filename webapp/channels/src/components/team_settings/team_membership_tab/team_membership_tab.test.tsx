@@ -129,6 +129,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
         mockActions.createAccessControlTeamSyncJob.mockResolvedValue({data: {}});
         mockActions.validateExpressionAgainstRequester.mockResolvedValue({data: {requester_matches: true}});
         mockActions.searchUsers.mockResolvedValue({data: {users: [], total: 5}});
+        mockActions.getVisualAST.mockResolvedValue({data: {conditions: []}});
 
         mockUseChannelAccessControlActions.mockReturnValue(mockActions as any);
     });
@@ -711,7 +712,9 @@ describe('components/team_settings/TeamMembershipTab', () => {
     });
 
     describe('a saved rule the table cannot represent', () => {
-        const mockLoadedRule = (expression: string) => {
+        const complexRule = 'user.attributes.department == "Engineering" || user.attributes.department == "Sales"';
+
+        const mockLoadedRule = (expression: string, parses = true) => {
             const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
             getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
                 data: {
@@ -723,15 +726,16 @@ describe('components/team_settings/TeamMembershipTab', () => {
                     enforced: true,
                 },
             }));
+            mockActions.getVisualAST.mockResolvedValue(parses ? {data: {conditions: []}} : {error: {message: 'OR (||) is only supported for multiselect membership checks'}});
         };
 
-        it('locks the tab for a complex rule and shows it read-only', async () => {
-            const complexRule = 'user.attributes.department == "Engineering" || user.attributes.department == "Sales"';
-            mockLoadedRule(complexRule);
+        it('locks the tab when the parser rejects the saved rule and shows it read-only', async () => {
+            mockLoadedRule(complexRule, false);
 
             renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
 
             expect(await screen.findByTestId('team-membership-locked-rules')).toBeInTheDocument();
+            expect(mockActions.getVisualAST).toHaveBeenCalledWith(complexRule);
             expect(screen.getByRole('status')).toHaveTextContent('can only be edited in the System Console');
             expect(screen.getByText(complexRule)).toBeInTheDocument();
             expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
@@ -739,7 +743,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
         });
 
         it('links a system admin to the team page in the System Console', async () => {
-            mockLoadedRule('user.attributes.department == "Engineering" || user.attributes.department == "Sales"');
+            mockLoadedRule(complexRule, false);
 
             renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
 
@@ -749,7 +753,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
         });
 
         it('tells a team admin to contact a system admin', async () => {
-            mockLoadedRule('user.attributes.department == "Engineering" || user.attributes.department == "Sales"');
+            mockLoadedRule(complexRule, false);
             const teamAdminState = {
                 ...initialState,
                 entities: {
@@ -769,26 +773,33 @@ describe('components/team_settings/TeamMembershipTab', () => {
             expect(screen.queryByRole('link', {name: 'System Console'})).not.toBeInTheDocument();
         });
 
-        it('locks the tab when the table fails to parse the saved rule', async () => {
-            const rule = 'user.attributes.department in ["Engineering"]';
+        it('locks the tab when the parse request itself fails', async () => {
+            mockLoadedRule('user.attributes.department == "Engineering"');
+            mockActions.getVisualAST.mockRejectedValue(new Error('403 Forbidden'));
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+
+            expect(await screen.findByTestId('team-membership-locked-rules')).toBeInTheDocument();
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+        });
+
+        it.each([
+            ['a "has any of" group the server saved without parentheses', '"Artemis" in user.attributes.program || "Helios" in user.attributes.program'],
+            ['a value containing &&', 'user.attributes.department == "R&&D"'],
+        ])('keeps the table for %s when the parser accepts it', async (_, rule) => {
             mockLoadedRule(rule);
 
             renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
 
-            await userEvent.click(await screen.findByTestId('table-editor-parse-error'));
-
-            expect(screen.getByTestId('team-membership-locked-rules')).toBeInTheDocument();
-            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
-            expect(screen.getByRole('checkbox', {name: /auto-add members/i})).toBeDisabled();
+            expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
+            expect(screen.queryByTestId('team-membership-locked-rules')).not.toBeInTheDocument();
         });
 
-        it('drops the parse lock when another team\'s rule loads', async () => {
-            mockLoadedRule('user.attributes.department in ["Engineering"]');
+        it('re-checks when another team\'s rule loads', async () => {
+            mockLoadedRule(complexRule, false);
 
             const {rerender} = renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
-
-            await userEvent.click(await screen.findByTestId('table-editor-parse-error'));
-            expect(screen.getByTestId('team-membership-locked-rules')).toBeInTheDocument();
+            expect(await screen.findByTestId('team-membership-locked-rules')).toBeInTheDocument();
 
             mockLoadedRule('user.attributes.department == "Sales"');
             rerender(
@@ -802,13 +813,12 @@ describe('components/team_settings/TeamMembershipTab', () => {
             expect(screen.queryByTestId('team-membership-locked-rules')).not.toBeInTheDocument();
         });
 
-        it('keeps the inline parse error, without locking, for an edited rule', async () => {
+        it('a table parse error shows inline and never locks the tab', async () => {
             mockLoadedRule('user.attributes.department in ["Sales"]');
 
             renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
 
-            await userEvent.click(await screen.findByTestId('table-editor-change'));
-            await userEvent.click(screen.getByTestId('table-editor-parse-error'));
+            await userEvent.click(await screen.findByTestId('table-editor-parse-error'));
 
             expect(screen.queryByTestId('team-membership-locked-rules')).not.toBeInTheDocument();
             expect(screen.getByText('Invalid expression format')).toBeInTheDocument();

@@ -443,6 +443,24 @@ export function isSimpleExpression(expr: string): boolean {
     });
 }
 
+// The server parser behind the table editor decides what the table can show;
+// isSimpleExpression is only a text heuristic. Any failure, including a 403,
+// counts as not renderable so a rule nobody can see is never overwritten.
+export async function canTableEditorRender(
+    getVisualAST: (expression: string) => Promise<{error?: unknown}>,
+    expression: string,
+): Promise<boolean> {
+    if (!expression.trim()) {
+        return true;
+    }
+    try {
+        const result = await getVisualAST(expression);
+        return !result.error;
+    } catch {
+        return false;
+    }
+}
+
 // Checks if there are any usable attributes for ABAC policies.
 // An attribute is usable if:
 // 1. It doesn't contain spaces (CEL incompatible)

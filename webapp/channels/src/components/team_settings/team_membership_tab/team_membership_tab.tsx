@@ -23,7 +23,7 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 
 import {closeModal} from 'actions/views/modals';
 
-import {isSimpleExpression} from 'components/admin_console/access_control/editors/shared';
+import {canTableEditorRender} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ConfirmModal from 'components/confirm_modal';
 import SystemPolicyIndicator from 'components/system_policy_indicator';
@@ -107,7 +107,7 @@ function TeamMembershipTab({
 
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
     const [formError, setFormError] = useState('');
-    const [savedRuleUnparsable, setSavedRuleUnparsable] = useState(false);
+    const [savedRuleStatus, setSavedRuleStatus] = useState<'checking' | 'editable' | 'locked'>('checking');
 
     const [showSelfExclusionModal, setShowSelfExclusionModal] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -203,6 +203,8 @@ function TeamMembershipTab({
         // response must not write state onto an unmounted/re-keyed component.
         let cancelled = false;
         const loadTeamPolicy = async () => {
+            setSavedRuleStatus('checking');
+            let editable = true;
             try {
                 const result = await dispatch(getTeamAccessControlPolicy(team.id)) as {data?: {policy: AccessControlPolicy | null; enforced: boolean; parent_policies?: AccessControlPolicy[]} | null; error?: unknown};
                 if (cancelled) {
@@ -214,6 +216,11 @@ function TeamMembershipTab({
                     const existingAutoAdd = getAutoAddFromRules(policy.rules);
                     const imports = policy.imports || [];
 
+                    // An empty table on a rule it can't show would let "Add attribute" replace it.
+                    editable = await canTableEditorRender(actions.getVisualAST, existingExpression);
+                    if (cancelled) {
+                        return;
+                    }
                     setExpression(existingExpression);
                     setOriginalExpression(existingExpression);
                     setExistingRules(policy.rules || []);
@@ -232,10 +239,7 @@ function TeamMembershipTab({
             } finally {
                 if (!cancelled) {
                     setPoliciesLoaded(true);
-
-                    // Cleared here, not in an effect on originalExpression, so it lands in the
-                    // same render as the new rule; the remounted TableEditor re-locks if needed.
-                    setSavedRuleUnparsable(false);
+                    setSavedRuleStatus(editable ? 'editable' : 'locked');
                 }
             }
         };
@@ -265,19 +269,14 @@ function TeamMembershipTab({
         if (errorMessage?.includes('403') || errorMessage?.includes('Forbidden')) {
             return;
         }
-        if (originalExpression.trim() && expression === originalExpression) {
-            setSavedRuleUnparsable(true);
-            return;
-        }
         setFormError(formatMessage({
             id: 'team_settings.membership_tab.parse_error',
             defaultMessage: 'Invalid expression format',
         }));
-    }, [formatMessage, expression, originalExpression]);
+    }, [formatMessage]);
 
-    // An Advanced rule renders as an empty table, and adding a row would silently
-    // replace it; lock the tab rather than let a team admin overwrite what they can't see.
-    const rulesLocked = savedRuleUnparsable || (originalExpression.trim() !== '' && !isSimpleExpression(originalExpression));
+    const rulesLocked = savedRuleStatus === 'locked';
+    const rulesEditable = savedRuleStatus === 'editable';
 
     const isEmptyRulesState = useMemo(() => {
         return !expression?.trim() && systemPolicies.length === 0;
@@ -711,7 +710,7 @@ function TeamMembershipTab({
                 </div>
             )}
 
-            {attributesLoaded && !rulesLocked && (
+            {attributesLoaded && rulesEditable && (
                 <div className='TeamMembershipTab__editor'>
                     <TableEditor
                         value={expression}
@@ -737,7 +736,7 @@ function TeamMembershipTab({
                         className='TeamMembershipTab__autoAddCheckbox'
                         checked={autoAddMembers}
                         onChange={handleAutoAddToggle}
-                        disabled={isEmptyRulesState || rulesLocked}
+                        disabled={isEmptyRulesState || !rulesEditable}
                         id='autoAddMembersCheckbox'
                         name='autoAddMembers'
                     />
@@ -745,7 +744,7 @@ function TeamMembershipTab({
                         htmlFor='autoAddMembersCheckbox'
                         className='TeamMembershipTab__autoAddLabel'
                     >
-                        <span className={`TeamMembershipTab__autoAddText${isEmptyRulesState || rulesLocked ? ' disabled' : ''}`}>
+                        <span className={`TeamMembershipTab__autoAddText${isEmptyRulesState || !rulesEditable ? ' disabled' : ''}`}>
                             {formatMessage({
                                 id: 'team_settings.membership_tab.auto_add',
                                 defaultMessage: 'Auto-add members based on access rules',
