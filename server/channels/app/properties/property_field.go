@@ -634,6 +634,19 @@ func (ps *PropertyService) linkedTemplate(rctx request.CTX, field *model.Propert
 	return template, nil
 }
 
+// legacyViewTemplate is linkedTemplate for projecting field's legacy view. A
+// template that does not exist projects as no template, which is how the read
+// path projects it too, so a field left pointing at a missing template can
+// still be unlinked. Any other read error is returned.
+func (ps *PropertyService) legacyViewTemplate(rctx request.CTX, field *model.PropertyField, templates map[string]*model.PropertyField) (*model.PropertyField, error) {
+	template, err := ps.linkedTemplate(rctx, field, templates)
+	var notFound *store.ErrNotFound
+	if errors.As(err, &notFound) {
+		return nil, nil
+	}
+	return template, err
+}
+
 func (ps *PropertyService) getPropertyFieldFromMaster(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
 	return ps.fieldStore.Get(store.RequestContextWithMaster(rctx), groupID, id)
 }
@@ -1113,7 +1126,7 @@ func (ps *PropertyService) translateLegacyPermissionKeys(rctx request.CTX, field
 
 	// Keyed on existing: the submitted link can be "" on an unlink, and the
 	// caller was shown existing's view either way.
-	template, err := ps.linkedTemplate(store.RequestContextWithMaster(rctx), existing, templates)
+	template, err := ps.legacyViewTemplate(store.RequestContextWithMaster(rctx), existing, templates)
 	if err != nil {
 		return fmt.Errorf("translateLegacyPermissionKeys: %w", err)
 	}

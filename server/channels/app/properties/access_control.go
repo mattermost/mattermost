@@ -284,7 +284,7 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 		return nil, err
 	}
 
-	template, tErr := h.propertyService.linkedTemplate(rctx, existingField, nil)
+	template, tErr := h.propertyService.legacyViewTemplate(rctx, existingField, nil)
 	if tErr != nil {
 		return nil, tErr
 	}
@@ -352,7 +352,7 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
-		template, err := h.propertyService.linkedTemplate(rctx, existingField, templates)
+		template, err := h.propertyService.legacyViewTemplate(rctx, existingField, templates)
 		if err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
