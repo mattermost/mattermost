@@ -57,7 +57,7 @@ import type {NameConflict} from './name_conflict';
 import {findNameConflict, nameConflictText} from './name_conflict';
 import useAllowedResourceTypes from './use_allowed_resource_types';
 import {getFieldOwners, NO_OWNERS, useOwnersLabel} from './use_owners_label';
-import {appliedResourceTypesByTemplateId, deleteAttributeField} from './utils';
+import {appliedResourceTypesByTemplateId, deleteAttributeField, syncUserAttributeFieldDelete} from './utils';
 
 import {it} from '../admin_definition_helpers';
 import {AdminConsoleListTable, type TableMeta} from '../list_table';
@@ -381,12 +381,13 @@ function ActionsCell({field, isClassificationRow, isMobileView, owners, resource
         try {
             await deleteAttributeField(field.object_type, field.id);
             dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: field.id}});
+            syncUserAttributeFieldDelete(dispatch, field.object_type, field.id);
         } catch (error) {
             onDeleteError(formatMessage(
                 (error as ClientError)?.status_code === 409 ? actionsLabels.deleteErrorHasDependents : actionsLabels.deleteErrorGeneric,
             ));
         }
-    }, [dispatch, field.id, formatMessage, onDeleteError]);
+    }, [dispatch, field.id, field.object_type, formatMessage, onDeleteError]);
 
     // Classification's definition lives on Classification Markings; this row only
     // offers the open-in-new link there. Row click still opens the attribute page
