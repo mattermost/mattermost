@@ -254,6 +254,66 @@ func TestPermissionsFromLegacyAccessMode(t *testing.T) {
 	}
 }
 
+func TestPermissionsFromLegacyReadsByProtection(t *testing.T) {
+	// Master's hook decides a read from access_mode, source_plugin_id and the
+	// sync alone, never from either protection flag, so any plugin reads a
+	// public field and only the source plugin a source_only one, however the
+	// field is protected. A non-public access_mode requires the attr, so a
+	// field protected by the column alone is always public. The column also
+	// leaves value.write at its level for people, since neither master's hook
+	// nor its value permission check reads it.
+	member := PermissionLevelMember
+	tests := map[string]struct {
+		column, attr bool
+	}{
+		"neither":     {},
+		"column only": {column: true},
+		"attr only":   {attr: true},
+		"both":        {column: true, attr: true},
+	}
+	for name, tc := range tests {
+		for label, accessMode := range map[string]string{"public": PropertyAccessModePublic, "source_only": PropertyAccessModeSourceOnly} {
+			if accessMode != PropertyAccessModePublic && !tc.attr {
+				continue
+			}
+			t.Run(name+", "+label, func(t *testing.T) {
+				field := &PropertyField{
+					ObjectType:       PropertyFieldObjectTypeUser,
+					Protected:        tc.column,
+					PermissionValues: &member,
+					Attrs: StringInterface{
+						PropertyAttrsAccessMode:     accessMode,
+						PropertyAttrsSourcePluginID: "plugin1",
+					},
+				}
+				if tc.attr {
+					field.Attrs[PropertyAttrsProtected] = true
+				}
+				requireMasterLegacyShape(t, field)
+
+				p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+				require.NoError(t, p.IsValid(field.ObjectType))
+				for _, action := range []string{PropertyActionValueRead, PropertyActionOptionRead} {
+					if accessMode == PropertyAccessModePublic {
+						assert.Equal(t, PermissionLevelEveryone, p.Restrictions.TierFor(action))
+						assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "any", "", action))
+					} else {
+						assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(action))
+						assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "any", "", action))
+						assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", action))
+					}
+				}
+				if tc.attr {
+					assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionValueWrite))
+				} else {
+					assert.Equal(t, member, p.Restrictions.TierFor(PropertyActionValueWrite))
+				}
+			})
+		}
+	}
+}
+
 func TestPermissionsFromLegacyLinkedFieldOptionReadCap(t *testing.T) {
 	// A public field linked to a source_only template converts to option.read:
 	// everyone unless capped — which the store would then refuse, since a linked
