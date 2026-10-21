@@ -23,7 +23,7 @@ import {
     ChannelsSidebarLeft,
 } from '@/ui/components';
 import {duration} from '@/util';
-import {testConfig} from '@/test_config';
+
 export default class ChannelsPage {
     readonly channels = 'Channels';
 
@@ -216,7 +216,7 @@ export default class ChannelsPage {
                 channelsUrl += `${prefix}/${channelName}`;
             }
         }
-        await this.page.goto(new URL(channelsUrl, testConfig.baseURL).href);
+        await this.page.goto(channelsUrl);
 
         return channelsUrl;
     }
@@ -224,7 +224,7 @@ export default class ChannelsPage {
     // Force the /messages route for group-message slugs that do not start with '@'.
     async gotoMessage(teamName: string, channelName: string) {
         const channelsUrl = `/${teamName}/messages/${channelName}`;
-        await this.page.goto(new URL(channelsUrl, testConfig.baseURL).href);
+        await this.page.goto(channelsUrl);
 
         return channelsUrl;
     }
