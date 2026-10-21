@@ -787,7 +787,11 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if permissionsLockOutSystemAdmins(*c.AppContext.Session(), patchedPermissions) {
+		// Keyed on effect, like the gating above: an unchanged echo of a
+		// field a plugin keeps at field.write none takes nothing away, and
+		// may ride along on an options patch the caller holds only
+		// option.write for.
+		if permissionsChanged && permissionsLockOutSystemAdmins(*c.AppContext.Session(), patchedPermissions) {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.permissions.field_write_none.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
@@ -798,8 +802,9 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Anti-lockout, as on create: field.write was checked against the stored
 	// field, so without this a caller could patch in permissions that leave
-	// them unable to edit or delete the field they just changed.
-	if patch.Permissions != nil && !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
+	// them unable to edit or delete the field they just changed. An unchanged
+	// echo changes nothing and was gated as such, so it is not judged here.
+	if permissionsChanged && !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
 		c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.caller_cannot_edit.app_error", nil, "", http.StatusForbidden)
 		return
 	}
