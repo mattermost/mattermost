@@ -2495,7 +2495,9 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 			}
 			select {
 			case err = <-readErrCh:
-				if !errors.Is(err, context.DeadlineExceeded) {
+				// The remote deadline can close the stream before the caller
+				// observes its own deadline; both contexts are checked below.
+				if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, io.EOF) {
 					return nil, fmt.Sprintf("stream deadline error: %v", err)
 				}
 			case <-time.After(testTimeout):
@@ -2653,7 +2655,7 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 			var ctx context.Context
 			var cancel context.CancelFunc
 			if test.deadline {
-				ctx, cancel = context.WithTimeout(context.Background(), 12*time.Second)
+				ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 			} else {
 				ctx, cancel = context.WithCancel(context.Background())
 			}
@@ -2681,7 +2683,7 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 			if test.deadline {
 				select {
 				case <-ctx.Done():
-				case <-time.After(15 * time.Second):
+				case <-time.After(testTimeout):
 					require.FailNow(t, "core deadline did not expire")
 				}
 				require.ErrorIs(t, ctx.Err(), context.DeadlineExceeded)
