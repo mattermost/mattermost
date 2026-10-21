@@ -45,10 +45,8 @@ describe('components/EditChannelHeaderModal', () => {
         channel,
         ctrlSend: false,
         show: false,
-        shouldShowPreview: false,
         onExited: jest.fn(),
         actions: {
-            setShowPreview: jest.fn(),
             patchChannel: jest.fn().mockResolvedValue({}),
         },
         intl: {
@@ -147,6 +145,27 @@ describe('components/EditChannelHeaderModal', () => {
         });
 
         expect(baseElement).toMatchSnapshot();
+    });
+
+    test('should toggle the preview and start without it when reopened', async () => {
+        const {unmount} = renderWithContext(<EditChannelHeaderModal {...baseProps}/>);
+
+        const previewLink = screen.getByRole('button', {name: 'Preview'});
+        const textboxWrapper = () => screen.getByTestId('edit_textbox').closest('.textarea-wrapper');
+
+        expect(textboxWrapper()).not.toHaveClass('textarea-wrapper-preview');
+
+        await userEvent.click(previewLink);
+        expect(textboxWrapper()).toHaveClass('textarea-wrapper-preview');
+
+        await userEvent.click(previewLink);
+        expect(textboxWrapper()).not.toHaveClass('textarea-wrapper-preview');
+
+        await userEvent.click(previewLink);
+        unmount();
+
+        renderWithContext(<EditChannelHeaderModal {...baseProps}/>);
+        expect(textboxWrapper()).not.toHaveClass('textarea-wrapper-preview');
     });
 
     describe('handleSave', () => {

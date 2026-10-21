@@ -176,9 +176,24 @@ type FeatureFlags struct {
 	// controls whether the /api/v4/delivery_tracking routes are registered.
 	PostDeliveryTracking bool
 
+	// FEATURE_FLAG_REMOVAL: EnforceLogPathRoot - remove this once every supported
+	// release carries the flag and enforcement becomes unconditional (MM-70595).
+	// When on, a log or audit file path resolving outside the logging root
+	// (MM_LOG_PATH, or the default logs dir) aborts server startup and is rejected
+	// on config save. When off, the same paths only produce an error log line.
+	EnforceLogPathRoot bool
+
 	// HealthDashboard replaces the Workspace Optimization dashboard with the rules-driven
 	// Health Dashboard. Off by default.
 	HealthDashboard bool
+
+	// FEATURE_FLAG_REMOVAL: OpenIdAttributeSync - Remove this kill switch once
+	// OpenID Connect attribute sync is proven in production. Gates syncing user
+	// attributes from OpenID Connect claims at sign-in: when off, no claims are
+	// read and no values are written, and new openid links are refused. Fields
+	// already linked keep their link, and their values stay sync-locked and
+	// untouched.
+	OpenIdAttributeSync bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -250,7 +265,10 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.PostDeliveryTracking = false
 
+	f.EnforceLogPathRoot = false
+
 	f.HealthDashboard = false
+	f.OpenIdAttributeSync = true
 }
 
 // isValid rejects feature flag combinations that are no longer supported.

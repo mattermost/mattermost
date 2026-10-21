@@ -866,19 +866,16 @@ describe('rowToCEL', () => {
         })).toBe('("F-18 Program" in user.attributes.programs || "Navy Program" in user.attributes.programs)');
     });
 
-    test('a membership operator on a graph attribute never emits the list-vs-list member call', () => {
-        // hasAllOf/hasAnyOf against a channel attribute requires both sides to be
-        // multiselect; on a graph attribute the engine refuses it, so a stale
-        // target must not resurface as one. The literal form is used instead.
+    test('a membership operator on a graph attribute emits the list-vs-list member call against a channel target', () => {
         const cel = rowToCEL({
             attribute: 'programs',
             operator: 'has all of',
-            values: ['F-18 Program'],
+            values: [],
             attribute_type: 'graph',
             hasMaskedValues: false,
             targetAttribute: 'channelPrograms',
         });
-        expect(cel).toBe('"F-18 Program" in user.attributes.programs');
+        expect(cel).toBe('user.attributes.programs.hasAllOf(resource.attributes.channelPrograms)');
     });
 
     // --- Masking-related tests ---
@@ -1093,6 +1090,26 @@ describe('graph hierarchy round-trips (parseExpression -> rowToCEL)', () => {
         expect(rows[0].values).toEqual(['F-18 Program', 'Navy Program']);
         expect(rows[0].targetAttribute).toBeUndefined();
         expect(rowToCEL(rows[0])).toBe(`user.attributes.programs.${celFn}(["F-18 Program", "Navy Program"])`);
+    });
+
+    // The server reads no field types, so it labels this graph form multiselect.
+    test.each(['hasAnyOf', 'hasAllOf'])('%s on a graph attribute against a channel-attribute target', (celFn) => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: celFn,
+                    value: 'resource.attributes.channelPrograms',
+                    value_type: 1,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rows[0].targetAttribute).toBe('channelPrograms');
+        expect(rows[0].values).toEqual([]);
+        expect(rowToCEL(rows[0])).toBe(`user.attributes.programs.${celFn}(resource.attributes.channelPrograms)`);
     });
 
     test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s against a channel-attribute target', (celFn) => {

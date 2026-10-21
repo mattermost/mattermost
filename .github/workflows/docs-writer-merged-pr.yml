@@ -92,7 +92,6 @@ jobs:
           EVENT_AUTHOR: ${{ github.event.pull_request.user.login }}
           EVENT_AUTHOR_TYPE: ${{ github.event.pull_request.user.type }}
           EVENT_MILESTONE_TITLE: ${{ github.event.pull_request.milestone.title }}
-          EVENT_MILESTONE_NUMBER: ${{ github.event.pull_request.milestone.number }}
         run: |
           set -euo pipefail
           mkdir -p .docs-ai/writer
@@ -108,7 +107,6 @@ jobs:
             AUTHOR=$(echo "$DATA" | jq -r '.user.login')
             AUTHOR_TYPE=$(echo "$DATA" | jq -r '.user.type')
             MILESTONE_TITLE=$(echo "$DATA" | jq -r '.milestone.title // ""')
-            MILESTONE_NUMBER=$(echo "$DATA" | jq -r '.milestone.number // ""')
             MERGED=$(echo "$DATA" | jq -r '.merged')
             LABELS=$(echo "$DATA" | jq -r '[.labels[].name] | join(",")')
             if [ "$MERGED" != "true" ]; then
@@ -125,12 +123,13 @@ jobs:
             AUTHOR="$EVENT_AUTHOR"
             AUTHOR_TYPE="$EVENT_AUTHOR_TYPE"
             MILESTONE_TITLE="$EVENT_MILESTONE_TITLE"
-            MILESTONE_NUMBER="$EVENT_MILESTONE_NUMBER"
           fi
 
-          if [ -z "$MILESTONE_NUMBER" ] || [ "$MILESTONE_NUMBER" = "null" ]; then
-            echo "::error title=Missing milestone::Set a milestone on #${PR_NUMBER} before Docs/Needed can draft pages (version anchor source)."
-            exit 1
+          # A missing milestone is a human follow-up, not a reason to skip the draft.
+          # Pages use the human-judgment version anchor until someone sets the release.
+          if [ -z "$MILESTONE_TITLE" ] || [ "$MILESTONE_TITLE" = "null" ]; then
+            echo "::warning title=Missing milestone::#${PR_NUMBER} has no milestone. Draft pages will use \"From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT]\" until a human sets the version."
+            MILESTONE_TITLE=""
           fi
 
           # Docs draft reviewer: source author, or one human reviewer of the
@@ -238,7 +237,6 @@ jobs:
         id: push
         env:
           BRANCH: ${{ steps.pr.outputs.branch }}
-          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           set -euo pipefail
@@ -249,7 +247,13 @@ jobs:
             echo "::error::Writer produced no file changes."
             exit 1
           fi
-          printf 'docs: AI draft for #%s\n' "$PR_NUMBER" | git commit -F -
+          title_file=".docs-ai/writer/draft-title.txt"
+          if [ ! -s "$title_file" ]; then
+            echo "::error::Writer did not emit a draft title."
+            exit 1
+          fi
+          TITLE=$(tr -d '\n' < "$title_file")
+          printf '%s\n' "$TITLE" | git commit -F -
           if git ls-remote --exit-code origin "refs/heads/${BRANCH}" >/dev/null 2>&1; then
             git push origin "HEAD:refs/heads/${BRANCH}" --force-with-lease
           else
@@ -261,17 +265,21 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           BRANCH: ${{ steps.pr.outputs.branch }}
-          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
           REVIEWER: ${{ steps.pr.outputs.reviewer }}
         run: |
           set -euo pipefail
           EXISTING=$(gh pr list --head "$BRANCH" --state open --json number,url --jq 'first // empty')
-          TITLE="docs: AI draft for #${PR_NUMBER}"
+          title_file=".docs-ai/writer/draft-title.txt"
+          if [ ! -s "$title_file" ]; then
+            echo "::error::Writer did not emit a draft title."
+            exit 1
+          fi
+          TITLE=$(tr -d '\n' < "$title_file")
 
           if [ -n "$EXISTING" ]; then
             NUM=$(echo "$EXISTING" | jq -r .number)
             URL=$(echo "$EXISTING" | jq -r .url)
-            gh pr edit "$NUM" --body-file .docs-ai/writer/pr-body.md
+            gh pr edit "$NUM" --title "$TITLE" --body-file .docs-ai/writer/pr-body.md
           else
             URL=$(gh pr create \
               --base master \
@@ -301,6 +309,14 @@ jobs:
           set -euo pipefail
           URL=$(gh pr view "$BRANCH" --json url --jq .url)
           gh pr comment "$PR_NUMBER" --body "Draft documentation PR opened: ${URL}"
+
+      - name: Upload writer trail
+        if: always() && steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: docs-writer-trail-${{ steps.pr.outputs.pr_number }}
+          path: .docs-ai/writer/trail.json
+          if-no-files-found: ignore
 
   sync:
     name: Mark Docs/Done

@@ -53,11 +53,11 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 		publicChannel := th.CreateChannel(t, th.BasicTeam)
 		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{publicChannel.Id, privateChannel.Id},
 		})
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 
 		assert.True(t, *th.App.Config().DeliveryTrackingSettings.Enable)
 		assert.False(t, *th.App.Config().DeliveryTrackingSettings.EnableForAllChannels)
@@ -72,10 +72,10 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 		require.NoError(t, th.App.Srv().Store().DeliveryTracking().SaveTrackedChannelIDs(th.Context, []string{channel.Id}))
 
 		// Turning the feature off must not discard the admin's channel selection.
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(false), EnableForAllChannels: new(true)},
 		})
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 
 		stored, err := th.App.Srv().Store().DeliveryTracking().GetTrackedChannelIDs(th.Context)
 		require.NoError(t, err)
@@ -87,11 +87,11 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 		require.NoError(t, th.App.Srv().Store().DeliveryTracking().SaveTrackedChannelIDs(th.Context, []string{channel.Id}))
 
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(true)},
 			ChannelIds:               []string{},
 		})
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 
 		stored, err := th.App.Srv().Store().DeliveryTracking().GetTrackedChannelIDs(th.Context)
 		require.NoError(t, err)
@@ -104,11 +104,11 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 
 		// Rows for archived channels are kept, so re-saving an unchanged list containing
 		// one must not lock the admin out of saving.
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{channel.Id},
 		})
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 
 		stored, err := th.App.Srv().Store().DeliveryTracking().GetTrackedChannelIDs(th.Context)
 		require.NoError(t, err)
@@ -119,12 +119,14 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 		user := th.CreateUser(t)
 		dmChannel := th.CreateDmChannel(t, user)
 
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{dmChannel.Id},
 		})
 
-		require.NotNil(t, appErr)
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		assert.Equal(t, "app.delivery_tracking.dm_gm_not_allowed.app_error", appErr.Id)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
@@ -134,22 +136,26 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 		user2 := th.CreateUser(t)
 		gmChannel := th.CreateGroupChannel(t, user1, user2)
 
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{gmChannel.Id},
 		})
 
-		require.NotNil(t, appErr)
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		assert.Equal(t, "app.delivery_tracking.dm_gm_not_allowed.app_error", appErr.Id)
 	})
 
 	t.Run("rejects nonexistent channels", func(t *testing.T) {
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{model.NewId()},
 		})
 
-		require.NotNil(t, appErr)
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		assert.Equal(t, "app.delivery_tracking.invalid_channel.app_error", appErr.Id)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
@@ -163,11 +169,11 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 		})
 
 		valid := th.CreateChannel(t, th.BasicTeam)
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{valid.Id, model.NewId()},
 		})
-		require.NotNil(t, appErr)
+		require.Error(t, err)
 
 		stored, err := th.App.Srv().Store().DeliveryTracking().GetTrackedChannelIDs(th.Context)
 		require.NoError(t, err)
@@ -178,11 +184,11 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 	t.Run("duplicate ids are accepted and stored once", func(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{channel.Id, channel.Id},
 		})
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 
 		stored, err := th.App.Srv().Store().DeliveryTracking().GetTrackedChannelIDs(th.Context)
 		require.NoError(t, err)

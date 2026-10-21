@@ -152,12 +152,12 @@ func TestPushFingerprintsDifferByCode(t *testing.T) {
 	t.Parallel()
 
 	blank := pushSnapshot(true, "")
-	require.Equal(t, healthcheck.StateFiring, evalPushEmptyURL(blank)[0].State)
-	require.Equal(t, healthcheck.StateResolved, evalPushBadScheme(blank)[0].State)
+	require.Equal(t, healthcheck.StateFiring, pushEmptyURL.Eval(blank)[0].State)
+	require.Equal(t, healthcheck.StateResolved, pushBadScheme.Eval(blank)[0].State)
 
 	httpURL := pushSnapshot(true, "http://push.example.com")
-	require.Equal(t, healthcheck.StateResolved, evalPushEmptyURL(httpURL)[0].State)
-	require.Equal(t, healthcheck.StateFiring, evalPushBadScheme(httpURL)[0].State)
+	require.Equal(t, healthcheck.StateResolved, pushEmptyURL.Eval(httpURL)[0].State)
+	require.Equal(t, healthcheck.StateFiring, pushBadScheme.Eval(httpURL)[0].State)
 
 	require.Equal(t, pushEmptyURL.Subject, pushBadScheme.Subject)
 	assert.NotEqual(t,

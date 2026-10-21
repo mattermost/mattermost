@@ -153,9 +153,10 @@ export async function findPolicyRow(scope: Page | Locator, policyName: string): 
 export async function setToggle(page: Page, on: boolean): Promise<void> {
     const toggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
     await toggle.waitFor({state: 'visible', timeout: 10000});
-    const pressed = (await toggle.getAttribute('aria-pressed')) === 'true';
-    if (pressed !== on) {
-        await toggle.click();
+    if (on) {
+        await toggle.check({force: true});
+    } else {
+        await toggle.uncheck({force: true});
     }
 }
 
