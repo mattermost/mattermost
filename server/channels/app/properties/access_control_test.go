@@ -278,7 +278,9 @@ func TestLinkedFieldSyncLock(t *testing.T) {
 					assert.Equal(t, model.PermissionLevelNone, linked.Permissions.Restrictions.Value.Write)
 					syncGrant := linked.Permissions.MatchingGrant(model.PropertyOwnerTypeService, syncAttr, "", model.PropertyActionValueWrite)
 					require.NotNil(t, syncGrant)
-					assert.Equal(t, []string{model.PropertyActionFieldWrite, model.PropertyActionValueWrite}, syncGrant.Allow)
+					// Every action but option.read, which a linked field never grants:
+					// the sync reads the template's options through the template's grant.
+					assert.Equal(t, []string{model.PropertyActionFieldWrite, model.PropertyActionOptionWrite, model.PropertyActionValueRead, model.PropertyActionValueWrite}, syncGrant.Allow)
 					if wildcard := wildcardPlugin(linked.Permissions); wildcard != nil {
 						assert.NotContains(t, wildcard.Allow, model.PropertyActionValueWrite)
 					}
@@ -293,7 +295,10 @@ func TestLinkedFieldSyncLock(t *testing.T) {
 					model.PropertyOwner{Type: model.PropertyOwnerTypeUser, ID: newOwner})
 				updated, _, err := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, submitted)
 				require.NoError(t, err)
-				assert.NotNil(t, updated.Permissions.MatchingGrant(model.PropertyOwnerTypeUser, newOwner, "", model.PropertyActionValueWrite))
+				// A user owner converts to no grant, and stays in the v2 view.
+				assert.Contains(t, model.GetPropertyFieldOwners(model.ProjectLegacyPermissions(updated)),
+					model.PropertyOwner{Type: model.PropertyOwnerTypeUser, ID: newOwner})
+				assert.Nil(t, updated.Permissions.MatchingGrant(model.PropertyOwnerTypeService, syncAttr, "", model.PropertyActionValueWrite))
 			})
 		})
 	}

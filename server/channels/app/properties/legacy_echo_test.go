@@ -278,13 +278,14 @@ func TestLegacyEchoesUnderProductionHooks(t *testing.T) {
 				}
 				field := ownerField(th.CPAGroupID, "max_owners_"+model.NewId(), "plugin-owner", nil)
 				field.Attrs[model.PropertyAttrsOwners] = owners
-				// The sync lock's grant is the synthetic owner the projection
-				// adds; the plugin wildcard is never projected.
+				// The sync lock's grant and the plugin wildcard are derived from
+				// the field's attrs, so the projection leaves both out and
+				// reports the real owners alone, which fit the cap.
 				field.Attrs[model.PropertyFieldAttrLDAP] = "ldap-attr"
 				created, cErr := th.service.CreatePropertyField(rctxAdmin, field)
 				require.NoError(t, cErr)
-				require.Greater(t, len(model.GetPropertyFieldOwners(model.ProjectLegacyPermissions(created))), model.PropertyOwnersMaxPerField,
-					"the projection must report a synthetic owner on top of the real ones")
+				require.Len(t, model.GetPropertyFieldOwners(model.ProjectLegacyPermissions(created)), model.PropertyOwnersMaxPerField,
+					"the projection must report no synthetic owner on top of the real ones")
 
 				require.NoError(t, echo(t, created.ID))
 				assert.ElementsMatch(t, created.Permissions.Grants, raw(t, created.ID).Permissions.Grants)

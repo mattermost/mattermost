@@ -1703,8 +1703,9 @@ func grantAllowFor(t *testing.T, p *model.Permissions, ownerType, ownerID string
 func TestMigrateBackfillPropertyPermissions_LinkedFieldDropsOptionReadGrant(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 
-	const ownerID = "owner-user"
-	owners := []model.PropertyOwner{{Type: model.PropertyOwnerTypeUser, ID: ownerID}}
+	// A plugin owner: a user owner converts to no grant at all.
+	const ownerID = "owner-plugin"
+	owners := []model.PropertyOwner{{Type: model.PropertyOwnerTypePlugin, ID: ownerID}}
 
 	template := createLegacyPropertyField(t, th, th.Context, &model.PropertyField{
 		GroupID:    th.CPAGroupID,
@@ -1746,11 +1747,11 @@ func TestMigrateBackfillPropertyPermissions_LinkedFieldDropsOptionReadGrant(t *t
 		model.PropertyActionOptionWrite,
 		model.PropertyActionValueRead,
 		model.PropertyActionValueWrite,
-	}, grantAllowFor(t, updatedTemplate.Permissions, model.PropertyOwnerTypeUser, ownerID))
+	}, grantAllowFor(t, updatedTemplate.Permissions, model.PropertyOwnerTypePlugin, ownerID))
 
 	updatedLinked, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, linked.ID)
 	require.NoError(t, err)
-	linkedAllow := grantAllowFor(t, updatedLinked.Permissions, model.PropertyOwnerTypeUser, ownerID)
+	linkedAllow := grantAllowFor(t, updatedLinked.Permissions, model.PropertyOwnerTypePlugin, ownerID)
 	assert.NotContains(t, linkedAllow, model.PropertyActionOptionRead)
 	assert.ElementsMatch(t, []string{
 		model.PropertyActionFieldWrite,
