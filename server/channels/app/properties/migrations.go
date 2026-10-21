@@ -528,40 +528,52 @@ func (ps *PropertyService) MigrateCPAFieldsToGlobalAttributes(rctx request.CTX) 
 // it is left untouched so that an administrator's revocation of the grant is not
 // undone on reboot.
 func (ps *PropertyService) ConvertSystemOwnedFields(rctx request.CTX, groupID, groupName string) error {
-	fields, err := ps.searchPropertyFields(rctx, groupID, model.PropertyFieldSearchOpts{PerPage: propertyPermissionsBackfillPageSize})
-	if err != nil {
-		return fmt.Errorf("ConvertSystemOwnedFields: failed to search fields: %w", err)
-	}
-
 	convertAttrs, err := ps.groupConvertsAttrs(groupID)
 	if err != nil {
 		return fmt.Errorf("ConvertSystemOwnedFields: %w", err)
 	}
 
-	var toUpdate []*model.PropertyField
-	for _, field := range fields {
-		grant := model.SystemOwnedFieldGrant(groupName, field.Name)
-		if grant == nil {
-			continue
+	var cursor model.PropertyFieldSearchCursor
+	for {
+		fields, err := ps.searchPropertyFields(rctx, groupID, model.PropertyFieldSearchOpts{
+			PerPage: propertyPermissionsBackfillPageSize,
+			Cursor:  cursor,
+		})
+		if err != nil {
+			return fmt.Errorf("ConvertSystemOwnedFields: failed to search fields: %w", err)
+		}
+		if len(fields) == 0 {
+			return nil
 		}
 
-		if field.Permissions != nil {
-			continue
+		last := fields[len(fields)-1]
+		cursor = model.PropertyFieldSearchCursor{PropertyFieldID: last.ID, CreateAt: last.CreateAt}
+
+		var toUpdate []*model.PropertyField
+		for _, field := range fields {
+			grant := model.SystemOwnedFieldGrant(groupName, field.Name)
+			if grant == nil {
+				continue
+			}
+
+			if field.Permissions != nil {
+				continue
+			}
+
+			field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: convertAttrs})
+			field.Permissions.Grants = append(field.Permissions.Grants, *grant)
+			toUpdate = append(toUpdate, field)
+		}
+		if len(toUpdate) > 0 {
+			if _, _, _, err := ps.updatePropertyFields(rctx, groupID, toUpdate); err != nil {
+				return fmt.Errorf("ConvertSystemOwnedFields: failed to persist converted fields: %w", err)
+			}
 		}
 
-		field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: convertAttrs})
-		field.Permissions.Grants = append(field.Permissions.Grants, *grant)
-		toUpdate = append(toUpdate, field)
+		if len(fields) < propertyPermissionsBackfillPageSize {
+			return nil
+		}
 	}
-	if len(toUpdate) == 0 {
-		return nil
-	}
-
-	_, _, _, err = ps.updatePropertyFields(rctx, groupID, toUpdate)
-	if err != nil {
-		return fmt.Errorf("ConvertSystemOwnedFields: failed to persist converted fields: %w", err)
-	}
-	return nil
 }
 
 // permissionsBackfill holds the state one backfill run carries across pages:
@@ -649,11 +661,11 @@ func logUnconvertedField(rctx request.CTX, field *model.PropertyField, err error
 }
 
 // propertyPermissionsBackfillPageSize bounds how many fields one page of
-// MigrateBackfillPropertyPermissions reads and writes. Unlike the CPA display
-// name backfill, this one runs over every group, some of which (boards,
-// content_flagging) can hold far more fields than a single page should carry.
-// A var, not a const, so a test can shrink it to make paging happen over a
-// handful of fields instead of hundreds.
+// MigrateBackfillPropertyPermissions, or ConvertSystemOwnedFields, reads and
+// writes. Unlike the CPA display name backfill, this one runs over every group,
+// some of which (boards, content_flagging) can hold far more fields than a
+// single page should carry. A var, not a const, so a test can shrink it to
+// make paging happen over a handful of fields instead of hundreds.
 var propertyPermissionsBackfillPageSize = 200
 
 // MigrateBackfillPropertyPermissions gives every PropertyField across every
