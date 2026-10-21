@@ -6,6 +6,7 @@ package printer
 import (
 	"bufio"
 	"bytes"
+	"os"
 	"testing"
 	"text/template"
 
@@ -158,4 +159,27 @@ func TestFlushPlain(t *testing.T) {
 		assert.Equal(t, "test string-1test string-2", string(*mw))
 		assert.Empty(t, GetLines(), 0)
 	})
+}
+
+func TestFlushErrors(t *testing.T) {
+	ew := &mockWriter{}
+	printer.eWriter = ew
+	t.Cleanup(func() { printer.eWriter = os.Stderr })
+	Clean()
+
+	PrintError("\x1b]0;pwned\x07bad \x1b[31mred\x1b[0m error")
+
+	_ = Flush()
+	assert.Equal(t, "bad red error\n", string(*ew))
+}
+
+func TestPrintWarningSanitizes(t *testing.T) {
+	ew := &mockWriter{}
+	printer.eWriter = ew
+	t.Cleanup(func() { printer.eWriter = os.Stderr })
+
+	PrintWarning("\x1b]0;pwned\x07bad warning")
+
+	assert.NotContains(t, string(*ew), "pwned")
+	assert.Contains(t, string(*ew), "bad warning")
 }

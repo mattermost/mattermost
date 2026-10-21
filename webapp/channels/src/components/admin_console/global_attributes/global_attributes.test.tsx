@@ -35,6 +35,12 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details');
     });
 
+    test('disables the New attribute button when the page is read-only', async () => {
+        renderWithContext(<GlobalAttributes disabled={true}/>);
+
+        expect(screen.getByRole('button', {name: 'New attribute'})).toBeDisabled();
+    });
+
     test('renders the header and section frame, and renders the attributes table', async () => {
         renderWithContext(<GlobalAttributes/>);
 

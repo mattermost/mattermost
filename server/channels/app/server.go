@@ -1208,10 +1208,7 @@ func (s *Server) Start() error {
 	go func() {
 		var err error
 		if *s.platform.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
-			tlsConfig := &tls.Config{
-				PreferServerCipherSuites: true,
-				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
-			}
+			tlsConfig := &tls.Config{}
 
 			switch *s.platform.Config().ServiceSettings.TLSMinVer {
 			case "1.0":
@@ -2067,6 +2064,15 @@ func runLeaderTasks(a *App) {
 		}
 		fn := func() { a.ProcessScheduledPosts(rctx) }
 		return model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
+	})
+
+	a.ch.healthCheckTask.runOnLeader(a, "Health Check", func() *model.ScheduledTask {
+		fn := func() {
+			if err := a.RunHealthCheck(rctx); err != nil {
+				a.Log().Error("Health check failed", mlog.Err(err))
+			}
+		}
+		return model.CreateRecurringTask("Health Check", fn, healthCheckInterval)
 	})
 }
 

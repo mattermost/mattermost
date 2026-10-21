@@ -47,9 +47,14 @@ async function main() {
   }
 
   await fs.mkdir(OUT_DIR, {recursive: true});
+  // Viewport width has to be wide enough that the diagram's wrapper
+  // (max 1240px, minus the docs sidebar and reading-column padding)
+  // stays above the 900px container-query breakpoint. Below that the
+  // component collapses to a 2-column mobile layout and the resulting
+  // PNG doesn't match what visitors see on desktop.
   const browser = await chromium.launch();
   const context = await browser.newContext({
-    viewport: {width: 1280, height: 900},
+    viewport: {width: 1728, height: 900},
     deviceScaleFactor: 2,
   });
 
@@ -59,6 +64,19 @@ async function main() {
       console.log(`→ ${variant} :: ${url}`);
       const page = await context.newPage();
       await page.goto(url, {waitUntil: 'networkidle'});
+
+      // Hide Docusaurus site chrome (navbar, sidebar, TOC, footer)
+      // before screenshotting. Playwright's element screenshot captures
+      // whatever pixels sit inside the element's bounding box, so any
+      // `position: sticky` / `position: fixed` chrome above the
+      // diagram bleeds into the output when the element is tall enough
+      // that Playwright has to scroll to expose it.
+      await page.addStyleTag({content: `
+        .navbar, .theme-doc-sidebar-container, .theme-doc-toc-mobile,
+        .theme-doc-toc-desktop, .theme-doc-footer, footer.footer,
+        .pagination-nav { display: none !important; }
+        .main-wrapper { padding-top: 0 !important; }
+      `});
 
       // Wait for the *specific* variant to be committed to the DOM.
       // The initial paint is General, and networkidle can fire before

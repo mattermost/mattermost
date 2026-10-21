@@ -134,6 +134,18 @@ func (us SqlUploadSessionStore) GetForUser(userId string) ([]*model.UploadSessio
 	return sessions, nil
 }
 
+func (us SqlUploadSessionStore) PermanentDeleteByUser(userId string) error {
+	query := us.getQueryBuilder().
+		Delete("UploadSessions").
+		Where(sq.Eq{"UserId": userId})
+
+	if _, err := us.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "SqlUploadSessionStore.PermanentDeleteByUser: failed to delete sessions with userId=%s", userId)
+	}
+
+	return nil
+}
+
 func (us SqlUploadSessionStore) Delete(id string) error {
 	if !model.IsValidId(id) {
 		return errors.New("SqlUploadSessionStore.Delete: id is not valid")

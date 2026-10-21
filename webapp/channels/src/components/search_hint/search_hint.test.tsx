@@ -20,6 +20,7 @@ describe('components/SearchHint', () => {
             general: {
                 config: {
                     EnableFileAttachments: 'true',
+                    EnableFileSearch: 'true',
                 },
             },
             users: {

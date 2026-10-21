@@ -14,7 +14,7 @@ exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
   <div
     aria-labelledby="appsModalLabel"
     aria-modal="true"
-    class="fade in modal"
+    class="fade apps-form-modal in modal"
     id="appsModal"
     role="dialog"
     style="display: block; padding-right: 0px;"

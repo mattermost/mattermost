@@ -11,6 +11,7 @@ import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities
 import * as Menu from 'components/menu';
 
 import {attributeToken, tokenSuggestions} from './banner_template';
+import UnsetValueIndicator, {unsetValueMessage} from './unset_value_indicator';
 
 import './banner_token_controls.scss';
 
@@ -66,15 +67,41 @@ const BannerTokenControls = ({attributes, onInsertToken, disabled}: Props) => {
                     }),
                 }}
             >
-                {suggestions.map((suggestion) => (
-                    <Menu.Item
-                        key={suggestion.name}
-                        id={`bannerAttributeToken-${suggestion.name}`}
-                        data-testid={`bannerAttributeToken-${suggestion.name}`}
-                        onClick={() => onInsertToken(attributeToken(suggestion.name))}
-                        labels={<span>{suggestion.label}</span>}
-                    />
-                ))}
+                {suggestions.map((suggestion) => {
+                    // An unset attribute inserts a token that renders nothing, so it is
+                    // flagged before the author picks it.
+                    const valueStatus = suggestion.value ? formatMessage(
+                        {id: 'channel_attributes.banner.token_value_set', defaultMessage: 'Value on this channel: {value}'},
+                        {value: suggestion.value},
+                    ) : formatMessage(unsetValueMessage);
+
+                    return (
+                        <Menu.Item
+                            key={suggestion.name}
+                            id={`bannerAttributeToken-${suggestion.name}`}
+                            data-testid={`bannerAttributeToken-${suggestion.name}`}
+                            onClick={() => onInsertToken(attributeToken(suggestion.name))}
+
+                            // One child, not two: Menu.Item reads two children as a
+                            // primary and secondary label and top-aligns the row, which
+                            // would lift the trailing icon off the text's centre line.
+                            labels={
+                                <span>
+                                    <span>
+                                        {suggestion.label}
+
+                                        {/* The icon is not the only carrier of the state. The
+                                            space keeps the label and status apart when read. */}
+                                        <span className='sr-only'>{` ${valueStatus}`}</span>
+                                    </span>
+                                </span>
+                            }
+                            trailingElements={suggestion.value ? undefined : (
+                                <UnsetValueIndicator testId={`bannerAttributeTokenUnset-${suggestion.name}`}/>
+                            )}
+                        />
+                    );
+                })}
             </Menu.Container>
         </div>
     );

@@ -106,7 +106,7 @@ describe('Verify users can receive notification on browser', () => {
         // # Set Desktop Notification preference to Nothing
         cy.get('#CustomizeYourExperienceTour > button').click();
         cy.get('#desktopAndMobileTitle').click();
-        cy.get('#sendDesktopNotificationsSection input[type=radio]').last().check();
+        cy.get('#sendDesktopNotificationsSection input[type=radio]').last().check({force: true});
         cy.get('#saveSetting').click();
         cy.wait(500);
         triggertestNotification();

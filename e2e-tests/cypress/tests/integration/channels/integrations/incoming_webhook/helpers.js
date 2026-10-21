@@ -12,40 +12,29 @@ export function enableUsernameAndIconOverride(enable) {
 }
 
 export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
-    // Patch only the two override flags. Visiting Integration Management and
-    // clicking Save fails when leftover config already matches (Save stays
-    // disabled). Do not use apiUpdateConfig: it merges e2e defaults. Do not
-    // GET-then-full-PUT /api/v4/config: a stale snapshot can overwrite other
-    // concurrent config changes.
-    cy.apiGetConfig().then(({config}) => {
-        if (
-            config.ServiceSettings.EnablePostUsernameOverride === enableUsername &&
-            config.ServiceSettings.EnablePostIconOverride === enableIcon
-        ) {
-            return;
-        }
+    // # Visit integration management at system console and change override values
+    cy.visit('/admin_console/integrations/integration_management');
 
-        cy.getCookie('MMCSRF').then((csrfCookie) => {
-            const headers = {'X-Requested-With': 'XMLHttpRequest'};
-            if (csrfCookie?.value) {
-                headers['X-CSRF-Token'] = csrfCookie.value;
-            }
-            cy.request({
-                method: 'PUT',
-                url: '/api/v4/config/patch',
-                headers,
-                body: {
-                    ServiceSettings: {
-                        EnablePostUsernameOverride: enableUsername,
-                        EnablePostIconOverride: enableIcon,
-                    },
-                },
-            }).its('status').should('eq', 200).then(() => {
-                cy.apiGetConfig().then(({config: updated}) => {
-                    expect(updated.ServiceSettings.EnablePostUsernameOverride).to.equal(enableUsername);
-                    expect(updated.ServiceSettings.EnablePostIconOverride).to.equal(enableIcon);
-                });
-            });
-        });
+    // Each option is a radio pair (testid suffixed 'true'/'false'). Only click the ones not
+    // already in the desired state: a sibling spec can leave this setting already matching,
+    // and clicking an already-checked radio doesn't mark the form dirty, so unconditionally
+    // waiting for Save to become enabled would time out.
+    checkIfNotAlreadyChecked('ServiceSettings.EnablePostUsernameOverride' + enableUsername);
+    checkIfNotAlreadyChecked('ServiceSettings.EnablePostIconOverride' + enableIcon);
+
+    // # Save the settings only if something actually changed
+    cy.get('body').then(($body) => {
+        if ($body.find('#saveSetting:not(:disabled)').length > 0) {
+            cy.get('#saveSetting').click({force: true});
+            cy.get('#saveSetting').should('be.disabled');
+        }
+    });
+}
+
+function checkIfNotAlreadyChecked(testId) {
+    cy.findByTestId(testId).then(($el) => {
+        if (!$el.prop('checked')) {
+            cy.wrap($el).check({force: true});
+        }
     });
 }
