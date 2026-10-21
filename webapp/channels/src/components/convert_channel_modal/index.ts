@@ -7,7 +7,21 @@ import type {Dispatch} from 'redux';
 
 import {updateChannelPrivacy} from 'mattermost-redux/actions/channels';
 
+import {isBoardChannel} from 'utils/channel_kind';
+
+import type {GlobalState} from 'types/store';
+
 import ConvertChannelModal from './convert_channel_modal';
+
+type OwnProps = {
+    channelId: string;
+};
+
+function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
+    return {
+        isBoard: isBoardChannel(state, {id: ownProps.channelId}),
+    };
+}
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
@@ -17,4 +31,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(null, mapDispatchToProps)(ConvertChannelModal);
+export default connect(mapStateToProps, mapDispatchToProps)(ConvertChannelModal);

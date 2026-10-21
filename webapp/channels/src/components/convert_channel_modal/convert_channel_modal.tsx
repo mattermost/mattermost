@@ -16,6 +16,11 @@ type Props = {
     channelId: string;
 
     /**
+     * Whether the channel is a board, so the modal says "board" rather than "channel"
+     */
+    isBoard?: boolean;
+
+    /**
      * Function injected by ModalController to be called when the modal can be unmounted
      */
     onExited: () => void;
@@ -53,6 +58,7 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
     render() {
         const {
             channelDisplayName,
+            isBoard,
             onExited,
         } = this.props;
 
@@ -70,35 +76,67 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                         componentClass='h1'
                         id='convertChannelModalLabel'
                     >
-                        <FormattedMessage
-                            id='convert_channel.title'
-                            defaultMessage='Convert {display_name} to a Private Channel?'
-                            values={{
-                                display_name: channelDisplayName,
-                            }}
-                        />
+                        {isBoard ? (
+                            <FormattedMessage
+                                id='convert_channel.title.board'
+                                defaultMessage='Convert {display_name} to a Private Board?'
+                                values={{
+                                    display_name: channelDisplayName,
+                                }}
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='convert_channel.title'
+                                defaultMessage='Convert {display_name} to a Private Channel?'
+                                values={{
+                                    display_name: channelDisplayName,
+                                }}
+                            />
+                        )}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <p>
-                        <FormattedMessage
-                            id='convertChannel.question1'
-                            defaultMessage='When you convert <b>{display_name}</b> to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.'
-                            values={{
-                                display_name: channelDisplayName,
-                                b: (chunks) => <b>{chunks}</b>,
-                            }}
-                        />
+                        {isBoard ? (
+                            <FormattedMessage
+                                id='convertChannel.question1.board'
+                                defaultMessage='When you convert <b>{display_name}</b> to a private board, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private board is by invitation only.'
+                                values={{
+                                    display_name: channelDisplayName,
+                                    b: (chunks) => <b>{chunks}</b>,
+                                }}
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='convertChannel.question1'
+                                defaultMessage='When you convert <b>{display_name}</b> to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.'
+                                values={{
+                                    display_name: channelDisplayName,
+                                    b: (chunks) => <b>{chunks}</b>,
+                                }}
+                            />
+                        )}
                     </p>
                     <p>
-                        <FormattedMessage
-                            id='convertChannel.question3'
-                            defaultMessage='Are you sure you want to convert <b>{display_name}</b> to a private channel?'
-                            values={{
-                                display_name: channelDisplayName,
-                                b: (chunks) => <b>{chunks}</b>,
-                            }}
-                        />
+                        {isBoard ? (
+                            <FormattedMessage
+                                id='convertChannel.question3.board'
+                                defaultMessage='Are you sure you want to convert <b>{display_name}</b> to a private board?'
+                                values={{
+                                    display_name: channelDisplayName,
+                                    b: (chunks) => <b>{chunks}</b>,
+                                }}
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='convertChannel.question3'
+                                defaultMessage='Are you sure you want to convert <b>{display_name}</b> to a private channel?'
+                                values={{
+                                    display_name: channelDisplayName,
+                                    b: (chunks) => <b>{chunks}</b>,
+                                }}
+                            />
+                        )}
                     </p>
                 </Modal.Body>
                 <Modal.Footer>
@@ -121,10 +159,17 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                         autoFocus={true}
                         data-testid='convertChannelConfirm'
                     >
-                        <FormattedMessage
-                            id='convert_channel.confirm'
-                            defaultMessage='Yes, convert to private channel'
-                        />
+                        {isBoard ? (
+                            <FormattedMessage
+                                id='convert_channel.confirm.board'
+                                defaultMessage='Yes, convert to private board'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='convert_channel.confirm'
+                                defaultMessage='Yes, convert to private channel'
+                            />
+                        )}
                     </Button>
                 </Modal.Footer>
             </Modal>
