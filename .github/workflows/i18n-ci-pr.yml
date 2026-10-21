@@ -29,4 +29,10 @@ permissions:
 
 jobs:
   pr-ci:
+    permissions:
+      contents: read
+      id-token: write  # for chainguard (FIPS base image pull)
     uses: ./.github/workflows/i18n-ci-template.yml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
