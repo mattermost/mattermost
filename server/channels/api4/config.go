@@ -428,7 +428,7 @@ func getConfigHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	// The oldest entry on the page is compared with the one saved before it, so fetch one more.
-	entries, configs, appErr := c.App.GetConfigHistory(c.Params.Page*c.Params.PerPage, c.Params.PerPage+1)
+	history, appErr := c.App.GetConfigHistory(c.Params.Page*c.Params.PerPage, c.Params.PerPage+1)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -436,9 +436,18 @@ func getConfigHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	readableConfig := newReadableConfigFilter(c)
 	sanitize := c.App.ConfigSanitizer()
+	entries := make([]*model.ConfigHistoryEntry, len(history))
 	var newer *model.Config
-	for i, cfg := range configs {
-		cfg, appErr = readableConfig(cfg)
+	for i, saved := range history {
+		entries[i] = saved.ConfigHistoryEntry
+		if saved.LoadErr != nil {
+			// Listed without its changes, or those of the configuration saved after it.
+			c.Logger.Warn("Failed to load a saved configuration", mlog.String("config_id", saved.Id), mlog.Err(saved.LoadErr))
+			newer = nil
+			continue
+		}
+
+		cfg, appErr := readableConfig(saved.Config)
 		if appErr != nil {
 			c.Err = appErr
 			return

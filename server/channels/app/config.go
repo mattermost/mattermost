@@ -322,13 +322,13 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 }
 
 // GetConfigHistory returns the saved configurations, newest first, skipping the first offset,
-// and the configuration each one saved, loaded as GetHistoricalConfig loads it.
-func (a *App) GetConfigHistory(offset, limit int) ([]*model.ConfigHistoryEntry, []*model.Config, *model.AppError) {
-	entries, configs, err := a.Srv().platform.GetConfigHistory(offset, limit)
+// each with the configuration it saved, loaded as GetHistoricalConfig loads it.
+func (a *App) GetConfigHistory(offset, limit int) ([]*config.HistoryEntry, *model.AppError) {
+	history, err := a.Srv().platform.GetConfigHistory(offset, limit)
 	if err != nil {
-		return nil, nil, configHistoryAppError("GetConfigHistory", err)
+		return nil, configHistoryAppError("GetConfigHistory", err)
 	}
-	return entries, configs, nil
+	return history, nil
 }
 
 // GetHistoricalConfig returns the saved configuration with the given id, unsanitized, with the

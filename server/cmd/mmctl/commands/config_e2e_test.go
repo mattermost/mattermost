@@ -469,10 +469,10 @@ func newConfigHistoryCmd(perPage int, detailed bool) *cobra.Command {
 
 // latestConfigID returns the id of the active saved configuration.
 func (s *MmctlE2ETestSuite) latestConfigID() string {
-	entries, _, appErr := s.th.App.GetConfigHistory(0, 1)
+	history, appErr := s.th.App.GetConfigHistory(0, 1)
 	s.Require().Nil(appErr)
-	s.Require().Len(entries, 1)
-	return entries[0].Id
+	s.Require().Len(history, 1)
+	return history[0].Id
 }
 
 // storedConfig returns the active configuration as saved in the database. Unlike
@@ -539,6 +539,27 @@ func (s *MmctlE2ETestSuite) TestConfigHistoryCmd() {
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Contains(printer.GetLines()[0], "EmailSettings.SMTPPassword: [redacted]")
 		s.Require().Contains(printer.GetLines()[1], `EmailSettings.SMTPPassword: "" -> [redacted]`)
+	})
+
+	s.Run("Mark a saved configuration that can't be read", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+		id := model.NewId()
+		db := s.th.Server.Store().GetInternalMasterDB()
+		_, err := db.Exec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES ($1, $2, $3)", id, `{"ServiceSettings": {"SiteURL": 5}}`, model.GetMillis())
+		s.Require().NoError(err)
+		defer func() {
+			_, deleteErr := db.Exec("DELETE FROM Configurations WHERE Id = $1", id)
+			s.Require().NoError(deleteErr)
+		}()
+
+		err = configHistoryCmdF(s.th.SystemAdminClient, newConfigHistoryCmd(2, false), nil)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().NotContains(printer.GetLines()[0], "(can't be read)")
+		s.Require().Contains(printer.GetLines()[1], id)
+		s.Require().Contains(printer.GetLines()[1], "(can't be read)")
 	})
 }
 

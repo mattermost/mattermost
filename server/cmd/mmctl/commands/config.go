@@ -670,7 +670,7 @@ func configHistoryCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 			}
 			return formatConfigChange(change)
 		},
-	}).Parse(`{{.Id}}  {{savedAt .CreateAt}}{{if .Active}}  (active){{end}}{{range .Changes}}
+	}).Parse(`{{.Id}}  {{savedAt .CreateAt}}{{if .Active}}  (active){{end}}{{if .Unreadable}}  (can't be read){{end}}{{range .Changes}}
   {{change .}}{{end}}`))
 
 	for _, entry := range entries {

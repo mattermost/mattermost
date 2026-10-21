@@ -1206,6 +1206,44 @@ func TestGetConfigHistory(t *testing.T) {
 		assert.Equal(t, entries[1], page[0], "the oldest entry on a page should still list its changes")
 	})
 
+	t.Run("lists a configuration that can't be loaded", func(t *testing.T) {
+		entries, _, err := th.SystemAdminClient.GetConfigHistory(context.Background(), 0, 2)
+		require.NoError(t, err)
+		require.Len(t, entries, 2)
+
+		// Saved between the two newest configurations.
+		id := model.NewId()
+		db := th.Server.Store().GetInternalMasterDB()
+		_, err = db.Exec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES ($1, $2, $3)", id, `{"ServiceSettings": {"SiteURL": 5}}`, entries[1].CreateAt+1)
+		require.NoError(t, err)
+		defer func() {
+			_, deleteErr := db.Exec("DELETE FROM Configurations WHERE Id = $1", id)
+			require.NoError(t, deleteErr)
+		}()
+
+		page, _, err := th.SystemAdminClient.GetConfigHistory(context.Background(), 0, 1)
+		require.NoError(t, err)
+		require.Len(t, page, 1)
+		assert.Equal(t, entries[0].Id, page[0].Id)
+		assert.Nil(t, page[0].Changes, "the changes from a configuration that can't be loaded aren't known")
+
+		page, _, err = th.SystemAdminClient.GetConfigHistory(context.Background(), 1, 1)
+		require.NoError(t, err)
+		require.Len(t, page, 1)
+		assert.Equal(t, id, page[0].Id)
+		assert.True(t, page[0].Unreadable)
+		assert.Nil(t, page[0].Changes)
+
+		page, _, err = th.SystemAdminClient.GetConfigHistory(context.Background(), 2, 1)
+		require.NoError(t, err)
+		require.Len(t, page, 1)
+		assert.Equal(t, entries[1], page[0])
+
+		_, resp, err := th.SystemAdminClient.GetHistoricalConfig(context.Background(), id)
+		require.Error(t, err)
+		CheckInternalErrorStatus(t, resp)
+	})
+
 	t.Run("lists only the settings the user may read", func(t *testing.T) {
 		th.AddPermissionToRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
@@ -1244,10 +1282,10 @@ func TestGetConfigHistory(t *testing.T) {
 func TestGetHistoricalConfig(t *testing.T) {
 	th := setupConfigHistory(t)
 
-	entries, _, appErr := th.App.GetConfigHistory(0, 2)
+	history, appErr := th.App.GetConfigHistory(0, 2)
 	require.Nil(t, appErr)
-	require.Len(t, entries, 2)
-	oldConfigID := entries[1].Id
+	require.Len(t, history, 2)
+	oldConfigID := history[1].Id
 
 	t.Run("requires a system console read permission", func(t *testing.T) {
 		_, resp, err := th.Client.GetHistoricalConfig(context.Background(), oldConfigID)

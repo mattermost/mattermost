@@ -419,28 +419,37 @@ func (s *Store) CleanUp() error {
 	}
 }
 
-// GetHistory returns the saved configurations, newest first, skipping the first offset, and the
-// configuration each one saved, loaded as GetHistoricalConfig loads it.
+// HistoryEntry is a configuration saved by a DatabaseStore, as GetHistory lists it.
+type HistoryEntry struct {
+	*model.ConfigHistoryEntry
+	// Config is the saved configuration, loaded as GetHistoricalConfig loads it. It is nil when
+	// the configuration can't be loaded, with the reason in LoadErr.
+	Config  *model.Config
+	LoadErr error
+}
+
+// GetHistory returns the saved configurations, newest first, skipping the first offset. One that
+// can't be loaded is still listed, marked unreadable, so that it doesn't hide the others.
 // Only a DatabaseStore backing store keeps a history.
-func (s *Store) GetHistory(offset, limit int) ([]*model.ConfigHistoryEntry, []*model.Config, error) {
+func (s *Store) GetHistory(offset, limit int) ([]*HistoryEntry, error) {
 	bs, ok := s.backingStore.(*DatabaseStore)
 	if !ok {
-		return nil, nil, ErrHistoryNotSupported
+		return nil, ErrHistoryNotSupported
 	}
 
 	entries, values, err := bs.getHistory(offset, limit)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	configs := make([]*model.Config, len(values))
-	for i, value := range values {
-		if configs[i], err = loadHistoricalConfig(value); err != nil {
-			return nil, nil, errors.Wrapf(err, "failed to load configuration %s", entries[i].Id)
-		}
+	history := make([]*HistoryEntry, len(entries))
+	for i, entry := range entries {
+		cfg, loadErr := loadHistoricalConfig(values[i])
+		entry.Unreadable = loadErr != nil
+		history[i] = &HistoryEntry{ConfigHistoryEntry: entry, Config: cfg, LoadErr: loadErr}
 	}
 
-	return entries, configs, nil
+	return history, nil
 }
 
 // GetHistoricalConfig returns the saved configuration with the given id, loaded as Load would

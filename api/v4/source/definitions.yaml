@@ -2244,10 +2244,17 @@ components:
         active:
           description: Whether this is the configuration the server is using
           type: boolean
+        unreadable:
+          description: >
+            Whether the saved configuration can't be loaded, such as one that
+            isn't valid JSON. It can't be retrieved or rolled back to.
+          type: boolean
         changes:
           description: >
             The settings that changed from the configuration saved before this
-            one, or null for the oldest saved configuration
+            one, or null when they aren't known: for the oldest saved
+            configuration, for an unreadable one, and for one saved right after
+            an unreadable one
           type: array
           nullable: true
           items:
