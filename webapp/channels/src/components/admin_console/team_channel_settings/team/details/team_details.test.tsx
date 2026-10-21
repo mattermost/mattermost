@@ -1720,9 +1720,11 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
 
         test('re-validates an expression edited while the check was in flight', async () => {
             let resolveCheck: (errors: CELExpressionError[]) => void = () => {};
-            checkExpressionSpy.mockImplementation(() => new Promise<CELExpressionError[]>((resolve) => {
-                resolveCheck = resolve;
-            }));
+            checkExpressionSpy.
+                mockImplementationOnce(() => new Promise<CELExpressionError[]>((resolve) => {
+                    resolveCheck = resolve;
+                })).
+                mockResolvedValueOnce([{message: 'membership rules cannot reference session attributes: ip', line: 0, column: 0}]);
             const actions = renderEnforced();
             await screen.findByTestId('team-level-access-rules');
 
@@ -1732,7 +1734,8 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             resolveCheck([]);
 
             expect(await screen.findByText(invalidRulesMessage)).toBeInTheDocument();
-            expect(checkExpressionSpy).toHaveBeenCalledTimes(1);
+            expect(checkExpressionSpy).toHaveBeenCalledTimes(2);
+            expect(checkExpressionSpy).toHaveBeenLastCalledWith('user.session.ip == "1.2.3.4"', undefined, '123', true);
             expectNoWrites(actions);
         });
 

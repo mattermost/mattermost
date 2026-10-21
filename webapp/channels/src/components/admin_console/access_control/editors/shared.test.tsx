@@ -608,6 +608,24 @@ describe('mergeSessionAttributes', () => {
     });
 });
 
+describe('isSimpleExpression with multiselect "has any of" groups', () => {
+    test('a parenthesized group is simple', () => {
+        expect(isSimpleExpression('("A" in user.attributes.program || "B" in user.attributes.program)')).toBe(true);
+    });
+
+    test('a lone group without parentheses, as the server re-emits it, is simple', () => {
+        expect(isSimpleExpression('"A" in user.attributes.program || "B" in user.attributes.program')).toBe(true);
+    });
+
+    test('a group without parentheses next to && is not simple', () => {
+        expect(isSimpleExpression('"A" in user.attributes.program || "B" in user.attributes.program && user.attributes.dept == "Eng"')).toBe(false);
+    });
+
+    test('a bare OR of other conditions is not simple', () => {
+        expect(isSimpleExpression('user.attributes.dept == "Eng" || user.attributes.dept == "Sales"')).toBe(false);
+    });
+});
+
 describe('isSimpleExpression / isSimpleCondition with session attributes', () => {
     test('session equality condition is simple', () => {
         expect(isSimpleCondition('user.session.ip_address == "10.0.0.1"')).toBe(true);
