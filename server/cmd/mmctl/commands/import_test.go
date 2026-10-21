@@ -150,6 +150,50 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 		s.Empty(printer.GetErrorLines())
 		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
 	})
+
+	s.Run("surfaces unmatched users from a scoped import", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Id: model.NewId(),
+			Data: map[string]string{
+				"unmatched_users_count":  "3",
+				"unmatched_users_report": "import/abc.zip.unmatched-users.csv",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			GetJob(context.TODO(), mockJob.Id).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
+		s.Require().Nil(err)
+		s.Empty(printer.GetErrorLines())
+		s.Require().Len(printer.GetLines(), 3)
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+		s.Contains(printer.GetLines()[1], "3 user(s) could not be matched")
+		s.Contains(printer.GetLines()[2], "import/abc.zip.unmatched-users.csv")
+	})
+
+	s.Run("no unmatched-users notice when count is zero", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Id:   model.NewId(),
+			Data: map[string]string{"unmatched_users_count": "0"},
+		}
+
+		s.client.
+			EXPECT().
+			GetJob(context.TODO(), mockJob.Id).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
