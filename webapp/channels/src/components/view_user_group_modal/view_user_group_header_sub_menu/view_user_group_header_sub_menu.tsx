@@ -4,6 +4,8 @@
 import React, {useCallback} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 
+import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Group} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -14,6 +16,8 @@ import UpdateUserGroupModal from 'components/update_user_group_modal';
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {ModalData} from 'types/actions';
+
+const UserGroupActionsMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'medium'});
 
 export type Props = {
     group: Group;
@@ -81,15 +85,19 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
     }, [group.id, actions.archiveGroup, backButtonCallback, onExited]);
 
     const {formatMessage} = useIntl();
+    const menuLabel = formatMessage({id: 'view_user_group_header_sub_menu.menuAriaLabel', defaultMessage: 'User group actions'});
 
     return (
         <div className='details-action'>
             <Menu.Container
                 menuButton={{
                     id: `detailsCustomWrapper-${group.id}`,
-                    class: 'btn btn-icon',
-                    children: (<i className='icon icon-dots-vertical'/>),
-                    'aria-label': formatMessage({id: 'view_user_group_header_sub_menu.menuAriaLabel', defaultMessage: 'User group actions'}),
+                    as: UserGroupActionsMenuTrigger,
+                    children: <Icon glyph={<DotsVerticalIcon/>}/>,
+                    'aria-label': menuLabel,
+                }}
+                menuButtonTooltip={{
+                    text: menuLabel,
                 }}
                 menu={{
                     id: 'details-group-actions-menu',

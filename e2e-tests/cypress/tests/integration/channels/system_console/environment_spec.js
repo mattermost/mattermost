@@ -40,17 +40,17 @@ describe('Environment', () => {
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
             // # Verify upload icon button is visible
-            cy.get('i[title="Edit Icon"]').should('be.visible');
+            cy.get('i.icon-pencil-outline[title="Edit Icon"]').should('be.visible');
 
             // # Upload a file on center view
             cy.findByTestId('uploadPicture').attachFile(mattermostIcon);
 
             // after uploading the picture the save button must be disabled
             cy.uiSave().wait(TIMEOUTS.HALF_SEC);
-
-            // # Close the modal
-            cy.get('button[aria-label="Close"]').should('be.visible').click();
         });
+
+        // # Close the modal (outside within — helper queries from document body)
+        cy.uiCloseTeamSettingsModal();
 
         // Validate that the image is being displayed
         cy.get(`#${testTeam.name}TeamButton`).scrollIntoView().within(() => {
@@ -69,11 +69,11 @@ describe('Environment', () => {
     it('MM-T960 - Web server mode - Webserver Uncompressed', () => {
         cy.visit('/admin_console/environment/web_server');
 
-        // # Click dropdown to open selection
-        cy.findByTestId('ServiceSettings.WebserverModedropdown').select('Uncompressed');
+        // # Select by option value (display labels are localized)
+        cy.findByTestId('ServiceSettings.WebserverModedropdown').select('uncompressed');
 
         // # Click Save button to save the settings
-        cy.get('#saveSetting').click().wait(TIMEOUTS.ONE_SEC);
+        cy.get('#saveSetting').should('be.enabled').click().wait(TIMEOUTS.ONE_SEC);
 
         // # Navigate to a channel
         cy.visit(townsquareLink);
@@ -84,17 +84,17 @@ describe('Environment', () => {
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
             // # Verify upload icon button is visible
-            cy.get('i[title="Edit Icon"]').should('be.visible');
+            cy.get('i.icon-pencil-outline[title="Edit Icon"]').should('be.visible');
 
             // # Upload a file on center view
             cy.findByTestId('uploadPicture').attachFile(mattermostIcon);
 
             // * After uploading the picture the save button must be disabled
             cy.uiSave().wait(TIMEOUTS.HALF_SEC);
-
-            // # Close the modal
-            cy.get('button[aria-label="Close"]').should('be.visible').click();
         });
+
+        // # Close the modal (outside within — helper queries from document body)
+        cy.uiCloseTeamSettingsModal();
 
         // Validate that the image is being displayed
         cy.get(`#${testTeam.name}TeamButton`).scrollIntoView().within(() => {
@@ -113,11 +113,11 @@ describe('Environment', () => {
     it('MM-T961 - Web server mode - Webserver Disabled', () => {
         cy.visit('/admin_console/environment/web_server');
 
-        // # Click dropdown to open selection
-        cy.findByTestId('ServiceSettings.WebserverModedropdown').select('Disabled');
+        // # Select by option value (display labels are localized)
+        cy.findByTestId('ServiceSettings.WebserverModedropdown').select('disabled');
 
         // # Click Save button to save the settings
-        cy.get('#saveSetting').click().wait(TIMEOUTS.ONE_SEC);
+        cy.get('#saveSetting').should('be.enabled').click().wait(TIMEOUTS.ONE_SEC);
 
         // # Navigate to a channel
         cy.visit(townsquareLink);
@@ -128,17 +128,17 @@ describe('Environment', () => {
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
             // # Verify upload icon button is visible
-            cy.get('i[title="Edit Icon"]').should('be.visible');
+            cy.get('i.icon-pencil-outline[title="Edit Icon"]').should('be.visible');
 
             // # Upload a file on center view
             cy.findByTestId('uploadPicture').attachFile(mattermostIcon);
 
             // * After uploading the picture the save button must be disabled
             cy.uiSave().wait(TIMEOUTS.HALF_SEC);
-
-            // # Close the modal
-            cy.get('button[aria-label="Close"]').should('be.visible').click();
         });
+
+        // # Close the modal (outside within — helper queries from document body)
+        cy.uiCloseTeamSettingsModal();
 
         // Validate that the image is being displayed
         cy.get(`#${testTeam.name}TeamButton`).scrollIntoView().within(() => {

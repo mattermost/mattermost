@@ -39,10 +39,7 @@ describe('Verify Accessibility Support in different Buttons', () => {
 
                 // * Verify accessibility support in Close icon
                 cy.get('#rhsCloseButton').
-                    should('have.attr', 'aria-label', 'Close').
-                    within(() => {
-                        cy.get('.icon-close').should('have.attr', 'aria-label', 'Close Sidebar Icon');
-                    });
+                    should('have.attr', 'aria-label', 'Close Sidebar Icon');
 
                 // # Close the sidebar
                 cy.get('#rhsCloseButton').click();

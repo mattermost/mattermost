@@ -5,8 +5,11 @@ import React from 'react';
 import type {ReactNode} from 'react';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import * as Menu from 'components/menu';
+
+const RecapMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small', padding: 'compact'});
 
 export type RecapMenuAction = {
     id: string;
@@ -25,7 +28,7 @@ interface RecapMenuProps {
 
 export const RecapMenu: React.FC<RecapMenuProps> = ({
     actions,
-    buttonClassName = 'recap-icon-button',
+    buttonClassName,
     ariaLabel = 'Recap options',
 }) => {
     const menuId = `recap-menu-${Math.random().toString(36).substr(2, 9)}`;
@@ -35,9 +38,13 @@ export const RecapMenu: React.FC<RecapMenuProps> = ({
         <Menu.Container
             menuButton={{
                 id: buttonId,
+                as: RecapMenuTrigger,
                 class: buttonClassName,
                 'aria-label': ariaLabel,
-                children: <DotsHorizontalIcon size={16}/>,
+                children: <Icon glyph={<DotsHorizontalIcon/>}/>,
+            }}
+            menuButtonTooltip={{
+                text: ariaLabel,
             }}
             menu={{
                 id: menuId,

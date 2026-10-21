@@ -6,6 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
@@ -31,6 +32,8 @@ import {copyToClipboard} from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import {useThreadRouting} from '../../hooks';
+
+const ThreadMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 type Props = {
     idPrefix: string;
@@ -103,14 +106,12 @@ function ThreadMenu({
         <Menu.Container
             menuButton={{
                 id: `${idPrefix}-${threadId}`,
-                class: 'btn btn-icon btn-sm',
+                as: ThreadMenuTrigger,
                 'aria-label': formatMessage({
                     id: 'threading.threadHeader.menu',
                     defaultMessage: 'More Actions',
                 }),
-                children: (
-                    <DotsVerticalIcon size={18}/>
-                ),
+                children: <Icon glyph={<DotsVerticalIcon/>}/>,
             }}
             menuButtonTooltip={{
                 text: formatMessage({

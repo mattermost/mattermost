@@ -111,10 +111,6 @@
     }
 
     .sidebar--right__expand {
-        i {
-            top: 0;
-        }
-
         .icon-arrow-collapse {
             display: none;
         }
@@ -219,11 +215,13 @@
             margin-left: -8px !important;
         }
 
-        .controls {
+        .controls,
+        .pull-right {
             display: flex;
+            flex: 0 0 auto;
             align-items: center;
             justify-content: flex-end;
-            gap: 4px;
+            gap: var(--spacing-xxxs, 4px);
         }
     }
 

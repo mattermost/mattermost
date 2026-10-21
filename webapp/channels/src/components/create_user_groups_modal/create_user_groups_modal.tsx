@@ -5,6 +5,10 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, type IntlShape, defineMessage, injectIntl} from 'react-intl';
 
+import {ArrowLeftIcon, CloseIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {GroupCreateWithUserIds} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -238,18 +242,19 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                         />
                     }
                 </div>
-                <Modal.Header closeButton={true}>
+                <Modal.Header closeButton={false}>
                     {
                         typeof this.props.backButtonCallback === 'function' ? (
-                            <div className='d-flex align-items-center'>
-                                <button
-                                    type='button'
-                                    className='modal-header-back-button btn btn-icon'
-                                    aria-label={this.props.intl.formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
-                                    onClick={this.doHide}
-                                >
-                                    <i className='icon icon-arrow-left'/>
-                                </button>
+                            <div className='user-groups-modal__header-title-row d-flex align-items-center'>
+                                <WithTooltip title={this.props.intl.formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}>
+                                    <IconButton
+                                        size='medium'
+                                        className='modal-header-back-button'
+                                        icon={<Icon glyph={<ArrowLeftIcon/>}/>}
+                                        aria-label={this.props.intl.formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
+                                        onClick={this.doHide}
+                                    />
+                                </WithTooltip>
                                 <Modal.Title
                                     componentClass='h1'
                                     id='createGroupsModalTitleWithBack'
@@ -272,7 +277,15 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                             </Modal.Title>
                         )
                     }
-
+                    <WithTooltip title={this.props.intl.formatMessage({id: 'generic.close', defaultMessage: 'Close'})}>
+                        <IconButton
+                            className='user-groups-modal__header-close'
+                            size='medium'
+                            icon={<Icon glyph={<CloseIcon/>}/>}
+                            onClick={this.doHide}
+                            aria-label={this.props.intl.formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
+                        />
+                    </WithTooltip>
                 </Modal.Header>
                 <Modal.Body>
                     <div className='user-groups-modal__content'>

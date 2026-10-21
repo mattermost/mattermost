@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import type {ShortcutDefinition} from '@mattermost/shared/components/tooltip';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -18,32 +19,61 @@ type Props = {
      */
     ariaLabelOverride?: string;
 
+    active?: boolean;
     buttonClass?: string;
     buttonId: string;
+
+    /**
+     * Numeric count shown after the icon via IconButton's count prop (Compass layout + typography).
+     */
+    count?: number;
+
+    /**
+     * Optional id applied to IconButton's count span for legacy e2e selectors.
+     */
+    countId?: string;
+
     children: React.ReactNode;
     onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
     tooltip: string;
     tooltipShortcut?: ShortcutDefinition;
     isRhsOpen?: boolean;
     pluginId?: string;
+    size?: React.ComponentProps<typeof IconButton>['size'];
 };
 
 const HeaderIconWrapper = (props: Props) => {
     const {
+        active,
         ariaLabelOverride,
         buttonClass,
         buttonId,
         children,
+        count,
+        countId,
         onClick,
         tooltip: tooltipText,
         tooltipShortcut,
         isRhsOpen,
         pluginId,
+        size = 'x-small',
     } = props;
 
+    const buttonRef = useRef<HTMLButtonElement>(null);
     const boardsEnabled = pluginId === suitePluginIds.focalboard;
 
     const ariaLabelText = ariaLabelOverride ?? tooltipText;
+
+    // IconButton does not expose a count element id; set it for legacy Cypress selectors.
+    useLayoutEffect(() => {
+        if (!buttonRef.current || count === undefined || !countId) {
+            return;
+        }
+        const countEl = buttonRef.current.querySelector('[class*="icon-button__count"]');
+        if (countEl) {
+            countEl.id = countId;
+        }
+    }, [count, countId]);
 
     return (
         <>
@@ -51,14 +81,17 @@ const HeaderIconWrapper = (props: Props) => {
                 title={isRhsOpen ? '' : tooltipText}
                 shortcut={tooltipShortcut}
             >
-                <button
+                <IconButton
+                    ref={buttonRef}
                     id={buttonId}
-                    aria-label={ariaLabelText}
-                    className={buttonClass || 'channel-header__icon'}
+                    size={size}
+                    className={buttonClass ?? 'channel-header__icon'}
+                    icon={children}
+                    count={count}
+                    active={active}
                     onClick={onClick}
-                >
-                    {children}
-                </button>
+                    aria-label={ariaLabelText}
+                />
             </WithTooltip>
             {boardsEnabled &&
                 <NewChannelWithBoardTourTip

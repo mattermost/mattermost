@@ -108,7 +108,7 @@ function userGroupsNotification() {
 
     cy.get('#button-plans').click();
 
-    cy.get('.close').click();
+    cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
 }
 
 function creatNewTeamNotification() {
@@ -125,7 +125,7 @@ function creatNewTeamNotification() {
     cy.get('@notifyButton').should('have.text', 'Admin notified!');
     cy.get('@notifyButton').click();
     cy.get('@notifyButton').should('have.text', 'Already notified!').should('be.disabled');
-    cy.get('.close').click();
+    cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
 }
 
 function createMessageLimitNotification() {
@@ -227,7 +227,7 @@ function assertNotification(featureId: string, minimumPlan: string, totalRequest
             cy.get(`#${postId}_at_sum_of_members_mention`).click().then(() => {
                 cy.get('#notificationFromMembersModal');
                 cy.get('#invitation_modal_title').contains(`Members that requested ${mapFeatureIdToId(featureId)}`).then(() => {
-                    cy.get('.close').click();
+                    cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
                 });
             });
         }
@@ -260,7 +260,7 @@ function assertTrialMessageButton() {
     cy.get('#learn_more_about_trial').contains('Learn more about trial');
     cy.get('#learn_more_about_trial').click();
     cy.get('.LearnMoreTrialModal').should('exist').then(() => {
-        cy.get('.close').click();
+        cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
     });
 
     cy.findByText('View upgrade options').click();

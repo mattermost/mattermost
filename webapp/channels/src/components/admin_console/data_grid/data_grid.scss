@@ -201,36 +201,27 @@
             .actionIcon {
                 width: 32px;
 
-                .MenuWrapper {
-                    width: 32px;
-                    margin-left: auto;
+                .retention-policy-actions {
+                    display: flex;
+                    width: 100%;
+                    justify-content: flex-end;
+                }
+
+                button {
+                    opacity: 0;
                 }
             }
 
-            .actionIcon a i {
-                display: none;
+            &:hover .actionIcon button,
+            .actionIcon:focus-within button,
+            .actionIcon button[aria-expanded='true'] {
+                opacity: 1;
             }
 
-            .actionIcon a {
-                display: flex;
-                width: 32px;
-                height: 32px;
-                flex-direction: column;
-                align-items: center;
-                padding: 8px;
-                border-radius: 4px;
-                margin-left: auto;
-                background: transparent;
-                color: rgba(var(--sys-center-channel-color-rgb), 0.75);
-                text-decoration: none;
-            }
-
-            &:hover .actionIcon a i {
-                display: flex;
-            }
-
-            .actionIcon a:hover {
-                background: rgba(var(--sys-center-channel-color-rgb), 0.08);
+            @media (hover: none) {
+                .actionIcon button {
+                    opacity: 1;
+                }
             }
 
             .DataGrid_cell {

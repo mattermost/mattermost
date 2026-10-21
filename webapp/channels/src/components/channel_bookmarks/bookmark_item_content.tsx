@@ -227,20 +227,38 @@ const Chip = styled.div<{$disableInteractions: boolean}>`
         }
     }
 
+    /* Opaque backing so the label doesn't show through the dot menu button's translucent states. */
+    &::before,
     button {
         position: absolute;
         right: 6px;
-        top: 3px;
+        top: 2px;
         opacity: 0;
         pointer-events: none;
+    }
+
+    &::before {
+        content: '';
+        width: 20px;
+        height: 20px;
+        border-radius: var(--radius-s);
+        background: color-mix(in srgb, var(--center-channel-bg), var(--center-channel-color) 8%);
+    }
+
+    button:focus-visible {
+        outline-offset: 0;
     }
 
     ${({$disableInteractions}) => !$disableInteractions && css`
         &:hover,
         &:focus-within,
         &:has([aria-expanded="true"]) {
+            &::before,
             button {
                 opacity: 1;
+            }
+
+            button {
                 pointer-events: auto;
             }
         }

@@ -23,10 +23,10 @@ export const allowOnlyUserFromSpecificDomain = (domain) => {
         // # Set the allowed domain as the one received as the param and save
         cy.focused().type(domain);
         cy.findByText('Save').should('be.visible').click();
-
-        // # Close the modal
-        cy.get('button[aria-label="Close"]').should('be.visible').click();
     });
+
+    // # Close the modal (outside within — helper queries from document body)
+    cy.uiCloseTeamSettingsModal();
 };
 
 export const inviteUserByEmail = (email) => {

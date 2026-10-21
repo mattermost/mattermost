@@ -1,20 +1,57 @@
 .view-user-groups-modal {
     .modal-content .modal-header {
         overflow: visible;
-        padding-top: 0;
-        padding-bottom: 0;
+        align-items: flex-start;
+        padding-right: 18px;
+        gap: 16px;
+
+        .user-groups-modal__header-title-block {
+            min-width: 0;
+            flex: 1;
+        }
 
         .modal-title {
             display: flex;
             align-items: center;
-            margin-left: 16px;
             gap: 4px;
+            overflow-wrap: anywhere;
 
             i,
             svg {
+                flex-shrink: 0;
                 margin-left: 5px;
                 color: rgba(var(--center-channel-color-rgb), 0.64);
             }
+        }
+
+        .user-groups-modal__header-subtitle {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 2px;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 12px;
+            gap: 8px;
+            line-height: 16px;
+
+            .group-source span {
+                padding: 0 4px;
+                border-radius: 4px;
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                font-size: 10px;
+                line-height: 16px;
+            }
+        }
+
+        .user-groups-modal__header-actions {
+            align-items: flex-start;
+            margin-right: 0;
+        }
+
+        .user-groups-modal__header-close {
+            position: static;
+            top: auto;
+            right: auto;
         }
 
         .details-action {
@@ -29,26 +66,6 @@
 
         .no-results__wrapper {
             padding-bottom: 60px;
-        }
-
-        .group-mention-name {
-            margin: -24px 0 24px 6px;
-
-            span.group-name {
-                margin-left: 70px;
-                color: rgba(var(--center-channel-color-rgb), 0.75);
-                font-size: 12px;
-                line-height: 12px;
-            }
-
-            span.group-source span {
-                padding: 0 4px;
-                border-radius: 4px;
-                margin-left: 8px;
-                background: rgba(var(--center-channel-color-rgb), 0.08);
-                font-size: 10px;
-                line-height: 16px;
-            }
         }
 
         .user-groups-search {

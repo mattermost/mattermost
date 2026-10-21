@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
@@ -11,10 +10,9 @@ import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/g
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import GroupRow from 'components/admin_console/group_settings/group_row';
+import PaginationButtons from 'components/common/pagination_buttons';
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/search_icon';
 
 import {Constants} from 'utils/constants';
@@ -71,7 +69,7 @@ const FILTER_STATE_SEARCH_KEY_MAPPING: FilterSearchMap = {
     filterIsUnlinked: {filter: 'is:notlinked', option: {is_linked: false}},
 };
 
-export default class GroupsList extends React.PureComponent<Props, State> {
+class GroupsList extends React.PureComponent<Props, State> {
     public static defaultProps: Partial<Props> = {
         groups: [],
     };
@@ -520,24 +518,12 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </div>
-                        <Button
-                            type='button'
-                            emphasis='tertiary'
-                            className={classNames({disabled: firstPage})}
-                            onClick={(e: any) => this.previousPage(e)}
-                            disabled={firstPage}
-                        >
-                            <PreviousIcon/>
-                        </Button>
-                        <Button
-                            type='button'
-                            emphasis='tertiary'
-                            className={classNames({disabled: lastPage})}
-                            onClick={(e: any) => this.nextPage(e)}
-                            disabled={lastPage}
-                        >
-                            <NextIcon/>
-                        </Button>
+                        <PaginationButtons
+                            onPrevious={(e) => this.previousPage(e)}
+                            onNext={(e) => this.nextPage(e)}
+                            disablePrevious={firstPage}
+                            disableNext={lastPage}
+                        />
                     </div>
                 }
             </div>
@@ -545,3 +531,4 @@ export default class GroupsList extends React.PureComponent<Props, State> {
     }
 }
 
+export default GroupsList;

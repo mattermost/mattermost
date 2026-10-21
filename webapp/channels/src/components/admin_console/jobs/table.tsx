@@ -10,8 +10,7 @@ import type {Job, JobType} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
+import PaginationButtons from 'components/common/pagination_buttons';
 
 import {JobTypes} from 'utils/constants';
 
@@ -198,24 +197,14 @@ class JobTable extends React.PureComponent<Props, State> {
                                     total: this.props.jobs.length,
                                 }}
                             />
-                            <button
-                                type='button'
-                                className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
-                                onClick={this.handlePrevPage}
-                                disabled={firstPage}
-                                aria-label={'Previous page'}
-                            >
-                                <PreviousIcon/>
-                            </button>
-                            <button
-                                type='button'
-                                className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
-                                onClick={this.handleNextPage}
-                                disabled={lastPage}
-                                aria-label={'Next page'}
-                            >
-                                <NextIcon/>
-                            </button>
+                            <PaginationButtons
+                                onPrevious={this.handlePrevPage}
+                                onNext={this.handleNextPage}
+                                disablePrevious={firstPage}
+                                disableNext={lastPage}
+                                previousButtonClassName='ml-2 prev'
+                                nextButtonClassName='next'
+                            />
                         </div>
                     </div>
                 );

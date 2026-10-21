@@ -4,6 +4,8 @@
 import {screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
+import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
+
 import type {Category} from 'components/emoji_picker/types';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
@@ -16,7 +18,7 @@ const defaultProps: Props = {
     category: {
         name: 'recent',
         emojiIds: ['emojiId'],
-        iconClassName: 'categoryClass',
+        icon: EmoticonHappyOutlineIcon,
         label: {
             id: 'categoryId',
             defaultMessage: categoryMessage,
@@ -42,7 +44,7 @@ describe('EmojiPickerCategory', () => {
 
         renderWithContext(<EmojiPickerCategory {...props}/>);
 
-        // TODO: Change when we actually disabled the element when enable is false
+        expect(screen.getByRole('button')).toBeDisabled();
         expect(screen.getByRole('button')).toHaveClass('emoji-picker__category disable');
     });
 
