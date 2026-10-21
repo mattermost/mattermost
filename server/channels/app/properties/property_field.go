@@ -196,26 +196,33 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 				return nil, fmt.Errorf("CreatePropertyField: %w", err)
 			}
 
-			// A caller pin wins over the template's value.write: a linked field may be
-			// writable at a lower level than the template it inherits from. Converted
-			// rather than copied so the sync, owner and protected rules still hold,
-			// which is why this runs after the sync attrs above are copied.
-			if callerPinnedValues {
-				pinned := model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: convertAttrs, Template: templatePermissionsOrZero(source)})
-				// Copied, not edited in place: the hook's Restrictions is the template's own.
-				var restrictions model.Restrictions
-				if field.Permissions.Restrictions != nil {
-					restrictions = *field.Permissions.Restrictions
-				}
-				restrictions.Value.Write = pinned.Restrictions.Value.Write
-				field.Permissions.Restrictions = &restrictions
-			}
+			// The hook copied the template's restrictions. The grants are the
+			// field's own, converted from its attrs as the backfill converts a
+			// linked field: its owners, protection, source plugin and the sync
+			// link copied above, which is why this runs after that copy. Master
+			// never applied a template's owners to a linked field, so taking the
+			// template's grants would open a field its own owners lock to every
+			// plugin, and lock a field the template's owners never locked. The
+			// conversion leaves option.read out of every grant, since it reads
+			// the template's options, and gives a synced user field the sync's
+			// grant and takes value.write off every other one.
+			converted := model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: convertAttrs, Template: templatePermissionsOrZero(source)})
 
-			// A template's permissions carry no sync lock, since it holds no values;
-			// the lock applies to the user values of the fields linked to it.
-			if convertAttrs && model.GetPropertyFieldSyncSource(field) != "" && field.ObjectType == model.PropertyFieldObjectTypeUser {
-				field.Permissions = model.ApplySyncLock(field.Permissions, field)
+			// Copied, not edited in place: the hook's Restrictions is the template's own.
+			var restrictions model.Restrictions
+			if field.Permissions.Restrictions != nil {
+				restrictions = *field.Permissions.Restrictions
 			}
+			// A caller pin wins over the template's value.write: a linked field may
+			// be writable at a lower level than the template it inherits from. The
+			// field's own owners, protection or sync lock refuse every human its
+			// values whatever the template allows. The converted value.write
+			// already says both.
+			locked := convertAttrs && (model.HasPropertyFieldOwners(field) || model.IsPropertyFieldProtected(field) || model.IsPropertyFieldSynced(field))
+			if callerPinnedValues || locked {
+				restrictions.Value.Write = converted.Restrictions.Value.Write
+			}
+			field.Permissions = &model.Permissions{Restrictions: &restrictions, Grants: converted.Grants}
 		}
 
 		if err := refuseSelfWritableHoldings("CreatePropertyField", field, source); err != nil {
