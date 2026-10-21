@@ -16,7 +16,30 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
 
-const mattermostUserGuideLink = 'https://docs.mattermost.com/guides/use-mattermost.html';
+// Bundled docs live at /_documentation/ and only resolve when Mattermost is
+// installed at the root of the host. A SiteURL subpath falls back to the public site.
+export const MATTERMOST_DOCS_URL = 'https://docs.mattermost.com';
+
+export function getMattermostDocumentationURL(siteURL: string): string {
+    const trimmed = (siteURL || '').trim().replace(/\/+$/, '');
+    if (!trimmed) {
+        return MATTERMOST_DOCS_URL;
+    }
+
+    let pathname: string;
+    try {
+        pathname = new URL(trimmed).pathname;
+    } catch {
+        return MATTERMOST_DOCS_URL;
+    }
+
+    if (pathname.replace(/\/+$/, '') !== '') {
+        return MATTERMOST_DOCS_URL;
+    }
+
+    return `${trimmed}/_documentation/`;
+}
+
 const trainingResourcesLink = 'https://academy.mattermost.com/';
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 
@@ -71,8 +94,8 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                 <Menu.ItemExternalLink
                     id='mattermostUserGuideLink'
                     iconClassName='icon-file-text-outline'
-                    url={mattermostUserGuideLink}
-                    text={intl.formatMessage({id: 'userGuideHelp.mattermostUserGuide', defaultMessage: 'Mattermost user guide'})}
+                    url={getMattermostDocumentationURL(this.props.siteURL)}
+                    text={intl.formatMessage({id: 'userGuideHelp.mattermostUserGuide', defaultMessage: 'Mattermost documentation'})}
                 />
                 {this.props.helpLink && (
                     <Menu.ItemExternalLink
