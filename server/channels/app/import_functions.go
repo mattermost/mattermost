@@ -354,6 +354,15 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 	return nil
 }
 
+// createdUserAction maps the created-shell outcome to the report action, so the
+// operator log distinguishes a usable auto-created account from one parked for review.
+func createdUserAction(createDeactivated bool) imports.UnmatchedUserAction {
+	if createDeactivated {
+		return imports.UnmatchedUserCreatedInactive
+	}
+	return imports.UnmatchedUserCreatedActive
+}
+
 func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool, deactivateMissingUsers bool, importedUsers model.ImportedUsersPosture, report *imports.ImportReport) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Username != nil {
@@ -419,6 +428,12 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 					mlog.String("imported_users", string(importedUsers)),
 				)
 				createDeactivated = importedUsers == model.ImportedUsersInactive
+				report.UnmatchedUsers.Add(imports.UnmatchedUser{
+					Username:    *data.Username,
+					AuthService: *data.AuthService,
+					Reason:      "sso_auth_data_not_found",
+					Action:      createdUserAction(createDeactivated),
+				})
 				user = &model.User{}
 				user.MakeNonNil()
 				user.SetDefaultNotifications()
@@ -458,6 +473,11 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 				rctx.Logger().Info("User not found on destination during scoped import; creating to preserve post authorship",
 					mlog.String("username", *data.Username),
 					mlog.String("imported_users", string(importedUsers)))
+				report.UnmatchedUsers.Add(imports.UnmatchedUser{
+					Username: *data.Username,
+					Reason:   "username_not_found",
+					Action:   createdUserAction(createDeactivated),
+				})
 			}
 			user = &model.User{}
 			user.MakeNonNil()
@@ -1015,7 +1035,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		}
 	}
 
-	return a.importUserTeams(rctx, savedUser, data.Teams, deactivateMissingUsers)
+	return a.importUserTeams(rctx, savedUser, data.Teams, deactivateMissingUsers, report)
 }
 
 func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bool) *model.AppError {
@@ -1231,7 +1251,7 @@ func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.
 	return nil
 }
 
-func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]imports.UserTeamImportData, deactivateMissingUsers bool) *model.AppError {
+func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]imports.UserTeamImportData, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -1240,7 +1260,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 	for _, tdata := range *data {
 		teamNames = append(teamNames, *tdata.Name)
 	}
-	allTeams, appErr := a.getTeamsByNames(teamNames)
+	allTeams, appErr := a.getTeamsByNames(teamNames, deactivateMissingUsers)
 	if appErr != nil {
 		return appErr
 	}
@@ -1267,7 +1287,25 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 		existingMembershipsByTeamId[teamMembership.TeamId] = teamMembership
 	}
 	for _, tdata := range *data {
-		team := allTeams[strings.ToLower(*tdata.Name)]
+		team, ok := allTeams[strings.ToLower(*tdata.Name)]
+		if !ok {
+			if deactivateMissingUsers {
+				// Scoped import: a team referenced by this membership does not exist
+				// on the destination (e.g. deleted or renamed between runs). Skip the
+				// membership and continue, mirroring how channel memberships for a
+				// missing channel are skipped, rather than aborting the whole import.
+				rctx.Logger().Warn("Skipping team membership for a team not found on destination during scoped import",
+					mlog.String("team", *tdata.Name), mlog.String("user", user.Username))
+				report.UnmatchedUsers.Add(imports.UnmatchedUser{
+					Username: user.Username,
+					Team:     *tdata.Name,
+					Reason:   "team_not_found",
+					Action:   imports.UnmatchedUserMembershipSkipped,
+				})
+				continue
+			}
+			return model.NewAppError("BulkImport", "app.import.import_user_teams.team_not_found.error", nil, "", http.StatusInternalServerError)
+		}
 
 		// Team-specific theme Preferences.
 		if tdata.Theme != nil {
@@ -1387,7 +1425,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			}
 		}
 		channelsToImport := channels[team.Id]
-		if err := a.importUserChannels(rctx, user, team, &channelsToImport, deactivateMissingUsers); err != nil {
+		if err := a.importUserChannels(rctx, user, team, &channelsToImport, deactivateMissingUsers, report); err != nil {
 			return err
 		}
 	}
@@ -1395,7 +1433,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 	return nil
 }
 
-func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model.Team, data *[]imports.UserChannelImportData, deactivateMissingUsers bool) *model.AppError {
+func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model.Team, data *[]imports.UserChannelImportData, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -1439,6 +1477,13 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model
 				// skipped, rather than aborting the whole import.
 				rctx.Logger().Warn("Skipping channel membership for a channel not found on destination during scoped import",
 					mlog.String("channel", *cdata.Name), mlog.String("user", user.Username))
+				report.UnmatchedUsers.Add(imports.UnmatchedUser{
+					Username: user.Username,
+					Team:     team.Name,
+					Channel:  *cdata.Name,
+					Reason:   "channel_not_found",
+					Action:   imports.UnmatchedUserMembershipSkipped,
+				})
 				continue
 			}
 			return model.NewAppError("BulkImport", "app.import.import_user_channels.channel_not_found.error", nil, "", http.StatusInternalServerError)
@@ -2074,10 +2119,28 @@ func (a *App) prefetchUsersByUsernames(usernames []string, users map[string]*mod
 	}
 }
 
-func (a *App) getTeamsByNames(names []string) (map[string]*model.Team, *model.AppError) {
+func (a *App) getTeamsByNames(names []string, tolerateMissing bool) (map[string]*model.Team, *model.AppError) {
 	allTeams, err := a.Srv().Store().Team().GetByNames(names)
 	if err != nil {
-		return nil, model.NewAppError("BulkImport", "app.import.get_teams_by_names.some_teams_not_found.error", nil, "", http.StatusBadRequest).Wrap(err)
+		var nfErr *store.ErrNotFound
+		if !tolerateMissing || !errors.As(err, &nfErr) {
+			return nil, model.NewAppError("BulkImport", "app.import.get_teams_by_names.some_teams_not_found.error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		// Scoped import: at least one requested team does not exist on the destination.
+		// GetByNames is all-or-nothing, so resolve each name individually and keep only the
+		// teams that exist; the caller nil-checks the rest and skips/logs them rather than
+		// aborting the whole import.
+		allTeams = allTeams[:0]
+		for _, name := range names {
+			team, tErr := a.Srv().Store().Team().GetByName(name)
+			if tErr != nil {
+				if errors.As(tErr, &nfErr) {
+					continue
+				}
+				return nil, model.NewAppError("BulkImport", "app.import.get_teams_by_names.some_teams_not_found.error", nil, "", http.StatusBadRequest).Wrap(tErr)
+			}
+			allTeams = append(allTeams, team)
+		}
 	}
 
 	teams := make(map[string]*model.Team)
@@ -2196,7 +2259,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 	}
 	a.prefetchUsersByUsernames(followerUsernames, users)
 
-	teams, err := a.getTeamsByNames(teamNames)
+	teams, err := a.getTeamsByNames(teamNames, deactivateMissingUsers)
 	if err != nil {
 		return 0, err
 	}

@@ -2284,7 +2284,7 @@ func TestImportUsernamRemap(t *testing.T) {
 {"type":"user","user":{"username":"` + srcUsername + `","email":"` + destUser.Email + `","auth_service":"ldap","auth_data":"` + authData + `","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}
 {"type":"post","post":{"team":"` + teamName + `","channel":"` + channelName + `","user":"` + srcUsername + `","message":"hello from renamed user","create_at":` + strconv.FormatInt(createAt, 10) + `}}`
 
-		_, appErr = th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(jsonl), nil, false, false, 1, "", model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
+		_, _, appErr = th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(jsonl), nil, false, false, 1, "", model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
 		require.Nil(t, appErr)
 
 		team, tErr := th.App.Srv().Store().Team().GetByName(teamName)
@@ -2658,7 +2658,7 @@ func TestImportUserTeams(t *testing.T) {
 
 			// Two times import must end with the same results
 			for range 2 {
-				appErr := th.App.importUserTeams(th.Context, user, tc.data, false)
+				appErr := th.App.importUserTeams(th.Context, user, tc.data, false, &imports.ImportReport{})
 				if tc.expectedError {
 					require.NotNil(t, appErr)
 				} else {
@@ -2697,7 +2697,7 @@ func TestImportUserTeams(t *testing.T) {
 		}
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 1 })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 100 })
-		appErr := th.App.importUserTeams(th.Context, user, data, false)
+		appErr := th.App.importUserTeams(th.Context, user, data, false, &imports.ImportReport{})
 		require.NotNil(t, appErr)
 	})
 
@@ -2724,7 +2724,7 @@ func TestImportUserTeams(t *testing.T) {
 				Name: &th.BasicTeam.Name,
 			},
 		}
-		appErr := th.App.importUserTeams(th.Context, user, data, false)
+		appErr := th.App.importUserTeams(th.Context, user, data, false, &imports.ImportReport{})
 		require.Nil(t, appErr)
 
 		teamMember, nErr := th.App.Srv().Store().Team().GetMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -2844,7 +2844,7 @@ func TestImportUserChannels(t *testing.T) {
 
 			// Two times import must end with the same results
 			for range 2 {
-				appErr := th.App.importUserChannels(th.Context, user, th.BasicTeam, tc.data, false)
+				appErr := th.App.importUserChannels(th.Context, user, th.BasicTeam, tc.data, false, &imports.ImportReport{})
 				if tc.expectedError {
 					require.NotNil(t, appErr)
 				} else {
