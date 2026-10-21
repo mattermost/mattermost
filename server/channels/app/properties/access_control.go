@@ -837,27 +837,31 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 // On a field carrying a typed permissions object, the caller needs both
 // field.write and value.write. Clearing every value a field has is an act on
 // the field, and it is also a write of every one of those values, so holding
-// either action alone is not enough: a sync lock withholds value.write while
-// leaving field.write, and this must not get around it.
+// either action alone is not enough. A sync lock withholds value.write while
+// leaving field.write, so a caller the lock keeps from writing a single value
+// cannot clear them all through this call either. That guards this call
+// only: deleting the field itself still needs only field.write and removes
+// every value with it, so the lock does not fully protect a field's values.
 //
 // value.write is judged as the single-value write judges it, with no target,
 // since the delete reaches every object at once. A machine caller needs a
 // value.write grant matching its acting-as scope; grants never depend on the
 // target. A human caller is judged by the ladder and their user and role
 // grants with an empty target. A tier measured against the value's object
-// (member, admin or creator on a channel or post field) then has no object to
-// be measured against and refuses; on a user, system or template field those
-// tiers are measured against the field's own target and resolve as usual.
+// (member, admin or creator on a channel or post field) then has no single
+// object to be measured against and admits only a sysadmin, who passes it on
+// every channel and post; on a user, system or template field those tiers are
+// measured against the field's own target and resolve as usual.
 //
 // On a masked field a machine caller must also be named in except. It holds
 // nothing for masking to match, so it cannot see the values, and a single
 // write is refused on a value the caller cannot see (checkValueWriteVisibility).
 // A linked field takes its masking from its template.
 //
-// Field delete never comes through here (it removes the values in the store
-// directly), so this hook is the only check on a bulk value delete. A field
-// without a permissions object falls back to the legacy value-write paths, as
-// checkValueWriteAccess does.
+// Field delete never comes through here: it removes the values in the store
+// directly, judged by PreDeletePropertyField's field.write check alone. A
+// field without a permissions object falls back to the legacy value-write
+// paths, as checkValueWriteAccess does.
 func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error {
 	if !h.isGroupManaged(groupID) {
 		return nil
@@ -882,6 +886,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 		if !h.permissionsAllows(rctx, field, callerID, "", model.PropertyActionValueWrite, "") {
 			return fmt.Errorf("field %s refuses caller %q the value.write a delete of all its values needs: %w", field.ID, callerID, ErrAccessDenied)
 		}
+		// No except check: a human holding field.write could remove the masking anyway.
 		return nil
 	}
 

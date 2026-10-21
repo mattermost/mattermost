@@ -4,7 +4,9 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -145,6 +147,76 @@ func TestPropertyRestrictionsAllow(t *testing.T) {
 		nonMember := th.CreateUser(t)
 		_, ok = th.App.propertyRestrictionsAllow(th.Context, nonMember.Id, field, model.PropertyActionValueWrite, th.BasicChannel.Id)
 		assert.False(t, ok)
+	})
+
+	t.Run("value.write with no target admits only a sysadmin at an object-measured tier", func(t *testing.T) {
+		// BasicUser is a channel admin here, so the refusal below comes from
+		// there being no object to measure against, not from a missing role.
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
+			model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, _ = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+		})
+
+		for _, objectType := range []string{model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypePost} {
+			for _, level := range []model.PermissionLevel{model.PermissionLevelMember, model.PermissionLevelAdmin, model.PermissionLevelCreator} {
+				field := &model.PropertyField{
+					GroupID:    groupID,
+					Name:       "no target " + objectType + " " + string(level),
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: objectType,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
+					Permissions: &model.Permissions{
+						Restrictions: &model.Restrictions{
+							Value: model.ReadWrite{Write: level},
+						},
+					},
+				}
+
+				tier, ok := th.App.propertyRestrictionsAllow(th.Context, th.SystemAdminUser.Id, field, model.PropertyActionValueWrite, "")
+				assert.True(t, ok, "%s field at %s should admit a sysadmin", objectType, level)
+				assert.Equal(t, level, tier)
+
+				_, ok = th.App.propertyRestrictionsAllow(th.Context, th.BasicUser.Id, field, model.PropertyActionValueWrite, "")
+				assert.False(t, ok, "%s field at %s should refuse a non-sysadmin", objectType, level)
+			}
+		}
+
+		// With a target, the channel admin is judged on that channel and passes.
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "with target admin",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelAdmin},
+				},
+			},
+		}
+		_, ok := th.App.propertyRestrictionsAllow(th.Context, th.BasicUser.Id, field, model.PropertyActionValueWrite, th.BasicChannel.Id)
+		assert.True(t, ok)
+		_, ok = th.App.propertyRestrictionsAllow(th.Context, th.BasicUser2.Id, field, model.PropertyActionValueWrite, th.BasicChannel.Id)
+		assert.False(t, ok)
+
+		// A user field measures member against the field's own target, so no
+		// target is needed and a non-sysadmin still passes.
+		userField := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "no target user member",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelMember},
+				},
+			},
+		}
+		_, ok = th.App.propertyRestrictionsAllow(th.Context, th.BasicUser.Id, userField, model.PropertyActionValueWrite, "")
+		assert.True(t, ok)
 	})
 
 	t.Run("an omitted leaf denies", func(t *testing.T) {
@@ -745,5 +817,99 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 			assert.False(t, basis.Allowed)
 			assert.False(t, basis.Legacy)
 		})
+	})
+}
+
+// TestDeletePropertyValuesForChannelField deletes every value of a channel
+// field carrying permissions through the access control hook, with no stubbed
+// ladder. value.write at member is measured against each value's channel, so
+// with no single channel to measure it against, only a sysadmin or a caller
+// holding a value.write grant is admitted.
+func TestDeletePropertyValuesForChannelField(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	adminRctx := RequestContextWithCallerID(th.Context, th.SystemAdminUser.Id)
+	memberRctx := RequestContextWithCallerID(th.Context, th.BasicUser.Id)
+
+	createField := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		field, appErr := th.App.CreatePropertyField(adminRctx, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "chan_attr_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelMember},
+					Value: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelMember},
+				},
+				Grants: []model.Grant{{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser2.Id},
+					Allow:    []string{model.PropertyActionValueWrite},
+				}},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, field.Permissions)
+		return field
+	}
+
+	// BasicUser is a member of BasicChannel, so the single-value write is
+	// admitted, measured against that channel.
+	writeValue := func(t *testing.T, field *model.PropertyField) {
+		t.Helper()
+		_, appErr := th.App.UpsertPropertyValues(memberRctx, []*model.PropertyValue{{
+			TargetID:   th.BasicChannel.Id,
+			TargetType: model.PropertyFieldObjectTypeChannel,
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`"v"`),
+		}}, model.PropertyFieldObjectTypeChannel, th.BasicChannel.Id, "")
+		require.Nil(t, appErr)
+	}
+
+	remaining := func(t *testing.T, field *model.PropertyField) int {
+		t.Helper()
+		values, err := th.App.Srv().Store().PropertyValue().SearchPropertyValues(th.Context, model.PropertyValueSearchOpts{
+			GroupID: group.ID,
+			FieldID: field.ID,
+			PerPage: 10,
+		})
+		require.NoError(t, err)
+		return len(values)
+	}
+
+	t.Run("a channel member who may write a single value is refused", func(t *testing.T) {
+		field := createField(t)
+		writeValue(t, field)
+
+		appErr := th.App.DeletePropertyValuesForField(memberRctx, group.ID, field.ID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Equal(t, 1, remaining(t, field))
+	})
+
+	t.Run("a sysadmin is admitted", func(t *testing.T) {
+		field := createField(t)
+		writeValue(t, field)
+
+		require.Nil(t, th.App.DeletePropertyValuesForField(adminRctx, group.ID, field.ID))
+		assert.Equal(t, 0, remaining(t, field))
+	})
+
+	t.Run("a user holding a value.write grant is admitted", func(t *testing.T) {
+		// A grant does not depend on the target, so it stands with no channel
+		// to measure against.
+		field := createField(t)
+		writeValue(t, field)
+
+		require.Nil(t, th.App.DeletePropertyValuesForField(RequestContextWithCallerID(th.Context, th.BasicUser2.Id), group.ID, field.ID))
+		assert.Equal(t, 0, remaining(t, field))
 	})
 }

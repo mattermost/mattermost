@@ -732,7 +732,22 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 // so a value on a channel-object field is gated by the user's role on that
 // channel, regardless of how the field itself is scoped. "sysadmin" and
 // "none" behave identically to the field-level dispatch.
+//
+// An empty valueTargetID on a channel or post field asks about every object
+// the field's values hang off at once, as deleting all of a field's values
+// does. There is no single object to measure admin, creator or member
+// against, so those levels admit only a sysadmin, who passes each of them on
+// any channel or post; anyone else is refused. A non-empty valueTargetID is
+// always judged against that object.
 func (a *App) hasPropertyFieldValuePermissionLevel(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string, level model.PermissionLevel) bool {
+	if valueTargetID == "" &&
+		(field.ObjectType == model.PropertyFieldObjectTypeChannel || field.ObjectType == model.PropertyFieldObjectTypePost) {
+		switch level {
+		case model.PermissionLevelAdmin, model.PermissionLevelCreator, model.PermissionLevelMember:
+			return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
+		}
+	}
+
 	switch level {
 	case model.PermissionLevelSysadmin:
 		return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
