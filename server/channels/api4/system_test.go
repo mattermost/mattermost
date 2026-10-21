@@ -553,6 +553,14 @@ func TestQueryLogs(t *testing.T) {
 		require.Contains(t, nodes, "default")
 	})
 
+	t.Run("a filter matching nothing keeps the node key with an empty array", func(t *testing.T) {
+		nodes, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "2100-01-01 00:00:00.000 +00:00"})
+		require.NoError(t, err)
+		require.Contains(t, nodes, "default")
+		assert.NotNil(t, nodes["default"], "expected [] rather than null")
+		assert.Empty(t, nodes["default"])
+	})
+
 	t.Run("server_names without the local node returns no entries", func(t *testing.T) {
 		nodes, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{ServerNames: []string{"unknown"}})
 		require.NoError(t, err)

@@ -99,7 +99,7 @@ func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model
 		return logData, nil
 	}
 
-	clusterLogs, appErr := cluster.QueryLogs(rctx, page, perPage)
+	clusterLogs, appErr := cluster.QueryLogs(rctx, page, perPage, logFilter)
 	if appErr != nil {
 		return nil, appErr
 	}

@@ -1254,6 +1254,17 @@
       description: >
         Query server logs using filter criteria.
 
+        In a cluster, `log_levels`, `date_from` and `date_to` are applied on every
+        node. Nodes running an older server version ignore them and return
+        unfiltered entries.
+
+        If another cluster node's logs can't be fetched (for example, it doesn't
+        respond in time), the request still succeeds and that node's array
+        contains a single entry with `level` set to `error`, `msg` set to
+        `Failed to fetch logs from node`, and an `error` field describing the
+        failure. This entry is returned regardless of `log_levels`, `date_from`
+        and `date_to`.
+
         ##### Permissions
         Must have `get_logs` permission.
       operationId: QueryLogs
@@ -1309,7 +1320,8 @@
             Log query successful. The response maps each node name to its log entries.
             In a licensed, enabled cluster, node names are the cluster hostnames (or `default`
             for this node if its cluster name is unavailable); otherwise the server's logs are
-            returned under `default`.
+            returned under `default`. Every node that was queried is included, with an
+            empty array if it has no matching entries.
           content:
             application/json:
               schema:

@@ -106,12 +106,14 @@ type queryLogsCluster struct {
 	remoteLogs     map[string][]string
 	queryLogsErr   *model.AppError
 	queryLogsCalls int
+	lastFilter     *model.LogFilter
 }
 
 func (c *queryLogsCluster) GetMyClusterInfo() *model.ClusterInfo { return c.info }
 
-func (c *queryLogsCluster) QueryLogs(rctx request.CTX, page, perPage int) (map[string][]string, *model.AppError) {
+func (c *queryLogsCluster) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
 	c.queryLogsCalls++
+	c.lastFilter = logFilter
 	if c.queryLogsErr != nil {
 		return nil, c.queryLogsErr
 	}
@@ -170,6 +172,18 @@ func TestQueryLogs(t *testing.T) {
 			logs := query(t, "node-2")
 			assert.ElementsMatch(t, []string{"node-2"}, nodeNames(logs))
 			assert.Equal(t, []string{`{"msg":"from node-2"}`}, logs["node-2"])
+		})
+
+		t.Run("forwards the filter to the cluster", func(t *testing.T) {
+			filter := &model.LogFilter{
+				ServerNames: []string{"node-2"},
+				LogLevels:   []string{"error"},
+				DateFrom:    "2026-01-01 00:00:00.000 +00:00",
+				DateTo:      "2026-01-02 00:00:00.000 +00:00",
+			}
+			_, appErr := th.App.QueryLogs(th.Context, 0, 10, filter)
+			require.Nil(t, appErr)
+			assert.Equal(t, filter, cluster.lastFilter)
 		})
 
 		t.Run("local and remote node", func(t *testing.T) {

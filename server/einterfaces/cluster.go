@@ -28,7 +28,7 @@ type ClusterInterface interface {
 	NotifyMsg(buf []byte)
 	GetClusterStats(rctx request.CTX) ([]*model.ClusterStats, *model.AppError)
 	GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError)
-	QueryLogs(rctx request.CTX, page, perPage int) (map[string][]string, *model.AppError)
+	QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError)
 	GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error)
 	GetPluginStatuses() (model.PluginStatuses, *model.AppError)
 	ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError

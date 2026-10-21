@@ -301,9 +301,9 @@ func (_m *ClusterInterface) NotifyMsg(buf []byte) {
 	_m.Called(buf)
 }
 
-// QueryLogs provides a mock function with given fields: rctx, page, perPage
-func (_m *ClusterInterface) QueryLogs(rctx request.CTX, page int, perPage int) (map[string][]string, *model.AppError) {
-	ret := _m.Called(rctx, page, perPage)
+// QueryLogs provides a mock function with given fields: rctx, page, perPage, logFilter
+func (_m *ClusterInterface) QueryLogs(rctx request.CTX, page int, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+	ret := _m.Called(rctx, page, perPage, logFilter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for QueryLogs")
@@ -311,19 +311,19 @@ func (_m *ClusterInterface) QueryLogs(rctx request.CTX, page int, perPage int) (
 
 	var r0 map[string][]string
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, int, int) (map[string][]string, *model.AppError)); ok {
-		return rf(rctx, page, perPage)
+	if rf, ok := ret.Get(0).(func(request.CTX, int, int, *model.LogFilter) (map[string][]string, *model.AppError)); ok {
+		return rf(rctx, page, perPage, logFilter)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, int, int) map[string][]string); ok {
-		r0 = rf(rctx, page, perPage)
+	if rf, ok := ret.Get(0).(func(request.CTX, int, int, *model.LogFilter) map[string][]string); ok {
+		r0 = rf(rctx, page, perPage, logFilter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string][]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, int, int) *model.AppError); ok {
-		r1 = rf(rctx, page, perPage)
+	if rf, ok := ret.Get(1).(func(request.CTX, int, int, *model.LogFilter) *model.AppError); ok {
+		r1 = rf(rctx, page, perPage, logFilter)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

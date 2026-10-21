@@ -60,7 +60,7 @@ func (c *FakeClusterInterface) GetLogs(rctx request.CTX, page, perPage int) ([]s
 	return []string{}, nil
 }
 
-func (c *FakeClusterInterface) QueryLogs(rctx request.CTX, page, perPage int) (map[string][]string, *model.AppError) {
+func (c *FakeClusterInterface) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
 	return make(map[string][]string), nil
 }
 
