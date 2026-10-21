@@ -226,7 +226,7 @@ func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(rctx request.C
 	// access_mode is only valid alongside protected, so an unprotected template
 	// with restricted reads (v3-authored, hence public to an older release too)
 	// copies neither.
-	if projected := model.ProjectLegacyPermissions(source); projected.Protected {
+	if projected := model.ProjectLegacyPermissions(source); projected.Protected || model.IsPropertyFieldProtected(projected) {
 		if field.Attrs == nil {
 			field.Attrs = make(model.StringInterface)
 		}
