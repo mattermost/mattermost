@@ -9,6 +9,8 @@ import type {UserAccessToken} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import {setPendingBotToken} from 'components/integrations/bots/bot_pending_token';
+
 import {AcceptedProfileImageTypes, ValidationErrors} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
@@ -217,6 +219,9 @@ export async function saveBotCreate(actions: BotSaveActions, input: BotSaveInput
         input.expiresAt > 0 ? input.expiresAt : undefined,
     );
     const token = tokenResult && !tokenResult.error ? tokenResult.data?.token : undefined;
+    if (token) {
+        setPendingBotToken(data.user_id, token);
+    }
 
     // Only an explicit reset to the default icon reports a failure.
     if (!input.pictureFile) {
