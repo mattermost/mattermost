@@ -191,7 +191,7 @@ describe('PluginRegistry — registerChannelKind', () => {
 
         mockCurrentStore.dispatch({type: ActionTypes.REMOVED_WEBAPP_PLUGIN, data: {id: PLUGIN_ID}});
 
-        expect(getKinds().map((entry) => entry.pluginId)).toEqual(['other_plugin']);
+        expect(getKinds().map((entry: {pluginId: string}) => entry.pluginId)).toEqual(['other_plugin']);
     });
 });
 

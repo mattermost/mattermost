@@ -8,17 +8,27 @@ import {goToLastViewedChannel} from 'actions/views/channel';
 
 import * as Menu from 'components/menu';
 
-interface Props extends Menu.FirstMenuItemProps {}
+interface Props extends Menu.FirstMenuItemProps {
 
-const CloseChannel = ({...rest}: Props): JSX.Element => {
+    /** Names it Close Board for a board. */
+    isBoard?: boolean;
+}
+
+const CloseChannel = ({isBoard = false, ...rest}: Props): JSX.Element => {
     return (
         <Menu.Item
             onClick={goToLastViewedChannel}
-            labels={
+            labels={isBoard ? (
+                <FormattedMessage
+                    id='center_panel.archived.closeChannel.board'
+                    defaultMessage='Close Board'
+                />
+            ) : (
                 <FormattedMessage
                     id='center_panel.archived.closeChannel'
                     defaultMessage='Close Channel'
-                />}
+                />
+            )}
             {...rest}
         />
     );

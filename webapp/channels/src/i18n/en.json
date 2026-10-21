@@ -18991,6 +18991,10 @@
     "defaultMessage": "Close Channel",
     "description": "Button shown at the bottom of an archived channel (and as a channel menu item) to close/leave the archived channel view."
   },
+  "center_panel.archived.closeChannel.board": {
+    "defaultMessage": "Close Board",
+    "description": ""
+  },
   "center_panel.direct.closeDirectMessage": {
     "defaultMessage": "Close Direct Message",
     "description": "Menu item in a direct message header dropdown; removes the DM conversation from the sidebar."
@@ -19375,6 +19379,10 @@
     "defaultMessage": "Channel Settings",
     "description": "Menu item in the channel dropdown menu and channel info sidebar; opens the Channel Settings modal."
   },
+  "channel_header.channel_settings.board": {
+    "defaultMessage": "Board Settings",
+    "description": ""
+  },
   "channel_header.channelFiles": {
     "defaultMessage": "Channel files",
     "description": "Tooltip of the file icon button in the channel header; opens the list of files shared in the channel."
@@ -19398,6 +19406,10 @@
   "channel_header.delete": {
     "defaultMessage": "Archive Channel",
     "description": "Menu item in the channel name dropdown menu; archives the channel ('Archive' as a verb)."
+  },
+  "channel_header.delete.board": {
+    "defaultMessage": "Archive Board",
+    "description": ""
   },
   "channel_header.directchannel": {
     "defaultMessage": "{displayName} (you) Channel Menu",
@@ -19431,6 +19443,10 @@
     "defaultMessage": "Leave Channel",
     "description": "Menu item in the channel dropdown menu (and members list, for yourself); removes the current user from the channel."
   },
+  "channel_header.leave.board": {
+    "defaultMessage": "Leave Board",
+    "description": ""
+  },
   "channel_header.members": {
     "defaultMessage": "Members",
     "description": "Menu item in the channel name dropdown menu; opens the channel members panel."
@@ -19438,6 +19454,10 @@
   "channel_header.mute": {
     "defaultMessage": "Mute Channel",
     "description": "Menu item in the channel dropdown menu; mutes notifications for the channel ('Mute' as a verb)."
+  },
+  "channel_header.mute.board": {
+    "defaultMessage": "Mute Board",
+    "description": ""
   },
   "channel_header.muteConversation": {
     "defaultMessage": "Mute",
@@ -19450,6 +19470,10 @@
   "channel_header.otherchannel": {
     "defaultMessage": "{displayName} Channel Menu",
     "description": "Aria-label of the channel name dropdown menu button in the channel header; {displayName} is the channel's display name."
+  },
+  "channel_header.otherchannel.board": {
+    "defaultMessage": "{displayName} Board Menu",
+    "description": ""
   },
   "channel_header.pinnedPosts": {
     "defaultMessage": "Pinned messages",
@@ -19478,6 +19502,10 @@
   "channel_header.unmute": {
     "defaultMessage": "Unmute Channel",
     "description": "Menu item in the channel dropdown menu; unmutes notifications for the channel ('Unmute' as a verb)."
+  },
+  "channel_header.unmute.board": {
+    "defaultMessage": "Unmute Board",
+    "description": ""
   },
   "channel_header.unmuteConversation": {
     "defaultMessage": "Unmute",
