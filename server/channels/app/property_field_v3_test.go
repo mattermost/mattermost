@@ -104,26 +104,57 @@ func TestShapePropertyFieldForCaller(t *testing.T) {
 	})
 
 	t.Run("a non-editing caller matches a role grant they hold", func(t *testing.T) {
-		// Field.Write none denies field.write to everyone, including the
-		// sysadmin session, so the sysadmin session below is exercising the
-		// non-editor path rather than the edit-basis shortcut.
 		field := newField(&model.Permissions{
 			Restrictions: &model.Restrictions{Field: model.WriteOnly{Write: model.PermissionLevelNone}},
 			Grants: []model.Grant{
-				{Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: model.SystemAdminRoleId}, Allow: []string{model.PropertyActionValueWrite}},
+				{Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: model.SystemUserRoleId}, Allow: []string{model.PropertyActionValueWrite}},
+				{Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: model.SystemManagerRoleId}, Allow: []string{model.PropertyActionValueWrite}},
 			},
 		})
 
-		adminSession := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemAdminRoleId}
-		shaped := th.App.ShapePropertyFieldForCaller(th.Context, adminSession, field, true)
+		memberSession := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+		shaped := th.App.ShapePropertyFieldForCaller(th.Context, memberSession, field, true)
 		require.NotNil(t, shaped.Permissions)
 		require.Len(t, shaped.Permissions.Grants, 1)
-		assert.Equal(t, model.SystemAdminRoleId, shaped.Permissions.Grants[0].ID)
+		assert.Equal(t, model.SystemUserRoleId, shaped.Permissions.Grants[0].ID)
+		assert.True(t, shaped.Permissions.Filtered)
+	})
 
-		memberSession := model.Session{UserId: th.BasicUser.Id}
+	t.Run("a system admin without field.write sees every grant and the field's masking, read-only", func(t *testing.T) {
+		// Field.Write none is what a plugin-managed field converts to: nobody
+		// passes field.write, the system admin included.
+		field := newField(&model.Permissions{
+			Restrictions: &model.Restrictions{Field: model.WriteOnly{Write: model.PermissionLevelNone}},
+			Grants: []model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "com.example.sync"}, Allow: []string{model.PropertyActionValueWrite}},
+				{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"}, Allow: []string{model.PropertyActionValueWrite}},
+				{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser.Id}, Allow: []string{model.PropertyActionValueWrite}},
+			},
+			Masking: &model.Masking{
+				MaskByFieldID: "some-field-id",
+				Except:        []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "com.example.sync"}},
+			},
+		})
+
+		adminSession := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
+		assert.False(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, adminSession, field))
+
+		shaped := th.App.ShapePropertyFieldForCaller(th.Context, adminSession, field, true)
+		require.NotNil(t, shaped.Permissions)
+		assert.Equal(t, field.Permissions.Grants, shaped.Permissions.Grants)
+		require.NotNil(t, shaped.Permissions.Masking)
+		assert.Equal(t, *field.Permissions.Masking, *shaped.Permissions.Masking)
+		assert.False(t, shaped.Permissions.Filtered)
+
+		// Anyone else is still reduced to the grants naming them.
+		memberSession := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
 		shaped = th.App.ShapePropertyFieldForCaller(th.Context, memberSession, field, true)
 		require.NotNil(t, shaped.Permissions)
-		assert.Empty(t, shaped.Permissions.Grants)
+		require.Len(t, shaped.Permissions.Grants, 1)
+		assert.Equal(t, th.BasicUser.Id, shaped.Permissions.Grants[0].ID)
+		require.NotNil(t, shaped.Permissions.Masking)
+		assert.Empty(t, shaped.Permissions.Masking.MaskByFieldID)
+		assert.Empty(t, shaped.Permissions.Masking.Except)
 		assert.True(t, shaped.Permissions.Filtered)
 	})
 
@@ -216,6 +247,26 @@ func TestShapePropertyFieldForCaller(t *testing.T) {
 		shaped = th.App.ShapePropertyFieldForCaller(th.Context, memberSession, field, true)
 		require.NotNil(t, shaped.Permissions.Masking)
 		assert.True(t, shaped.Permissions.Filtered)
+	})
+
+	t.Run("a system admin without field.write sees a linked field's grants but only its template's masking presence", func(t *testing.T) {
+		template := newTemplate(&model.Permissions{
+			Restrictions: &model.Restrictions{Field: model.WriteOnly{Write: model.PermissionLevelSysadmin}},
+			Masking:      &model.Masking{Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser2.Id}}},
+		})
+		field := newLinkedField(template.ID)
+		field.Permissions.Restrictions.Field.Write = model.PermissionLevelNone
+		field.Permissions.Grants = []model.Grant{
+			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "com.example.sync"}, Allow: []string{model.PropertyActionValueWrite}},
+		}
+
+		adminSession := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
+		shaped := th.App.ShapePropertyFieldForCaller(th.Context, adminSession, field, true)
+		require.NotNil(t, shaped.Permissions)
+		assert.Equal(t, field.Permissions.Grants, shaped.Permissions.Grants)
+		require.NotNil(t, shaped.Permissions.Masking)
+		assert.Empty(t, shaped.Permissions.Masking.MaskByFieldID)
+		assert.Empty(t, shaped.Permissions.Masking.Except)
 	})
 
 	t.Run("a linked field whose template is not masked reports no masking", func(t *testing.T) {
