@@ -11,7 +11,17 @@ import {expect, test} from './ai_bridge_fixture';
 /**
  * @objective Verify a user can create a selected-channels AI recap and receive the mocked summary without reloading the page
  */
-test('creates selected-channels recap and auto-renders mocked summary', {tag: '@ai_recaps'}, async ({pw}) => {
+test('creates selected-channels recap and auto-renders mocked summary', {tag: '@ai_recaps'}, async ({pw}, testInfo) => {
+    // The bundled mattermost-plugin-agents webapp trusts config.SiteURL verbatim for its own
+    // Client4 instance instead of falling back to window.location.origin, so under subpath mode
+    // (where SiteURL is intentionally set to the internal nginx alias) its API calls fail in the
+    // browser, breaking AI recap rendering app-wide. This is an upstream plugin bug unrelated to
+    // subpath support itself; skip until the prepackaged plugin version picks up the fix.
+    test.skip(
+        testInfo.project.name === 'subpath',
+        'mattermost-plugin-agents trusts SiteURL verbatim; unreachable from the browser in subpath mode',
+    );
+
     const recapHighlight = `Deterministic highlight ${pw.random.id()}`;
     const recapActionItem = `Deterministic action item ${pw.random.id()}`;
     const recapTitle = `AI recap ${pw.random.id()}`;
@@ -82,7 +92,15 @@ test('creates selected-channels recap and auto-renders mocked summary', {tag: '@
 /**
  * @objective Verify the all-unreads recap flow skips channel selection and only summarizes unread channels
  */
-test('creates all-unreads recap for only unread channels', {tag: '@ai_recaps'}, async ({pw}) => {
+test('creates all-unreads recap for only unread channels', {tag: '@ai_recaps'}, async ({pw}, testInfo) => {
+    // See the comment in the "creates selected-channels recap..." test above: the bundled
+    // mattermost-plugin-agents webapp trusts config.SiteURL verbatim, which breaks AI recap
+    // rendering under subpath mode. Skip until the prepackaged plugin version picks up the fix.
+    test.skip(
+        testInfo.project.name === 'subpath',
+        'mattermost-plugin-agents trusts SiteURL verbatim; unreachable from the browser in subpath mode',
+    );
+
     const recapTitle = `Unread recap ${pw.random.id()}`;
     const sourceMessageOne = `Unread source one ${pw.random.id()}`;
     const sourceMessageTwo = `Unread source two ${pw.random.id()}`;
