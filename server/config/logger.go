@@ -271,7 +271,14 @@ func validateSyslogOptions(options json.RawMessage) error {
 	if err := json.Unmarshal(options, &syslogOptions); err != nil {
 		return err
 	}
-	return syslogOptions.CheckValid()
+	if err := syslogOptions.CheckValid(); err != nil {
+		return err
+	}
+	if syslogOptions.TLS {
+		_, err := targets.GetCertPoolOrNil(syslogOptions.Cert)
+		return err
+	}
+	return nil
 }
 
 func GetLogFileLocation(fileLocation string) string {

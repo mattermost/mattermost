@@ -541,6 +541,27 @@ func TestIsAuditLoggingActive(t *testing.T) {
 			expected:             false,
 		},
 		{
+			name:                 "env var syslog target with TLS and default trust",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514,"tls":true}}}`,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var syslog target with TLS and unreadable cert",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514,"tls":true,"cert":"%%%not-a-cert"}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var syslog target with TLS and unparseable cert",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514,"tls":true,"cert":"bm90IGEgY2VydA=="}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
 			name:                 "env var syslog target with unknown format",
 			fileEnabled:          false,
 			additionalTargets:    `{"a":{"type":"syslog","format":"bogus","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514}}}`,
