@@ -129,7 +129,7 @@ You can update a plugin using any of the following methods:
 
 - **Pre-packaged plugins** are upgraded automatically when the **Automatic prepackaged plugins** setting is enabled (the default). If a newer version is already installed, no change is made.
 - **Marketplace plugins** show an **Update** option in the App Marketplace when a newer version is available. Select it to install the latest version.
-- **Uploaded plugins** are updated by uploading a newer bundle with the same plugin ID through **Plugins > Plugin Management**. From Mattermost v12.0, review the installed and uploaded versions in the **Review plugin overwrite** dialog, then select **Overwrite** to replace the installed plugin. See [Plugin upload](#plugin-upload) for the full procedure.
+- **Uploaded plugins** are updated by uploading a newer bundle with the same plugin ID through **Plugins > Plugin Management**. The new version overwrites the existing one.
 - **mmctl** updates an installed plugin when you add a bundle that has the same plugin ID. Use the `--force` (`-f`) flag to overwrite the existing version:
 
     ```sh
