@@ -62,10 +62,15 @@ func (a *App) shapePropertyFieldForCaller(rctx request.CTX, session model.Sessio
 	// other arm gets presence only. A linked field's masking is never
 	// editable, so even they only see whether it is masked, never
 	// mask_by_field_id or except -- those belong to the template's
-	// administrator.
+	// administrator. For them the withheld details are not marked
+	// filtered: nobody can change them on this field, and the patch handler
+	// reads the masking: {} they are served back as unchanged, so the
+	// object round-trips as is.
 	if !seesAll || isLinked {
 		if isLinked {
-			permissions.Masking, filtered = a.linkedFieldMaskingPresence(rctx, field, templates)
+			var maskingFiltered bool
+			permissions.Masking, maskingFiltered = a.linkedFieldMaskingPresence(rctx, field, templates)
+			filtered = maskingFiltered && !seesAll
 		} else {
 			permissions.Masking, filtered = maskingPresence(permissions.Masking)
 		}

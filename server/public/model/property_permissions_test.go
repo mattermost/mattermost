@@ -437,6 +437,26 @@ func TestPermissionsPatchApplyTo(t *testing.T) {
 	})
 }
 
+func TestPermissionsPatchMaskingIsPresenceOnly(t *testing.T) {
+	for name, tc := range map[string]struct {
+		masking json.RawMessage
+		want    bool
+	}{
+		"absent":                   {masking: nil, want: false},
+		"null":                     {masking: json.RawMessage("null"), want: false},
+		"empty object":             {masking: json.RawMessage("{}"), want: true},
+		"empty object with spaces": {masking: json.RawMessage("{ }"), want: true},
+		"empty except":             {masking: json.RawMessage(`{"except":[]}`), want: true},
+		"mask_by_field_id":         {masking: json.RawMessage(`{"mask_by_field_id":"holdings"}`), want: false},
+		"except entry":             {masking: json.RawMessage(`{"except":[{"type":"user","id":"u1"}]}`), want: false},
+		"not an object":            {masking: json.RawMessage("[]"), want: false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.want, (&PermissionsPatch{Masking: tc.masking}).MaskingIsPresenceOnly())
+		})
+	}
+}
+
 func TestRestrictionsTierFor(t *testing.T) {
 	r := &Restrictions{
 		Value:  ReadWrite{Read: PermissionLevelEveryone, Write: PermissionLevelAdmin},

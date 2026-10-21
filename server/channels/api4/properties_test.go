@@ -3756,6 +3756,139 @@ func TestPatchPropertyField(t *testing.T) {
 			CheckBadRequestStatus(t, resp)
 		})
 
+		t.Run("on a field linked to a masked template", func(t *testing.T) {
+			restrictions := model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+				Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+			}
+
+			newLinkedField := func(t *testing.T, grants []model.Grant) *model.PropertyField {
+				t.Helper()
+				templateRestrictions := restrictions
+				template, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+					Name:       model.NewId(),
+					Type:       model.PropertyFieldTypeText,
+					GroupID:    v3PermissionsGroup.ID,
+					ObjectType: model.PropertyFieldObjectTypeTemplate,
+					TargetType: "system",
+					Permissions: &model.Permissions{
+						Restrictions: &templateRestrictions,
+						Masking: &model.Masking{
+							Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}},
+						},
+					},
+				}, false, "")
+				require.Nil(t, appErr)
+
+				linkedRestrictions := restrictions
+				linked, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+					Name:          model.NewId(),
+					Type:          model.PropertyFieldTypeText,
+					GroupID:       v3PermissionsGroup.ID,
+					ObjectType:    model.PropertyFieldObjectTypeUser,
+					TargetType:    "system",
+					LinkedFieldID: &template.ID,
+					Permissions: &model.Permissions{
+						Restrictions: &linkedRestrictions,
+						Grants:       grants,
+					},
+				}, false, "")
+				require.Nil(t, appErr)
+				require.NotNil(t, linked.Permissions)
+				require.Nil(t, linked.Permissions.Masking)
+				return linked
+			}
+
+			someGrants := []model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}, Allow: []string{model.PropertyActionValueWrite}},
+			}
+
+			served := func(t *testing.T, client *model.Client4, fieldID string) *model.Permissions {
+				t.Helper()
+				fields, resp, err := client.GetPropertyFields(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, model.PropertyFieldSearch{
+					TargetType: "system",
+					PerPage:    200,
+				})
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				found := findPropertyFieldByID(fields, fieldID)
+				require.NotNil(t, found)
+				require.NotNil(t, found.Permissions)
+				return found.Permissions
+			}
+
+			// echoOf is the permissions object a client sends back after
+			// reading it, key for key.
+			echoOf := func(t *testing.T, permissions *model.Permissions) *model.PermissionsPatch {
+				t.Helper()
+				raw, err := json.Marshal(permissions)
+				require.NoError(t, err)
+				var echo model.PermissionsPatch
+				require.NoError(t, json.Unmarshal(raw, &echo))
+				return &echo
+			}
+
+			requireUnchanged := func(t *testing.T, linked *model.PropertyField) {
+				t.Helper()
+				stored, appErr := th.App.GetPropertyField(th.Context, v3PermissionsGroup.ID, linked.ID)
+				require.Nil(t, appErr)
+				require.Equal(t, linked.Permissions, stored.Permissions)
+			}
+
+			t.Run("an editor can send back the permissions they were served", func(t *testing.T) {
+				linked := newLinkedField(t, someGrants)
+
+				adminView := served(t, th.SystemAdminClient, linked.ID)
+				require.NotNil(t, adminView.Masking, "the template's masking is reported as present")
+				require.False(t, adminView.Filtered)
+				echo := echoOf(t, adminView)
+				require.JSONEq(t, "{}", string(echo.Masking))
+
+				patched, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, linked.ID, &model.PropertyFieldPatch{Permissions: echo})
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, adminView, patched.Permissions)
+				requireUnchanged(t, linked)
+			})
+
+			t.Run("a caller who cannot edit it is still told the object was filtered", func(t *testing.T) {
+				// No grants, so the withheld masking details are the only
+				// thing that can set filtered here.
+				linked := newLinkedField(t, nil)
+
+				th.LoginBasic(t)
+				memberView := served(t, th.Client, linked.ID)
+				require.NotNil(t, memberView.Masking)
+				require.Empty(t, memberView.Grants)
+				require.True(t, memberView.Filtered)
+			})
+
+			t.Run("a submitted filtered true is still refused", func(t *testing.T) {
+				linked := newLinkedField(t, someGrants)
+
+				echo := echoOf(t, served(t, th.SystemAdminClient, linked.ID))
+				echo.Filtered = true
+				_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, linked.ID, &model.PropertyFieldPatch{Permissions: echo})
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+				requireUnchanged(t, linked)
+			})
+
+			t.Run("masking with contents is still refused", func(t *testing.T) {
+				linked := newLinkedField(t, someGrants)
+
+				echo := echoOf(t, served(t, th.SystemAdminClient, linked.ID))
+				masking, err := json.Marshal(model.Masking{Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: th.SystemAdminUser.Id}}})
+				require.NoError(t, err)
+				echo.Masking = masking
+				_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), v3PermissionsGroup.Name, model.PropertyFieldObjectTypeUser, linked.ID, &model.PropertyFieldPatch{Permissions: echo})
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+				requireUnchanged(t, linked)
+			})
+		})
+
 		t.Run("submission against a v2 group is rejected", func(t *testing.T) {
 			v2Field := &model.PropertyField{
 				Name:              model.NewId(),
