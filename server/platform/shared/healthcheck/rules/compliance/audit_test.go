@@ -15,6 +15,7 @@ import (
 func audit(fileEnabled bool, advanced string) func(cfg *model.Config) {
 	return func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = new(fileEnabled)
+		cfg.ExperimentalAuditSettings.FileName = new("audit.log")
 		cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage(advanced)
 	}
 }
