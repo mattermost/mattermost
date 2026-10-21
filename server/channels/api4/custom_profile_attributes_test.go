@@ -1914,12 +1914,14 @@ func TestPatchCPAValuesForBotTarget(t *testing.T) {
 			CheckErrorID(t, err, errorID)
 		}
 
+		// Every lock is a value.write the field's permissions refuse the
+		// caller, which the API checks before the hook.
 		t.Run("protected", func(t *testing.T) {
-			requireLocked(t, protectedField.ID, "app.property.access_denied.app_error")
+			requireLocked(t, protectedField.ID, "api.property_value.patch.no_values_permission.app_error")
 		})
 
 		t.Run("synced", func(t *testing.T) {
-			requireLocked(t, syncedField.ID, "app.property.sync_lock.app_error")
+			requireLocked(t, syncedField.ID, "api.property_value.patch.no_values_permission.app_error")
 		})
 
 		t.Run("owner-managed", func(t *testing.T) {

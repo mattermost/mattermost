@@ -1804,7 +1804,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	})
 
 	t.Run("create linked field takes exactly the source's sync attrs, and only as a user field", func(t *testing.T) {
-		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		source := createConvertedTemplate(t, &model.PropertyField{
 			GroupID:    group.ID,
 			ObjectType: model.PropertyFieldObjectTypeTemplate,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
