@@ -95,7 +95,9 @@ On `base`, with the enterprise image, and the FIPS image too when `suites` has a
 - Doesn't fail on `base`? Run it on the failing build (`commit`, `server_images`). If it fails
   there and `base.commit` is the later of the two (`git merge-base --is-ancestor <commit>
   <base.commit>`), master has fixed it since: find the commit, and leave the spec out as
-  `already fixed by <sha>`. If it passes there too, it is not reproducible.
+  `already fixed by <sha>`. If `base.commit` is the older one, the failure came in after `base`:
+  reproduce and fix it on `commit` with `server_images` instead. If it passes there too, it is not
+  reproducible.
 
 ## 3. Find the cause
 
