@@ -21,11 +21,10 @@ import type {PropsFromRedux} from './index';
 export const MATTERMOST_DOCS_URL = 'https://docs.mattermost.com';
 
 export function getMattermostDocumentationURL(siteURL: string): string {
-    const trimmed = (siteURL || '').trim().replace(/\/+$/, '');
-
     try {
-        if (new URL(trimmed).pathname.replace(/\/+$/, '') === '') {
-            return `${trimmed}/_documentation/`;
+        const {origin, pathname} = new URL(siteURL);
+        if (pathname === '/') {
+            return `${origin}/_documentation/`;
         }
     } catch {
         // new URL throws for an empty or unparseable SiteURL.
