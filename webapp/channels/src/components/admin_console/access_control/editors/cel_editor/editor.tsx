@@ -160,8 +160,8 @@ export interface CELEditorProps {
     /** Force the test button into the disabled state (overrides default). */
     testButtonDisabled?: boolean;
 
-    /** Tooltip shown when the test button is disabled. Useful for explaining
-     *  why testing is unavailable. */
+    /** Tooltip shown when the test button is disabled, in place of the
+     *  built-in reason. Useful for explaining why testing is unavailable. */
     testButtonTooltip?: string;
 
     /** Optional label override for the test button. Lets the
@@ -518,16 +518,10 @@ function CELEditor({
                         onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
                         label={testButtonLabel}
                         disabled={(testButtonDisabled ?? false) || disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
-                        disabledTooltip={
-
-                            // An explicit parent tooltip paired with
-                            // `testButtonDisabled` wins.
-                            (testButtonDisabled && testButtonTooltip) ||
-                            (hasMaskedRows ? intl.formatMessage({
-                                id: 'admin.access_control.cel_editor.masked_values_tooltip',
-                                defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
-                            }) : testButtonTooltip)
-                        }
+                        disabledTooltip={testButtonTooltip ?? (hasMaskedRows ? intl.formatMessage({
+                            id: 'admin.access_control.cel_editor.masked_values_tooltip',
+                            defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
+                        }) : undefined)}
                     />
                 </div>
             </div>

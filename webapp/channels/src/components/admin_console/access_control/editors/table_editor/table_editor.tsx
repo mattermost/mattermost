@@ -176,8 +176,8 @@ export interface TableEditorProps {
     /** Force the test button into the disabled state (overrides default). */
     testButtonDisabled?: boolean;
 
-    /** Tooltip shown when the test button is disabled. Useful for explaining
-     *  why simulation is unavailable (e.g. no attributes loaded). */
+    /** Tooltip shown when the test button is disabled, in place of the
+     *  built-in reason. Useful for explaining why simulation is unavailable. */
     testButtonTooltip?: string;
 
     /** Optional label override for the test button. Lets the
@@ -890,23 +890,10 @@ function TableEditor({
                     <TestButton
                         onClick={onTestClick ?? (() => setShowTestResults(true))}
                         disabled={(testButtonDisabled ?? false) || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
-                        disabledTooltip={
-
-                            // Precedence: an explicit parent-supplied tooltip
-                            // paired with `testButtonDisabled` (the parent
-                            // already chose what the user should see and why),
-                            // then the user-excluded message, then any other
-                            // testButtonTooltip the parent passed alongside
-                            // other disable reasons. `testButtonDisabled` must be
-                            // checked first, or the self-exclusion tooltip would
-                            // override an explicit parent tooltip whenever both
-                            // conditions are true.
-                            (testButtonDisabled && testButtonTooltip) ||
-                            (userWouldBeExcluded ? formatMessage({
-                                id: 'admin.access_control.table_editor.user_excluded_tooltip',
-                                defaultMessage: 'You cannot test access rules that would exclude you from the channel',
-                            }) : testButtonTooltip)
-                        }
+                        disabledTooltip={testButtonTooltip ?? (userWouldBeExcluded ? formatMessage({
+                            id: 'admin.access_control.table_editor.user_excluded_tooltip',
+                            defaultMessage: 'You cannot test access rules that would exclude you from the channel',
+                        }) : undefined)}
                         label={testButtonLabel}
                     />
                 </div>

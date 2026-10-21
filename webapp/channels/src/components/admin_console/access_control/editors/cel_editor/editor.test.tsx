@@ -232,7 +232,7 @@ describe('CELEditor', () => {
             expect(await hoverTooltip()).toHaveTextContent(PARENT_TOOLTIP);
         });
 
-        test('keeps the masked-values tooltip when testButtonDisabled is not set', async () => {
+        test('prefers the parent tooltip over the masked-values tooltip even when testButtonDisabled is not set', async () => {
             renderWithContext(
                 <CELEditor
                     {...baseProps}
@@ -243,7 +243,7 @@ describe('CELEditor', () => {
             );
 
             expect(testButton()).toBeDisabled();
-            expect(await hoverTooltip()).toHaveTextContent(MASKED_TOOLTIP);
+            expect(await hoverTooltip()).toHaveTextContent(PARENT_TOOLTIP);
         });
 
         test('shows the masked-values tooltip by default', async () => {
