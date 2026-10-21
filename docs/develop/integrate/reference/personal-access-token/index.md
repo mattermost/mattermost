@@ -69,7 +69,7 @@ Tokens can also be temporarily deactivated from the user's profile. Once deactiv
 
 ### How do personal access tokens differ from regular session tokens?
 
-- Personal access tokens are independent of the [session length limits set in the System Console](https://docs.mattermost.com/administration-guide/configure/environment-configuration-settings#session-lengths). They can expire on a selected date or remain valid until revoked when server policy permits.
+- Personal access tokens can optionally expire on a selected date. If your System Admin enforces a maximum token lifetime, an expiry date is required.
 - Personal access tokens can be used to authenticate against the API more easily, including with AD/LDAP and SAML accounts.
 - You can optionally assign additional roles for the account creating personal access tokens. This lets the account post to any channel in Mattermost, including direct messages.
 
