@@ -5,11 +5,15 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -324,6 +328,10 @@ func TestValidateLogFilePath(t *testing.T) {
 // audit-delivery level.
 var deliveryTargetJSON = json.RawMessage(`{"my-delivery":{"type":"file","format":"json","levels":[{"id":104,"name":"audit-delivery"}],"options":{"filename":"delivery.log"}}}`)
 
+// noneAuditTargetJSON binds audit-api and audit-delivery to a target of type "none", which
+// logr never builds.
+const noneAuditTargetJSON = `{"a":{"type":"none","levels":[{"id":100,"name":"audit-api"},{"id":104,"name":"audit-delivery"}]}}`
+
 // setAdditionalAuditTargets sets AdditionalAuditTargetsEnv for the test and resets the cached
 // value so the next read sees it.
 func setAdditionalAuditTargets(t *testing.T, value string) {
@@ -488,6 +496,57 @@ func TestIsAuditLoggingActive(t *testing.T) {
 			allowAdvancedLogging: false,
 			expected:             false,
 		},
+		{
+			name:                 "env var target of type none",
+			fileEnabled:          false,
+			additionalTargets:    noneAuditTargetJSON,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "advanced target of type None, licensed",
+			fileEnabled:          false,
+			advancedLoggingJSON:  json.RawMessage(`{"a":{"type":"None","levels":[{"id":100,"name":"audit-api"}]}}`),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "env var target of type none overrides _defAudit",
+			fileEnabled:          true,
+			fileName:             "audit.log",
+			additionalTargets:    `{"_defAudit":{"type":"none","levels":[{"id":100,"name":"audit-api"}]}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var target of type none alongside file audit",
+			fileEnabled:          true,
+			fileName:             "audit.log",
+			additionalTargets:    noneAuditTargetJSON,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var syslog target with missing host",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"port":514}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var syslog target with no options",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}]}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var syslog target with unknown format",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"bogus","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
 	}
 
 	for _, tc := range tests {
@@ -503,6 +562,43 @@ func TestIsAuditLoggingActive(t *testing.T) {
 			assert.Equal(t, tc.expected, IsAuditLoggingActive(auditSettings, tc.allowAdvancedLogging))
 		})
 	}
+}
+
+func TestAuditActivityChecksDoNotDialSyslog(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = listener.Close()
+	})
+
+	var dials atomic.Int32
+	go func() {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				return
+			}
+			dials.Add(1)
+			_ = conn.Close()
+		}
+	}()
+
+	port := listener.Addr().(*net.TCPAddr).Port
+	setAdditionalAuditTargets(t, fmt.Sprintf(
+		`{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"},{"id":104,"name":"audit-delivery"}],"options":{"host":"127.0.0.1","port":%d}}}`,
+		port,
+	))
+
+	auditSettings := model.ExperimentalAuditSettings{}
+	auditSettings.SetDefaults()
+	*auditSettings.FileEnabled = false
+
+	assert.True(t, IsAuditLoggingActive(auditSettings, false))
+	assert.True(t, IsAuditLevelActive(auditSettings, false, mlog.LvlAuditDelivery))
+
+	// Give a stray dial time to be accepted before checking.
+	time.Sleep(100 * time.Millisecond)
+	assert.Zero(t, dials.Load(), "activity checks must not connect to the syslog server")
 }
 
 func TestIsAuditLevelActive(t *testing.T) {
@@ -629,6 +725,14 @@ func TestIsAuditLevelActive(t *testing.T) {
 			additionalTargets:    `{"_defAudit":{"type":"file","format":"json","levels":[{"id":104,"name":"audit-delivery"}],"options":{"filename":"audit.log"}}}`,
 			allowAdvancedLogging: false,
 			expected:             true,
+		},
+		{
+			name:                 "env var delivery target of type none",
+			level:                mlog.LvlAuditDelivery,
+			fileEnabled:          true,
+			additionalTargets:    noneAuditTargetJSON,
+			allowAdvancedLogging: false,
+			expected:             false,
 		},
 	}
 

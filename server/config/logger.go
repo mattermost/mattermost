@@ -5,6 +5,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"sync"
 
 	"github.com/mattermost/logr/v2"
+	"github.com/mattermost/logr/v2/targets"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -218,6 +220,10 @@ func hasAuditTargetFor(auditSettings model.ExperimentalAuditSettings, allowAdvan
 	}
 
 	for _, target := range cfg {
+		// logr builds no target for type "none", so nothing it is bound to gets written.
+		if strings.EqualFold(target.Type, "none") {
+			continue
+		}
 		if slices.ContainsFunc(target.Levels, matches) {
 			return true
 		}
@@ -228,7 +234,23 @@ func hasAuditTargetFor(auditSettings model.ExperimentalAuditSettings, allowAdvan
 
 // validateAuditTargets builds cfg's targets on a throwaway logger, the same way
 // audit.Configure does, so a target the server would reject is not counted as active.
+//
+// Building a syslog target dials the syslog server, so syslog targets only have their options
+// checked and are built as console targets instead, which still validates their format.
 func validateAuditTargets(cfg mlog.LoggerConfiguration) error {
+	cfg = maps.Clone(cfg)
+	for name, target := range cfg {
+		if !strings.EqualFold(target.Type, "syslog") {
+			continue
+		}
+		if err := validateSyslogOptions(target.Options); err != nil {
+			return fmt.Errorf("invalid syslog target %s: %w", name, err)
+		}
+		target.Type = "console"
+		target.Options = nil
+		cfg[name] = target
+	}
+
 	logger, err := mlog.NewLogger()
 	if err != nil {
 		return err
@@ -238,6 +260,18 @@ func validateAuditTargets(cfg mlog.LoggerConfiguration) error {
 	}()
 
 	return logger.ConfigureTargets(cfg, nil)
+}
+
+func validateSyslogOptions(options json.RawMessage) error {
+	if len(options) == 0 {
+		return errors.New("missing syslog target options")
+	}
+
+	var syslogOptions targets.SyslogOptions
+	if err := json.Unmarshal(options, &syslogOptions); err != nil {
+		return err
+	}
+	return syslogOptions.CheckValid()
 }
 
 func GetLogFileLocation(fileLocation string) string {
