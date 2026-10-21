@@ -160,7 +160,7 @@ func (ps *PlatformService) CleanUpConfig() error {
 	return ps.configStore.CleanUp()
 }
 
-func (ps *PlatformService) GetConfigHistory(offset, limit int) ([]*model.ConfigHistoryEntry, error) {
+func (ps *PlatformService) GetConfigHistory(offset, limit int) ([]*model.ConfigHistoryEntry, []*model.Config, error) {
 	return ps.configStore.GetHistory(offset, limit)
 }
 

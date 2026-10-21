@@ -419,15 +419,28 @@ func (s *Store) CleanUp() error {
 	}
 }
 
-// GetHistory returns the saved configurations, newest first, skipping the first offset.
+// GetHistory returns the saved configurations, newest first, skipping the first offset, and the
+// configuration each one saved, loaded as GetHistoricalConfig loads it.
 // Only a DatabaseStore backing store keeps a history.
-func (s *Store) GetHistory(offset, limit int) ([]*model.ConfigHistoryEntry, error) {
-	switch bs := s.backingStore.(type) {
-	case *DatabaseStore:
-		return bs.getHistory(offset, limit)
-	default:
-		return nil, ErrHistoryNotSupported
+func (s *Store) GetHistory(offset, limit int) ([]*model.ConfigHistoryEntry, []*model.Config, error) {
+	bs, ok := s.backingStore.(*DatabaseStore)
+	if !ok {
+		return nil, nil, ErrHistoryNotSupported
 	}
+
+	entries, values, err := bs.getHistory(offset, limit)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	configs := make([]*model.Config, len(values))
+	for i, value := range values {
+		if configs[i], err = loadHistoricalConfig(value); err != nil {
+			return nil, nil, errors.Wrapf(err, "failed to load configuration %s", entries[i].Id)
+		}
+	}
+
+	return entries, configs, nil
 }
 
 // GetHistoricalConfig returns the saved configuration with the given id, loaded as Load would
@@ -444,6 +457,11 @@ func (s *Store) GetHistoricalConfig(id string) (*model.Config, error) {
 		return nil, err
 	}
 
+	return loadHistoricalConfig(configBytes)
+}
+
+// loadHistoricalConfig loads the value of a saved configuration as Load would load it.
+func loadHistoricalConfig(configBytes []byte) (*model.Config, error) {
 	cfg := &model.Config{}
 	if err := json.Unmarshal(configBytes, cfg); err != nil {
 		return nil, utils.HumanizeJSONError(err, configBytes)

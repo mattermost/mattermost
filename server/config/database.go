@@ -351,22 +351,32 @@ func (ds *DatabaseStore) cleanUp(thresholdCreateAt int64) error {
 	return nil
 }
 
-// getHistory returns the saved configurations, newest first, without their values.
-func (ds *DatabaseStore) getHistory(offset, limit int) ([]*model.ConfigHistoryEntry, error) {
+// getHistory returns the saved configurations, newest first, and the value of each.
+func (ds *DatabaseStore) getHistory(offset, limit int) ([]*model.ConfigHistoryEntry, [][]byte, error) {
 	// The active configuration is the newest one, even when another was saved in the same millisecond.
 	query := `
-		SELECT Id, CreateAt, COALESCE(Active, FALSE) AS Active
+		SELECT Id, CreateAt, COALESCE(Active, FALSE) AS Active, Value
 		FROM Configurations
 		ORDER BY COALESCE(Active, FALSE) DESC, CreateAt DESC, Id DESC
 		LIMIT $1 OFFSET $2
 	`
 
-	entries := []*model.ConfigHistoryEntry{}
-	if err := ds.db.Select(&entries, query, limit, offset); err != nil {
-		return nil, errors.Wrap(err, "failed to query configurations")
+	var rows []struct {
+		model.ConfigHistoryEntry
+		Value []byte
+	}
+	if err := ds.db.Select(&rows, query, limit, offset); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to query configurations")
 	}
 
-	return entries, nil
+	entries := make([]*model.ConfigHistoryEntry, len(rows))
+	values := make([][]byte, len(rows))
+	for i := range rows {
+		entries[i] = &rows[i].ConfigHistoryEntry
+		values[i] = rows[i].Value
+	}
+
+	return entries, values, nil
 }
 
 // getHistoricalConfig returns the value of the saved configuration with the given id.

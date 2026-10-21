@@ -1224,7 +1224,7 @@ func TestGetConfigHistory(t *testing.T) {
 func TestGetHistoricalConfig(t *testing.T) {
 	th := setupConfigHistory(t)
 
-	entries, appErr := th.App.GetConfigHistory(0, 2)
+	entries, _, appErr := th.App.GetConfigHistory(0, 2)
 	require.Nil(t, appErr)
 	require.Len(t, entries, 2)
 	oldConfigID := entries[1].Id

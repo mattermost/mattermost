@@ -292,15 +292,22 @@ func (a *App) GetSanitizedConfig() *model.Config {
 
 // SanitizedConfig sanitizes a given configuration for a system admin without any secrets.
 func (a *App) SanitizedConfig(cfg *model.Config) {
+	a.ConfigSanitizer()(cfg)
+}
+
+// ConfigSanitizer returns a function that sanitizes a configuration as SanitizedConfig does.
+// It reads the plugin manifests only once, for sanitizing many configurations.
+func (a *App) ConfigSanitizer() func(*model.Config) {
 	manifests, err := a.getPluginManifests()
 	if err != nil {
 		// GetPluginManifests might error, e.g. when plugins are disabled.
 		// Sanitize all plugin settings in this case.
-		cfg.Sanitize(nil, nil)
-		return
+		manifests = nil
 	}
 
-	cfg.Sanitize(manifests, nil)
+	return func(cfg *model.Config) {
+		cfg.Sanitize(manifests, nil)
+	}
 }
 
 // GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
@@ -314,17 +321,18 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 	return a.Srv().platform.SaveConfig(newCfg, sendConfigChangeClusterMessage)
 }
 
-// GetConfigHistory returns the saved configurations, newest first, skipping the first offset.
-func (a *App) GetConfigHistory(offset, limit int) ([]*model.ConfigHistoryEntry, *model.AppError) {
-	entries, err := a.Srv().platform.GetConfigHistory(offset, limit)
+// GetConfigHistory returns the saved configurations, newest first, skipping the first offset,
+// and the configuration each one saved, loaded as GetHistoricalConfig loads it.
+func (a *App) GetConfigHistory(offset, limit int) ([]*model.ConfigHistoryEntry, []*model.Config, *model.AppError) {
+	entries, configs, err := a.Srv().platform.GetConfigHistory(offset, limit)
 	if err != nil {
-		return nil, configHistoryAppError("GetConfigHistory", err)
+		return nil, nil, configHistoryAppError("GetConfigHistory", err)
 	}
-	return entries, nil
+	return entries, configs, nil
 }
 
-// GetHistoricalConfig returns the saved configuration with the given id, unsanitized and
-// without environment overrides.
+// GetHistoricalConfig returns the saved configuration with the given id, unsanitized, with the
+// environment overrides the server would apply if it were active.
 func (a *App) GetHistoricalConfig(id string) (*model.Config, *model.AppError) {
 	cfg, err := a.Srv().platform.GetHistoricalConfig(id)
 	if err != nil {

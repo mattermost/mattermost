@@ -469,7 +469,7 @@ func newConfigHistoryCmd(perPage int, detailed bool) *cobra.Command {
 
 // latestConfigID returns the id of the active saved configuration.
 func (s *MmctlE2ETestSuite) latestConfigID() string {
-	entries, appErr := s.th.App.GetConfigHistory(0, 1)
+	entries, _, appErr := s.th.App.GetConfigHistory(0, 1)
 	s.Require().Nil(appErr)
 	s.Require().Len(entries, 1)
 	return entries[0].Id

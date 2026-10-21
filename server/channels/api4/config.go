@@ -426,20 +426,16 @@ func getConfigHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	// The oldest entry on the page is compared with the one saved before it, so fetch one more.
-	entries, appErr := c.App.GetConfigHistory(c.Params.Page*c.Params.PerPage, c.Params.PerPage+1)
+	entries, configs, appErr := c.App.GetConfigHistory(c.Params.Page*c.Params.PerPage, c.Params.PerPage+1)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	readableConfig := newReadableConfigFilter(c)
+	sanitize := c.App.ConfigSanitizer()
 	var newer *model.Config
-	for i, entry := range entries {
-		cfg, appErr := c.App.GetHistoricalConfig(entry.Id)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
+	for i, cfg := range configs {
 		cfg, appErr = readableConfig(cfg)
 		if appErr != nil {
 			c.Err = appErr
@@ -447,7 +443,7 @@ func getConfigHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if newer != nil {
-			diffs, err := config.SanitizedDiff(cfg, newer, c.App.SanitizedConfig)
+			diffs, err := config.SanitizedDiff(cfg, newer, sanitize)
 			if err != nil {
 				c.Err = model.NewAppError("getConfigHistory", "api.config.get_config_history.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 				return
