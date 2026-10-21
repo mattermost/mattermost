@@ -10233,7 +10233,7 @@
   {
     "id": "app.pap.masking.ambiguous_sibling.app_error",
     "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously.",
-    "description": ""
+    "description": "API error (500) surfaced when resolving attribute-based access control masking: more than one user attribute field points at the same linked template, so the server cannot tell which one governs visibility of the channel attribute. Seen by a system admin editing access rules."
   },
   {
     "id": "app.pap.masking.graph_value_unmarshal.app_error",
@@ -11173,7 +11173,7 @@
   {
     "id": "app.property_field.linked_option_read_ceiling.app_error",
     "translation": "A linked field's option.read tier ({{.FieldTier}}) cannot be more permissive than its template ({{.TemplateID}})'s tier ({{.TemplateTier}}).",
-    "description": ""
+    "description": "API error when creating or updating a property field linked to a shared template with an option.read permission level that lets more people read its options than the template allows. FieldTier and TemplateTier are permission levels such as 'member' or 'everyone'; TemplateID is a field ID."
   },
   {
     "id": "app.property_field.managed_admin.permission.app_error",
@@ -11238,7 +11238,7 @@
   {
     "id": "app.property_field.self_writable_holdings.app_error",
     "translation": "This field is the holdings source for its masked template, so its value write level cannot be '{{.ValueWrite}}'. The people the template filters could otherwise edit their own holdings and widen what they can see.",
-    "description": ""
+    "description": "API error when an admin or integration saves a property field that its masked template reads each person's own values ('holdings') from, with a value write level that lets regular members edit it. ValueWrite is a permission level such as 'member' or 'everyone'."
   },
   {
     "id": "app.property_field.sync_source_exclusive.app_error",
@@ -11303,7 +11303,7 @@
   {
     "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
     "translation": "Cannot update: linked field {{.DependentID}} is at option.read tier {{.DependentTier}}, which would exceed the new tier {{.NewTier}}.",
-    "description": ""
+    "description": "API error when an admin or integration lowers a shared property template's option.read permission level below that of a field already linked to it. DependentID is a field ID; DependentTier and NewTier are permission levels such as 'member' or 'everyone'."
   },
   {
     "id": "app.property_field.update.options_withheld.app_error",
