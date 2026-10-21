@@ -714,6 +714,32 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 		}, printer.GetLines()[0])
 	})
 
+	s.Run("Keep the settings of plugins when rolling back to enable plugins", func() {
+		printer.Clean()
+		pluginID := "com.example.uninstalled"
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			delete(cfg.PluginSettings.Plugins, pluginID)
+			*cfg.PluginSettings.Enable = true
+		})
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			cfg.PluginSettings.Plugins[pluginID] = map[string]any{"key": "value"}
+		})
+		oldConfigID := s.latestConfigID()
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
+
+		err := configRollbackCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		for _, cfg := range []*model.Config{s.th.App.Config(), s.storedConfig()} {
+			s.Require().True(*cfg.PluginSettings.Enable)
+			s.Require().Equal(map[string]any{"key": "value"}, cfg.PluginSettings.Plugins[pluginID])
+		}
+		s.Require().Equal(&configRollbackResult{
+			ConfigId: oldConfigID,
+			Changes:  []*model.ConfigChange{{Path: "PluginSettings.Enable", OldValue: false, NewValue: true}},
+		}, printer.GetLines()[0])
+	})
+
 	s.RunForSystemAdminAndLocal("Roll back to an unknown configuration", func(c client.Client) {
 		printer.Clean()
 

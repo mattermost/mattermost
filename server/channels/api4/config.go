@@ -140,6 +140,18 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	appCfg := c.App.Config()
+
+	// Preserve the existing configs of plugins that getConfig doesn't show, such as those that
+	// aren't installed, or all of them when plugins are disabled, unless they are present.
+	shownCfg := appCfg.Clone()
+	c.App.SanitizedConfig(shownCfg)
+	for id, storedSettings := range appCfg.PluginSettings.Plugins {
+		_, shown := shownCfg.PluginSettings.Plugins[id]
+		if _, present := cfg.PluginSettings.Plugins[id]; !present && !shown {
+			cfg.PluginSettings.Plugins[id] = storedSettings
+		}
+	}
+
 	cfg, err = config.Merge(appCfg, cfg, &utils.MergeConfig{
 		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
 			return writeFilter(c, structField)

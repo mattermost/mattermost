@@ -682,6 +682,10 @@
         you need to get the existing configuration first, change the field that
         you want, then put that new configuration.
 
+        The settings of plugins that `GET /api/v4/config` doesn't return, such
+        as those of plugins that aren't installed, keep their current values
+        unless the configuration you provide includes them.
+
         ##### Permissions
 
         Must have `manage_system` permission.

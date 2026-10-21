@@ -151,7 +151,7 @@ var ConfigRollbackCmd = &cobra.Command{
 	Short: "Roll back to a saved configuration",
 	Long: `Replaces the server configuration with a saved configuration from "config history". The configuration it replaces stays in the history.
 
-Settings set through environment variables keep the values set there. Without --local, settings with sensitive values, such as passwords and database connection strings, settings that can't be changed through the API, and settings you don't have permission to change also keep their current values.`,
+Settings set through environment variables keep the values set there. Without --local, settings with sensitive values, such as passwords and database connection strings, settings that can't be changed through the API, settings you don't have permission to change, and the settings of plugins that aren't installed, or of all plugins while plugins are disabled, also keep their current values.`,
 	Example: "  config rollback hpgt7dw7si8odbc9gg938iqjhr",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(configRollbackCmdF),

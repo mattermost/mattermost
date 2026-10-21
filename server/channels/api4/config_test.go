@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -362,6 +363,39 @@ func TestUpdateConfig(t *testing.T) {
 		cfg, _, err = th.SystemAdminClient.GetConfig(context.Background())
 		require.NoError(t, err)
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
+	})
+
+	t.Run("Should keep the settings of plugins that aren't shown unless they are sent", func(t *testing.T) {
+		pluginDir := filepath.Join(*th.App.Config().PluginSettings.Directory, "com.example.installed")
+		require.NoError(t, os.MkdirAll(pluginDir, 0700))
+		defer os.RemoveAll(pluginDir)
+		require.NoError(t, os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(`{"id": "com.example.installed"}`), 0600))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Plugins["com.example.installed"] = map[string]any{"key": "installed"}
+			cfg.PluginSettings.Plugins["com.example.uninstalled"] = map[string]any{"key": "uninstalled"}
+			cfg.PluginSettings.Plugins["com.example.replaced"] = map[string]any{"key": "old"}
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			delete(cfg.PluginSettings.Plugins, "com.example.installed")
+			delete(cfg.PluginSettings.Plugins, "com.example.uninstalled")
+			delete(cfg.PluginSettings.Plugins, "com.example.replaced")
+		})
+
+		cfg, _, err = th.SystemAdminClient.GetConfig(context.Background())
+		require.NoError(t, err)
+		require.Contains(t, cfg.PluginSettings.Plugins, "com.example.installed")
+		require.NotContains(t, cfg.PluginSettings.Plugins, "com.example.uninstalled")
+		require.NotContains(t, cfg.PluginSettings.Plugins, "com.example.replaced")
+
+		delete(cfg.PluginSettings.Plugins, "com.example.installed")
+		cfg.PluginSettings.Plugins["com.example.replaced"] = map[string]any{"key": "new"}
+		_, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
+		require.NoError(t, err)
+
+		plugins := th.App.Config().PluginSettings.Plugins
+		require.NotContains(t, plugins, "com.example.installed")
+		require.Equal(t, map[string]any{"key": "uninstalled"}, plugins["com.example.uninstalled"])
+		require.Equal(t, map[string]any{"key": "new"}, plugins["com.example.replaced"])
 	})
 }
 
