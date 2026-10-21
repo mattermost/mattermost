@@ -5,6 +5,7 @@ package app
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"crypto/sha256"
 	"encoding/base64"
@@ -23,6 +24,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
@@ -1585,4 +1587,74 @@ func TestEnablePluginAddOnLicenseCheck(t *testing.T) {
 		require.Nil(t, appErr)
 		require.False(t, th.App.Config().PluginSettings.PluginStates[testAddOnPluginID].Enable)
 	})
+}
+
+func TestReservedPluginColdStart(t *testing.T) {
+	th := Setup(t)
+	markerDir := t.TempDir()
+	backend := filepath.Join(t.TempDir(), "backend.exe")
+	utils.CompileGo(t, fmt.Sprintf(`
+ package main
+ import (
+  "os"
+  "path/filepath"
+  "github.com/mattermost/mattermost/server/public/plugin"
+ )
+ type markerPlugin struct { plugin.MattermostPlugin }
+ func (p *markerPlugin) OnActivate() error {
+  executable, err := os.Executable()
+  if err != nil { return err }
+  return os.WriteFile(filepath.Join(%q, filepath.Base(filepath.Dir(executable))), []byte("activated"), 0600)
+ }
+ func main() { plugin.ClientMain(&markerPlugin{}) }
+ `, markerDir), backend)
+	executable, err := os.ReadFile(backend)
+	require.NoError(t, err)
+	ids := []string{model.CoreServerPluginID, "startup-control"}
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.RequirePluginSignature = false
+		*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
+		for _, id := range ids {
+			cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
+		}
+	})
+	th.App.ch.ShutDownPlugins()
+	require.Nil(t, th.App.GetPluginsEnvironment())
+	for _, id := range ids {
+		manifest, marshalErr := json.Marshal(&model.Manifest{Id: id, Version: "1.0.0", Server: &model.ManifestServer{Executable: "backend.exe"}})
+		require.NoError(t, marshalErr)
+		var bundle bytes.Buffer
+		gz := gzip.NewWriter(&bundle)
+		tw := tar.NewWriter(gz)
+		for _, file := range []struct {
+			name string
+			data []byte
+		}{{"plugin.json", manifest}, {"backend.exe", executable}} {
+			require.NoError(t, tw.WriteHeader(&tar.Header{Name: file.name, Mode: 0700, Size: int64(len(file.data))}))
+			_, err = tw.Write(file.data)
+			require.NoError(t, err)
+		}
+		require.NoError(t, tw.Close())
+		require.NoError(t, gz.Close())
+		_, appErr := th.App.WriteFile(bytes.NewReader(bundle.Bytes()), getBundleStorePath(id))
+		require.Nil(t, appErr)
+	}
+	cfg := th.App.Config()
+	th.App.ch.initPlugins(th.Context, *cfg.PluginSettings.Directory, *cfg.PluginSettings.ClientDirectory)
+	env := th.App.GetPluginsEnvironment()
+	require.NotNil(t, env)
+	require.True(t, env.IsActive("startup-control"))
+	require.FileExists(t, filepath.Join(markerDir, "startup-control"))
+	require.NoFileExists(t, filepath.Join(markerDir, ids[0]))
+	require.False(t, env.IsActive(ids[0]))
+	bundles, err := env.Available()
+	require.NoError(t, err)
+	for _, bundle := range bundles {
+		require.NotEqual(t, ids[0], bundle.Manifest.Id)
+	}
+	_, activated, err := env.Activate(ids[0])
+	require.ErrorContains(t, err, "reserved for the core server")
+	require.False(t, activated)
+	require.NoFileExists(t, filepath.Join(markerDir, ids[0]))
 }

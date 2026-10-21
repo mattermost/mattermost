@@ -31,3 +31,14 @@ func TestIsValidPluginId(t *testing.T) {
 		})
 	}
 }
+
+func TestIsReservedPluginID(t *testing.T) {
+	t.Parallel()
+	for _, id := range []string{"com.mattermost.server", "COM.MATTERMOST.SERVER", "Com.Mattermost.Server"} {
+		assert.True(t, IsReservedPluginID(id), id)
+		assert.True(t, IsValidPluginId(id), "reservation must not change ID syntax")
+	}
+	for _, id := range []string{"", "com.mattermost.server-other", "com.mattermost.server.plugin", "message-based-encryption", "com.mattermost.kmd"} {
+		assert.False(t, IsReservedPluginID(id), id)
+	}
+}

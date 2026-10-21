@@ -99,7 +99,7 @@ func (a *App) ServeInternalPluginRequest(userID string, w http.ResponseWriter, r
 		r.Header.Set("Mattermost-Plugin-ID", sourcePluginID)
 	} else {
 		// Core server call - use special identifier
-		r.Header.Set("Mattermost-Plugin-ID", "com.mattermost.server")
+		r.Header.Set("Mattermost-Plugin-ID", model.CoreServerPluginID)
 	}
 
 	hooks.ServeHTTP(context, w, r)

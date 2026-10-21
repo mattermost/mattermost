@@ -306,6 +306,10 @@ func (env *Environment) startPluginServer(pluginInfo *model.BundleInfo, opts ...
 }
 
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
+	if model.IsReservedPluginID(id) {
+		return nil, false, fmt.Errorf("plugin ID %q is reserved for the core server", id)
+	}
+
 	defer func() {
 		if reterr != nil {
 			env.SetPluginError(id, reterr.Error())
@@ -385,6 +389,9 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 // Reattach allows the server to bind to an existing plugin instance launched elsewhere.
 func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig *model.PluginReattachConfig) (reterr error) {
 	id := manifest.Id
+	if model.IsReservedPluginID(id) {
+		return fmt.Errorf("plugin ID %q is reserved for the core server", id)
+	}
 
 	defer func() {
 		if reterr != nil {
