@@ -358,10 +358,10 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
         // # Retrieve the post ID and construct the permalink URL
         const postsResult = await adminClient.getPosts(channelId, 0, 1);
         const postId = postsResult.order[0];
-        // Use testConfig.internalBaseURL, not adminClient's host-mapped route — the server itself
+        // Use testConfig.siteURL, not adminClient's host-mapped route — the server itself
         // must recognize this URL as its own SiteURL to embed it via an internal permalink lookup,
         // instead of trying (and, in `testcontainers` mode, failing) to fetch it back over HTTP as a link.
-        const permalinkUrl = `${testConfig.internalBaseURL}/${team.name}/pl/${postId}`;
+        const permalinkUrl = `${testConfig.siteURL}/${team.name}/pl/${postId}`;
 
         // # Admin posts the permalink in the same channel (creates an embedded preview)
         await adminChannelsPage.centerView.postCreate.postMessage(permalinkUrl);
