@@ -646,21 +646,27 @@ func syncLockSource(field *PropertyField) string {
 	return GetPropertyFieldSyncSource(field)
 }
 
-// ApplySyncLock returns a copy of p carrying the sync lock PermissionsFromLegacy
-// gives field: value.write none for humans, the sync identity's grant, and no
-// value.write on the plugin wildcard grant or on the grant of field's source
-// plugin. It is how a linked user field takes the lock its template's
-// permissions don't carry. A template is never sync-locked, so a protected
-// template gives its source plugin value.write, which on a synced field it
-// doesn't hold (see sourcePluginGrantAllow). The sync source and the source
-// plugin are read from field's attrs, and p is returned unchanged when field
-// isn't synced.
+// ApplySyncLock returns a copy of p carrying the sync lock: value.write none
+// for humans, the sync identity's grant, and no value.write on any other
+// grant, so only the sync writes a synced field's values. It is how a linked
+// user field takes the lock its template's permissions don't carry. A
+// template is never sync-locked, so the grants it gives the plugin wildcard,
+// its source plugin (when protected) and its machine owners can all carry
+// value.write. The sync source is read from field's attrs, and p is returned
+// unchanged when field isn't synced.
+//
+// A grant of the sync identity is left as it is, scoped or not. The sync
+// caller never acts under a scope, so a scoped one never matches it, and the
+// lock widens only its unscoped grant, adding one if it has none.
+//
+// This is stricter than PermissionsFromLegacy on a field that also has
+// owners: master's owner check supersedes the sync lock there, so the
+// conversion keeps a machine owner's value.write.
 func ApplySyncLock(p *Permissions, field *PropertyField) *Permissions {
 	syncSource := syncLockSource(field)
 	if syncSource == "" {
 		return p
 	}
-	sourcePluginID, _ := field.Attrs[PropertyAttrsSourcePluginID].(string)
 
 	var restrictions Restrictions
 	if p.Restrictions != nil {
@@ -673,14 +679,14 @@ func ApplySyncLock(p *Permissions, field *PropertyField) *Permissions {
 	hasSyncGrant := false
 	for _, g := range p.Grants {
 		switch {
-		case g.Type == PropertyOwnerTypePlugin && (g.ID == "*" || (sourcePluginID != "" && g.ID == sourcePluginID)):
+		case g.Identity == syncIdentity && len(g.Scopes) == 0:
+			g.Allow = unionActions(g.Allow, syncLockGrantAllow)
+			hasSyncGrant = true
+		case g.Identity != syncIdentity:
 			g.Allow = removeAction(g.Allow, PropertyActionValueWrite)
 			if len(g.Allow) == 0 {
 				continue
 			}
-		case g.Identity == syncIdentity:
-			g.Allow = unionActions(g.Allow, syncLockGrantAllow)
-			hasSyncGrant = true
 		}
 		grants = append(grants, g)
 	}
