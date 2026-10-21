@@ -4338,7 +4338,7 @@ func TestPropertyFieldPermissionsLockout(t *testing.T) {
 		}
 	})
 
-	t.Run("the plugin API may still leave field.write at none", func(t *testing.T) {
+	t.Run("callers outside the HTTP API may still leave field.write at none", func(t *testing.T) {
 		pluginID := "com.example.lockout"
 		pluginAPI := app.NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
 		newPluginField := func(t *testing.T, fieldWrite model.PermissionLevel) *model.PropertyField {
@@ -4368,13 +4368,32 @@ func TestPropertyFieldPermissionsLockout(t *testing.T) {
 		})
 
 		t.Run("on update, where a partial restrictions object keeps its meaning", func(t *testing.T) {
-			created := newPluginField(t, model.PermissionLevelSysadmin)
+			// The enforcement hook refuses a plugin that is not installed,
+			// and none is here, so the LDAP sync stands in: like a plugin,
+			// it reaches the app layer without coming through the handlers.
+			created, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+				Name:       model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				GroupID:    group.ID,
+				ObjectType: "post",
+				TargetType: "channel",
+				TargetID:   th.BasicChannel.Id,
+				Permissions: &model.Permissions{
+					Restrictions: restrictions(model.PermissionLevelSysadmin),
+					Grants: []model.Grant{{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP},
+						Allow:    []string{model.PropertyActionFieldWrite},
+					}},
+				},
+			}, false, "")
+			require.Nil(t, appErr)
 
 			// The leaves it leaves out, field.write among them, are stored
 			// as none.
 			created.Permissions.Restrictions = &model.Restrictions{Value: model.ReadWrite{Read: model.PermissionLevelMember}}
-			updated, err := pluginAPI.UpdatePropertyField(group.ID, created)
-			require.NoError(t, err)
+			syncCtx := app.RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+			updated, _, appErr := th.App.UpdatePropertyField(syncCtx, group.ID, created, false, "")
+			require.Nil(t, appErr)
 			require.Equal(t, model.PermissionLevelMember, updated.Permissions.Restrictions.Value.Read)
 			require.Equal(t, model.PermissionLevelNone, updated.Permissions.Restrictions.Field.Write)
 		})
@@ -8970,12 +8989,23 @@ func TestCreateAccessControlFieldWithPermissions(t *testing.T) {
 	})
 
 	t.Run("a system admin may submit one, and it is stored as sent", func(t *testing.T) {
-		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, lockingField(th.SystemAdminUser.Id))
+		// Not field.write none, though: no permissions object submitted
+		// through the API may leave a field that no system admin can edit.
+		field := lockingField(th.SystemAdminUser.Id)
+		_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, field)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		requireNotStored(t, field.Name)
+
+		field = lockingField(th.SystemAdminUser.Id)
+		field.Permissions.Restrictions.Field.Write = model.PermissionLevelSysadmin
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, field)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
 		stored, appErr := th.App.GetPropertyField(th.Context, group.ID, created.ID)
 		require.Nil(t, appErr)
-		require.Equal(t, model.PermissionLevelNone, stored.Permissions.Restrictions.Field.Write)
+		require.Equal(t, model.PermissionLevelSysadmin, stored.Permissions.Restrictions.Field.Write)
+		require.Equal(t, field.Permissions.Grants, stored.Permissions.Grants)
 	})
 }
