@@ -215,10 +215,10 @@ describe('global_attributes/utils', () => {
             });
         });
 
-        it('omits ldap/saml when links is passed but both fields are empty', async () => {
+        it('omits every sync source when links is passed but none is set', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
-            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldapAttr: '', samlAttr: ''});
+            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldap: '', saml: '', openid: ''});
 
             expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', {
                 name: 'my_attribute',
@@ -229,20 +229,20 @@ describe('global_attributes/utils', () => {
             });
         });
 
-        it('includes only attrs.ldap when only ldapAttr is set', async () => {
+        it('includes only attrs.ldap when only ldap is set', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
-            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldapAttr: 'department'});
+            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldap: 'department'});
 
             expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
                 attrs: {display_name: 'My Attribute', ldap: 'department'},
             }));
         });
 
-        it('includes only attrs.saml when only samlAttr is set', async () => {
+        it('includes only attrs.saml when only saml is set', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
-            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {samlAttr: 'department'});
+            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {saml: 'department'});
 
             expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
                 attrs: {display_name: 'My Attribute', saml: 'department'},
@@ -252,11 +252,24 @@ describe('global_attributes/utils', () => {
         it('includes both attrs.ldap and attrs.saml when both are set', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
-            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldapAttr: 'department', samlAttr: 'dept'});
+            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldap: 'department', saml: 'dept'});
 
             expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
                 attrs: {display_name: 'My Attribute', ldap: 'department', saml: 'dept'},
             }));
+        });
+
+        it('includes attrs.openid when an OpenID Connect claim is linked', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createAttributeField('My Attribute', 'my_attribute', 'multiselect', [], {openid: 'groups'});
+
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                attrs: expect.objectContaining({display_name: 'My Attribute', openid: 'groups'}),
+            }));
+            const attrs = createPropertyField.mock.calls[0][2].attrs as Record<string, unknown>;
+            expect(attrs).not.toHaveProperty('ldap');
+            expect(attrs).not.toHaveProperty('saml');
         });
     });
 
@@ -371,8 +384,7 @@ describe('global_attributes/utils', () => {
                 type: 'select',
                 displayName: 'Renamed',
                 options: [{id: 'opt-1', name: 'Engineering'}, {id: '', name: 'Sales'}],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', {
@@ -383,6 +395,7 @@ describe('global_attributes/utils', () => {
                     options: [{id: 'opt-1', name: 'Engineering'}, {id: '', name: 'Sales'}],
                     ldap: null,
                     saml: null,
+                    openid: null,
                     value_type: null,
                 },
             });
@@ -395,8 +408,7 @@ describe('global_attributes/utils', () => {
                 type: 'text',
                 displayName: 'Cost center',
                 options: [{id: 'opt-1', name: ' leftover '}],
-                ldapAttr: 'department',
-                samlAttr: '',
+                externalLinks: {ldap: 'department', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', {
@@ -406,6 +418,7 @@ describe('global_attributes/utils', () => {
                     options: null,
                     ldap: 'department',
                     saml: null,
+                    openid: null,
                     value_type: null,
                 },
             });
@@ -421,8 +434,7 @@ describe('global_attributes/utils', () => {
                     {id: 'opt-1', name: 'Air'},
                     {id: '', name: 'Fighter', parents: ['Air']},
                 ],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', {
@@ -435,9 +447,39 @@ describe('global_attributes/utils', () => {
                     ],
                     ldap: null,
                     saml: null,
+                    openid: null,
                     value_type: null,
                 },
             });
+        });
+
+        it('sends attrs.openid when an OpenID Connect claim is linked, nulling the other sources', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('template', 'field-id', {
+                type: 'text',
+                displayName: 'Country',
+                options: [],
+                externalLinks: {ldap: '', saml: '', openid: 'address.country'},
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', expect.objectContaining({
+                attrs: expect.objectContaining({ldap: null, saml: null, openid: 'address.country'}),
+            }));
+        });
+
+        it('leaves the options out of the PATCH when the patch carries none', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('template', 'field-id', {
+                type: 'multiselect',
+                displayName: 'Groups',
+                externalLinks: {ldap: 'memberOf', saml: '', openid: ''},
+            });
+
+            const attrs = patchPropertyField.mock.calls[0][3].attrs as Record<string, unknown>;
+            expect(attrs).not.toHaveProperty('options');
+            expect(attrs).toEqual(expect.objectContaining({display_name: 'Groups', ldap: 'memberOf'}));
         });
 
         it('passes a non-template object type through as the PATCH path segment', async () => {
@@ -447,8 +489,7 @@ describe('global_attributes/utils', () => {
                 type: 'text',
                 displayName: 'Cost center',
                 options: [],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'field-id', expect.anything());
@@ -461,8 +502,7 @@ describe('global_attributes/utils', () => {
                 type: 'text',
                 displayName: 'Cost center',
                 options: [],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
                 resourceAttrs: {visibility: 'hidden', managed: 'admin'},
                 permissionValues: 'sysadmin',
             });
@@ -481,8 +521,7 @@ describe('global_attributes/utils', () => {
                 type: 'text',
                 displayName: 'Cost center',
                 options: [],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
             });
 
             expect(patchPropertyField.mock.calls[0][3]).not.toHaveProperty('permission_values');
@@ -498,8 +537,7 @@ describe('global_attributes/utils', () => {
                     {id: 'opt-1', name: 'DARKBG', color: '#1e325c'},
                     {id: '', name: 'LIGHTBG', color: '#ffffff'},
                 ],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'channel', 'field-id', {
@@ -512,6 +550,7 @@ describe('global_attributes/utils', () => {
                     ],
                     ldap: null,
                     saml: null,
+                    openid: null,
                     value_type: null,
                 },
             });
@@ -527,8 +566,7 @@ describe('global_attributes/utils', () => {
                     {id: 'opt-1', name: 'Low', rank: 1, color: '#007A33'},
                     {id: 'opt-2', name: 'High', rank: 2, color: '#C8102E'},
                 ],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'channel', 'field-id', expect.objectContaining({
@@ -549,8 +587,7 @@ describe('global_attributes/utils', () => {
                 type: 'phone',
                 displayName: 'Work phone',
                 options: [],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', {
@@ -560,6 +597,7 @@ describe('global_attributes/utils', () => {
                     options: null,
                     ldap: null,
                     saml: null,
+                    openid: null,
                     value_type: 'phone',
                 },
             });
@@ -568,8 +606,7 @@ describe('global_attributes/utils', () => {
                 type: 'url',
                 displayName: 'Homepage',
                 options: [],
-                ldapAttr: '',
-                samlAttr: '',
+                externalLinks: {ldap: '', saml: '', openid: ''},
             });
 
             expect(patchPropertyField).toHaveBeenLastCalledWith('access_control', 'template', 'field-id', expect.objectContaining({

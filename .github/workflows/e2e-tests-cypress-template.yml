@@ -301,7 +301,7 @@ jobs:
           image-aliases: ${{ inputs.server_image_aliases }}
 
   workers:
-    name: dispatch-run-${{ matrix.worker_index }}
+    name: dispatch-run-cypress-${{ inputs.server_edition }}-${{ matrix.worker_index }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     # prep-deps is already an ancestor via dispatch-begin; naming it directly
@@ -378,7 +378,7 @@ jobs:
           repo-dir: ${{ github.workspace }}
           artifacts-root: ${{ github.workspace }}/worker-artifacts
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          gh-job-name: dispatch-run-${{ matrix.worker_index }}
+          gh-job-name: dispatch-run-cypress-${{ inputs.server_edition }}-${{ matrix.worker_index }}
       - name: ci/cloud-teardown
         if: always()
         working-directory: e2e-tests

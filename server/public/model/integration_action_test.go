@@ -3023,3 +3023,103 @@ func TestDialogElementIsValid_ActionButton(t *testing.T) {
 		assert.Contains(t, err.Error(), "invalid action_button URL")
 	})
 }
+
+func TestDialog_SubmitButtonsJSON(t *testing.T) {
+	t.Run("round-trips under the submit_buttons key", func(t *testing.T) {
+		b, err := json.Marshal(Dialog{SubmitButtons: "action"})
+		require.NoError(t, err)
+		assert.Contains(t, string(b), `"submit_buttons":"action"`)
+
+		var dialog Dialog
+		require.NoError(t, json.Unmarshal(b, &dialog))
+		assert.Equal(t, "action", dialog.SubmitButtons)
+	})
+
+	t.Run("is omitted when empty", func(t *testing.T) {
+		b, err := json.Marshal(Dialog{})
+		require.NoError(t, err)
+		assert.NotContains(t, string(b), "submit_buttons")
+	})
+}
+
+func TestDialog_IsValid_SubmitButtons(t *testing.T) {
+	selectElement := func(name string) DialogElement {
+		return DialogElement{
+			DisplayName: "Action",
+			Name:        name,
+			Type:        "select",
+			Options: []*PostActionOptions{
+				{Text: "Add Note", Value: "add"},
+				{Text: "Save & Close", Value: "save"},
+			},
+		}
+	}
+
+	t.Run("accepts a static select with options", func(t *testing.T) {
+		d := Dialog{Title: "Notes", SubmitButtons: "action", Elements: []DialogElement{selectElement("action")}}
+		assert.NoError(t, d.IsValid())
+	})
+
+	t.Run("accepts a select inside a collapsible section", func(t *testing.T) {
+		d := Dialog{Title: "Notes", SubmitButtons: "action", Elements: []DialogElement{{
+			DisplayName:       "Section",
+			Name:              "section",
+			Type:              "collapsible",
+			CollapsibleConfig: &DialogElementCollapsibleConfig{Elements: []DialogElement{selectElement("action")}},
+		}}}
+		assert.NoError(t, d.IsValid())
+	})
+
+	t.Run("rejects an invalid submit_buttons element", func(t *testing.T) {
+		text := DialogElement{DisplayName: "Note", Name: "note", Type: "text"}
+		noOptions := selectElement("action")
+		noOptions.Options = nil
+		dynamic := selectElement("action")
+		dynamic.Options = nil
+		dynamic.DataSource = "users"
+		multi := selectElement("action")
+		multi.MultiSelect = true
+
+		for name, tc := range map[string]struct {
+			submitButtons string
+			element       DialogElement
+		}{
+			"missing element": {"missing", selectElement("action")},
+			"text element":    {"note", text},
+			"no options":      {"action", noOptions},
+			"dynamic select":  {"action", dynamic},
+			"multiselect":     {"action", multi},
+		} {
+			t.Run(name, func(t *testing.T) {
+				d := Dialog{Title: "Notes", SubmitButtons: tc.submitButtons, Elements: []DialogElement{tc.element}}
+				err := d.IsValid()
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "submit_buttons")
+			})
+		}
+	})
+}
+
+func TestDialog_IsValid_RefreshOnReturn(t *testing.T) {
+	t.Run("accepts refresh_on_return with source_url", func(t *testing.T) {
+		d := Dialog{Title: "Board", RefreshOnReturn: true, SourceURL: "https://example.com/source"}
+		assert.NoError(t, d.IsValid())
+	})
+
+	t.Run("rejects refresh_on_return without source_url", func(t *testing.T) {
+		d := Dialog{Title: "Board", RefreshOnReturn: true}
+		err := d.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "refresh_on_return requires source_url")
+	})
+
+	t.Run("omits refresh_on_return from JSON when false", func(t *testing.T) {
+		b, err := json.Marshal(Dialog{Title: "Board"})
+		require.NoError(t, err)
+		assert.NotContains(t, string(b), "refresh_on_return")
+
+		var d Dialog
+		require.NoError(t, json.Unmarshal([]byte(`{"title":"Board","refresh_on_return":true}`), &d))
+		assert.True(t, d.RefreshOnReturn)
+	})
+}
