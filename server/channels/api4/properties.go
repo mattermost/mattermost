@@ -1275,8 +1275,10 @@ func sessionCallerID(c *Context) string {
 // submitted object above none means no API caller can take a field away from
 // the system admins, whatever grants it names. A field only a plugin or
 // service may redefine is set up through the plugin API, which does not come
-// through here. Local mode is exempt, as it is from the field.write decision
-// itself.
+// through here; a field that does end up at none is recovered through the
+// plugin API too. The local-mode exemption is defensive only, matching the
+// field.write decision itself: these routes are registered for session
+// callers alone, so local mode never reaches this check.
 func permissionsLockOutSystemAdmins(session model.Session, permissions *model.Permissions) bool {
 	if session.IsUnrestricted() || permissions == nil {
 		return false
