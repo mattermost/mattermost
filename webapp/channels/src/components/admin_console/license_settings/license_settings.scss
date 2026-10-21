@@ -6,8 +6,6 @@
     display: flex;
 
     .left-panel {
-        width: 568px;
-
         .panel-card {
             padding: 28px 32px;
             border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
@@ -18,7 +16,6 @@
     }
 
     .right-panel {
-        width: 332px;
         margin-left: 20px;
 
         .panel-card {

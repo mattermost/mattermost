@@ -13,7 +13,7 @@
         height: 48px;
         flex-direction: row;
         justify-content: space-between;
-        padding: 0.5em 0;
+        padding: 0.5em;
         border-bottom: solid 1px rgba(0, 0, 0, 0.1);
         background: variables.$white;
         font-weight: bold;
@@ -26,7 +26,6 @@
             box-sizing: border-box;
             border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.2);
             border-radius: 4px;
-            margin-left: 8px;
 
             input {
                 width: 100%;
