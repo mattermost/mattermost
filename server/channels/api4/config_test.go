@@ -447,6 +447,26 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, *cfg.ServiceSettings.AllowCorsFrom, mockVal)
 	})
+
+	t.Run("the site URL is kept for a user who can't read it", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "" })
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
+
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		require.Nil(t, cfg.ServiceSettings.SiteURL)
+
+		mockVal := model.NewId()
+		cfg.ServiceSettings.AllowCorsFrom = &mockVal
+		_, _, err = th.Client.UpdateConfig(context.Background(), cfg)
+		require.NoError(t, err)
+		assert.Equal(t, mockVal, *th.App.Config().ServiceSettings.AllowCorsFrom)
+		assert.Equal(t, "http://localhost:8065", *th.App.Config().ServiceSettings.SiteURL)
+	})
 }
 
 func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {

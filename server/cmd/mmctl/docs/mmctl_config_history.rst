@@ -11,7 +11,7 @@ Synopsis
 
 Lists the configurations saved by the server, newest first, with the settings that changed in each one. The server keeps this history only when its configuration is stored in the database.
 
-Sensitive values are always hidden.
+Only settings you have permission to read are listed, and sensitive values are always hidden.
 
 ::
 

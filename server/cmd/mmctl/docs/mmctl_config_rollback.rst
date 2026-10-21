@@ -11,7 +11,7 @@ Synopsis
 
 Replaces the server configuration with a saved configuration from "config history". The configuration it replaces stays in the history.
 
-Settings set through environment variables keep the values set there. Without --local, settings with sensitive values, such as passwords and database connection strings, and settings that can't be changed through the API, also keep their current values.
+Settings set through environment variables keep the values set there. Without --local, settings with sensitive values, such as passwords and database connection strings, settings that can't be changed through the API, and settings you don't have permission to change also keep their current values.
 
 ::
 

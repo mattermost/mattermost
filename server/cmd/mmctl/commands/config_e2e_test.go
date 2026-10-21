@@ -666,6 +666,37 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 		s.Require().Empty(printer.GetLines())
 	})
 
+	s.Run("Roll back the settings the user may change", func() {
+		printer.Clean()
+		s.th.AddPermissionToRole(s.T(), model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		defer s.th.RemovePermissionFromRole(s.T(), model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		s.th.AddPermissionToRole(s.T(), model.PermissionSysconsoleWriteEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		defer s.th.RemovePermissionFromRole(s.T(), model.PermissionSysconsoleWriteEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "" })
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+			*cfg.TeamSettings.SiteName = "Old Site"
+			cfg.RateLimitSettings.VaryByHeader = "X-Old"
+		})
+		oldConfigID := s.latestConfigID()
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.SiteName = "New Site"
+			cfg.RateLimitSettings.VaryByHeader = "X-New"
+		})
+
+		err := configRollbackCmdF(s.th.Client, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		for _, cfg := range []*model.Config{s.th.App.Config(), s.storedConfig()} {
+			s.Require().Equal("X-Old", cfg.RateLimitSettings.VaryByHeader)
+			s.Require().Equal("New Site", *cfg.TeamSettings.SiteName)
+			s.Require().Equal("http://localhost:8065", *cfg.ServiceSettings.SiteURL)
+		}
+		s.Require().Equal(&configRollbackResult{
+			ConfigId: oldConfigID,
+			Changes:  []*model.ConfigChange{{Path: "RateLimitSettings.VaryByHeader", OldValue: "X-New", NewValue: "X-Old"}},
+		}, printer.GetLines()[0])
+	})
+
 	s.Run("Roll back without permission", func() {
 		printer.Clean()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Old Site" })

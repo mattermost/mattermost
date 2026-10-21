@@ -139,7 +139,7 @@ var ConfigHistoryCmd = &cobra.Command{
 	Short: "List saved configurations",
 	Long: `Lists the configurations saved by the server, newest first, with the settings that changed in each one. The server keeps this history only when its configuration is stored in the database.
 
-Sensitive values are always hidden.`,
+Only settings you have permission to read are listed, and sensitive values are always hidden.`,
 	Example: `  config history
   config history --detailed
   config history --page 1 --per-page 20`,
@@ -152,7 +152,7 @@ var ConfigRollbackCmd = &cobra.Command{
 	Short: "Roll back to a saved configuration",
 	Long: `Replaces the server configuration with a saved configuration from "config history". The configuration it replaces stays in the history.
 
-Settings set through environment variables keep the values set there. Without --local, settings with sensitive values, such as passwords and database connection strings, and settings that can't be changed through the API, also keep their current values.`,
+Settings set through environment variables keep the values set there. Without --local, settings with sensitive values, such as passwords and database connection strings, settings that can't be changed through the API, and settings you don't have permission to change also keep their current values.`,
 	Example: "  config rollback hpgt7dw7si8odbc9gg938iqjhr",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(configRollbackCmdF),
