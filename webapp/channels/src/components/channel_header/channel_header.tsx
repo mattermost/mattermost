@@ -162,22 +162,30 @@ class ChannelHeader extends React.PureComponent<Props> {
             rhsState,
             hasGuests,
             hideGuestTags,
+            isBoard,
         } = this.props;
         if (!channel) {
             return null;
         }
 
-        const ariaLabelChannelHeader = this.props.intl.formatMessage({id: 'accessibility.sections.channelHeader', defaultMessage: 'channel header region'});
+        const ariaLabelChannelHeader = isBoard ? this.props.intl.formatMessage({id: 'accessibility.sections.channelHeader.board', defaultMessage: 'board header region'}) : this.props.intl.formatMessage({id: 'accessibility.sections.channelHeader', defaultMessage: 'channel header region'});
 
         let hasGuestsText: ReactNode = '';
         if (hasGuests && !hideGuestTags) {
             hasGuestsText = (
                 <span className='has-guest-header'>
                     <span tabIndex={0}>
-                        <FormattedMessage
-                            id='channel_header.channelHasGuests'
-                            defaultMessage='Channel has guests'
-                        />
+                        {isBoard ? (
+                            <FormattedMessage
+                                id='channel_header.channelHasGuests.board'
+                                defaultMessage='Board has guests'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='channel_header.channelHasGuests'
+                                defaultMessage='Channel has guests'
+                            />
+                        )}
                     </span>
                 </span>
             );
@@ -188,7 +196,7 @@ class ChannelHeader extends React.PureComponent<Props> {
             autotranslationMessage = (
                 <WithTooltip
                     title={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.title', defaultMessage: 'Auto-translation is enabled'})}
-                    hint={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.hint', defaultMessage: 'This channel is being automatically translated to your language'})}
+                    hint={isBoard ? this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.hint.board', defaultMessage: 'This board is being automatically translated to your language'}) : this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.hint', defaultMessage: 'This channel is being automatically translated to your language'})}
                 >
                     <div
                         className='autotranslation-header'
@@ -412,7 +420,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                             buttonClass={channelFilesIconClass}
                                             buttonId={'channelHeaderFilesButton'}
                                             onClick={this.showChannelFiles}
-                                            tooltip={this.props.intl.formatMessage({id: 'channel_header.channelFiles', defaultMessage: 'Channel files'})}
+                                            tooltip={isBoard ? this.props.intl.formatMessage({id: 'channel_header.channelFiles.board', defaultMessage: 'Board files'}) : this.props.intl.formatMessage({id: 'channel_header.channelFiles', defaultMessage: 'Channel files'})}
                                         >
                                             {channelFilesIcon}
                                         </HeaderIconWrapper>

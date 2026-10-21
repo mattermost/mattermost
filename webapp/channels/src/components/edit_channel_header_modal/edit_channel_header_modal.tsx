@@ -164,7 +164,15 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
 
         let errorMsg;
         if (serverError.server_error_id === 'model.channel.is_valid.header.app_error') {
-            errorMsg = (
+            errorMsg = this.props.isBoard ? (
+                <FormattedMessage
+                    id='edit_channel_header_modal.error.board'
+                    defaultMessage='The text entered exceeds the character limit. The board header is limited to {maxLength} characters.'
+                    values={{
+                        maxLength: headerMaxLength,
+                    }}
+                />
+            ) : (
                 <FormattedMessage
                     id='edit_channel_header_modal.error'
                     defaultMessage='The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.'
@@ -234,10 +242,17 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                             htmlFor='edit_textbox'
                             className='textarea-label'
                         >
-                            <FormattedMessage
-                                id='edit_channel_header_modal.description'
-                                defaultMessage='Edit the text appearing next to the channel name in the header.'
-                            />
+                            {this.props.isBoard ? (
+                                <FormattedMessage
+                                    id='edit_channel_header_modal.description.board'
+                                    defaultMessage='Edit the text appearing next to the board name in the header.'
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='edit_channel_header_modal.description'
+                                    defaultMessage='Edit the text appearing next to the channel name in the header.'
+                                />
+                            )}
                         </label>
                         <div className='textarea-wrapper'>
                             <Textbox
@@ -247,7 +262,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                                 onKeyDown={this.handleKeyDown}
                                 supportsCommands={false}
                                 suggestionListPosition='bottom'
-                                createMessage={this.props.intl.formatMessage({id: 'edit_channel_header_modal.placeholder', defaultMessage: 'Enter the Channel Header'})}
+                                createMessage={this.props.isBoard ? this.props.intl.formatMessage({id: 'edit_channel_header_modal.placeholder.board', defaultMessage: 'Enter the Board Header'}) : this.props.intl.formatMessage({id: 'edit_channel_header_modal.placeholder', defaultMessage: 'Enter the Channel Header'})}
                                 handlePostError={this.handlePostError}
                                 channelId={this.props.channel.id!}
                                 id='edit_textbox'
