@@ -7152,7 +7152,7 @@
   "userAccountMenu.setCustomStatusMenuItem.noStatusTextSet": "Set custom status text",
   "userGuideHelp.askTheCommunity": "Ask the community",
   "userGuideHelp.keyboardShortcuts": "Keyboard shortcuts",
-  "userGuideHelp.mattermostUserGuide": "Mattermost user guide",
+  "userGuideHelp.mattermostUserGuide": "Mattermost documentation",
   "userGuideHelp.reportAProblem": "Report a problem",
   "userGuideHelp.trainingResources": "Training resources",
   "users_limits_announcement_bar.copyText": "User limits exceeded. Contact administrator with: {ErrorCode}",
