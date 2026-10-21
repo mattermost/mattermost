@@ -960,6 +960,45 @@ func TestCloudRestricted(t *testing.T) {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestChangesSavedAfter() {
+	previousID := model.NewId()
+	changes := []*model.ConfigChange{{Path: "TeamSettings.SiteName", OldValue: "New Site", NewValue: "Old Site"}}
+	expectHistory := func(history ...*model.ConfigHistoryEntry) {
+		s.client.
+			EXPECT().
+			GetConfigHistory(context.TODO(), 0, configRollbackHistorySize).
+			Return(history, &model.Response{}, nil).
+			Times(1)
+	}
+
+	s.Run("Should return no changes when no configuration was saved", func() {
+		expectHistory(&model.ConfigHistoryEntry{Id: previousID, Active: true})
+
+		got, err := changesSavedAfter(s.client, previousID)
+		s.Require().NoError(err)
+		s.Require().Equal([]*model.ConfigChange{}, got)
+	})
+
+	s.Run("Should return the changes of the configuration saved next, even if others followed it", func() {
+		expectHistory(
+			&model.ConfigHistoryEntry{Id: model.NewId(), Active: true, Changes: []*model.ConfigChange{{Path: "PluginSettings.Plugins.com.example.plugin.key"}}},
+			&model.ConfigHistoryEntry{Id: model.NewId(), Changes: changes},
+			&model.ConfigHistoryEntry{Id: previousID},
+		)
+
+		got, err := changesSavedAfter(s.client, previousID)
+		s.Require().NoError(err)
+		s.Require().Equal(changes, got)
+	})
+
+	s.Run("Should fail if the configuration isn't among the newest", func() {
+		expectHistory(&model.ConfigHistoryEntry{Id: model.NewId(), Active: true, Changes: changes})
+
+		_, err := changesSavedAfter(s.client, previousID)
+		s.Require().EqualError(err, "configuration "+previousID+" isn't among the 1 saved last")
+	})
+}
+
 func TestKeepMaskedSettings(t *testing.T) {
 	newConfig := func() *model.Config {
 		cfg := &model.Config{}

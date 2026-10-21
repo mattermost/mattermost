@@ -19,7 +19,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
-	"github.com/mattermost/mattermost/server/v8/config"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -696,28 +695,33 @@ func configRollbackCmdF(c client.Client, _ *cobra.Command, args []string) error 
 		return fmt.Errorf("failed to get saved configuration %s: %w", configID, err)
 	}
 
-	oldConfig, _, err := c.GetConfig(context.TODO())
+	currentConfig, _, err := c.GetConfig(context.TODO())
 	if err != nil {
 		return fmt.Errorf("failed to get the current configuration: %w", err)
 	}
 
-	savedConfig, err = keepMaskedSettings(savedConfig, oldConfig)
+	savedConfig, err = keepMaskedSettings(savedConfig, currentConfig)
 	if err != nil {
 		return fmt.Errorf("failed to keep the current values of sensitive settings: %w", err)
+	}
+
+	// The changed settings are listed as the history lists them, since only the server can
+	// tell which plugin settings are sensitive.
+	active, _, err := c.GetConfigHistory(context.TODO(), 0, 1)
+	if err != nil {
+		return fmt.Errorf("failed to get the active configuration: %w", err)
+	}
+	if len(active) == 0 {
+		return errors.New("failed to get the active configuration: the configuration history is empty")
 	}
 
 	if _, _, err = c.UpdateConfig(context.TODO(), savedConfig); err != nil {
 		return fmt.Errorf("failed to roll back to saved configuration %s: %w", configID, err)
 	}
 
-	newConfig, _, err := c.GetConfig(context.TODO())
+	changes, err := changesSavedAfter(c, active[0].Id)
 	if err != nil {
-		return fmt.Errorf("rolled back to saved configuration %s, but failed to get the new configuration: %w", configID, err)
-	}
-
-	diffs, err := config.SanitizedDiff(oldConfig, newConfig, func(cfg *model.Config) { cfg.Sanitize(nil, nil) })
-	if err != nil {
-		return fmt.Errorf("rolled back to saved configuration %s, but failed to compare it with the previous configuration: %w", configID, err)
+		return fmt.Errorf("rolled back to saved configuration %s, but failed to get the changed settings: %w", configID, err)
 	}
 
 	tpl := template.Must(template.New("").Funcs(template.FuncMap{
@@ -725,9 +729,35 @@ func configRollbackCmdF(c client.Client, _ *cobra.Command, args []string) error 
 	}).Parse(`{{if .Changes}}Rolled back to saved configuration {{.ConfigId}}. Changed settings:{{range .Changes}}
   {{change .}}{{end}}{{else}}Rolled back to saved configuration {{.ConfigId}}. No settings changed, but settings that keep their current values, such as sensitive values without --local, may still differ from it.{{end}}`))
 
-	printer.PrintPreparedT(tpl, &configRollbackResult{ConfigId: configID, Changes: diffs.ToConfigChanges()})
+	printer.PrintPreparedT(tpl, &configRollbackResult{ConfigId: configID, Changes: changes})
 
 	return nil
+}
+
+// configRollbackHistorySize is how many of the newest saved configurations are searched for the
+// one saved by a rollback, which others may follow, such as one saved by a plugin it enabled.
+const configRollbackHistorySize = 10
+
+// changesSavedAfter returns the changes of the configuration saved right after the one with
+// previousID, or none if no configuration was saved after it.
+func changesSavedAfter(c client.Client, previousID string) ([]*model.ConfigChange, error) {
+	history, _, err := c.GetConfigHistory(context.TODO(), 0, configRollbackHistorySize)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, entry := range history {
+		if entry.Id != previousID {
+			continue
+		}
+		if i == 0 {
+			// The server saves nothing when the configuration doesn't change.
+			return []*model.ConfigChange{}, nil
+		}
+		return history[i-1].Changes, nil
+	}
+
+	return nil, fmt.Errorf("configuration %s isn't among the %d saved last", previousID, len(history))
 }
 
 // keepMaskedSettings returns a copy of saved in which each setting that is masked in saved or

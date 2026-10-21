@@ -6,6 +6,7 @@ package commands
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
@@ -668,6 +669,48 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 		s.Require().Equal(&configRollbackResult{
 			ConfigId: oldConfigID,
 			Changes:  []*model.ConfigChange{{Path: "TeamSettings.SiteName", OldValue: "New Site", NewValue: "Old Site"}},
+		}, printer.GetLines()[0])
+	})
+
+	s.Run("Show the values of plugin settings, except sensitive ones", func() {
+		pluginID := "com.example.rollback"
+		pluginDir := filepath.Join(*s.th.App.Config().PluginSettings.Directory, pluginID)
+		s.Require().NoError(os.MkdirAll(pluginDir, 0700))
+		defer os.RemoveAll(pluginDir)
+		manifest := `{"id": "` + pluginID + `", "settings_schema": {"settings": [{"key": "Color", "type": "text"}, {"key": "Token", "type": "text", "secret": true}]}}`
+		s.Require().NoError(os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(manifest), 0600))
+		savePluginSettings := func(color, token string) {
+			s.th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.PluginSettings.Plugins[pluginID] = map[string]any{"color": color, "token": token}
+			})
+		}
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) { delete(cfg.PluginSettings.Plugins, pluginID) })
+
+		printer.Clean()
+		savePluginSettings("red", "old-token")
+		oldConfigID := s.latestConfigID()
+		savePluginSettings("blue", "new-token")
+
+		err := configRollbackCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		s.Require().Equal(map[string]any{"color": "red", "token": "new-token"}, s.th.App.Config().PluginSettings.Plugins[pluginID])
+		s.Require().Equal(&configRollbackResult{
+			ConfigId: oldConfigID,
+			Changes:  []*model.ConfigChange{{Path: "PluginSettings.Plugins." + pluginID + ".color", OldValue: "blue", NewValue: "red"}},
+		}, printer.GetLines()[0])
+
+		printer.Clean()
+		savePluginSettings("blue", "new-token")
+
+		err = configRollbackCmdF(s.th.LocalClient, &cobra.Command{}, []string{oldConfigID})
+		s.Require().NoError(err)
+		s.Require().Equal(map[string]any{"color": "red", "token": "old-token"}, s.th.App.Config().PluginSettings.Plugins[pluginID])
+		s.Require().Equal(&configRollbackResult{
+			ConfigId: oldConfigID,
+			Changes: []*model.ConfigChange{
+				{Path: "PluginSettings.Plugins." + pluginID + ".color", OldValue: "blue", NewValue: "red"},
+				{Path: "PluginSettings.Plugins." + pluginID + ".token", OldValue: model.FakeSetting, NewValue: model.FakeSetting},
+			},
 		}, printer.GetLines()[0])
 	})
 
