@@ -294,6 +294,13 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 			field.PermissionOptions = &defaultLevel
 		}
 
+		// Scope admin or not, a submitted object may not put the field
+		// beyond every system admin's reach.
+		if field.Permissions != nil && permissionsLockOutSystemAdmins(*c.AppContext.Session(), field.Permissions) {
+			c.Err = model.NewAppError("createPropertyField", "api.property_field.permissions.field_write_none.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 		// Anti-lockout: an unlinked field must be editable by whoever creates
 		// it, or they could pin a level that leaves them unable to patch or
 		// delete their own field.
@@ -723,10 +730,37 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.invalid_permissions.app_error", nil, err.Error(), http.StatusBadRequest)
 			return
 		}
+
+		// A leaf a submitted restrictions object omits would be stored as
+		// none, so a caller who sends only the leaves they mean to change
+		// would silently revoke the rest, field.write included. The spec's
+		// answer to a half-written block is a denial, not a half-updated
+		// policy. Sending back the restrictions the server served is
+		// unaffected, since every stored object carries all five leaves.
+		if patch.Permissions.Restrictions != nil && updatedPermissions.Restrictions != nil &&
+			!restrictionsSetEveryLeaf(updatedPermissions.Restrictions) {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.incomplete_restrictions.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		if permissionsLockOutSystemAdmins(*c.AppContext.Session(), updatedPermissions) {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.permissions.field_write_none.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 		existingField.Permissions = updatedPermissions
 	}
 
 	existingField.Patch(patch, true)
+
+	// Anti-lockout, as on create: field.write was checked against the stored
+	// field, so without this a caller could patch in permissions that leave
+	// them unable to edit or delete the field they just changed.
+	if patch.Permissions != nil && !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
+		c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.caller_cannot_edit.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	existingField.UpdatedBy = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
 
@@ -1233,6 +1267,30 @@ func sessionCallerID(c *Context) string {
 		return model.CallerIDLocalAdmin
 	}
 	return session.UserId
+}
+
+// permissionsLockOutSystemAdmins reports whether permissions, submitted through
+// the API, would leave field.write at none, the one tier a system
+// administrator does not pass. Every other tier admits one, so holding a
+// submitted object above none means no API caller can take a field away from
+// the system admins, whatever grants it names. A field only a plugin or
+// service may redefine is set up through the plugin API, which does not come
+// through here. Local mode is exempt, as it is from the field.write decision
+// itself.
+func permissionsLockOutSystemAdmins(session model.Session, permissions *model.Permissions) bool {
+	if session.IsUnrestricted() || permissions == nil {
+		return false
+	}
+	return permissions.Restrictions.TierFor(model.PropertyActionFieldWrite) == model.PermissionLevelNone
+}
+
+// restrictionsSetEveryLeaf reports whether r, as decoded from a request and
+// before validation fills omitted leaves with none, sets all five enforced
+// leaves.
+func restrictionsSetEveryLeaf(r *model.Restrictions) bool {
+	return r.Value.Read != "" && r.Value.Write != "" &&
+		r.Option.Read != "" && r.Option.Write != "" &&
+		r.Field.Write != ""
 }
 
 // addPropertyPermissionBasisMeta records which rule allowed a definition
