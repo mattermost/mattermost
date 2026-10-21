@@ -89,8 +89,6 @@ jobs:
         with:
           persist-credentials: false
 
-      # node_modules for the webapp checker and the translation rules, which the
-      # build environment sees through its mount of the checkout.
       - name: ci/setup-webapp
         uses: ./.github/actions/webapp-setup
         with:

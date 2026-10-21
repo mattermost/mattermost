@@ -35,7 +35,6 @@ const WEBAPP_SEVERITY = {
 
 const finding = (rule, severity, message) => ({rule, severity, message});
 
-// Literal text only: an ICU message's arguments and tags are not words.
 function literalText(ast, out = []) {
     for (const el of ast) {
         if (el.type === 0) {
@@ -53,8 +52,6 @@ function literalText(ast, out = []) {
     return out;
 }
 
-// A message's literal text, without its arguments, tags, template actions,
-// URLs or email addresses.
 function proseOf(value, surface) {
     let text;
     if (surface === 'webapp') {

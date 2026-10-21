@@ -10,14 +10,8 @@ import {flatten, GLOSSARY_DIR, STYLE} from './catalogs.mjs';
 
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// A whole-word match. Letters and digits on either side, in any script, mean
-// the term is part of a longer word.
 const wordPattern = (text, flags) => new RegExp(`(?<![\\p{L}\\p{N}])${escape(text)}(?![\\p{L}\\p{N}])`, `u${flags}`);
 
-/**
- * A locale's glossary. tree.read(path) returns a file's text, or null if it
- * does not exist.
- */
 export function readGlossary(tree, locale) {
     const read = (name) => {
         const text = tree.read(`${GLOSSARY_DIR}/${name}.json`);

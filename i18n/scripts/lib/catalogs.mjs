@@ -21,7 +21,6 @@ export function localesOf(tree, surface) {
         sort();
 }
 
-// A server plural map is checked as all of its forms at once.
 export function flatten(value) {
     return value && typeof value === 'object' ? Object.values(value).join('\n') : String(value ?? '');
 }

@@ -1,4 +1,3 @@
-// node --test i18n/scripts/*.test.mjs
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';

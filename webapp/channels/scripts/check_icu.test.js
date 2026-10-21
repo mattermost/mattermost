@@ -519,7 +519,6 @@ describe('check_icu', () => {
             expect(malformed.status).toBe(2);
             expect(malformed.stderr).toContain('cannot read');
 
-            // An empty source would leave nothing to check, and pass every catalog.
             fs.writeFileSync(path.join(dir, 'en.json'), '[]');
             const notObject = spawnSync(process.execPath, [SCRIPT, dir], {encoding: 'utf8'});
             expect(notObject.status).toBe(2);

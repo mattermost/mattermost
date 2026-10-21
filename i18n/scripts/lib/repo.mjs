@@ -3,7 +3,6 @@
 import fs from 'fs';
 import path from 'path';
 
-/** The working tree under root. */
 export function workingTree(root) {
     return {
         read(rel) {
