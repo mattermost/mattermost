@@ -48,17 +48,22 @@ func (a *App) shapePropertyFieldForCaller(rctx request.CTX, session model.Sessio
 	}
 
 	isLinked := field.LinkedFieldID != nil && *field.LinkedFieldID != ""
-	canEdit := a.SessionPropertyFieldEditBasis(rctx, session, field).Allowed
+	// A system admin reads the policy in full even without field.write, so
+	// they can tell which integration manages a field whose field.write is
+	// none. It is a read view only: editing still goes through the edit
+	// basis alone.
+	seesAll := a.SessionPropertyFieldEditBasis(rctx, session, field).Allowed ||
+		a.SessionHasPermissionTo(session, model.PermissionManageSystem)
 
 	permissions := *field.Permissions
 	filtered := false
 
-	// A caller who may edit an unlinked field sees masking in full; every
+	// A caller who sees all of an unlinked field sees masking in full; every
 	// other arm gets presence only. A linked field's masking is never
-	// editable, so a field.write holder still only sees whether it is
-	// masked, never mask_by_field_id or except -- those belong to the
-	// template's administrator.
-	if !canEdit || isLinked {
+	// editable, so even they only see whether it is masked, never
+	// mask_by_field_id or except -- those belong to the template's
+	// administrator.
+	if !seesAll || isLinked {
 		if isLinked {
 			permissions.Masking, filtered = a.linkedFieldMaskingPresence(rctx, field, templates)
 		} else {
@@ -66,7 +71,7 @@ func (a *App) shapePropertyFieldForCaller(rctx request.CTX, session model.Sessio
 		}
 	}
 
-	if !canEdit {
+	if !seesAll {
 		grants := make([]model.Grant, 0, len(permissions.Grants))
 		for _, grant := range permissions.Grants {
 			switch grant.Type {
