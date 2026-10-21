@@ -408,11 +408,14 @@ export function isSimpleCondition(s: string): boolean {
     return SIMPLE_CONDITION_PATTERNS.some((pattern) => pattern.test(trimmed));
 }
 
+function isMultiselectGroupBody(body: string): boolean {
+    return splitOutsideLiterals(body, '||').every((part) => MULTISELECT_GROUP_PART.test(part.trim()));
+}
+
 // A "has any of" group, with or without one pair of enclosing parens.
 export function isMultiselectOrGroup(s: string): boolean {
     const trimmed = s.trim();
-    const body = isWrappedInParens(trimmed) ? trimmed.slice(1, -1) : trimmed;
-    return splitOutsideLiterals(body, '||').every((part) => MULTISELECT_GROUP_PART.test(part.trim()));
+    return isMultiselectGroupBody(isWrappedInParens(trimmed) ? trimmed.slice(1, -1) : trimmed);
 }
 
 export function isSimpleExpression(expr: string): boolean {
@@ -425,7 +428,8 @@ export function isSimpleExpression(expr: string): boolean {
 
     // && binds tighter than ||, so alongside other conditions a group must be parenthesized.
     return splitOutsideLiterals(expr, '&&').every((condition) => {
-        return isSimpleCondition(condition) || (isWrappedInParens(condition.trim()) && isMultiselectOrGroup(condition));
+        const trimmed = condition.trim();
+        return isSimpleCondition(trimmed) || (isWrappedInParens(trimmed) && isMultiselectGroupBody(trimmed.slice(1, -1)));
     });
 }
 
