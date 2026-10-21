@@ -117,7 +117,7 @@ func TestLinkedFieldCreateOnTemplatePermissions(t *testing.T) {
 		assert.Equal(t, *source.Permissions.Restrictions, *linked.Permissions.Restrictions)
 	})
 
-	t.Run("a linked create submitting no permissions inherits the template's restrictions and grants minus option.read", func(t *testing.T) {
+	t.Run("a linked create submitting no permissions takes the template's restrictions and its own converted grants", func(t *testing.T) {
 		source := newTemplate("GrantsAndRestrictions-"+model.NewId(), &model.Permissions{
 			Restrictions: &model.Restrictions{
 				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
@@ -142,11 +142,99 @@ func TestLinkedFieldCreateOnTemplatePermissions(t *testing.T) {
 		require.NotNil(t, linked.Permissions)
 		assert.Equal(t, *source.Permissions.Restrictions, *linked.Permissions.Restrictions)
 		assert.Nil(t, linked.Permissions.Masking)
-		// plugin-owner keeps value.write with option.read stripped; plugin-other's
-		// grant named nothing else, so it is dropped rather than kept empty.
+		// The template's grants are its own. The field has no owners, so it
+		// converts to the plugin wildcard alone, without option.read.
 		require.Len(t, linked.Permissions.Grants, 1)
-		assert.Equal(t, "plugin-owner", linked.Permissions.Grants[0].ID)
-		assert.Equal(t, []string{model.PropertyActionValueWrite}, linked.Permissions.Grants[0].Allow)
+		wildcard := linked.Permissions.Grants[0]
+		assert.Equal(t, model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"}, wildcard.Identity)
+		assert.Contains(t, wildcard.Allow, model.PropertyActionValueWrite)
+		assert.NotContains(t, wildcard.Allow, model.PropertyActionOptionRead)
+	})
+
+	t.Run("a linked field with owners its template lacks lets only those owners and the sync write its values", func(t *testing.T) {
+		source, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "SyncedNoOwners-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{model.PropertyFieldAttrLDAP: "mappedAttr"},
+		})
+		require.NoError(t, err)
+
+		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "LinkedOwned-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &source.ID,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.Permissions)
+
+		assert.Equal(t, model.PermissionLevelNone, linked.Permissions.Restrictions.Value.Write)
+		assert.NotNil(t, linked.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "plugin-owner", "", model.PropertyActionValueWrite))
+		assert.NotNil(t, linked.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.PropertyFieldAttrLDAP, "", model.PropertyActionValueWrite))
+		assert.Nil(t, linked.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "plugin-other", "", model.PropertyActionValueWrite))
+		assert.NotNil(t, linked.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "plugin-other", "", model.PropertyActionValueRead))
+		// The admin's v2 view lists the field's owner.
+		owners := model.GetPropertyFieldOwners(model.ProjectLegacyPermissions(linked))
+		require.Len(t, owners, 1)
+		assert.Equal(t, model.PropertyOwnerTypePlugin, owners[0].Type)
+		assert.Equal(t, "plugin-owner", owners[0].ID)
+
+		// * The backfill converts the same row to the same grants
+		row := *linked
+		row.Permissions = nil
+		converted, failed := newPermissionsBackfill(th.service, th.CPAGroupID).convertBatch(th.Context, []*model.PropertyField{&row})
+		require.Zero(t, failed)
+		require.Len(t, converted, 1)
+		assert.ElementsMatch(t, linked.Permissions.Grants, converted[0].Permissions.Grants)
+		assert.Equal(t, linked.Permissions.Restrictions.Value.Write, converted[0].Permissions.Restrictions.Value.Write)
+	})
+
+	t.Run("a linked field without owners of its own lets any plugin write its values, whatever owners its template has", func(t *testing.T) {
+		source, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "OwnedTemplate-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}},
+			},
+		})
+		require.NoError(t, err)
+		require.Nil(t, source.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "plugin-other", "", model.PropertyActionValueWrite))
+
+		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "LinkedUnowned-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.Permissions)
+
+		assert.NotNil(t, linked.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "plugin-other", "", model.PropertyActionValueWrite))
+		for _, g := range linked.Permissions.Grants {
+			assert.NotEqual(t, "plugin-owner", g.ID, "the template's owner is not an owner of the linked field")
+		}
+		assert.Empty(t, model.GetPropertyFieldOwners(model.ProjectLegacyPermissions(linked)))
+
+		// * The backfill converts the same row to the same grants
+		row := *linked
+		row.Permissions = nil
+		converted, failed := newPermissionsBackfill(th.service, th.CPAGroupID).convertBatch(th.Context, []*model.PropertyField{&row})
+		require.Zero(t, failed)
+		require.Len(t, converted, 1)
+		assert.ElementsMatch(t, linked.Permissions.Grants, converted[0].Permissions.Grants)
 	})
 
 	t.Run("a linked create submitting its own permissions keeps them, and the store still refuses one carrying masking", func(t *testing.T) {

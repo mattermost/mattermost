@@ -157,8 +157,8 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 	return field, nil
 }
 
-// validateAndInheritLinkedFieldSecurity gates and seeds a linked field's
-// permissions from its template. The two are independent: the gate applies
+// validateAndInheritLinkedFieldSecurity gates a linked field on its template
+// and seeds its restrictions from it. The two are independent: the gate applies
 // only when the template's reads are restricted at all, or it is protected
 // (field.write none) -- linking to an open template requires no permission
 // on it, so gating every link would refuse
@@ -199,14 +199,14 @@ func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(rctx request.C
 	}
 
 	if field.Permissions == nil && source.Permissions != nil {
-		// Masking is never inherited: a linked field cannot declare its own
-		// (PropertyField.IsValid refuses one) and the read path resolves it from
-		// the template regardless. option.read is dropped from every inherited
-		// grant for the same reason -- it reads the template's own option
-		// scheme, never a right the identity held over this field.
+		// Only the restrictions are inherited, the faithful translation of master
+		// copying the template's permission levels. The grants are the field's
+		// own, converted from its attrs once createPropertyField has copied the
+		// template's sync link onto it. Masking is never inherited: a linked
+		// field cannot declare its own (PropertyField.IsValid refuses one) and
+		// the read path resolves it from the template regardless.
 		field.Permissions = &model.Permissions{
 			Restrictions: source.Permissions.Restrictions,
-			Grants:       linkedFieldGrantsFrom(source),
 		}
 	}
 
@@ -256,43 +256,6 @@ func templateReadsAreRestricted(source *model.PropertyField) bool {
 	restrictions := source.Permissions.Restrictions
 	return restrictions.TierFor(model.PropertyActionValueRead) != model.PermissionLevelEveryone ||
 		restrictions.TierFor(model.PropertyActionOptionRead) != model.PermissionLevelEveryone
-}
-
-// linkedFieldGrantsFrom copies source's grants with option.read removed from
-// every Allow -- a linked field's option.read reads the template's own
-// scheme, so a grant conferring it there was never a right over this field
-// (PropertyField.IsValid refuses one outright). A grant left with an empty
-// Allow is dropped rather than kept invalid; the identity still holds
-// option.read by way of its grant on the template itself.
-//
-// The grant of the template's own sync is left out. It covers the template's
-// options, which the sync provisions there, and is derived from the
-// template's sync attr, which a linked field converted from its own attrs
-// never sees. A linked user field gets the sync's grant from the sync lock
-// instead, and any other linked field has none, as the conversion gives it.
-func linkedFieldGrantsFrom(source *model.PropertyField) []model.Grant {
-	var syncIdentity model.Identity
-	if syncSource := model.GetPropertyFieldSyncSource(source); syncSource != "" {
-		syncIdentity = model.Identity{Type: model.PropertyOwnerTypeService, ID: syncSource}
-	}
-	grants := make([]model.Grant, 0, len(source.Permissions.Grants))
-	for _, g := range source.Permissions.Grants {
-		if syncIdentity.ID != "" && g.Identity == syncIdentity {
-			continue
-		}
-		allow := make([]string, 0, len(g.Allow))
-		for _, action := range g.Allow {
-			if action != model.PropertyActionOptionRead {
-				allow = append(allow, action)
-			}
-		}
-		if len(allow) == 0 {
-			continue
-		}
-		g.Allow = allow
-		grants = append(grants, g)
-	}
-	return grants
 }
 
 // PreUpdatePropertyField enforces access control on field updates.
@@ -1151,9 +1114,9 @@ func (h *AccessControlHook) permissionsAllows(rctx request.CTX, field *model.Pro
 	}
 	// A linked field cannot carry an option.read grant (IsValid refuses it;
 	// conversion strips it). Machine callers are grant-only, so option.read
-	// for a linked field is the grant they hold on the template — the same
-	// identity still "holds option.read by way of its grant on the template
-	// itself" (linkedFieldGrantsFrom). Humans are judged by the linked
+	// for a linked field is the grant they hold on the template, which is
+	// where the identity holds option.read over the template's own option
+	// scheme. Humans are judged by the linked
 	// field's own option.read tier and must not inherit the template's.
 	if action != model.PropertyActionOptionRead || !isMachineCaller(h.pluginChecker, callerID) ||
 		field.LinkedFieldID == nil || *field.LinkedFieldID == "" {
