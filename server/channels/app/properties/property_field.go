@@ -136,7 +136,7 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 		}
 
 		// Copy type, options, and sync source from source. The sync source
-		// (ldap/saml) is the template's, since it defines where the value
+		// (ldap/saml/openid) is the template's, since it defines where the value
 		// comes from -- a linked field can't claim one of its own. Only a user
 		// field takes it: an identity source reports attributes of users, and
 		// on any other object type the sync lock it implies would refuse
@@ -148,7 +148,8 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 		if opts, ok := source.Attrs[model.PropertyFieldAttributeOptions]; ok {
 			field.Attrs[model.PropertyFieldAttributeOptions] = opts
 		}
-		for _, syncAttr := range []string{model.PropertyFieldAttrLDAP, model.PropertyFieldAttrSAML} {
+		for _, syncSource := range model.PropertySyncSources() {
+			syncAttr := model.PropertySyncSourceAttr(syncSource)
 			delete(field.Attrs, syncAttr)
 			if value, ok := source.Attrs[syncAttr]; ok && field.ObjectType == model.PropertyFieldObjectTypeUser {
 				field.Attrs[syncAttr] = value

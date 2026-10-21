@@ -6,6 +6,7 @@ package properties
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
 	"strings"
 	"testing"
@@ -2199,6 +2200,189 @@ func TestAccessControlAttributeValidationHookSync(t *testing.T) {
 		}
 		_, createErr := th.service.CreatePropertyField(th.Context, field)
 		require.ErrorIs(t, createErr, ErrInvalidFieldAttrs)
+	})
+}
+
+func TestAccessControlAttributeValidationHookOpenIDSync(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_openid_sync", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	openIDSyncEnabled := true
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		OpenIDAttributeSync: func() bool { return openIDSyncEnabled },
+	}, group.ID)
+	th.service.AddHook(hook)
+
+	newUserField := func(fieldType model.PropertyFieldType, attrs model.StringInterface) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       fieldType,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			Attrs:      attrs,
+		}
+	}
+	requireAppError := func(t *testing.T, err error, id string) {
+		t.Helper()
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, id, appErr.Id)
+	}
+	cloneField := func(field *model.PropertyField) *model.PropertyField {
+		clone := *field
+		clone.Attrs = maps.Clone(field.Attrs)
+		return &clone
+	}
+	const exclusiveErrID = "app.property_field.sync_source_exclusive.app_error"
+	const disabledErrID = "app.property_field.openid_sync_disabled.app_error"
+
+	t.Run("syncable types keep the openid link, trimmed", func(t *testing.T) {
+		for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeText, model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect} {
+			created, createErr := th.service.CreatePropertyField(th.Context, newUserField(fieldType, model.StringInterface{
+				model.PropertyFieldAttrOpenID: "  address.country ",
+			}))
+			require.NoError(t, createErr, "type %s", fieldType)
+			assert.Equal(t, "address.country", created.Attrs[model.PropertyFieldAttrOpenID], "type %s", fieldType)
+			assert.Equal(t, model.PropertySyncSourceOpenID, model.GetPropertyFieldSyncSource(created), "type %s", fieldType)
+		}
+	})
+
+	t.Run("types that cannot be synced strip the openid link", func(t *testing.T) {
+		for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeDate, model.PropertyFieldTypeUser, model.PropertyFieldTypeMultiuser} {
+			created, createErr := th.service.CreatePropertyField(th.Context, newUserField(fieldType, model.StringInterface{
+				model.PropertyFieldAttrOpenID: "department",
+			}))
+			require.NoError(t, createErr, "type %s", fieldType)
+			assert.NotContains(t, created.Attrs, model.PropertyFieldAttrOpenID, "type %s", fieldType)
+		}
+	})
+
+	t.Run("an openid link cannot be combined with ldap or saml", func(t *testing.T) {
+		for _, other := range []string{model.PropertyFieldAttrLDAP, model.PropertyFieldAttrSAML} {
+			_, createErr := th.service.CreatePropertyField(th.Context, newUserField(model.PropertyFieldTypeText, model.StringInterface{
+				model.PropertyFieldAttrOpenID: "department",
+				other:                         "department",
+			}))
+			requireAppError(t, createErr, exclusiveErrID)
+		}
+	})
+
+	t.Run("ldap and saml may still be combined", func(t *testing.T) {
+		created, createErr := th.service.CreatePropertyField(th.Context, newUserField(model.PropertyFieldTypeText, model.StringInterface{
+			model.PropertyFieldAttrLDAP: "department",
+			model.PropertyFieldAttrSAML: "department",
+		}))
+		require.NoError(t, createErr)
+		assert.Equal(t, model.PropertySyncSourceLDAP, model.GetPropertyFieldSyncSource(created))
+	})
+
+	t.Run("an update adding ldap to an openid-linked field is refused", func(t *testing.T) {
+		created, createErr := th.service.CreatePropertyField(th.Context, newUserField(model.PropertyFieldTypeText, model.StringInterface{
+			model.PropertyFieldAttrOpenID: "department",
+		}))
+		require.NoError(t, createErr)
+
+		created.Attrs[model.PropertyFieldAttrLDAP] = "department"
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, created)
+		requireAppError(t, updateErr, exclusiveErrID)
+
+		delete(created.Attrs, model.PropertyFieldAttrLDAP)
+		created.Attrs[model.PropertyFieldAttrSAML] = "department"
+		_, _, _, batchErr := th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{created})
+		requireAppError(t, batchErr, exclusiveErrID)
+	})
+
+	t.Run("moving a field from saml to openid in one update is allowed", func(t *testing.T) {
+		created, createErr := th.service.CreatePropertyField(th.Context, newUserField(model.PropertyFieldTypeText, model.StringInterface{
+			model.PropertyFieldAttrSAML: "department",
+		}))
+		require.NoError(t, createErr)
+
+		created.Attrs[model.PropertyFieldAttrSAML] = ""
+		created.Attrs[model.PropertyFieldAttrOpenID] = "department"
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, created)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertySyncSourceOpenID, model.GetPropertyFieldSyncSource(updated))
+	})
+
+	t.Run("kill switch engaged", func(t *testing.T) {
+		existing, createErr := th.service.CreatePropertyField(th.Context, newUserField(model.PropertyFieldTypeText, model.StringInterface{
+			model.PropertyFieldAttrOpenID: "department",
+		}))
+		require.NoError(t, createErr)
+
+		openIDSyncEnabled = false
+		defer func() { openIDSyncEnabled = true }()
+
+		t.Run("a new link is refused", func(t *testing.T) {
+			_, createErr := th.service.CreatePropertyField(th.Context, newUserField(model.PropertyFieldTypeText, model.StringInterface{
+				model.PropertyFieldAttrOpenID: "department",
+			}))
+			requireAppError(t, createErr, disabledErrID)
+		})
+
+		t.Run("an existing link rides along an unrelated update", func(t *testing.T) {
+			existing.Attrs[model.PropertyFieldAttrDisplayName] = "Department"
+			updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, existing)
+			require.NoError(t, updateErr)
+			assert.Equal(t, "department", updated.Attrs[model.PropertyFieldAttrOpenID])
+			existing = updated
+		})
+
+		t.Run("changing the claim is refused", func(t *testing.T) {
+			changed := cloneField(existing)
+			changed.Attrs[model.PropertyFieldAttrOpenID] = "division"
+			_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, changed)
+			requireAppError(t, updateErr, disabledErrID)
+		})
+
+		t.Run("removing the link is allowed", func(t *testing.T) {
+			removed := cloneField(existing)
+			removed.Attrs[model.PropertyFieldAttrOpenID] = ""
+			updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, removed)
+			require.NoError(t, updateErr)
+			assert.False(t, model.IsPropertyFieldSynced(updated))
+		})
+	})
+
+	t.Run("linked fields take the template's openid link, and only as user fields", func(t *testing.T) {
+		template, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "template_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			Attrs:      model.StringInterface{model.PropertyFieldAttrOpenID: "department"},
+		})
+		require.NoError(t, createErr)
+
+		userField := newUserField(model.PropertyFieldTypeText, model.StringInterface{model.PropertyFieldAttrOpenID: "ignored"})
+		userField.LinkedFieldID = &template.ID
+		linkedUser, createErr := th.service.CreatePropertyField(th.Context, userField)
+		require.NoError(t, createErr)
+		assert.Equal(t, "department", linkedUser.Attrs[model.PropertyFieldAttrOpenID])
+
+		channelField := newUserField(model.PropertyFieldTypeText, nil)
+		channelField.ObjectType = model.PropertyFieldObjectTypeChannel
+		channelField.LinkedFieldID = &template.ID
+		linkedChannel, createErr := th.service.CreatePropertyField(th.Context, channelField)
+		require.NoError(t, createErr)
+		assert.NotContains(t, linkedChannel.Attrs, model.PropertyFieldAttrOpenID)
+
+		t.Run("even while the kill switch is engaged", func(t *testing.T) {
+			openIDSyncEnabled = false
+			defer func() { openIDSyncEnabled = true }()
+
+			another := newUserField(model.PropertyFieldTypeText, nil)
+			another.LinkedFieldID = &template.ID
+			linked, createErr := th.service.CreatePropertyField(th.Context, another)
+			require.NoError(t, createErr)
+			assert.Equal(t, "department", linked.Attrs[model.PropertyFieldAttrOpenID])
+		})
 	})
 }
 
