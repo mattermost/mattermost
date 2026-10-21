@@ -1,5 +1,7 @@
-.simplebar-track {
-    // Prevent clicking or dragging the scrollbar from interacting with elements behind it
+// Prevent clicking or dragging the scrollbar from interacting with elements behind it. The extra
+// specificity keeps this winning over simplebar's own `.simplebar-track { pointer-events: none }`
+// whatever order the two stylesheets end up in.
+[data-simplebar] .simplebar-track {
     pointer-events: all;
 }
 
