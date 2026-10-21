@@ -93,8 +93,9 @@ On `base`, with the enterprise image, and the FIPS image too when `suites` has a
 - A test that passes alone but points at server state: replay [CI's spec order](#test-environment)
   before calling it not reproducible.
 - Doesn't fail on `base`? Run it on the failing build (`commit`, `server_images`). If it fails
-  there, master has fixed it since: find the commit, and leave the spec out as `already fixed by
-  <sha>`. If it passes there too, it is not reproducible.
+  there and `base.commit` is the later of the two (`git merge-base --is-ancestor <commit>
+  <base.commit>`), master has fixed it since: find the commit, and leave the spec out as
+  `already fixed by <sha>`. If it passes there too, it is not reproducible.
 
 ## 3. Find the cause
 
@@ -169,8 +170,13 @@ The request names `pr`, `pr_url`, `pr_branch` and `pr_head`.
    what yours did, keep master's and drop yours; if nothing of yours is left, comment that and stop.
    Where master changed the same test in a way your repair makes unnecessary, keep master's change
    and point it out for the reviewers.
-4. Verify as in step 4, with the counts from the PR description, on `base`. If `base` is older
-   than the master you merged, name the commits in between.
+4. Verify as in step 4, with the counts from the PR description: the tests from the merged
+   `pr_branch`, the server from `base`'s images. Those match the merge only if no commit between
+   `base.commit` and the master you merged changes the server or webapp
+   (`git log --oneline <base.commit>..origin/master -- server webapp`). If one does, merge
+   `base.commit` instead of `origin/master` when that still resolves the conflict; otherwise comment
+   that verification waits for that commit's images and stop: the next master run sends this
+   request again with a newer `base`.
 5. Fetch `pr_branch` again right before pushing; if it moved, merge it and recheck. Push the merge
    once and comment which files conflicted, how you resolved each, and the pass counts.
 6. If you can't resolve it with confidence or verification fails, don't push: comment with the

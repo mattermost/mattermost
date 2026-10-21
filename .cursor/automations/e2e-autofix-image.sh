@@ -27,7 +27,9 @@ for part in "$@"; do
     server)
       # The binary links enterprise: it must be the commit the image was built with (<mm>_<enterprise> tag).
       enterprise=$(sed -n 's/^BUILD_ENTERPRISE_DIR *:= *//p' "$root/server/config.override.mk" 2>/dev/null || true)
-      enterprise=${enterprise:-$root/../enterprise}
+      enterprise=${enterprise:-../../enterprise}
+      # Relative to server/, as make resolves it.
+      [[ $enterprise == /* ]] || enterprise=$root/server/$enterprise
       want=${from##*_}
       have=$(git -C "$enterprise" rev-parse HEAD 2>/dev/null) || { echo "no enterprise checkout at $enterprise" >&2; exit 1; }
       if [[ $have != "$want"* ]]; then

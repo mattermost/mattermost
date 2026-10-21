@@ -94,7 +94,7 @@ jobs:
           images_exist() {
             local image
             for image in $(jq -r '.[]' <<<"$1"); do
-              docker manifest inspect "$image" >/dev/null 2>&1 || return 1
+              timeout 30 docker manifest inspect "$image" >/dev/null 2>&1 || return 1
             done
           }
 
