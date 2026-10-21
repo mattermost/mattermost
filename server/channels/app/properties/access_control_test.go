@@ -392,6 +392,124 @@ func TestLinkedFieldSyncLock(t *testing.T) {
 	}
 }
 
+// TestLateLinkedSyncValueAccess covers a user field linked to its template
+// before the template got its sync link. The field has no copy of the link,
+// so no sync grant, and the sync is let at its values only where any plugin
+// would be.
+func TestLateLinkedSyncValueAccess(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-owner" })
+	th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+	t.Cleanup(func() {
+		th.service.setPluginCheckerForTests(nil)
+		th.service.setLadderCheckerForTests(nil)
+	})
+	rctxAdmin := RequestContextWithCallerID(th.Context, model.NewId())
+	rctxLDAP := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+
+	// lateLinked creates a template, a field of objectType linked to it, and
+	// then the template's sync link to syncAttr.
+	lateLinked := func(t *testing.T, rctx request.CTX, objectType, syncAttr string, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		template, err := th.service.CreatePropertyField(rctxAdmin, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Template-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          template.Name,
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    objectType,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+			Attrs:         attrs,
+		})
+		require.NoError(t, err)
+
+		template.Attrs = model.StringInterface{syncAttr: "title"}
+		_, _, err = th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, template)
+		require.NoError(t, err)
+		stored, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		require.False(t, model.IsPropertyFieldSynced(stored))
+		return stored
+	}
+
+	writeAs := func(rctx request.CTX, field *model.PropertyField) error {
+		targetType := "user"
+		if field.ObjectType == model.PropertyFieldObjectTypeChannel {
+			targetType = "channel"
+		}
+		_, err := th.service.UpsertPropertyValue(rctx, &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: targetType,
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v"`),
+		})
+		return err
+	}
+
+	readableBy := func(t *testing.T, rctx request.CTX, field *model.PropertyField) bool {
+		t.Helper()
+		stored, err := th.dbStore.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v"`),
+		})
+		require.NoError(t, err)
+		read, err := th.service.GetPropertyValue(rctx, th.CPAGroupID, stored.ID)
+		require.NoError(t, err)
+		return read != nil
+	}
+
+	t.Run("a plain user field admits the sync's value writes and reads", func(t *testing.T) {
+		field := lateLinked(t, rctxAdmin, model.PropertyFieldObjectTypeUser, model.PropertyFieldAttrLDAP, nil)
+		assert.NoError(t, writeAs(rctxLDAP, field))
+		assert.True(t, readableBy(t, rctxLDAP, field))
+	})
+
+	t.Run("an owned user field refuses the sync's value writes", func(t *testing.T) {
+		field := lateLinked(t, rctxAdmin, model.PropertyFieldObjectTypeUser, model.PropertyFieldAttrLDAP, model.StringInterface{
+			model.PropertyAttrsOwners: []model.PropertyOwner{{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}},
+		})
+		assert.ErrorIs(t, writeAs(rctxLDAP, field), ErrAccessDenied)
+		assert.NoError(t, writeAs(RequestContextWithCallerID(th.Context, "plugin-owner"), field))
+	})
+
+	t.Run("a protected user field refuses the sync's value writes", func(t *testing.T) {
+		field := lateLinked(t, RequestContextWithCallerID(th.Context, "plugin-owner"), model.PropertyFieldObjectTypeUser, model.PropertyFieldAttrLDAP, model.StringInterface{
+			model.PropertyAttrsProtected: true,
+		})
+		assert.ErrorIs(t, writeAs(rctxLDAP, field), ErrAccessDenied)
+	})
+
+	t.Run("a channel field refuses the sync's value writes", func(t *testing.T) {
+		field := lateLinked(t, rctxAdmin, model.PropertyFieldObjectTypeChannel, model.PropertyFieldAttrLDAP, nil)
+		assert.ErrorIs(t, writeAs(rctxLDAP, field), ErrAccessDenied)
+	})
+
+	t.Run("a template synced from the other source refuses the sync", func(t *testing.T) {
+		field := lateLinked(t, rctxAdmin, model.PropertyFieldObjectTypeUser, model.PropertyFieldAttrSAML, nil)
+		assert.ErrorIs(t, writeAs(rctxLDAP, field), ErrAccessDenied)
+		assert.False(t, readableBy(t, rctxLDAP, field))
+	})
+
+	t.Run("a machine caller other than the sync is unaffected", func(t *testing.T) {
+		field := lateLinked(t, rctxAdmin, model.PropertyFieldObjectTypeUser, model.PropertyFieldAttrLDAP, nil)
+		rctxBoards := RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem)
+		assert.ErrorIs(t, writeAs(rctxBoards, field), ErrAccessDenied)
+		assert.False(t, readableBy(t, rctxBoards, field))
+		assert.NoError(t, writeAs(RequestContextWithCallerID(th.Context, "plugin-owner"), field))
+	})
+}
+
 // TestAccessControlHookEnforcesEveryPSAv2Group covers the hook widening from
 // one construction-time group ID to every PSAv2/v3 group: the same read
 // filter, write refusal and grant admission the access_control tests assert
