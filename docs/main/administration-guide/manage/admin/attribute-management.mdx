@@ -2,7 +2,7 @@
 title: "Attribute management"
 ---
 
-<PlanAvailability slug="ent-plus" />
+<PlanAvailability slug="entry-ent" />
 
 From Mattermost v12.0, you define an attribute once in **Attribute Management**, then choose which resources can use it. An attribute such as *Department* or *Clearance* has a single definition (display name, name, type, options, and an optional AD/LDAP or SAML source) that's shared by every resource it applies to. Attribute Management replaces the **User Attributes** page used in earlier releases. For servers before v12.0, see [User attributes](/administration-guide/manage/admin/user-attributes).
 
@@ -60,13 +60,52 @@ Attributes created and owned by a plugin are read-only in Attribute Management, 
       - **Select**: A single value chosen from a list of options.
       - **Multiselect**: One or more values chosen from a list of options.
       - **Ranked**: A single value chosen from an ordered list, where each option ranks higher or lower than the others, such as *Public*, *Secret*, and *Top Secret*. Because the options are ordered, [access control policies](/administration-guide/manage/admin/abac-system-wide-policies) can compare a ranked attribute against a threshold, for example clearance *is at least* Secret.
-      - **Hierarchical**: Values organized as parents and children, up to 100 parents per value and 100 levels deep. Available only when the `PropertyFieldGraph` feature flag is enabled, and only when you create an attribute. A hierarchical attribute can't be converted to another type.
-    - **Options**: For **Select**, **Multiselect**, and **Ranked** attributes, enter each option and press **Enter** or **Tab**. At least one option is required, unless the attribute is [linked to an external source](#link-an-attribute-to-adldap-or-saml) that provides its options. Options can be up to 64 characters and must be unique. Select an option to rename it, move it to another position, or remove it. For **Ranked** attributes, options are shown from lowest to highest rank; select an option to change its rank.
+      - **Hierarchical**: Values organized as parents and children, such as organizational units or programs. You can choose this type only when you create an attribute. See [Hierarchical attributes](#hierarchical-attributes).
+    - **Options**: For **Hierarchical** attributes, [build the hierarchy](#build-the-hierarchy) of values. For **Select**, **Multiselect**, and **Ranked** attributes, enter each option and press **Enter** or **Tab**. At least one option is required, unless the attribute is [linked to an external source](#link-an-attribute-to-adldap-or-saml) that provides its options. Options can be up to 64 characters and must be unique. Select an option to rename it, move it to another position, or remove it. For **Ranked** attributes, options are shown from lowest to highest rank; select an option to change its rank.
 3.  Optionally, [link the attribute to an external source](#link-an-attribute-to-adldap-or-saml).
 4.  In the **Applies to** section, select **Add resource** and choose the [resources the attribute applies to](#choose-the-resources-an-attribute-applies-to).
 5.  Select **Save**.
 
 You can define up to 200 attributes in total, and up to 20 attributes can apply to **Users**.
+
+## Hierarchical attributes
+
+From Mattermost v12.0, a **Hierarchical** attribute's values form a tree, where each value can have parent values above it and child values below it. Use it for values that nest, such as organizational units or programs. For example, a *Programs* attribute might have *All Programs* at the top, *Air* and *Sea* below it, and *F-18* and *F-35* below *Air*.
+
+In access rules, holding a value also counts for every value below it. A user who holds *Air* covers *F-18* and *F-35* too, so one rule can admit everyone at or above a given level of the tree.
+
+Plan the attribute before you create it:
+
+- You can choose **Hierarchical** only when you create an attribute. An existing attribute can't be converted to **Hierarchical**, and a hierarchical attribute can't be converted to another type. To change the type, create a new attribute and set its values again.
+- A hierarchical attribute can't be [linked to AD/LDAP or SAML](#link-an-attribute-to-adldap-or-saml). Its values are managed in Mattermost.
+
+### Build the hierarchy
+
+When you select **Hierarchical** as the type, the **Options** area shows the attribute's values as a tree. Each row has icons to add a child, open the value's parents, and delete the value. Select a value's name to open a menu where you can rename it and manage its **Parents** and **Children**.
+
+- **Add a top-level value**: Enter a name in **Add a top-level value** at the bottom of the tree, then select **Add value**. For a new attribute, start by entering the first value under **Add the first value**.
+- **Add a child value**: On the parent's row, select the **+** icon, enter the name of the new value, then select **Add**.
+- **Give a value more than one parent**: Select the value's name, select **Parents**, then choose an existing value or type a new name to create it as a parent. A value with several parents is listed under each of them, and its row shows how many parents it has. In the same menu, **Children** lets you add or remove child values the same way.
+- **Move a value**: Drag the value's handle onto another row to nest it under that value. The value moves from the parent it was listed under to the new one. The order of rows in the list has no meaning.
+- **Move a value to the top level**: Select the value's name, select **Parents**, then remove each parent.
+- **Delete a value**: Select the trash can icon on its row, or select **Delete this value** in its menu. You can't delete a value that's the only parent of other values. Move or delete those child values first. Child values that have another parent are kept.
+
+When adding a parent would bring more values under it, Mattermost asks you to confirm. A value can't be placed under one of its own child values, because the hierarchy can't loop back on itself. Each value can have up to 100 parents, and the hierarchy can be up to 100 levels deep.
+
+Select **Save** to save your changes.
+
+### Set hierarchical values
+
+Users and channels can hold one or more values of a hierarchical attribute. Values are set in the same places as other attribute values:
+
+- **Users**: Users set their own values in their profile when **Who can set the value** is **Member**. System admins can set any user's values. See [Manage user attributes](/administration-guide/configure/user-management-configuration-settings#manage-user-attributes).
+- **Channels**: Set values from Channel Info or **Channel Settings \> Info**. See [Set channel attribute values](/administration-guide/manage/admin/channel-attributes#set-channel-attribute-values).
+
+A user's selected values are shown in their profile popover, unless **Profile display** is set to **Hidden**.
+
+### Use hierarchical attributes in access rules
+
+In the policy editor's Simple Mode, hierarchical attributes offer the operators **covers all of**, **covers any of**, **is within all of**, **is within any of**, **has any of**, and **has all of**. To learn how each one uses the hierarchy, see [Hierarchical attributes](/administration-guide/manage/admin/abac-policy-expressions#hierarchical-attributes) in the policy expression reference.
 
 ## Link an attribute to AD/LDAP or SAML
 
@@ -85,7 +124,7 @@ From Mattermost v12.1, **Select** and **Multiselect** attributes keep their type
 
 <Note>
 
-- Linking an external source keeps a **Text**, **Phone**, **URL**, **Select**, or **Multiselect** attribute's type. Any other type changes to **Text**. Before v12.1, linking changes every type to **Text**.
+- Linking an external source keeps a **Text**, **Phone**, **URL**, **Select**, or **Multiselect** attribute's type. A **Ranked** attribute changes to **Text**. Before v12.1, linking changes every type to **Text**. **Hierarchical** attributes can't be linked.
 - While the attribute applies to a resource, its type can't change, so you can link an external source only to an attribute whose type is kept.
 - Values synced from an external source apply to **Users** only, and users can't edit them in Mattermost. In the **Users** resource settings, **Managed by** shows the source.
 - When the identity provider stops sending a value for a user, the next synchronization removes it from that user in Mattermost. A value Mattermost can't store, such as one over the length limit or one that would need an option past the 500-option limit, removes the user's previous value the same way, so an outdated value can't keep satisfying an access control policy.
@@ -103,7 +142,7 @@ Each resource you add has its own settings. Select a resource to expand its sett
 
 <Security>
 
-Attributes used in access control policies should be set by **System Administrator** or synchronized from an identity provider. Users can't change these values themselves, so they can't grant themselves access. By default, ABAC rules exclude attributes users can set themselves, unless `EnableUserManagedAttributes` is enabled. See [User attributes](/administration-guide/manage/admin/user-attributes#before-you-begin) for details.
+Attributes used in access control policies should be set by **System Administrator** or synchronized from an identity provider. Users can't change these values themselves, so they can't grant themselves access. By default, ABAC rules exclude attributes users can set themselves, unless `EnableUserManagedAttributes` is enabled. See [Enable user-managed attributes](/administration-guide/configure/system-attributes#enable-user-managed-attributes) for details.
 
 </Security>
 
@@ -111,16 +150,16 @@ To view or update an individual user's values, see [Manage user attributes](/adm
 
 ### Channels
 
-<PlanAvailability slug="ent-adv" />
+<PlanAvailability slug="entry-adv" />
 
-**Channels** is available only when the `ChannelAttributes` feature flag is enabled. Only admins can set channel values.
+The **Channels** resource requires a Mattermost Entry or Enterprise Advanced license. Only admins can set channel values. See [Channel attributes](/administration-guide/manage/admin/channel-attributes) for details.
 
 - **Changing the value**: Controls how a channel's value can change after it's set:
   - **Can be changed at any time** (default)
   - **Can only be raised, never lowered** (**Ranked** attributes only)
   - **Can only be lowered, never raised** (**Ranked** attributes only)
   - **Cannot be changed once set**
-- **Display location**: Where the value is shown in the channel: **Header**, **Channel Info**, or **Banner**. You can select more than one location. The value is always shown in **Channel Info**.
+- **Display location**: Where else the value is shown in the channel: **Header**, **Banner**, or both. The value is always shown in Channel Info, so Channel Info isn't a choice here.
 - **Required**: When enabled, a channel must have a value for this attribute before it can be created. Available only when the `ChannelAttributesRequired` feature flag is also enabled.
 
 ## Edit an attribute

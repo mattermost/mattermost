@@ -1,19 +1,169 @@
 ---
-title: "System attributes"
+title: "System attributes configuration settings"
 ---
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
-<PlanAvailability slug="ent-plus" />
+<PlanAvailability slug="entry-ent" />
 
-System attributes configuration settings provide system admins with centralized control over key user account properties.
+System attributes are the attributes Mattermost stores for users and channels, and the access policies that use them. Review and manage them in the System Console by selecting the **Product** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **System Attributes**. The section contains the following pages:
 
-Review and manage the following system attributes configuration options in the System Console by selecting the **Product** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **System Attributes**.
+- **Attribute Management**: From Mattermost v12.0, define an attribute once and choose the resources it applies to, such as users and channels. Requires Mattermost Entry, Enterprise, or Enterprise Advanced. See [Attribute management](/administration-guide/manage/admin/attribute-management) and [Channel attributes](/administration-guide/manage/admin/channel-attributes). Before v12.0, user attributes were managed on a **User Attributes** page. See [User attributes (before v12.0)](/administration-guide/manage/admin/user-attributes).
+- **Session Attributes**: Choose which details of a user's current connection, such as IP address, VPN status, and device posture, permission policies can check. Requires Mattermost Entry or Enterprise Advanced. See [Session attributes](/administration-guide/manage/admin/session-attributes).
+- **Attribute-Based Access**: Turn attribute-based access control (ABAC) on and configure how it behaves. Requires Mattermost Entry or Enterprise Advanced. The settings on this page are described [below](#attribute-based-access).
+- **Membership Policies**: Create system-wide policies that control who can be a member of channels and teams. Shown once attribute-based access control is enabled. See [System-wide attribute-based access policies](/administration-guide/manage/admin/abac-system-wide-policies).
+- **Permission Policies**: Create policies that control who can upload and download files. Shown once attribute-based access control is enabled. See [Permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies).
 
-You can define, manage, and enforce specific attributes, including:
+<Tip>
 
-- **Attribute management**: From Mattermost v12.0, define an attribute once and choose which resources it applies to, such as users and channels. Attribute management replaces the **User Attributes** page. Learn more about [attribute management](/administration-guide/manage/admin/attribute-management).
-- **User attributes**: Before Mattermost v12.0, display details such as job titles, departments, or other metadata, on user profiles that align with your organizational structures and workflows. Learn more about [managing user attributes](/administration-guide/manage/admin/user-attributes). API responses for user attributes return default visibility and sort order when those values are missing.
-- **Channel attributes**: From Mattermost v12.0 (Enterprise Advanced), apply global attributes to channels and display their values in Channel Info, the channel header, or the channel banner. Learn more about [managing channel attributes](/administration-guide/manage/admin/channel-attributes).
-- **Granular access controls based on user attributes**: Ensure users have access to only the resources and functionality relevant to their roles, bolstering security and compliance across the organization. Learn more about [managing access based on user attributes](/administration-guide/manage/admin/attribute-based-access-control).
-- **Session attributes**: From Mattermost v12 (Enterprise Advanced), evaluate per-session device and network context - such as IP address, network interface type, VPN status, and MDM enrollment - in permission policies. Learn more about [managing session attributes](/administration-guide/manage/admin/session-attributes).
-- **Control user-managed attributes in attribute-based access control (ABAC)**: From Mattermost v10.11 (Enterprise Edition Advanced), user-managed attributes are excluded from ABAC rules by default to prevent unauthorized access. System admins can enable them with a configuration setting. Learn more about enabling user-managed attributes in ABAC rules in the [User Attributes documentation](/administration-guide/manage/admin/user-attributes#before-you-begin).
+System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, the `SyncJobIntervalSeconds` value is under `AccessControlSettings`.
+
+- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.AccessControlSettings.SyncJobIntervalSeconds'`
+- When working with the `config.json` file manually, look for an object such as `AccessControlSettings`, then within that object, find the key `SyncJobIntervalSeconds`.
+
+</Tip>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Attribute-Based Access
+
+<PlanAvailability slug="entry-adv" />
+
+Access the following configuration settings in the System Console by going to **System Attributes \> Attribute-Based Access**. Some of these settings have no System Console option and can only be changed in the `config.json` file or with an environment variable. Each one is marked **N/A** under System Config path.
+
+### Enable attribute-based access control \{#enable-attribute-based-access-control}
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '43%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Turns attribute-based access control on or off for the whole server. In the System Console, this setting is labeled <strong>Allow attribute based access controls on this server</strong>.</p><ul><li><strong>true</strong>: Access policies are enforced, the <strong>Membership Policies</strong> and <strong>Permission Policies</strong> pages appear under <strong>System Attributes</strong>, and membership sync jobs run on their schedule.</li><li><strong>false</strong>: <strong>(Default)</strong> Access policies aren't enforced and the policy pages are hidden. Policies you've already created are kept, and apply again when you turn the setting back on.</li></ul><p>Define attributes in <strong>Attribute Management</strong> before you write policies. See <a href={useBaseUrl('/administration-guide/manage/admin/attribute-based-access-control')}>Attribute-based access control</a>.</p></td>
+<td><ul><li>System Config path: <strong>System Attributes &gt; Attribute-Based Access</strong></li><li><code>config.json</code> setting: <code>AccessControlSettings</code> &gt; <code>EnableAttributeBasedAccessControl</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_ACCESSCONTROLSETTINGS_ENABLEATTRIBUTEBASEDACCESSCONTROL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable user-managed attributes \{#enable-user-managed-attributes}
+
+From Mattermost v10.11, access rules can't use attributes that users can set for themselves unless this setting is enabled. Otherwise, a user could meet a rule just by editing their own profile. Attributes whose **Who can set the value** setting is **System Administrator**, and attributes synced from AD/LDAP or SAML, are always available to rules.
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '43%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Controls whether access rules can use attributes that users set themselves.</p><ul><li><strong>true</strong>: Rules can use every user attribute, including ones users can edit. Only enable this if you accept that users can change whether they match those rules.</li><li><strong>false</strong>: <strong>(Default)</strong> Attributes that users can edit are left out of access rules. The policy editors show them as unavailable, and a rule that uses one can't be saved.</li></ul><p>This setting has no System Console option.</p></td>
+<td><ul><li>System Config path: <strong>N/A</strong></li><li><code>config.json</code> setting: <code>AccessControlSettings</code> &gt; <code>EnableUserManagedAttributes</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_ACCESSCONTROLSETTINGS_ENABLEUSERMANAGEDATTRIBUTES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Show channel access indicators \{#enable-channel-policy-indicators}
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '43%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Controls whether end users can see which attributes a channel's membership policy requires. In the System Console, this setting is labeled <strong>Show channel access indicators to end users</strong>.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> In a channel with a membership policy, the attributes the policy requires are shown as tags in the channel members list and in the dialog for adding people to the channel.</li><li><strong>false</strong>: The tags are hidden, and the server no longer returns the attributes to end users. Disable this setting if you don't want to reveal the details of your policies.</li></ul><p>The System Console option is available only when <a href="#enable-attribute-based-access-control">attribute-based access control</a> is enabled.</p></td>
+<td><ul><li>System Config path: <strong>System Attributes &gt; Attribute-Based Access</strong></li><li><code>config.json</code> setting: <code>AccessControlSettings</code> &gt; <code>EnableChannelPolicyIndicators</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_ACCESSCONTROLSETTINGS_ENABLECHANNELPOLICYINDICATORS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Trust proxy device identity header \{#trust-proxy-device-identity-header}
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '43%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Lets a reverse proxy tell Mattermost which device a request comes from, for use in permission policies that check <a href={useBaseUrl('/administration-guide/manage/admin/session-attributes')}>session attributes</a>.</p><ul><li><strong>true</strong>: Mattermost fills the <code>tls_device_id</code> session attribute from the <code>X-Mattermost-Session-Attribute-Device-Id</code> request header. A proxy that uses client TLS certificates can set this header to assert a device identity the client can't forge.</li><li><strong>false</strong>: <strong>(Default)</strong> The header is ignored and <code>tls_device_id</code> is never set.</li></ul><p>Only enable this when every connection to Mattermost goes through a proxy you control, and that proxy removes or overwrites the header on incoming requests. Otherwise any client can set its own device identity. See <a href={useBaseUrl('/administration-guide/manage/admin/session-attributes#trust-proxy-device-identity-header')}>Trust proxy device identity header</a> on the session attributes page.</p><p>The System Console option appears under <strong>Session Attributes</strong> on the <strong>Attribute-Based Access</strong> page, and is available only when <a href="#enable-attribute-based-access-control">attribute-based access control</a> is enabled. Cloud admins can't modify this configuration setting.</p></td>
+<td><ul><li>System Config path: <strong>System Attributes &gt; Attribute-Based Access</strong></li><li><code>config.json</code> setting: <code>AccessControlSettings</code> &gt; <code>TrustProxyDeviceIdentityHeader</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_ACCESSCONTROLSETTINGS_TRUSTPROXYDEVICEIDENTITYHEADER</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enforce device ID consistency \{#enforce-device-id-consistency}
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '43%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Ends a session if the device it reports changes partway through. Mattermost compares the <code>tls_device_id</code>, <code>client_device_id</code>, and <code>hardware_id</code> session attributes with the values it already holds for the session.</p><ul><li><strong>true</strong>: If one of these identifiers changes, Mattermost revokes the session, the user has to log in again, and the revocation is recorded in the audit log. This limits what someone can do with a stolen session token from another device. A request that reports no identifier, or a session that has no identifier stored yet, isn't affected.</li><li><strong>false</strong>: <strong>(Default)</strong> A new identifier replaces the stored one and the session continues.</li></ul><p>Before you enable this setting, check that the identifiers you rely on stay the same on your users' devices. An identifier that changes for a legitimate reason logs the user out. See <a href={useBaseUrl('/administration-guide/manage/admin/session-attributes#enforce-device-id-consistency')}>Enforce device ID consistency</a> on the session attributes page.</p><p>The System Console option appears under <strong>Session Attributes</strong> on the <strong>Attribute-Based Access</strong> page, and is available only when <a href="#enable-attribute-based-access-control">attribute-based access control</a> is enabled. Cloud admins can't modify this configuration setting.</p></td>
+<td><ul><li>System Config path: <strong>System Attributes &gt; Attribute-Based Access</strong></li><li><code>config.json</code> setting: <code>AccessControlSettings</code> &gt; <code>EnforceDeviceIDConsistency</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_ACCESSCONTROLSETTINGS_ENFORCEDEVICEIDCONSISTENCY</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable audit logging for membership policy decisions \{#enable-access-control-audit-logging}
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '43%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Records each change that a membership policy makes to a channel or team in the audit log.</p><ul><li><strong>true</strong>: Every time a membership sync job adds a user to a channel or team, or removes one, because of a membership policy, Mattermost writes an audit record for that user. A record names the job, the policy and its revision, the channel or team, and the reason for the change. See <a href="#what-gets-recorded">What gets recorded</a> below.</li><li><strong>false</strong>: <strong>(Default)</strong> Policy-driven membership changes aren't written to the audit log.</li></ul><p>This setting needs an active audit log target: either file audit logging or an advanced audit logging target. See <a href={useBaseUrl('/administration-guide/manage/logging#audit-logging')}>Audit logging</a>. The System Console option is available only when <a href="#enable-attribute-based-access-control">attribute-based access control</a> is enabled and audit logging is active. If you enable the setting in <code>config.json</code> without an active audit log target, nothing is recorded, and the server logs a warning when it starts. Cloud admins can't modify this configuration setting.</p></td>
+<td><ul><li>System Config path: <strong>System Attributes &gt; Attribute-Based Access</strong></li><li><code>config.json</code> setting: <code>AccessControlSettings</code> &gt; <code>EnableAccessControlAuditLogging</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_ACCESSCONTROLSETTINGS_ENABLEACCESSCONTROLAUDITLOGGING</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+#### What gets recorded
+
+Each record covers one user and one channel or team. Mattermost records these events:
+
+| Event | When it's recorded |
+|----|----|
+| `channelMembershipAdded` | A sync job added a user to a channel because they match its policy. |
+| `channelMembershipRemoved` | A sync job removed a user from a channel because they no longer match its policy. |
+| `teamMembershipAdded` | A sync job added a user to a team because they match its policy. |
+| `teamMembershipRemoved` | A sync job removed a user from a team because they no longer match its policy. |
+| `teamCascadedChannelRemoval` | A user removed from a team by its policy was also removed from one of the team's channels. One record is written for each channel. |
+
+Every record includes the reason for the change: `matches-policy` for an addition, `no-longer-matches` for a removal, or `team-removal-cascade` for a channel removal that followed a team removal. The channel records that follow a team removal point back to the team removal record, so you can trace them together. See [Access control membership events](/administration-guide/comply/embedded-json-audit-log-schema#access-control-membership-events) for every field in the record.
+
+Only membership changes are recorded. Individual permission decisions, such as whether a user may upload or download a file, aren't written to the audit log.
+
+### Sync job interval \{#sync-job-interval-seconds}
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '43%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>How often, in seconds, Mattermost runs the scheduled membership sync for channels and teams. Each run applies the membership policies again: it adds and removes members as the policies require, and picks up attribute changes such as those synced from AD/LDAP or SAML. The same interval is used for the channel sync job (<code>access_control_sync</code>) and the team sync job (<code>access_control_team_sync</code>). Saving a policy can also start a sync straight away, whatever the interval.</p><p>Numerical input in seconds. Default is <strong>3600</strong> seconds (60 minutes). The minimum is <strong>60</strong> seconds; a lower value is rejected. A change takes effect after the server is restarted.</p><p>This setting has no System Console option. Cloud admins can't modify this configuration setting.</p></td>
+<td><ul><li>System Config path: <strong>N/A</strong></li><li><code>config.json</code> setting: <code>AccessControlSettings</code> &gt; <code>SyncJobIntervalSeconds</code> &gt; <code>3600</code></li><li>Environment variable: <code>MM_ACCESSCONTROLSETTINGS_SYNCJOBINTERVALSECONDS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Attribute refresh interval \{#attribute-refresh-interval-seconds}
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '43%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Controls how quickly attribute changes reach the searches that access control runs. Mattermost keeps a copy of user and channel attribute values for finding the users who match a rule and for reading a channel's attributes, and refreshes that copy at most once in this interval. After a user or channel attribute changes, it can take up to this long before the change shows in:</p><ul><li>The people offered when adding members to a channel with a membership policy.</li><li>The results of testing or simulating a rule.</li><li>Checks against rules that use channel attributes.</li></ul><p>Membership sync jobs always read the latest values.</p><p>Numerical input in seconds. Default is <strong>30</strong> seconds. Set it to <strong>0</strong> to refresh the copy before every search. Results are then always current, but busy servers do more database work.</p><p>This setting has no System Console option. Cloud admins can't modify this configuration setting.</p></td>
+<td><ul><li>System Config path: <strong>N/A</strong></li><li><code>config.json</code> setting: <code>AccessControlSettings</code> &gt; <code>AttributeRefreshIntervalSeconds</code> &gt; <code>30</code></li><li>Environment variable: <code>MM_ACCESSCONTROLSETTINGS_ATTRIBUTEREFRESHINTERVALSECONDS</code></li></ul></td>
+</tr>
+</tbody>
+</table>

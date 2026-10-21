@@ -29,7 +29,6 @@ This feature was developed to a large extent by community contributions and we'd
 - [mmctl bot](#mmctl-bot) - Bot Management
 - [mmctl channel](#mmctl-channel) - Channel Management
 - [mmctl command](#mmctl-command) - Command Management
-- [mmctl cpa](#mmctl-cpa) - User Attribute Management
 - [mmctl completion](#mmctl-completion) - Generate autocompletion scripts for bash, fish, powershell, and zsh
 - [mmctl compliance-export](#mmctl-compliance-export) - Compliance Export Management
 - [mmctl config](#mmctl-config) - Configuration Management
@@ -59,6 +58,7 @@ This feature was developed to a large extent by community contributions and we'd
 - [mmctl team users](#mmctl-team-users) - Team User Management
 - [mmctl token](#mmctl-token) - Token Management
 - [mmctl user](#mmctl-user) - User Management
+- [mmctl user attributes](#mmctl-user-attributes) - User Attribute Management
 - [mmctl user preference](#mmctl-user-preference) - Manage User Preferences
 - [mmctl version](#mmctl-version) - Version Management
 - [mmctl webhook](#mmctl-webhook) - Webhook Management
@@ -1948,204 +1948,6 @@ mmctl completion zsh [flags]
 ``` sh
 -h, --help          help for zsh
 --no-descriptions   disable completion descriptions
-```
-
-**Options inherited from parent commands**
-
-``` sh
---config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
---disable-pager                disables paged output
---insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
---insecure-tls-version         allows to use TLS versions 1.0 and 1.1
---json                         the output format will be in json format
---local                        allows communicating with the server through a unix socket
---quiet                        prevent mmctl to generate output for the commands
---strict                       will only run commands if the mmctl version matches the server one
---suppress-warnings            disables printing warning messages
-```
-
-## mmctl cpa
-
-<PlanAvailability slug="ent-adv" />
-
-Manage User Attributes for extended user profile information.
-
-> Child Commands  
-> - [mmctl cpa field](#mmctl-cpa-field) - Manage User Attribute fields
-
-**Options**
-
-``` sh
--h, --help   help for cpa
-```
-
-### mmctl cpa field
-
-**Description**
-
-Manage User Attribute fields.
-
-> Child Commands  
-> - [mmctl cpa field create](#mmctl-cpa-field-create) - Create a new User Attribute field
-> - [mmctl cpa field delete](#mmctl-cpa-field-delete) - Delete a User Attribute field
-> - [mmctl cpa field edit](#mmctl-cpa-field-edit) - Edit a User Attribute field
-> - [mmctl cpa field list](#mmctl-cpa-field-list) - List User Attribute fields
-
-**Options**
-
-``` sh
--h, --help   help for field
-```
-
-### mmctl cpa field create
-
-**Description**
-
-Create a new User Attribute field.
-
-**Format**
-
-``` sh
-mmctl cpa field create [field-name] [flags]
-```
-
-**Examples**
-
-``` sh
-mmctl cpa field create "Department" --type text
-mmctl cpa field create "Location" --type select --options "New York,London,Tokyo"
-```
-
-**Options**
-
-``` sh
--h, --help          help for create
---type string       field type (text, select, number, date)
---options string    comma-separated list of options for select fields
---required          mark field as required
-```
-
-**Options inherited from parent commands**
-
-``` sh
---config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
---disable-pager                disables paged output
---insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
---insecure-tls-version         allows to use TLS versions 1.0 and 1.1
---json                         the output format will be in json format
---local                        allows communicating with the server through a unix socket
---quiet                        prevent mmctl to generate output for the commands
---strict                       will only run commands if the mmctl version matches the server one
---suppress-warnings            disables printing warning messages
-```
-
-### mmctl cpa field delete
-
-**Description**
-
-Delete an existing User Attribute field.
-
-**Format**
-
-``` sh
-mmctl cpa field delete [field-id] [flags]
-```
-
-**Examples**
-
-``` sh
-mmctl cpa field delete department-field-001
-mmctl cpa field delete location-field-002 --force
-```
-
-**Options**
-
-``` sh
--h, --help    help for delete
---force       skip confirmation prompt
-```
-
-**Options inherited from parent commands**
-
-``` sh
---config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
---disable-pager                disables paged output
---insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
---insecure-tls-version         allows to use TLS versions 1.0 and 1.1
---json                         the output format will be in json format
---local                        allows communicating with the server through a unix socket
---quiet                        prevent mmctl to generate output for the commands
---strict                       will only run commands if the mmctl version matches the server one
---suppress-warnings            disables printing warning messages
-```
-
-### mmctl cpa field edit
-
-**Description**
-
-Edit an existing User Attribute field.
-
-**Format**
-
-``` sh
-mmctl cpa field edit [field-id] [flags]
-```
-
-**Examples**
-
-``` sh
-mmctl cpa field edit department-field-001 --name "Department/Division"
-mmctl cpa field edit location-field-002 --options "New York,London,Tokyo,Sydney"
-```
-
-**Options**
-
-``` sh
--h, --help          help for edit
---name string       update field name
---type string       update field type (text, select, number, date)
---options string    update comma-separated list of options for select fields
---required          mark field as required
---not-required      mark field as not required
-```
-
-**Options inherited from parent commands**
-
-``` sh
---config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
---disable-pager                disables paged output
---insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
---insecure-tls-version         allows to use TLS versions 1.0 and 1.1
---json                         the output format will be in json format
---local                        allows communicating with the server through a unix socket
---quiet                        prevent mmctl to generate output for the commands
---strict                       will only run commands if the mmctl version matches the server one
---suppress-warnings            disables printing warning messages
-```
-
-### mmctl cpa field list
-
-**Description**
-
-List all User Attribute fields.
-
-**Format**
-
-``` sh
-mmctl cpa field list [flags]
-```
-
-**Examples**
-
-``` sh
-mmctl cpa field list
-mmctl cpa field list --json
-```
-
-**Options**
-
-``` sh
--h, --help   help for list
 ```
 
 **Options inherited from parent commands**
@@ -6619,6 +6421,7 @@ Manage users.
 
 > Child Commands  
 > - [mmctl user activate](#mmctl-user-activate) - Activate a user
+> - [mmctl user attributes](#mmctl-user-attributes) - Manage user attribute fields and values
 > - [mmctl user change-password](#mmctl-user-change-password) - Change a user's password
 > - [mmctl user convert](#mmctl-user-convert) - Convert users to bots or convert bots to users
 > - [mmctl user create](#mmctl-user-create) - Create user
@@ -6671,6 +6474,322 @@ mmctl user activate username
 
 ``` sh
 -h, --help           help for activate
+```
+
+**Options inherited from parent commands**
+
+``` sh
+--config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+--disable-pager                disables paged output
+--insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+--insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+--json                         the output format will be in json format
+--local                        allows communicating with the server through a unix socket
+--quiet                        prevent mmctl to generate output for the commands
+--strict                       will only run commands if the mmctl version matches the server one
+--suppress-warnings            disables printing warning messages
+```
+
+### mmctl user attributes
+
+<PlanAvailability slug="entry-ent" />
+
+**Description**
+
+Manage user attribute fields and the values users have for them. The command is also available as `mmctl user attrs` and `mmctl user cpa`.
+
+<Important>
+
+From Mattermost v12.0, user attributes are managed in **System Console \> System Attributes \> Attribute Management**. User attributes that existed before the upgrade to v12.0, and user attributes created in Attribute Management, are linked to a shared attribute definition there. Attributes created by plugins and protected attributes aren't converted. For linked attributes, `mmctl user attributes field edit` and `mmctl user attributes field delete` fail with the error "This field is linked to a Global Attribute template and cannot be modified through the User Attributes API." Edit or delete them in [Attribute Management](/administration-guide/manage/admin/attribute-management) instead. This doesn't affect listing fields, or listing and setting values.
+
+These commands use the User Attributes API (`/api/v4/custom_profile_attributes`), which is deprecated.
+
+</Important>
+
+> Child Commands  
+> - [mmctl user attributes field](#mmctl-user-attributes-field) - Manage user attribute fields
+> - [mmctl user attributes value](#mmctl-user-attributes-value) - Manage user attribute values
+
+**Options**
+
+``` sh
+-h, --help   help for attributes
+```
+
+#### mmctl user attributes field
+
+**Description**
+
+Create, list, edit, and delete user attribute fields.
+
+> Child Commands  
+> - [mmctl user attributes field create](#mmctl-user-attributes-field-create) - Create a user attribute field
+> - [mmctl user attributes field delete](#mmctl-user-attributes-field-delete) - Delete a user attribute field
+> - [mmctl user attributes field edit](#mmctl-user-attributes-field-edit) - Edit a user attribute field
+> - [mmctl user attributes field list](#mmctl-user-attributes-field-list) - List user attribute fields
+
+**Options**
+
+``` sh
+-h, --help   help for field
+```
+
+#### mmctl user attributes field create
+
+**Description**
+
+Create a new user attribute field with the specified name and type, for example `text`, `select`, or `multiselect`.
+
+The name is how access policies refer to the attribute (`user.attributes.<name>`), so it must start with a letter or an underscore and contain only letters, digits, and underscores. Use `--option` once for each option of a `select` or `multiselect` field. Use `--managed` to make the field admin-managed, so that users can't set their own value.
+
+**Format**
+
+``` sh
+mmctl user attributes field create [name] [type] [flags]
+```
+
+**Examples**
+
+``` sh
+mmctl user attributes field create Department text --managed
+mmctl user attributes field create Skills multiselect --option Go --option React --option Python
+mmctl user attributes field create Level select --attrs '{"visibility":"always"}'
+```
+
+**Options**
+
+``` sh
+--attrs string         Full attrs JSON object for advanced configuration
+-h, --help             help for create
+--managed              Mark field as admin-managed (overrides --attrs)
+--option strings       Add an option for select/multiselect fields (overrides --attrs, can be repeated)
+```
+
+**Options inherited from parent commands**
+
+``` sh
+--config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+--disable-pager                disables paged output
+--insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+--insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+--json                         the output format will be in json format
+--local                        allows communicating with the server through a unix socket
+--quiet                        prevent mmctl to generate output for the commands
+--strict                       will only run commands if the mmctl version matches the server one
+--suppress-warnings            disables printing warning messages
+```
+
+#### mmctl user attributes field delete
+
+**Description**
+
+Delete a user attribute field, identified by its ID or name. Deleting a field also deletes every user's value for it. You're asked to confirm unless you pass `--confirm`.
+
+From Mattermost v12.0, this command fails for fields linked to Attribute Management. Delete those in **System Console \> System Attributes \> Attribute Management** instead.
+
+**Format**
+
+``` sh
+mmctl user attributes field delete [field] [flags]
+```
+
+**Examples**
+
+``` sh
+mmctl user attributes field delete n4qdbtro4j8x3n8z81p48ww9gr --confirm
+mmctl user attributes field delete Department --confirm
+```
+
+**Options**
+
+``` sh
+--confirm    Bypass confirmation prompt
+-h, --help   help for delete
+```
+
+**Options inherited from parent commands**
+
+``` sh
+--config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+--disable-pager                disables paged output
+--insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+--insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+--json                         the output format will be in json format
+--local                        allows communicating with the server through a unix socket
+--quiet                        prevent mmctl to generate output for the commands
+--strict                       will only run commands if the mmctl version matches the server one
+--suppress-warnings            disables printing warning messages
+```
+
+#### mmctl user attributes field edit
+
+**Description**
+
+Edit an existing user attribute field, identified by its ID or name.
+
+When you pass `--option`, the options you list become the field's complete set of options: options you leave out are removed, and options you keep retain their IDs. Use `--managed=false` to let users set their own value again.
+
+From Mattermost v12.0, this command fails for fields linked to Attribute Management. Edit those in **System Console \> System Attributes \> Attribute Management** instead.
+
+**Format**
+
+``` sh
+mmctl user attributes field edit [field] [flags]
+```
+
+**Examples**
+
+``` sh
+mmctl user attributes field edit n4qdbtro4j8x3n8z81p48ww9gr --name Division --managed
+mmctl user attributes field edit Skills --option Go --option React --option Python --option Java
+mmctl user attributes field edit Skills --managed=false
+```
+
+**Options**
+
+``` sh
+--attrs string         Update full attrs JSON object
+-h, --help             help for edit
+--managed              Mark field as admin-managed (overrides --attrs)
+--name string          Update field name
+--option strings       Add an option for select/multiselect fields (overrides --attrs, can be repeated)
+```
+
+**Options inherited from parent commands**
+
+``` sh
+--config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+--disable-pager                disables paged output
+--insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+--insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+--json                         the output format will be in json format
+--local                        allows communicating with the server through a unix socket
+--quiet                        prevent mmctl to generate output for the commands
+--strict                       will only run commands if the mmctl version matches the server one
+--suppress-warnings            disables printing warning messages
+```
+
+#### mmctl user attributes field list
+
+**Description**
+
+List all user attribute fields with their ID, name, type, whether they're admin-managed or user-managed, and their options.
+
+**Format**
+
+``` sh
+mmctl user attributes field list [flags]
+```
+
+**Examples**
+
+``` sh
+mmctl user attributes field list
+mmctl user attributes field list --json
+```
+
+**Options**
+
+``` sh
+-h, --help   help for list
+```
+
+**Options inherited from parent commands**
+
+``` sh
+--config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+--disable-pager                disables paged output
+--insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+--insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+--json                         the output format will be in json format
+--local                        allows communicating with the server through a unix socket
+--quiet                        prevent mmctl to generate output for the commands
+--strict                       will only run commands if the mmctl version matches the server one
+--suppress-warnings            disables printing warning messages
+```
+
+#### mmctl user attributes value
+
+**Description**
+
+List and set user attribute values for users.
+
+> Child Commands  
+> - [mmctl user attributes value list](#mmctl-user-attributes-value-list) - List a user's attribute values
+> - [mmctl user attributes value set](#mmctl-user-attributes-value-set) - Set a user's attribute value
+
+**Options**
+
+``` sh
+-h, --help   help for value
+```
+
+#### mmctl user attributes value list
+
+**Description**
+
+List all user attribute values for a user, identified by email address, username, or user ID. Option values are shown by option name.
+
+**Format**
+
+``` sh
+mmctl user attributes value list [user] [flags]
+```
+
+**Examples**
+
+``` sh
+mmctl user attributes value list john.doe@company.com
+mmctl user attributes value list johndoe
+```
+
+**Options**
+
+``` sh
+-h, --help   help for list
+```
+
+**Options inherited from parent commands**
+
+``` sh
+--config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+--disable-pager                disables paged output
+--insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+--insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+--json                         the output format will be in json format
+--local                        allows communicating with the server through a unix socket
+--quiet                        prevent mmctl to generate output for the commands
+--strict                       will only run commands if the mmctl version matches the server one
+--suppress-warnings            disables printing warning messages
+```
+
+#### mmctl user attributes value set
+
+**Description**
+
+Set a user attribute value for a user. Identify the user by email address, username, or user ID, and the field by its ID or name.
+
+`--value` is required. For `select` and `multiselect` fields, give the option name. For a `multiselect` field, repeat `--value` once for each option; the options you list replace the user's current value.
+
+**Format**
+
+``` sh
+mmctl user attributes value set [user] [field] [flags]
+```
+
+**Examples**
+
+``` sh
+mmctl user attributes value set john.doe@company.com kx8m2w4r9p3q7n5t1j6h8s4c9e --value "Engineering"
+mmctl user attributes value set johndoe Skills --value "Go" --value "React" --value "Python"
+mmctl user attributes value set user123 Level --value "Senior"
+```
+
+**Options**
+
+``` sh
+-h, --help             help for set
+--value strings        Value(s) to set for the field. Can be specified multiple times for multiselect/multiuser fields
 ```
 
 **Options inherited from parent commands**

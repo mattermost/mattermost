@@ -21,7 +21,7 @@ Team membership ABAC uses the same policies and attribute rules as channel ABAC,
 
 <Important>
 
-This change affects **all Mattermost teams on all deployments**, regardless of whether ABAC is enabled or whether your organization has an Enterprise Advanced license. Any team admin who opens **Team Settings \> Access** after upgrading will see the new UI. The exception is teams managed by LDAP/AD group sync, which show a static message in place of the cards — see [Switching modes](#switching-modes).
+This change affects **all Mattermost teams on all deployments**, regardless of whether ABAC is enabled or whether your organization has a Mattermost Entry or Enterprise Advanced license. Any team admin who opens **Team Settings \> Access** after upgrading will see the new UI. The exception is teams managed by LDAP/AD group sync, which show a static message in place of the cards — see [Switching modes](#switching-modes).
 
 </Important>
 
@@ -42,7 +42,7 @@ This change affects **all Mattermost teams on all deployments**, regardless of w
 
 **Private → Public:** Relaxes enforcement. Saves directly with no confirmation modal. If a policy is applied, the team immediately transitions to advisory mode: no existing members are removed.
 
-**Public → Private:** If team ABAC is enabled (Enterprise Advanced license and **Enable Attribute-Based Access Control**) and the team has a membership policy assigned, clicking **Private Team** opens a confirmation modal before saving:
+**Public → Private:** If team ABAC is enabled (a Mattermost Entry or Enterprise Advanced license, and **Allow attribute based access controls on this server** turned on) and the team has a membership policy assigned, clicking **Private Team** opens a confirmation modal before saving:
 
 - Title: **"Switch to Private Team?"**
 - Body shows how many current members do not meet the policy criteria and will be removed at the next sync. If all current members meet the criteria, the modal says no one will be removed. If no count is available, a generic warning is shown instead.
@@ -77,24 +77,8 @@ Auto-add is the only behavior that applies to **both** advisory and strict mode.
 Before configuring team membership policies:
 
 1.  Configure user attributes in the System Console. See [Attribute management](/administration-guide/manage/admin/attribute-management) for Mattermost v12.0 and later, or [User attributes](/administration-guide/manage/admin/user-attributes) for earlier releases.
-2.  Go to **System Console \> System Attributes \> Attribute-Based Access** and enable **Enable Attribute-Based Access Control**.
+2.  Go to **System Console \> System Attributes \> Attribute-Based Access** and enable **Allow attribute based access controls on this server**. See [Enable attribute-based access control](/administration-guide/configure/system-attributes#enable-attribute-based-access-control) for details.
 3.  For Team Admins configuring rules: the `manage_team_access_rules` permission is required. This permission is included in the Team Admin role by default.
-
-Team membership ABAC is also gated by the `TeamMembershipAccessControl` feature flag, which is **enabled by default** from Mattermost v11.10. Disabling it turns off team enforcement without affecting channel ABAC. See the Mattermost developer documentation for details on [feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development).
-
-**What changes when team membership ABAC is off:**
-
-| Surface | Team membership ABAC ON | Team membership ABAC OFF |
-|----|----|----|
-| Join gate (private teams) | Enforced — non-qualifying users denied | Not evaluated — private teams stay invite-only, as before |
-| Browse Teams filter | Private+ABAC teams hidden from non-qualifying users | No attribute filtering — standard privacy rules apply |
-| Team Membership tab (Team Settings) | Visible to Team Admins and System Admins | Hidden — tab does not appear |
-| System Console per-team ABAC controls | Policy assignment + custom rules panel visible | Hidden |
-| Recommended tag | Shown to qualifying users on public+ABAC teams | Not shown |
-| Sync job — removal pass | Removes non-qualifiers from private+ABAC teams | No team sync jobs run |
-| Invite modal filtering | Filters on private+ABAC teams | All users shown, as before |
-| Public/Private cards (Access tab) | **Visible** — not gated | **Still visible** — rendered on every team except group-synced ones |
-| Channel ABAC | Unaffected | Unaffected |
 
 ## System Admin configuration
 
@@ -131,7 +115,7 @@ In addition to a system-wide parent policy, System Admins can define team-specif
 4.  Select **Add attribute** to add a condition. For each condition, choose:
 
     - **Attribute**: The user profile attribute to evaluate.
-    - **Operator**: How the attribute must match. Options: **Is**, **Is not**, **In**, **Starts with**, **Ends with**, **Contains**. For ranked attributes: **Is exactly**, **Is at least**, **Is greater than**, **Is at most**, **Is less than**.
+    - **Operator**: How the attribute must match. The operators on offer depend on the attribute's type. See [Operators by attribute type](/administration-guide/manage/admin/abac-policy-expressions#operators-by-attribute-type) for the full list.
     - **Value**: The required attribute value.
 
     All conditions are combined with a logical AND — users must satisfy all of them.
@@ -202,8 +186,7 @@ The **Team Membership** tab lets Team Admins view the system policy applied to t
 
 The tab is visible only when:
 
-- **Enable Attribute-Based Access Control** is on.
-- The `TeamMembershipAccessControl` feature flag is on (enabled by default).
+- **Allow attribute based access controls on this server** is on.
 - The user has the `manage_team_access_rules` permission (Team Admin or System Admin).
 
 To open Team Settings: select the team name in the sidebar → **Team Settings** → **Team Membership** tab.
@@ -214,7 +197,7 @@ When a system-level policy is applied to the team by a System Admin, a non-dismi
 
 ### Configure custom rules
 
-Team Admins can add attribute rules that apply on top of any system policy. These rules use the same Basic Mode editor as channel rules.
+Team Admins can add attribute rules that apply on top of any system policy. These rules use the same Simple Mode editor as channel rules.
 
 1.  Select **Add attribute**.
 2.  Choose the attribute, operator, and value for each condition.
@@ -223,7 +206,7 @@ Team Admins can add attribute rules that apply on top of any system policy. Thes
 
 Clearing every rule and saving opens a **"Remove membership rules?"** modal instead. Confirming removes the team's attribute enforcement; current members keep their access.
 
-Available operators: **Is**, **Is not**, **In**, **Starts with**, **Ends with**, **Contains**. For ranked attributes: **Is exactly**, **Is at least**, **Is greater than**, **Is at most**, **Is less than**.
+The operators on offer depend on the attribute's type. See [Operators by attribute type](/administration-guide/manage/admin/abac-policy-expressions#operators-by-attribute-type) for the full list.
 
 <Important>
 
@@ -233,7 +216,7 @@ Saving rules always triggers an immediate team sync — **even when auto-add is 
 
 <Note>
 
-Team Settings rules are Basic Mode only. Advanced CEL expressions are not available here. For complex rules with nested logic or mixed operators, a System Admin must create a system-wide parent policy in the System Console.
+Team Settings rules are Simple Mode only. Advanced CEL expressions are not available here. For complex rules with nested logic or mixed operators, a System Admin must create a system-wide parent policy in the System Console.
 
 </Note>
 
@@ -379,7 +362,7 @@ A team sync batch runs in the following order:
 
 **Mass-removal guardrail**: If a sync pass would remove more than 50% of a team's current members, the job sets a warning flag visible in the Sync Job Details \> Teams tab. The job is not blocked — all removals proceed — but the warning is surfaced for admin review.
 
-Team sync also runs automatically on a schedule to handle attribute changes propagated from LDAP or SAML. The interval is set by `AccessControlSettings.SyncJobIntervalSeconds` and defaults to 3600 seconds (60 minutes). The minimum accepted value is 60 seconds, and a change requires a server restart to take effect. The same interval governs channel membership sync. User attributes used for access control evaluation are refreshed on a separate schedule controlled by `AccessControlSettings.AttributeRefreshIntervalSeconds`, which defaults to 30 seconds. Set this value to 0 to disable periodic attribute refresh.
+Team sync also runs automatically on a schedule to handle attribute changes propagated from LDAP or SAML. The interval is set by `AccessControlSettings.SyncJobIntervalSeconds` and defaults to 3600 seconds (60 minutes). The minimum accepted value is 60 seconds, and a change requires a server restart to take effect. The same interval governs channel membership sync. See [Sync job interval](/administration-guide/configure/system-attributes#sync-job-interval-seconds). User attributes used for access control evaluation are refreshed on a separate schedule controlled by `AccessControlSettings.AttributeRefreshIntervalSeconds`, which defaults to 30 seconds. Set this value to 0 to refresh attribute values before every lookup. See [Attribute refresh interval](/administration-guide/configure/system-attributes#attribute-refresh-interval-seconds).
 
 ## Mutual exclusivity with group sync
 
@@ -395,13 +378,10 @@ From Mattermost v11.10, the "Allow any user to join" checkbox has been permanent
 
 ### Why is the Team Membership tab not visible in Team Settings?
 
-The tab requires all of the following:
+The tab requires both of the following:
 
-- **Enable Attribute-Based Access Control** is ON in System Console \> System Attributes \> Attribute-Based Access.
-- The `TeamMembershipAccessControl` feature flag is ON (enabled by default).
+- **Allow attribute based access controls on this server** is on in **System Console \> System Attributes \> Attribute-Based Access**. This requires a Mattermost Entry or Enterprise Advanced license.
 - The user has the `manage_team_access_rules` permission (Team Admin or System Admin).
-
-If all three conditions are met but the tab is still missing, confirm the feature flag has not been disabled by checking **System Console \> Experimental \> Feature Flags** or the server configuration.
 
 ### Why are private ABAC teams not appearing in Browse Teams for some users?
 
@@ -409,7 +389,7 @@ This is intended behavior. When a private team has an ABAC policy and a user doe
 
 ### Can I use advanced CEL expressions in Team Settings?
 
-No. The Team Membership tab uses Basic Mode only — the same simple attribute editor available in Channel Settings. For rules that require nested logic, mixed `&&` / `||` operators, or grouping, a System Admin must create a system-wide parent policy using the CEL editor in the System Console.
+No. The Team Membership tab uses Simple Mode only — the same simple attribute editor available in Channel Settings. For rules that require nested logic, mixed `&&` / `||` operators, or grouping, a System Admin must create a system-wide parent policy using the CEL editor in the System Console.
 
 ### Can a group-synced team use ABAC?
 
@@ -417,7 +397,7 @@ No. Group sync and ABAC are mutually exclusive on a per-team basis. If a team is
 
 ### How quickly are membership changes applied?
 
-Saving rules in Team Settings or the System Console triggers an immediate team sync — **including when auto-add is off**, because enforcement (removal on private teams) runs regardless of the auto-add setting. Changes are applied as soon as the sync completes. A scheduled sync also runs on the interval set by `AccessControlSettings.SyncJobIntervalSeconds` (60 minutes by default) to process attribute changes from LDAP or SAML. User attributes used for access control evaluation are refreshed on the interval set by `AccessControlSettings.AttributeRefreshIntervalSeconds` (30 seconds by default).
+Saving rules in Team Settings or the System Console triggers an immediate team sync — **including when auto-add is off**, because enforcement (removal on private teams) runs regardless of the auto-add setting. Changes are applied as soon as the sync completes. A scheduled sync also runs on the interval set by [`AccessControlSettings.SyncJobIntervalSeconds`](/administration-guide/configure/system-attributes#sync-job-interval-seconds) (60 minutes by default) to process attribute changes from LDAP or SAML. User attributes used for access control evaluation are refreshed on the interval set by [`AccessControlSettings.AttributeRefreshIntervalSeconds`](/administration-guide/configure/system-attributes#attribute-refresh-interval-seconds) (30 seconds by default).
 
 ### Does System Admin role bypass team ABAC enforcement?
 
@@ -425,7 +405,7 @@ No. All roles — including System Admin — are subject to team ABAC policy eva
 
 ### What happens when I switch a team from public to private while a policy is assigned?
 
-If team ABAC is enabled (Enterprise Advanced license and **Enable Attribute-Based Access Control**) and a policy is assigned to the team, clicking **Private Team** opens a confirmation modal — **"Switch to Private Team?"** — showing how many current members do not meet the policy criteria. Confirming the switch saves the change and triggers an immediate sync to enforce strict mode. Members who don't qualify are removed at that sync.
+If team ABAC is enabled (a Mattermost Entry or Enterprise Advanced license, and **Allow attribute based access controls on this server** turned on) and a policy is assigned to the team, clicking **Private Team** opens a confirmation modal — **"Switch to Private Team?"** — showing how many current members do not meet the policy criteria. Confirming the switch saves the change and triggers an immediate sync to enforce strict mode. Members who don't qualify are removed at that sync.
 
 If the admin making the switch does not meet the criteria themselves, the switch is blocked with a **"Cannot switch to Private Team"** modal.
 

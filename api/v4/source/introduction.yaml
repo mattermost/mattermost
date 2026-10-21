@@ -457,6 +457,37 @@ tags:
     description: Endpoints for creating, getting and updating roles.
   - name: schemes
     description: Endpoints for creating, getting and updating and deleting schemes.
+  - name: permissions
+    description: Endpoints for getting information about permissions, such as the ancillary permissions that System Console subsections need.
+  - name: access control
+    description: >
+      Endpoints for attribute-based access control: creating, assigning and
+      searching access control policies, the CEL tools used to write and test
+      policy rules (CEL is the expression language the rules are written in),
+      simulating how permission policies apply to users, and checking whether
+      users can perform actions. Most endpoints that use the policy engine return
+      501 without an Entry or Enterprise Advanced license, and 406 while the
+      `EnableAttributeBasedAccessControl` setting is off. The action decisions
+      endpoint (`POST /api/v4/access_control/decisions/actions/search`)
+      instead allows every action while the setting is off. See [our
+      attribute-based access control documentation](https://docs.mattermost.com/administration-guide/manage/admin/attribute-based-access-control)
+      for more information.
+  - name: properties
+    description: >
+      Endpoints for the property system, which attaches typed attributes to
+      objects such as users, channels and posts. Properties are organized in
+      groups; each group holds fields, which define an attribute and its
+      type, and values, which hold a field's value for one object. A field's
+      object type says what kind of object it applies to, and in the
+      `access_control` group a `template` field defines a global attribute
+      that user and channel fields link to. These endpoints replace the
+      custom profile attributes endpoints for managing user attributes.
+  - name: custom profile attributes
+    description: >
+      Endpoints for managing user attributes (formerly custom profile
+      attributes) and their values. Deprecated since v12.0: use the
+      properties endpoints in the `access_control` group instead. These
+      endpoints will be removed in a future release.
   - name: integration_actions
     description: Endpoints for interactive actions for use by integrations.
   - name: shared channels

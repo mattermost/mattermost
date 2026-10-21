@@ -118,6 +118,34 @@
                   type: string
                   description: Default sidebar category name for members when joining this channel.
                     Requires `EnableChannelCategorySorting` to be enabled on the server.
+                property_values:
+                  type: array
+                  description: >
+                    Channel attribute values to set when the channel is created
+                    (minimum server version 12.0).
+                    Each `field_id` must be a system-level field with object type
+                    `channel` in the `access_control` property group. Channel
+                    attributes require an Entry or Enterprise Advanced license; the
+                    classification attribute requires an Entry, Enterprise or
+                    Enterprise Advanced license. An unknown or repeated
+                    `field_id`, or a value for an attribute that isn't available
+                    on the server, returns 400. A value for a field the caller
+                    isn't allowed to set returns 403.
+                  items:
+                    type: object
+                    required:
+                      - field_id
+                      - value
+                    properties:
+                      field_id:
+                        type: string
+                        description: The ID of the channel attribute field
+                      value:
+                        description: >
+                          The value to set: an option ID for a select or
+                          ranked attribute, an array of option IDs for a
+                          multiselect or hierarchical attribute, or a string
+                          for a text attribute.
         description: Channel object to be created
         required: true
       responses:

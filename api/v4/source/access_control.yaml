@@ -4,10 +4,50 @@
         - access control
       summary: Create an access control policy
       description: |
-        Creates a new access control policy.
+        Creates a new access control policy, or updates the policy with the
+        same `id`.
+
+        Plugin-owned policy types are rejected with a 400. A `channel` policy
+        can only be saved for a public or private channel that isn't a team's
+        default channel, a shared channel, or group-constrained.
+
+        Returns a 501 when `type` is `permission` and permission policies are
+        disabled, or when a `channel` policy has permission rules and channel
+        permission policies are disabled.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
-        Must have the `manage_system` permission.
+        Depends on the policy `type`:
+        * `parent`: the `manage_system` permission, or the
+          `manage_team_access_rules` permission on the team given in the
+          `team_id` query parameter. A policy saved by a team admin belongs to
+          that team. To update an existing policy, a team admin's policy must
+          already belong to the team: its `scope_id` is the team, or every
+          channel it's assigned to is in the team.
+        * `channel`: the `manage_system` permission, or the
+          `manage_channel_access_rules` permission on the channel. The policy
+          `id` is the channel ID.
+        * `team`: the `manage_system` permission, or the
+          `manage_team_access_rules` permission on the team. The policy `id`
+          is the team ID.
+        * `permission`: the `manage_system` permission.
+
+        A caller without the `manage_system` permission can't save rules that
+        they don't satisfy themselves, and can't change a policy's `imports`,
+        `scope` or `scope_id`.
       operationId: CreateAccessControlPolicy
+      parameters:
+        - name: team_id
+          in: query
+          description: >
+            For a `parent` policy, the ID of the team the policy belongs to.
+            Required for a team admin. For a caller with the `manage_system`
+            permission, it sets the policy's `scope` to that team when the
+            request body doesn't set one.
+          required: false
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -29,6 +69,8 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/access_control_policies/cel/check:
     post:
       tags:
@@ -36,8 +78,16 @@
       summary: Check an access control policy expression
       description: |
         Checks the syntax and validity of an access control policy expression.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
-        Must have the `manage_system` permission.
+        Must have the `manage_system` permission, or one of:
+        * the `manage_team_access_rules` permission on the team given in
+          `teamId`. If `channelId` is also given, the channel must be in that
+          team.
+        * the `manage_channel_access_rules` permission on the channel given in
+          `channelId`.
       operationId: CheckAccessControlPolicyExpression
       requestBody:
         required: true
@@ -49,6 +99,12 @@
                 expression:
                   type: string
                   description: The expression to check.
+                channelId:
+                  type: string
+                  description: The channel ID, required for channel admins.
+                teamId:
+                  type: string
+                  description: The team ID, required for team admins.
       responses:
         "200":
           description: Expression check result.
@@ -74,8 +130,16 @@
       description: |
         Validates whether the current authenticated user matches the given CEL expression.
         This is used to determine if a channel admin can test expressions they match.
+
+        __Minimum server version__: 11.0
+
         ##### Permissions
-        Must have `manage_system` permission OR be a channel admin for the specified channel (channelId required for channel admins).
+        Must have the `manage_system` permission, or one of:
+        * the `manage_team_access_rules` permission on the team given in
+          `teamId`. If `channelId` is also given, the channel must be in that
+          team.
+        * the `manage_channel_access_rules` permission on the channel given in
+          `channelId`.
       operationId: ValidateExpressionAgainstRequester
       requestBody:
         required: true
@@ -90,6 +154,9 @@
                 channelId:
                   type: string
                   description: The channel ID for channel-specific permission checks (required for channel admins).
+                teamId:
+                  type: string
+                  description: The team ID, required for team admins.
               required:
                 - expression
       responses:
@@ -120,8 +187,22 @@
       summary: Test an access control policy expression
       description: |
         Tests an access control policy expression against users to see who would be affected.
+
+        For a caller without the `manage_system` permission, the result is
+        empty unless the caller satisfies the expression themselves, and user
+        profiles have the same fields hidden as for any user who isn't a
+        system admin. With `teamId`, a system admin or team admin gets only
+        members of that team.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
-        Must have the `manage_system` permission.
+        Must have the `manage_system` permission, or one of:
+        * the `manage_team_access_rules` permission on the team given in
+          `teamId`. If `channelId` is also given, the channel must be in that
+          team.
+        * the `manage_channel_access_rules` permission on the channel given in
+          `channelId`.
       operationId: TestAccessControlPolicyExpression
       requestBody:
         required: true
@@ -161,9 +242,19 @@
         and Channel Settings so authors can see how a draft interacts with
         persisted higher-scoped policies before saving.
 
-        Gated by the `PermissionPolicies` feature flag and the Enterprise
-        Advanced license. Returns 501 (Not Implemented) when either is
-        missing.
+        Available only when permission policies and policy simulation are
+        both enabled and the server's license includes attribute-based
+        access control. Returns 501 (Not Implemented) otherwise.
+
+        Accepts at most 50 users. For each user, the simulation uses up to 10
+        of their most recent sessions.
+
+        For a caller without the `manage_system` permission, the response
+        leaves out evaluation trees and the values of attributes that are
+        hidden from user profiles or otherwise protected, and user profiles
+        have the same fields hidden as for any user who isn't a system admin.
+
+        __Minimum server version__: 11.8
 
         ##### Permissions
         Must have the `manage_system` permission, OR be a team admin with
@@ -171,6 +262,10 @@
         provided `channel_id` resolves to a channel in that team), OR be a
         channel admin with `manage_channel_access_rules` on the request's
         `channel_id`.
+
+        A caller without the `manage_system` permission can simulate only
+        users who are members of the channel in `channel_id`, or, when
+        `channel_id` isn't set, of the team in `team_id`.
       operationId: SimulateAccessControlPolicyForUsers
       requestBody:
         required: true
@@ -202,8 +297,22 @@
       summary: Search access control policies
       description: |
         Searches for access control policies based on given criteria.
+
+        Without `team_id`, every policy is searched. When permission policies
+        are disabled, `permission` policies are left out of the results, and
+        a search with `type` set to `permission` returns a 501.
+
+        With `team_id`, only `parent` policies that belong to the team are
+        returned: those whose `scope_id` is the team, and those whose assigned
+        channels are all in the team. A policy that covers a private channel
+        is left out when the caller doesn't satisfy its rules.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
-        Must have the `manage_system` permission.
+        Without `team_id`, must have the `manage_system` permission. With
+        `team_id`, must have the `manage_team_access_rules` permission on the
+        team.
       operationId: SearchAccessControlPolicies
       requestBody:
         required: true
@@ -226,6 +335,8 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/access_control_policies/cel/autocomplete/fields:
     get:
       tags:
@@ -233,8 +344,21 @@
       summary: Get autocomplete fields for access control policies
       description: |
         Provides a list of fields that can be used for autocompletion when creating/editing access control policy expressions.
+
+        The list holds user attributes, plus channel attributes when
+        `channelId` is given or `include_resource_fields` is `true`. The first
+        page also includes the built-in user fields `email`, `verified`,
+        `isbot` and `createat`.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
-        Must have the `manage_system` permission.
+        Must have the `manage_system` permission, or one of:
+        * the `manage_team_access_rules` permission on the team given in
+          `team_id`. If `channelId` is also given, the channel must be in that
+          team.
+        * the `manage_channel_access_rules` permission on the channel given in
+          `channelId`.
       operationId: GetAccessControlPolicyAutocompleteFields
       parameters:
         - name: after
@@ -249,14 +373,40 @@
           required: true
           schema:
             type: integer
-            default: 60
+            minimum: 1
+            maximum: 100
+        - name: channelId
+          in: query
+          description: >
+            The channel ID, required for channel admins. When set, channel
+            attributes are included.
+          required: false
+          schema:
+            type: string
+        - name: team_id
+          in: query
+          description: The team ID, required for team admins.
+          required: false
+          schema:
+            type: string
+        - name: include_resource_fields
+          in: query
+          description: >
+            When `true`, includes channel attributes, for editing a policy
+            that isn't tied to a single channel, such as a `parent` policy.
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Autocomplete fields retrieved successfully.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccessControlFieldsAutocompleteResponse"
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyField"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -272,14 +422,40 @@
       summary: Get an access control policy
       description: |
         Gets a specific access control policy by its ID.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
-        Must have the `manage_system` permission.
+        Must have the `manage_system` permission, or one of:
+        * for a `channel` policy, the `manage_channel_access_rules` permission
+          on the channel. The policy ID is the channel ID.
+        * for a `parent` policy that belongs to the team given in `team_id`,
+          the `manage_team_access_rules` permission on that team. A policy
+          belongs to a team when its `scope_id` is the team, or when every
+          channel it's assigned to is in the team.
+
+        With `channelId`, a channel admin can also get a `parent` policy that
+        the channel imports.
       operationId: GetAccessControlPolicy
       parameters:
       - name: policy_id
         in: path
         description: The ID of the access control policy.
         required: true
+        schema:
+          type: string
+      - name: channelId
+        in: query
+        description: >
+          The ID of a channel that imports the policy, for reading a `parent`
+          policy from that channel's settings.
+        required: false
+        schema:
+          type: string
+      - name: team_id
+        in: query
+        description: The team ID, required for team admins.
+        required: false
         schema:
           type: string
       responses:
@@ -305,14 +481,29 @@
       summary: Delete an access control policy
       description: |
         Deletes an access control policy by its ID.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
-        Must have the `manage_system` permission.
+        Must have the `manage_system` permission, or one of:
+        * for a `channel` policy, the `manage_channel_access_rules` permission
+          on the channel. The policy ID is the channel ID.
+        * with `team_id`, the `manage_team_access_rules` permission on that
+          team, for the team's own `team` policy or for a `parent` policy that
+          belongs to the team. A policy belongs to a team when its `scope_id`
+          is the team, or when every channel it's assigned to is in the team.
       operationId: DeleteAccessControlPolicy
       parameters:
       - name: policy_id
         in: path
         description: The ID of the access control policy.
         required: true
+        schema:
+          type: string
+      - name: team_id
+        in: query
+        description: The team ID, required for team admins.
+        required: false
         schema:
           type: string
       responses:
@@ -337,15 +528,25 @@
       deprecated: true
       tags:
         - access control
-      summary: Activate or deactivate an access control policy
+      summary: Turn auto-add on or off for an access control policy
       description: |
-        Updates the active status of an access control policy.
+        Turns auto-add on or off for one access control policy. From
+        Mattermost v12.0, `active=true` sets `auto_add` to `always` on the
+        policy's membership rule, so users who match are added
+        automatically, and `active=false` turns auto-add off.
 
-        **Deprecated:** This endpoint will be removed in a future release. Use the dedicated access control policy update endpoint instead.
+        **Deprecated:** This endpoint will be removed in a future release. Use `PUT /api/v4/access_control_policies/activate` instead, which also updates several policies at once.
         Link: </api/v4/access_control_policies/activate>; rel="successor-version"
 
+        This endpoint doesn't accept the session cookie: requests that send
+        it are rejected with a 401. Send a token in the `Authorization`
+        header instead.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
-        Must have the `manage_system` permission.
+        Must have the `manage_system` permission, or, for a `channel` policy,
+        the `manage_channel_access_rules` permission on the channel.
       operationId: UpdateAccessControlPolicyActiveStatus
       parameters:
       - name: policy_id
@@ -356,7 +557,7 @@
           type: string
       - name: active
         in: query
-        description: Set to "true" to activate, "false" to deactivate.
+        description: Set to "true" to turn auto-add on, "false" to turn it off.
         required: true
         schema:
           type: boolean
@@ -384,8 +585,21 @@
       summary: Assign an access control policy to channels or teams
       description: |
         Assigns an access control policy to a list of channels and/or teams.
+
+        Returns a 501 when `team_ids` is set and team membership policies
+        aren't available on the server. They need an Entry or Enterprise
+        Advanced license, and attribute-based access control must be enabled.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
-        Must have the `manage_system` permission.
+        Must have the `manage_system` permission. A team admin can instead
+        set `team_id` to a team where they have the `manage_team_access_rules`
+        permission, for a `parent` policy that belongs to that team: its
+        `scope_id` is the team, or every channel it's assigned to is in the
+        team. A team admin must give at least one channel in `channel_ids`,
+        and every channel must be in the team. `team_ids` always requires the
+        `manage_system` permission.
       operationId: AssignAccessControlPolicyToChannels
       parameters:
       - name: policy_id
@@ -406,6 +620,11 @@
                   items:
                     type: string
                   description: The IDs of the channels to assign the policy to.
+                team_id:
+                  type: string
+                  description: >
+                    The ID of the team, required for a team admin. Every
+                    channel in `channel_ids` must be in this team.
                 team_ids:
                   type: array
                   items:
@@ -431,6 +650,8 @@
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/access_control_policies/{policy_id}/unassign":
     delete:
       tags:
@@ -438,8 +659,21 @@
       summary: Unassign an access control policy from channels or teams
       description: |
         Unassigns an access control policy from a list of channels and/or teams.
+
+        Returns a 501 when `team_ids` is set and team membership policies
+        aren't available on the server. They need an Entry or Enterprise
+        Advanced license, and attribute-based access control must be enabled.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
-        Must have the `manage_system` permission.
+        Must have the `manage_system` permission. A team admin can instead
+        set `team_id` to a team where they have the `manage_team_access_rules`
+        permission, for a `parent` policy that belongs to that team: its
+        `scope_id` is the team, or every channel it's assigned to is in the
+        team. A team admin must give at least one channel in `channel_ids`,
+        and every channel must be in the team. `team_ids` always requires the
+        `manage_system` permission.
       operationId: UnassignAccessControlPolicyFromChannels
       parameters:
       - name: policy_id
@@ -460,6 +694,11 @@
                   items:
                     type: string
                   description: The IDs of the channels to unassign the policy from.
+                team_id:
+                  type: string
+                  description: >
+                    The ID of the team, required for a team admin. Every
+                    channel in `channel_ids` must be in this team.
                 team_ids:
                   type: array
                   items:
@@ -485,6 +724,8 @@
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/access_control_policies/{policy_id}/resources/channels":
     get:
       tags:
@@ -492,14 +733,27 @@
       summary: Get channels for an access control policy
       description: |
         Retrieves a paginated list of channels to which a specific access control policy is applied.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
-        Must have the `manage_system` permission.
+        Must have the `manage_system` permission, or the
+        `manage_team_access_rules` permission on the team given in `team_id`,
+        for a `parent` policy that belongs to that team. A policy belongs to a
+        team when its `scope_id` is the team, or when every channel it's
+        assigned to is in the team.
       operationId: GetChannelsForAccessControlPolicy
       parameters:
       - name: policy_id
         in: path
         description: The ID of the access control policy.
         required: true
+        schema:
+          type: string
+      - name: team_id
+        in: query
+        description: The team ID, required for team admins.
+        required: false
         schema:
           type: string
       - name: after
@@ -539,8 +793,17 @@
       summary: Search channels for an access control policy
       description: |
         Searches for channels associated with a specific access control policy based on search criteria.
+        Group-constrained channels are never returned.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
-        Must have the `manage_system` permission.
+        Must have the `manage_system` permission, or the
+        `manage_team_access_rules` permission on the team given in `team_id`,
+        for a `parent` policy that belongs to that team. A policy belongs to a
+        team when its `scope_id` is the team, or when every channel it's
+        assigned to is in the team. A team admin gets only channels in that
+        team.
       operationId: SearchChannelsForAccessControlPolicy
       parameters:
       - name: policy_id
@@ -549,12 +812,36 @@
         required: true
         schema:
           type: string
+      - name: team_id
+        in: query
+        description: The team ID, required for team admins.
+        required: false
+        schema:
+          type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ChannelSearch"
+              type: object
+              properties:
+                term:
+                  type: string
+                  description: The string to search in the channel name, display name, and purpose.
+                team_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: >
+                    Filters results to channels belonging to the given team
+                    ids. Ignored for a team admin, whose results are limited to
+                    the team given in `team_id`.
+                deleted:
+                  type: boolean
+                  description: Filters results to only return deleted / archived channels.
+                include_deleted:
+                  type: boolean
+                  description: Whether to include deleted channels in the search results.
       responses:
         "200":
           description: Channel search results retrieved successfully.
@@ -581,6 +868,14 @@
       description: |
         Retrieves the effective access control policy attributes for a specific channel.
         This can be used to understand what attributes are currently being applied to the channel by the access control system.
+
+        The response maps each attribute name used by the channel's
+        membership rules to the values that satisfy them. It's an empty
+        object when **Show channel access indicators**
+        (`AccessControlSettings.EnableChannelPolicyIndicators`) is turned off.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
         Must have `read_channel` permission for the specified channel.
       operationId: GetChannelAccessControlAttributes
@@ -597,8 +892,11 @@
           content:
             application/json:
               schema:
-                type: object # Placeholder - define more specifically if the structure is known
-                additionalProperties: true
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
                 description: A map of attribute names to their values as applied to the channel.
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -617,8 +915,16 @@
       summary: Get the visual AST for a CEL expression
       description: |
         Retrieves the visual AST for a CEL expression.
+
+        __Minimum server version__: 10.9
+
         ##### Permissions
-        Must have the `manage_system` permission.
+        Must have the `manage_system` permission, or one of:
+        * the `manage_team_access_rules` permission on the team given in
+          `teamId`. If `channelId` is also given, the channel must be in that
+          team.
+        * the `manage_channel_access_rules` permission on the channel given in
+          `channelId`.
       operationId: GetCELVisualAST
       requestBody:
         required: true
@@ -645,12 +951,28 @@
     put:
       tags:
         - access control
-      summary: Activate or deactivate access control policies
+      summary: Turn auto-add on or off for access control policies
       description: |
-        Updates the active status of access control policies.
+        Turns auto-add on or off for a batch of access control policies. From
+        Mattermost v12.0, `active: true` sets `auto_add` to `always` on each
+        policy's membership rule, so users who match are added
+        automatically, and `active: false` turns auto-add off.
+
+        Returns the updated policies. In the response, each policy's `active`
+        field shows whether auto-add is on.
+
+        __Minimum server version__: 11.3
 
         ##### Permissions
-        Must have the `manage_system` permission. OR be a channel admin with manage_channel_access_rules permission for the specified channels.
+        Must have the `manage_system` permission. Otherwise, every policy in
+        `entries` must be one of:
+        * a `channel` policy for a channel where the caller has the
+          `manage_channel_access_rules` permission.
+        * with `team_id` set to a team where the caller has the
+          `manage_team_access_rules` permission, that team's own `team`
+          policy, or a `parent` policy that belongs to the team. A policy
+          belongs to a team when its `scope_id` is the team, or when every
+          channel it's assigned to is in the team.
       operationId: UpdateAccessControlPoliciesActive
       requestBody:
         required: true
@@ -664,7 +986,9 @@
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccessControlPolicy"
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccessControlPolicy"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -690,12 +1014,20 @@
         probe another user's decisions. Server-side enforcement always re-evaluates
         the full policy on the actual request and remains the source of truth.
 
-        Gated by the `PermissionPolicies` feature flag and an Enterprise license.
-        When ABAC is inactive for the resource, every action is returned as
-        `allowed: true, evaluated: true`.
+        Only `channel` resources are supported, and `actions` can contain only
+        `upload_file_attachment` and `download_file_attachment`. Anything else
+        is rejected with a 400. Leave `actions` empty to get decisions for
+        every supported action.
+
+        When attribute-based access control or permission policies are
+        disabled, every action is returned as `allowed: true, evaluated: true`.
+
+        __Minimum server version__: 12.0
 
         ##### Permissions
-        Must be authenticated (any logged-in user).
+        Must have the `read_channel` permission on the channel in `resource`.
+        If `subject` is set, its `id` must be the caller's own user ID;
+        otherwise the request is rejected with a 403.
       operationId: SearchAccessControlDecisionActions
       requestBody:
         required: true
@@ -714,5 +1046,7 @@
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
