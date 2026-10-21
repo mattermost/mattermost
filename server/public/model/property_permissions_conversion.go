@@ -609,7 +609,11 @@ func ambientMachineGrantAllow(field *PropertyField) []string {
 // syncer reads, provisions and prunes them there, so it gets the option
 // actions alone. A linked field's option.read reads its template's options,
 // which the template's grant covers; the conversion drops it from a linked
-// field's grants as it does from every other grant, and so does ApplySyncLock.
+// field's grants as it does from every other grant.
+//
+// On a protected synced field the sync writes values, a known difference from
+// master, which lets nobody write them there: its protected check passes only
+// the source plugin, and the sync lock then refuses that plugin.
 func syncGrantAllow(field *PropertyField) []string {
 	writable := !HasPropertyFieldOwners(field) && !field.Protected && !IsPropertyFieldProtected(field)
 	var allow []string
@@ -674,91 +678,14 @@ func isMachineOwnerType(ownerType string) bool {
 
 // syncLockSource returns the sync source whose lock applies to field's own
 // values. A template holds no values, so its ldap/saml attrs lock nothing on
-// it; the link step applies the lock to its linked user fields instead (see
-// ApplySyncLock). Its sync still gets a grant over its options (see
-// syncGrantAllow).
+// it; a user field linked to it takes the lock from its own copy of the attr,
+// which the link copies onto it. Its sync still gets a grant over its options
+// (see syncGrantAllow).
 func syncLockSource(field *PropertyField) string {
 	if field.ObjectType == PropertyFieldObjectTypeTemplate {
 		return ""
 	}
 	return GetPropertyFieldSyncSource(field)
-}
-
-// ApplySyncLock returns a copy of p carrying the sync lock: value.write none
-// for humans, the sync identity's grant, and no value.write on any other
-// grant, so only the sync writes a synced field's values. It is how a linked
-// user field takes the lock its template's permissions don't carry. A
-// template is never sync-locked, so the grants it gives the plugin wildcard,
-// its source plugin (when protected) and its machine owners can all carry
-// value.write. The sync source is read from field's attrs, and p is returned
-// unchanged when field isn't synced.
-//
-// The sync caller never acts under a scope, so the lock widens the sync
-// identity's unscoped grant, adding one if it has none. A scoped grant of the
-// sync identity keeps only the actions the unscoped one lacks, and is dropped
-// if none are left, as grantsFromLegacy splits them, so converting a
-// projection of the result gives back the same grants.
-//
-// The sync identity's grant allows at least what syncGrantAllow gives it on
-// field, which is the grant converting field from its attrs gives it. On a
-// linked field that leaves out option.read, which a linked field never
-// grants: it reads the template's options, and the template's grant covers
-// them.
-//
-// The grants it locks are the ones a linked synced field inherits from its
-// template. Master never applied a template's owners to a linked field. The
-// link copies protected, source_plugin_id and access_mode, and only from a
-// protected template. A linked synced field with no owners of its own takes
-// its value writes through the sync lock, so on an unprotected one only the
-// sync writes them. On a protected one master lets nobody write them: its
-// protected check passes only the source plugin, which the sync lock then
-// refuses. The lock here lets the sync write there, a known difference from
-// master.
-func ApplySyncLock(p *Permissions, field *PropertyField) *Permissions {
-	syncSource := syncLockSource(field)
-	if syncSource == "" {
-		return p
-	}
-
-	var restrictions Restrictions
-	if p.Restrictions != nil {
-		restrictions = *p.Restrictions
-	}
-	restrictions.Value.Write = PermissionLevelNone
-
-	syncIdentity := Identity{Type: PropertyOwnerTypeService, ID: syncSource}
-	syncAllow := syncGrantAllow(field)
-	if field.LinkSourceID() != "" {
-		syncAllow = removeAction(syncAllow, PropertyActionOptionRead)
-	}
-	hasSyncGrant := false
-	for _, g := range p.Grants {
-		if g.Identity == syncIdentity && len(g.Scopes) == 0 {
-			syncAllow = unionActions(syncAllow, g.Allow)
-			hasSyncGrant = true
-		}
-	}
-
-	grants := make([]Grant, 0, len(p.Grants)+1)
-	for _, g := range p.Grants {
-		switch {
-		case g.Identity != syncIdentity:
-			g.Allow = removeAction(g.Allow, PropertyActionValueWrite)
-		case len(g.Scopes) == 0:
-			g.Allow = syncAllow
-		default:
-			g.Allow = slices.DeleteFunc(slices.Clone(g.Allow), func(a string) bool { return slices.Contains(syncAllow, a) })
-		}
-		if len(g.Allow) == 0 {
-			continue
-		}
-		grants = append(grants, g)
-	}
-	if !hasSyncGrant {
-		grants = append(grants, Grant{Identity: syncIdentity, Allow: syncAllow})
-	}
-
-	return &Permissions{Restrictions: &restrictions, Grants: grants, Masking: p.Masking}
 }
 
 // unionActions merges two allow lists, returning their union in
