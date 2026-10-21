@@ -128,11 +128,16 @@ func TestPermissionsFromLegacySyncedFieldNotProtected(t *testing.T) {
 
 func TestApplySyncLock(t *testing.T) {
 	wildcard := Identity{Type: PropertyOwnerTypePlugin, ID: "*"}
+	owner := Identity{Type: PropertyOwnerTypePlugin, ID: "scim"}
+	saml := Identity{Type: PropertyOwnerTypeService, ID: "saml"}
 	ldap := Identity{Type: PropertyOwnerTypeService, ID: "ldap"}
 	source := &Permissions{
 		Restrictions: &Restrictions{Value: ReadWrite{Read: PermissionLevelEveryone, Write: PermissionLevelSysadmin}},
 		Grants: []Grant{
 			{Identity: wildcard, Allow: []string{PropertyActionValueWrite}},
+			{Identity: owner, Scopes: []string{"entra"}, Allow: []string{PropertyActionValueRead, PropertyActionValueWrite}},
+			{Identity: owner, Allow: []string{PropertyActionFieldWrite, PropertyActionValueWrite}},
+			{Identity: saml, Allow: []string{PropertyActionValueWrite}},
 			{Identity: ldap, Allow: []string{PropertyActionValueRead}},
 		},
 	}
@@ -144,12 +149,31 @@ func TestApplySyncLock(t *testing.T) {
 
 	assert.Equal(t, PermissionLevelNone, locked.Restrictions.Value.Write)
 	assert.Equal(t, PermissionLevelEveryone, locked.Restrictions.Value.Read)
-	// The wildcard had nothing left, and the existing sync grant was widened rather than duplicated.
-	require.Len(t, locked.Grants, 1)
-	assert.Equal(t, ldap, locked.Grants[0].Identity)
-	assert.Equal(t, []string{PropertyActionFieldWrite, PropertyActionValueRead, PropertyActionValueWrite}, locked.Grants[0].Allow)
+	// Only the sync writes values: every other grant loses value.write, and
+	// one left with nothing is dropped. The existing sync grant is widened
+	// rather than duplicated.
+	assert.Equal(t, []Grant{
+		{Identity: owner, Scopes: []string{"entra"}, Allow: []string{PropertyActionValueRead}},
+		{Identity: owner, Allow: []string{PropertyActionFieldWrite}},
+		{Identity: ldap, Allow: []string{PropertyActionFieldWrite, PropertyActionValueRead, PropertyActionValueWrite}},
+	}, locked.Grants)
 	assert.Equal(t, PermissionLevelSysadmin, source.Restrictions.Value.Write, "source must not be mutated")
 	assert.Equal(t, []string{PropertyActionValueWrite}, source.Grants[0].Allow, "source must not be mutated")
+	assert.Equal(t, []string{PropertyActionFieldWrite, PropertyActionValueWrite}, source.Grants[2].Allow, "source must not be mutated")
+
+	t.Run("a scoped sync grant is kept, and the unscoped one added", func(t *testing.T) {
+		// The sync caller never acts under a scope, so widening a scoped grant
+		// would never let it write.
+		scoped := Grant{Identity: ldap, Scopes: []string{"entra"}, Allow: []string{PropertyActionValueWrite}}
+
+		locked := ApplySyncLock(&Permissions{Grants: []Grant{scoped}}, &PropertyField{
+			ObjectType: PropertyFieldObjectTypeUser,
+			Attrs:      StringInterface{PropertyFieldAttrLDAP: "employeeID"},
+		})
+
+		assert.Equal(t, []Grant{scoped, {Identity: ldap, Allow: syncLockGrantAllow}}, locked.Grants)
+		assert.NotNil(t, locked.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionValueWrite))
+	})
 }
 
 func TestApplySyncLockSourcePlugin(t *testing.T) {
