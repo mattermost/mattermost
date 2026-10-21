@@ -983,7 +983,8 @@ func PropertyFieldChangeIsOptionsOnly(existing, updated *PropertyField) bool {
 	}
 	// A permissions-bearing change decides who may read or write the definition
 	// itself, so it is never an option-only change however the rest compares.
-	if !reflect.DeepEqual(existing.Permissions, updated.Permissions) {
+	// Compared as the patch handler compares them, so the two agree on an echo.
+	if !PermissionsEqual(existing.Permissions, updated.Permissions) {
 		return false
 	}
 	if !equalPermissionLevelPointers(existing.PermissionField, updated.PermissionField) ||
