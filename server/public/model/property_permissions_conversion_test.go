@@ -572,7 +572,15 @@ func TestPermissionsFromLegacyGrantsOwnedProtectedField(t *testing.T) {
 		assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "okta", PropertyActionValueRead))
 		assert.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionFieldWrite))
 
+		// The source plugin's reads sit in the owner's unscoped grant, yet a v2
+		// reader still gets back the one scoped owner it set.
 		projected := ProjectLegacyPermissions(&PropertyField{ObjectType: field.ObjectType, Attrs: field.Attrs, Permissions: p})
+		assert.Equal(t, []PropertyOwner{{
+			Type:   PropertyOwnerTypePlugin,
+			ID:     "plugin1",
+			Scopes: []string{"entra"},
+			Allow:  validPropertyActions,
+		}}, GetPropertyFieldOwners(projected))
 		assert.Equal(t, p, PermissionsFromLegacy(projected, opts))
 	})
 }
