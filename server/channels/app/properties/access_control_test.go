@@ -271,6 +271,131 @@ func TestLinkedFieldCreateOnTemplatePermissions(t *testing.T) {
 	})
 }
 
+// TestLinkedFieldOwnLocksOnCreate covers a linked field whose own protected
+// flag or access mode is stricter than its template's: the template's
+// restrictions are narrowed by the field's own, never widened, as the
+// backfill converts the same row.
+func TestLinkedFieldOwnLocksOnCreate(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
+		return pluginID == "plugin-owner" || pluginID == "plugin-other"
+	})
+	th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+	t.Cleanup(func() {
+		th.service.setPluginCheckerForTests(nil)
+		th.service.setLadderCheckerForTests(nil)
+	})
+	rctxAdmin := RequestContextWithCallerID(th.Context, model.NewId())
+	rctxSource := RequestContextWithCallerID(th.Context, "plugin-owner")
+	rctxOther := RequestContextWithCallerID(th.Context, "plugin-other")
+
+	sysadmin := model.PermissionLevelSysadmin
+	member := model.PermissionLevelMember
+	template, err := th.service.CreatePropertyField(rctxAdmin, &model.PropertyField{
+		GroupID:           th.CPAGroupID,
+		Name:              "Unprotected-" + model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		ObjectType:        model.PropertyFieldObjectTypeTemplate,
+		TargetType:        string(model.PropertyFieldTargetLevelSystem),
+		PermissionField:   &sysadmin,
+		PermissionOptions: &sysadmin,
+		PermissionValues:  &member,
+	})
+	require.NoError(t, err)
+	require.Equal(t, model.PermissionLevelSysadmin, template.Permissions.Restrictions.TierFor(model.PropertyActionFieldWrite))
+	require.Equal(t, model.PermissionLevelEveryone, template.Permissions.Restrictions.TierFor(model.PropertyActionValueRead))
+
+	createLinked := func(t *testing.T, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		linked, err := th.service.CreatePropertyField(rctxSource, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+			Attrs:         attrs,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.Permissions)
+		return linked
+	}
+	rename := func(t *testing.T, rctx request.CTX, field *model.PropertyField) error {
+		t.Helper()
+		stored, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		stored.Name = "Renamed-" + model.NewId()
+		_, _, err = th.service.UpdatePropertyField(rctx, th.CPAGroupID, stored)
+		return err
+	}
+	readableBy := func(t *testing.T, rctx request.CTX, field *model.PropertyField) bool {
+		t.Helper()
+		stored, err := th.dbStore.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v"`),
+		})
+		require.NoError(t, err)
+		read, err := th.service.GetPropertyValue(rctx, th.CPAGroupID, stored.ID)
+		require.NoError(t, err)
+		return read != nil
+	}
+	// requireBackfillMatches converts the same row as the backfill would and
+	// requires the same permissions.
+	requireBackfillMatches := func(t *testing.T, linked *model.PropertyField) {
+		t.Helper()
+		row := *linked
+		row.Permissions = nil
+		converted, failed := newPermissionsBackfill(th.service, th.CPAGroupID).convertBatch(th.Context, []*model.PropertyField{&row})
+		require.Zero(t, failed)
+		require.Len(t, converted, 1)
+		assert.Equal(t, *linked.Permissions.Restrictions, *converted[0].Permissions.Restrictions)
+		assert.ElementsMatch(t, linked.Permissions.Grants, converted[0].Permissions.Grants)
+		assert.Nil(t, converted[0].Permissions.Masking)
+	}
+
+	t.Run("a protected linked field on an unprotected template lets only its source plugin edit or delete it", func(t *testing.T) {
+		linked := createLinked(t, model.StringInterface{model.PropertyAttrsProtected: true})
+
+		assert.Equal(t, model.PermissionLevelNone, linked.Permissions.Restrictions.TierFor(model.PropertyActionFieldWrite))
+		assert.Equal(t, model.PermissionLevelNone, linked.Permissions.Restrictions.TierFor(model.PropertyActionOptionWrite))
+		// Its reads stay the template's.
+		assert.Equal(t, model.PermissionLevelEveryone, linked.Permissions.Restrictions.TierFor(model.PropertyActionValueRead))
+		requireBackfillMatches(t, linked)
+
+		assert.ErrorIs(t, rename(t, rctxAdmin, linked), ErrAccessDenied)
+		assert.ErrorIs(t, th.service.DeletePropertyField(rctxAdmin, th.CPAGroupID, linked.ID), ErrAccessDenied)
+		assert.ErrorIs(t, rename(t, rctxOther, linked), ErrAccessDenied)
+		assert.NoError(t, rename(t, rctxSource, linked))
+		assert.NoError(t, th.service.DeletePropertyField(rctxSource, th.CPAGroupID, linked.ID))
+	})
+
+	t.Run("a source_only linked field on a public template shows its values to its source plugin alone", func(t *testing.T) {
+		linked := createLinked(t, model.StringInterface{
+			model.PropertyAttrsProtected:  true,
+			model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
+		})
+
+		assert.Equal(t, model.PermissionLevelNone, linked.Permissions.Restrictions.TierFor(model.PropertyActionValueRead))
+		assert.Equal(t, model.PermissionLevelNone, linked.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead))
+		requireBackfillMatches(t, linked)
+
+		assert.False(t, readableBy(t, rctxAdmin, linked))
+		assert.False(t, readableBy(t, rctxOther, linked))
+		assert.True(t, readableBy(t, rctxSource, linked))
+	})
+
+	t.Run("an unprotected public linked field keeps the template's restrictions", func(t *testing.T) {
+		linked := createLinked(t, nil)
+
+		assert.Equal(t, *template.Permissions.Restrictions, *linked.Permissions.Restrictions)
+		requireBackfillMatches(t, linked)
+		assert.NoError(t, rename(t, rctxAdmin, linked))
+	})
+}
+
 // TestLinkedFieldSyncLock covers where the ldap/saml sync lock lands when a
 // field links to a synced template: on linked user fields only, never on the
 // template itself or on a linked field of another object type.
@@ -508,6 +633,7 @@ func TestLateLinkedSyncValueAccess(t *testing.T) {
 		assert.False(t, readableBy(t, rctxBoards, field))
 		assert.NoError(t, writeAs(RequestContextWithCallerID(th.Context, "plugin-owner"), field))
 	})
+
 }
 
 // TestSyncOptionChangeOnUnlinkedTemplate covers the answers a sync gets from

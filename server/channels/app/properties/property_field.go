@@ -222,6 +222,26 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 			if callerPinnedValues || locked {
 				restrictions.Value.Write = converted.Restrictions.Value.Write
 			}
+			// The field's own protection and access mode lock it further, as
+			// master's checks read them from the field itself: on a protected
+			// field only the source plugin edits or deletes the definition (its
+			// grant says so), and a source_only field shows its values to that
+			// plugin alone. They only narrow the template's tiers, never widen
+			// them, and the backfill reads them from the same attrs.
+			if field.Protected || (convertAttrs && model.IsPropertyFieldProtected(field)) {
+				restrictions.Field.Write = narrowerTier(restrictions.Field.Write, converted.Restrictions.Field.Write)
+			}
+			if convertAttrs && model.IsPropertyFieldProtected(field) {
+				restrictions.Option.Write = narrowerTier(restrictions.Option.Write, converted.Restrictions.Option.Write)
+			}
+			if convertAttrs && model.LegacyAccessMode(field) != model.PropertyAccessModePublic {
+				// A shared_only mode the field sets for itself can't be expressed:
+				// a linked field carries no masking of its own, so unless its
+				// template is masked the conversion narrows its reads to none, as
+				// the backfill does.
+				restrictions.Value.Read = narrowerTier(restrictions.Value.Read, converted.Restrictions.Value.Read)
+				restrictions.Option.Read = narrowerTier(restrictions.Option.Read, converted.Restrictions.Option.Read)
+			}
 			field.Permissions = &model.Permissions{Restrictions: &restrictions, Grants: converted.Grants}
 		}
 
@@ -330,6 +350,14 @@ func templatePermissionsOrZero(template *model.PropertyField) *model.Permissions
 		return template.Permissions
 	}
 	return &model.Permissions{}
+}
+
+// narrowerTier returns whichever of a and b admits fewer callers.
+func narrowerTier(a, b model.PermissionLevel) model.PermissionLevel {
+	if b.AtMostAsPermissiveAs(a) {
+		return b
+	}
+	return a
 }
 
 // validateLinkedFieldOptionReadCeiling refuses a linked field whose option.read
