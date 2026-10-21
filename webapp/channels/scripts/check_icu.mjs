@@ -10,7 +10,7 @@
  * grammar the other languages cannot follow, and both are worth fixing rather
  * than recording.
  *
- *   - the file is valid JSON and every value is a string
+ *   - the file can be read, is a JSON object, and every value is a string
  *   - the file is in canonical form: keys in code-point order, a 2-space
  *     indent and a trailing newline, so a hand edit changes only what it means to
  *   - no value is empty or whitespace-only. react-intl replaces '' with the
@@ -95,12 +95,15 @@ if (localeNames.length === 0) {
 // en.json pairs each key with a {defaultMessage, description}; the locale
 // catalogs are flat key -> string. Flatten the source to the same shape so
 // everything below compares one string against another.
+const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+
 let en;
 try {
-    en = Object.fromEntries(
-        Object.entries(JSON.parse(readCatalog(SOURCE))).
-            map(([key, entry]) => [key, entry.defaultMessage]),
-    );
+    const source = JSON.parse(readCatalog(SOURCE));
+    if (!isObject(source)) {
+        throw new Error('not a JSON object of key -> {defaultMessage, description}');
+    }
+    en = Object.fromEntries(Object.entries(source).map(([key, entry]) => [key, entry.defaultMessage]));
 } catch (e) {
     console.error(`cannot read ${path.join(i18nDir, SOURCE)}: ${e.message}`);
     process.exit(2);
@@ -129,12 +132,23 @@ for (const name of localeNames) {
         continue;
     }
 
+    let text;
+    try {
+        text = readCatalog(name);
+    } catch (e) {
+        errors.push(`${name}: cannot read: ${e.message}`);
+        continue;
+    }
+
     let data;
-    const text = readCatalog(name);
     try {
         data = JSON.parse(text);
     } catch (e) {
         errors.push(`${name}: invalid JSON: ${e.message}`);
+        continue;
+    }
+    if (!isObject(data)) {
+        errors.push(`${name}: not a JSON object of key -> message`);
         continue;
     }
 
