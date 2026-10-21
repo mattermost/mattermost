@@ -34564,8 +34564,8 @@
     "description": "Menu item in the help menu that opens the keyboard shortcuts reference."
   },
   "userGuideHelp.mattermostUserGuide": {
-    "defaultMessage": "Mattermost user guide",
-    "description": "Menu item in the help menu linking to the official user documentation."
+    "defaultMessage": "Mattermost documentation",
+    "description": "Menu item in the help menu linking to the Mattermost documentation."
   },
   "userGuideHelp.reportAProblem": {
     "defaultMessage": "Report a problem",
