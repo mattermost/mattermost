@@ -51,11 +51,14 @@ type fieldMasking struct {
 // fieldMasking resolution above and the caller's holdings on whatever field
 // mask_by_field_id names. A batch read or write of 50 values on one field
 // must not load the template or search the caller's holdings 50 times.
+// A resolution that failed is remembered as well, so a batch on a field whose
+// template cannot be read does not retry the read once per value.
 //
 // existingValues holds a row a delete path already loaded and handed in via
 // primeStoredValue, so the visibility check does not read it a second time.
 type maskingContext struct {
 	fieldMasking      map[string]fieldMasking
+	fieldMaskingErrs  map[string]error
 	holdingsValues    map[string][]*model.PropertyValue
 	holdingsOptionIDs map[string]map[string]struct{}
 	existingValues    map[[2]string]*model.PropertyValue
@@ -67,6 +70,7 @@ type maskingContext struct {
 func newMaskingContext() maskingContext {
 	return maskingContext{
 		fieldMasking:      make(map[string]fieldMasking),
+		fieldMaskingErrs:  make(map[string]error),
 		holdingsValues:    make(map[string][]*model.PropertyValue),
 		holdingsOptionIDs: make(map[string]map[string]struct{}),
 		existingValues:    make(map[[2]string]*model.PropertyValue),
@@ -99,13 +103,18 @@ func maskingContextFromRequest(rctx request.CTX) maskingContext {
 
 // resolve returns the masking that applies to field and where its holdings
 // live, computing it once per field ID for the lifetime of the
-// maskingContext.
+// maskingContext. A failure is computed once too, and returned again for
+// every later call on the same field.
 func (c maskingContext) resolve(h *AccessControlHook, rctx request.CTX, field *model.PropertyField) (fieldMasking, error) {
 	if fm, ok := c.fieldMasking[field.ID]; ok {
 		return fm, nil
 	}
+	if err, ok := c.fieldMaskingErrs[field.ID]; ok {
+		return fieldMasking{}, err
+	}
 	fm, err := h.resolveFieldMasking(rctx, field)
 	if err != nil {
+		c.fieldMaskingErrs[field.ID] = err
 		return fieldMasking{}, err
 	}
 	c.fieldMasking[field.ID] = fm
@@ -267,9 +276,10 @@ func (h *AccessControlHook) maskValue(rctx request.CTX, c maskingContext, field 
 // nothing" -- the two look identical to the caller but must not look
 // identical to whoever reads the log. Never logs the value itself or the
 // caller's holdings; that is exactly what masking exists to withhold. Called
-// once, from the read path that hides the value on this error
-// (applyValueReadAccessControl); the write path that refuses on this error
-// reports it as a failure instead, so it has no log line of its own. The
+// only from the read path that hides the value on this error
+// (applyValueReadAccessControl), whether the field's masking could not be
+// resolved or the value's filter failed; the write path that refuses on this
+// error reports it as a failure instead, so it has no log line of its own. The
 // legacy shared_only path's logHiddenGraphValue logs the equivalent failure
 // for its own graph-only clamp; the two stay separate because masking and
 // shared_only disagree on purpose about what a caller sees when they hold
