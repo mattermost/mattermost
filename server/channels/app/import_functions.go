@@ -2555,6 +2555,12 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 	for _, user := range members {
 		member, ok := userMap[strings.ToLower(user)]
 		if !ok {
+			// Intentionally not added to report.UnmatchedUsers: the unmatched-users
+			// report is scoped to team/channel membership outcomes. DMs are not
+			// team-scoped, and a self-consistent export emits a user line for every
+			// DM participant (so a genuinely-in-scope user is already created and
+			// recorded by importUser). Logging DM-only misses here would add noise
+			// for out-of-scope users without a scope anchor to make it actionable.
 			rctx.Logger().Warn("Skipping direct channel member not found on destination during scoped import", mlog.String("username", user))
 			continue
 		}
