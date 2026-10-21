@@ -4,7 +4,6 @@
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {hasBalancedParens} from '../cel_lexer';
 import {
     BREAKOUT_OR_RETURNED,
     BREAKOUT_TERNARY_RETURNED,
@@ -167,11 +166,6 @@ describe('wrapBotExpression', () => {
 
     it('does not trim its input', () => {
         expect(wrapBotExpression('  x  ')).toContain('(  x  ');
-    });
-
-    it('produces balanced output for balanced input', () => {
-        expect(hasBalancedParens(wrapBotExpression(COMMENT_E))).toBe(true);
-        expect(hasBalancedParens(wrapBotExpression(PROGRAM_DRAGON))).toBe(true);
     });
 });
 

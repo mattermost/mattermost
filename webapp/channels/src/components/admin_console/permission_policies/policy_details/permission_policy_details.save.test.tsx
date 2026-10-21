@@ -243,14 +243,15 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             ['a ternary breakout', BREAKOUT_TERNARY],
             ['an unclosed paren', `(${E}`],
             ['an unterminated string', 'user.attributes.teams == "x'],
-        ])('blocks %s without a network check', async (_label, expression) => {
+        ])('checks %s unwrapped and blocks the save on the server error', async (_label, expression) => {
+            checkExpressionSpy.mockResolvedValue([{message: 'Syntax error', line: 1, column: 1}]);
             await renderDirtyBotPolicy();
             await editTable(expression);
 
             await clickSave();
 
-            expect(await screen.findByText(/This expression isn't valid\. Check parentheses and quotes\.$/)).toBeInTheDocument();
-            expect(checkExpressionSpy).not.toHaveBeenCalled();
+            expect(await screen.findByText(/This expression isn't valid\. Check parentheses and quotes\. Details: Syntax error$/)).toBeInTheDocument();
+            expect(checkExpressionSpy).toHaveBeenCalledWith(expression);
             expect(mockCreatePolicy).not.toHaveBeenCalled();
             expect(mockHistoryPush).not.toHaveBeenCalled();
         });
@@ -410,6 +411,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
 
         test('switching scope keeps a showing validation error', async () => {
+            checkExpressionSpy.mockResolvedValue([{message: 'Syntax error', line: 1, column: 1}]);
             renderBotPolicy([wrapBotExpression(E)]);
             await screen.findByTestId('table-editor');
             await editTable(BREAKOUT_OR);

@@ -43,7 +43,6 @@ import {
     unwrapBotExpression,
     wrapBotExpression,
 } from '../../access_control/bot_scope';
-import {hasBalancedParens} from '../../access_control/cel_lexer';
 import {hasUsableAttributes, isSimpleExpression, mergeSessionAttributes} from '../../access_control/editors/shared';
 import {AVAILABLE_ROLES, roleMessages} from '../roles';
 
@@ -59,10 +58,6 @@ const permissionMessages = defineMessages({
 });
 
 const botScopeErrorMessages = defineMessages({
-    invalid: {
-        id: 'admin.permission_policies.edit.error.bot_expression_invalid',
-        defaultMessage: 'This expression isn\'t valid. Check parentheses and quotes.',
-    },
     invalidWithDetail: {
         id: 'admin.permission_policies.edit.error.bot_expression_invalid_detail',
         defaultMessage: 'This expression isn\'t valid. Check parentheses and quotes. Details: {error}',
@@ -302,9 +297,6 @@ function PermissionPolicyDetails({
     };
 
     const validateBotScopeExpression = async (bare: string): Promise<string | undefined> => {
-        if (!hasBalancedParens(bare)) {
-            return formatMessage(botScopeErrorMessages.invalid);
-        }
         let errors;
         try {
             errors = await Client4.checkAccessControlExpression(bare);

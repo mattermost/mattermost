@@ -154,17 +154,11 @@ export const fixture = (name: string) => {
 
 export const PROGRAM_DRAGON = 'user.attributes.Program == "Dragon"';
 
-export const BREAKOUT_TERNARY_E = 'user.attributes.Program == "Dragon") ? (user.attributes.Clearance == "Secret") : (user.attributes.Clearance == "Public"';
 export const BREAKOUT_TERNARY_RETURNED = '(!user.isbot || user.attributes.Program == "Dragon") ? (user.attributes.Clearance == "Secret") : (user.attributes.Clearance == "Public")';
-
-export const BREAKOUT_OR_E = 'user.attributes.Program == "Dragon") || (true';
 export const BREAKOUT_OR_RETURNED = '!user.isbot || user.attributes.Program == "Dragon" || true';
 
 export const COMMENT_E = 'user.attributes.Program == "Dragon" // note';
-export const COMMENT_SUBMITTED = '!user.isbot || (user.attributes.Program == "Dragon" // note\n)';
 export const COMMENT_RETURNED = '!user.isbot || user.attributes.Program == "Dragon"';
-
-export const COMMENT_SUBMITTED_NO_NEWLINE = '!user.isbot || (user.attributes.Program == "Dragon" // note)';
 
 export const MASKED_RETURNED = '!user.isbot || user.attributes.Level == "--------"';
 export const MASKED_MIXED_RETURNED = '!user.isbot || user.attributes.Level == "--------" && user.attributes.Program == "Dragon"';

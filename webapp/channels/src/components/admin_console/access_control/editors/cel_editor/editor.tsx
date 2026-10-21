@@ -186,7 +186,7 @@ function CELEditor({
     userAttributes,
     resourceAttributes = [],
     onTestClick,
-    testButtonDisabled,
+    testButtonDisabled = false,
     testButtonTooltip,
     testButtonLabel,
     hasMaskedRows = false,
@@ -517,7 +517,7 @@ function CELEditor({
                     <TestButton
                         onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
                         label={testButtonLabel}
-                        disabled={(testButtonDisabled ?? false) || disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
+                        disabled={testButtonDisabled || disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
                         disabledTooltip={testButtonTooltip ?? (hasMaskedRows ? intl.formatMessage({
                             id: 'admin.access_control.cel_editor.masked_values_tooltip',
                             defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',

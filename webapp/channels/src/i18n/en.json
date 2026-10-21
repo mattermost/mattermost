@@ -10787,13 +10787,9 @@
     "defaultMessage": "Couldn't validate the expression. Try again.",
     "description": "Inline error when the expression check request for a Bot accounts policy fails, so the save or simulation is blocked."
   },
-  "admin.permission_policies.edit.error.bot_expression_invalid": {
-    "defaultMessage": "This expression isn't valid. Check parentheses and quotes.",
-    "description": "Inline save/simulate error on the permission policy editor when a Bot accounts policy's expression has unbalanced parentheses or quotes."
-  },
   "admin.permission_policies.edit.error.bot_expression_invalid_detail": {
     "defaultMessage": "This expression isn't valid. Check parentheses and quotes. Details: {error}",
-    "description": "Same as bot_expression_invalid, when the server's expression check reports an error; {error} is the first error message from the server."
+    "description": "Inline save error on the permission policy editor when the server's expression check rejects a Bot accounts policy's expression; {error} is the first error message from the server."
   },
   "admin.permission_policies.edit.error.delete": {
     "defaultMessage": "Error deleting policy: {error}",

@@ -384,7 +384,7 @@ function TableEditor({
     isSystemAdmin = false,
     validateExpressionAgainstRequester,
     onTestClick,
-    testButtonDisabled,
+    testButtonDisabled = false,
     testButtonTooltip,
     testButtonLabel,
     onMaskedStateChange,
@@ -889,7 +889,7 @@ function TableEditor({
                 <div className='access-control-test-controls'>
                     <TestButton
                         onClick={onTestClick ?? (() => setShowTestResults(true))}
-                        disabled={(testButtonDisabled ?? false) || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
+                        disabled={testButtonDisabled || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
                         disabledTooltip={testButtonTooltip ?? (userWouldBeExcluded ? formatMessage({
                             id: 'admin.access_control.table_editor.user_excluded_tooltip',
                             defaultMessage: 'You cannot test access rules that would exclude you from the channel',
