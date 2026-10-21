@@ -375,7 +375,7 @@ func TestCPAValueChangeAuditForChannelValues(t *testing.T) {
 		writeValue(t, fieldScoped, `"SECRET"`)
 
 		rec = nextRecord(t, func() {
-			require.Nil(t, th.App.DeletePropertyValuesForField(rctx, cpaGroup.ID, fieldScoped.ID))
+			require.Nil(t, th.App.DeletePropertyValuesForField(RequestContextWithCallerID(request.TestContext(t), model.CallerIDLocalAdmin), cpaGroup.ID, fieldScoped.ID))
 		})
 		require.Equal(t, properties.ValueAuditActionDeleteForField, auditMeta(t, rec, "action"))
 		require.Equal(t, fieldScoped.ID, auditMeta(t, rec, "field_id"))

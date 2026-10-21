@@ -2222,7 +2222,7 @@ func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
 		// Different plugin cannot delete values
 		err = th.service.DeletePropertyValuesForField(rctxPlugin2, th.CPAGroupID, created.ID)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "value.write")
+		assert.Contains(t, err.Error(), "field.write")
 
 		// Verify value still exists
 		retrieved, err := th.service.SearchPropertyValues(rctxPlugin1, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -2234,6 +2234,12 @@ func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
 	})
 
 	t.Run("any caller can delete values for non-protected field", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool {
+			return pluginID == "plugin-1" || pluginID == "plugin-2"
+		})
+		t.Cleanup(func() {
+			th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
+		})
 		// Create a non-protected field
 		field := &model.PropertyField{
 			GroupID:    th.CPAGroupID,

@@ -427,7 +427,7 @@ func TestPermissionsDeleteAllFieldValuesAccessControl(t *testing.T) {
 		require.NoError(t, err)
 		template = updated[0]
 
-		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+		linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:       th.CPAGroupID,
 			Name:          "DeleteAll-Linked",
 			Type:          model.PropertyFieldTypeText,
@@ -436,7 +436,6 @@ func TestPermissionsDeleteAllFieldValuesAccessControl(t *testing.T) {
 			Permissions:   &model.Permissions{Grants: pluginGrant(bothActions...)},
 			LinkedFieldID: &template.ID,
 		})
-		require.NoError(t, err)
 		writeValueDirect(t, th, linked.ID, "channel", model.NewId(), "v")
 
 		requireRefused(t, pluginRctx, linked.ID)
@@ -512,10 +511,9 @@ func TestPermissionsDeleteAllFieldValuesAccessControl(t *testing.T) {
 		requireRefused(t, RequestContextWithCallerID(th.Context, ""), created.ID)
 	})
 
-	t.Run("a field with no permissions object takes the legacy path", func(t *testing.T) {
-		// Protected with a source plugin and no permissions object: the legacy
-		// check admits the source plugin, though it holds no grant, and refuses
-		// any other plugin.
+	t.Run("a field with no permissions object is refused to everyone", func(t *testing.T) {
+		// Protected with a source plugin and no permissions object: there is no
+		// legacy check to fall back on, so even the source plugin is refused.
 		created := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    th.CPAGroupID,
 			Name:       "DeleteAll-Legacy",
@@ -531,7 +529,7 @@ func TestPermissionsDeleteAllFieldValuesAccessControl(t *testing.T) {
 		writeValueDirect(t, th, created.ID, "user", model.NewId(), "v")
 
 		requireRefused(t, RequestContextWithCallerID(th.Context, "plugin-other"), created.ID)
-		requireDeleted(t, pluginRctx, created.ID)
+		requireRefused(t, pluginRctx, created.ID)
 	})
 }
 
