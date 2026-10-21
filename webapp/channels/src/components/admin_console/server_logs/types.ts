@@ -4,5 +4,6 @@
 import type {LogObject} from '@mattermost/types/admin';
 
 export type LogObjectWithAdditionalInfo = LogObject & {
+    node?: string;
     [key: string]: unknown;
 };
