@@ -1399,7 +1399,10 @@ func TestProjectLegacyPermissionsOmitsDerivedGrants(t *testing.T) {
 			PermissionValues:  &member,
 			Attrs:             StringInterface{PropertyFieldAttrLDAP: "employeeID"},
 		}
-		linkedOpts := LegacyConversionOpts{ConvertAttrs: true, Template: &Permissions{Restrictions: &Restrictions{}}}
+		// A public template, so the field's option.read isn't capped to none,
+		// which an access mode read from the permissions reports as source_only.
+		template := &Permissions{Restrictions: &Restrictions{Option: ReadWrite{Read: PermissionLevelEveryone}}}
+		linkedOpts := LegacyConversionOpts{ConvertAttrs: true, Template: template}
 		field.Permissions = PermissionsFromLegacy(field, linkedOpts)
 		require.NotNil(t, field.Permissions.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionValueWrite))
 
