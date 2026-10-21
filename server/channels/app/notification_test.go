@@ -3519,6 +3519,67 @@ func TestRemoveNotifications(t *testing.T) {
 		require.Equal(t, int64(0), thread.UnreadMentions)
 		require.Equal(t, int64(0), thread.UnreadReplies)
 	})
+
+	t.Run("when mentioned via multiple user groups", func(t *testing.T) {
+		// Group mentions require at least a Professional license.
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+		t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+
+		// Create two groups: one with user u1, another with user u2.
+		// Both users are in the channel, so each group's paging loop has to stop
+		// on that group's own member count.
+		group1, appErr := th.App.CreateGroup(&model.Group{
+			Name:           new("multi_group_one"),
+			DisplayName:    "multi_group_one",
+			Source:         model.GroupSourceCustom,
+			AllowReference: true,
+		})
+		require.Nil(t, appErr)
+		_, appErr = th.App.UpsertGroupMember(group1.Id, u1.Id)
+		require.Nil(t, appErr)
+
+		group2, appErr := th.App.CreateGroup(&model.Group{
+			Name:           new("multi_group_two"),
+			DisplayName:    "multi_group_two",
+			Source:         model.GroupSourceCustom,
+			AllowReference: true,
+		})
+		require.Nil(t, appErr)
+		_, appErr = th.App.UpsertGroupMember(group2.Id, u2.Id)
+		require.Nil(t, appErr)
+
+		// Create a thread
+		rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: c1.Id,
+			Message:   "root post by user1",
+			UserId:    u1.Id,
+		}, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Add a reply to that thread, mentioning both groups
+		replyPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: c1.Id,
+			Message:   "@" + *group1.Name + " @" + *group2.Name + " mention by user1",
+			UserId:    u1.Id,
+			RootId:    rootPost.Id,
+		}, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Call RemoveNotifications directly; if we were to call DeletePost
+		// instead, the goroutine calling RemoveNotifications would still hang,
+		// but the test would pass
+		done := make(chan error, 1)
+		go func() {
+			done <- th.App.RemoveNotifications(th.Context, replyPost, c1)
+		}()
+
+		select {
+		case err := <-done:
+			require.NoError(t, err)
+		case <-time.After(10 * time.Second):
+			require.Fail(t, "RemoveNotifications did not return: group member paging loop never terminates when a mention covers multiple groups")
+		}
+	})
 }
 
 // TestSendNotifications_SuppressedAddToChannel_TargetedWS verifies that when a
