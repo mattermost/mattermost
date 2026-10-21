@@ -206,7 +206,7 @@ func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(rctx request.C
 		// scheme, never a right the identity held over this field.
 		field.Permissions = &model.Permissions{
 			Restrictions: source.Permissions.Restrictions,
-			Grants:       linkedFieldGrantsFrom(source.Permissions.Grants),
+			Grants:       linkedFieldGrantsFrom(source),
 		}
 	}
 
@@ -264,9 +264,22 @@ func templateReadsAreRestricted(source *model.PropertyField) bool {
 // (PropertyField.IsValid refuses one outright). A grant left with an empty
 // Allow is dropped rather than kept invalid; the identity still holds
 // option.read by way of its grant on the template itself.
-func linkedFieldGrantsFrom(source []model.Grant) []model.Grant {
-	grants := make([]model.Grant, 0, len(source))
-	for _, g := range source {
+//
+// The grant of the template's own sync is left out. It covers the template's
+// options, which the sync provisions there, and is derived from the
+// template's sync attr, which a linked field converted from its own attrs
+// never sees. A linked user field gets the sync's grant from the sync lock
+// instead, and any other linked field has none, as the conversion gives it.
+func linkedFieldGrantsFrom(source *model.PropertyField) []model.Grant {
+	var syncIdentity model.Identity
+	if syncSource := model.GetPropertyFieldSyncSource(source); syncSource != "" {
+		syncIdentity = model.Identity{Type: model.PropertyOwnerTypeService, ID: syncSource}
+	}
+	grants := make([]model.Grant, 0, len(source.Permissions.Grants))
+	for _, g := range source.Permissions.Grants {
+		if syncIdentity.ID != "" && g.Identity == syncIdentity {
+			continue
+		}
 		allow := make([]string, 0, len(g.Allow))
 		for _, action := range g.Allow {
 			if action != model.PropertyActionOptionRead {
