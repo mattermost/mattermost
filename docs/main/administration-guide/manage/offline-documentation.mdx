@@ -1,0 +1,18 @@
+---
+title: "Offline Documentation"
+description: Read the product documentation bundled with Mattermost releases without internet access.
+---
+
+<EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted" />
+
+From Mattermost v12.1, packaged releases include an offline documentation bundle, which is useful in [air-gapped environments](/deployment-guide/air-gapped-operations/index) or whenever the public documentation site isn't reachable. You can read it in two ways:
+
+- **From the running server** at `/_documentation/`, for example `https://mattermost.example.com/_documentation/`.
+- **From the command line** with [`mattermost docs`](/administration-guide/manage/command-line-tools#mattermost-docs), which serves the same bundle on localhost without requiring a running server, database, or configuration. This is useful for reading installation and troubleshooting documentation when the server is down.
+
+<Note>
+
+If `SiteURL` is configured with a subpath, the `/_documentation/` route is only reachable at the root path. Use `mattermost docs` to read the offline documentation instead.
+
+</Note>

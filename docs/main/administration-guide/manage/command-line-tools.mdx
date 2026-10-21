@@ -251,13 +251,7 @@ mattermost db version
 
 ## mattermost docs
 
-From Mattermost v12.1, packaged releases include an offline documentation bundle served at `/_documentation/` by the running server. The `mattermost docs` command serves the same bundle on localhost without requiring a running server, database, or configuration — useful for reading installation and troubleshooting documentation when the server is down.
-
-<Note>
-
-Installs where `SiteURL` is configured with a subpath should use `mattermost docs` to read the offline documentation. The server route `/_documentation/` is only reachable at the root path.
-
-</Note>
+Serve the offline documentation bundle on localhost without a running server, database, or configuration. See [Offline documentation](/administration-guide/manage/offline-documentation) for details on the bundle and the `/_documentation/` server route.
 
 Description  
 Serve the offline product documentation over HTTP on localhost. Requires no config, database, or app layer.
