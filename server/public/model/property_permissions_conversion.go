@@ -602,7 +602,12 @@ func ambientMachineGrantAllow(field *PropertyField) []string {
 //     protected one, so field.write and option.write carry the same
 //     condition. A sync listed as an owner gets what its owner grant allows.
 //   - On a field that holds values, it writes them, which the sync lock
-//     leaves to it alone.
+//     leaves to it alone, unless the field is protected and has no owners.
+//     There master's protected check passes only the source plugin, and the
+//     sync lock then refuses that plugin, so nobody writes them. Master's
+//     protected check reads the attr alone, so the Protected column doesn't
+//     count here. Once the field has owners, master's owner check supersedes
+//     both and counts the sync among the owners, so it writes them again.
 //
 // A template holds no values and is never sync-locked (see syncLockSource),
 // but it is where the options of the user fields linked to it live, and the
@@ -610,12 +615,9 @@ func ambientMachineGrantAllow(field *PropertyField) []string {
 // actions alone. A linked field's option.read reads its template's options,
 // which the template's grant covers; the conversion drops it from a linked
 // field's grants as it does from every other grant.
-//
-// On a protected synced field the sync writes values, a known difference from
-// master, which lets nobody write them there: its protected check passes only
-// the source plugin, and the sync lock then refuses that plugin.
 func syncGrantAllow(field *PropertyField) []string {
-	writable := !HasPropertyFieldOwners(field) && !field.Protected && !IsPropertyFieldProtected(field)
+	owned := HasPropertyFieldOwners(field)
+	writable := !owned && !field.Protected && !IsPropertyFieldProtected(field)
 	var allow []string
 	if writable && field.ObjectType != PropertyFieldObjectTypeTemplate {
 		allow = append(allow, PropertyActionFieldWrite)
@@ -625,7 +627,10 @@ func syncGrantAllow(field *PropertyField) []string {
 		allow = append(allow, PropertyActionOptionWrite)
 	}
 	if field.ObjectType != PropertyFieldObjectTypeTemplate {
-		allow = append(allow, PropertyActionValueRead, PropertyActionValueWrite)
+		allow = append(allow, PropertyActionValueRead)
+		if owned || !IsPropertyFieldProtected(field) {
+			allow = append(allow, PropertyActionValueWrite)
+		}
 	}
 	return allow
 }
