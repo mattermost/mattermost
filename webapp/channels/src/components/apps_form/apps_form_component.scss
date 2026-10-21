@@ -115,7 +115,7 @@
 // naming only width here would replace that slide for every apps form rather
 // than adding to it. Both transitions are listed for that reason.
 @media (prefers-reduced-motion: no-preference) {
-    .modal .modal-dialog.apps-form-modal {
+    .modal .modal-dialog.apps-form-modal-dialog {
         transition: transform 0.3s ease-out, width 150ms ease-in-out;
     }
 }

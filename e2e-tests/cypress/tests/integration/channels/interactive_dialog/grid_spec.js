@@ -312,7 +312,7 @@ describe('Interactive Dialog - Grid layout', () => {
         cy.viewport(700, 900);
         openGridDialog();
 
-        cy.get('.modal-dialog.apps-form-modal').
+        cy.get('.modal-dialog.apps-form-modal-dialog').
             should('have.class', 'apps-form-modal--large').
             and(($dialog) => {
                 // * The tier is capped to the window instead of overflowing it
@@ -341,10 +341,10 @@ describe('Interactive Dialog - Grid layout', () => {
         // clicked. A click carries only the button's static context, so the row
         // has to name itself there.
         cy.contains('[id="appsModalLabel"]', 'r2 Dialog').should('be.visible');
-        cy.get('[id="appsModal"]').should('have.length', 2);
+        cy.get('.apps-form-modal').should('have.length', 2);
 
-        // * The parent grid is still open underneath
-        cy.contains('[id="appsModalLabel"]', 'Order Queue').should('exist');
+        // * The parent grid is still open underneath (hidden, so it has no appsModal ids)
+        cy.contains('.apps-form-modal .modal-title', 'Order Queue').should('exist');
     });
 
     it('A valid grid submits every cell as an ordinary flat value', () => {
@@ -379,7 +379,7 @@ function openGridDialog() {
 // shouldMeasure asserts the modal is actually the width its tier promises,
 // rather than merely carrying the class that is supposed to give it one.
 function shouldMeasure(tier) {
-    cy.get('.modal-dialog.apps-form-modal').should(($dialog) => {
+    cy.get('.modal-dialog.apps-form-modal-dialog').should(($dialog) => {
         expect($dialog[0].getBoundingClientRect().width, `${tier} tier width`).to.be.closeTo(TIER_WIDTHS[tier], 2);
     });
 }

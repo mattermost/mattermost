@@ -2315,13 +2315,13 @@ describe('AppsFormComponent', () => {
             expect(dialogClassList()).not.toContain('apps-form-modal--large');
         });
 
-        test('carries the apps-form-modal class the width styles hang off, at every tier', () => {
+        test('carries the apps-form-modal-dialog class the width styles hang off, at every tier', () => {
             // The width transition is scoped to this class rather than to
             // a11y__modal, which nearly every modal in the app carries and none
             // of which should animate because this form can resize.
             for (const size of [undefined, 'small', 'medium', 'large'] as const) {
                 const {unmount} = renderWithSize(size);
-                expect(dialogClassList()).toContain('apps-form-modal');
+                expect(dialogClassList()).toContain('apps-form-modal-dialog');
                 unmount();
             }
         });
@@ -2358,7 +2358,7 @@ describe('AppsFormComponent', () => {
             // rather than passing the string through to the class list.
             renderWithSize('enormous' as 'large');
 
-            expect(dialogClassList()).toContain('apps-form-modal');
+            expect(dialogClassList()).toContain('apps-form-modal-dialog');
             expect(dialogClassList()).not.toContain('apps-form-modal--medium');
             expect(dialogClassList()).not.toContain('apps-form-modal--large');
             expect(dialogClassList()).not.toContain('enormous');

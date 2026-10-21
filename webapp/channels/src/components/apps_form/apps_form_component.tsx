@@ -763,11 +763,12 @@ export class AppsForm extends React.PureComponent<Props, State> {
             sizeClass = ' apps-form-modal--large';
         }
 
-        // apps-form-modal is what the width styles hang off. It is here rather
-        // than reusing a11y__modal because that class is on nearly a hundred
-        // modals across the app, none of which should pick up a width
-        // transition from this form.
-        const dialogClassName = 'a11y__modal about-modal apps-form-modal' + sizeClass;
+        // apps-form-modal-dialog is what the width styles hang off. It is here
+        // rather than reusing a11y__modal because that class is on nearly a
+        // hundred modals across the app, none of which should pick up a width
+        // transition from this form. It is not apps-form-modal, which is
+        // already on the outer .modal and is counted once per open dialog.
+        const dialogClassName = 'a11y__modal about-modal apps-form-modal-dialog' + sizeClass;
         const hasDateTimeFields = this.hasDateTimeFields();
 
         return (
