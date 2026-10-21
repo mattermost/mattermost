@@ -403,58 +403,6 @@ The ability to restrict the system admin from viewing and modifying a subset of 
 
 </Note>
 
-### Enable client-side certification
-
-<PlanAvailability slug="ent-plus" />
-
-<Important>
-
-**Certificate-based authentication has been deprecated from Mattermost v11.0.** This setting must be set to `false` to start the server from v11. Setting this to `true` will prevent the server from starting.
-
-</Important>
-
-**True**: Enables client-side certification for your Mattermost server. See [the documentation](/administration-guide/onboard/certificate-based-authentication) to learn more.
-
-**False**: **(Default)** Client-side certification is disabled.
-
-<table style={{width: '96%'}}>
-<colgroup>
-<col style={{width: '95%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"ClientSideCertEnable": false</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Client-side certification login method
-
-<PlanAvailability slug="ent-plus" />
-
-<Important>
-
-**Certificate-based authentication has been deprecated from Mattermost v11.0.** This setting is no longer functional from Mattermost v11.0 and should be left at the default value.
-
-</Important>
-
-This configuration setting is used in combination with the `ClientSideCertEnable` configuration setting and has the following possible values:
-
-**Primary**: After the client side certificate is verified, user's email is retrieved from the certificate and is used to log in without a password.
-
-**Secondary**: **(Default)** After the client side certificate is verified, user's email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"ClientSideCertCheck": "secondary"</code> with options <code>"primary"</code> and <code>"secondary"</code>.</td>
-</tr>
-</tbody>
-</table>
-
 ### Export output directory
 
 This setting isn't available in the System Console and can only be set in `config.json`.
