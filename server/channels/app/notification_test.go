@@ -3580,6 +3580,94 @@ func TestRemoveNotifications(t *testing.T) {
 			require.Fail(t, "RemoveNotifications did not return: group member paging loop never terminates when a mention covers multiple groups")
 		}
 	})
+
+	t.Run("when mentioned via multiple user groups spanning several pages", func(t *testing.T) {
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+		t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+
+		// Members are fetched 100 at a time. The group sizes are chosen so that
+		// the first group's size plus the second group's first page equals the
+		// second group's size (50 + 100 == 150): counting users across groups
+		// stops the second group's loop after its first page and skips the rest.
+		const smallGroupSize, largeGroupSize = 50, 150
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.MaxUsersPerTeam = smallGroupSize + largeGroupSize + 100
+		})
+
+		newGroup := func(name string, size int) (*model.Group, []*model.User) {
+			group, appErr := th.App.CreateGroup(&model.Group{
+				Name:           new(name),
+				DisplayName:    name,
+				Source:         model.GroupSourceCustom,
+				AllowReference: true,
+			})
+			require.Nil(t, appErr)
+
+			users := make([]*model.User, 0, size)
+			for range size {
+				user := th.CreateUser(t)
+				th.LinkUserToTeam(t, user, th.BasicTeam)
+				th.AddUserToChannel(t, user, c1)
+				_, appErr = th.App.UpsertGroupMember(group.Id, user.Id)
+				require.Nil(t, appErr)
+				users = append(users, user)
+			}
+			return group, users
+		}
+
+		smallGroup, smallGroupUsers := newGroup("paged_group_small", smallGroupSize)
+		largeGroup, largeGroupUsers := newGroup("paged_group_large", largeGroupSize)
+
+		// Create a thread
+		rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: c1.Id,
+			Message:   "root post by user1",
+			UserId:    u1.Id,
+		}, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		replyPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: c1.Id,
+			Message:   "@" + *smallGroup.Name + " @" + *largeGroup.Name + " mention by user1",
+			UserId:    u1.Id,
+			RootId:    rootPost.Id,
+		}, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		allUsers := append(smallGroupUsers, largeGroupUsers...)
+		unreadMentions := func(userID string) int64 {
+			threadMembership, appErr := th.App.GetThreadMembershipForUser(userID, rootPost.Id)
+			require.Nil(t, appErr)
+			return threadMembership.UnreadMentions
+		}
+
+		require.Eventually(t, func() bool {
+			for _, user := range allUsers {
+				threadMembership, appErr := th.App.GetThreadMembershipForUser(user.Id, rootPost.Id)
+				if appErr != nil || threadMembership.UnreadMentions != 1 {
+					return false
+				}
+			}
+			return true
+		}, 10*time.Second, 100*time.Millisecond, "every group member should start with an unread mention")
+
+		done := make(chan error, 1)
+		go func() {
+			done <- th.App.RemoveNotifications(th.Context, replyPost, c1)
+		}()
+
+		select {
+		case err := <-done:
+			require.NoError(t, err)
+		case <-time.After(10 * time.Second):
+			require.Fail(t, "RemoveNotifications did not return: group member paging loop never terminates when a mention covers multiple groups")
+		}
+
+		for _, user := range allUsers {
+			assert.Zero(t, unreadMentions(user.Id), "unread mention was not removed for user %s", user.Id)
+		}
+	})
 }
 
 // TestSendNotifications_SuppressedAddToChannel_TargetedWS verifies that when a
