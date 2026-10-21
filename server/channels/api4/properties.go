@@ -695,8 +695,11 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Permissions rides its own patch type (PermissionsPatch) rather than
 	// Patch's field-by-field copy, so it is applied here rather than inside
-	// Patch: absent leaves the stored object alone, null clears it, an
-	// object replaces it outright.
+	// Patch. An absent "permissions" key and a top-level null both decode
+	// to nil and leave the stored object alone, so the whole object cannot
+	// be cleared. Inside the object, ApplyTo resolves restrictions, grants
+	// and masking each on their own: absent keeps the stored value, null
+	// clears it, and a value replaces it outright.
 	if patch.Permissions != nil {
 		if !servesV3(c, group) {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.permissions_not_supported.app_error", nil, "", http.StatusBadRequest)
