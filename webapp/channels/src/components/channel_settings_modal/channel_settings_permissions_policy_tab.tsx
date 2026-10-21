@@ -39,6 +39,7 @@ import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/m
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
 import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttributeFields';
+import {useIsBoardChannel} from 'hooks/useIsBoardChannel';
 
 import type {GlobalState} from 'types/store';
 
@@ -65,6 +66,10 @@ const roleMessages = defineMessages({
     guestDescription: {
         id: 'channel_settings.permissions_policy.role.channel_guest.description',
         defaultMessage: 'Applies only to guest accounts in this channel',
+    },
+    guestDescriptionBoard: {
+        id: 'channel_settings.permissions_policy.role.channel_guest.description.board',
+        defaultMessage: 'Applies only to guest accounts in this board',
     },
     memberLabel: {
         id: 'channel_settings.permissions_policy.role.channel_user',
@@ -97,6 +102,10 @@ const actionMessages = defineMessages({
         id: 'channel_settings.permissions_policy.action.upload.description',
         defaultMessage: 'Allow users to attach files to messages in this channel',
     },
+    uploadDescriptionBoard: {
+        id: 'channel_settings.permissions_policy.action.upload.description.board',
+        defaultMessage: 'Allow users to attach files to messages in this board',
+    },
     downloadLabel: {
         id: 'channel_settings.permissions_policy.action.download',
         defaultMessage: 'Download files',
@@ -104,6 +113,10 @@ const actionMessages = defineMessages({
     downloadDescription: {
         id: 'channel_settings.permissions_policy.action.download.description',
         defaultMessage: 'Allow users to download attached files from this channel',
+    },
+    downloadDescriptionBoard: {
+        id: 'channel_settings.permissions_policy.action.download.description.board',
+        defaultMessage: 'Allow users to download attached files from this board',
     },
     createBorLabel: {
         id: 'channel_settings.permissions_policy.action.create_bor',
@@ -113,30 +126,38 @@ const actionMessages = defineMessages({
         id: 'channel_settings.permissions_policy.action.create_bor.description',
         defaultMessage: 'Allow users to send burn-on-read messages in this channel',
     },
+    createBorDescriptionBoard: {
+        id: 'channel_settings.permissions_policy.action.create_bor.description.board',
+        defaultMessage: 'Allow users to send burn-on-read messages in this board',
+    },
 });
 
 interface RoleDefinition {
     value: string;
     label: MessageDescriptor;
     description: MessageDescriptor;
+
+    /** The description for a board, where it differs from the channel one. */
+    boardDescription?: MessageDescriptor;
 }
 
 interface PermissionDefinition {
     value: string;
     label: MessageDescriptor;
     description: MessageDescriptor;
+    boardDescription: MessageDescriptor;
 }
 
 const AVAILABLE_ROLES: RoleDefinition[] = [
-    {value: ACCESS_CONTROL_CHANNEL_ROLE_GUEST, label: roleMessages.guestLabel, description: roleMessages.guestDescription},
+    {value: ACCESS_CONTROL_CHANNEL_ROLE_GUEST, label: roleMessages.guestLabel, description: roleMessages.guestDescription, boardDescription: roleMessages.guestDescriptionBoard},
     {value: ACCESS_CONTROL_CHANNEL_ROLE_USER, label: roleMessages.memberLabel, description: roleMessages.memberDescription},
     {value: ACCESS_CONTROL_CHANNEL_ROLE_ADMIN, label: roleMessages.adminLabel, description: roleMessages.adminDescription},
 ];
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
-    {value: ACCESS_CONTROL_ACTION_UPLOAD_FILE, label: actionMessages.uploadLabel, description: actionMessages.uploadDescription},
-    {value: ACCESS_CONTROL_ACTION_DOWNLOAD_FILE, label: actionMessages.downloadLabel, description: actionMessages.downloadDescription},
-    {value: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, label: actionMessages.createBorLabel, description: actionMessages.createBorDescription},
+    {value: ACCESS_CONTROL_ACTION_UPLOAD_FILE, label: actionMessages.uploadLabel, description: actionMessages.uploadDescription, boardDescription: actionMessages.uploadDescriptionBoard},
+    {value: ACCESS_CONTROL_ACTION_DOWNLOAD_FILE, label: actionMessages.downloadLabel, description: actionMessages.downloadDescription, boardDescription: actionMessages.downloadDescriptionBoard},
+    {value: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, label: actionMessages.createBorLabel, description: actionMessages.createBorDescription, boardDescription: actionMessages.createBorDescriptionBoard},
 ];
 
 const ACTION_LABEL_IDS: Record<string, MessageDescriptor> = {
@@ -184,6 +205,7 @@ function ChannelSettingsPermissionsPolicyTab({
     showTabSwitchError,
 }: ChannelSettingsPermissionsPolicyTabProps) {
     const {formatMessage} = useIntl();
+    const isBoard = useIsBoardChannel(channel);
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
     const sessionAttributesEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'SessionAttributes') === 'true');
@@ -324,15 +346,18 @@ function ChannelSettingsPermissionsPolicyTab({
                 setLoadError('');
                 return;
             }
-            setLoadError(err?.message || formatMessage({
+            setLoadError(err?.message || (isBoard ? formatMessage({
+                id: 'channel_settings.permissions_policy.load_error.board',
+                defaultMessage: 'Failed to load this board\'s permission policy. Try closing and reopening the board settings.',
+            }) : formatMessage({
                 id: 'channel_settings.permissions_policy.load_error',
                 defaultMessage: 'Failed to load this channel\'s permission policy. Try closing and reopening the channel settings.',
-            }));
+            })));
         })();
         return () => {
             cancelled = true;
         };
-    }, [channel.id, actions, formatMessage]);
+    }, [channel.id, actions, formatMessage, isBoard]);
 
     // Notify parent of unsaved-state changes so the modal can guard tab switches.
     useEffect(() => {
@@ -420,7 +445,13 @@ function ChannelSettingsPermissionsPolicyTab({
         }
         const conflicting = rules.some((r) => r.name.trim() === trimmedName && (isNew || r.key !== draft.key));
         if (conflicting) {
-            return formatMessage(
+            return isBoard ? formatMessage(
+                {
+                    id: 'channel_settings.permissions_policy.error.name_unique.board',
+                    defaultMessage: 'Rule name "{name}" is used more than once. Names must be unique within this board.',
+                },
+                {name: trimmedName},
+            ) : formatMessage(
                 {
                     id: 'channel_settings.permissions_policy.error.name_unique',
                     defaultMessage: 'Rule name "{name}" is used more than once. Names must be unique within this channel.',
@@ -441,7 +472,7 @@ function ChannelSettingsPermissionsPolicyTab({
             });
         }
         return '';
-    }, [rules, formatMessage]);
+    }, [rules, formatMessage, isBoard]);
 
     const commitDraft = useCallback((draft: EditableRule, isNew: boolean) => {
         const validationError = validateDraft(draft, isNew);
@@ -697,20 +728,34 @@ function ChannelSettingsPermissionsPolicyTab({
                 >
                     <i className='icon icon-information-outline'/>
                     <span>
-                        <FormattedMessage
-                            id='channel_settings.permissions_policy.system_banner'
-                            defaultMessage='System-wide permission policies may also influence access decisions for this channel.'
-                        />
+                        {isBoard ? (
+                            <FormattedMessage
+                                id='channel_settings.permissions_policy.system_banner.board'
+                                defaultMessage='System-wide permission policies may also influence access decisions for this board.'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='channel_settings.permissions_policy.system_banner'
+                                defaultMessage='System-wide permission policies may also influence access decisions for this channel.'
+                            />
+                        )}
                     </span>
                 </div>
             )}
 
             <div className='ChannelSettingsModal__permissionsPolicyHeader'>
                 <h3 className='ChannelSettingsModal__permissionsPolicyTitle'>
-                    <FormattedMessage
-                        id='channel_settings.permissions_policy.section_title'
-                        defaultMessage='Channel permission rules'
-                    />
+                    {isBoard ? (
+                        <FormattedMessage
+                            id='channel_settings.permissions_policy.section_title.board'
+                            defaultMessage='Board permission rules'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='channel_settings.permissions_policy.section_title'
+                            defaultMessage='Channel permission rules'
+                        />
+                    )}
                 </h3>
                 <Button
                     className='ChannelSettingsModal__permissionsPolicyAddRule'
@@ -758,10 +803,17 @@ function ChannelSettingsPermissionsPolicyTab({
                     data-testid='permissions-or-hint'
                 >
                     <i className='icon icon-information-outline'/>
-                    <FormattedMessage
-                        id='channel_settings.permissions_policy.or_hint'
-                        defaultMessage='When several rules apply to the same role and action, a user is allowed if any one of them allows them. A system-level policy may still deny the permission even when this channel policy allows it.'
-                    />
+                    {isBoard ? (
+                        <FormattedMessage
+                            id='channel_settings.permissions_policy.or_hint.board'
+                            defaultMessage='When several rules apply to the same role and action, a user is allowed if any one of them allows them. A system-level policy may still deny the permission even when this board policy allows it.'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='channel_settings.permissions_policy.or_hint'
+                            defaultMessage='When several rules apply to the same role and action, a user is allowed if any one of them allows them. A system-level policy may still deny the permission even when this channel policy allows it.'
+                        />
+                    )}
                 </div>
             )}
 
@@ -989,6 +1041,7 @@ function PermissionRuleEditor({
     policySimulationEnabled,
 }: PermissionRuleEditorProps) {
     const {formatMessage} = useIntl();
+    const isBoard = useIsBoardChannel({id: channelId});
 
     // Seed once on mount. The parent passes a stable `key` so switching
     // rules remounts and re-seeds here. Re-seeding from an effect keyed on
@@ -1120,7 +1173,7 @@ function PermissionRuleEditor({
                                 labels={(
                                     <>
                                         <span>{formatMessage(role.label)}</span>
-                                        <span>{formatMessage(role.description)}</span>
+                                        <span>{formatMessage((isBoard && role.boardDescription) || role.description)}</span>
                                     </>
                                 )}
                                 trailingElements={draft.role === role.value ? <i className='icon icon-check'/> : undefined}
@@ -1270,7 +1323,7 @@ function PermissionRuleEditor({
                                     labels={(
                                         <>
                                             <span>{formatMessage(perm.label)}</span>
-                                            <span>{formatMessage(perm.description)}</span>
+                                            <span>{formatMessage(isBoard ? perm.boardDescription : perm.description)}</span>
                                         </>
                                     )}
                                 />

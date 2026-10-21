@@ -18,6 +18,9 @@ type Props = {
 
     /** Callback when user confirms the action */
     onConfirm: () => void;
+
+    /** Whether the channel is a board, so the warning says "board" rather than "channel" */
+    isBoard?: boolean;
 };
 
 /**
@@ -28,6 +31,7 @@ const ChannelActivityWarningModal: React.FC<Props> = ({
     isOpen,
     onClose,
     onConfirm,
+    isBoard = false,
 }) => {
     const [acknowledgeRisk, setAcknowledgeRisk] = useState(false);
 
@@ -64,12 +68,17 @@ const ChannelActivityWarningModal: React.FC<Props> = ({
         <ConfirmModal
             id='activityWarningModal'
             show={isOpen}
-            title={
+            title={isBoard ? (
+                <FormattedMessage
+                    id='channel_settings.activity_warning.exposing_history_title.board'
+                    defaultMessage='Exposing board history'
+                />
+            ) : (
                 <FormattedMessage
                     id='channel_settings.activity_warning.exposing_history_title'
                     defaultMessage='Exposing channel history'
                 />
-            }
+            )}
             message={
                 <div className='channel-activity-warning-content'>
                     <div className='warning-description'>
@@ -82,12 +91,17 @@ const ChannelActivityWarningModal: React.FC<Props> = ({
             }
             showCheckbox={true}
             checkboxClass='checkbox text-left mb-0 activity-warning-checkbox'
-            checkboxText={
+            checkboxText={isBoard ? (
+                <FormattedMessage
+                    id='channel_settings.activity_warning.acknowledge_expose_history.board'
+                    defaultMessage='I acknowledge this change will expose all historical board messages to more users'
+                />
+            ) : (
                 <FormattedMessage
                     id='channel_settings.activity_warning.acknowledge_expose_history'
                     defaultMessage='I acknowledge this change will expose all historical channel messages to more users'
                 />
-            }
+            )}
             confirmButtonText={
                 <FormattedMessage
                     id='channel_settings.activity_warning.save_and_apply'

@@ -6,6 +6,7 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 
 import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -150,6 +151,25 @@ describe('ChannelSettingsInfoTab', () => {
 
         // Check that the public channel button is selected.
         expect(screen.getByRole('button', {name: /Public Channel/}).classList.contains('selected')).toBe(true);
+    });
+
+    it('says board rather than channel for a board', () => {
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>, boardChannelsState(mockChannel.id));
+
+        expect(screen.getByText('Board Info')).toBeInTheDocument();
+        expect(screen.queryByText('Channel Info')).not.toBeInTheDocument();
+        expect(screen.getByRole('textbox', {name: 'Board name'})).toHaveValue('Test Channel');
+        expect(screen.queryByRole('textbox', {name: 'Channel name'})).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Public Board/})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Private Board/})).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /Public Channel/})).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /Private Channel/})).not.toBeInTheDocument();
+        expect(screen.getByText('Board Purpose')).toBeInTheDocument();
+        expect(screen.getByText('Board Header')).toBeInTheDocument();
+        expect(screen.getByText('Describe how this board should be used.')).toBeInTheDocument();
+        expect(screen.queryByText('Channel Purpose')).not.toBeInTheDocument();
+        expect(screen.queryByText('Channel Header')).not.toBeInTheDocument();
+        expect(screen.queryByText('Describe how this channel should be used.')).not.toBeInTheDocument();
     });
 
     it('should show SaveChangesPanel when changes are made', async () => {
