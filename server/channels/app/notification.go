@@ -994,6 +994,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 
 		userIDs := []string{}
 		for groupID := range mentions.GroupMentions {
+			groupUserCount := 0
 			for page := 0; ; page++ {
 				groupMemberPage, count, appErr := a.GetGroupMemberUsersPage(groupID, page, 100, &model.ViewUsersRestrictions{Channels: []string{channel.Id}})
 				if appErr != nil {
@@ -1003,11 +1004,14 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				for _, user := range groupMemberPage {
 					userIDs = append(userIDs, user.Id)
 				}
+				groupUserCount += len(groupMemberPage)
 
-				// count is the total number of users that match the filter criteria.
-				// When we've processed `count` number of users, we know there aren't
-				// any more users left to query and we can break the loop
-				if len(userIDs) == count {
+				// count is the total number of users in this group that match the
+				// filter criteria. When we've processed `count` number of this group's
+				// users, we know there aren't any more users left to query and we can
+				// break the loop. An empty page also ends it, in case the group's
+				// membership changed while paging.
+				if groupUserCount >= count || len(groupMemberPage) == 0 {
 					break
 				}
 			}
