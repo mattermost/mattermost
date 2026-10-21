@@ -79,9 +79,9 @@ func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, i
 		}
 		resultSb.WriteString("</blockquote>")
 	case *FencedCode:
-		if info := v.Info(); info != "" {
-			language := strings.Fields(info)[0]
-			resultSb.WriteString(`<pre><code class="language-` + htmlEscaper.Replace(language) + `">`)
+		// Info() is entity-decoded, so it can be non-empty but still contain only whitespace (e.g. "&#x20;")
+		if fields := strings.Fields(v.Info()); len(fields) > 0 {
+			resultSb.WriteString(`<pre><code class="language-` + htmlEscaper.Replace(fields[0]) + `">`)
 		} else {
 			resultSb.WriteString("<pre><code>")
 		}
