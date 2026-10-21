@@ -431,7 +431,32 @@ func (h *AccessControlHook) PreChangePropertyFieldOptions(rctx request.CTX, fiel
 	if !enforced {
 		return nil
 	}
-	return h.enforceOptionWriteAccess(rctx, field, h.extractCallerID(rctx))
+	callerID := h.extractCallerID(rctx)
+	if err := refuseSyncOptionChange(field, callerID); err != nil {
+		return err
+	}
+	return h.enforceOptionWriteAccess(rctx, field, callerID)
+}
+
+// refuseSyncOptionChange gives a sync changing field's options the answers
+// the validation hook's PreChangePropertyFieldOptions gives it, before any
+// grant is judged: on a field synced from another source a 403, and on a
+// field synced from nothing a 409. The second is how the syncer learns that
+// an admin unlinked the field while it was running, so that it keeps the
+// stored value and stops syncing the field. Unlinking takes the sync's grant
+// off the template, so judged on grants first the sync would get a 403
+// instead and clear the value it could not replace. The field's own sync,
+// and every other caller, goes on to the grants. Only the options endpoints
+// answer this way; master never refuses a value write with the 409.
+func refuseSyncOptionChange(field *model.PropertyField, callerID string) error {
+	source := model.PropertySyncSourceForCallerID(callerID)
+	if source == "" || !field.Type.SupportsOptions() || isFieldSync(field, callerID) {
+		return nil
+	}
+	if model.IsPropertyFieldSynced(field) {
+		return syncedOptionsLockedError("PropertyFieldOptions", field)
+	}
+	return syncSourceUnlinkedError("PropertyFieldOptions", field, source)
 }
 
 // enforceOptionWriteAccess answers option.write for a caller changing a field's
