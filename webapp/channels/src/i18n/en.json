@@ -1820,7 +1820,7 @@
     "description": "Link under the access-rule editors that opens a help modal about CEL access expressions."
   },
   "admin.access_control.table_editor.not_safe_to_use": {
-    "defaultMessage": "Values for this attribute are managed by users and should not be used for access control. Please link attribute to AD/LDAP for use in access policies.",
+    "defaultMessage": "Values for this attribute are managed by users and should not be used for access control. Link the attribute to AD/LDAP, SAML or OpenID Connect to use it in access policies.",
     "description": "Tooltip on a disabled attribute in the attribute picker of the access-rule editor, explaining user-managed attributes cannot be used for access control."
   },
   "admin.access_control.table_editor.operator": {
@@ -2093,7 +2093,7 @@
   },
   "admin.accessibility.delete_orphaned_field": {
     "defaultMessage": "Delete orphaned field",
-    "description": "Accessible label for the delete button on a user attribute whose owning plugin has been uninstalled."
+    "description": "Accessible label for the delete button on a user attribute whose owning plugin has been uninstalled. \"Field\" is the attribute: use the same word as in Attribute Management. \"Orphaned\" means its plugin is no longer installed, as the neighbouring orphaned-attribute strings say; prefer that meaning over a literal calque."
   },
   "admin.accessibility.next_page": {
     "defaultMessage": "Next page",
@@ -3148,7 +3148,7 @@
     "description": "Title of the toggle on the Channel Management panel that switches the channel between public and private."
   },
   "admin.channel_settings.channel_details.isPublicDescr": {
-    "defaultMessage": "Select Public for a channel any user can find and join. {br}Select Private to require channel invitations to join. {br}Use this switch to change this channel from public to private or from private to public.",
+    "defaultMessage": "Select Public for a channel any user can find and join. {br}Select Private to require channel invitations to join. {br}Use this control to change this channel from public to private or from private to public.",
     "description": "Description of the public/private toggle on the System Console channel configuration page; {br} placeholders insert line breaks."
   },
   "admin.channel_settings.channel_details.policy_enforced_title": {
@@ -3178,10 +3178,6 @@
   "admin.channel_settings.channel_list.no_channels_found": {
     "defaultMessage": "No channels found",
     "description": "Empty-state placeholder in the admin console Channels list when no channels match the search or filters."
-  },
-  "admin.channel_settings.channel_list.no_logs_found": {
-    "defaultMessage": "No logs found. Ensure log files are within the logging root directory (configured via MM_LOG_PATH or the default logs directory).",
-    "description": "Empty-state text in the System Console > Server Logs table when no log entries are found; MM_LOG_PATH is an environment variable name and must not be translated."
   },
   "admin.channel_settings.channel_list.search_channels_errored": {
     "defaultMessage": "Something went wrong. Try again",
@@ -4399,13 +4395,21 @@
     "defaultMessage": "(Optional) The attribute in the AD/LDAP server used to populate the {name} of users in Mattermost. When set, users cannot edit their {name}, since it is synchronized with the LDAP server. When left blank, users can set their {name} in <strong>Account Menu > Account Settings > Profile</strong>.",
     "description": "Help text for a user-attribute mapping field in AD/LDAP admin settings; {name} is the attribute's display name, <strong> wraps a UI navigation path."
   },
+  "admin.customProfileAttribDesc.openid": {
+    "defaultMessage": "(Optional) The claim in the ID token or userinfo response used to populate the {name} of users in Mattermost. Use dots for nested claims, such as address.country. If the claim is missing at sign-in, the value is removed.",
+    "description": "Help text under a user attribute's field in the 'User attributes sync' section of the OpenID Connect settings page. {name} is the attribute's label. 'ID token' and 'userinfo' are OpenID Connect terms; address.country is a literal example claim path and should stay as-is."
+  },
   "admin.customProfileAttribDesc.saml": {
     "defaultMessage": "(Optional) The attribute in the SAML Assertion that will be used to populate the {name} of users in Mattermost.",
     "description": "Help text for a user-attribute mapping field in SAML admin settings; {name} is the attribute's display name."
   },
+  "admin.customProfileAttributes.exclusiveSource": {
+    "defaultMessage": "This attribute is synced from {sources}. An attribute synced from OpenID Connect can't also sync from AD/LDAP or SAML.",
+    "description": "Help text under a disabled field in the 'User attributes sync' section, explaining that the attribute is already synced from another identity source that cannot be combined with OpenID Connect. {sources} is a list of source names, such as AD/LDAP or OpenID Connect."
+  },
   "admin.customProfileAttributes.linkedNonText": {
-    "defaultMessage": "This field is linked to an attribute of type {type} in Attribute Management, so it cannot be synced via AD/LDAP or SAML. Only text, select and multiselect attributes support sync.",
-    "description": "Help text under a user-attribute field in the AD/LDAP or SAML user attributes sync settings when the field is linked to an attribute defined on the System Console Attribute Management page and that attribute's type cannot be synced; explains why the sync box is disabled. {type} is the raw type identifier, such as date or user, and is not translated. 'Attribute Management' is the page name; match its translation."
+    "defaultMessage": "This field is linked to an attribute of type {type} in Attribute Management, so it cannot be synced from an identity source. Only text, select and multiselect attributes support sync.",
+    "description": "Help text under a user-attribute field in the AD/LDAP, SAML or OpenID Connect user attributes sync settings when the field is linked to an attribute defined on the System Console Attribute Management page and that attribute's type cannot be synced; explains why the sync box is disabled. {type} is the raw type identifier, such as date or user, and is not translated. 'Attribute Management' is the page name; match its translation."
   },
   "admin.customProfileAttributes.managedByPlugin": {
     "defaultMessage": "This field is managed by the {pluginId} plugin and cannot be edited.",
@@ -5148,8 +5152,8 @@
     "description": "Radio option on the Push Notification Server admin page; TPNS (Test Push Notification Service) is an acronym to keep."
   },
   "admin.email.mtpnsHelp": {
-    "defaultMessage": "Download <linkIOS>Mattermost iOS app</linkIOS> from iTunes. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkHPNS>Mattermost Hosted Push Notification Service</linkHPNS>.",
-    "description": "Help text under the push notification server setting when using the Mattermost Test Push Notification Service; <linkIOS>, <linkAndroid> and <linkHPNS> wrap link texts."
+    "defaultMessage": "Download <linkIOS>Mattermost iOS app</linkIOS> from iTunes. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkTPNS>Mattermost Test Push Notification Service</linkTPNS>.",
+    "description": "Help text under the push notification server setting when using the Mattermost Test Push Notification Service; <linkIOS>, <linkAndroid> and <linkTPNS> wrap link texts."
   },
   "admin.email.pushOff": {
     "defaultMessage": "Do not send push notifications",
@@ -6223,6 +6227,14 @@
     "defaultMessage": "{source}: {value}",
     "description": "Text of the chip shown on the attribute detail page for an attribute linked to an external directory. {source} is the source name ('AD/LDAP' or 'SAML') and {value} is the external attribute name it syncs from. Keep the separator format."
   },
+  "admin.global_attributes.attribute_details.external_source.conflict_label": {
+    "defaultMessage": "Can't be combined with {sources}",
+    "description": "Second line of a disabled entry in the 'Link to external source' menu on the attribute detail page. {sources} lists the already-linked identity sources (AD/LDAP, SAML, OpenID Connect) that this source cannot be combined with."
+  },
+  "admin.global_attributes.attribute_details.external_source.conflict_tooltip": {
+    "defaultMessage": "An attribute synced from OpenID Connect can't also sync from AD/LDAP or SAML. Remove the {sources} {count, plural, one {link} other {links}} to link {source}.",
+    "description": "Tooltip on a disabled entry in the 'Link to external source' menu. {sources} lists the linked identity sources to remove, {count} is how many there are, and {source} is the source the admin wanted to link. AD/LDAP, SAML and OpenID Connect are product names."
+  },
   "admin.global_attributes.attribute_details.external_source.disabled_applies_to_tooltip": {
     "defaultMessage": "Cannot link an external source while this attribute applies to a resource.",
     "description": "Tooltip on the disabled external-source control in the attribute details page in System Console > System Attributes > Attribute Management, explaining it cannot be linked while the attribute applies to a resource."
@@ -6251,6 +6263,22 @@
     "defaultMessage": "{count, plural, one {External source link removed} other {External source links removed}}",
     "description": "Screen-reader-only status announcement on the attribute detail page after changing the attribute Type clears its external source link(s). {count} is how many links were cleared; the message names no source, only the number."
   },
+  "admin.global_attributes.attribute_details.external_source.openid.help_text": {
+    "defaultMessage": "The claim in the ID token or userinfo response to sync this value from, for example department. Use dots for nested claims, such as address.country. If the claim is missing at sign-in, the value is removed.",
+    "description": "Help text in the 'Link to OpenID Connect' dialog on the attribute detail page, under the field where the admin types a claim name. 'ID token' and 'userinfo' are OpenID Connect terms; department and address.country are literal example claim names and should stay as-is."
+  },
+  "admin.global_attributes.attribute_details.external_source.openid.modal_title": {
+    "defaultMessage": "Link to OpenID Connect",
+    "description": "Title of the dialog where an admin types the OpenID Connect claim an attribute is synced from. 'OpenID Connect' is a protocol name."
+  },
+  "admin.global_attributes.attribute_details.external_source.openid.subtitle": {
+    "defaultMessage": "Map claims at sign-in",
+    "description": "Second line of the OpenID Connect entry in the 'Link to external source' menu, describing that values come from OpenID Connect claims when users sign in."
+  },
+  "admin.global_attributes.attribute_details.external_source.openid.title": {
+    "defaultMessage": "OpenID Connect",
+    "description": "Name of the OpenID Connect identity source in the 'Link to external source' menu, its link chip and the attributes table. Protocol name; usually left untranslated."
+  },
   "admin.global_attributes.attribute_details.external_source.remove_link": {
     "defaultMessage": "Remove {source} link",
     "description": "Accessible label (aria-label) of the X button on an external source chip on the attribute detail page. {source} is 'AD/LDAP' or 'SAML'. 'Remove' is a verb and 'link' is a noun meaning the configured mapping."
@@ -6278,6 +6306,30 @@
   "admin.global_attributes.attribute_details.external_source.trigger_label": {
     "defaultMessage": "Link to external source",
     "description": "Label of the dropdown button on the attribute detail page that opens the AD/LDAP and SAML choices. 'Link' is a verb here."
+  },
+  "admin.global_attributes.attribute_details.external_source.unavailable.flag_off.label": {
+    "defaultMessage": "Turned off on this server",
+    "description": "Second line of the disabled OpenID Connect entry in the 'Link to external source' menu when the server has turned this feature off."
+  },
+  "admin.global_attributes.attribute_details.external_source.unavailable.flag_off.tooltip": {
+    "defaultMessage": "Syncing attributes from {source} is turned off on this server.",
+    "description": "Tooltip on the disabled OpenID Connect entry in the 'Link to external source' menu when the server has turned this feature off. {source} is the source name, OpenID Connect."
+  },
+  "admin.global_attributes.attribute_details.external_source.unavailable.not_enabled.label": {
+    "defaultMessage": "Set up {source} first",
+    "description": "Second line of the disabled OpenID Connect entry in the 'Link to external source' menu when OpenID Connect sign-in is not set up yet. {source} is the source name, OpenID Connect."
+  },
+  "admin.global_attributes.attribute_details.external_source.unavailable.not_enabled.tooltip": {
+    "defaultMessage": "Turn on {source} in System Console > Authentication > {source} to link attributes to its claims.",
+    "description": "Tooltip on the disabled OpenID Connect entry in the 'Link to external source' menu when OpenID Connect sign-in is off. {source} is OpenID Connect; 'System Console > Authentication > {source}' is the navigation path to its settings page and should match those menu names."
+  },
+  "admin.global_attributes.attribute_details.external_source.unavailable.unlicensed.label": {
+    "defaultMessage": "Not included in your license",
+    "description": "Second line of the disabled OpenID Connect entry in the 'Link to external source' menu when the license does not include OpenID Connect."
+  },
+  "admin.global_attributes.attribute_details.external_source.unavailable.unlicensed.tooltip": {
+    "defaultMessage": "Your license doesn't include {source}.",
+    "description": "Tooltip on the disabled OpenID Connect entry in the 'Link to external source' menu when the license does not include it. {source} is the source name, OpenID Connect."
   },
   "admin.global_attributes.attribute_details.graph.delete.blocked.go_to": {
     "defaultMessage": "Go to {name}",
@@ -6693,7 +6745,7 @@
   },
   "admin.global_attributes.attribute_details.type.field_locked_external_source_aria_label": {
     "defaultMessage": "Type: {value}. Locked while linked to an external source.",
-    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute is linked to AD/LDAP or SAML. {value} is the current type."
+    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Attribute Management while the attribute is linked to AD/LDAP, SAML, or OpenID Connect. {value} is the current type."
   },
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": {
     "defaultMessage": "Type: {value}. Locked because a hierarchical attribute cannot be converted to another type.",
@@ -7007,14 +7059,6 @@
     "defaultMessage": "Classification Markings",
     "description": "Value in the Source column of the attributes table for the built-in Classification Markings attribute. This is the product feature name."
   },
-  "admin.global_attributes.table.source.ldap": {
-    "defaultMessage": "AD/LDAP",
-    "description": "Value in the Source column of the attributes table when the attribute is synced from Active Directory/LDAP. Keep the AD/LDAP abbreviation as-is."
-  },
-  "admin.global_attributes.table.source.ldap_and_saml": {
-    "defaultMessage": "AD/LDAP, SAML",
-    "description": "Value in the Source column of the attributes table when the attribute is synced from both AD/LDAP and SAML. Keep both abbreviations as-is; only the separator may change."
-  },
   "admin.global_attributes.table.source.managed": {
     "defaultMessage": "Managed here",
     "description": "Value in the Source column of the attributes table meaning the attribute's values are maintained inside Mattermost rather than synced from an external directory. \"here\" refers to this admin console screen."
@@ -7022,10 +7066,6 @@
   "admin.global_attributes.table.source.owned_by": {
     "defaultMessage": "Managed by {owners}",
     "description": "Value in the Source column of the attributes table in System Console > Attribute Management when integrations own the attribute and set its values. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
-  },
-  "admin.global_attributes.table.source.saml": {
-    "defaultMessage": "SAML",
-    "description": "Value in the Source column of the attributes table when the attribute is synced from SAML. Keep the abbreviation as-is."
   },
   "admin.global_attributes.table.type": {
     "defaultMessage": "Type",
@@ -9683,10 +9723,6 @@
     "defaultMessage": "When true, logged events are written in a machine readable JSON format. Otherwise they are printed as plain text. Changing this setting requires a server restart before taking effect.",
     "description": "Admin console help text under a JSON log output toggle on the Logging page."
   },
-  "admin.log.Level": {
-    "defaultMessage": "Level",
-    "description": "Column header in the Server Logs table for the log severity level (Debug/Info/Warn/Error)."
-  },
   "admin.log.levelDescription": {
     "defaultMessage": "This setting determines the level of detail at which log events are written to the console. ERROR: Outputs only error messages. INFO: Outputs error messages and information around startup and initialization. DEBUG: Prints high detail for developers working on debugging issues.",
     "description": "Admin console help text under the Console Log Level dropdown; ERROR, INFO, and DEBUG are literal log level values and must not be translated."
@@ -9727,77 +9763,345 @@
     "defaultMessage": "Log Level",
     "description": "Name of the Log Level setting, inserted in bold into the Enable Webhook Debugging help text to refer the admin to that other setting."
   },
-  "admin.logs.Alllevels": {
+  "admin.logs.allLevels": {
     "defaultMessage": "All levels",
-    "description": "Default option in the log level filter dropdown on the Server Logs page; shows entries of every severity."
+    "description": "Option in the log level filter on the System Console Server Logs page; shows entries of every level."
   },
-  "admin.logs.bannerDesc": {
-    "defaultMessage": "To look up users by User ID or Token ID, go to User Management > Users and paste the ID into the search filter.",
-    "description": "Informational banner on the Server Logs page telling admins how to look up user or token IDs found in logs; 'User Management > Users' is a System Console menu path."
+  "admin.logs.clearFilters": {
+    "defaultMessage": "Clear filters",
+    "description": "Link shown when no log entries match the filters on the System Console Server Logs page; resets all filters."
   },
-  "admin.logs.caller": {
+  "admin.logs.copied": {
+    "defaultMessage": "Copied!",
+    "description": "Confirmation shown briefly on a copy button on the System Console Server Logs page after the text was copied to the clipboard."
+  },
+  "admin.logs.copiedLine": {
+    "defaultMessage": "Copied!",
+    "description": "Confirmation shown briefly on the \"Copy log line\" button on the System Console Server Logs page after the line was copied."
+  },
+  "admin.logs.copyAll": {
+    "defaultMessage": "Copy all",
+    "description": "Button label in the plain text log viewer on the System Console Server Logs page; copies all visible log lines to the clipboard."
+  },
+  "admin.logs.copyFailed": {
+    "defaultMessage": "Copy failed",
+    "description": "Message shown on a copy button on the System Console Server Logs page when copying to the clipboard did not work."
+  },
+  "admin.logs.copyJson": {
+    "defaultMessage": "Copy JSON",
+    "description": "Button label in an expanded log entry on the System Console Server Logs page; copies the entry as JSON to the clipboard."
+  },
+  "admin.logs.copyLine": {
+    "defaultMessage": "Copy log line",
+    "description": "Button label in an expanded log entry on the System Console Server Logs page; copies the raw log line to the clipboard."
+  },
+  "admin.logs.copyToClipboard": {
+    "defaultMessage": "Copy to clipboard",
+    "description": "Accessible label for the icon button that copies a field value of a log entry on the System Console Server Logs page."
+  },
+  "admin.logs.detail.caller": {
     "defaultMessage": "Caller",
-    "description": "Column header in the Server Logs table for the code location (file:line) that emitted the log entry."
+    "description": "Field label in an expanded log entry on the System Console Server Logs page; the source file and line that wrote the log follows."
   },
-  "admin.logs.Debug": {
-    "defaultMessage": "Debug",
-    "description": "Log severity level shown in the Server Logs table and its level filter; keep short."
+  "admin.logs.detail.timestamp": {
+    "defaultMessage": "Timestamp",
+    "description": "Field label in an expanded log entry on the System Console Server Logs page; the date and time of the entry follows."
+  },
+  "admin.logs.download": {
+    "defaultMessage": "Download",
+    "description": "Button label in the plain text log viewer on the System Console Server Logs page; downloads the log file."
   },
   "admin.logs.DownloadLogs": {
-    "defaultMessage": "Download Logs",
+    "defaultMessage": "Download",
     "description": "Button label on the System Console Server Logs page; downloads the log files."
   },
-  "admin.logs.Error": {
+  "admin.logs.duration": {
+    "defaultMessage": "Duration",
+    "description": "Label of the time range filter on the System Console Server Logs page; limits entries to a recent period."
+  },
+  "admin.logs.duration.dropdownAriaLabel": {
+    "defaultMessage": "Time range menu",
+    "description": "Accessible label for the time range dropdown menu on the System Console Server Logs page."
+  },
+  "admin.logs.duration.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to select a time range",
+    "description": "Accessible label for the button that opens the time range menu on the System Console Server Logs page."
+  },
+  "admin.logs.firstPage": {
+    "defaultMessage": "First page",
+    "description": "Accessible label for the pagination button that jumps to the first page of log entries on the System Console Server Logs page."
+  },
+  "admin.logs.go": {
+    "defaultMessage": "Go",
+    "description": "Button label next to the page number input on the System Console Server Logs page; jumps to the entered page."
+  },
+  "admin.logs.goToPage": {
+    "defaultMessage": "Go to page",
+    "description": "Accessible label for the button that opens the \"go to page\" input on the System Console Server Logs page."
+  },
+  "admin.logs.goToPageLabel": {
+    "defaultMessage": "Go to page:",
+    "description": "Label for the page number input on the System Console Server Logs page; ends with a colon."
+  },
+  "admin.logs.header.caller": {
+    "defaultMessage": "Caller",
+    "description": "Column header in the log entry list on the System Console Server Logs page; the column shows the source file and line that wrote each log."
+  },
+  "admin.logs.header.level": {
+    "defaultMessage": "Level",
+    "description": "Column header in the log entry list on the System Console Server Logs page; the column shows the log level."
+  },
+  "admin.logs.header.message": {
+    "defaultMessage": "Message",
+    "description": "Column header in the log entry list on the System Console Server Logs page; the column shows the log message."
+  },
+  "admin.logs.header.time": {
+    "defaultMessage": "Time",
+    "description": "Column header in the log entry list on the System Console Server Logs page; the column shows when each entry was written."
+  },
+  "admin.logs.keyboardHints.collapse": {
+    "defaultMessage": "Collapse entry",
+    "description": "Shortcut description in the keyboard shortcuts tooltip on the System Console Server Logs page; shown next to the Esc key."
+  },
+  "admin.logs.keyboardHints.expand": {
+    "defaultMessage": "Expand entry",
+    "description": "Shortcut description in the keyboard shortcuts tooltip on the System Console Server Logs page; shown next to the Enter key."
+  },
+  "admin.logs.keyboardHints.navigate": {
+    "defaultMessage": "Move between entries",
+    "description": "Shortcut description in the keyboard shortcuts tooltip on the System Console Server Logs page; shown next to the Up and Down arrow keys."
+  },
+  "admin.logs.keyboardHints.search": {
+    "defaultMessage": "Search",
+    "description": "Shortcut description in the keyboard shortcuts tooltip on the System Console Server Logs page; shown next to the / key, which focuses the log search box."
+  },
+  "admin.logs.keyboardHints.title": {
+    "defaultMessage": "Keyboard shortcuts",
+    "description": "Heading of the keyboard shortcuts tooltip on the System Console Server Logs page."
+  },
+  "admin.logs.keyboardHintsLabel": {
+    "defaultMessage": "Keyboard shortcuts",
+    "description": "Accessible label for the keyboard shortcuts help button on the System Console Server Logs page."
+  },
+  "admin.logs.level.debug": {
+    "defaultMessage": "Debug",
+    "description": "Log level name shown as a badge and filter option on the System Console Server Logs page."
+  },
+  "admin.logs.level.error": {
     "defaultMessage": "Error",
-    "description": "Log severity level shown in the Server Logs table and its level filter; a noun, keep short."
+    "description": "Log level name shown as a badge and filter option on the System Console Server Logs page."
   },
-  "admin.logs.fullEvent": {
-    "defaultMessage": "Full Log event",
-    "description": "Button label in a Server Logs table row that opens a modal showing the complete JSON log event."
-  },
-  "admin.logs.Info": {
+  "admin.logs.level.info": {
     "defaultMessage": "Info",
-    "description": "Log severity level shown in the Server Logs table and its level filter; keep short."
+    "description": "Log level name shown as a badge and filter option on the System Console Server Logs page; short for \"Information\"."
   },
-  "admin.logs.logFormatJson": {
-    "defaultMessage": "JSON",
-    "description": "Option in the log format toggle on the Server Logs page; shows logs as structured JSON. 'JSON' should usually remain untranslated."
+  "admin.logs.level.warn": {
+    "defaultMessage": "Warn",
+    "description": "Log level name shown as a badge and filter option on the System Console Server Logs page; short for \"Warning\"."
+  },
+  "admin.logs.levels": {
+    "defaultMessage": "Levels",
+    "description": "Label of the log level filter on the System Console Server Logs page."
+  },
+  "admin.logs.levels.dropdownAriaLabel": {
+    "defaultMessage": "Log levels menu",
+    "description": "Accessible label for the log level dropdown menu on the System Console Server Logs page."
+  },
+  "admin.logs.levels.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to select which log levels to show",
+    "description": "Accessible label for the button that opens the log level menu on the System Console Server Logs page."
+  },
+  "admin.logs.levels.selectAll": {
+    "defaultMessage": "Select all levels",
+    "description": "Option in the log level menu on the System Console Server Logs page; selects every level."
+  },
+  "admin.logs.levels.selected": {
+    "defaultMessage": "{count} selected",
+    "description": "Summary in the log level filter on the System Console Server Logs page when several levels are chosen; {count} is the number of selected levels."
+  },
+  "admin.logs.lineNumbers": {
+    "defaultMessage": "Lines",
+    "description": "Toggle button label in the plain text log viewer on the System Console Server Logs page; shows or hides line numbers."
+  },
+  "admin.logs.listLabel": {
+    "defaultMessage": "Server log entries",
+    "description": "Accessible label for the list of log entries on the System Console Server Logs page."
+  },
+  "admin.logs.liveTail": {
+    "defaultMessage": "Live tail",
+    "description": "Label of the live tail selector on the System Console Server Logs page; when on, new log entries are fetched automatically."
+  },
+  "admin.logs.liveTail.dropdownAriaLabel": {
+    "defaultMessage": "Live tail menu",
+    "description": "Accessible label for the live tail dropdown menu on the System Console Server Logs page."
+  },
+  "admin.logs.liveTail.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to turn live tail on or off",
+    "description": "Accessible label for the button that opens the live tail menu on the System Console Server Logs page."
+  },
+  "admin.logs.liveTail.off": {
+    "defaultMessage": "Off",
+    "description": "Option in the live tail selector on the System Console Server Logs page; turns automatic refreshing off."
+  },
+  "admin.logs.loading": {
+    "defaultMessage": "Loading logs",
+    "description": "Text next to a loading spinner on the System Console Server Logs page while log entries are fetched."
+  },
+  "admin.logs.logFormat.dropdownAriaLabel": {
+    "defaultMessage": "Log format menu",
+    "description": "Accessible label for the log format dropdown menu on the System Console Server Logs page."
+  },
+  "admin.logs.logFormat.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to select the log format",
+    "description": "Accessible label for the button that opens the log format menu on the System Console Server Logs page."
   },
   "admin.logs.logFormatPlain": {
     "defaultMessage": "Plain text",
     "description": "Option in the log format toggle on the Server Logs page; shows logs as unformatted plain text."
   },
+  "admin.logs.logFormatStructured": {
+    "defaultMessage": "Structured",
+    "description": "Option in the log format menu on the System Console Server Logs page; shows logs as a table of parsed entries rather than raw text."
+  },
   "admin.logs.logFormatTitle": {
-    "defaultMessage": "Log Format:",
-    "description": "Label for the log format toggle (JSON vs. plain text) on the Server Logs page; ends with a colon."
+    "defaultMessage": "Log format",
+    "description": "Label of the log format menu on the System Console Server Logs page; switches between structured and plain text views."
   },
-  "admin.logs.next": {
-    "defaultMessage": "Next",
-    "description": "Pagination button label on the plain-text server logs view; goes to the next page of log lines."
+  "admin.logs.newestFirst": {
+    "defaultMessage": "Newest",
+    "description": "Sort button label in the plain text log viewer on the System Console Server Logs page; shown while the newest lines are listed first."
   },
-  "admin.logs.options": {
-    "defaultMessage": "Options",
-    "description": "Column header in the Server Logs table for the per-row actions column."
+  "admin.logs.nextPage": {
+    "defaultMessage": "Next page",
+    "description": "Accessible label for the pagination button that goes to the next page of log entries on the System Console Server Logs page."
   },
-  "admin.logs.prev": {
-    "defaultMessage": "Previous",
-    "description": "Pagination button label on the plain-text server logs view; goes to the previous page of log lines."
+  "admin.logs.noLogs": {
+    "defaultMessage": "No logs found. Ensure log files are within the logging root directory.",
+    "description": "Empty state on the System Console Server Logs page when no log entries could be read."
+  },
+  "admin.logs.noMatchingLogs": {
+    "defaultMessage": "No logs match your filters. {clearLink}",
+    "description": "Empty state on the System Console Server Logs page when no entries match the filters; {clearLink} is the \"Clear filters\" link."
+  },
+  "admin.logs.oldestFirst": {
+    "defaultMessage": "Oldest",
+    "description": "Sort button label in the plain text log viewer on the System Console Server Logs page; shown while the oldest lines are listed first."
+  },
+  "admin.logs.pageOf": {
+    "defaultMessage": "Page {page, number} of {total, number}",
+    "description": "Pagination status on the System Console Server Logs page, e.g. \"Page 2 of 10\"."
+  },
+  "admin.logs.plain.loading": {
+    "defaultMessage": "Loading logs",
+    "description": "Text next to a loading spinner in the plain text log viewer on the System Console Server Logs page."
+  },
+  "admin.logs.plain.noLogs": {
+    "defaultMessage": "No logs to display.",
+    "description": "Empty state in the plain text log viewer on the System Console Server Logs page."
+  },
+  "admin.logs.plain.pageInfo": {
+    "defaultMessage": "Showing page {page, number} · {count, plural, one {# line} other {# lines}}",
+    "description": "Status line in the plain text log viewer on the System Console Server Logs page; shows the current page and how many log lines it holds."
+  },
+  "admin.logs.pollInterval.10s": {
+    "defaultMessage": "Every 10 seconds",
+    "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 10 seconds."
+  },
+  "admin.logs.pollInterval.30s": {
+    "defaultMessage": "Every 30 seconds",
+    "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 30 seconds."
+  },
+  "admin.logs.pollInterval.60s": {
+    "defaultMessage": "Every 60 seconds",
+    "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 60 seconds."
+  },
+  "admin.logs.prevPage": {
+    "defaultMessage": "Previous page",
+    "description": "Accessible label for the pagination button that goes to the previous page of log entries on the System Console Server Logs page."
+  },
+  "admin.logs.refreshing": {
+    "defaultMessage": "Refreshing…",
+    "description": "Status text on the System Console Server Logs page while new log entries are being fetched in the background."
+  },
+  "admin.logs.reload": {
+    "defaultMessage": "Reload",
+    "description": "Button label on the System Console Server Logs page; re-fetches the latest log entries from the server."
   },
   "admin.logs.ReloadLogs": {
-    "defaultMessage": "Reload Logs",
+    "defaultMessage": "Reload",
     "description": "Button label on the Server Logs page; re-fetches the latest log entries from the server."
   },
-  "admin.logs.showErrors": {
-    "defaultMessage": "Show last {n} errors",
-    "description": "Filter button on the Server Logs page that shows only recent error entries; {n} is the number of errors to display."
+  "admin.logs.rowsPerPage": {
+    "defaultMessage": "Show",
+    "description": "Text before the page size dropdown on the System Console Server Logs page; reads together with \"rows per page\", e.g. \"Show [50] rows per page\"."
+  },
+  "admin.logs.rowsPerPageSuffix": {
+    "defaultMessage": "rows per page",
+    "description": "Text after the page size dropdown on the System Console Server Logs page; reads together with \"Show\", e.g. \"Show [50] rows per page\"."
+  },
+  "admin.logs.scrollToBottom": {
+    "defaultMessage": "Scroll to bottom",
+    "description": "Accessible label for the button that scrolls the log list to the bottom on the System Console Server Logs page."
+  },
+  "admin.logs.scrollToTop": {
+    "defaultMessage": "Scroll to top",
+    "description": "Accessible label for the button that scrolls the log list to the top on the System Console Server Logs page."
+  },
+  "admin.logs.search.clear": {
+    "defaultMessage": "Clear search",
+    "description": "Accessible label for the button that clears the log search box on the System Console Server Logs page."
+  },
+  "admin.logs.search.placeholder": {
+    "defaultMessage": "Search logs",
+    "description": "Placeholder text in the log search box on the System Console Server Logs page."
+  },
+  "admin.logs.showing": {
+    "defaultMessage": "Showing {start, number} - {end, number} of {total, number}",
+    "description": "Pagination summary on the System Console Server Logs page, e.g. \"Showing 1 - 50 of 1,200\"."
+  },
+  "admin.logs.showingMatching": {
+    "defaultMessage": "Showing {start, number} - {end, number} of {matches, number} entries matching your filters ({total, number} total)",
+    "description": "Pagination summary on the System Console Server Logs page when filters are applied; shows the range, the number of matching entries and the total."
+  },
+  "admin.logs.sortNewestFirst": {
+    "defaultMessage": "Sort newest first",
+    "description": "Tooltip for the sort button in the plain text log viewer on the System Console Server Logs page; clicking lists the newest lines first."
+  },
+  "admin.logs.sortOldestFirst": {
+    "defaultMessage": "Sort oldest first",
+    "description": "Tooltip for the sort button in the plain text log viewer on the System Console Server Logs page; clicking lists the oldest lines first."
+  },
+  "admin.logs.time.15m": {
+    "defaultMessage": "Last 15 minutes",
+    "description": "Option in the time range filter on the System Console Server Logs page."
+  },
+  "admin.logs.time.1h": {
+    "defaultMessage": "Last hour",
+    "description": "Option in the time range filter on the System Console Server Logs page."
+  },
+  "admin.logs.time.24h": {
+    "defaultMessage": "Last 24 hours",
+    "description": "Option in the time range filter on the System Console Server Logs page."
+  },
+  "admin.logs.time.5m": {
+    "defaultMessage": "Last 5 minutes",
+    "description": "Option in the time range filter on the System Console Server Logs page."
+  },
+  "admin.logs.time.allTime": {
+    "defaultMessage": "All time",
+    "description": "Option in the time range filter on the System Console Server Logs page; shows entries regardless of age."
   },
   "admin.logs.title": {
     "defaultMessage": "Server Logs",
     "description": "Page title of the Server Logs page in the System Console."
   },
-  "admin.logs.Warn": {
-    "defaultMessage": "Warn",
-    "description": "Log severity level (warning) shown in the Server Logs table and its level filter; keep short."
+  "admin.logs.viewInAdmin": {
+    "defaultMessage": "View in admin console",
+    "description": "Tooltip on a user or team ID link in an expanded log entry on the System Console Server Logs page; opens that item in the System Console."
+  },
+  "admin.logs.wrap": {
+    "defaultMessage": "Wrap text",
+    "description": "Toggle button label in the plain text log viewer on the System Console Server Logs page; wraps long log lines instead of scrolling horizontally."
   },
   "admin.manage_roles.additionalRoles": {
     "defaultMessage": "Select additional permissions for the account. <link>Read more about roles and permissions</link>.",
@@ -10274,6 +10578,18 @@
   "admin.openid_feature_discovery.title": {
     "defaultMessage": "Integrate OpenID Connect with Mattermost Professional",
     "description": "Headline on the feature discovery (upsell) page for OpenID Connect; mentions the required plan."
+  },
+  "admin.openid.additionalScopesDescription": {
+    "defaultMessage": "Space-separated scopes to request in addition to profile, openid and email, for claims your provider releases only under another scope, such as groups.",
+    "description": "Help text for the Additional Scopes setting on the OpenID Connect settings page. profile, openid, email and groups are literal OAuth scope names and should stay as-is."
+  },
+  "admin.openid.additionalScopesExample": {
+    "defaultMessage": "E.g.: \"groups\"",
+    "description": "Placeholder of the Additional Scopes setting on the OpenID Connect settings page; groups is a literal scope name."
+  },
+  "admin.openid.additionalScopesTitle": {
+    "defaultMessage": "Additional Scopes:",
+    "description": "Label of the setting on the OpenID Connect settings page that lists extra OAuth scopes to request at sign-in."
   },
   "admin.openid.buttonColorDesc": {
     "defaultMessage": "Specify the color of the OpenID login button for white labeling purposes. Use a hex code with a #-sign before the code.",
@@ -14111,18 +14427,6 @@
     "defaultMessage": "Password",
     "description": "Page title of the Password settings page in the System Console (Authentication section)."
   },
-  "admin.server_logs.CopyLog": {
-    "defaultMessage": "Copy log",
-    "description": "Button in the header of the log event modal (server logs admin page); copies the log entry JSON to the clipboard."
-  },
-  "admin.server_logs.DataCopied": {
-    "defaultMessage": "Data copied",
-    "description": "Confirmation text that briefly replaces the copy button after the log entry has been copied to the clipboard."
-  },
-  "admin.server_logs.LogEvent": {
-    "defaultMessage": "Log Event",
-    "description": "Title of the modal showing the full JSON of a single server log entry."
-  },
   "admin.service.attemptDescription": {
     "defaultMessage": "Login attempts allowed before user is locked out and required to reset password via email.",
     "description": "Admin console help text for the Maximum Login Attempts setting on the Password admin page."
@@ -17359,6 +17663,14 @@
     "defaultMessage": "User not found",
     "description": "Placeholder message on the admin user detail card when the requested user does not exist."
   },
+  "admin.userManagement.userDetail.openId": {
+    "defaultMessage": "OpenID Connect",
+    "description": "Authentication method shown on a user's System Console detail page for a user who signs in through OpenID Connect; 'OpenID Connect' is a product name and should stay as-is."
+  },
+  "admin.userManagement.userDetail.openid": {
+    "defaultMessage": "OpenID Connect: {propertyName}",
+    "description": "Chip on a user's detail page in the System Console naming the OpenID Connect claim an attribute is synced from. {propertyName} is the claim name."
+  },
   "admin.userManagement.userDetail.picture.edit": {
     "defaultMessage": "Edit profile picture",
     "description": "Screen-reader label for the camera button on the user's profile picture on the user detail page in System Console > Users. It opens a menu of picture options."
@@ -17444,7 +17756,7 @@
     "description": "Description of the 'gzip' option in the Webserver Mode dropdown on the System Console Web Server page; gzip is a compression format (keep name)."
   },
   "admin.webserverModeHelpText": {
-    "defaultMessage": "gzip compression applies to static content files. It is recommended to enable gzip to improve performance unless your environment has specific restrictions, such as a web proxy that distributes gzip files poorly.",
+    "defaultMessage": "gzip compression applies to static content files. It is recommended to enable compression to improve performance unless your environment has specific restrictions, such as a web proxy that distributes compressed files poorly.",
     "description": "Help paragraph shown below the Webserver Mode option table in the admin console; explains when to use gzip compression."
   },
   "admin.webserverModeTitle": {
@@ -32895,6 +33207,10 @@
     "defaultMessage": "Login done through Entra ID ({email})",
     "description": "Read-only text in the email row of Profile Settings when the account authenticates via Microsoft Entra ID; {email} is the linked address."
   },
+  "user.settings.general.loginOpenId": {
+    "defaultMessage": "Login done through OpenID Connect ({email})",
+    "description": "Profile settings, collapsed Email row for a user who signs in through OpenID Connect; {email} is the address Mattermost sends notifications to. 'OpenID Connect' is a product name and should stay as-is."
+  },
   "user.settings.general.loginSaml": {
     "defaultMessage": "Login done through SAML ({email})",
     "description": "Read-only text in the email row of Profile Settings when the account authenticates via SAML; {email} is the linked address."
@@ -34248,8 +34564,8 @@
     "description": "Menu item in the help menu that opens the keyboard shortcuts reference."
   },
   "userGuideHelp.mattermostUserGuide": {
-    "defaultMessage": "Mattermost user guide",
-    "description": "Menu item in the help menu linking to the official user documentation."
+    "defaultMessage": "Mattermost documentation",
+    "description": "Menu item in the help menu linking to the Mattermost documentation."
   },
   "userGuideHelp.reportAProblem": {
     "defaultMessage": "Report a problem",

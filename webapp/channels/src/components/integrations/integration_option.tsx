@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react';
+import React, {type JSX, type ReactNode} from 'react';
 import {Link} from 'react-router-dom';
 
 type Props = {
-    image: string;
+    image: ReactNode;
     title: JSX.Element;
     description: JSX.Element;
     link: string;
@@ -17,11 +17,9 @@ const IntegrationOption = ({image, title, description, link}: Props) => {
             to={link}
             className='integration-option'
         >
-            <img
-                alt={'integration image'}
-                className='integration-option__image'
-                src={image}
-            />
+            <div className='integration-option__image'>
+                {image}
+            </div>
             <div className='integration-option__title'>
                 {title}
             </div>
