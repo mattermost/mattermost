@@ -261,6 +261,8 @@ func TestApplySyncLockSourcePlugin(t *testing.T) {
 	assert.Nil(t, field.Permissions.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionValueWrite))
 	assert.NotNil(t, field.Permissions.MatchingGrant(PropertyOwnerTypePlugin, "plugin1", "", PropertyActionFieldWrite))
 	assert.NotNil(t, field.Permissions.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionValueWrite))
+	// Master lets only the source plugin edit a protected field's definition.
+	assert.Nil(t, field.Permissions.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionFieldWrite))
 	assert.False(t, HasPropertyFieldOwners(ProjectLegacyPermissions(field)))
 
 	t.Run("an unsynced field is left as it is", func(t *testing.T) {
@@ -684,9 +686,10 @@ func TestPermissionsFromLegacyGrantsSyncLock(t *testing.T) {
 
 func TestSyncGrantAllow(t *testing.T) {
 	// What master's hook lets the sync caller do on a field synced from its
-	// source: read every option and value whatever the access mode, change
-	// options unless owners or protection stand in the way, and write values
-	// and the definition on a field that holds values.
+	// source: read every option and value whatever the access mode, write
+	// values on a field that holds values, and change options, and the
+	// definition of a field that holds values, unless owners or protection
+	// stand in the way.
 	owners := []PropertyOwner{{Type: PropertyOwnerTypePlugin, ID: "scim"}}
 	tests := map[string]struct {
 		field *PropertyField
@@ -698,15 +701,15 @@ func TestSyncGrantAllow(t *testing.T) {
 		},
 		"owned user field": {
 			field: &PropertyField{ObjectType: PropertyFieldObjectTypeUser, Attrs: StringInterface{PropertyFieldAttrLDAP: "employeeID", PropertyAttrsOwners: owners}},
-			want:  []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionValueRead, PropertyActionValueWrite},
+			want:  []string{PropertyActionOptionRead, PropertyActionValueRead, PropertyActionValueWrite},
 		},
 		"attr-protected user field": {
 			field: &PropertyField{ObjectType: PropertyFieldObjectTypeUser, Attrs: StringInterface{PropertyFieldAttrLDAP: "employeeID", PropertyAttrsProtected: true, PropertyAttrsSourcePluginID: "plugin1"}},
-			want:  []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionValueRead, PropertyActionValueWrite},
+			want:  []string{PropertyActionOptionRead, PropertyActionValueRead, PropertyActionValueWrite},
 		},
 		"column-protected user field": {
 			field: &PropertyField{ObjectType: PropertyFieldObjectTypeUser, Protected: true, Attrs: StringInterface{PropertyFieldAttrLDAP: "employeeID"}},
-			want:  []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionValueRead, PropertyActionValueWrite},
+			want:  []string{PropertyActionOptionRead, PropertyActionValueRead, PropertyActionValueWrite},
 		},
 		"template": {
 			field: &PropertyField{ObjectType: PropertyFieldObjectTypeTemplate, Attrs: StringInterface{PropertyFieldAttrLDAP: "employeeID"}},
