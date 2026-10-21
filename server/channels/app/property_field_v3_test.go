@@ -236,12 +236,15 @@ func TestShapePropertyFieldForCaller(t *testing.T) {
 		})
 		field := newLinkedField(template.ID)
 
+		// The editor is not told the object was filtered: the withheld
+		// details are the template's, which they could not change on this
+		// field anyway, so what they were served is safe to send back.
 		adminSession := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemAdminRoleId}
 		shaped := th.App.ShapePropertyFieldForCaller(th.Context, adminSession, field, true)
 		require.NotNil(t, shaped.Permissions.Masking)
 		assert.Empty(t, shaped.Permissions.Masking.MaskByFieldID)
 		assert.Empty(t, shaped.Permissions.Masking.Except)
-		assert.True(t, shaped.Permissions.Filtered)
+		assert.False(t, shaped.Permissions.Filtered)
 
 		memberSession := model.Session{UserId: th.BasicUser.Id}
 		shaped = th.App.ShapePropertyFieldForCaller(th.Context, memberSession, field, true)
@@ -267,6 +270,10 @@ func TestShapePropertyFieldForCaller(t *testing.T) {
 		require.NotNil(t, shaped.Permissions.Masking)
 		assert.Empty(t, shaped.Permissions.Masking.MaskByFieldID)
 		assert.Empty(t, shaped.Permissions.Masking.Except)
+		// Like an editor, the admin is not told the object was filtered:
+		// they got every grant, and the withheld masking details are the
+		// template's, which nobody can change on this field.
+		assert.False(t, shaped.Permissions.Filtered)
 	})
 
 	t.Run("a linked field whose template is not masked reports no masking", func(t *testing.T) {

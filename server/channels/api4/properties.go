@@ -706,7 +706,19 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		updatedPermissions, err := patch.Permissions.ApplyTo(existingField.Permissions)
+		// A linked field is served its template's masking as presence only
+		// (masking: {}) and may not declare masking of its own, so read that
+		// back as unchanged: sending back the permissions object a linked
+		// field was served then succeeds. Not when the same patch unlinks the
+		// field, where masking: {} means what it says.
+		permissionsPatch := patch.Permissions
+		if existingField.LinkSourceID() != "" && patch.LinkedFieldID == nil && permissionsPatch.MaskingIsPresenceOnly() {
+			withoutMasking := *permissionsPatch
+			withoutMasking.Masking = nil
+			permissionsPatch = &withoutMasking
+		}
+
+		updatedPermissions, err := permissionsPatch.ApplyTo(existingField.Permissions)
 		if err != nil {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.invalid_permissions.app_error", nil, err.Error(), http.StatusBadRequest)
 			return
