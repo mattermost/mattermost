@@ -82,7 +82,7 @@ Bots, deactivated users, and synthetic users in [Microsoft Teams integrations](/
 <tbody>
 <tr>
 <td><p>View logging of server-side events.</p>
-<p>Reload data, download the <code>mattermost.log</code> file locally, and view full log event details for any log entry.</p></td>
+<p>Search and filter log entries by level and time range, reload data, download the <code>mattermost.log</code> file locally, and expand any log entry to view its full details.</p></td>
 <td><ul>
 <li>System Config path: <strong>Reporting &gt; Server Logs</strong></li>
 <li><code>config.json</code> setting: N/A</li>
@@ -95,7 +95,8 @@ Bots, deactivated users, and synthetic users in [Microsoft Teams integrations](/
 <Note>
 
 - This setting is applicable to self-hosted deployments only.
-- From Mattermost v10.9, you can toggle between JSON and plain text server logs in the System Console when console log output is configured as [JSON](/administration-guide/configure/environment-configuration-settings#output-console-logs-as-json) by specifying the log format as **JSON** or **Plain text**. This option is located in the top right corner of the page **Server logs** page.
+- From Mattermost v10.9, you can toggle between structured and plain text server logs in the System Console when console log output is configured as [JSON](/administration-guide/configure/environment-configuration-settings#output-console-logs-as-json) by specifying the log format as **Structured** or **Plain text**. This option is located in the filter row of the **Server logs** page.
+- From Mattermost v12.2, structured logs can be limited to a **Duration**, such as the last 5 minutes, 15 minutes, hour, or 24 hours, and **Live tail** can refresh them automatically every 10, 30, or 60 seconds. Live tail pauses while the browser tab is hidden.
 
 </Note>
 
