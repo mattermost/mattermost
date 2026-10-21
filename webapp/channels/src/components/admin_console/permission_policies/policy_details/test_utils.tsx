@@ -117,7 +117,7 @@ export function setUpPolicyDetailsMocks(): jest.SpyInstance {
     // no-attributes gate.
     mockGetAccessControlFields.mockResolvedValue({
         data: [
-            {id: 'u1', name: 'teams', attrs: {ldap: true}},
+            {id: 'u1', name: 'teams', attrs: {ldap: 'teams'}},
             {id: 'u2', name: 'department', group_id: 'custom_profile_attributes', object_type: 'user', attrs: {managed: 'admin'}},
         ],
     });

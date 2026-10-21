@@ -36,7 +36,7 @@ var pushEmptyURL = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        pushSubject,
-	Eval:           evalPushEmptyURL,
+	Eval:           healthcheck.Gate(pushEnabled, healthcheck.ReasonConfigUnavailable, evalPushEmptyURL),
 }
 
 var pushBadScheme = healthcheck.Rule{
@@ -53,7 +53,7 @@ var pushBadScheme = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        pushSubject,
-	Eval:           evalPushBadScheme,
+	Eval:           healthcheck.Gate(pushEnabled, healthcheck.ReasonConfigUnavailable, evalPushBadScheme),
 }
 
 var pushTestProxy = healthcheck.Rule{
@@ -70,18 +70,15 @@ var pushTestProxy = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        pushSubject,
-	Eval:           evalPushTestProxy,
+	Eval:           healthcheck.Gate(pushEnabled, healthcheck.ReasonConfigUnavailable, evalPushTestProxy),
 }
 
-// pushServer returns the configured push server, with enabled=false when push is off.
-func pushServer(s *healthcheck.Snapshot) (server string, enabled, ok bool) {
-	enabled, ok = s.ConfigBool(func(cfg *model.Config) *bool { return cfg.EmailSettings.SendPushNotifications })
-	if !ok || !enabled {
-		return "", enabled, ok
-	}
+func pushEnabled(s *healthcheck.Snapshot) (bool, bool) {
+	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.EmailSettings.SendPushNotifications })
+}
 
-	server, ok = s.ConfigString(func(cfg *model.Config) *string { return cfg.EmailSettings.PushNotificationServer })
-	return server, true, ok
+func pushServer(s *healthcheck.Snapshot) (string, bool) {
+	return s.ConfigString(func(cfg *model.Config) *string { return cfg.EmailSettings.PushNotificationServer })
 }
 
 func hasScheme(server, scheme string) bool {
@@ -93,40 +90,40 @@ func isTestProxy(server string) bool {
 	return err == nil && u.Scheme == "https" && strings.EqualFold(u.Hostname(), "push-test.mattermost.com")
 }
 
-func evalPushEmptyURL(s *healthcheck.Snapshot) []healthcheck.Result {
-	server, enabled, ok := pushServer(s)
+func evalPushEmptyURL(s *healthcheck.Snapshot) healthcheck.Result {
+	server, ok := pushServer(s)
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	case enabled && server == "":
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_empty_url.message"))}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
+	case server == "":
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.push_empty_url.message"))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
-func evalPushBadScheme(s *healthcheck.Snapshot) []healthcheck.Result {
-	server, enabled, ok := pushServer(s)
+func evalPushBadScheme(s *healthcheck.Snapshot) healthcheck.Result {
+	server, ok := pushServer(s)
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	case !enabled || server == "" || hasScheme(server, "https://"):
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
+	case server == "" || hasScheme(server, "https://"):
+		return healthcheck.Resolved()
 	case hasScheme(server, "http://"):
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_bad_scheme.message.http")).WithDetail("url", server)}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.push_bad_scheme.message.http")).WithDetail("url", server)
 	default:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_bad_scheme.message.missing")).WithDetail("url", server)}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.push_bad_scheme.message.missing")).WithDetail("url", server)
 	}
 }
 
-func evalPushTestProxy(s *healthcheck.Snapshot) []healthcheck.Result {
-	server, enabled, ok := pushServer(s)
+func evalPushTestProxy(s *healthcheck.Snapshot) healthcheck.Result {
+	server, ok := pushServer(s)
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	case enabled && isTestProxy(server):
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_test_proxy.message")).WithDetail("url", server)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
+	case isTestProxy(server):
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.push_test_proxy.message")).WithDetail("url", server)
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }

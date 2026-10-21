@@ -10,6 +10,9 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"slices"
+	"strconv"
 	"testing"
 	"time"
 
@@ -44,6 +47,10 @@ func TestBuildHealthSnapshotStandaloneLeaderDiagnostics(t *testing.T) {
 	for _, section := range model.AllNodeSections() {
 		assert.True(t, nodes[0].Has(section), "section %q", section)
 	}
+
+	hostname, err := os.Hostname()
+	require.NoError(t, err)
+	assert.Equal(t, hostname, nodes[0].Hostname)
 }
 
 // threeNodeCluster reports this node as id-2 of three.
@@ -201,13 +208,20 @@ func TestBuildHealthSnapshotLatestVersionDropsTagPrefix(t *testing.T) {
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).InitBasic(t)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.SiteURL = model.NewPointer("http://chat.example.com")
 		cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
 		cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
+		// The live and packet collections each probe SMTP and could disagree.
+		cfg.EmailSettings.SendEmailNotifications = model.NewPointer(false)
+		cfg.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
+		cfg.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
+		cfg.SqlSettings.QueryTimeout = model.NewPointer(60)
+		cfg.ComplianceSettings.Enable = model.NewPointer(true)
+		cfg.ComplianceSettings.Directory = model.NewPointer("")
+		cfg.MetricsSettings.Enable = model.NewPointer(true)
 	})
-
 	// Without it the permissions collector fails and the packet carries a warning.txt.
 	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 	require.NoError(t, err)
@@ -216,19 +230,51 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		require.NoError(t, deleteErr)
 	})
 
+	license := model.NewTestLicense()
+	license.Id = model.NewId()
+	license.Customer.Id = model.NewId()
+	// Half a day past a whole day count keeps both snapshots, taken moments apart, on the same count.
+	license.ExpiresAt = time.Now().Add(10*24*time.Hour + 12*time.Hour).UnixMilli()
+	license.IsTrial = true
+	license.IsSeatCountEnforced = true
+	license.ExtraUsers = model.NewPointer(5)
+	license.Features.Users = model.NewPointer(1_000_000)
+	require.True(t, th.App.Srv().SetLicense(license))
+	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+
+	// Half an hour off the hour boundary, so the reported idle hours match although the packet is generated later.
+	stale := time.Now().Add(-30*time.Hour - 30*time.Minute).UnixMilli()
+	for _, job := range []*model.Job{
+		{Id: model.NewId(), Type: model.JobTypeDataRetention, CreateAt: stale - 1000, LastActivityAt: stale - 1000, Status: model.JobStatusError, Data: model.StringMap{"error": "driver: bad connection"}},
+		{Id: model.NewId(), Type: model.JobTypeDataRetention, CreateAt: stale, StartAt: stale, LastActivityAt: stale, Status: model.JobStatusInProgress},
+	} {
+		_, err = th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_, deleteErr := th.App.Srv().Store().Job().Delete(job.Id)
+			require.NoError(t, deleteErr)
+		})
+	}
+
 	err = th.App.clearLatestVersionCache()
 	require.NoError(t, err)
 
 	live, err := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
 	require.NoError(t, err)
 
-	var zipped bytes.Buffer
 	var noCPUProfile time.Duration
 	files := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{CPUProfileDuration: &noCPUProfile})
-	require.NoError(t, th.App.WriteZipFile(&zipped, files))
-	offline, err := packet.Read(bytes.NewReader(zipped.Bytes()), int64(zipped.Len()))
-	require.NoError(t, err)
-	assert.Empty(t, offline.Warnings)
+	readPacket := func(t *testing.T, files []model.FileData) *packet.Packet {
+		t.Helper()
+
+		var zipped bytes.Buffer
+		require.NoError(t, th.App.WriteZipFile(&zipped, files))
+		p, readErr := packet.Read(bytes.NewReader(zipped.Bytes()), int64(zipped.Len()))
+		require.NoError(t, readErr)
+		assert.Empty(t, p.Warnings)
+		return p
+	}
+	offline := readPacket(t, files)
 
 	// Offline has no feed; align it so only the rules are compared.
 	offline.Snapshot.Version.Latest = live.Version.Latest
@@ -238,19 +284,78 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		Registry: healthcheck.Builtin(),
 		Now:      func() time.Time { return evaluatedAt },
 	})
-	liveEvaluations := engine.Evaluate(live)
-	offlineEvaluations := engine.Evaluate(offline.Snapshot)
+	evaluate := func(t *testing.T, snapshot *healthcheck.Snapshot) []healthcheck.Evaluation {
+		t.Helper()
+
+		evaluations := engine.Evaluate(snapshot)
+		// Each collection samples the open file descriptor count separately.
+		for i := range evaluations {
+			if evaluations[i].Code == "NODE_FD_EXHAUSTION" {
+				require.NotNil(t, evaluations[i].Result.Value)
+				evaluations[i].Result.Value = nil
+			}
+		}
+		return evaluations
+	}
+	liveEvaluations := evaluate(t, live)
 
 	require.NotEmpty(t, liveEvaluations)
-	assert.Equal(t, liveEvaluations, offlineEvaluations)
+	assert.Equal(t, liveEvaluations, evaluate(t, offline.Snapshot))
 
-	firing := map[string]bool{}
+	states := map[string]healthcheck.State{}
 	for _, evaluation := range liveEvaluations {
-		if evaluation.Result.State == healthcheck.StateFiring {
-			firing[evaluation.Code] = true
+		// Job rules report one subject per job type; any firing subject makes the code firing.
+		if states[evaluation.Code] != healthcheck.StateFiring {
+			states[evaluation.Code] = evaluation.Result.State
+		}
+		if evaluation.Code == "LICENSE_EXPIRING" {
+			assert.Equal(t, "health.rule.license_expiring.message.trial", evaluation.Result.MessageID)
 		}
 	}
-	assert.Equal(t, map[string]bool{"PUSH_BAD_SCHEME": true, "SITE_URL_HTTP": true}, firing)
+	for code, want := range map[string]healthcheck.State{
+		"COMPLIANCE_NO_DIR":     healthcheck.StateFiring,
+		"DB_QUERY_TIMEOUT_HIGH": healthcheck.StateFiring,
+		"JOB_FAILED":            healthcheck.StateFiring,
+		"JOB_STUCK":             healthcheck.StateFiring,
+		"PUSH_BAD_SCHEME":       healthcheck.StateFiring,
+		"PUSH_ID_ONLY":          healthcheck.StateFiring,
+		"SITE_URL_HTTP":         healthcheck.StateFiring,
+		"LICENSE_EXPIRED":       healthcheck.StateResolved,
+		"LICENSE_EXPIRING":      healthcheck.StateFiring,
+		"SEATS_OVER_DEPLOYED":   healthcheck.StateResolved,
+		"SEATS_LIMIT_REACHED":   healthcheck.StateResolved,
+		"SEATS_NEAR_CAPACITY":   healthcheck.StateResolved,
+	} {
+		assert.Equal(t, want, states[code], code)
+	}
+
+	t.Run("a packet without the license expiry differs only in the codes that need it", func(t *testing.T) {
+		olderFiles := slices.Clone(files)
+		stripped := false
+		for i, file := range olderFiles {
+			if file.Filename == model.SupportPacketDiagnosticsFileName {
+				expiresAt := []byte("  expires_at: " + strconv.FormatInt(license.ExpiresAt, 10) + "\n")
+				require.Contains(t, string(file.Body), string(expiresAt))
+				olderFiles[i].Body = bytes.Replace(file.Body, expiresAt, nil, 1)
+				stripped = true
+			}
+		}
+		require.True(t, stripped)
+
+		needsExpiry := []string{"LICENSE_EXPIRED", "LICENSE_EXPIRING", "SEATS_LIMIT_REACHED"}
+		older := readPacket(t, olderFiles)
+		older.Snapshot.Version.Latest = live.Version.Latest
+		olderEvaluations := evaluate(t, older.Snapshot)
+		require.Len(t, olderEvaluations, len(liveEvaluations))
+		for i, evaluation := range olderEvaluations {
+			if slices.Contains(needsExpiry, evaluation.Code) {
+				assert.Equal(t, healthcheck.StateUnknown, evaluation.Result.State, evaluation.Code)
+				assert.Equal(t, healthcheck.ReasonLicenseUnavailable, evaluation.Result.MessageID, evaluation.Code)
+			} else {
+				assert.Equal(t, liveEvaluations[i], evaluation, evaluation.Code)
+			}
+		}
+	})
 }
 
 func TestClusterNodes(t *testing.T) {

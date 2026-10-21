@@ -83,7 +83,9 @@ func (a *App) checkUserPassword(user *model.User, password string) *model.AppErr
 
 	// Migrate the password if needed
 	if !hashers.IsLatestHasher(hasher) {
-		return a.migratePassword(user, password)
+		if err := a.migratePassword(user, password); err != nil {
+			return model.AsAppError(err)
+		}
 	}
 
 	return nil
@@ -91,7 +93,7 @@ func (a *App) checkUserPassword(user *model.User, password string) *model.AppErr
 
 // migratePassword updates the database with the user's password hashed with the
 // latest hashing method. It assumes that the password has been already validated.
-func (a *App) migratePassword(user *model.User, password string) *model.AppError {
+func (a *App) migratePassword(user *model.User, password string) error {
 	// Compute the new hash with the latest hashing method
 	newHash, err := hashers.Hash(password)
 	if err != nil {
