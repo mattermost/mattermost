@@ -1122,14 +1122,15 @@ func (h *AccessControlHook) permissionsGrantAllows(field *model.PropertyField, c
 // allows action. An owned or protected field has no such grant for a value
 // write, so the sync is still refused there, as master's owners and
 // protected checks refuse it. Only a user field takes a sync link, so a
-// channel or post field never admits it.
-func (h *AccessControlHook) lateLinkedSyncAllows(rctx request.CTX, field *model.PropertyField, callerID, action string) bool {
+// channel or post field never admits it. The template is read once per call
+// through mc, however many values are judged.
+func (h *AccessControlHook) lateLinkedSyncAllows(rctx request.CTX, mc maskingContext, field *model.PropertyField, callerID, action string) bool {
 	if model.PropertySyncSourceForCallerID(callerID) == "" || field.Permissions == nil ||
 		field.ObjectType != model.PropertyFieldObjectTypeUser || field.LinkSourceID() == "" ||
 		!wildcardPluginGrantAllows(field.Permissions, action) {
 		return false
 	}
-	return h.propertyService.isDefinitionSync(rctx, field, callerID)
+	return mc.isDefinitionSync(rctx, h.propertyService, field, callerID)
 }
 
 // wildcardPluginGrantAllows reports whether p's unscoped catch-all plugin
@@ -1356,7 +1357,7 @@ func (h *AccessControlHook) checkValueWriteAccess(rctx request.CTX, mc maskingCo
 	if field.Permissions != nil {
 		if isMachineCaller(h.pluginChecker, callerID) {
 			if !h.permissionsGrantAllows(field, callerID, scope, model.PropertyActionValueWrite) &&
-				!h.lateLinkedSyncAllows(rctx, field, callerID, model.PropertyActionValueWrite) {
+				!h.lateLinkedSyncAllows(rctx, mc, field, callerID, model.PropertyActionValueWrite) {
 				return fmt.Errorf("field %s carries permissions and caller %q acting as scope %q matches no value.write grant: %w", field.ID, callerID, scope, ErrAccessDenied)
 			}
 		} else if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueWrite, valueTargetID) {
@@ -1670,7 +1671,7 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 		}
 
 		if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueRead, value.TargetID) &&
-			!h.lateLinkedSyncAllows(rctx, field, callerID, model.PropertyActionValueRead) {
+			!h.lateLinkedSyncAllows(rctx, mc, field, callerID, model.PropertyActionValueRead) {
 			continue
 		}
 		if field.Permissions == nil {

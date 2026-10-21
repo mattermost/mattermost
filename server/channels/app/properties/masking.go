@@ -56,12 +56,18 @@ type fieldMasking struct {
 //
 // existingValues holds a row a delete path already loaded and handed in via
 // primeStoredValue, so the visibility check does not read it a second time.
+//
+// templateSyncs holds lateLinkedSyncAllows's answer to whether a template is
+// synced from a sync caller's source, which it would otherwise read from the
+// template once per value: a sync run reads every user's values on the fields
+// it maps.
 type maskingContext struct {
 	fieldMasking      map[string]fieldMasking
 	fieldMaskingErrs  map[string]error
 	holdingsValues    map[string][]*model.PropertyValue
 	holdingsOptionIDs map[string]map[string]struct{}
 	existingValues    map[[2]string]*model.PropertyValue
+	templateSyncs     map[[2]string]bool
 }
 
 // newMaskingContext returns an empty maskingContext, built once per hook call
@@ -74,6 +80,7 @@ func newMaskingContext() maskingContext {
 		holdingsValues:    make(map[string][]*model.PropertyValue),
 		holdingsOptionIDs: make(map[string]map[string]struct{}),
 		existingValues:    make(map[[2]string]*model.PropertyValue),
+		templateSyncs:     make(map[[2]string]bool),
 	}
 }
 
@@ -119,6 +126,23 @@ func (c maskingContext) resolve(h *AccessControlHook, rctx request.CTX, field *m
 	}
 	c.fieldMasking[field.ID] = fm
 	return fm, nil
+}
+
+// isDefinitionSync is PropertyService.isDefinitionSync, reading a linked
+// field's template once per template and sync source for the lifetime of this
+// maskingContext. A field synced itself, or not linked, needs no template, so
+// it is answered directly.
+func (c maskingContext) isDefinitionSync(rctx request.CTX, ps *PropertyService, field *model.PropertyField, callerID string) bool {
+	if model.IsPropertyFieldSynced(field) || field.LinkSourceID() == "" {
+		return ps.isDefinitionSync(rctx, field, callerID)
+	}
+	key := [2]string{field.LinkSourceID(), model.PropertySyncSourceForCallerID(callerID)}
+	if synced, ok := c.templateSyncs[key]; ok {
+		return synced
+	}
+	synced := ps.isDefinitionSync(rctx, field, callerID)
+	c.templateSyncs[key] = synced
+	return synced
 }
 
 // callerValuesForHoldings returns the caller's raw values on holdingsFieldID,

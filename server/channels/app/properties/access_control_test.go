@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -634,6 +635,60 @@ func TestLateLinkedSyncValueAccess(t *testing.T) {
 		assert.NoError(t, writeAs(RequestContextWithCallerID(th.Context, "plugin-owner"), field))
 	})
 
+	t.Run("one call reads the template once however many values it judges", func(t *testing.T) {
+		field := lateLinked(t, rctxAdmin, model.PropertyFieldObjectTypeUser, model.PropertyFieldAttrLDAP, nil)
+		const count = 20
+		values := make([]*model.PropertyValue, 0, count)
+		ids := make([]string, 0, count)
+		for range count {
+			stored, err := th.dbStore.PropertyValue().Create(&model.PropertyValue{
+				GroupID:    th.CPAGroupID,
+				FieldID:    field.ID,
+				TargetType: "user",
+				TargetID:   model.NewId(),
+				Value:      json.RawMessage(`"v"`),
+			})
+			require.NoError(t, err)
+			ids = append(ids, stored.ID)
+			values = append(values, &model.PropertyValue{
+				GroupID:    th.CPAGroupID,
+				FieldID:    field.ID,
+				TargetType: "user",
+				TargetID:   model.NewId(),
+				Value:      json.RawMessage(`"w"`),
+			})
+		}
+
+		counter := &masterGetCountingFieldStore{PropertyFieldStore: th.service.fieldStore, id: *field.LinkedFieldID}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		read, err := th.service.GetPropertyValues(rctxLDAP, th.CPAGroupID, ids)
+		require.NoError(t, err)
+		assert.Len(t, read, count)
+		assert.Equal(t, 1, counter.reads)
+
+		counter.reads = 0
+		written, err := th.service.UpsertPropertyValues(rctxLDAP, values)
+		require.NoError(t, err)
+		assert.Len(t, written, count)
+		assert.Equal(t, 1, counter.reads)
+	})
+}
+
+// masterGetCountingFieldStore counts the reads of one field from the master
+// database.
+type masterGetCountingFieldStore struct {
+	store.PropertyFieldStore
+	id    string
+	reads int
+}
+
+func (s *masterGetCountingFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
+	if id == s.id && store.HasMaster(rctx.Context()) {
+		s.reads++
+	}
+	return s.PropertyFieldStore.Get(rctx, groupID, id)
 }
 
 // TestSyncOptionChangeOnUnlinkedTemplate covers the answers a sync gets from
