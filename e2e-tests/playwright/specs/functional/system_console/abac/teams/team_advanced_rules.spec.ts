@@ -17,6 +17,7 @@ import {
     expect,
     getAdminClient,
     getRandomId,
+    hasCustomPermissionsSchemesLicense,
     newTestPassword,
     test,
     verifyUserInChannel,
@@ -811,7 +812,7 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
 
         // * Deleting the policy is refused
         await expectServerRejection(
-            () => teamAdminClient.deleteAccessControlPolicy(team.id),
+            () => teamAdminClient.deleteAccessControlPolicy(team.id, team.id),
             403,
             ADVANCED_RULE_ERROR_ID,
             'team admin deleted an Advanced rule',
@@ -897,12 +898,20 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     /**
-     * @objective Only System Admins get the Advanced toggle on the System Console team page;
-     *            other console admins see an Advanced rule read-only.
+     * @objective The System Console team membership rules section is System Admin only;
+     *            a System Manager sees neither the rule nor the Advanced toggle.
      */
-    test('MM-71104-T21 a System Manager sees an Advanced rule read-only with no toggle', async ({pw}) => {
+    test('MM-71104-T21 a System Manager does not see the team membership rules section', async ({pw}) => {
         test.setTimeout(180_000);
         const {adminClient, team} = await setupFixture(pw);
+
+        // Assigning system_manager needs the Custom Permission Schemes license feature.
+        const license = await adminClient.getClientLicenseOld();
+        test.skip(
+            !hasCustomPermissionsSchemesLicense(license),
+            'Skipping test - server does not have Custom Permission Schemes',
+        );
+
         await createTeamMembershipPolicy(adminClient, team.id, orRule(), false);
 
         // # A System Manager: console access to teams, but not manage_system
@@ -928,15 +937,17 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         ]);
 
         const {page} = await pw.testBrowser.login(systemManager);
-        const rulesPanel = await openTeamRules(page, team);
 
-        // * The rule is shown, but with no way into or out of Advanced and nothing editable
-        await expect(rulesPanel.locator('.cel-editor')).toContainText(orRule(), {timeout: 15_000});
+        // The Teams list hides governed private teams from non-system admins who don't
+        // qualify for them, so open the team page by URL.
+        await page.goto(`/admin_console/user_management/teams/${team.id}`);
+        await expect(page.getByText('Team Management', {exact: true})).toBeVisible({timeout: 15_000});
+
+        // * The access control settings are stripped from a System Manager's config, so the
+        //   whole ABAC section stays hidden: no enforce toggle, no rules, no Advanced toggle
+        await expect(page.getByTestId('policy-enforce-toggle-button')).toHaveCount(0);
+        await expect(page.locator('#team_level_access_rules')).toHaveCount(0);
         await expect(page.getByTestId('team-rules-editor-mode-toggle')).toHaveCount(0);
-        await expect(rulesPanel.getByTestId('team-rules-advanced-locked')).toContainText(
-            'Only a System Admin can change them',
-        );
-        await expect(rulesPanel.getByTestId('team-auto-add-members-checkbox')).toBeDisabled();
 
         expect(await getMembershipExpression(adminClient, team.id)).toBe(orRule());
     });
