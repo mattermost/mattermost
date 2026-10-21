@@ -103,6 +103,7 @@ type Store interface {
 	ContentFlagging() ContentFlaggingStore
 	DeliveryTracking() DeliveryTrackingStore
 	Recap() RecapStore
+	RecentSearch() RecentSearchStore
 	ScheduledRecap() ScheduledRecapStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
@@ -1494,6 +1495,15 @@ type ChannelJoinRequestStore interface {
 	GetForUser(userId string, opts model.GetChannelJoinRequestsOpts) ([]*model.ChannelJoinRequest, int64, error)
 	Update(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error)
 	CountPending(channelId string) (int64, error)
+}
+
+// RecentSearchStore persists the last five message/file searches per user.
+// TimerLayer and RetryLayer expose this store through the embedded child Store
+// until `make store-layers` is regenerated.
+type RecentSearchStore interface {
+	Save(search *model.RecentSearch) (*model.RecentSearch, error)
+	GetByUser(userID string, limit int) ([]*model.RecentSearch, error)
+	Delete(userID, id string) error
 }
 
 type RecapStore interface {

@@ -5,6 +5,7 @@ import {combineReducers} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import type {RecentSearch} from '@mattermost/types/search';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {PostTypes, PreferenceTypes, SearchTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -294,6 +295,30 @@ function truncationInfo(state = {posts: 0, files: 0}, action: MMReduxAction) {
     }
 }
 
+function recentSearchKey(search: RecentSearch) {
+    return `${search.user_id}|${search.terms}|${search.search_type}|${search.team_id}`;
+}
+
+function recentSearches(state: RecentSearch[] = [], action: MMReduxAction): RecentSearch[] {
+    switch (action.type) {
+    case SearchTypes.RECEIVED_RECENT_SEARCHES:
+        return (action.data || []).slice(0, 5);
+    case SearchTypes.RECEIVED_RECENT_SEARCH: {
+        const incoming = action.data as RecentSearch;
+        const next = state.filter((item) => item.id !== incoming.id && recentSearchKey(item) !== recentSearchKey(incoming));
+        next.unshift(incoming);
+        next.sort((a, b) => b.update_at - a.update_at);
+        return next.slice(0, 5);
+    }
+    case SearchTypes.REMOVED_RECENT_SEARCH:
+        return state.filter((item) => item.id !== action.data);
+    case UserTypes.LOGOUT_SUCCESS:
+        return [];
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
 
     // An ordered array with posts ids of flagged posts
@@ -326,4 +351,7 @@ export default combineReducers({
 
     // Object tracking truncation info for posts and files separately
     truncationInfo,
+
+    // Last five message/file searches for the current user
+    recentSearches,
 });

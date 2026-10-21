@@ -14,6 +14,7 @@ import type {Job} from '@mattermost/types/jobs';
 import type {PluginManifest} from '@mattermost/types/plugins';
 import type {Post, PostAcknowledgement as PostAcknowledgementType} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import type {RecentSearch} from '@mattermost/types/search';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
@@ -379,6 +380,12 @@ export type PreferencesChanged =
     BaseWebSocketMessage<WebSocketEvents.PreferencesChanged | WebSocketEvents.PreferencesDeleted, {
         preferences: JsonEncodedValue<PreferenceType[]>;
     }>;
+
+export type RecentSearchUpdated = BaseWebSocketMessage<WebSocketEvents.RecentSearchUpdated, {
+    action: 'save' | 'delete';
+    item?: JsonEncodedValue<RecentSearch>;
+    id?: string;
+}>;
 
 // Channel sidebar messages
 

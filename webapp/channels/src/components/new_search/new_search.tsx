@@ -19,6 +19,7 @@ import styled from 'styled-components';
 
 import {isDesktopApp, getDesktopVersion, isMacApp} from '@mattermost/shared/utils/user_agent';
 
+import {saveRecentSearch} from 'mattermost-redux/actions/search';
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 import {getIsCrossTeamSearchEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
@@ -252,6 +253,15 @@ const NewSearch = (): JSX.Element => {
                     }
                 });
             }
+
+            if ((searchType === 'messages' || searchType === 'files') && searchTerms.trim()) {
+                dispatch(saveRecentSearch({
+                    terms: searchTerms.trim(),
+                    search_type: searchType,
+                    team_id: searchTeam || '',
+                }));
+            }
+
             setFocused(false);
             setCurrentChannel('');
         }, [pluginSearch, currentTeamId]);

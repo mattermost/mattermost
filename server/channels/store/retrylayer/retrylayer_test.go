@@ -76,6 +76,7 @@ func genStore() *mocks.Store {
 	mock.On("DeliveryTracking").Return(&mocks.DeliveryTrackingStore{})
 	mock.On("ReadReceipt").Return(&mocks.ReadReceiptStore{})
 	mock.On("Recap").Return(&mocks.RecapStore{})
+	mock.On("RecentSearch").Return(&mocks.RecentSearchStore{})
 	mock.On("ScheduledRecap").Return(&mocks.ScheduledRecapStore{})
 	mock.On("TemporaryPost").Return(&mocks.TemporaryPostStore{})
 	mock.On("View").Return(&mocks.ViewStore{})

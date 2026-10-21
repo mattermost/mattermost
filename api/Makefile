@@ -19,6 +19,7 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/channels.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/posts.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/preferences.yaml >> $(V4_YAML)
+	@cat $(V4_SRC)/recent_searches.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/files.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/recaps.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/uploads.yaml >> $(V4_YAML)

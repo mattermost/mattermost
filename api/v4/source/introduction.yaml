@@ -412,6 +412,8 @@ tags:
     description: Endpoints for creating and managing board channels (kanban-backed channels with linked properties). Gated behind the `IntegratedBoards` feature flag.
   - name: preferences
     description: Endpoints for saving and modifying user preferences.
+  - name: recent_searches
+    description: Endpoints for a user's recent message and file searches.
   - name: status
     description: Endpoints for getting and updating user statuses.
   - name: emoji

@@ -17,6 +17,7 @@ export default class SearchBox {
     readonly searchBoxClose;
     readonly selectedSuggestion;
     readonly searchHints;
+    readonly recentSearches;
     readonly clearButton;
     readonly teamSelector: SearchTeamSelector;
 
@@ -29,6 +30,7 @@ export default class SearchBox {
         this.searchBoxClose = container.getByTestId('searchBoxClose');
         this.selectedSuggestion = container.getByTestId('suggestion-selected').getByTestId('suggestion-list__main');
         this.searchHints = container.locator('#searchHints');
+        this.recentSearches = container.getByTestId('recentSearches');
         this.clearButton = container.getByTestId('input-clear');
         this.teamSelector = new SearchTeamSelector(container.getByTestId('searchTeamSelector'));
     }
@@ -70,6 +72,14 @@ export default class SearchBox {
      * Locates a day in the "on:" date-filter day picker by day-of-month.
      * @param dayOfMonth
      */
+    getRecentSearch(terms: string) {
+        return this.recentSearches.getByRole('button', {name: `Search again: ${terms}`});
+    }
+
+    getRecentSearchClear(terms: string) {
+        return this.recentSearches.getByRole('button', {name: `Clear ${terms}`});
+    }
+
     getDayPickerDay(dayOfMonth: number): Locator {
         return getDayPickerDayCell(this.container, dayOfMonth);
     }

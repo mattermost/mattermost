@@ -1,0 +1,29 @@
+---
+description: Spec-driven development workflow (OpenSpec + lidr-specboot)
+alwaysApply: true
+---
+
+# Spec-driven development
+
+Use OpenSpec + lidr-specboot for planned feature work. Do not copy `lidr-specboot/docs/` into Mattermost `docs/`.
+
+## Command flow
+
+1. `/enrich-us` — refine the user story
+2. `/ff` (or `/opsx-ff`) — create OpenSpec artifacts
+3. `/apply` (or `/opsx-apply`) — implement tasks one by one
+4. `/verify` (or `/opsx-verify`) — check code against artifacts
+5. `/adversarial-review` — independent review before archive
+6. `/archive` (or `/opsx-archive`)
+7. `/commit`
+
+## Sources of truth
+
+- Workflow: `openspec/config.yaml`, `lidr-specboot/docs/base-standards.md`
+- Tasks checklist: `lidr-specboot/docs/openspec-tasks-mandatory-steps.md`
+- Course story: `user_stories.md`
+- Mattermost code rules: `server/AGENTS.md`, `webapp/AGENTS.md`
+
+Treat lidr-specboot backend/frontend docs as TDD/process guidance only. Follow existing Go/React patterns in this repo.
+
+If a change is requested after `/apply` and before `/archive`, update OpenSpec artifacts first, then code.

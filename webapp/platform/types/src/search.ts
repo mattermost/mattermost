@@ -6,6 +6,22 @@ export type Search = {
     isOrSearch: boolean;
 };
 
+export type RecentSearchType = 'messages' | 'files';
+
+export type RecentSearch = {
+    id: string;
+    user_id: string;
+    terms: string;
+    search_type: RecentSearchType;
+    team_id: string;
+    create_at: number;
+    update_at: number;
+};
+
+export type RecentSearchList = {
+    items: RecentSearch[];
+};
+
 export type SearchState = {
     current: any;
     results: string[];
@@ -22,6 +38,7 @@ export type SearchState = {
         posts: number;
         files: number;
     };
+    recentSearches: RecentSearch[];
 };
 
 export type SearchParameter = {

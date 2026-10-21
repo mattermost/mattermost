@@ -1,0 +1,125 @@
+  "/api/v4/users/{user_id}/recent_searches":
+    get:
+      tags:
+        - recent_searches
+      summary: Get recent searches
+      description: >
+        Get the current user's last five message and file searches, newest first.
+
+
+        ##### Permissions
+
+        Must be logged in as the user identified by `user_id` (or `me`). System
+        administrators cannot read another user's search history.
+      operationId: GetRecentSearches
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID or `me`
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recent searches retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecentSearchList"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - recent_searches
+      summary: Save a recent search
+      description: >
+        Record a message or file search for the current user. Duplicate terms,
+        type, and team combinations refresh recency. Only the five most recent
+        searches are kept.
+
+
+        ##### Permissions
+
+        Must be logged in as the user identified by `user_id` (or `me`).
+      operationId: SaveRecentSearch
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID or `me`
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - terms
+                - search_type
+              properties:
+                terms:
+                  type: string
+                search_type:
+                  type: string
+                  enum:
+                    - messages
+                    - files
+                team_id:
+                  type: string
+      responses:
+        "200":
+          description: Recent search saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecentSearch"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/recent_searches/{search_id}":
+    delete:
+      tags:
+        - recent_searches
+      summary: Delete a recent search
+      description: >
+        Delete one recent search owned by the current user. A missing or
+        foreign id returns 404.
+
+
+        ##### Permissions
+
+        Must be logged in as the user identified by `user_id` (or `me`).
+      operationId: DeleteRecentSearch
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID or `me`
+          required: true
+          schema:
+            type: string
+        - name: search_id
+          in: path
+          description: Recent search GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recent search deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

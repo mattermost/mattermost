@@ -104,6 +104,7 @@ export type WebSocketMessage = (
 
     Messages.JobUpdated |
     Messages.RecapUpdated |
+    Messages.RecentSearchUpdated |
 
     Messages.FileDownloadRejected |
     Messages.FileUploadRejected |

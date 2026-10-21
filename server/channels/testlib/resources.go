@@ -7,8 +7,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 
 	"github.com/pkg/errors"
 
@@ -172,8 +174,8 @@ func SetupTestResources() (string, error) {
 				}
 			}
 		} else if testResource.action == actionSymlink {
-			destDir := path.Dir(resourceDestInTemp)
-			if destDir != "." {
+			destDir := filepath.Dir(resourceDestInTemp)
+			if destDir != "." && destDir != string(filepath.Separator) {
 				err = os.MkdirAll(destDir, os.ModePerm)
 				if err != nil {
 					return "", errors.Wrapf(err, "failed to make dir %s", destDir)
@@ -181,6 +183,17 @@ func SetupTestResources() (string, error) {
 			}
 
 			err = os.Symlink(testResource.src, resourceDestInTemp)
+			if err != nil && runtime.GOOS == "windows" {
+				absSrc, absErr := filepath.Abs(testResource.src)
+				if absErr != nil {
+					return "", errors.Wrapf(err, "failed to symlink %s to %s", testResource.src, resourceDestInTemp)
+				}
+				out, jerr := exec.Command("cmd", "/c", "mklink", "/J", resourceDestInTemp, absSrc).CombinedOutput()
+				if jerr != nil {
+					return "", errors.Wrapf(err, "failed to symlink %s to %s (junction: %s)", testResource.src, resourceDestInTemp, string(out))
+				}
+				err = nil
+			}
 			if err != nil {
 				return "", errors.Wrapf(err, "failed to symlink %s to %s", testResource.src, resourceDestInTemp)
 			}

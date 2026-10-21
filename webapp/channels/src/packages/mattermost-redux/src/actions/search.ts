@@ -5,7 +5,7 @@ import {batchActions} from 'redux-batched-actions';
 
 import type {FileSearchResults, FileSearchResultItem} from '@mattermost/types/files';
 import type {PostList, PostSearchResults} from '@mattermost/types/posts';
-import type {SearchParameter} from '@mattermost/types/search';
+import type {RecentSearch, SearchParameter} from '@mattermost/types/search';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -308,6 +308,78 @@ export function getPinnedPosts(channelId: string): ActionFuncAsync {
         ], 'SEARCH_PINNED_POSTS_BATCH'));
 
         return {data: result};
+    };
+}
+
+export function getRecentSearches(): ActionFuncAsync<RecentSearch[]> {
+    return async (dispatch, getState) => {
+        const userId = getCurrentUserId(getState()) || 'me';
+
+        try {
+            const list = await Client4.getRecentSearches(userId);
+            const items = list?.items || [];
+            dispatch({
+                type: SearchTypes.RECEIVED_RECENT_SEARCHES,
+                data: items,
+            });
+            return {data: items};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function saveRecentSearch(search: Pick<RecentSearch, 'terms' | 'search_type' | 'team_id'>): ActionFuncAsync<RecentSearch> {
+    return async (dispatch, getState) => {
+        const userId = getCurrentUserId(getState()) || 'me';
+
+        try {
+            const saved = await Client4.saveRecentSearch(userId, search);
+            dispatch({
+                type: SearchTypes.RECEIVED_RECENT_SEARCH,
+                data: saved,
+            });
+            return {data: saved};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function deleteRecentSearch(searchId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const userId = getCurrentUserId(getState()) || 'me';
+
+        try {
+            await Client4.deleteRecentSearch(userId, searchId);
+            dispatch({
+                type: SearchTypes.REMOVED_RECENT_SEARCH,
+                data: searchId,
+            });
+            return {data: true};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function receivedRecentSearch(search: RecentSearch) {
+    return {
+        type: SearchTypes.RECEIVED_RECENT_SEARCH,
+        data: search,
+    };
+}
+
+export function removedRecentSearch(searchId: string) {
+    return {
+        type: SearchTypes.REMOVED_RECENT_SEARCH,
+        data: searchId,
     };
 }
 

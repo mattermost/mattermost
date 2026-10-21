@@ -1,0 +1,27 @@
+{
+  "name": "@lidr/lidr-specboot",
+  "version": "0.1.0",
+  "description": "Augmented Spec-driven development powered by OpenSpec. Boot an extended version ofOpenSpec's Spec-Driven workflow in any project and give superpowers to any coding agent. ",
+  "keywords": [
+    "claude",
+    "cursor",
+    "openspec",
+    "ai",
+    "coding-agent",
+    "spec-driven-development",
+    "llm"
+  ],
+  "homepage": "https://lidr.co/ia-devs",
+  "license": "MIT",
+  "author": "LIDR.co",
+  "bin": {
+    "lidr-specboot": "./bin/init.js"
+  },
+  "files": [
+    "bin/",
+    "template/"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

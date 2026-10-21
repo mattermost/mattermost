@@ -85,6 +85,7 @@ import {
     fetchSystemPropertyValues,
 } from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
+import {getRecentSearches, receivedRecentSearch, removedRecentSearch} from 'mattermost-redux/actions/search';
 import {invalidateRenderDecisionsForChannel, clearRenderDecisions} from 'mattermost-redux/actions/render_permissions';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
@@ -383,6 +384,8 @@ export function reconnect() {
     // Manifest may have changed; tell the Desktop App to re-fetch it.
     DesktopApp.invalidateSessionAttributeManifest();
 
+    dispatch(getRecentSearches());
+
     dispatch(resetWsErrorCount());
     dispatch(clearErrors());
 }
@@ -602,6 +605,10 @@ export function handleEvent(msg: WebSocketMessage) {
 
     case WebSocketEvents.PreferencesChanged:
         handlePreferencesChangedEvent(msg);
+        break;
+
+    case WebSocketEvents.RecentSearchUpdated:
+        handleRecentSearchUpdatedEvent(msg);
         break;
 
     case WebSocketEvents.PreferencesDeleted:
@@ -1854,6 +1861,18 @@ function handlePreferencesChangedEvent(msg: WebSocketMessages.PreferencesChanged
 
     if (preferences.findIndex(addedNewGmUser) !== -1) {
         loadProfilesForGM();
+    }
+}
+
+function handleRecentSearchUpdatedEvent(msg: WebSocketMessages.RecentSearchUpdated) {
+    if (msg.data.action === 'delete' && msg.data.id) {
+        dispatch(removedRecentSearch(msg.data.id));
+        return;
+    }
+
+    if (msg.data.action === 'save' && msg.data.item) {
+        const item = typeof msg.data.item === 'string' ? JSON.parse(msg.data.item) : msg.data.item;
+        dispatch(receivedRecentSearch(item));
     }
 }
 

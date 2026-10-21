@@ -108,6 +108,11 @@ jest.mock('mattermost-redux/actions/users', () => ({
     getUser: jest.fn(() => ({type: 'GET_STATUSES_BY_IDS'})),
 }));
 
+jest.mock('mattermost-redux/actions/search', () => ({
+    ...jest.requireActual('mattermost-redux/actions/search'),
+    getRecentSearches: jest.fn(() => ({type: 'GET_RECENT_SEARCHES'})),
+}));
+
 jest.mock('mattermost-redux/actions/channels', () => ({
     getChannelStats: jest.fn(() => ({type: 'GET_CHANNEL_STATS'})),
     getChannelMember: jest.fn(() => ({type: 'GET_CHANNEL_MEMBER'})),

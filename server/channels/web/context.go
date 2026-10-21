@@ -408,6 +408,17 @@ func (c *Context) RequireUsername() *Context {
 	return c
 }
 
+func (c *Context) RequireRecentSearchId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.RecentSearchId) {
+		c.SetInvalidURLParam("search_id")
+	}
+	return c
+}
+
 func (c *Context) RequirePostId() *Context {
 	if c.Err != nil {
 		return c

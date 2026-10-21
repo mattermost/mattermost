@@ -31,6 +31,10 @@ export const getSearchTruncationInfo = (state: GlobalState) => {
     return state.entities.search.truncationInfo;
 };
 
+export const getRecentSearches = (state: GlobalState) => {
+    return state.entities.search.recentSearches || [];
+};
+
 export const isSearchTruncated = (state: GlobalState, searchType: 'posts' | 'files'): boolean => {
     const truncationInfo = getSearchTruncationInfo(state);
     return Boolean(truncationInfo && truncationInfo[searchType] > 0);

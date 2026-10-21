@@ -338,6 +338,58 @@ describe('reducers.entities.search', () => {
         });
     });
 
+    describe('recentSearches', () => {
+        const item = {
+            id: 'rs1',
+            user_id: 'u1',
+            terms: 'hello',
+            search_type: 'messages' as const,
+            team_id: 't1',
+            create_at: 1,
+            update_at: 10,
+        };
+
+        it('replaces the list', () => {
+            const actualState = reducer({recentSearches: []} as unknown as SearchState, {
+                type: SearchTypes.RECEIVED_RECENT_SEARCHES,
+                data: [item],
+            });
+            expect(actualState.recentSearches).toEqual([item]);
+        });
+
+        it('upserts and keeps five newest', () => {
+            const existing = Array.from({length: 5}, (_, index) => ({
+                ...item,
+                id: `old${index}`,
+                terms: `old${index}`,
+                update_at: index,
+            }));
+            const incoming = {...item, id: 'new', terms: 'new', update_at: 100};
+            const actualState = reducer({recentSearches: existing} as unknown as SearchState, {
+                type: SearchTypes.RECEIVED_RECENT_SEARCH,
+                data: incoming,
+            });
+            expect(actualState.recentSearches).toHaveLength(5);
+            expect(actualState.recentSearches[0].id).toBe('new');
+            expect(actualState.recentSearches.find((search) => search.id === 'old0')).toBeUndefined();
+        });
+
+        it('deletes one item', () => {
+            const actualState = reducer({recentSearches: [item]} as unknown as SearchState, {
+                type: SearchTypes.REMOVED_RECENT_SEARCH,
+                data: 'rs1',
+            });
+            expect(actualState.recentSearches).toEqual([]);
+        });
+
+        it('clears on logout', () => {
+            const actualState = reducer({recentSearches: [item]} as unknown as SearchState, {
+                type: UserTypes.LOGOUT_SUCCESS,
+            });
+            expect(actualState.recentSearches).toEqual([]);
+        });
+    });
+
     describe('pinned', () => {
         it('do not show multiples of the same post', () => {
             const inputState = {

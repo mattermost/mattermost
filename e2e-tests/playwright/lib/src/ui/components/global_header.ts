@@ -96,6 +96,9 @@ export default class GlobalHeader {
 
     async openSearch() {
         await expect(this.searchBox).toBeVisible();
+        if ((await this.searchBox.getAttribute('aria-expanded')) === 'true') {
+            return;
+        }
         await this.searchBox.click();
     }
 

@@ -433,6 +433,10 @@ func (c *Client4) preferencesRoute(userId string) clientRoute {
 	return c.userRoute(userId).Join("preferences")
 }
 
+func (c *Client4) recentSearchesRoute(userId string) clientRoute {
+	return c.userRoute(userId).Join("recent_searches")
+}
+
 func (c *Client4) userStatusRoute(userId string) clientRoute {
 	return c.userRoute(userId).Join("status")
 }
@@ -5001,6 +5005,36 @@ func (c *Client4) GetPreferenceByCategoryAndName(ctx context.Context, userId str
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*Preference](r)
+}
+
+// GetRecentSearches returns the user's recent message and file searches.
+func (c *Client4) GetRecentSearches(ctx context.Context, userId string) (*RecentSearchList, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.recentSearchesRoute(userId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*RecentSearchList](r)
+}
+
+// SaveRecentSearch records a message or file search for the user.
+func (c *Client4) SaveRecentSearch(ctx context.Context, userId string, search *RecentSearch) (*RecentSearch, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.recentSearchesRoute(userId), search)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*RecentSearch](r)
+}
+
+// DeleteRecentSearch removes one recent search owned by the user.
+func (c *Client4) DeleteRecentSearch(ctx context.Context, userId, searchId string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.recentSearchesRoute(userId).Join(searchId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // SAML Section

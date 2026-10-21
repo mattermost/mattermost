@@ -118,6 +118,7 @@ type SqlStoreStores struct {
 	ContentFlagging            store.ContentFlaggingStore
 	deliveryTracking           store.DeliveryTrackingStore
 	recap                      store.RecapStore
+	recentSearch               store.RecentSearchStore
 	scheduledRecap             store.ScheduledRecapStore
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
@@ -314,6 +315,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
 	store.stores.deliveryTracking = newSqlDeliveryTrackingStore(store)
 	store.stores.recap = newSqlRecapStore(store)
+	store.stores.recentSearch = newSqlRecentSearchStore(store)
 	store.stores.scheduledRecap = newSqlScheduledRecapStore(store)
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
@@ -966,6 +968,10 @@ func (ss *SqlStore) AutoTranslation() store.AutoTranslationStore {
 
 func (ss *SqlStore) Recap() store.RecapStore {
 	return ss.stores.recap
+}
+
+func (ss *SqlStore) RecentSearch() store.RecentSearchStore {
+	return ss.stores.recentSearch
 }
 
 func (ss *SqlStore) ScheduledRecap() store.ScheduledRecapStore {

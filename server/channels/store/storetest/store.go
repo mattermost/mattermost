@@ -76,6 +76,7 @@ type Store struct {
 	ContentFlaggingStore            mocks.ContentFlaggingStore
 	DeliveryTrackingStore           mocks.DeliveryTrackingStore
 	RecapStore                      mocks.RecapStore
+	RecentSearchStore               mocks.RecentSearchStore
 	ScheduledRecapStore             mocks.ScheduledRecapStore
 	ReadReceiptStore                mocks.ReadReceiptStore
 	TemporaryPostStore              mocks.TemporaryPostStore
@@ -187,6 +188,9 @@ func (s *Store) DeliveryTracking() store.DeliveryTrackingStore {
 }
 func (s *Store) Recap() store.RecapStore {
 	return &s.RecapStore
+}
+func (s *Store) RecentSearch() store.RecentSearchStore {
+	return &s.RecentSearchStore
 }
 func (s *Store) ScheduledRecap() store.ScheduledRecapStore {
 	return &s.ScheduledRecapStore

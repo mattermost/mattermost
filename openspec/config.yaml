@@ -1,0 +1,53 @@
+schema: spec-driven
+
+context: |
+  Language: English
+  All OpenSpec artifacts must be written in English.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Project: Mattermost (Go server + React webapp, PostgreSQL).
+  Code roots: server/ (Go) and webapp/ (React/TypeScript).
+  Running instance for this course: Docker stack in sibling folder mattermost-docker (http://localhost:8065).
+  Course planning source: user_stories.md (issue #15976, recent searches).
+
+  Spec-driven kit lives in lidr-specboot/ (do NOT copy it over Mattermost docs/).
+  Single source of truth for SDD principles:
+  - lidr-specboot/docs/base-standards.md
+  - lidr-specboot/docs/openspec-tasks-mandatory-steps.md
+  - lidr-specboot/docs/documentation-standards.md
+  Stack-specific Mattermost conventions (use these instead of the LTI/Prisma examples in lidr-specboot/docs):
+  - server/AGENTS.md and webapp/AGENTS.md
+  - Existing API, store, and Redux layers already in this repository
+  - lidr-specboot/docs/backend-standards.md and frontend-standards.md are workflow/TDD guidance only; do not introduce Express, Prisma, or Cypress patterns here
+  Agent roles:
+  - lidr-specboot/ai-specs/agents/backend-developer.md for server/ Go work
+  - lidr-specboot/ai-specs/agents/frontend-developer.md for webapp/ React work
+  Skills: lidr-specboot/ai-specs/skills/ and .cursor/skills/
+
+  Conventional commits. Follow .github/PULL_REQUEST_TEMPLATE.md when opening a PR.
+  Small tasks, one at a time. Prefer TDD against existing Mattermost test patterns.
+
+rules:
+  tasks:
+    - Read lidr-specboot/docs/openspec-tasks-mandatory-steps.md first
+    - "First implementation step must create/switch to feature/[change-name]"
+    - Include review of existing unit tests, running targeted Mattermost tests, and documentation updates
+    - "Server tests: go test (or make test-server scoped package). Webapp tests: npm test in the affected workspace"
+    - "Manual API checks against http://localhost:8065 when the Docker stack is up"
+    - Do not require a full Playwright suite unless the change is UI-critical
+    - Agent must execute tests; do not delegate them to the user
+  proposal:
+    - Keep proposals under 500 words
+    - Always include a Non-goals section
+    - Map scope back to HU/TT items in user_stories.md when applicable
+
+operations:
+  apply:
+    guidance:
+      - Implement one tasks.md item at a time
+      - If a new request appears after apply and before archive, update specs/tasks first
+      - Keep test summaries concise and store reports under the change folder when created
+  archive:
+    guidance:
+      - Summarize the archive outcome before finishing
+      - Only archive after /verify and /adversarial-review

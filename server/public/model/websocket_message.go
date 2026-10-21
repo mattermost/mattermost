@@ -103,6 +103,7 @@ const (
 	WebsocketContentFlaggingReportValueUpdated        WebsocketEventType = "content_flagging_report_value_updated"
 	WebsocketEventJobUpdated                          WebsocketEventType = "job_updated"
 	WebsocketEventRecapUpdated                        WebsocketEventType = "recap_updated"
+	WebsocketEventRecentSearchUpdated                 WebsocketEventType = "recent_search_updated"
 	WebsocketEventPostTranslationUpdated              WebsocketEventType = "post_translation_updated"
 	WebsocketEventPostRevealed                        WebsocketEventType = "post_revealed"
 	WebsocketEventPostBurned                          WebsocketEventType = "post_burned"

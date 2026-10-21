@@ -1118,6 +1118,36 @@ components:
           description: If this file is an image, whether or not it has a preview-sized
             version
           type: boolean
+    RecentSearch:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        terms:
+          type: string
+        search_type:
+          type: string
+          enum:
+            - messages
+            - files
+        team_id:
+          type: string
+          description: Team id for the search, or empty for all teams
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+    RecentSearchList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecentSearch"
     Preference:
       type: object
       properties:

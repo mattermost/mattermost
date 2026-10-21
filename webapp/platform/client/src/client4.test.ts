@@ -586,6 +586,43 @@ describe('Client4', () => {
             expect(await result.text()).toEqual('zip contents');
         });
     });
+
+    describe('recent searches', () => {
+        let client: Client4;
+
+        beforeEach(() => {
+            client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+        });
+
+        test('getRecentSearches hits GET /users/{id}/recent_searches', async () => {
+            nock(client.getBaseRoute()).
+                get('/users/me/recent_searches').
+                reply(200, {items: []});
+
+            const result = await client.getRecentSearches('me');
+            expect(result).toEqual({items: []});
+        });
+
+        test('saveRecentSearch hits POST /users/{id}/recent_searches', async () => {
+            const saved = {id: 'rs1', terms: 'hello', search_type: 'messages', team_id: '', user_id: 'u1', create_at: 1, update_at: 1};
+            nock(client.getBaseRoute()).
+                post('/users/u1/recent_searches', {terms: 'hello', search_type: 'messages', team_id: ''}).
+                reply(200, saved);
+
+            const result = await client.saveRecentSearch('u1', {terms: 'hello', search_type: 'messages', team_id: ''});
+            expect(result).toEqual(saved);
+        });
+
+        test('deleteRecentSearch hits DELETE /users/{id}/recent_searches/{search_id}', async () => {
+            nock(client.getBaseRoute()).
+                delete('/users/me/recent_searches/rs1').
+                reply(200, {status: 'OK'});
+
+            const result = await client.deleteRecentSearch('me', 'rs1');
+            expect(result).toEqual({status: 'OK'});
+        });
+    });
 });
 
 describe('ClientError', () => {

@@ -129,6 +129,7 @@ import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Scheme} from '@mattermost/types/schemes';
+import type {RecentSearch, RecentSearchList} from '@mattermost/types/search';
 import type {Session} from '@mattermost/types/sessions';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import type {RemoteClusterInfo, SharedChannelRemote} from '@mattermost/types/shared_channels';
@@ -416,6 +417,10 @@ export default class Client4 {
 
     getPreferencesRoute(userId: string) {
         return `${this.getUserRoute(userId)}/preferences`;
+    }
+
+    getRecentSearchesRoute(userId: string) {
+        return `${this.getUserRoute(userId)}/recent_searches`;
     }
 
     getIncomingHooksRoute() {
@@ -3034,6 +3039,27 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getPreferencesRoute(userId)}/delete`,
             {method: 'post', body: JSON.stringify(preferences)},
+        );
+    };
+
+    getRecentSearches = (userId = 'me') => {
+        return this.doFetch<RecentSearchList>(
+            `${this.getRecentSearchesRoute(userId)}`,
+            {method: 'get'},
+        );
+    };
+
+    saveRecentSearch = (userId: string, search: Pick<RecentSearch, 'terms' | 'search_type' | 'team_id'>) => {
+        return this.doFetch<RecentSearch>(
+            `${this.getRecentSearchesRoute(userId)}`,
+            {method: 'post', body: JSON.stringify(search)},
+        );
+    };
+
+    deleteRecentSearch = (userId: string, searchId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getRecentSearchesRoute(userId)}/${searchId}`,
+            {method: 'delete'},
         );
     };
 

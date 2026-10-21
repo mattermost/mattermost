@@ -13,6 +13,7 @@ import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 
 import {useSearchSuggestions, useSearchSuggestionSelection} from './hooks';
+import RecentSearches from './recent_searches';
 import SearchBoxHints from './search_box_hints';
 import SearchInput from './search_box_input';
 import SearchSuggestions from './search_box_suggestions';
@@ -314,6 +315,10 @@ const SearchBox = forwardRef(
                     results={results}
                     selectedTerm={selectedTerm}
                     focus={focus}
+                />
+                <RecentSearches
+                    onSearch={onSearch}
+                    myTeams={myTeams}
                 />
             </SearchBoxContainer>
         );

@@ -111,7 +111,8 @@ type Routes struct {
 	ScheduledRecaps *mux.Router // 'api/v4/scheduled_recaps'
 	ScheduledRecap  *mux.Router // 'api/v4/scheduled_recaps/{scheduled_recap_id:[A-Za-z0-9]+}'
 
-	Preferences *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/preferences'
+	Preferences    *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/preferences'
+	RecentSearches *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/recent_searches'
 
 	License *mux.Router // 'api/v4/license'
 
@@ -278,6 +279,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Brand = api.BaseRoutes.APIRoot.PathPrefix("/brand").Subrouter()
 	api.BaseRoutes.System = api.BaseRoutes.APIRoot.PathPrefix("/system").Subrouter()
 	api.BaseRoutes.Preferences = api.BaseRoutes.User.PathPrefix("/preferences").Subrouter()
+	api.BaseRoutes.RecentSearches = api.BaseRoutes.User.PathPrefix("/recent_searches").Subrouter()
 	api.BaseRoutes.License = api.BaseRoutes.APIRoot.PathPrefix("/license").Subrouter()
 	api.BaseRoutes.Public = api.BaseRoutes.APIRoot.PathPrefix("/public").Subrouter()
 	api.BaseRoutes.Reactions = api.BaseRoutes.APIRoot.PathPrefix("/reactions").Subrouter()
@@ -373,6 +375,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitConfig()
 	api.InitWebhook()
 	api.InitPreference()
+	api.InitRecentSearch()
 	api.InitSaml()
 	api.InitCompliance()
 	api.InitCluster()
