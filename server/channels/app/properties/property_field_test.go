@@ -634,7 +634,7 @@ func TestCreatePropertyFieldDefaultsPermissions(t *testing.T) {
 		assert.Equal(t, permissions, result.Permissions)
 	})
 
-	t.Run("a field created by a plugin caller comes back carrying a plugin grant for that plugin", func(t *testing.T) {
+	t.Run("a field created by a plugin caller lets that plugin do everything through the plugin wildcard", func(t *testing.T) {
 		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "test-plugin" })
 		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
 		rctxPlugin := RequestContextWithCallerID(rctx, "test-plugin")
@@ -650,9 +650,12 @@ func TestCreatePropertyFieldDefaultsPermissions(t *testing.T) {
 		result, err := th.service.CreatePropertyField(rctxPlugin, field)
 		require.NoError(t, err)
 
+		// The field is unprotected, so its source plugin has no standing of its
+		// own: on master any plugin could act on it, and the plugin wildcard
+		// keeps that, for the creating plugin as for every other.
 		require.NotNil(t, result.Permissions)
-		assert.Contains(t, result.Permissions.Grants, model.Grant{
-			Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "test-plugin"},
+		assert.Equal(t, []model.Grant{{
+			Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"},
 			Allow: []string{
 				model.PropertyActionFieldWrite,
 				model.PropertyActionOptionRead,
@@ -660,7 +663,8 @@ func TestCreatePropertyFieldDefaultsPermissions(t *testing.T) {
 				model.PropertyActionValueRead,
 				model.PropertyActionValueWrite,
 			},
-		})
+		}}, result.Permissions.Grants)
+		assert.NotNil(t, result.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "test-plugin", "", model.PropertyActionFieldWrite))
 	})
 
 	t.Run("a linked create off a shared_only template comes back with Masking nil and its option.read no more permissive than the template's", func(t *testing.T) {
@@ -1260,10 +1264,14 @@ func TestUpdatePropertyFieldTranslatesLegacyPermissionKeys(t *testing.T) {
 		})
 
 		t.Run("adding an owner through the projected read saves only the real owners and keeps the source plugin's grant", func(t *testing.T) {
-			realOwner := model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "attrs-real-owner"}
+			// The source plugin has a grant of its own only on a protected field,
+			// and once the field has owners only its reads; a listed owner makes
+			// the change, as on master.
+			realOwner := model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "attrs-plugin"}
 			field := createConverted(t, model.StringInterface{
 				model.PropertyAttrsOwners:         []model.PropertyOwner{{Type: realOwner.Type, ID: realOwner.ID}},
-				model.PropertyAttrsSourcePluginID: "attrs-plugin",
+				model.PropertyAttrsProtected:      true,
+				model.PropertyAttrsSourcePluginID: "attrs-source-plugin",
 			})
 
 			newOwner := model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}
@@ -1274,9 +1282,9 @@ func TestUpdatePropertyFieldTranslatesLegacyPermissionKeys(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.ElementsMatch(t, []model.Identity{realOwner, newOwner}, storedOwners(t, field.ID))
-			sourceGrant := grantFor(updated.Permissions, model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "attrs-plugin"})
+			sourceGrant := grantFor(updated.Permissions, model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "attrs-source-plugin"})
 			require.NotNil(t, sourceGrant)
-			assert.Len(t, sourceGrant.Allow, 5)
+			assert.ElementsMatch(t, []string{model.PropertyActionOptionRead, model.PropertyActionValueRead}, sourceGrant.Allow)
 		})
 
 		t.Run("adding an owner to a synced field through the projected read keeps the sync lock without saving the sync identity", func(t *testing.T) {
@@ -1350,7 +1358,11 @@ func TestUpdatePropertyFieldTranslatesLegacyPermissionKeys(t *testing.T) {
 				model.PropertyOwner{Type: model.PropertyOwnerTypeUser, ID: newOwner})
 			updated, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, submitted)
 			require.NoError(t, err)
-			assert.NotNil(t, updated.Permissions.MatchingGrant(model.PropertyOwnerTypeUser, newOwner, "", model.PropertyActionValueWrite))
+			// A user owner was a lock under the legacy model and converts to no
+			// grant; it stays in the owners a v2 reader sees.
+			assert.Nil(t, updated.Permissions.MatchingGrant(model.PropertyOwnerTypeUser, newOwner, "", model.PropertyActionValueWrite))
+			assert.Contains(t, storedOwners(t, field.ID), model.Identity{Type: model.PropertyOwnerTypeUser, ID: newOwner})
+			assert.Contains(t, model.GetPropertyFieldOwners(model.ProjectLegacyPermissions(updated)), model.PropertyOwner{Type: model.PropertyOwnerTypeUser, ID: newOwner})
 			assert.NotNil(t, updated.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "attrs-plugin", "", model.PropertyActionFieldWrite))
 		})
 

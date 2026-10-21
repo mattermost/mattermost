@@ -1858,7 +1858,7 @@ func TestProjectLegacyPermissionsPreservesV2View(t *testing.T) {
 			} else {
 				assert.Equal(t, *original.PermissionValues, *projected.PermissionValues, "PermissionValues")
 			}
-			assert.Equal(t, original.GetAccessMode(), projected.GetAccessMode(), "access_mode")
+			assert.Equal(t, LegacyAccessMode(&original), LegacyAccessMode(projected), "access_mode")
 			if tt.convertAttrs {
 				// Only access_control reads the attr; elsewhere the projection
 				// mirrors the column into it.
