@@ -658,13 +658,17 @@ func syncLockSource(field *PropertyField) string {
 // value.write. The sync source is read from field's attrs, and p is returned
 // unchanged when field isn't synced.
 //
-// A grant of the sync identity is left as it is, scoped or not. The sync
-// caller never acts under a scope, so a scoped one never matches it, and the
-// lock widens only its unscoped grant, adding one if it has none.
+// The sync caller never acts under a scope, so the lock widens the sync
+// identity's unscoped grant, adding one if it has none. A scoped grant of the
+// sync identity keeps only the actions the unscoped one lacks, and is dropped
+// if none are left, as grantsFromLegacy splits them, so converting a
+// projection of the result gives back the same grants.
 //
-// This is stricter than PermissionsFromLegacy on a field that also has
-// owners: master's owner check supersedes the sync lock there, so the
-// conversion keeps a machine owner's value.write.
+// The grants it locks are the ones a linked synced field inherits from its
+// template. Master never applied a template's owners to a linked field: the
+// link copies only protected, source_plugin_id and access_mode, and a linked
+// synced field with no owners of its own takes its value writes through the
+// sync lock, so only the sync writes them.
 func ApplySyncLock(p *Permissions, field *PropertyField) *Permissions {
 	syncSource := syncLockSource(field)
 	if syncSource == "" {
@@ -678,18 +682,27 @@ func ApplySyncLock(p *Permissions, field *PropertyField) *Permissions {
 	restrictions.Value.Write = PermissionLevelNone
 
 	syncIdentity := Identity{Type: PropertyOwnerTypeService, ID: syncSource}
-	grants := make([]Grant, 0, len(p.Grants)+1)
+	syncAllow := syncLockGrantAllow
 	hasSyncGrant := false
 	for _, g := range p.Grants {
-		switch {
-		case g.Identity == syncIdentity && len(g.Scopes) == 0:
-			g.Allow = unionActions(g.Allow, syncLockGrantAllow)
+		if g.Identity == syncIdentity && len(g.Scopes) == 0 {
+			syncAllow = unionActions(syncAllow, g.Allow)
 			hasSyncGrant = true
+		}
+	}
+
+	grants := make([]Grant, 0, len(p.Grants)+1)
+	for _, g := range p.Grants {
+		switch {
 		case g.Identity != syncIdentity:
 			g.Allow = removeAction(g.Allow, PropertyActionValueWrite)
-			if len(g.Allow) == 0 {
-				continue
-			}
+		case len(g.Scopes) == 0:
+			g.Allow = syncAllow
+		default:
+			g.Allow = slices.DeleteFunc(slices.Clone(g.Allow), func(a string) bool { return slices.Contains(syncAllow, a) })
+		}
+		if len(g.Allow) == 0 {
+			continue
 		}
 		grants = append(grants, g)
 	}
