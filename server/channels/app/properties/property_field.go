@@ -710,13 +710,14 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		// the template stops naming it (see templateNamesHoldingsField). The
 		// template is read from this same call first, so a call that clears
 		// mask_by_field_id and unlinks the field together is allowed, and one that
-		// names the field while unlinking it is not.
+		// names the field while unlinking it is not. A template that does not
+		// exist names nothing, so its field may be unlinked.
 		if existingIsLinked && !newIsLinked {
 			template, ok := incoming[*existing.LinkedFieldID]
 			if !ok {
 				var tErr error
 				template, tErr = ps.fieldStore.Get(store.RequestContextWithMaster(rctx), "", *existing.LinkedFieldID)
-				if tErr != nil {
+				if tErr != nil && !store.IsErrNotFound(tErr) {
 					return nil, nil, nil, fmt.Errorf("failed to get linked template field %q: %w", *existing.LinkedFieldID, tErr)
 				}
 			}
@@ -910,10 +911,11 @@ func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id str
 	}
 
 	// Nor a field its template names as the holdings source (see
-	// templateNamesHoldingsField).
+	// templateNamesHoldingsField). A template that does not exist names
+	// nothing, so its field may be deleted.
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
 		template, tErr := ps.fieldStore.Get(store.RequestContextWithMaster(rctx), "", *field.LinkedFieldID)
-		if tErr != nil {
+		if tErr != nil && !store.IsErrNotFound(tErr) {
 			return fmt.Errorf("failed to get linked template field %q: %w", *field.LinkedFieldID, tErr)
 		}
 		if templateNamesHoldingsField(template, id) {

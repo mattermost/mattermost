@@ -3062,6 +3062,32 @@ func TestMaskHoldingsFieldStaysLinked(t *testing.T) {
 
 		require.NoError(t, th.service.DeletePropertyField(rctxPlugin, th.CPAGroupID, holdings.ID))
 	})
+
+	t.Run("a field whose template does not exist can be unlinked and deleted", func(t *testing.T) {
+		// Straight to the store: the service refuses to link to a missing
+		// template, so this is the state a template row removed entirely leaves.
+		missingTemplateField := func(t *testing.T) *model.PropertyField {
+			t.Helper()
+			missingID := model.NewId()
+			return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:       th.CPAGroupID,
+				ObjectType:    model.PropertyFieldObjectTypeUser,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				Name:          "MissingTemplate-" + model.NewId(),
+				Type:          model.PropertyFieldTypeText,
+				LinkedFieldID: &missingID,
+				Permissions: &model.Permissions{
+					Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}},
+					Grants:       fieldWriteGrant,
+				},
+			})
+		}
+
+		_, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, unlinked(t, missingTemplateField(t).ID))
+		require.NoError(t, err)
+
+		require.NoError(t, th.service.DeletePropertyField(rctxPlugin, th.CPAGroupID, missingTemplateField(t).ID))
+	})
 }
 
 func TestOptionsChanged(t *testing.T) {
