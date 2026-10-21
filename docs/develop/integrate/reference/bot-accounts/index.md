@@ -89,7 +89,7 @@ From Mattermost v12.0, you can create tokens with an expiry date and regenerate 
 
 An expiry date is required when your System Admin enforces a maximum token lifetime. Otherwise, you can select **No expiry**.
 
-The token list shows each token's status (**Active**, **Expired**, or **Disabled**) and its expiry date, or **Never** for tokens without an expiry. Copy new or regenerated tokens before closing the one-time display.
+Copy new or regenerated tokens before closing the one-time display.
 
 ## Technical notes
 
