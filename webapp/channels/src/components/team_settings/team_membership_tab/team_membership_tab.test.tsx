@@ -819,9 +819,10 @@ describe('components/team_settings/TeamMembershipTab', () => {
             renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
 
             await userEvent.click(await screen.findByTestId('table-editor-parse-error'));
+            await userEvent.click(screen.getByTestId('table-editor-change'));
 
             expect(screen.queryByTestId('team-membership-locked-rules')).not.toBeInTheDocument();
-            expect(screen.getByText('Invalid expression format')).toBeInTheDocument();
+            expect(await screen.findByText('Invalid expression format')).toBeInTheDocument();
         });
     });
 });

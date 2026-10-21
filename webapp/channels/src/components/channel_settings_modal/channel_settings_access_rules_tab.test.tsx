@@ -2374,9 +2374,12 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             act(() => {
                 MockedTableEditor.mock.calls.at(-1)![0].onParseError!('No user attributes available.');
             });
+            act(() => {
+                MockedTableEditor.mock.calls.at(-1)![0].onChange('user.attributes.department in ["Engineering"]');
+            });
 
             expect(screen.queryByTestId('channel-access-rules-locked-rules')).not.toBeInTheDocument();
-            expect(screen.getByText('Invalid expression format')).toBeInTheDocument();
+            expect(await screen.findByText('Invalid expression format')).toBeInTheDocument();
         });
     });
 });
