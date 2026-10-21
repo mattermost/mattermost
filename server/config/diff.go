@@ -165,6 +165,10 @@ func Diff(base, actual *model.Config) (ConfigDiffs, error) {
 // sanitize masks replaced. A setting whose change is entirely masked is still listed,
 // with model.FakeSetting on both sides. A change to a map, such as PluginSettings.Plugins,
 // is listed as a change to each key that changed. base and actual are not modified.
+//
+// Unlike ConfigDiffs.Sanitize, which masks a fixed list of settings for the audit log,
+// including all plugin settings, it masks what sanitize masks, so that with the sanitizer
+// of GET /config, which uses the plugin manifests, it hides the same values.
 func SanitizedDiff(base, actual *model.Config, sanitize func(*model.Config)) (ConfigDiffs, error) {
 	diffs, err := Diff(base, actual)
 	if err != nil || len(diffs) == 0 {
