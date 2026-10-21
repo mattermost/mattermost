@@ -510,6 +510,62 @@ func TestLateLinkedSyncValueAccess(t *testing.T) {
 	})
 }
 
+// TestSyncOptionChangeOnUnlinkedTemplate covers the answers a sync gets from
+// the options endpoints about a template's sync link, which come before any
+// grant is judged.
+func TestSyncOptionChangeOnUnlinkedTemplate(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
+	rctxAdmin := RequestContextWithCallerID(th.Context, model.NewId())
+	rctxLDAP := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+
+	newTemplate := func(t *testing.T, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		template, err := th.service.CreatePropertyField(rctxAdmin, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Template-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      attrs,
+		})
+		require.NoError(t, err)
+		return template
+	}
+	createOption := func(rctx request.CTX, template *model.PropertyField) error {
+		_, err := th.service.CreateFieldOptions(rctx, th.CPAGroupID, template.ID, []*model.PropertyFieldOption{{Name: "Option-" + model.NewId()}})
+		return err
+	}
+	requireAppError := func(t *testing.T, err error, id string, status int) {
+		t.Helper()
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, id, appErr.Id)
+		assert.Equal(t, status, appErr.StatusCode)
+	}
+
+	t.Run("the template's own sync changes its options", func(t *testing.T) {
+		template := newTemplate(t, model.StringInterface{model.PropertyFieldAttrLDAP: "department"})
+		assert.NoError(t, createOption(rctxLDAP, template))
+	})
+
+	t.Run("a template synced from the other source refuses the sync with a 403", func(t *testing.T) {
+		template := newTemplate(t, model.StringInterface{model.PropertyFieldAttrSAML: "department"})
+		requireAppError(t, createOption(rctxLDAP, template), "app.property_field.synced_options_locked.app_error", http.StatusForbidden)
+	})
+
+	t.Run("a template unlinked from the sync refuses it with a 409", func(t *testing.T) {
+		template := newTemplate(t, model.StringInterface{model.PropertyFieldAttrLDAP: "department"})
+		template.Attrs[model.PropertyFieldAttrLDAP] = ""
+		_, _, err := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, template)
+		require.NoError(t, err)
+
+		requireAppError(t, createOption(rctxLDAP, template), "app.property_field.sync_source_unlinked.app_error", http.StatusConflict)
+		assert.NoError(t, createOption(rctxAdmin, template))
+	})
+}
+
 // TestAccessControlHookEnforcesEveryPSAv2Group covers the hook widening from
 // one construction-time group ID to every PSAv2/v3 group: the same read
 // filter, write refusal and grant admission the access_control tests assert
