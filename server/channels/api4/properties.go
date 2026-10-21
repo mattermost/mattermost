@@ -699,19 +699,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// A linked field is served its template's masking as presence only
-		// (masking: {}) and may not declare masking of its own, so read that
-		// back as unchanged: sending back the permissions object a linked
-		// field was served then succeeds. Not when the same patch unlinks the
-		// field, where masking: {} means what it says.
-		permissionsPatch := patch.Permissions
-		if existingField.LinkSourceID() != "" && patch.LinkedFieldID == nil && permissionsPatch.MaskingIsPresenceOnly() {
-			withoutMasking := *permissionsPatch
-			withoutMasking.Masking = nil
-			permissionsPatch = &withoutMasking
-		}
-
-		applied, err := permissionsPatch.ApplyTo(existingField.Permissions)
+		applied, err := applyPermissionsPatch(existingField, patch)
 		if err != nil {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.invalid_permissions.app_error", nil, err.Error(), http.StatusBadRequest)
 			return
@@ -723,8 +711,10 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		// nothing. This also keeps this decision in step with the
 		// enforcement hook's, which sees only the merged field and so can only
 		// judge by effect (model.PropertyFieldChangeIsOptionsOnly) -- if the two
-		// disagree, one layer allows what the other refuses.
-		permissionsChanged = !reflect.DeepEqual(existingField.Permissions, applied)
+		// disagree, one layer allows what the other refuses. Both compare with
+		// model.PermissionsEqual, which reads null grants and the [] they are
+		// served as the same.
+		permissionsChanged = !model.PermissionsEqual(existingField.Permissions, applied)
 	}
 
 	// Mirrors permissionsChanged above: an options-only patch is gated on
@@ -1364,6 +1354,25 @@ func addPropertyPermissionBasisMeta(auditRec *model.AuditRecord, basis app.Prope
 	if basis.Unrestricted {
 		model.AddEventParameterToAuditRec(auditRec, "basis_unrestricted", true)
 	}
+}
+
+// applyPermissionsPatch resolves patch.Permissions, which must be set,
+// against existingField's stored object and returns the result; neither is
+// modified.
+//
+// A linked field is served its template's masking as presence only
+// (masking: {}) and may not declare masking of its own, so that is read back
+// as unchanged: sending back the permissions object a linked field was served
+// then succeeds. Not when the same patch unlinks the field, where masking: {}
+// means what it says.
+func applyPermissionsPatch(existingField *model.PropertyField, patch *model.PropertyFieldPatch) (*model.Permissions, error) {
+	permissionsPatch := patch.Permissions
+	if existingField.LinkSourceID() != "" && patch.LinkedFieldID == nil && permissionsPatch.MaskingIsPresenceOnly() {
+		withoutMasking := *permissionsPatch
+		withoutMasking.Masking = nil
+		permissionsPatch = &withoutMasking
+	}
+	return permissionsPatch.ApplyTo(existingField.Permissions)
 }
 
 // permissionsChanged and optionsChanged say whether the patch's permissions
