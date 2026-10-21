@@ -102,4 +102,31 @@ func TestConvertSystemOwnedFields(t *testing.T) {
 		_, _, _, err = th.service.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, []*model.PropertyField{current})
 		require.Error(t, err, "subsystem must still be refused after subsequent ConvertSystemOwnedFields run")
 	})
+
+	t.Run("converts a system-owned field past the first page", func(t *testing.T) {
+		orig := propertyPermissionsBackfillPageSize
+		propertyPermissionsBackfillPageSize = 1
+		t.Cleanup(func() { propertyPermissionsBackfillPageSize = orig })
+
+		// Created after the assignee field, so with one field per page it is
+		// only reached on the second page.
+		laterField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:         boardsGroup.ID,
+			Name:            model.BoardsPropertyFieldStatus,
+			Type:            model.PropertyFieldTypeSelect,
+			ObjectType:      model.PropertyFieldObjectTypePost,
+			TargetType:      string(model.PropertyFieldTargetLevelSystem),
+			Protected:       true,
+			PermissionField: model.NewPointer(model.PermissionLevelNone),
+		})
+		require.Nil(t, laterField.Permissions)
+
+		require.NoError(t, th.service.ConvertSystemOwnedFields(th.Context, boardsGroup.ID, model.BoardsPropertyGroupName))
+
+		converted, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, laterField.ID)
+		require.NoError(t, err)
+		require.NotNil(t, converted.Permissions)
+		require.NotNil(t, converted.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.BoardsPropertyGroupName, "", model.PropertyActionFieldWrite),
+			"a field on a later page should carry the boards service grant too")
+	})
 }
