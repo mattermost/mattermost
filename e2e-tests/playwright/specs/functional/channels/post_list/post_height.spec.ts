@@ -244,8 +244,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a large Markdown image',
-            // TODO images that are too wide but above the minimum height cause layout shift
-            skipProjects: ['chrome', 'firefox', 'ipad'],
+            // MM-69979 Images that are too wide but above the minimum height cause layout shift
+            skipProjects: ['chrome', 'firefox', 'ipad', 'subpath'],
             getSeedOptions: (baseUrl) => ({
                 message: `![large image](${baseUrl}/huge-image.jpg)`,
             }),
@@ -280,7 +280,7 @@ test.describe('Post height', () => {
         {
             name: 'post with an SVG Markdown image',
             // TODO Either Chrome preloads the SVG's dimensions early or Firefox doesn't allocate the height properly
-            skipProjects: ['firefox'],
+            skipProjects: ['firefox', 'subpath'],
             // On this release branch (unlike master), the SVG's intrinsic size resolves in two
             // steps on chrome, causing an extra layout shift beyond the single one this test
             // tolerates. Pre-existing CI flake, unrelated to this PR's fix — see
@@ -319,8 +319,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a large image preview',
-            // TODO images that are too wide but above the minimum height cause layout shift
-            skipProjects: ['chrome', 'firefox', 'ipad'],
+            // MM-69979 Images that are too wide but above the minimum height cause layout shift
+            skipProjects: ['chrome', 'firefox', 'ipad', 'subpath'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/huge-image.jpg`,
             }),

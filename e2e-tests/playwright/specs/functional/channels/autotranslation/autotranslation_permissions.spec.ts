@@ -23,6 +23,9 @@ test(
             'Skipping test - server does not have Entry or Advanced license',
         );
 
+        // The Edit Scheme link stays disabled until the permissions migration finishes
+        await pw.ensurePhase2MigrationCompleted();
+
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
@@ -49,6 +52,9 @@ test(
             !hasAutotranslationLicense(license.SkuShortName),
             'Skipping test - server does not have Entry or Advanced license',
         );
+
+        // The Edit Scheme link stays disabled until the permissions migration finishes
+        await pw.ensurePhase2MigrationCompleted();
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await systemConsolePage.goto();

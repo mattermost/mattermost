@@ -76,6 +76,7 @@ export default defineConfig({
                 permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
             },
             dependencies: ['setup'],
+            testIgnore: /functional\/subpath\//,
         },
         {
             name: 'chrome',
@@ -85,12 +86,26 @@ export default defineConfig({
                 viewport: {width: 1280, height: 1024},
             },
             dependencies: ['setup'],
+            testIgnore: /functional\/subpath\//,
         },
         {
             name: 'firefox',
             use: {
                 browserName: 'firefox',
                 permissions: ['notifications'],
+                viewport: {width: 1280, height: 1024},
+            },
+            dependencies: ['setup'],
+            testIgnore: /functional\/subpath\//,
+        },
+        // Runs the full suite (not just specs/functional/subpath) against a server booted under
+        // PW_SERVER_DEPLOY=subpath — setup's "ensure server deployment" step, and every
+        // specs/functional/subpath spec's requireSubpathServer(), both fail fast otherwise.
+        {
+            name: 'subpath',
+            use: {
+                browserName: 'chromium',
+                permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
                 viewport: {width: 1280, height: 1024},
             },
             dependencies: ['setup'],
