@@ -12,10 +12,26 @@ const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const wordPattern = (text, flags) => new RegExp(`(?<![\\p{L}\\p{N}])${escape(text)}(?![\\p{L}\\p{N}])`, `u${flags}`);
 
+// An array or a number would read as an empty glossary or style, and turn their
+// rules off rather than fail.
+function parseObject(text, file) {
+    let body;
+    try {
+        body = JSON.parse(text);
+    } catch (e) {
+        throw new Error(`${file}: ${e.message}`);
+    }
+    if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+        throw new Error(`${file}: not a JSON object`);
+    }
+    return body;
+}
+
 export function readGlossary(tree, locale) {
     const read = (name) => {
-        const text = tree.read(`${GLOSSARY_DIR}/${name}.json`);
-        return text === null ? {} : JSON.parse(text);
+        const file = `${GLOSSARY_DIR}/${name}.json`;
+        const text = tree.read(file);
+        return text === null ? {} : parseObject(text, file);
     };
     const terms = read('en');
     const targets = read(locale);
@@ -41,7 +57,7 @@ export function readGlossary(tree, locale) {
  */
 export function readStyle(tree, locale) {
     const text = tree.read(STYLE);
-    const entry = text === null ? null : JSON.parse(text)[locale];
+    const entry = text === null ? null : parseObject(text, STYLE)[locale];
     if (!entry) {
         return null;
     }

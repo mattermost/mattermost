@@ -108,6 +108,16 @@ describe('rules', () => {
         assert.deepEqual(check('ja', 'You can do it', 'できます'), []);
     });
 
+    test('a glossary or style file that is not a JSON object is an error, not an empty one', () => {
+        for (const text of ['[]', '5', 'null', '{"Mattermost":']) {
+            const tree = {read: () => text};
+            assert.throws(() => readGlossary(tree, 'de'), /^Error: i18n\/glossary\/en\.json: /);
+            assert.throws(() => readStyle(tree, 'de'), /^Error: i18n\/style\.json: /);
+        }
+        assert.deepEqual(readGlossary(files({}), 'de'), []);
+        assert.equal(readStyle(files({}), 'de'), null);
+    });
+
     test('leaving out a doNotTranslate name is soft', () => {
         assert.deepEqual(check('de', 'Open Mattermost', 'Öffne die App'), ['soft do-not-translate']);
         assert.deepEqual(check('de', 'Open MM', 'Öffne die App', 'server'), ['soft do-not-translate']);
