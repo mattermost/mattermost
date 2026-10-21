@@ -446,5 +446,28 @@
   "server": {
     "target": "server",
     "note": "Kept in English; masculine, invariable: 'il server', 'i server' (avoid legacy plural 'servers' in Italian text)."
+  },
+  "health dashboard": {
+    "target": "Integrità del sito",
+    "note": "Page title and sidebar entry. In running text add a head noun: 'la pagina Integrità del sito'."
+  },
+  "health finding": {
+    "target": "rilevamento di integrità",
+    "note": "Masculine; plural 'rilevamenti di integrità'. Shorten to 'rilevamento' inside the health dashboard, where the context is clear."
+  },
+  "Agents plugin": {
+    "target": "plugin Agents",
+    "note": "Masculine: 'il plugin Agents'. With the brand: 'il plugin Mattermost Agents'."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Keep the English name, masculine: 'l'Hosted Push Notification Service'. HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Keep the English name, masculine: 'il Test Push Notification Service'. TPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

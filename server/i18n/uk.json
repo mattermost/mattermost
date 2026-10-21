@@ -14722,7 +14722,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Перейдіть на https://push.mattermost.com (робочий сервіс Hosted Push Notification Service, що входить до Enterprise) або на власний push-проксі."
+    "translation": "Перейдіть на https://push.mattermost.com (робоча служба Hosted Push Notification Service, що входить до Enterprise) або на власний push-проксі."
   },
   {
     "id": "health.rule.push_test_proxy.title",
