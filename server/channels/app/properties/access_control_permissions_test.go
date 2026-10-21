@@ -359,9 +359,10 @@ func TestPermissionsDeleteAllFieldValuesAccessControl(t *testing.T) {
 	})
 
 	t.Run("a synced field admits its sync service and refuses the plugin wildcard", func(t *testing.T) {
-		// The conversion gives the sync identity field.write and value.write,
-		// and gives the plugin wildcard field.write but not value.write: the
-		// sync lock. A bulk delete must not get a plugin around that lock.
+		// The conversion gives the sync identity every action, field.write and
+		// value.write among them, and gives the plugin wildcard field.write but
+		// not value.write: the sync lock. A bulk delete must not get a plugin
+		// around that lock.
 		field := &model.PropertyField{
 			GroupID:    th.CPAGroupID,
 			Name:       "DeleteAll-Synced",
@@ -373,7 +374,7 @@ func TestPermissionsDeleteAllFieldValuesAccessControl(t *testing.T) {
 		field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: true})
 		ldapGrant := field.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.PropertyFieldAttrLDAP, "", model.PropertyActionValueWrite)
 		require.NotNil(t, ldapGrant)
-		require.ElementsMatch(t, bothActions, ldapGrant.Allow)
+		require.Subset(t, ldapGrant.Allow, bothActions)
 		require.NotNil(t, field.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "plugin-owner", "", model.PropertyActionFieldWrite))
 		require.Nil(t, field.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "plugin-owner", "", model.PropertyActionValueWrite))
 		created := th.CreatePropertyFieldDirect(t, field)
