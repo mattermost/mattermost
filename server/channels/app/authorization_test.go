@@ -1892,7 +1892,7 @@ func TestSessionHasPermissionToEditPropertyField(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:    "protected field returns false even for unrestricted session",
+			name:    "unconverted protected field returns false even for unrestricted session",
 			session: model.Session{UserId: th.SystemAdminUser.Id, Local: true},
 			field: &model.PropertyField{
 				GroupID:           groupID,
@@ -1907,7 +1907,7 @@ func TestSessionHasPermissionToEditPropertyField(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:    "nil permissions returns false even for unrestricted session",
+			name:    "unconverted field with nil permissions returns false even for unrestricted session",
 			session: model.Session{UserId: th.SystemAdminUser.Id, Local: true},
 			field: &model.PropertyField{
 				GroupID:    groupID,
@@ -2061,7 +2061,7 @@ func TestSessionHasPermissionToSetPropertyFieldValues(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:    "nil permissions returns false even for unrestricted session",
+			name:    "unconverted field with nil permissions returns false even for unrestricted session",
 			session: model.Session{UserId: th.SystemAdminUser.Id, Local: true},
 			field: &model.PropertyField{
 				GroupID:    groupID,
@@ -2299,7 +2299,7 @@ func TestSessionHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:    "nil permissions returns false even for unrestricted session",
+			name:    "unconverted field with nil permissions returns false even for unrestricted session",
 			session: model.Session{UserId: th.SystemAdminUser.Id, Local: true},
 			field: &model.PropertyField{
 				GroupID:    groupID,
