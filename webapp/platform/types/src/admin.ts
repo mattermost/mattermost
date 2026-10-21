@@ -35,6 +35,10 @@ export type LogObject = {
     worker: string;
 };
 
+export type LogObjectWithNode = LogObject & {
+    node: string;
+};
+
 export type LogFilter = {
     serverNames: LogServerNames;
     logLevels: LogLevels;
