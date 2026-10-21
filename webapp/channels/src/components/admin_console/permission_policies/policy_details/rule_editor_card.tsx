@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
-
-import {SCOPE_COPY, type PolicyScope} from './scope_copy';
 
 import {BOT_SCOPE_HIDDEN_NATIVE} from '../../access_control/bot_scope';
 import CELEditor from '../../access_control/editors/cel_editor/editor';
@@ -17,6 +16,37 @@ import {excludeHiddenNativeFields, isSimpleExpression, mergeSessionAttributes, t
 import TableEditor, {type TableEditorProps} from '../../access_control/editors/table_editor/table_editor';
 
 export type EditorMode = 'cel' | 'table';
+export type PolicyScope = 'user' | 'bot';
+export type SimulateBlockedReason = 'simulation_disabled' | 'no_permissions';
+
+type ScopeText = {
+    attributesTitle: MessageDescriptor;
+    attributesSubtitle: MessageDescriptor;
+    tableHelp?: MessageDescriptor;
+    tableEmpty?: MessageDescriptor;
+};
+
+const userText = defineMessages({
+    attributesTitle: {id: 'admin.permission_policies.edit.who.attributes_title', defaultMessage: 'User attribute requirements'},
+    attributesSubtitle: {id: 'admin.permission_policies.edit.who.attributes_subtitle', defaultMessage: 'Select attributes and values that users must have for this policy'},
+});
+
+const botText = defineMessages({
+    attributesTitle: {id: 'admin.permission_policies.edit.who.attributes_title_bot', defaultMessage: 'Bot attribute requirements'},
+    attributesSubtitle: {id: 'admin.permission_policies.edit.who.attributes_subtitle_bot', defaultMessage: 'Select attributes and values that bots must have for this policy'},
+    tableHelp: {id: 'admin.permission_policies.edit.table_help_text_bot', defaultMessage: 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).'},
+    tableEmpty: {id: 'admin.permission_policies.edit.table_empty_bot', defaultMessage: 'Select a bot attribute and values to create a rule'},
+});
+
+const SCOPE_TEXT: Record<PolicyScope, ScopeText> = {
+    user: userText,
+    bot: botText,
+};
+
+const SIMULATE_BLOCKED_TOOLTIP: Record<SimulateBlockedReason, MessageDescriptor> = defineMessages({
+    simulation_disabled: {id: 'admin.permission_policies.edit.simulate_disabled_tooltip', defaultMessage: 'Rule simulation isn\'t enabled on this server.'},
+    no_permissions: {id: 'admin.permission_policies.edit.simulate_no_permissions_tooltip', defaultMessage: 'Add a permission to this policy to simulate it.'},
+});
 
 type Props = {
     scope: PolicyScope;
@@ -33,9 +63,11 @@ type Props = {
     enableUserManagedAttributes: boolean;
     abacActions: TableEditorProps['actions'];
 
-    // Opens the policy simulator. Omit when simulation is unavailable: the
-    // editors then fall back to their own expression-only test.
-    onTestClick?: () => void;
+    // Opens the policy simulator.
+    onTestClick: () => void;
+
+    // Why the simulator can't run yet; disables the test button.
+    simulateBlockedBy?: SimulateBlockedReason;
 };
 
 function RuleEditorCard({
@@ -53,9 +85,10 @@ function RuleEditorCard({
     enableUserManagedAttributes,
     abacActions,
     onTestClick,
+    simulateBlockedBy,
 }: Props) {
     const {formatMessage} = useIntl();
-    const copy = SCOPE_COPY[scope];
+    const text = SCOPE_TEXT[scope];
     const hiddenNativeNames = scope === 'bot' ? BOT_SCOPE_HIDDEN_NATIVE : undefined;
 
     const celUserAttributes = useMemo(
@@ -78,22 +111,19 @@ function RuleEditorCard({
         });
     }
 
-    // The editors' own test runs the bare expression, which would list humans
-    // as matching a bot-only rule, so bot scope can only test via the simulator.
-    const testBlocked = scope === 'bot' && !onTestClick;
+    // Always override the editors' own test: it matches the bare expression
+    // against every user, ignoring the policy's role, so it would list e.g.
+    // guests under a Members policy or humans under a Bot accounts policy.
     const testButtonProps = {
         onTestClick,
-        testButtonDisabled: testBlocked,
-        testButtonTooltip: testBlocked ? formatMessage({
-            id: 'admin.permission_policies.edit.bot_test_unavailable_tooltip',
-            defaultMessage: 'Testing the rule alone isn\'t available for bot account policies.',
-        }) : undefined,
-        testButtonLabel: onTestClick ? (
+        testButtonDisabled: Boolean(simulateBlockedBy),
+        testButtonTooltip: simulateBlockedBy && formatMessage(SIMULATE_BLOCKED_TOOLTIP[simulateBlockedBy]),
+        testButtonLabel: (
             <FormattedMessage
                 id='admin.permission_policies.editor.simulate_rules'
                 defaultMessage='Simulate rules'
             />
-        ) : undefined,
+        ),
     };
 
     return (
@@ -103,8 +133,8 @@ function RuleEditorCard({
         >
             <Card.Header>
                 <TitleAndButtonCardHeader
-                    title={<FormattedMessage {...copy.attributesTitle}/>}
-                    subtitle={<FormattedMessage {...copy.attributesSubtitle}/>}
+                    title={<FormattedMessage {...text.attributesTitle}/>}
+                    subtitle={<FormattedMessage {...text.attributesSubtitle}/>}
                     buttonText={editorMode === 'table' ? (
                         <FormattedMessage
                             id='admin.permission_policies.edit.switch_to_advanced'
@@ -140,8 +170,8 @@ function RuleEditorCard({
                         onParseError={() => onEditorModeChange('cel')}
                         enableUserManagedAttributes={enableUserManagedAttributes}
                         actions={abacActions}
-                        helpText={copy.tableHelp && formatMessage(copy.tableHelp)}
-                        emptyStateText={copy.tableEmpty && formatMessage(copy.tableEmpty)}
+                        helpText={text.tableHelp && formatMessage(text.tableHelp)}
+                        emptyStateText={text.tableEmpty && formatMessage(text.tableEmpty)}
                         hiddenPickerAttributeNames={hiddenNativeNames}
                         {...testButtonProps}
                     />

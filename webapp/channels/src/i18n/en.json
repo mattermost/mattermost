@@ -10747,10 +10747,6 @@
     "defaultMessage": "Edit",
     "description": "Menu item that opens a permission policy for editing; used in the policy actions menu and the channel settings permissions tab."
   },
-  "admin.permission_policies.edit.bot_test_unavailable_tooltip": {
-    "defaultMessage": "Testing the rule alone isn't available for bot account policies.",
-    "description": "Tooltip on the disabled 'Test access rule' button in the permission policy table and advanced (CEL) editors when the Bot accounts scope is selected and rule simulation isn't available."
-  },
   "admin.permission_policies.edit.cancel": {
     "defaultMessage": "Cancel",
     "description": "Cancel button on the attribute-based permission policy edit page in the System Console."
@@ -10899,6 +10895,14 @@
     "defaultMessage": "There are errors in the form above: {serverError}",
     "description": "Error banner at the bottom of the permission policy edit form; {serverError} is the server's error message text."
   },
+  "admin.permission_policies.edit.simulate_disabled_tooltip": {
+    "defaultMessage": "Rule simulation isn't enabled on this server.",
+    "description": "Tooltip on the disabled 'Simulate rules' button in the permission policy table and advanced (CEL) editors when the server has policy simulation turned off."
+  },
+  "admin.permission_policies.edit.simulate_no_permissions_tooltip": {
+    "defaultMessage": "Add a permission to this policy to simulate it.",
+    "description": "Tooltip on the disabled 'Simulate rules' button in the permission policy table and advanced (CEL) editors while the policy has no permissions selected; simulation needs at least one."
+  },
   "admin.permission_policies.edit.switch_to_advanced": {
     "defaultMessage": "Switch to Advanced Mode",
     "description": "Button on the permission policy edit page that switches the rule editor from the simple table to the advanced CEL expression mode."
@@ -11036,7 +11040,7 @@
     "description": "Option label in the role dropdown of the permission policy editor targeting guest users."
   },
   "admin.permission_policies.role.system_user.description": {
-    "defaultMessage": "Applies to regular members. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists.",
+    "defaultMessage": "Applies to regular members, including bot accounts. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists.",
     "description": "Description under the regular-members option in the role dropdown of the permission policy editor, explaining the admin fallback behavior."
   },
   "admin.permission_policies.role.system_user.label": {

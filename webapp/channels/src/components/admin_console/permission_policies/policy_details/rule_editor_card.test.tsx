@@ -8,7 +8,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
-import RuleEditorCard from './rule_editor_card';
+import RuleEditorCard, {type SimulateBlockedReason} from './rule_editor_card';
 
 import CELEditor from '../../access_control/editors/cel_editor/editor';
 import TableEditor from '../../access_control/editors/table_editor/table_editor';
@@ -32,9 +32,13 @@ const E = 'user.attributes.teams == "engineering"';
 const COMPLEX = 'user.attributes.a == "x" || user.attributes.b == "y"';
 const APOSTROPHE = 'user.attributes.department == "Matt\'s Department"';
 const HAS_ANY_OF = '"a" in user.attributes.teams || "b" in user.attributes.teams';
-const LEGACY_TOOLTIP = 'Testing the rule alone isn\'t available for bot account policies.';
 const SCOPES_AND_MODES: Array<[Props['scope'], Props['editorMode']]> = [['user', 'table'], ['user', 'cel'], ['bot', 'table'], ['bot', 'cel']];
 const MODES: Array<Props['editorMode']> = ['table', 'cel'];
+const BLOCKED_TOOLTIPS: Array<[SimulateBlockedReason, string]> = [
+    ['simulation_disabled', 'Rule simulation isn\'t enabled on this server.'],
+    ['no_permissions', 'Add a permission to this policy to simulate it.'],
+];
+const BLOCKED_CASES = BLOCKED_TOOLTIPS.flatMap(([reason, tooltip]) => SCOPES_AND_MODES.map(([scope, mode]) => [reason, scope, mode, tooltip] as const));
 
 const field = (id: string, name: string, attrs: Partial<UserPropertyField['attrs']>, objectType = 'user'): UserPropertyField => ({
     id,
@@ -71,6 +75,7 @@ describe('components/admin_console/permission_policies/policy_details/RuleEditor
         mergedAttributes: [],
         enableUserManagedAttributes: false,
         abacActions: {getVisualAST: jest.fn()},
+        onTestClick: jest.fn(),
     };
 
     const renderCard = (props: Partial<Props> = {}) => renderWithContext(
@@ -271,34 +276,25 @@ describe('components/admin_console/permission_policies/policy_details/RuleEditor
     });
 
     describe('test button', () => {
-        test.each(MODES)('Bot accounts without the simulator disables it with an explanation (%s)', (editorMode) => {
-            renderCard({scope: 'bot', editorMode});
+        test.each(SCOPES_AND_MODES)('%s scope opens the simulator as Simulate rules (%s)', (scope, editorMode) => {
+            renderCard({scope, editorMode});
 
             const props = lastEditorProps(editorMode);
-            expect(props.onTestClick).toBeUndefined();
+            expect(props.onTestClick).toBe(baseProps.onTestClick);
+            expect(props.testButtonDisabled).toBe(false);
+            expect(props.testButtonTooltip).toBeUndefined();
+            renderWithContext(<>{props.testButtonLabel}</>);
+            expect(screen.getByText('Simulate rules')).toBeInTheDocument();
+        });
+
+        // MM-71299
+        test.each(BLOCKED_CASES)('%s disables Simulate rules for %s scope instead of falling back to the expression-only test (%s)', (simulateBlockedBy, scope, editorMode, tooltip) => {
+            renderCard({scope, editorMode, simulateBlockedBy});
+
+            const props = lastEditorProps(editorMode);
+            expect(props.onTestClick).toBe(baseProps.onTestClick);
             expect(props.testButtonDisabled).toBe(true);
-            expect(props.testButtonTooltip).toBe(LEGACY_TOOLTIP);
-            expect(props.testButtonLabel).toBeUndefined();
-        });
-
-        test.each(MODES)('Members without the simulator keeps the default test (%s)', (editorMode) => {
-            renderCard({editorMode});
-
-            const props = lastEditorProps(editorMode);
-            expect(props.onTestClick).toBeUndefined();
-            expect(props.testButtonDisabled).toBe(false);
-            expect(props.testButtonTooltip).toBeUndefined();
-            expect(props.testButtonLabel).toBeUndefined();
-        });
-
-        test.each(SCOPES_AND_MODES)('%s scope with the simulator becomes Simulate rules (%s)', (scope, editorMode) => {
-            const onTestClick = jest.fn();
-            renderCard({scope, editorMode, onTestClick});
-
-            const props = lastEditorProps(editorMode);
-            expect(props.onTestClick).toBe(onTestClick);
-            expect(props.testButtonDisabled).toBe(false);
-            expect(props.testButtonTooltip).toBeUndefined();
+            expect(props.testButtonTooltip).toBe(tooltip);
             renderWithContext(<>{props.testButtonLabel}</>);
             expect(screen.getByText('Simulate rules')).toBeInTheDocument();
         });

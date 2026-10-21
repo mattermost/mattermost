@@ -134,11 +134,11 @@ describe('components/admin_console/permission_policies/PermissionPolicyList', ()
 });
 
 describe('components/admin_console/permission_policies/roles', () => {
-    test('AVAILABLE_ROLES pairs each role with its label and description messages, bot last', () => {
+    test('AVAILABLE_ROLES pairs each role with its label and description messages, guest then bot last', () => {
         expect(AVAILABLE_ROLES).toEqual([
-            {value: 'system_guest', label: roleMessages.guestLabel, description: roleMessages.guestDescription},
             {value: 'system_user', label: roleMessages.memberLabel, description: roleMessages.memberDescription},
             {value: 'system_admin', label: roleMessages.adminLabel, description: roleMessages.adminDescription},
+            {value: 'system_guest', label: roleMessages.guestLabel, description: roleMessages.guestDescription},
             {value: BOT_ROLE_KEY, label: roleMessages.botLabel, description: roleMessages.botDescription},
         ]);
     });

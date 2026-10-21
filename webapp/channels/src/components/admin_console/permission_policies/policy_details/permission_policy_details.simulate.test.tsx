@@ -13,10 +13,12 @@ import {
     E,
     NATIVE_FIELDS,
     baseProps,
+    chooseMenuItem,
     lastCELProps,
     lastTableProps,
     mockFetchPolicy,
     renderBotPolicy,
+    renderWithPolicy,
     selectScope,
     setUpPolicyDetailsMocks,
     useFields,
@@ -129,33 +131,46 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
     });
 
+    // MM-71299: the editors' own expression-only test ignores the policy's
+    // role, so no scope may fall back to it when the simulator can't run.
     describe('test button gating', () => {
-        test('the simulator is unavailable without the feature flags', async () => {
-            renderBotPolicy([wrapBotExpression(E)]);
-            await screen.findByTestId('table-editor');
+        const ROLE_OPTIONS = ['pp-role-option-system_user', 'pp-role-option-system_admin', 'pp-role-option-system_guest', 'pp-role-option-bot'];
 
-            expect(lastTableProps().onTestClick).toBeUndefined();
-        });
-
-        test('is disabled in Bot accounts when no permission is selected, even with the simulator', async () => {
+        const renderWithoutPermissions = () => {
             mockFetchPolicy.mockResolvedValue({
                 data: {id: 'policy1', name: 'Policy 1', type: 'permission', roles: ['system_user'], rules: []},
             });
-            renderWithContext(<PermissionPolicyDetails {...baseProps}/>, SIM_STATE);
-            await screen.findByTestId('table-editor');
-            await selectScope('pp-role-option-bot');
+            return renderWithContext(<PermissionPolicyDetails {...baseProps}/>, SIM_STATE);
+        };
 
-            expect(lastTableProps().onTestClick).toBeUndefined();
+        test.each(ROLE_OPTIONS)('without the feature flags, %s keeps Simulate rules disabled', async (optionId) => {
+            renderWithPolicy({expressions: [E]});
+            await screen.findByTestId('table-editor');
+            await selectScope(optionId);
+
+            expect(lastTableProps().onTestClick).toEqual(expect.any(Function));
             expect(lastTableProps().testButtonDisabled).toBe(true);
+            expect(lastTableProps().testButtonTooltip).toBe('Rule simulation isn\'t enabled on this server.');
         });
 
-        test('switching from Bot accounts to Members re-enables it', async () => {
-            renderBotPolicy([wrapBotExpression(E)]);
+        test.each(ROLE_OPTIONS)('with no permission selected, %s keeps Simulate rules disabled', async (optionId) => {
+            renderWithoutPermissions();
+            await screen.findByTestId('table-editor');
+            await selectScope(optionId);
+
+            expect(lastTableProps().onTestClick).toEqual(expect.any(Function));
+            expect(lastTableProps().testButtonDisabled).toBe(true);
+            expect(lastTableProps().testButtonTooltip).toBe('Add a permission to this policy to simulate it.');
+        });
+
+        test('adding a permission enables Simulate rules', async () => {
+            renderWithoutPermissions();
             await screen.findByTestId('table-editor');
 
-            await selectScope('pp-role-option-system_user');
+            await chooseMenuItem('pp-add-permission-btn', 'pp-add-permission-menu', 'pp-add-permission-download_file_attachment');
 
-            expect(lastTableProps().testButtonDisabled).toBeFalsy();
+            expect(lastTableProps().testButtonDisabled).toBe(false);
+            expect(lastTableProps().testButtonTooltip).toBeUndefined();
         });
     });
 });

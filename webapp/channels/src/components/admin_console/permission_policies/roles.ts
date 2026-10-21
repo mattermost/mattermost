@@ -16,7 +16,7 @@ export const roleMessages = defineMessages({
     guestLabel: {id: 'admin.permission_policies.role.system_guest.label', defaultMessage: 'Guest users'},
     guestDescription: {id: 'admin.permission_policies.role.system_guest.description', defaultMessage: 'Applies only to guest users'},
     memberLabel: {id: 'admin.permission_policies.role.system_user.label', defaultMessage: 'Members'},
-    memberDescription: {id: 'admin.permission_policies.role.system_user.description', defaultMessage: 'Applies to regular members. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists.'},
+    memberDescription: {id: 'admin.permission_policies.role.system_user.description', defaultMessage: 'Applies to regular members, including bot accounts. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists.'},
     adminLabel: {id: 'admin.permission_policies.role.system_admin.label', defaultMessage: 'System administrators'},
     adminDescription: {id: 'admin.permission_policies.role.system_admin.description', defaultMessage: 'Applies only to system administrators'},
     botLabel: {id: 'admin.permission_policies.role.bot.label', defaultMessage: 'Bot accounts'},
@@ -25,8 +25,8 @@ export const roleMessages = defineMessages({
 });
 
 export const AVAILABLE_ROLES: RoleDefinition[] = [
-    {value: 'system_guest', label: roleMessages.guestLabel, description: roleMessages.guestDescription},
     {value: 'system_user', label: roleMessages.memberLabel, description: roleMessages.memberDescription},
     {value: 'system_admin', label: roleMessages.adminLabel, description: roleMessages.adminDescription},
+    {value: 'system_guest', label: roleMessages.guestLabel, description: roleMessages.guestDescription},
     {value: BOT_ROLE_KEY, label: roleMessages.botLabel, description: roleMessages.botDescription},
 ];

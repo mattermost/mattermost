@@ -311,16 +311,16 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     });
 
     describe('role detection', () => {
-        test('lists the four scopes with Bot accounts last', async () => {
+        test('lists the four scopes with Guest users second to last and Bot accounts last', async () => {
             renderWithExpression(E);
             await screen.findByTestId('table-editor');
 
             await userEvent.click(document.querySelector('#pp-role-selector-btn')!);
 
             expect(screen.getAllByRole('menuitem').map((el) => el.id)).toEqual([
-                'pp-role-option-system_guest',
                 'pp-role-option-system_user',
                 'pp-role-option-system_admin',
+                'pp-role-option-system_guest',
                 'pp-role-option-bot',
             ]);
             expect(screen.getByText('Applies only to bot accounts')).toBeInTheDocument();

@@ -32,8 +32,7 @@ import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttribute
 import {getHistory} from 'utils/browser_history';
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
-import RuleEditorCard, {type EditorMode} from './rule_editor_card';
-import {SCOPE_COPY, type PolicyScope} from './scope_copy';
+import RuleEditorCard, {type EditorMode, type PolicyScope, type SimulateBlockedReason} from './rule_editor_card';
 
 import {
     BOT_ROLE_KEY,
@@ -66,6 +65,11 @@ const botScopeErrorMessages = defineMessages({
         id: 'admin.permission_policies.edit.error.bot_expression_check_failed',
         defaultMessage: 'Couldn\'t validate the expression. Try again.',
     },
+});
+
+const whoSubtitleMessages = defineMessages({
+    user: {id: 'admin.permission_policies.edit.who.subtitle', defaultMessage: 'Define rules based on user attributes and values'},
+    bot: {id: 'admin.permission_policies.edit.who.subtitle_bot', defaultMessage: 'Define rules based on bot attributes and values'},
 });
 
 const syncedBotMessages = defineMessages({
@@ -169,13 +173,18 @@ function PermissionPolicyDetails({
 
     // Gate the "Simulate rules" button + modal. The
     // /cel/simulate_users endpoint returns 501 when this is off, so
-    // hiding the UI here keeps the author from clicking a button
-    // that would only surface a backend error. Mirror gate exists on
-    // the channel-settings Permissions Policy tab.
+    // disabling the button keeps the author from clicking into a
+    // backend error. Mirror gate exists on the channel-settings
+    // Permissions Policy tab.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
 
     // /cel/simulate_users rejects an empty action list, so the simulator also needs a selected permission.
-    const simulateAvailable = policySimulationEnabled && selectedPermissions.length > 0;
+    let simulateBlockedBy: SimulateBlockedReason | undefined;
+    if (!policySimulationEnabled) {
+        simulateBlockedBy = 'simulation_disabled';
+    } else if (selectedPermissions.length === 0) {
+        simulateBlockedBy = 'no_permissions';
+    }
 
     // The autocomplete mixes the requesting user's attributes (user.attributes.*)
     // and the accessed channel's attributes (resource.attributes.*), tagged by
@@ -526,7 +535,7 @@ function PermissionPolicyDetails({
                                                 defaultMessage='Who this policy applies to'
                                             />
                                         }
-                                        subtitle={<FormattedMessage {...SCOPE_COPY[scope].whoSubtitle}/>}
+                                        subtitle={<FormattedMessage {...whoSubtitleMessages[scope]}/>}
                                     />
                                 </Card.Header>
                                 <Card.Body>
@@ -608,7 +617,8 @@ function PermissionPolicyDetails({
                                 mergedAttributes={mergedAttributes}
                                 enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
                                 abacActions={abacActions}
-                                onTestClick={simulateAvailable ? handleTestClick : undefined}
+                                onTestClick={handleTestClick}
+                                simulateBlockedBy={simulateBlockedBy}
                             />
 
                             {/* "What permissions are modified" */}
