@@ -14,12 +14,13 @@ import {
     useInteractions,
     useRole,
 } from '@floating-ui/react';
-import classNames from 'classnames';
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {FilterVariantIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {getIsCrossTeamSearchEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
@@ -72,16 +73,16 @@ export default function MentionFiltersButton() {
 
     return (
         <>
-            <button
-                type='button'
+            <Button
                 id='mentionFiltersButton'
                 data-testid='mentionFiltersButton'
                 ref={refs.setReference}
-                className={classNames('MentionFilters__button', {'MentionFilters__button--active': isOpen || count > 0})}
+                emphasis='tertiary'
+                size='small'
+                leadingIcon={<Icon glyph={<FilterVariantIcon/>}/>}
                 aria-label={formatMessage({id: 'search_results.mention_filters.button', defaultMessage: 'Filters'})}
                 {...getReferenceProps()}
             >
-                <FilterVariantIcon size={16}/>
                 {count > 0 ? (
                     <FormattedMessage
                         id='search_results.mention_filters.button_with_count'
@@ -94,7 +95,7 @@ export default function MentionFiltersButton() {
                         defaultMessage='Filters'
                     />
                 )}
-            </button>
+            </Button>
             {isOpen && (
                 <FloatingPortal id={RootHtmlPortalId}>
                     <FloatingFocusManager

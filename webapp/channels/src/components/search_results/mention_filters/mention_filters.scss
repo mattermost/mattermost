@@ -1,27 +1,5 @@
 @use "utils/variables";
 
-.MentionFilters__button {
-    display: flex;
-    align-items: center;
-    padding: 4px 8px;
-    border: 0;
-    border-radius: var(--radius-s, 4px);
-    background: transparent;
-    color: var(--button-bg, #1c58d9);
-    font-size: 14px;
-    font-weight: 600;
-    gap: 6px;
-    line-height: 20px;
-
-    &:hover {
-        background: rgba(var(--button-bg-rgb), 0.08);
-    }
-
-    &--active {
-        background: rgba(var(--button-bg-rgb), 0.08);
-    }
-}
-
 .MentionFilters {
     z-index: 1100;
     width: 320px;
@@ -31,6 +9,14 @@
     background: var(--center-channel-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     color: var(--center-channel-color);
+
+    // Combobox portals its menu into this popover so Floating UI dismiss stays intact.
+    // A non-static position is required for portalContainer coordinate conversion.
+    position: relative;
+}
+
+.MentionFilters__popover {
+    position: relative;
 }
 
 .MentionFilters__selectors {
@@ -43,125 +29,6 @@
 
 .MentionFilters__field {
     position: relative;
-}
-
-.MentionFilters__fieldButton {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    padding: 10px 12px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: var(--radius-s, 4px);
-    background: transparent;
-    color: var(--center-channel-color);
-    font-size: 14px;
-    gap: 8px;
-    text-align: left;
-
-    &:hover {
-        border-color: rgba(var(--center-channel-color-rgb), 0.24);
-    }
-
-    &--open {
-        border-color: var(--button-bg, #1c58d9);
-        box-shadow: inset 0 0 0 1px var(--button-bg, #1c58d9);
-    }
-}
-
-.MentionFilters__fieldLabel {
-    position: absolute;
-    top: -8px;
-    left: 8px;
-    padding: 0 4px;
-    background: var(--center-channel-bg);
-    color: rgba(var(--center-channel-color-rgb), 0.64);
-    font-size: 10px;
-    font-weight: 600;
-    line-height: 16px;
-}
-
-.MentionFilters__fieldValue,
-.MentionFilters__fieldPlaceholder {
-    overflow: hidden;
-    flex: 1;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.MentionFilters__fieldPlaceholder {
-    color: rgba(var(--center-channel-color-rgb), 0.64);
-}
-
-.MentionFilters__channelPicker {
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: var(--radius-s, 4px);
-    margin-top: 4px;
-}
-
-.MentionFilters__search {
-    display: flex;
-    align-items: center;
-    padding: 6px 10px;
-    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    color: rgba(var(--center-channel-color-rgb), 0.64);
-    gap: 6px;
-
-    input {
-        width: 100%;
-        border: 0;
-        background: transparent;
-        color: var(--center-channel-color);
-        font-size: 14px;
-        outline: none;
-    }
-}
-
-.MentionFilters__options {
-    max-height: 200px;
-    padding: 4px 0;
-    margin: 0;
-    list-style: none;
-    overflow-y: auto;
-}
-
-.MentionFilters__option {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    padding: 6px 12px;
-    border: 0;
-    margin: 0;
-    background: transparent;
-    color: var(--center-channel-color);
-    font-size: 14px;
-    font-weight: 400;
-    gap: 8px;
-    text-align: left;
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-    }
-
-    &--checkbox {
-        cursor: pointer;
-    }
-
-    input[type="checkbox"] {
-        margin: 0;
-    }
-}
-
-.MentionFilters__optionLabel {
-    overflow: hidden;
-    flex: 1;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.MentionFilters__noOptions {
-    padding: 8px 12px;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
-    font-size: 14px;
 }
 
 .MentionFilters__section {
@@ -184,17 +51,11 @@
 
 .MentionFilters__choice {
     display: flex;
-    align-items: center;
-    padding: 4px 0;
     margin: 0;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 400;
-    gap: 10px;
+}
 
-    input {
-        margin: 0;
-    }
+.MentionFilters__choice + .MentionFilters__choice {
+    margin-top: 4px;
 }
 
 .MentionFilters__footer {
@@ -210,47 +71,4 @@
     padding: 8px 16px;
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     gap: 8px;
-}
-
-.MentionFilterChip {
-    display: inline-flex;
-    max-width: 100%;
-    align-items: center;
-    padding: 4px 8px;
-    border-radius: 12px;
-    background: rgba(var(--center-channel-color-rgb), 0.08);
-    color: var(--center-channel-color);
-    font-size: 12px;
-    font-weight: 600;
-    gap: 4px;
-    line-height: 16px;
-}
-
-.MentionFilterChip__label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.MentionFilterChip__remove {
-    display: flex;
-    align-items: center;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-
-    &:hover {
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-    }
-}
-
-.MentionFilters__optionTeam {
-    overflow: hidden;
-    max-width: 40%;
-    flex-shrink: 0;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-    font-size: 12px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }

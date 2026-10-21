@@ -33,7 +33,10 @@ function baseState(filters: MentionFilters, searchTeam: string | null) {
             },
             teams: {
                 currentTeamId: 'team1',
-                teams: {team1: {id: 'team1', display_name: 'Product'}},
+                teams: {
+                    team1: {id: 'team1', display_name: 'Product', delete_at: 0},
+                },
+                myMembers: {team1: {team_id: 'team1'}},
             },
         },
         views: {
@@ -43,6 +46,13 @@ function baseState(filters: MentionFilters, searchTeam: string | null) {
             },
         },
     };
+}
+
+async function removeChip(label: string) {
+    const chip = screen.getByLabelText(label);
+    const remove = chip.querySelector('[data-chip-remove]');
+    expect(remove).toBeTruthy();
+    await userEvent.click(remove!);
 }
 
 describe('MentionFilterChips', () => {
@@ -76,7 +86,7 @@ describe('MentionFilterChips', () => {
 
         expect(screen.getByText('Release Coordination (Product)')).toBeInTheDocument();
 
-        await userEvent.click(screen.getByLabelText('Remove Release Coordination (Product) filter'));
+        await removeChip('Remove Release Coordination (Product) filter');
 
         expect(mockDispatch).toHaveBeenCalledWith({
             type: 'MOCK_UPDATE_MENTION_FILTERS',
@@ -91,7 +101,7 @@ describe('MentionFilterChips', () => {
             baseState({channelIds: ['channel1'], mentionTypes: ['direct'], date: 'today'}, 'team1'),
         );
 
-        await userEvent.click(screen.getByLabelText('Remove Today filter'));
+        await removeChip('Remove Today filter');
 
         expect(mockDispatch).toHaveBeenCalledWith({
             type: 'MOCK_UPDATE_MENTION_FILTERS',
@@ -103,7 +113,7 @@ describe('MentionFilterChips', () => {
     test('removing the team chip widens the search back out to every team', async () => {
         renderWithContext(<MentionFilterChips/>, baseState(defaultMentionFilters, 'team1'));
 
-        await userEvent.click(screen.getByLabelText('Remove Product filter'));
+        await removeChip('Remove Product filter');
 
         expect(mockDispatch).toHaveBeenCalledWith({
             type: 'MOCK_UPDATE_MENTION_FILTERS',
@@ -118,7 +128,7 @@ describe('MentionFilterChips', () => {
             baseState({channelIds: ['channel1'], mentionTypes: ['direct'], date: 'any'}, 'team1'),
         );
 
-        await userEvent.click(screen.getByLabelText('Remove Product filter'));
+        await removeChip('Remove Product filter');
 
         // The other filters are left alone: only the channels belong to the team being left.
         expect(mockDispatch).toHaveBeenCalledWith({

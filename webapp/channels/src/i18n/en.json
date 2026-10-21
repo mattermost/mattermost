@@ -29499,8 +29499,8 @@
     "defaultMessage": "Today",
     "description": "Date option in the Recent Mentions filters popover: only mentions from today, in the user's own timezone."
   },
-  "search_results.mention_filters.done": {
-    "defaultMessage": "Done",
+  "search_results.mention_filters.apply": {
+    "defaultMessage": "Apply",
     "description": "Button that applies the filters and closes the Recent Mentions filters popover."
   },
   "search_results.mention_filters.mention_type": {
@@ -29518,10 +29518,6 @@
   "search_results.mention_filters.reset": {
     "defaultMessage": "Reset",
     "description": "Button that clears every filter in the Recent Mentions filters popover."
-  },
-  "search_results.mention_filters.search_channels": {
-    "defaultMessage": "Search channels",
-    "description": "Placeholder and accessible label of the box that narrows the channel list in the Recent Mentions filters popover."
   },
   "search_results.mention_filters.team": {
     "defaultMessage": "Team",

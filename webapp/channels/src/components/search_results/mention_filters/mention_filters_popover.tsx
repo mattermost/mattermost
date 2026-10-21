@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {ChevronDownIcon, MagnifyIcon} from '@mattermost/compass-icons/components';
-import type {Channel} from '@mattermost/types/channels';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+import {Combobox} from '@mattermost/compass-ui/components/combobox';
+import type {ComboboxOption} from '@mattermost/compass-ui/components/combobox';
+import {Radio} from '@mattermost/compass-ui/components/radio';
 
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
@@ -34,17 +36,15 @@ type Props = {
     onClose: () => void;
 };
 
-type ExpandedSection = 'team' | 'channels' | null;
+// Combobox rejects empty option values, so All teams needs a sentinel mapped to null.
+const ALL_TEAMS_VALUE = 'all_teams';
 
-// The selectors are expanded in place rather than opening their own menus: a menu inside the popover
-// would be dismissed along with it on the click that opens the menu.
 export default function MentionFiltersPopover({filters, teamId, showTeamSelector, onApply, onClose}: Props) {
     const {formatMessage} = useIntl();
+    const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null);
 
     const [draft, setDraft] = useState<MentionFilters>(filters);
     const [draftTeamId, setDraftTeamId] = useState<string | null>(teamId);
-    const [expanded, setExpanded] = useState<ExpandedSection>(null);
-    const [channelFilter, setChannelFilter] = useState('');
 
     const myTeams = useSelector(getMyTeams);
     const locale = useSelector(getCurrentLocale);
@@ -58,45 +58,46 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
     );
 
     const allTeamsLabel = formatMessage({id: 'search_results.mention_filters.all_teams', defaultMessage: 'All teams'});
-    const selectedTeamName = teams.find((team) => team.id === draftTeamId)?.display_name ?? allTeamsLabel;
+    const teamLabel = formatMessage({id: 'search_results.mention_filters.team', defaultMessage: 'Team'});
+    const channelsLabel = formatMessage({id: 'search_results.mention_filters.channels', defaultMessage: 'Channel or Direct Messages'});
+    const noChannelsLabel = formatMessage({id: 'search_results.mention_filters.no_channels', defaultMessage: 'No channels found'});
 
-    const matchingChannels = useMemo(() => {
-        const term = channelFilter.trim().toLowerCase();
-        if (!term) {
-            return channels;
+    const teamOptions = useMemo<ComboboxOption[]>(() => [
+        {value: ALL_TEAMS_VALUE, label: allTeamsLabel},
+        ...teams.map((team) => ({value: team.id, label: team.display_name})),
+    ], [allTeamsLabel, teams]);
+
+    const channelOptions = useMemo<ComboboxOption[]>(() => channels.map((channel) => ({
+        value: channel.id,
+        label: channel.display_name,
+        leadingVisual: <ChannelTypeIcon channel={channel}/>,
+        secondaryLabel: draftTeamId === null && channel.team_id ? teamNames[channel.team_id] : undefined,
+    })), [channels, draftTeamId, teamNames]);
+
+    const filterChannels = (option: ComboboxOption, query: string) => {
+        const channel = channels.find((c) => c.id === option.value);
+        if (!channel) {
+            return false;
         }
-        return channels.filter((channel) =>
-            channel.display_name.toLowerCase().includes(term) || channel.name.toLowerCase().includes(term));
-    }, [channels, channelFilter]);
-
-    const selectedChannels = useMemo(
-        () => channels.filter((channel) => draft.channelIds.includes(channel.id)),
-        [channels, draft.channelIds],
-    );
-
-    // Without a team selected the list spans teams, where a channel name on its own can be ambiguous.
-    const showChannelTeam = draftTeamId === null;
-
-    const channelsLabel = selectedChannels.length > 0 ? selectedChannels.map((channel) => channel.display_name).join(', ') : '';
-
-    const toggleSection = (section: ExpandedSection) => {
-        setExpanded((current) => (current === section ? null : section));
-        setChannelFilter('');
+        const term = query.trim().toLowerCase();
+        if (!term) {
+            return true;
+        }
+        return channel.display_name.toLowerCase().includes(term) || channel.name.toLowerCase().includes(term);
     };
 
-    const selectTeam = (nextTeamId: string | null) => {
+    const selectTeam = (value: string | string[] | null) => {
+        const nextValue = Array.isArray(value) ? value[0] ?? null : value;
+        const nextTeamId = nextValue && nextValue !== ALL_TEAMS_VALUE ? nextValue : null;
         setDraftTeamId(nextTeamId);
 
         // The selected channels belong to the team being left, so they can't carry over.
         setDraft((current) => ({...current, channelIds: []}));
-        setExpanded(null);
     };
 
-    const toggleChannel = (channel: Channel) => {
-        setDraft((current) => ({
-            ...current,
-            channelIds: current.channelIds.includes(channel.id) ? current.channelIds.filter((id) => id !== channel.id) : [...current.channelIds, channel.id],
-        }));
+    const selectChannels = (value: string | string[] | null) => {
+        const channelIds = value == null ? [] : Array.isArray(value) ? value : [value];
+        setDraft((current) => ({...current, channelIds}));
     };
 
     const toggleMentionType = (type: MentionType) => {
@@ -113,7 +114,6 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
     const reset = () => {
         setDraft(defaultMentionFilters);
         setDraftTeamId(null);
-        setExpanded(null);
     };
 
     const apply = () => {
@@ -124,130 +124,43 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
     const isReset = draftTeamId === null && draft.channelIds.length === 0 && draft.mentionTypes.length === 0 && draft.date === 'any';
 
     return (
-        <div className='MentionFilters__popover'>
+        <div
+            ref={setPortalContainer}
+            className='MentionFilters__popover'
+        >
             <div className='MentionFilters__selectors'>
                 {showTeamSelector && (
-                    <div className='MentionFilters__field'>
-                        <button
-                            type='button'
-                            id='mentionFiltersTeamSelector'
-                            data-testid='mentionFiltersTeamSelector'
-                            className={classNames('MentionFilters__fieldButton', {'MentionFilters__fieldButton--open': expanded === 'team'})}
-                            aria-expanded={expanded === 'team'}
-                            onClick={() => toggleSection('team')}
-                        >
-                            <span className='MentionFilters__fieldLabel'>
-                                <FormattedMessage
-                                    id='search_results.mention_filters.team'
-                                    defaultMessage='Team'
-                                />
-                            </span>
-                            <span className='MentionFilters__fieldValue'>{selectedTeamName}</span>
-                            <ChevronDownIcon size={16}/>
-                        </button>
-                        {expanded === 'team' && (
-                            <ul className='MentionFilters__options'>
-                                <li>
-                                    <button
-                                        type='button'
-                                        className='MentionFilters__option'
-                                        role='menuitemradio'
-                                        aria-checked={draftTeamId === null}
-                                        onClick={() => selectTeam(null)}
-                                    >
-                                        <span className='MentionFilters__optionLabel'>{allTeamsLabel}</span>
-                                        {draftTeamId === null && <i className='icon icon-check'/>}
-                                    </button>
-                                </li>
-                                {teams.map((team) => (
-                                    <li key={team.id}>
-                                        <button
-                                            type='button'
-                                            className='MentionFilters__option'
-                                            role='menuitemradio'
-                                            aria-checked={draftTeamId === team.id}
-                                            onClick={() => selectTeam(team.id)}
-                                        >
-                                            <span className='MentionFilters__optionLabel'>{team.display_name}</span>
-                                            {draftTeamId === team.id && <i className='icon icon-check'/>}
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                    <div
+                        className='MentionFilters__field'
+                        data-testid='mentionFiltersTeamSelector'
+                    >
+                        <Combobox
+                            label={teamLabel}
+                            options={teamOptions}
+                            value={draftTeamId ?? ALL_TEAMS_VALUE}
+                            onChange={selectTeam}
+                            portalContainer={portalContainer}
+                            zIndex={1200}
+                        />
                     </div>
                 )}
 
-                <div className='MentionFilters__field'>
-                    <button
-                        type='button'
-                        id='mentionFiltersChannelSelector'
-                        data-testid='mentionFiltersChannelSelector'
-                        className={classNames('MentionFilters__fieldButton', {'MentionFilters__fieldButton--open': expanded === 'channels'})}
-                        aria-expanded={expanded === 'channels'}
-                        onClick={() => toggleSection('channels')}
-                    >
-                        {channelsLabel ? (
-                            <>
-                                <span className='MentionFilters__fieldLabel'>
-                                    <FormattedMessage
-                                        id='search_results.mention_filters.channels'
-                                        defaultMessage='Channel or Direct Messages'
-                                    />
-                                </span>
-                                <span className='MentionFilters__fieldValue'>{channelsLabel}</span>
-                            </>
-                        ) : (
-                            <span className='MentionFilters__fieldPlaceholder'>
-                                <FormattedMessage
-                                    id='search_results.mention_filters.channels'
-                                    defaultMessage='Channel or Direct Messages'
-                                />
-                            </span>
-                        )}
-                        <ChevronDownIcon size={16}/>
-                    </button>
-                    {expanded === 'channels' && (
-                        <div className='MentionFilters__channelPicker'>
-                            <div className='MentionFilters__search'>
-                                <MagnifyIcon size={16}/>
-                                <input
-                                    type='text'
-                                    autoFocus={true}
-                                    value={channelFilter}
-                                    onChange={(e) => setChannelFilter(e.target.value)}
-                                    placeholder={formatMessage({id: 'search_results.mention_filters.search_channels', defaultMessage: 'Search channels'})}
-                                    aria-label={formatMessage({id: 'search_results.mention_filters.search_channels', defaultMessage: 'Search channels'})}
-                                />
-                            </div>
-                            <ul className='MentionFilters__options'>
-                                {matchingChannels.map((channel) => (
-                                    <li key={channel.id}>
-                                        <label className='MentionFilters__option MentionFilters__option--checkbox'>
-                                            <input
-                                                type='checkbox'
-                                                checked={draft.channelIds.includes(channel.id)}
-                                                onChange={() => toggleChannel(channel)}
-                                            />
-                                            <ChannelTypeIcon channel={channel}/>
-                                            <span className='MentionFilters__optionLabel'>{channel.display_name}</span>
-                                            {showChannelTeam && channel.team_id && (
-                                                <span className='MentionFilters__optionTeam'>{teamNames[channel.team_id]}</span>
-                                            )}
-                                        </label>
-                                    </li>
-                                ))}
-                                {matchingChannels.length === 0 && (
-                                    <li className='MentionFilters__noOptions'>
-                                        <FormattedMessage
-                                            id='search_results.mention_filters.no_channels'
-                                            defaultMessage='No channels found'
-                                        />
-                                    </li>
-                                )}
-                            </ul>
-                        </div>
-                    )}
+                <div
+                    className='MentionFilters__field'
+                    data-testid='mentionFiltersChannelSelector'
+                >
+                    <Combobox
+                        multiple={true}
+                        label={channelsLabel}
+                        placeholder={channelsLabel}
+                        options={channelOptions}
+                        value={draft.channelIds}
+                        onChange={selectChannels}
+                        filter={filterChannels}
+                        emptyMessage={noChannelsLabel}
+                        portalContainer={portalContainer}
+                        zIndex={1200}
+                    />
                 </div>
             </div>
 
@@ -259,17 +172,14 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                     />
                 </legend>
                 {mentionTypeOrder.map((type) => (
-                    <label
+                    <Checkbox
                         key={type}
                         className='MentionFilters__choice'
+                        checked={draft.mentionTypes.includes(type)}
+                        onChange={() => toggleMentionType(type)}
                     >
-                        <input
-                            type='checkbox'
-                            checked={draft.mentionTypes.includes(type)}
-                            onChange={() => toggleMentionType(type)}
-                        />
-                        <span>{formatMessage(mentionTypeLabels[type])}</span>
-                    </label>
+                        {formatMessage(mentionTypeLabels[type])}
+                    </Checkbox>
                 ))}
             </fieldset>
 
@@ -281,25 +191,21 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                     />
                 </legend>
                 {dateRangeOrder.map((range) => (
-                    <label
+                    <Radio
                         key={range}
                         className='MentionFilters__choice'
+                        name='mentionFiltersDate'
+                        checked={draft.date === range}
+                        onChange={() => selectDate(range)}
                     >
-                        <input
-                            type='radio'
-                            name='mentionFiltersDate'
-                            checked={draft.date === range}
-                            onChange={() => selectDate(range)}
-                        />
-                        <span>{formatMessage(dateRangeLabels[range])}</span>
-                    </label>
+                        {formatMessage(dateRangeLabels[range])}
+                    </Radio>
                 ))}
             </fieldset>
 
             <div className='MentionFilters__footer'>
-                <button
-                    type='button'
-                    className='btn btn-tertiary'
+                <Button
+                    emphasis='tertiary'
                     disabled={isReset}
                     onClick={reset}
                 >
@@ -307,17 +213,16 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                         id='search_results.mention_filters.reset'
                         defaultMessage='Reset'
                     />
-                </button>
-                <button
-                    type='button'
-                    className='btn btn-primary'
+                </Button>
+                <Button
+                    emphasis='primary'
                     onClick={apply}
                 >
                     <FormattedMessage
-                        id='search_results.mention_filters.done'
-                        defaultMessage='Done'
+                        id='search_results.mention_filters.apply'
+                        defaultMessage='Apply'
                     />
-                </button>
+                </Button>
             </div>
         </div>
     );

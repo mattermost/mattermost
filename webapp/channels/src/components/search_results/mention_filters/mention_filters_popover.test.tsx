@@ -51,21 +51,29 @@ function setup(props: Partial<React.ComponentProps<typeof MentionFiltersPopover>
     return {onApply, onClose};
 }
 
+async function openCombobox(label: string) {
+    await userEvent.click(screen.getByRole('combobox', {name: label}));
+}
+
+async function chooseOption(name: string) {
+    await userEvent.click(await screen.findByRole('option', {name}));
+}
+
 describe('MentionFiltersPopover', () => {
-    test('applies nothing until Done is selected', async () => {
+    test('applies nothing until Apply is selected', async () => {
         const {onApply} = setup();
 
         await userEvent.click(screen.getByLabelText('Directly mentioning you'));
         expect(onApply).not.toHaveBeenCalled();
 
-        await userEvent.click(screen.getByText('Done'));
+        await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
         expect(onApply).toHaveBeenCalledWith({...defaultMentionFilters, mentionTypes: ['direct']}, null);
     });
 
     test('closes after applying', async () => {
         const {onClose} = setup();
 
-        await userEvent.click(screen.getByText('Done'));
+        await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
 
         expect(onClose).toHaveBeenCalled();
     });
@@ -73,27 +81,27 @@ describe('MentionFiltersPopover', () => {
     test('lists channels from every team until a team is chosen', async () => {
         setup();
 
-        await userEvent.click(screen.getByText('Channel or Direct Messages'));
+        await openCombobox('Channel or Direct Messages');
 
-        expect(screen.getByText('Release Coordination')).toBeInTheDocument();
-        expect(screen.getByText('Mobile')).toBeInTheDocument();
+        expect(await screen.findByRole('option', {name: /Release Coordination/})).toBeInTheDocument();
+        expect(screen.getByRole('option', {name: /Mobile/})).toBeInTheDocument();
     });
 
     test('narrows the channel list to the chosen team', async () => {
         setup({teamId: 'team1'});
 
-        await userEvent.click(screen.getByText('Channel or Direct Messages'));
+        await openCombobox('Channel or Direct Messages');
 
-        expect(screen.getByText('Release Coordination')).toBeInTheDocument();
-        expect(screen.queryByText('Mobile')).not.toBeInTheDocument();
+        expect(await screen.findByRole('option', {name: /Release Coordination/})).toBeInTheDocument();
+        expect(screen.queryByRole('option', {name: /Mobile/})).not.toBeInTheDocument();
     });
 
     test('drops the selected channels when the team changes, since they belong to the team being left', async () => {
         const {onApply} = setup({filters: {...defaultMentionFilters, channelIds: ['channel1']}, teamId: 'team1'});
 
-        await userEvent.click(screen.getByText('Team'));
-        await userEvent.click(screen.getByText('Platform'));
-        await userEvent.click(screen.getByText('Done'));
+        await openCombobox('Team');
+        await chooseOption('Platform');
+        await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
 
         expect(onApply).toHaveBeenCalledWith(defaultMentionFilters, 'team2');
     });
@@ -103,7 +111,7 @@ describe('MentionFiltersPopover', () => {
 
         await userEvent.click(screen.getByLabelText('Today'));
         await userEvent.click(screen.getByLabelText('Last 7 days'));
-        await userEvent.click(screen.getByText('Done'));
+        await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
 
         expect(onApply).toHaveBeenCalledWith({...defaultMentionFilters, date: 'last_7_days'}, null);
     });
@@ -111,17 +119,17 @@ describe('MentionFiltersPopover', () => {
     test('Reset clears the filters without applying them', async () => {
         const {onApply} = setup({filters: {channelIds: ['channel1'], mentionTypes: ['direct'], date: 'today'}, teamId: 'team1'});
 
-        await userEvent.click(screen.getByText('Reset'));
+        await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
         expect(onApply).not.toHaveBeenCalled();
 
-        await userEvent.click(screen.getByText('Done'));
+        await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
         expect(onApply).toHaveBeenCalledWith(defaultMentionFilters, null);
     });
 
     test('hides the team selector when cross team search is unavailable', () => {
         setup({showTeamSelector: false});
 
-        expect(screen.queryByText('Team')).not.toBeInTheDocument();
-        expect(screen.getByText('Channel or Direct Messages')).toBeInTheDocument();
+        expect(screen.queryByTestId('mentionFiltersTeamSelector')).not.toBeInTheDocument();
+        expect(screen.getByRole('combobox', {name: 'Channel or Direct Messages'})).toBeInTheDocument();
     });
 });

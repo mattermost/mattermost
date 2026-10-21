@@ -64,6 +64,14 @@ async function openPopover() {
     await screen.findByText('Mention type');
 }
 
+async function openCombobox(label: string) {
+    await userEvent.click(screen.getByRole('combobox', {name: label}));
+}
+
+async function chooseOption(name: string | RegExp) {
+    await userEvent.click(await screen.findByRole('option', {name}));
+}
+
 describe('MentionFiltersButton', () => {
     test('counts nothing before a filter is applied', () => {
         renderWithContext(<MentionFiltersButton/>, state);
@@ -72,7 +80,7 @@ describe('MentionFiltersButton', () => {
         expect(screen.getByTestId('mentionFiltersButton')).not.toHaveTextContent('Filters (');
     });
 
-    test('Done applies the draft to the store', async () => {
+    test('Apply applies the draft to the store', async () => {
         renderWithContext(<MentionFiltersButton/>, state);
 
         await openPopover();
@@ -81,7 +89,7 @@ describe('MentionFiltersButton', () => {
         // * Verify nothing is applied while the popover is still open
         expect(screen.getByTestId('mentionFiltersButton')).not.toHaveTextContent('Filters (');
 
-        await userEvent.click(screen.getByRole('button', {name: 'Done'}));
+        await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
 
         // * Verify the popover closed and the count came back through the store
         await waitFor(() => expect(screen.queryByText('Mention type')).not.toBeInTheDocument());
@@ -104,17 +112,17 @@ describe('MentionFiltersButton', () => {
         expect(screen.getByLabelText('Directly mentioning you')).not.toBeChecked();
     });
 
-    test('keeps channels picked after a team change when Done is selected', async () => {
+    test('keeps channels picked after a team change when Apply is selected', async () => {
         // The apply used to compare the incoming team against the applied one, which made it clear
-        // the channels on the Done click, after the popover had already cleared the old team's.
+        // the channels on the Apply click, after the popover had already cleared the old team's.
         renderWithContext(<MentionFiltersButton/>, crossTeamState);
 
         await openPopover();
-        await userEvent.click(screen.getByText('All teams'));
-        await userEvent.click(screen.getByRole('menuitemradio', {name: 'Product'}));
-        await userEvent.click(screen.getByText('Channel or Direct Messages'));
-        await userEvent.click(screen.getByLabelText('Release Coordination'));
-        await userEvent.click(screen.getByRole('button', {name: 'Done'}));
+        await openCombobox('Team');
+        await chooseOption('Product');
+        await openCombobox('Channel or Direct Messages');
+        await chooseOption(/Release Coordination/);
+        await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
 
         // * Verify both the team and the channel are counted, not the team alone
         await waitFor(() => expect(screen.queryByText('Mention type')).not.toBeInTheDocument());
