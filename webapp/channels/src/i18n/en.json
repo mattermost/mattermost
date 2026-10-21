@@ -9767,6 +9767,10 @@
     "defaultMessage": "All levels",
     "description": "Option in the log level filter on the System Console Server Logs page; shows entries of every level."
   },
+  "admin.logs.allNodes": {
+    "defaultMessage": "All nodes",
+    "description": "Option in the node selector on the System Console Server Logs page; shows log entries from every node in the cluster."
+  },
   "admin.logs.clearFilters": {
     "defaultMessage": "Clear filters",
     "description": "Link shown when no log entries match the filters on the System Console Server Logs page; resets all filters."
@@ -9854,6 +9858,10 @@
   "admin.logs.header.message": {
     "defaultMessage": "Message",
     "description": "Column header in the log entry list on the System Console Server Logs page; the column shows the log message."
+  },
+  "admin.logs.header.node": {
+    "defaultMessage": "Node",
+    "description": "Column header on the System Console Server Logs page; the cluster node each log entry came from."
   },
   "admin.logs.header.time": {
     "defaultMessage": "Time",
@@ -9974,6 +9982,18 @@
   "admin.logs.nextPage": {
     "defaultMessage": "Next page",
     "description": "Accessible label for the pagination button that goes to the next page of log entries on the System Console Server Logs page."
+  },
+  "admin.logs.node": {
+    "defaultMessage": "Node",
+    "description": "Label of the node selector on the System Console Server Logs page; picks which cluster node's log entries are shown."
+  },
+  "admin.logs.node.dropdownAriaLabel": {
+    "defaultMessage": "Node menu",
+    "description": "Accessible label for the node selector menu on the System Console Server Logs page."
+  },
+  "admin.logs.node.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to select a node",
+    "description": "Accessible label for the button that opens the node selector on the System Console Server Logs page."
   },
   "admin.logs.noLogs": {
     "defaultMessage": "No logs found. Ensure log files are within the logging root directory.",

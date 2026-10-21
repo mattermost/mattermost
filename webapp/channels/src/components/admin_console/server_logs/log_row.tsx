@@ -28,6 +28,7 @@ type Props = {
     onFocus: (log: LogObjectWithAdditionalInfo) => void;
     searchTerm: string;
     wrapText: boolean;
+    showNode: boolean;
 };
 
 const LEVEL_CONFIG: Record<string, {label: MessageDescriptor; className: string}> = {
@@ -110,7 +111,7 @@ function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode 
     return parts.length === 1 ? parts[0] : <>{parts}</>;
 }
 
-const KNOWN_KEYS = new Set(['timestamp', 'level', 'msg', 'caller']);
+const KNOWN_KEYS = new Set(['timestamp', 'level', 'msg', 'caller', 'node']);
 
 function CopyButton({value}: {value: string}) {
     const intl = useIntl();
@@ -199,7 +200,14 @@ function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
     );
 }
 
-function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm, wrapText}: Props) {
+// The node is added by the client, so copies match the entry as the server logged it
+function entryJson(log: LogObjectWithAdditionalInfo): string {
+    const entry = {...log};
+    delete entry.node;
+    return JSON.stringify(entry, undefined, 2);
+}
+
+function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm, wrapText, showNode}: Props) {
     const [copyJsonStatus, copyJson] = useClipboardCopy();
     const [copyLineStatus, copyLine] = useClipboardCopy();
     const copyJsonSuccess = copyJsonStatus === 'copied';
@@ -221,7 +229,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
 
     const handleCopyJson = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        copyJson(JSON.stringify(log, undefined, 2));
+        copyJson(entryJson(log));
     }, [copyJson, log]);
 
     const handleCopyLine = useCallback((e: React.MouseEvent) => {
@@ -240,7 +248,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
             onToggleExpand(log);
         }
         if (e.key === 'c' && !e.ctrlKey && !e.metaKey) {
-            copyJson(JSON.stringify(log, undefined, 2));
+            copyJson(entryJson(log));
         }
     }, [copyJson, log, onToggleExpand]);
 
@@ -252,6 +260,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
         log.level === 'error' ? 'LogRow--error-bg' : '',
         log.level === 'warn' ? 'LogRow--warn-bg' : '',
         wrapText || isExpanded ? 'LogRow--wrap' : 'LogRow--nowrap',
+        showNode ? 'LogRow--with-node' : '',
     ].filter(Boolean).join(' ');
 
     // Collect extra fields (not timestamp, level, msg, caller)
@@ -287,6 +296,14 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                 >
                     {formatTimestampShort(log.timestamp)}
                 </span>
+                {showNode && (
+                    <span
+                        className='LogRow__node'
+                        title={log.node}
+                    >
+                        {highlightSearchTerm(log.node ?? '', searchTerm)}
+                    </span>
+                )}
                 <span className='LogRow__message'>
                     {highlightSearchTerm(log.msg || '', searchTerm)}
                 </span>
