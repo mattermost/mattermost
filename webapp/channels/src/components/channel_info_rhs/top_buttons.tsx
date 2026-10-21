@@ -76,13 +76,12 @@ export default function TopButtons({
 
     const canCopyLink = [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType);
 
-    // Favorite Button State
+    // Toggle labels stay constant; state is conveyed by aria-pressed (via ActionButton `active`).
     const favoriteIcon = isFavorite ? <StarIcon/> : <StarOutlineIcon/>;
-    const favoriteText = isFavorite ? formatMessage({id: 'channel_info_rhs.top_buttons.favorited', defaultMessage: 'Favorited'}) : formatMessage({id: 'channel_info_rhs.top_buttons.favorite', defaultMessage: 'Favorite'});
+    const favoriteText = formatMessage({id: 'channel_info_rhs.top_buttons.favorite', defaultMessage: 'Favorite'});
 
-    // Mute Button State
     const mutedIcon = isMuted ? <BellOffOutlineIcon/> : <BellOutlineIcon/>;
-    const mutedText = isMuted ? formatMessage({id: 'channel_info_rhs.top_buttons.muted', defaultMessage: 'Muted'}) : formatMessage({id: 'channel_info_rhs.top_buttons.mute', defaultMessage: 'Mute'});
+    const mutedText = formatMessage({id: 'channel_info_rhs.top_buttons.mute', defaultMessage: 'Mute'});
 
     // Copy Button State
     const copyIcon = copyLink.copiedRecently ? <CheckIcon/> : <LinkVariantIcon/>;

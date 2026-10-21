@@ -831,7 +831,7 @@ const FavoriteButton = ({
     disabled?: boolean;
 }) => {
     const {formatMessage} = useIntl();
-    const label = isFavorite ? formatMessage({id: 'channel_info_rhs.top_buttons.favorited', defaultMessage: 'Favorited'}) : formatMessage({id: 'channel_info_rhs.top_buttons.favorite', defaultMessage: 'Favorite'});
+    const label = formatMessage({id: 'channel_info_rhs.top_buttons.favorite', defaultMessage: 'Favorite'});
 
     const button = (
         <ActionButton

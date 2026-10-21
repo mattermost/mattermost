@@ -38,7 +38,7 @@ describe('channel_info_rhs/top_buttons', () => {
     test('should display and toggle Favorite', async () => {
         const toggleFavorite = jest.fn();
 
-        // Favorite to Favorited
+        // Unpressed
         const testProps: Props = {
             ...topButtonDefaultProps,
             actions: {
@@ -47,7 +47,7 @@ describe('channel_info_rhs/top_buttons', () => {
             },
         };
 
-        renderWithContext(
+        const {rerender} = renderWithContext(
             <TopButtons
                 {...testProps}
             />,
@@ -58,25 +58,25 @@ describe('channel_info_rhs/top_buttons', () => {
         await userEvent.click(screen.getByText('Favorite'));
         expect(toggleFavorite).toHaveBeenCalled();
 
-        // Favorited to Favorite
+        // Pressed: the name stays the same, only aria-pressed changes
         toggleFavorite.mockReset();
         testProps.isFavorite = true;
-        renderWithContext(
+        rerender(
             <TopButtons
                 {...testProps}
             />,
         );
 
-        expect(screen.getByText('Favorited')).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Favorited'})).toHaveAttribute('aria-pressed', 'true');
-        await userEvent.click(screen.getByText('Favorited'));
+        expect(screen.getByText('Favorite')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Favorite'})).toHaveAttribute('aria-pressed', 'true');
+        await userEvent.click(screen.getByText('Favorite'));
         expect(toggleFavorite).toHaveBeenCalled();
     });
 
     test('should display and toggle Mute', async () => {
         const toggleMute = jest.fn();
 
-        // Mute to Muted
+        // Unpressed
         const testProps: Props = {
             ...topButtonDefaultProps,
             actions: {
@@ -85,7 +85,7 @@ describe('channel_info_rhs/top_buttons', () => {
             },
         };
 
-        renderWithContext(
+        const {rerender} = renderWithContext(
             <TopButtons
                 {...testProps}
             />,
@@ -96,18 +96,18 @@ describe('channel_info_rhs/top_buttons', () => {
         await userEvent.click(screen.getByText('Mute'));
         expect(toggleMute).toHaveBeenCalled();
 
-        // Muted to Mute
+        // Pressed: the name stays the same, only aria-pressed changes
         toggleMute.mockReset();
         testProps.isMuted = true;
-        renderWithContext(
+        rerender(
             <TopButtons
                 {...testProps}
             />,
         );
 
-        expect(screen.getByText('Muted')).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Muted'})).toHaveAttribute('aria-pressed', 'true');
-        await userEvent.click(screen.getByText('Muted'));
+        expect(screen.getByText('Mute')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Mute'})).toHaveAttribute('aria-pressed', 'true');
+        await userEvent.click(screen.getByText('Mute'));
         expect(toggleMute).toHaveBeenCalled();
     });
 
