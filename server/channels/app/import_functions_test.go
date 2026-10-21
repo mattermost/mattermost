@@ -2416,6 +2416,10 @@ func TestImportUsernamRemap(t *testing.T) {
 
 		_, ok := report.Remap.Lookup(srcUsername)
 		assert.False(t, ok, "a shared email must not redirect content to a differently-named account")
+
+		// The unmatched-user record must not be logged when the shell was never created:
+		// otherwise the CSV would report created_inactive for an account that does not exist.
+		assert.Empty(t, report.UnmatchedUsers.All(), "no unmatched-user record should be logged when shell creation failed")
 	})
 
 	t.Run("remap is populated on username conflict during scoped import shell creation", func(t *testing.T) {

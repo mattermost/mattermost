@@ -397,6 +397,13 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	// delete_at supplied by the source, which is always preserved below.
 	createDeactivated := false
 
+	// pendingUnmatched holds the unmatched-user record for a user we're about to create
+	// a shell for. It's recorded in the report only after CreateUser succeeds below:
+	// email_exists/username_exists collisions are non-fatal in a scoped import (see
+	// stopOnError), so recording up front would log a created_active/inactive entry for
+	// an account that was never created.
+	var pendingUnmatched *imports.UnmatchedUser
+
 	// hasSSOIdentity is true whenever the import data carries a stable SSO identity
 	// (auth_service + auth_data). This is independent of import scope — auth_data
 	// is always the safer lookup key when present, regardless of whether this is a
@@ -428,12 +435,12 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 					mlog.String("imported_users", string(importedUsers)),
 				)
 				createDeactivated = importedUsers == model.ImportedUsersInactive
-				report.UnmatchedUsers.Add(imports.UnmatchedUser{
+				pendingUnmatched = &imports.UnmatchedUser{
 					Username:    *data.Username,
 					AuthService: *data.AuthService,
 					Reason:      "sso_auth_data_not_found",
 					Action:      createdUserAction(createDeactivated),
-				})
+				}
 				user = &model.User{}
 				user.MakeNonNil()
 				user.SetDefaultNotifications()
@@ -473,11 +480,11 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 				rctx.Logger().Info("User not found on destination during scoped import; creating to preserve post authorship",
 					mlog.String("username", *data.Username),
 					mlog.String("imported_users", string(importedUsers)))
-				report.UnmatchedUsers.Add(imports.UnmatchedUser{
+				pendingUnmatched = &imports.UnmatchedUser{
 					Username: *data.Username,
 					Reason:   "username_not_found",
 					Action:   createdUserAction(createDeactivated),
-				})
+				}
 			}
 			user = &model.User{}
 			user.MakeNonNil()
@@ -745,6 +752,13 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			default:
 				return model.NewAppError("importUser", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
+		}
+
+		// The shell account now exists, so it's safe to record the unmatched user. Doing
+		// this before CreateUser would leave a false created_* entry when a non-fatal
+		// email/username collision prevented the shell from being created.
+		if pendingUnmatched != nil && report != nil {
+			report.UnmatchedUsers.Add(*pendingUnmatched)
 		}
 
 		pref := model.Preference{UserId: savedUser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: savedUser.Id, Value: "0"}
@@ -2129,9 +2143,10 @@ func (a *App) getTeamsByNames(names []string, tolerateMissing bool) (map[string]
 		// Scoped import: at least one requested team does not exist on the destination.
 		// GetByNames is all-or-nothing, so resolve each name individually and keep only the
 		// teams that exist; the caller nil-checks the rest and skips/logs them rather than
-		// aborting the whole import.
+		// aborting the whole import. Dedup first so a team referenced by many users isn't
+		// looked up once per reference.
 		allTeams = allTeams[:0]
-		for _, name := range names {
+		for _, name := range utils.RemoveDuplicatesFromStringArray(names) {
 			team, tErr := a.Srv().Store().Team().GetByName(name)
 			if tErr != nil {
 				if errors.As(tErr, &nfErr) {
