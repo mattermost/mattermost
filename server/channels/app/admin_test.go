@@ -5,13 +5,18 @@ package app
 
 import (
 	"encoding/json"
+	"maps"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 func TestGetLatestVersion(t *testing.T) {
@@ -92,5 +97,151 @@ func TestGetLatestVersion(t *testing.T) {
 
 		_, appErr := th.App.GetLatestVersion(th.Context, errorServer.URL)
 		require.NotNil(t, appErr)
+	})
+}
+
+type queryLogsCluster struct {
+	testlib.FakeClusterInterface
+	info           *model.ClusterInfo
+	remoteLogs     map[string][]string
+	queryLogsErr   *model.AppError
+	queryLogsCalls int
+}
+
+func (c *queryLogsCluster) GetMyClusterInfo() *model.ClusterInfo { return c.info }
+
+func (c *queryLogsCluster) QueryLogs(rctx request.CTX, page, perPage int) (map[string][]string, *model.AppError) {
+	c.queryLogsCalls++
+	if c.queryLogsErr != nil {
+		return nil, c.queryLogsErr
+	}
+	return c.remoteLogs, nil
+}
+
+func TestQueryLogs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	nodeNames := func(logs map[string][]string) []string {
+		return slices.Collect(maps.Keys(logs))
+	}
+
+	t.Run("cluster", func(t *testing.T) {
+		cluster := &queryLogsCluster{
+			info: &model.ClusterInfo{Hostname: "node-1"},
+			remoteLogs: map[string][]string{
+				"node-2": {`{"msg":"from node-2"}`},
+				"node-3": {`{"msg":"from node-3"}`},
+			},
+		}
+		th := SetupWithClusterMock(t, cluster)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ClusterSettings.Enable = true
+			*cfg.LogSettings.EnableFile = false
+		})
+
+		query := func(t *testing.T, serverNames ...string) map[string][]string {
+			t.Helper()
+			cluster.queryLogsCalls = 0
+			logs, appErr := th.App.QueryLogs(th.Context, 0, 10, &model.LogFilter{ServerNames: serverNames})
+			require.Nil(t, appErr)
+			return logs
+		}
+
+		t.Run("empty filter returns local and all remote nodes", func(t *testing.T) {
+			logs := query(t)
+			assert.ElementsMatch(t, []string{"node-1", "node-2", "node-3"}, nodeNames(logs))
+			assert.Equal(t, []string{`{"msg":"from node-2"}`}, logs["node-2"])
+			assert.Equal(t, []string{`{"msg":"from node-3"}`}, logs["node-3"])
+		})
+
+		t.Run("local node by hostname skips the cluster query", func(t *testing.T) {
+			logs := query(t, "node-1")
+			assert.ElementsMatch(t, []string{"node-1"}, nodeNames(logs))
+			assert.Equal(t, 0, cluster.queryLogsCalls)
+		})
+
+		t.Run("default is an alias for the local node", func(t *testing.T) {
+			logs := query(t, "default")
+			assert.ElementsMatch(t, []string{"node-1"}, nodeNames(logs))
+			assert.Equal(t, 0, cluster.queryLogsCalls)
+		})
+
+		t.Run("remote node only excludes local logs", func(t *testing.T) {
+			logs := query(t, "node-2")
+			assert.ElementsMatch(t, []string{"node-2"}, nodeNames(logs))
+			assert.Equal(t, []string{`{"msg":"from node-2"}`}, logs["node-2"])
+		})
+
+		t.Run("local and remote node", func(t *testing.T) {
+			logs := query(t, "node-1", "node-3")
+			assert.ElementsMatch(t, []string{"node-1", "node-3"}, nodeNames(logs))
+			assert.Equal(t, 1, cluster.queryLogsCalls)
+		})
+
+		t.Run("duplicate names", func(t *testing.T) {
+			logs := query(t, "node-2", "node-2", "default", "node-1", "unknown")
+			assert.ElementsMatch(t, []string{"node-1", "node-2"}, nodeNames(logs))
+		})
+
+		t.Run("unknown name returns no entries", func(t *testing.T) {
+			logs := query(t, "unknown")
+			assert.Empty(t, logs)
+			assert.Equal(t, 1, cluster.queryLogsCalls)
+		})
+
+		t.Run("missing cluster info falls back to default", func(t *testing.T) {
+			cluster.info = nil
+			t.Cleanup(func() { cluster.info = &model.ClusterInfo{Hostname: "node-1"} })
+
+			logs := query(t)
+			assert.ElementsMatch(t, []string{"default", "node-2", "node-3"}, nodeNames(logs))
+		})
+
+		t.Run("cluster query error fails the request", func(t *testing.T) {
+			cluster.queryLogsErr = model.NewAppError("QueryLogs", "test.cluster_error", nil, "", 500)
+			t.Cleanup(func() { cluster.queryLogsErr = nil })
+
+			logs, appErr := th.App.QueryLogs(th.Context, 0, 10, &model.LogFilter{})
+			require.NotNil(t, appErr)
+			assert.Equal(t, "test.cluster_error", appErr.Id)
+			assert.Nil(t, logs)
+		})
+
+		t.Run("unlicensed cluster returns only local logs", func(t *testing.T) {
+			th.App.Srv().SetLicense(nil)
+			t.Cleanup(func() { th.App.Srv().SetLicense(model.NewTestLicense()) })
+
+			logs := query(t)
+			assert.ElementsMatch(t, []string{"default"}, nodeNames(logs))
+			assert.Equal(t, 0, cluster.queryLogsCalls)
+
+			logs = query(t, "node-2")
+			assert.Empty(t, logs)
+			assert.Equal(t, 0, cluster.queryLogsCalls)
+		})
+
+		t.Run("clustering disabled returns only local logs", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ClusterSettings.Enable = false })
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ClusterSettings.Enable = true })
+			})
+
+			logs := query(t)
+			assert.ElementsMatch(t, []string{"default"}, nodeNames(logs))
+			assert.Equal(t, 0, cluster.queryLogsCalls)
+		})
+	})
+
+	t.Run("no cluster", func(t *testing.T) {
+		th := Setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableFile = false })
+
+		logs, appErr := th.App.QueryLogs(th.Context, 0, 10, &model.LogFilter{})
+		require.Nil(t, appErr)
+		assert.ElementsMatch(t, []string{"default"}, nodeNames(logs))
+
+		logs, appErr = th.App.QueryLogs(th.Context, 0, 10, &model.LogFilter{ServerNames: []string{"node-2"}})
+		require.Nil(t, appErr)
+		assert.Empty(t, logs)
 	})
 }
