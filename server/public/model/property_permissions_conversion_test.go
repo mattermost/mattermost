@@ -1328,6 +1328,47 @@ func TestProjectLegacyPermissionsMergesScopedOwner(t *testing.T) {
 	assert.Equal(t, field.Permissions, PermissionsFromLegacy(projected, opts))
 }
 
+func TestPermissionsFromLegacyScopedSyncServiceOwner(t *testing.T) {
+	// master adds a synced field's sync service as an unscoped owner of any
+	// owned field (effectiveOwners), and the sync caller never acts under a
+	// scope, so an ldap owner's scope never narrowed its value writes. The
+	// derived sync grant keeps that: it merges into the owner's unscoped grant
+	// rather than adding a second one, and its value.write covers every scope.
+	sysadmin := PermissionLevelSysadmin
+	ldap := Identity{Type: PropertyOwnerTypeService, ID: "ldap"}
+	owner := PropertyOwner{Type: PropertyOwnerTypeService, ID: "ldap", Scopes: []string{"entra"}}
+	field := &PropertyField{
+		ObjectType:        PropertyFieldObjectTypeUser,
+		PermissionField:   &sysadmin,
+		PermissionOptions: &sysadmin,
+		PermissionValues:  &sysadmin,
+		Attrs: StringInterface{
+			PropertyFieldAttrLDAP: "employeeID",
+			PropertyAttrsOwners:   []PropertyOwner{owner},
+		},
+	}
+	requireMasterLegacyShape(t, field)
+	opts := LegacyConversionOpts{ConvertAttrs: true}
+
+	field.Permissions = PermissionsFromLegacy(field, opts)
+
+	require.NoError(t, field.Permissions.IsValid(field.ObjectType))
+	assert.Equal(t, []Grant{
+		{Identity: ldap, Scopes: []string{"entra"}, Allow: []string{PropertyActionValueRead}},
+		{Identity: ldap, Allow: []string{PropertyActionFieldWrite, PropertyActionOptionRead, PropertyActionOptionWrite, PropertyActionValueWrite}},
+		{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"}, Allow: []string{PropertyActionOptionRead, PropertyActionValueRead}},
+	}, field.Permissions.Grants)
+	assert.NotNil(t, field.Permissions.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionValueWrite))
+	assert.Equal(t, PermissionLevelNone, field.Permissions.Restrictions.TierFor(PropertyActionValueWrite))
+
+	// A v2 reader gets back the one owner it set, every action spelled out.
+	projected := ProjectLegacyPermissions(field)
+
+	owner.Allow = validPropertyActions
+	assert.Equal(t, []PropertyOwner{owner}, GetPropertyFieldOwners(projected))
+	assert.Equal(t, field.Permissions, PermissionsFromLegacy(projected, opts))
+}
+
 func TestProjectLegacyPermissionsPreservesV2View(t *testing.T) {
 	// Converting a field and projecting the result must show a v2 client the
 	// field it had before: the same columns, owners, protected attr and access

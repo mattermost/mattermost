@@ -423,7 +423,10 @@ func maskingFromLegacy(field *PropertyField, restrictions *Restrictions, opts Le
 // source plugin's unscoped value.read on an owned protected field leaves its
 // scoped owner grant's value.write scoped. A scoped action the identity also
 // holds unscoped is dropped from the scoped part, which the unscoped grant
-// already covers.
+// already covers. So a scoped owner that is the field's sync service writes
+// values under every scope, through its derived sync grant. That matches
+// master, which adds the sync service as an unscoped owner of any owned
+// field it syncs, and whose sync caller never acts under a scope.
 //
 // The unscoped value actions and the definition actions recombine into one
 // unscoped grant, and the scoped value actions, if any, become a second
