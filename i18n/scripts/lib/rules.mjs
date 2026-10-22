@@ -113,9 +113,11 @@ function addressFindings(value, locale, surface, style) {
 function softChecks(item, value, locale, surface, glossary, style) {
     const out = [];
     if (!isEnglish(locale) && flatten(value) === flatten(item.english)) {
-        // A name is capitalised; three ordinary words are a sentence nobody translated.
+        // A name is capitalised, and a quoted label can rightly stay in English;
+        // three other ordinary words are a sentence nobody translated.
         const words = translatableWords(item.english, surface, glossary);
-        const severity = words.filter((w) => w === w.toLowerCase()).length >= 3 ? 'error' : 'soft';
+        const ordinary = translatableWords(unquoted(item.english), surface, glossary).filter((w) => w === w.toLowerCase());
+        const severity = ordinary.length >= 3 ? 'error' : 'soft';
         if (words.length >= (isLatinScript(locale) ? 2 : 1)) {
             out.push(finding('identical-to-english', severity, `identical to the English, which has words to translate (${words.slice(0, 4).join(' ')})`));
         }

@@ -79,6 +79,8 @@ describe('rules', () => {
         assert.deepEqual(check('pl', 'Confirm sending notifications to groups', 'Confirm sending notifications to groups'), ['error identical-to-english']);
         assert.deepEqual(check('ru', 'Azure Blob Storage', 'Azure Blob Storage'), ['soft identical-to-english']);
         assert.deepEqual(check('de', 'Save changes', 'Save changes'), ['soft identical-to-english']);
+        assert.deepEqual(check('nl', 'Status is "Out of office".', 'Status is "Out of office".'), ['soft identical-to-english']);
+        assert.deepEqual(check('nl', 'Status is "Out of office" for now', 'Status is "Out of office" for now'), ['error identical-to-english']);
         assert.deepEqual(check('de', 'Status', 'Status'), []);
         assert.deepEqual(check('fr', '[on|off|status] [@username]', '[on|off|status] [@username]', 'server'), []);
         assert.deepEqual(check('en-AU', 'Save your changes now', 'Save your changes now'), []);
