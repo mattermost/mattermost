@@ -1065,6 +1065,7 @@ function ChannelSettingsConfigurationTab({
                                                 disabled={bannerLockedByClassification}
                                                 hasError={characterLimitExceeded}
                                                 maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
+                                                isBoard={isBoard}
                                             />
                                             <p className='setting_help'>
                                                 {isBoard ? (

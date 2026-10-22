@@ -19155,6 +19155,10 @@
     "defaultMessage": "Channel attributes",
     "description": "Screen-reader label for the menu that lists the channel attributes available for the banner text, in Channel Settings > Configuration."
   },
+  "channel_attributes.banner.insert_attribute_menu.board": {
+    "defaultMessage": "Board attributes",
+    "description": "Screen-reader label for the menu that lists the channel attributes available for the banner text, in Channel Settings > Configuration. This is the wording used when the channel is a board."
+  },
   "channel_attributes.banner.remove_attribute": {
     "defaultMessage": "Remove {label}",
     "description": "Screen-reader label for the small X on an attribute chip inside the Banner text editor in Channel Settings > Configuration. {label} is the attribute's display name, as defined by an admin."
@@ -19162,6 +19166,10 @@
   "channel_attributes.banner.token_value_set": {
     "defaultMessage": "Value on this channel: {value}",
     "description": "Channel Settings > Configuration > banner text editor. Secondary line of a menu item in the \"insert attribute\" picker, showing the attribute's current value on this channel. {value} is that value as entered by a user."
+  },
+  "channel_attributes.banner.token_value_set.board": {
+    "defaultMessage": "Value on this board: {value}",
+    "description": "Channel Settings > Configuration > banner text editor. Secondary line of a menu item in the \"insert attribute\" picker, showing the attribute's current value on this channel. {value} is that value as entered by a user. This is the wording used when the channel is a board."
   },
   "channel_attributes.banner.token_value_unset": {
     "defaultMessage": "The attribute has no value set and won't render in the banner, but will appear automatically the moment a value is set.",
@@ -19190,6 +19198,10 @@
   "channel_attributes.info.heading": {
     "defaultMessage": "Channel Attributes",
     "description": "Section heading in the channel info right-hand panel above the list of the channel's attributes, such as classification."
+  },
+  "channel_attributes.info.heading.board": {
+    "defaultMessage": "Board Attributes",
+    "description": "Section heading in the channel info right-hand panel above the list of the channel's attributes, such as classification. This is the wording used when the channel is a board."
   },
   "channel_attributes.info.locked": {
     "defaultMessage": "This attribute cannot be changed after it is set",

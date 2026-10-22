@@ -122,6 +122,9 @@ type Props = {
     disabled?: boolean;
     maxLength?: number;
     hasError?: boolean;
+
+    // The channel is a board, so the editor says board rather than channel.
+    isBoard?: boolean;
 };
 
 /**
@@ -133,7 +136,7 @@ type Props = {
  * chips with free text in a single caret flow; everything below exists to keep that
  * DOM and the template string in agreement.
  */
-const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, hasError}: Props) => {
+const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, hasError, isBoard = false}: Props) => {
     const {formatMessage} = useIntl();
     const editorRef = useRef<HTMLDivElement>(null);
 
@@ -345,7 +348,7 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
                     aria-multiline='false'
                     aria-label={formatMessage({id: 'channel_banner.banner_text.label', defaultMessage: 'Banner text'})}
                     data-testid='bannerTextEditor'
-                    data-placeholder={formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Channel banner text'})}
+                    data-placeholder={isBoard ? formatMessage({id: 'channel_banner.banner_text.placeholder.board', defaultMessage: 'Board banner text'}) : formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Channel banner text'})}
                     onInput={emit}
                     onBlur={rememberCaret}
                     onKeyUp={rememberCaret}
@@ -411,6 +414,7 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
                         attributes={attributes}
                         onInsertToken={handleInsertToken}
                         disabled={disabled}
+                        isBoard={isBoard}
                     />
                 </div>
             </div>
