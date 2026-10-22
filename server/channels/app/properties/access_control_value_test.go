@@ -2123,6 +2123,51 @@ func TestUpsertPropertyValue_ServiceGrant(t *testing.T) {
 		require.NoError(t, upsertErr)
 		assert.Len(t, results, 1)
 	})
+
+	t.Run("a field converted from an openid link admits only the OpenID Connect sync", func(t *testing.T) {
+		hook.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "service-grant-plugin" })
+		t.Cleanup(func() { hook.setPluginCheckerForTests(nil) })
+
+		sysadmin := model.PermissionLevelSysadmin
+		legacy := &model.PropertyField{
+			GroupID:           group.ID,
+			Name:              "openid_field_" + model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			TargetType:        "system",
+			ObjectType:        "user",
+			PermissionField:   &sysadmin,
+			PermissionOptions: &sysadmin,
+			PermissionValues:  &sysadmin,
+			Attrs:             model.StringInterface{model.PropertyFieldAttrOpenID: "department"},
+		}
+		legacy.Permissions = model.PermissionsFromLegacy(legacy, model.LegacyConversionOpts{ConvertAttrs: true})
+		openIDField := th.CreatePropertyFieldDirect(t, legacy)
+
+		openIDValue := func() *model.PropertyValue {
+			return &model.PropertyValue{
+				GroupID:    group.ID,
+				FieldID:    openIDField.ID,
+				TargetID:   model.NewId(),
+				TargetType: "user",
+				Value:      json.RawMessage(`"Engineering"`),
+			}
+		}
+
+		result, upsertErr := th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, model.CallerIDOpenIDSync), openIDValue())
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+
+		for _, callerID := range []string{model.NewId(), "service-grant-plugin", model.CallerIDLDAPSync, model.CallerIDSAMLSync} {
+			_, upsertErr = th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, callerID), openIDValue())
+			require.Error(t, upsertErr, "caller %q", callerID)
+			assert.ErrorIs(t, upsertErr, ErrAccessDenied, "caller %q", callerID)
+		}
+
+		// Nor may the OpenID Connect sync write the LDAP-synced field.
+		_, upsertErr = th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, model.CallerIDOpenIDSync), newValue())
+		require.Error(t, upsertErr)
+		assert.ErrorIs(t, upsertErr, ErrAccessDenied)
+	})
 }
 
 func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
