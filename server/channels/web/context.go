@@ -38,6 +38,9 @@ func (c *Context) LogAuditRec(rec *model.AuditRecord) {
 	if _, exists := rec.Meta[model.SessionPropUserAccessTokenId]; !exists && c.AppContext.Session().IsUserAccessToken() {
 		rec.Meta[model.SessionPropUserAccessTokenId] = c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]
 	}
+	if _, exists := rec.Meta[model.AuditKeyCreatedByPluginID]; !exists {
+		addScopedSessionAuditMeta(rec, c.AppContext.Session())
+	}
 
 	c.LogAuditRecWithLevel(rec, app.LevelAPI)
 }
@@ -88,6 +91,7 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *model.Aud
 			ObjectType:  "",
 		},
 	}
+	addScopedSessionAuditMeta(rec, c.AppContext.Session())
 
 	return rec
 }

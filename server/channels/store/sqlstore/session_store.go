@@ -176,6 +176,18 @@ func (me SqlSessionStore) GetLRUSessions(rctx request.CTX, userId string, limit 
 	return sessions, nil
 }
 
+func (me SqlSessionStore) GetScopedSessions(rctx request.CTX) ([]*model.Session, error) {
+	builder := me.sessionSelectQuery.
+		Where(sq.Expr("Props->>'" + model.SessionPropScope + "' IS NOT NULL")).
+		Where(sq.Gt{"ExpiresAt": model.GetMillis()})
+
+	sessions := []*model.Session{}
+	if err := me.GetMaster().SelectBuilder(&sessions, builder); err != nil {
+		return nil, errors.Wrap(err, "failed to find scoped Sessions")
+	}
+	return sessions, nil
+}
+
 func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
 	now := model.GetMillis()
 

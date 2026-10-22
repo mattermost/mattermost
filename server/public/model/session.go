@@ -99,9 +99,10 @@ func (s *Session) Auditable() map[string]any {
 }
 
 // IsUnrestricted returns true if the session is unrestricted, which should grant it
-// with all permissions. This is used for local mode sessions
+// with all permissions. This is used for local mode sessions. A scoped session
+// is never unrestricted.
 func (s *Session) IsUnrestricted() bool {
-	return s.Local
+	return s.Local && !s.IsScoped()
 }
 
 func (s *Session) DeepCopy() *Session {

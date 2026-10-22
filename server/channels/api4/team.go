@@ -35,7 +35,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.TeamsForUser.Handle("", api.APISessionRequired(getTeamsForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.TeamsForUser.Handle("/unread", api.APISessionRequired(getTeamsUnreadForUser)).Methods(http.MethodGet)
 
-	api.BaseRoutes.Team.Handle("", api.APISessionRequired(getTeam)).Methods(http.MethodGet)
+	api.BaseRoutes.Team.Handle("", api.APISessionRequired(getTeam, handlerParamScopedSession)).Methods(http.MethodGet)
 	api.BaseRoutes.Team.Handle("", api.APISessionRequired(updateTeam)).Methods(http.MethodPut)
 	api.BaseRoutes.Team.Handle("", api.APISessionRequired(deleteTeam)).Methods(http.MethodDelete)
 	api.BaseRoutes.Team.Handle("/patch", api.APISessionRequired(patchTeam)).Methods(http.MethodPut)
