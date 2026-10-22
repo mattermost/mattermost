@@ -8,7 +8,8 @@
 // baseline commit from git. Changes nothing in the repository.
 //
 // The base is the commit the run translates against: by default where HEAD
-// leaves --upstream.
+// leaves --upstream. apply.mjs records it as the new baseline for every locale
+// it brings up to date.
 //
 // Exits 1, writing no plan or worklists, when a worklist key has no description
 // (they are listed in <workdir>/undescribed.json) or when the gap is unusually
@@ -22,7 +23,7 @@ import {readGlossary, readStyle, termsIn} from './lib/glossary.mjs';
 import {computePlan, counts} from './lib/plan.mjs';
 import {commitTrees, isAncestor, mergeBase, revParse, workingTree} from './lib/repo.mjs';
 import {isRightToLeft, serverPluralCategories} from './lib/rules.mjs';
-import {paths, PLAN_VERSION, writeJSON} from './lib/workdir.mjs';
+import {digest, paths, PLAN_VERSION, writeJSON} from './lib/workdir.mjs';
 
 const usage = 'usage: node i18n/scripts/plan.mjs <workdir> [--upstream <ref> | --base <rev>] [--max-repairs <n>] [--accept-unusual]';
 let options;
@@ -128,7 +129,7 @@ if (plan.unusual.length && !acceptUnusual) {
     console.error(`\nunusual, so no worklists were written:\n  ${plan.unusual.join('\n  ')}\nfind out why before translating; --accept-unusual if it is expected`);
     process.exit(1);
 }
-writeJSON(p.plan, {version: PLAN_VERSION, root, upstream: baseArg ? null : upstream, ...plan, maxRepairs});
+writeJSON(p.plan, {version: PLAN_VERSION, root, upstream: baseArg ? null : upstream, ...plan, digest: digest(tree), maxRepairs});
 
 // Hints for each item, gathered from the locale's own catalog, so a translator
 // can match what the product already says without searching for it:

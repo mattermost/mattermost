@@ -319,4 +319,60 @@ describe('a translation run', () => {
         assert.equal(repo.run('validate.mjs', workdir, 'ru').status, 0);
         payload('ru', ruPayload);
     });
+    test('apply writes the catalogs and advances only the baselines it brought up to date', () => {
+        const r = repo.run('apply.mjs', workdir, '--no-verify');
+        assert.equal(r.status, 0, r.stderr);
+
+        const ru = JSON.parse(repo.read('webapp/channels/src/i18n/ru.json'));
+        assert.deepEqual(Object.keys(ru), Object.keys(ru).sort());
+        assert.equal(ru['app.remove_member'], 'Удалить участника');
+        assert.equal(ru['app.archive_channel'], 'Архивировать канал');
+        assert.equal(ru['app.old'], undefined);
+        assert.equal(ru['app.gone'], undefined);
+        assert.equal(ru['app.archive'], undefined);
+        assert.equal(ru['app.hello'], 'У вас новая почта');
+
+        // de had no payload: renames carry and removed keys go, but a rename
+        // waiting on a translator keeps its old key for the next run.
+        const de = JSON.parse(repo.read('webapp/channels/src/i18n/de.json'));
+        assert.equal(de['app.remove_member'], 'Mitglied entfernen');
+        assert.equal(de['app.gone'], undefined);
+        assert.equal(de['app.archive'], 'Archivieren');
+        assert.equal(de['app.new'], undefined);
+
+        // The server catalog keeps its order and appends.
+        assert.deepEqual(JSON.parse(repo.read('server/i18n/ru.json')).map((e) => e.id), ['api.error', 'api.items', 'api.retry']);
+        assert.deepEqual(JSON.parse(repo.read('server/i18n/de.json')).map((e) => e.id), ['api.items', 'api.error']);
+
+        const baseline = JSON.parse(repo.read('i18n/baseline.json'));
+        assert.equal(baseline.webapp.ru, base);
+        assert.equal(baseline.server.ru, base);
+        assert.notEqual(baseline.webapp.de, base);
+        assert.notEqual(baseline.server.de, base);
+
+        const report = fs.readFileSync(path.join(workdir, 'report.md'), 'utf8');
+        assert.match(report, /\| ru \| 2 \| 1 \| 1 \| 2 \| 1 \| 3 \|/);
+        assert.match(report, /- de: 3 webapp, 1 server/);
+    });
+
+    test('apply refuses a plan the repository has moved away from', () => {
+        const r = repo.run('apply.mjs', workdir, '--no-verify');
+        assert.equal(r.status, 1);
+        assert.match(r.stderr, /changed since this plan was made/);
+    });
+
+    test('the next plan picks up where the last run stopped', () => {
+        const next = fs.mkdtempSync(path.join(os.tmpdir(), 'i18n-run-'));
+        const r = repo.run('plan.mjs', next, '--base', base);
+        assert.equal(r.status, 0, r.stderr);
+        const plan = JSON.parse(fs.readFileSync(path.join(next, 'plan.json'), 'utf8'));
+        assert.deepEqual(plan.surfaces.webapp.locales.ru.items, {});
+        assert.deepEqual(plan.surfaces.server.locales.ru.items, {});
+        const de = plan.surfaces.webapp.locales.de.items;
+        assert.equal(de['app.archive_channel'].kind, 'changed');
+        assert.equal(de['app.archive_channel'].current, 'Archivieren');
+        assert.equal(de['app.reword'].kind, 'changed');
+        assert.equal(de['app.new'].kind, 'new');
+        fs.rmSync(next, {recursive: true, force: true});
+    });
 });

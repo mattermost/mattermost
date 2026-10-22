@@ -1,9 +1,10 @@
-// Check translators' payloads against their worklists.
+// Check translators' payloads against their worklists, without applying them.
 //
 //   node i18n/scripts/validate.mjs <workdir> [<locale>...]
 //
 // With no locale, checks every payload in <workdir>/translations/. Exits 1 if any
-// has an error.
+// has an error. apply.mjs runs the same check and applies nothing if one fails,
+// so this is for iterating on one locale's answer, not a step to remember.
 import fs from 'fs';
 import path from 'path';
 
