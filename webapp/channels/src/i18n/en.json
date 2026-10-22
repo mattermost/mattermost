@@ -3045,19 +3045,19 @@
   },
   "admin.channel_settings.channel_detail.attributes.not_set": {
     "defaultMessage": "Not set",
-    "description": ""
+    "description": "Shown in the System Console > Channels > channel details page, \"Channel attributes\" section, as the dropdown placeholder or read-only text when the channel has no value for that attribute."
   },
   "admin.channel_settings.channel_detail.attributes.remove_value": {
     "defaultMessage": "Remove {value}",
-    "description": ""
+    "description": "Accessible label for the button that removes one selected value from a multi-select attribute in the System Console > Channels > channel details page, \"Channel attributes\" section; {value} is the option's name."
   },
   "admin.channel_settings.channel_detail.attributesDescription": {
     "defaultMessage": "Set this channel's value for each channel attribute.",
-    "description": ""
+    "description": "Description under the heading of the System Console > Channels > channel details page, \"Channel attributes\" section."
   },
   "admin.channel_settings.channel_detail.attributesTitle": {
     "defaultMessage": "Channel attributes",
-    "description": ""
+    "description": "Heading of the System Console > Channels > channel details page, \"Channel attributes\" section, where a system admin sets this channel's values for the channel attributes."
   },
   "admin.channel_settings.channel_detail.channel_configuration": {
     "defaultMessage": "Channel Configuration",
@@ -6025,43 +6025,43 @@
   },
   "admin.global_attributes.applies_to.channels.missing_values.attribute_fallback": {
     "defaultMessage": "this attribute",
-    "description": ""
+    "description": "Stands in for the attribute's name in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner text when the attribute has no display name yet; used inside a sentence, so keep it lowercase."
   },
   "admin.global_attributes.applies_to.channels.missing_values.body": {
     "defaultMessage": "{count, plural, one {# channel doesn't} other {# channels don't}} have a {attribute} value yet. Set a value on every existing channel before turning Required on.",
-    "description": ""
+    "description": "Body of the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner, shown while Required is off and some channels have no value; {attribute} is the attribute's name. Required can only be turned on once every existing channel has a value."
   },
   "admin.global_attributes.applies_to.channels.missing_values.body_already_required": {
     "defaultMessage": "{count, plural, one {# channel doesn't} other {# channels don't}} have a {attribute} value yet. New channels must set one; existing channels keep working until a value is set.",
-    "description": ""
+    "description": "Body of the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner, shown when the attribute is already Required but some channels still have no value; {attribute} is the attribute's name."
   },
   "admin.global_attributes.applies_to.channels.missing_values.body_create_mode": {
     "defaultMessage": "Save this attribute first, then set a value on every existing channel before turning Required on.",
-    "description": ""
+    "description": "Body of the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner, shown while the attribute is still being created and has not been saved yet."
   },
   "admin.global_attributes.applies_to.channels.missing_values.notified": {
     "defaultMessage": "Notified {count, plural, one {# channel admin} other {# channel admins}}.",
-    "description": ""
+    "description": "Success message in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner after reminders were sent; {count} is the number of channel admins notified."
   },
   "admin.global_attributes.applies_to.channels.missing_values.notified_truncated": {
     "defaultMessage": "Notified {count, plural, one {# channel admin} other {# channel admins}}. This attribute affects more admins than one run can reach -- click Notify again to reach the rest.",
-    "description": ""
+    "description": "Warning message in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner after reminders were sent but not every channel admin could be reached in one run; {count} is the number notified, and the admin can click Notify again later."
   },
   "admin.global_attributes.applies_to.channels.missing_values.notify": {
     "defaultMessage": "Notify all channel admins",
-    "description": ""
+    "description": "Button in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner that sends a direct-message reminder to every admin of a channel missing a value."
   },
   "admin.global_attributes.applies_to.channels.missing_values.notify_failed": {
     "defaultMessage": "The notifications couldn't be sent. Please try again.",
-    "description": ""
+    "description": "Error message in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner when sending the reminders to channel admins failed."
   },
   "admin.global_attributes.applies_to.channels.missing_values.title": {
     "defaultMessage": "Set channel attribute values",
-    "description": ""
+    "description": "Title of the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner, which warns that some channels have no value for this attribute."
   },
   "admin.global_attributes.applies_to.channels.missing_values.view_list": {
     "defaultMessage": "View channel list",
-    "description": ""
+    "description": "Link in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner that opens the list of channels with no value for this attribute."
   },
   "admin.global_attributes.applies_to.channels.remove": {
     "defaultMessage": "Remove resource",
@@ -6121,63 +6121,63 @@
   },
   "admin.global_attributes.applies_to.channels.without_value.close": {
     "defaultMessage": "Close",
-    "description": ""
+    "description": "Button that closes the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute."
   },
   "admin.global_attributes.applies_to.channels.without_value.column.admin": {
     "defaultMessage": "Channel admin",
-    "description": ""
+    "description": "Column header in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute for the channel admins of each listed channel."
   },
   "admin.global_attributes.applies_to.channels.without_value.column.channel": {
     "defaultMessage": "Channel",
-    "description": ""
+    "description": "Column header in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute for the channel name."
   },
   "admin.global_attributes.applies_to.channels.without_value.empty": {
     "defaultMessage": "Every channel has a value",
-    "description": ""
+    "description": "Empty state of the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute when no channel is missing a value anymore."
   },
   "admin.global_attributes.applies_to.channels.without_value.error": {
     "defaultMessage": "The channel list couldn't be loaded.",
-    "description": ""
+    "description": "Error message in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute when the list of channels failed to load."
   },
   "admin.global_attributes.applies_to.channels.without_value.filter.all": {
     "defaultMessage": "All ({count})",
-    "description": ""
+    "description": "Filter tab in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute showing every channel; {count} is the number of channels."
   },
   "admin.global_attributes.applies_to.channels.without_value.filter.local": {
     "defaultMessage": "Local ({count})",
-    "description": ""
+    "description": "Filter tab in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute showing only this server's own channels, not shared ones; {count} is the number of channels."
   },
   "admin.global_attributes.applies_to.channels.without_value.filter.shared": {
     "defaultMessage": "Shared ({count})",
-    "description": ""
+    "description": "Filter tab in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute showing only channels shared from another server (shared channels); {count} is the number of channels."
   },
   "admin.global_attributes.applies_to.channels.without_value.next": {
     "defaultMessage": "Next",
-    "description": ""
+    "description": "Pagination button for the next page of the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute."
   },
   "admin.global_attributes.applies_to.channels.without_value.no_admin": {
     "defaultMessage": "No channel admin",
-    "description": ""
+    "description": "Shown in the Channel admin column of the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute when a channel has no channel admin."
   },
   "admin.global_attributes.applies_to.channels.without_value.open_channel_aria": {
     "defaultMessage": "Open {channel} in a new tab",
-    "description": ""
+    "description": "Accessible label for the link that opens a listed channel in a new browser tab, in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute; {channel} is the channel's name."
   },
   "admin.global_attributes.applies_to.channels.without_value.previous": {
     "defaultMessage": "Previous",
-    "description": ""
+    "description": "Pagination button for the previous page of the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute."
   },
   "admin.global_attributes.applies_to.channels.without_value.retry": {
     "defaultMessage": "Try again",
-    "description": ""
+    "description": "Button in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute that retries loading the channel list after an error."
   },
   "admin.global_attributes.applies_to.channels.without_value.subtitle": {
     "defaultMessage": "{count, plural, one {# channel} other {# channels}} still need a {attribute} value",
-    "description": ""
+    "description": "Subtitle of the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute; {count} is the number of channels with no value and {attribute} is the attribute's name."
   },
   "admin.global_attributes.applies_to.channels.without_value.title": {
     "defaultMessage": "Channels without a value",
-    "description": ""
+    "description": "Title of the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute, which lists the channels that have no value for the attribute."
   },
   "admin.global_attributes.applies_to.empty": {
     "defaultMessage": "This attribute does not apply to any resource yet.",
@@ -7057,27 +7057,27 @@
   },
   "admin.global_attributes.confirm.notify_channel_admins.bullet.no_admin": {
     "defaultMessage": "{count, plural, one {# channel has} other {# channels have}} no channel admin and won't be notified.",
-    "description": ""
+    "description": "Bullet in the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value; {count} is the number of affected channels that have no channel admin, so nobody will be reminded about them."
   },
   "admin.global_attributes.confirm.notify_channel_admins.bullet.unique_admins": {
     "defaultMessage": "Notifications go to each unique channel admin — not one message per channel — so {adminCount, plural, one {# admin} other {# admins}} will be contacted for {channelCount, plural, one {# channel} other {# channels}}.",
-    "description": ""
+    "description": "Bullet in the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value explaining that each channel admin gets one message covering all their channels; {adminCount} is the number of admins and {channelCount} the number of channels."
   },
   "admin.global_attributes.confirm.notify_channel_admins.confirm": {
     "defaultMessage": "Send notification",
-    "description": ""
+    "description": "Confirm button of the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value."
   },
   "admin.global_attributes.confirm.notify_channel_admins.message_label": {
     "defaultMessage": "Message to be sent",
-    "description": ""
+    "description": "Label above the preview of the direct message that will be sent, in the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value."
   },
   "admin.global_attributes.confirm.notify_channel_admins.summary": {
     "defaultMessage": "{count, plural, one {# channel needs} other {# channels need}} a {attribute} value.",
-    "description": ""
+    "description": "Summary line of the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value; {count} is the number of channels with no value and {attribute} is the attribute's name."
   },
   "admin.global_attributes.confirm.notify_channel_admins.title": {
     "defaultMessage": "Notify all channel admins?",
-    "description": ""
+    "description": "Title of the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value."
   },
   "admin.global_attributes.confirm.remove_applies_to.body": {
     "defaultMessage": "This will permanently delete every value stored for this attribute on {resources}. This action cannot be undone.",

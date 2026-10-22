@@ -50,9 +50,9 @@
 
     &__channel-cell {
         display: flex;
+        min-width: 0;
         align-items: center;
         gap: 6px;
-        min-width: 0;
 
         svg {
             flex-shrink: 0;
@@ -60,10 +60,10 @@
 
         a {
             display: inline-flex;
+            overflow: hidden;
+            min-width: 0;
             align-items: center;
             gap: 4px;
-            min-width: 0;
-            overflow: hidden;
 
             span {
                 overflow: hidden;
