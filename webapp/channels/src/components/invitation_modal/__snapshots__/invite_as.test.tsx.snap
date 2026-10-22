@@ -20,27 +20,27 @@ exports[`components/cloud_start_trial_btn/cloud_start_trial_btn should match sna
           data-testid="inviteMembersLink"
         >
           <label
-            class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 selected"
+            class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 selected"
             for="_r_0_"
           >
             <input
               checked=""
-              class="_radio__input_1hdqa_14"
+              class="_radio__input_h0rbb_17"
               id="_r_0_"
               name="invite-as"
               type="radio"
               value="MEMBER"
             />
             <span
-              class="_radio__circle_1hdqa_33"
+              class="_radio__circle_h0rbb_36"
             >
               <span
                 aria-hidden="true"
-                class="_radio__dot_1hdqa_59"
+                class="_radio__dot_h0rbb_62"
               />
             </span>
             <span
-              class="_radio__label_1hdqa_116"
+              class="_radio__label_h0rbb_119"
             >
               Member
             </span>
@@ -51,26 +51,26 @@ exports[`components/cloud_start_trial_btn/cloud_start_trial_btn should match sna
           data-testid="inviteGuestLink"
         >
           <label
-            class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+            class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
             for="_r_1_"
           >
             <input
-              class="_radio__input_1hdqa_14"
+              class="_radio__input_h0rbb_17"
               id="_r_1_"
               name="invite-as"
               type="radio"
               value="GUEST"
             />
             <span
-              class="_radio__circle_1hdqa_33"
+              class="_radio__circle_h0rbb_36"
             >
               <span
                 aria-hidden="true"
-                class="_radio__dot_1hdqa_59"
+                class="_radio__dot_h0rbb_62"
               />
             </span>
             <span
-              class="_radio__label_1hdqa_116"
+              class="_radio__label_h0rbb_119"
             >
               <span
                 class="InviteAs__label "
