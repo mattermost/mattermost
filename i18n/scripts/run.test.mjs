@@ -108,11 +108,26 @@ function seed(repo) {
     return {A, C: repo.commit('C')};
 }
 
+const ruPayload = {
+    webapp: {
+        'app.archive_channel': 'Архивировать канал',
+        'app.count': '{count, number} {count, plural, one {канал} few {канала} many {каналов} other {канала}}',
+        'app.hello': 'У вас новая почта',
+        'app.new': 'Сохранить изменения',
+        'app.reword': 'Удалить сообщение',
+    },
+    server: {'api.retry': 'Повторите попытку позже'},
+};
+
 describe('a translation run', () => {
     let repo;
     let base;
     let workdir;
     const worklist = (locale) => JSON.parse(fs.readFileSync(path.join(workdir, 'worklists', `${locale}.json`), 'utf8'));
+    const payload = (locale, body) => {
+        fs.mkdirSync(path.join(workdir, 'translations'), {recursive: true});
+        fs.writeFileSync(path.join(workdir, 'translations', `${locale}.json`), JSON.stringify(body));
+    };
 
     before(() => {
         repo = makeRepo();
@@ -247,5 +262,61 @@ describe('a translation run', () => {
         } finally {
             fs.rmSync(scratch, {recursive: true, force: true});
         }
+    });
+    test('validate reports every defect in a payload, and accepts a good one', () => {
+        payload('ru', {
+            webapp: {
+                ...ruPayload.webapp,
+                'app.count': ruPayload.webapp['app.count'].replace(' few {канала} many {каналов}', ''),
+                'app.hello': 'У тебя новая почта',
+                'app.new': 'Save changes',
+                'app.title': 'Настройки',
+            },
+            acknowledge: {'webapp:app.reword': 'nothing wrong'},
+            notes: {'webapp:app.title': 'not an item'},
+        });
+        const r = repo.run('validate.mjs', workdir, 'ru');
+        assert.equal(r.status, 1);
+        const out = r.stdout + r.stderr;
+        for (const expected of [
+            /server:api\.retry: missing from the payload/,
+            /webapp:app\.count: .*no few\/many form/,
+            /webapp:app\.hello: returned unchanged, but it is listed for repair/,
+            /webapp:app\.new: identical to the English.*acknowledge/,
+            /webapp:app\.title: not in this locale's worklist/,
+            /acknowledge\.webapp:app\.reword: nothing to acknowledge/,
+            /notes\.webapp:app\.title: not in this locale's worklist/,
+        ]) {
+            assert.match(out, expected);
+        }
+
+        payload('ru', ruPayload);
+        const ok = repo.run('validate.mjs', workdir, 'ru');
+        assert.equal(ok.status, 0, ok.stdout + ok.stderr);
+        assert.match(ok.stdout, /6 answered/);
+        assert.match(ok.stdout, /1 changed items? kept/);
+    });
+
+    test('a soft finding lands only with a reason', () => {
+        payload('ru', {...ruPayload, webapp: {...ruPayload.webapp, 'app.new': 'Сохранить изменения в Mattermost'}});
+        assert.equal(repo.run('validate.mjs', workdir, 'ru').status, 0);
+
+        const dropped = {...ruPayload, webapp: {...ruPayload.webapp}};
+        dropped.webapp['app.archive_channel'] = 'Архивировать канал Mattermost';
+        payload('ru', dropped);
+        assert.equal(repo.run('validate.mjs', workdir, 'ru').status, 0);
+
+        payload('ru', {...ruPayload, webapp: {...ruPayload.webapp, 'app.new': 'Сохранить твои изменения'}});
+        const r = repo.run('validate.mjs', workdir, 'ru');
+        assert.equal(r.status, 1);
+        assert.match(r.stdout + r.stderr, /"твои": ru addresses the user formally/);
+
+        payload('ru', {
+            ...ruPayload,
+            webapp: {...ruPayload.webapp, 'app.new': 'Сохранить твои изменения'},
+            acknowledge: {'webapp:app.new': 'Quoted from a user-facing message where the informal form is intended.'},
+        });
+        assert.equal(repo.run('validate.mjs', workdir, 'ru').status, 0);
+        payload('ru', ruPayload);
     });
 });
