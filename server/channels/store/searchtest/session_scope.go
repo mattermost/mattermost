@@ -139,7 +139,7 @@ func testSearchPostsInSessionScope(t *testing.T, th *SearchTestHelper) {
 		require.NoError(t, err)
 		th.checkPostInSearchResults(t, f.posts[f.memberPriv.Id].Id, results.Posts)
 		th.checkPostInSearchResults(t, f.posts[f.dm.Id].Id, results.Posts)
-		assert.NotContains(t, results.Posts, f.posts[f.publicOpen.Id].Id)
+		assert.NotContains(t, results.Posts, f.posts[f.listed.Id].Id)
 	})
 }
 
