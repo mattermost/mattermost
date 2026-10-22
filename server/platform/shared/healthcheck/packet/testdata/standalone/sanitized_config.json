@@ -10,7 +10,8 @@
         "TLSMinVer": "1.2",
         "Forward80To443": false,
         "EnableIncomingWebhooks": true,
-        "EnableOutgoingWebhooks": true
+        "EnableOutgoingWebhooks": true,
+        "ExtendSessionLengthWithActivity": false
     },
     "TeamSettings": {
         "MaxNotificationsPerChannel": 1000
@@ -26,6 +27,12 @@
         "QueryTimeout": 30,
         "DisableDatabaseSearch": false,
         "ReplicaLagSettings": []
+    },
+    "ExperimentalAuditSettings": {
+        "FileEnabled": false,
+        "FileName": "",
+        "AdvancedLoggingJSON": {},
+        "Certificate": ""
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -51,8 +58,45 @@
         "PushNotificationServer": "https://push-test.mattermost.com",
         "PushNotificationContents": "full"
     },
+    "ComplianceSettings": {
+        "Enable": true,
+        "Directory": "",
+        "EnableDaily": false,
+        "BatchSize": 30000
+    },
     "LdapSettings": {
-        "EnableSync": true
+        "Enable": false,
+        "EnableSync": true,
+        "LdapServer": "",
+        "LdapPort": 389,
+        "ConnectionSecurity": "",
+        "BaseDN": "",
+        "IdAttribute": "",
+        "SyncIntervalMinutes": 60,
+        "SkipCertificateVerification": false,
+        "QueryTimeout": 60
+    },
+    "SamlSettings": {
+        "Enable": false,
+        "Verify": true,
+        "Encrypt": true,
+        "IdpURL": "",
+        "IdpDescriptorURL": "",
+        "IdpMetadataURL": "",
+        "SignatureAlgorithm": "RSAwithSHA256",
+        "IdAttribute": ""
+    },
+    "GitLabSettings": {
+        "Enable": false
+    },
+    "GoogleSettings": {
+        "Enable": false
+    },
+    "Office365Settings": {
+        "Enable": false
+    },
+    "OpenIdSettings": {
+        "Enable": false
     },
     "ClusterSettings": {
         "Enable": false,
@@ -93,8 +137,32 @@
         "VaryByUser": false,
         "VaryByHeader": ""
     },
+    "DataRetentionSettings": {
+        "EnableMessageDeletion": false,
+        "EnableFileDeletion": false,
+        "MessageRetentionDays": 365,
+        "MessageRetentionHours": 0,
+        "FileRetentionDays": 365,
+        "FileRetentionHours": 0,
+        "DeletionJobStartTime": "02:00",
+        "BatchSize": 3000,
+        "TimeBetweenBatchesMilliseconds": 100
+    },
     "MessageExportSettings": {
-        "EnableExport": false
+        "EnableExport": false,
+        "ExportFormat": "actiance",
+        "DailyRunTime": "01:00",
+        "ExportFromTimestamp": 0,
+        "BatchSize": 10000,
+        "GlobalRelaySettings": {
+            "CustomerType": "A9",
+            "SMTPUsername": "",
+            "SMTPPassword": "",
+            "EmailAddress": "",
+            "SMTPServerTimeout": 1800,
+            "CustomSMTPServerName": "",
+            "CustomSMTPPort": "25"
+        }
     },
     "MetricsSettings": {
         "Enable": false,

@@ -50,6 +50,11 @@ on:
         description: "Comma-separated alias tags for description"
         type: string
         required: false
+      server_deploy:
+        description: "Value for PW_SERVER_DEPLOY (e.g. 'subpath'); empty for a standard deployment"
+        type: string
+        required: false
+        default: ""
 
       enable_reporting:
         type: boolean
@@ -247,7 +252,7 @@ jobs:
           image-aliases: ${{ inputs.server_image_aliases }}
 
   workers:
-    name: dispatch-run-${{ matrix.worker_index }}
+    name: dispatch-run-playwright-${{ inputs.server_edition }}-${{ inputs.playwright_project }}-${{ matrix.worker_index }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     needs: [prepare-run, dispatch-begin]
@@ -270,12 +275,13 @@ jobs:
       # dispatch pulls specs from a shared queue, so no worker knows in advance which
       # service-tagged spec (e.g. @ldap, @saml, @elasticsearch) it will draw.
       PW_USE_TESTCONTAINERS: "true"
-      PW_TESTCONTAINERS_SERVICES: "openldap,keycloak,elasticsearch,opensearch,minio,azurite"
+      PW_TESTCONTAINERS_SERVICES: "openldap,keycloak,elasticsearch,opensearch,minio,azurite,nginx"
       # Keeps the server alive across this worker's per-spec dispatch invocations instead of
       # tearing down after each — otherwise ci/prepare-playwright's own global-teardown call would
       # stop the server that ci/dispatch-run needs next. ci/testcontainers-teardown does the final
       # teardown once the whole queue is done.
       PW_TESTCONTAINERS_REUSE: "true"
+      PW_SERVER_DEPLOY: "${{ inputs.server_deploy }}"
     steps:
       - name: ci/checkout-actions
         # Sparse-checkout just .github/actions from the triggering ref (master)
@@ -328,7 +334,7 @@ jobs:
           repo-dir: ${{ github.workspace }}
           artifacts-root: ${{ github.workspace }}/worker-artifacts
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          gh-job-name: dispatch-run-${{ matrix.worker_index }}
+          gh-job-name: dispatch-run-playwright-${{ inputs.server_edition }}-${{ inputs.playwright_project }}-${{ matrix.worker_index }}
           playwright-retries: ${{ inputs.playwright_retries }}
           playwright-project: ${{ inputs.playwright_project }}
       - name: ci/upload-debug-artifacts

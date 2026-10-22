@@ -25,7 +25,7 @@ var dbPostgresUnsupported = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "Database.Version",
-	Eval:       evalDBPostgresUnsupported,
+	Eval:       healthcheck.Single(evalDBPostgresUnsupported),
 }
 
 var dbPoolSaturated = healthcheck.Rule{
@@ -41,7 +41,7 @@ var dbPoolSaturated = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    maxOpenConnsSubject,
-	Eval:       evalDBPoolSaturated,
+	Eval:       healthcheck.Single(evalDBPoolSaturated),
 }
 
 var dbReplicaUnused = healthcheck.Rule{
@@ -57,7 +57,20 @@ var dbReplicaUnused = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityProbe,
 	Subject:    dataSourceReplicasSubject,
-	Eval:       evalDBReplicaUnused,
+	Eval:       healthcheck.Single(evalDBReplicaUnused),
+}
+
+// unlicensed returns the result for a server without any license, whose store ignores replicas.
+func unlicensed(s *healthcheck.Snapshot) (healthcheck.Result, bool) {
+	license, ok := s.License()
+	switch {
+	case !ok:
+		return healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable), true
+	case license.SkuShortName == "" && license.Features == nil:
+		return healthcheck.Resolved(), true
+	default:
+		return healthcheck.Result{}, false
+	}
 }
 
 // majorVersion reads the leading integer of a server_version string such as "15.4 (Debian 15.4-1)".
@@ -72,8 +85,8 @@ func majorVersion(version string) (int, bool) {
 	return major, err == nil
 }
 
-func evalDBPostgresUnsupported(s *healthcheck.Snapshot) []healthcheck.Result {
-	diag, ok := leaderDiag(s, model.SectionDatabaseIdentity)
+func evalDBPostgresUnsupported(s *healthcheck.Snapshot) healthcheck.Result {
+	diag, ok := s.LeaderDiag(model.SectionDatabaseIdentity)
 	if !ok || diag.Database.Version == nil {
 		return unknownDiagnostics()
 	}
@@ -88,25 +101,25 @@ func evalDBPostgresUnsupported(s *healthcheck.Snapshot) []healthcheck.Result {
 	case !ok:
 		return unknownDiagnostics()
 	case major < model.MinimumPostgresMajorVersion:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_postgres_unsupported.message")).
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_postgres_unsupported.message")).
 			WithDetail("version", version).
-			WithDetail("minimum", strconv.Itoa(model.MinimumPostgresMajorVersion))}
+			WithDetail("minimum", strconv.Itoa(model.MinimumPostgresMajorVersion))
 	default:
-		return resolved()
+		return healthcheck.Resolved()
 	}
 }
 
 // Collection is leader-only, so this covers the leader's pool.
-func evalDBPoolSaturated(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalDBPoolSaturated(s *healthcheck.Snapshot) healthcheck.Result {
 	maxOpen, ok := maxOpenConns(s)
 	if !ok {
 		return unknownConfig()
 	}
 	if maxOpen <= 0 {
-		return resolved()
+		return healthcheck.Resolved()
 	}
 
-	diag, ok := leaderDiag(s, model.SectionDatabasePool)
+	diag, ok := s.LeaderDiag(model.SectionDatabasePool)
 	if !ok || diag.Database.MasterConnectionsInUse == nil {
 		return unknownDiagnostics()
 	}
@@ -114,34 +127,35 @@ func evalDBPoolSaturated(s *healthcheck.Snapshot) []healthcheck.Result {
 	inUse := *diag.Database.MasterConnectionsInUse
 	percent := 100 * float64(inUse) / float64(maxOpen)
 	if percent < poolSaturatedPercent {
-		return []healthcheck.Result{healthcheck.Resolved().WithValue(percent)}
+		return healthcheck.Resolved().WithValue(percent)
 	}
 
-	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_pool_saturated.message")).
+	return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_pool_saturated.message")).
 		WithDetail("in_use", strconv.Itoa(inUse)).
 		WithDetail("max_open", strconv.Itoa(maxOpen)).
 		WithDetail("percent", strconv.FormatFloat(percent, 'f', 0, 64)).
-		WithValue(percent)}
+		WithValue(percent)
 }
 
-func evalDBReplicaUnused(s *healthcheck.Snapshot) []healthcheck.Result {
-	cfg, ok := config(s)
+func evalDBReplicaUnused(s *healthcheck.Snapshot) healthcheck.Result {
+	cfg, ok := s.ConfigRoot()
 	if !ok {
 		return unknownConfig()
 	}
 	if len(cfg.SqlSettings.DataSourceReplicas) == 0 {
-		return resolved()
+		return healthcheck.Resolved()
+	}
+	if r, closed := unlicensed(s); closed {
+		return r
 	}
 
-	diag, ok := leaderDiag(s, model.SectionDatabasePool)
+	diag, ok := s.LeaderDiag(model.SectionDatabasePool)
 	switch {
-	case !ok:
-		return unknownDiagnostics()
-	case diag.Database.ReplicasOnline == nil:
+	case !ok || diag.Database.ReplicasOnline == nil:
 		return unknownDiagnostics()
 	case *diag.Database.ReplicasOnline == 0:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_replica_unused.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_replica_unused.message"))
 	default:
-		return resolved()
+		return healthcheck.Resolved()
 	}
 }

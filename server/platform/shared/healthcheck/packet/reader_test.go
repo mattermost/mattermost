@@ -36,8 +36,10 @@ const (
 	// The fixtures run 11.0, which has ended.
 	versionSubject = "11.0"
 
-	expiresAtSubject = "license.expires_at"
-	seatsSubject     = "license.users"
+	complianceDirSubject      = "ComplianceSettings.Directory"
+	expiresAtSubject          = "license.expires_at"
+	globalRelayTimeoutSubject = "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout"
+	seatsSubject              = "license.users"
 )
 
 type finding struct {
@@ -132,7 +134,11 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "standalone",
 			expected: []finding{
+				{Code: "COMPLIANCE_NO_DIR", State: healthcheck.StateFiring, Subject: complianceDirSubject},
 				{Code: "JOB_FAILED", State: healthcheck.StateFiring, Subject: model.JobTypeLdapSync},
+				{Code: "LDAP_PROBE_FAILED", State: healthcheck.StateUnknown, Subject: "LdapSettings.LdapServer"},
+				{Code: "LDAP_RECOMMENDED_AT_SCALE", State: healthcheck.StateFiring, Subject: "LdapSettings.Enable"},
+				{Code: "LDAP_SYNC_NO_BASEDN", State: healthcheck.StateFiring, Subject: "LdapSettings.BaseDN"},
 				{Code: "LICENSE_EXPIRED", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
 				{Code: "LICENSE_EXPIRING", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
 				{Code: "METRICS_OFF", State: healthcheck.StateFiring, Subject: "MetricsSettings.Enable"},
@@ -140,6 +146,7 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "SEATS_LIMIT_REACHED", State: healthcheck.StateUnknown, Subject: seatsSubject},
+				{Code: "SESSION_EXTEND_OFF", State: healthcheck.StateFiring, Subject: "ServiceSettings.ExtendSessionLengthWithActivity"},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
@@ -149,12 +156,14 @@ func TestReadGoldenPackets(t *testing.T) {
 			expected: []finding{
 				{Code: "DB_HA_FAILOVER_STORM_RISK", State: healthcheck.StateFiring, Subject: "SqlSettings.MaxOpenConns"},
 				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateFiring, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
+				{Code: "EXPORT_GR_TIMEOUT_LOW", State: healthcheck.StateFiring, Subject: globalRelayTimeoutSubject},
 				{Code: "FILESTORE_LOCAL_IN_CLUSTER", State: healthcheck.StateFiring, Subject: "FileSettings.Directory"},
 				{Code: "JOB_STUCK", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},
 				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},
 				{Code: "LICENSE_EXPIRING", State: healthcheck.StateFiring, Subject: expiresAtSubject},
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},
+				{Code: "SAML_ENCRYPT_OFF", State: healthcheck.StateFiring, Subject: "SamlSettings.Encrypt"},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
 		},
@@ -326,6 +335,9 @@ func TestReadCloud(t *testing.T) {
 		codes = append(codes, f.Code)
 	}
 	assert.ElementsMatch(t, []string{
+		"LDAP_PROBE_FAILED",
+		"LDAP_RECOMMENDED_AT_SCALE",
+		"LDAP_SYNC_NO_BASEDN",
 		"PLUGIN_NOT_RUNNING",
 		"PUSH_ID_ONLY",
 		"PUSH_TEST_PROXY",

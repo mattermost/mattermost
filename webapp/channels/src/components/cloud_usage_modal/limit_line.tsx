@@ -3,7 +3,9 @@
 
 import React from 'react';
 
-import UsagePercentBar from 'components/common/usage_percent_bar';
+import {ProgressBar} from '@mattermost/compass-ui/components/progress-bar';
+
+import {getUsageProgressBarProps} from 'utils/limits';
 
 import './limit_line.scss';
 
@@ -21,10 +23,7 @@ export default function LimitLine(props: Props) {
             {props.showIcons && <i className={`WorkspaceLimitLine__icon ${props.icon}`}/>}
             <div className='WorkspaceLimitLine__bar'>
                 <div className='WorkspaceLimitLine__bar-label'>{props.limitName}</div>
-                <UsagePercentBar
-                    barWidth='auto'
-                    percent={Math.floor(props.percent * 100)}
-                />
+                <ProgressBar {...getUsageProgressBarProps(Math.floor(props.percent * 100), 'auto')}/>
             </div>
             <div className='WorkspaceLimitLine__text-status'>
                 {props.limitStatus}

@@ -35,7 +35,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -307,7 +307,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -827,7 +827,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -1096,7 +1096,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
@@ -1606,7 +1606,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
               class="col-sm-8"
             >
               <div
-                class="BooleanRadioGroup-gkBvtd joVEQU"
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
                 <label
                   class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"

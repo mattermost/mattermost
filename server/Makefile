@@ -172,7 +172,7 @@ PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v3.0.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-dataminr-v2.0.0
+PLUGIN_PACKAGES += mattermost-plugin-dataminr-v3.0.0
 PLUGIN_PACKAGES += mattermost-plugin-legal-hold-v1.1.6
 
 # Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
@@ -359,6 +359,14 @@ i18n-extract: ## Extract strings for translation from the source code
 i18n-verify: ## Verify the non-English translation files against en.json
 	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n verify --warn-missing-ids
+
+.PHONY: i18n-verify-all
+i18n-verify-all: i18n-verify ## Run every translation check: both surfaces' catalogs, the glossary and the translation pipeline
+	cd ../tools/mmgotool && $(GO) test ./commands/ -run TestServerPluralTableMatchesGoI18n
+	@test -d $(BUILD_WEBAPP_DIR)/node_modules || { echo "$(BUILD_WEBAPP_DIR)/node_modules is missing; run make -C $(BUILD_WEBAPP_DIR) node_modules"; exit 1; }
+	cd $(BUILD_WEBAPP_DIR)/channels && npm run i18n-verify-translations -- --warn-missing-keys
+	cd .. && node --test i18n/scripts/*.test.mjs
+	cd .. && node i18n/scripts/check_glossary.mjs
 
 .PHONY: i18n-check
 i18n-check: ## Exit on empty translation strings and translation source strings

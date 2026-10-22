@@ -272,7 +272,7 @@ exports[`components/SingleImageView should match snapshot 2`] = `
           >
             <div
               class="file-preview__button"
-              style="display: block;"
+              style=""
             >
               <figure
                 class="image-loaded-container"
@@ -475,7 +475,7 @@ exports[`components/SingleImageView should match snapshot, SVG image 2`] = `
           >
             <div
               class="file-preview__button"
-              style="display: block;"
+              style=""
             >
               <figure
                 class="image-loaded-container"
@@ -556,7 +556,7 @@ exports[`components/SingleImageView should set loaded state on callback of onIma
           >
             <div
               class="file-preview__button"
-              style="display: block;"
+              style=""
             >
               <figure
                 class="image-loaded-container"

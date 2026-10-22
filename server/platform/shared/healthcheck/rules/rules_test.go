@@ -15,7 +15,33 @@ func TestBuiltinRegistry(t *testing.T) {
 	registry := healthcheck.Builtin()
 	require.NoError(t, registry.Validate())
 
-	for _, code := range []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY", "SITE_URL_EMPTY", "SITE_URL_HTTP", "CLUSTER_SINGLE_NODE", "CLUSTER_VERSION_SKEW", "RATELIMIT_OFF_LARGE", "JOB_STUCK", "JOB_WEDGED_AT_ZERO", "JOB_FAILED"} {
+	// One block per rule package, in rules.go import order, so concurrent rule PRs insert in different places.
+	for _, code := range []string{
+		// cluster
+		"CLUSTER_SINGLE_NODE",
+		"CLUSTER_VERSION_SKEW",
+
+		// compliance
+		"COMPLIANCE_NO_DIR",
+		"AUDIT_LOG_OFF",
+		"RETENTION_TIGHT_BATCHES",
+		"EXPORT_GR_TIMEOUT_LOW",
+
+		// jobs
+		"JOB_STUCK",
+		"JOB_WEDGED_AT_ZERO",
+		"JOB_FAILED",
+
+		// notifications
+		"PUSH_EMPTY_URL",
+		"PUSH_BAD_SCHEME",
+		"PUSH_TEST_PROXY",
+
+		// platform
+		"SITE_URL_EMPTY",
+		"SITE_URL_HTTP",
+		"RATELIMIT_OFF_LARGE",
+	} {
 		_, ok := registry.Get(code)
 		assert.True(t, ok, code)
 	}
@@ -30,10 +56,25 @@ func TestBuiltinRulesOnCloud(t *testing.T) {
 	}
 
 	assert.ElementsMatch(t, []string{
+		"LDAP_ID_IS_EMAIL",
+		"LDAP_PORT_PLAIN_MISMATCH",
+		"LDAP_PORT_TLS_MISMATCH",
+		"LDAP_PROBE_FAILED",
+		"LDAP_QUERY_TIMEOUT_LOW",
+		"LDAP_RECOMMENDED_AT_SCALE",
+		"LDAP_SKIP_CERT",
+		"LDAP_SYNC_DUTY_CYCLE",
+		"LDAP_SYNC_NO_BASEDN",
 		"PLUGIN_NOT_RUNNING",
 		"PUSH_BAD_SCHEME",
 		"PUSH_EMPTY_URL",
 		"PUSH_ID_ONLY",
 		"PUSH_TEST_PROXY",
+		"SAML_ENCRYPT_OFF",
+		"SAML_ID_IS_EMAIL",
+		"SAML_ID_MUTABLE",
+		"SAML_PROBE_FAILED",
+		"SAML_SIGNATURE_SHA1",
+		"SAML_VERIFY_OFF",
 	}, cloud)
 }
