@@ -68,7 +68,7 @@ function makeMapStateToProps() {
 }
 
 // The root is the oldest post, so the date line that belongs only to it is the last id.
-function withoutRoot(ids: string[], rootId: string): string[] {
+export function withoutRoot(ids: string[], rootId: string): string[] {
     const withoutRootId = ids.filter((id) => id !== rootId);
     const last = withoutRootId[withoutRootId.length - 1];
     const beforeLast = withoutRootId[withoutRootId.length - 2];

@@ -6,7 +6,7 @@ import React from 'react';
 import {CollapsedThreads} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {START_OF_NEW_MESSAGES, isDateLine} from 'mattermost-redux/utils/post_list';
+import {DATE_LINE, START_OF_NEW_MESSAGES, isDateLine} from 'mattermost-redux/utils/post_list';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -15,7 +15,7 @@ import type {GlobalState} from 'types/store';
 
 import ThreadViewerVirtualized from './virtualized_thread_viewer';
 
-import ConnectedThreadViewer from './index';
+import ConnectedThreadViewer, {withoutRoot} from './index';
 
 jest.mock('./virtualized_thread_viewer', () => ({
     __esModule: true,
@@ -109,5 +109,35 @@ describe('virtualized thread viewer connector', () => {
         expect(ids).not.toContain('root-id');
         expect(ids).toContain(START_OF_NEW_MESSAGES);
         expect(ids.filter(isDateLine)).toHaveLength(1);
+    });
+});
+
+describe('withoutRoot', () => {
+    const monday = DATE_LINE + Date.UTC(2024, 0, 1);
+    const tuesday = DATE_LINE + Date.UTC(2024, 1, 15);
+
+    it('removes the root and keeps a date line that a reply still uses', () => {
+        expect(withoutRoot(
+            ['reply-2', 'reply-1', START_OF_NEW_MESSAGES, 'root-id', monday],
+            'root-id',
+        )).toEqual(['reply-2', 'reply-1', START_OF_NEW_MESSAGES, monday]);
+    });
+
+    it('drops the trailing date line that belonged only to the root', () => {
+        expect(withoutRoot(
+            ['reply-id', START_OF_NEW_MESSAGES, tuesday, 'root-id', monday],
+            'root-id',
+        )).toEqual(['reply-id', START_OF_NEW_MESSAGES, tuesday]);
+    });
+
+    it('returns an empty list when the thread is only the root', () => {
+        expect(withoutRoot(['root-id', monday], 'root-id')).toEqual([]);
+    });
+
+    it('removes the root when timestamps are relative and there is no date line', () => {
+        expect(withoutRoot(
+            ['reply-id', START_OF_NEW_MESSAGES, 'root-id'],
+            'root-id',
+        )).toEqual(['reply-id', START_OF_NEW_MESSAGES]);
     });
 });
