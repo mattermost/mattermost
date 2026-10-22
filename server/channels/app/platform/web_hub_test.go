@@ -955,12 +955,16 @@ func TestClusterBroadcastHooks(t *testing.T) {
 }
 
 func TestConnSet(t *testing.T) {
-	conns := make([]*WebConn, connSetSmallMax+2)
-	for i := range conns {
-		conns[i] = &WebConn{}
+	newConns := func(n int) []*WebConn {
+		conns := make([]*WebConn, n)
+		for i := range conns {
+			conns[i] = &WebConn{}
+		}
+		return conns
 	}
 
 	t.Run("stays a slice up to the limit, then becomes a map", func(t *testing.T) {
+		conns := newConns(connSetSmallMax + 1)
 		var s connSet
 		for _, wc := range conns[:connSetSmallMax] {
 			s.add(wc)
@@ -975,8 +979,9 @@ func TestConnSet(t *testing.T) {
 	})
 
 	t.Run("removing the visited member while iterating visits every member once", func(t *testing.T) {
+		conns := newConns(10)
 		var s connSet
-		for _, wc := range conns[:10] {
+		for _, wc := range conns {
 			s.add(wc)
 		}
 		var visited []*WebConn
@@ -984,7 +989,7 @@ func TestConnSet(t *testing.T) {
 			visited = append(visited, wc)
 			s.remove(wc)
 		}
-		require.ElementsMatch(t, conns[:10], visited)
+		require.ElementsMatch(t, conns, visited)
 		require.Zero(t, s.len())
 	})
 }
