@@ -1254,10 +1254,6 @@
       description: >
         Query server logs using filter criteria.
 
-        In a cluster, `log_levels`, `date_from` and `date_to` are applied on every
-        node. Nodes running an older server version ignore them and return
-        unfiltered entries.
-
         If another cluster node's logs can't be fetched (for example, it doesn't
         respond in time), the request still succeeds and that node's array
         contains a single entry with `level` set to `error`, `msg` set to
@@ -1321,7 +1317,8 @@
             In a licensed, enabled cluster, node names are the cluster hostnames (or `default`
             for this node if its cluster name is unavailable); otherwise the server's logs are
             returned under `default`. Every node that was queried is included, with an
-            empty array if it has no matching entries.
+            empty array if it has no matching entries. A node the cluster has
+            already marked as failed isn't queried and is omitted.
           content:
             application/json:
               schema:
