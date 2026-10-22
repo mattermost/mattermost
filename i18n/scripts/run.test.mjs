@@ -178,7 +178,7 @@ describe('a translation run', () => {
         }
     });
 
-    test('plan finds new, changed, renamed and removed keys', () => {
+    test('plan finds new, changed, renamed, removed and repairable keys', () => {
         const r = repo.run('plan.mjs', workdir, '--base', base);
         assert.equal(r.status, 0, r.stderr);
         const plan = JSON.parse(fs.readFileSync(path.join(workdir, 'plan.json'), 'utf8'));
@@ -189,6 +189,8 @@ describe('a translation run', () => {
         const kinds = Object.fromEntries(Object.entries(ru.items).map(([k, item]) => [k, item.kind]));
         assert.deepEqual(kinds, {
             'app.archive_channel': 'changed',
+            'app.count': 'repair',
+            'app.hello': 'repair',
             'app.new': 'new',
             'app.reword': 'changed',
         });
@@ -196,7 +198,26 @@ describe('a translation run', () => {
         assert.equal(ru.items['app.archive_channel'].current, 'Архив');
         assert.equal(ru.items['app.reword'].previous.english, 'Delete the post');
         assert.equal(ru.items['app.reword'].current, 'Удалить сообщение');
+        assert.match(ru.items['app.hello'].problems[0], /"тебя"|"тебе"|"ты"|у тебя/i);
         assert.deepEqual(Object.keys(plan.surfaces.server.locales.ru.items), ['api.retry']);
         assert.deepEqual(Object.keys(worklist('ru').webapp), Object.keys(ru.items));
+
+        // de addresses the user informally, and its plurals need only one/other.
+        assert.equal(plan.surfaces.webapp.locales.de.items['app.hello'], undefined);
+        assert.equal(plan.surfaces.webapp.locales.de.items['app.count'], undefined);
+    });
+
+    test('plan takes repairs up to the cap, and counts the rest', () => {
+        const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'i18n-run-'));
+        try {
+            const r = repo.run('plan.mjs', scratch, '--base', base, '--max-repairs', '1');
+            assert.equal(r.status, 0, r.stderr);
+            const ru = JSON.parse(fs.readFileSync(path.join(scratch, 'plan.json'), 'utf8')).surfaces.webapp.locales.ru;
+            assert.equal(Object.values(ru.items).filter((item) => item.kind === 'repair').length, 1);
+            assert.equal(ru.repairsAvailable, 2);
+            assert.match(r.stdout, /^ru\s+2\s+2\s+1\/2\s+1\s+3$/m);
+        } finally {
+            fs.rmSync(scratch, {recursive: true, force: true});
+        }
     });
 });

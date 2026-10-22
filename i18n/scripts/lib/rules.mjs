@@ -239,3 +239,20 @@ export function checkTranslation({item, value, locale, surface, glossary, style 
     out.push(...softChecks(item, value, locale, surface, glossary, style));
     return out;
 }
+
+/**
+ * Defects in an existing translation that a run may repair: a webapp plural
+ * missing a form its locale uses, and the wrong form of address.
+ */
+export function repairProblems({english, value, locale, surface, style}) {
+    const problems = [];
+    if (surface === 'webapp') {
+        try {
+            problems.push(...checkMessage(sourceFor(english), value, locale).filter((f) => f.rule === 'plural-category').map((f) => f.message));
+        } catch {
+            return [];
+        }
+    }
+    problems.push(...addressFindings(value, locale, surface, style).map((f) => f.message));
+    return problems;
+}

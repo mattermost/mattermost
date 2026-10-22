@@ -1,7 +1,7 @@
 // Work out what a translation run has to do, and write each locale's worklist.
 //
 //   node i18n/scripts/plan.mjs <workdir> [--upstream origin/master | --base <rev>]
-//                              [--accept-unusual]
+//                              [--max-repairs 25] [--accept-unusual]
 //
 // Run from the repository root. Reads the catalogs, en.json and
 // i18n/baseline.json from the working tree, and en.json as of each locale's
@@ -22,7 +22,7 @@ import {computePlan, counts} from './lib/plan.mjs';
 import {commitTrees, isAncestor, mergeBase, revParse, workingTree} from './lib/repo.mjs';
 import {paths, PLAN_VERSION, writeJSON} from './lib/workdir.mjs';
 
-const usage = 'usage: node i18n/scripts/plan.mjs <workdir> [--upstream <ref> | --base <rev>] [--accept-unusual]';
+const usage = 'usage: node i18n/scripts/plan.mjs <workdir> [--upstream <ref> | --base <rev>] [--max-repairs <n>] [--accept-unusual]';
 let options;
 try {
     options = parseArgs({
@@ -30,6 +30,7 @@ try {
         options: {
             upstream: {type: 'string', default: 'origin/master'},
             base: {type: 'string'},
+            'max-repairs': {type: 'string', default: '25'},
             'accept-unusual': {type: 'boolean', default: false},
         },
     });
@@ -39,9 +40,10 @@ try {
 }
 const {upstream, base: baseArg} = options.values;
 const acceptUnusual = options.values['accept-unusual'];
+const maxRepairs = Number(options.values['max-repairs']);
 const [workdir, ...extra] = options.positionals;
 
-if (!workdir || extra.length) {
+if (!workdir || extra.length || !Number.isInteger(maxRepairs) || maxRepairs < 0) {
     console.error(usage);
     process.exit(2);
 }
@@ -67,7 +69,7 @@ const history = commitTrees(root);
 
 let plan;
 try {
-    plan = computePlan({tree, history, base});
+    plan = computePlan({tree, history, base, maxRepairs});
 } catch (e) {
     console.error(e.message);
     process.exit(2);
@@ -94,7 +96,9 @@ const strings = {webapp: {}, server: {}};
 for (const [surface, {locales}] of Object.entries(plan.surfaces)) {
     for (const {items} of Object.values(locales)) {
         for (const [k, item] of Object.entries(items)) {
-            strings[surface][k] = {english: item.english, description: item.description};
+            if (item.kind !== 'repair') {
+                strings[surface][k] = {english: item.english, description: item.description};
+            }
         }
     }
 }
@@ -103,14 +107,14 @@ writeJSON(p.strings, strings);
 const c = counts(plan);
 const locales = Object.keys(c).sort();
 const row = (cells) => console.log(cells.map((cell, i) => (i ? String(cell).padStart(8) : String(cell).padEnd(8))).join(''));
-row(['locale', 'new', 'changed', 'carried', 'pruned']);
+row(['locale', 'new', 'changed', 'repair', 'carried', 'pruned']);
 for (const locale of locales) {
     const l = c[locale];
-    row([locale, l.new, l.changed, l.carry, l.prune]);
+    row([locale, l.new, l.changed, `${l.repair}/${l.repairsAvailable}`, l.carry, l.prune]);
 }
-const total = Object.values(c).reduce((a, l) => a + l.new + l.changed, 0);
+const total = Object.values(c).reduce((a, l) => a + l.new + l.changed + l.repair, 0);
 console.log(`\nbase ${base}`);
-console.log(`${total} worklist entries across ${locales.filter((l) => c[l].webapp + c[l].server).length} locales`);
+console.log(`${total} worklist entries across ${locales.filter((l) => c[l].webapp + c[l].server).length} locales; repair is taken/available, capped at ${maxRepairs} per surface`);
 
 const undescribed = Object.values(plan.undescribed).reduce((a, s) => a + Object.keys(s).length, 0);
 if (undescribed) {

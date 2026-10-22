@@ -14,13 +14,19 @@
 //                      or a rename whose description changed. The translator
 //                      gets the previous English and the current translation,
 //                      and returns either a new translation or the current one.
+//             repair   translated, but the translation breaks a rule the
+//                      catalogs are being brought up to: a webapp plural
+//                      missing a form, or the wrong form of address. Capped
+//                      per surface and locale
 import {catalogPath, isBlank, localesOf, parseCatalog, readBaseline, readSource, same, stableText, SURFACES} from './catalogs.mjs';
+import {readStyle} from './glossary.mjs';
+import {repairProblems} from './rules.mjs';
 
 // Past these, something other than ordinary development moved en.json, and
 // fanning out translators would multiply the mistake rather than fix it.
 export const UNUSUAL = {new: 1000, changed: 300, pruned: 300};
 
-export function computePlan({tree, history, base}) {
+export function computePlan({tree, history, base, maxRepairs = 25}) {
     const baseline = readBaseline(tree);
     const sources = new Map();
     const sourceAt = (rev, surface) => {
@@ -41,6 +47,7 @@ export function computePlan({tree, history, base}) {
             const {map} = parseCatalog(tree.read(catalogPath(surface, locale)), surface);
             const marker = baseline[surface][locale] || null;
             const then = marker ? sourceAt(marker, surface) : null;
+            const style = readStyle(tree, locale);
 
             const prune = {};
             for (const [k, v] of map) {
@@ -53,6 +60,7 @@ export function computePlan({tree, history, base}) {
             const {carry, redescribed} = findRenames({en, then, map, retired: Object.keys(prune)});
 
             const items = {};
+            const repairs = [];
             for (const [k, {english, description}] of en) {
                 const current = map.get(k);
                 if (carry[k]) {
@@ -66,6 +74,10 @@ export function computePlan({tree, history, base}) {
                 } else if (then?.has(k) && !same(then.get(k).english, english)) {
                     items[k] = {kind: 'changed', english, description, previous: then.get(k), current};
                 } else {
+                    const problems = repairProblems({english, value: current, locale, surface, style});
+                    if (problems.length) {
+                        repairs.push([k, {kind: 'repair', english, description, current, problems}]);
+                    }
                     continue;
                 }
                 distinct[items[k].kind].add(k);
@@ -73,8 +85,11 @@ export function computePlan({tree, history, base}) {
                     plan.undescribed[surface][k] = english;
                 }
             }
+            for (const [k, item] of repairs.slice(0, maxRepairs)) {
+                items[k] = item;
+            }
 
-            locales[locale] = {marker, prune, carry, items};
+            locales[locale] = {marker, prune, carry, items, repairsAvailable: repairs.length};
         }
 
         for (const [kind, limit] of Object.entries(UNUSUAL)) {
@@ -139,12 +154,13 @@ export function counts(plan) {
     const out = {};
     for (const [surface, {locales}] of Object.entries(plan.surfaces)) {
         for (const [locale, l] of Object.entries(locales)) {
-            const c = out[locale] ||= {new: 0, changed: 0, carry: 0, prune: 0};
+            const c = out[locale] ||= {new: 0, changed: 0, repair: 0, carry: 0, prune: 0, repairsAvailable: 0};
             for (const item of Object.values(l.items)) {
                 c[item.kind]++;
             }
             c.carry += Object.keys(l.carry).length;
             c.prune += Object.keys(l.prune).length;
+            c.repairsAvailable += l.repairsAvailable;
             c[surface] = Object.keys(l.items).length;
         }
     }
