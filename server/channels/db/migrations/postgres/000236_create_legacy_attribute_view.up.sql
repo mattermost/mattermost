@@ -1,4 +1,4 @@
--- Bring back AttributeView for servers still running a release from before
+-- Rebuild AttributeView for servers still running a release from before
 -- 000216 -- the last ESR, 11.10 -- while they share a database migrated past
 -- it: during a rolling upgrade of a cluster, or after the binary is rolled back
 -- without the database. Those servers read user attributes from AttributeView
@@ -6,6 +6,13 @@
 -- every 30 seconds when an access check needs a subject). Without it every one
 -- of those reads fails, and with them file access, policy-gated joins, and the
 -- membership sync job.
+--
+-- 000216 leaves the view in place, but the 000216 shipped in v12.0.0 dropped
+-- it, so on a database migrated by that release this brings it back. Where the
+-- view was kept it still has its pre-upgrade definition, and it is replaced
+-- regardless: the drop and the create share this migration's transaction, so
+-- a server reading the view meanwhile waits for the rebuild rather than
+-- finding it missing.
 --
 -- The body is UserAttributeView's, as 000223 left it, under the old name: user
 -- attributes only -- which is all AttributeView ever held from 000177 on --
@@ -24,7 +31,9 @@
 -- for the upgrade window, to be dropped once no supported release reads
 -- AttributeView.
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS AttributeView AS
+DROP MATERIALIZED VIEW IF EXISTS AttributeView;
+
+CREATE MATERIALIZED VIEW AttributeView AS
 SELECT
     pv.GroupID,
     pv.TargetID,

@@ -15,9 +15,9 @@ import (
 
 // withoutLegacyAttributeView reverts 000236 and returns a function that
 // re-applies it, for a test that recreates the state of an earlier migration.
-// It has to come off first, the way a real downgrade would take it off:
-// AttributeView depends on PropertyOptions, and 000216's down migration
-// recreates a view of the same name.
+// It has to come off first, the way a real downgrade would take it off: the
+// rebuilt AttributeView depends on PropertyOptions, while the pre-upgrade
+// definition the revert puts back reads only PropertyFields and PropertyValues.
 //
 // Restoring is left to the caller, as a defer, rather than to t.Cleanup:
 // cleanups run after the test's deferred store.Close.
@@ -36,7 +36,9 @@ func withoutLegacyAttributeView(t *testing.T, s *SqlStore) func() {
 // server's refresh of it succeeds, and that it resolves every option-bearing
 // type 11.10 knows from PropertyOptions -- including through a field that links
 // to a template, which holds no options of its own -- exactly as
-// UserAttributeView does.
+// UserAttributeView does. The down migration puts back the pre-upgrade
+// definition 000216 keeps, and the up migration replaces that definition
+// rather than leaving it in place.
 func TestMigration000236(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
@@ -221,12 +223,33 @@ func TestMigration000236(t *testing.T) {
 
 	_, err = store.GetMaster().ExecNoTimeout(downSQL)
 	require.NoError(t, err, "down migration should succeed")
-	require.False(t, matviewExists(t, store, "AttributeView"), "down should drop AttributeView")
+	require.True(t, matviewExists(t, store, "AttributeView"), "down should keep AttributeView for servers from before 000216")
 	require.True(t, matviewExists(t, store, "UserAttributeView"), "down must leave UserAttributeView alone")
 
+	// The pre-upgrade definition reads options from the Attrs->'options' blob,
+	// which upgraded code drops from every field it writes: it still refreshes,
+	// but resolves none of these fields' options. This is the definition 000216
+	// keeps, and why the up migration has to replace it.
+	_, err = store.GetMaster().Exec("REFRESH MATERIALIZED VIEW AttributeView")
+	require.NoError(t, err, "refreshing the pre-upgrade AttributeView must succeed")
+	require.JSONEq(t, `{
+		"linked_select": null,
+		"user_rank": null,
+		"user_multi": null,
+		"user_text": "hello"
+	}`, attributesIn(t, "AttributeView", userTarget),
+		"down should restore the definition that reads options from Attrs")
+
 	_, err = store.GetMaster().ExecNoTimeout(upSQL)
-	require.NoError(t, err, "up migration should be re-appliable")
-	assertLegacyView(t, "after up migration")
+	require.NoError(t, err, "up migration should replace the pre-upgrade AttributeView")
+	assertLegacyView(t, "after up migration over the pre-upgrade view")
+
+	// A database migrated by v12.0.0, whose 000216 dropped the view.
+	_, err = store.GetMaster().Exec("DROP MATERIALIZED VIEW AttributeView")
+	require.NoError(t, err)
+	_, err = store.GetMaster().ExecNoTimeout(upSQL)
+	require.NoError(t, err, "up migration should create AttributeView where it is missing")
+	assertLegacyView(t, "after up migration with no view")
 
 	_, err = store.GetMaster().ExecNoTimeout(upSQL)
 	require.NoError(t, err, "re-executing the up migration must not fail")
