@@ -108,9 +108,10 @@ func TestSessionScopeChannelReads(t *testing.T) {
 
 	inScope := []*model.Channel{f.triggering, f.extra, f.publicOpen}
 	outOfScope := map[string]*model.Channel{
-		"public channel on closed team": f.publicClosed,
-		"private member channel":        f.memberPriv,
-		"bot DM":                        f.botDM,
+		"public channel on closed team":                         f.publicClosed,
+		"unlisted private channel on the listed channel's team": th.CreatePrivateChannel(t, f.closedTeam),
+		"private member channel":                                f.memberPriv,
+		"bot DM":                                                f.botDM,
 	}
 
 	check := func(t *testing.T, channel *model.Channel, permission *model.Permission, want bool) {
@@ -232,12 +233,27 @@ func TestSessionScopeTeamAndSystemChecks(t *testing.T) {
 	session := mintScoped(t, th, f.bot.Id, f.scope())
 
 	assert.True(t, th.App.SessionHasPermissionToTeam(*session, f.openTeam.Id, model.PermissionViewTeam))
-	assert.False(t, th.App.SessionHasPermissionToTeam(*session, f.closedTeam.Id, model.PermissionViewTeam), "closed team")
+	assert.True(t, th.App.SessionHasPermissionToTeam(*session, f.closedTeam.Id, model.PermissionViewTeam), "invite-only team holding a listed channel")
+
+	unlistedClosed := setTeamOpen(t, th, th.CreateTeam(t), false)
+	th.CreateChannel(t, unlistedClosed)
+	assert.False(t, th.App.SessionHasPermissionToTeam(*session, unlistedClosed.Id, model.PermissionViewTeam), "invite-only team without a listed channel")
+
+	t.Run("a listed channel that is archived no longer makes its team visible", func(t *testing.T) {
+		team := setTeamOpen(t, th, th.CreateTeam(t), false)
+		archived := th.CreatePrivateChannel(t, team)
+		scope := f.scope()
+		scope.Resources.ChannelIDs = []string{archived.Id}
+		archivedSession := mintScoped(t, th, f.bot.Id, scope)
+		require.True(t, th.App.SessionHasPermissionToTeam(*archivedSession, team.Id, model.PermissionViewTeam))
+		require.Nil(t, th.App.DeleteChannel(th.Context, archived, th.BasicUser.Id))
+		assert.False(t, th.App.SessionHasPermissionToTeam(*archivedSession, team.Id, model.PermissionViewTeam))
+	})
 	assert.False(t, th.App.SessionHasPermissionToTeam(*session, f.openTeam.Id, model.PermissionListTeamChannels), "permission not in this scope")
 	assert.False(t, th.App.SessionHasPermissionToTeam(*session, f.openTeam.Id, model.PermissionReadPublicChannel), "channel permission at team level")
 	assert.False(t, th.App.SessionHasPermissionToTeam(*session, f.openTeam.Id, model.PermissionManageTeam))
-	assert.True(t, th.App.SessionHasPermissionToTeams(th.Context, *session, []string{f.openTeam.Id}, model.PermissionViewTeam))
-	assert.False(t, th.App.SessionHasPermissionToTeams(th.Context, *session, []string{f.openTeam.Id, f.closedTeam.Id}, model.PermissionViewTeam))
+	assert.True(t, th.App.SessionHasPermissionToTeams(th.Context, *session, []string{f.openTeam.Id, f.closedTeam.Id}, model.PermissionViewTeam))
+	assert.False(t, th.App.SessionHasPermissionToTeams(th.Context, *session, []string{f.openTeam.Id, unlistedClosed.Id}, model.PermissionViewTeam))
 
 	for _, permission := range []*model.Permission{model.PermissionManageSystem, model.PermissionCreatePostPublic, model.PermissionViewMembers, model.PermissionReadChannelContent} {
 		assert.False(t, th.App.SessionHasPermissionTo(*session, permission), permission.Id)
