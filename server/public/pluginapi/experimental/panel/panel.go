@@ -81,7 +81,7 @@ func (p *panel) URL() string {
 func (p *panel) Print(userID string) {
 	err := p.cleanPreviousSettingsPosts(userID)
 	if err != nil {
-		p.logger.Errorf("could not clean previous setting post, " + err.Error())
+		p.logger.Errorf("could not clean previous setting post, err=%s", err.Error())
 	}
 
 	sas := []*model.SlackAttachment{}
@@ -89,20 +89,20 @@ func (p *panel) Print(userID string) {
 		s := p.settings[key]
 		sa, loopErr := s.GetSlackAttachments(userID, p.pluginURL+p.settingHandler, p.isSettingDisabled(userID, s))
 		if loopErr != nil {
-			p.logger.Errorf("error creating the slack attachment, err=" + loopErr.Error())
+			p.logger.Errorf("error creating the slack attachment, err=%s", loopErr.Error())
 			continue
 		}
 		sas = append(sas, sa)
 	}
 	postID, err := p.poster.DMWithAttachments(userID, sas...)
 	if err != nil {
-		p.logger.Errorf("error creating the message, err=", err.Error())
+		p.logger.Errorf("error creating the message, err=%s", err.Error())
 		return
 	}
 
 	err = p.store.SetPanelPostID(userID, postID)
 	if err != nil {
-		p.logger.Errorf("could not set the post IDs, err=", err.Error())
+		p.logger.Errorf("could not set the post IDs, err=%s", err.Error())
 	}
 }
 
