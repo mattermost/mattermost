@@ -5,7 +5,6 @@ package storetest
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -19,7 +18,7 @@ func TestPostAcknowledgementsStore(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Run("GetForPost", func(t *testing.T) { testPostAcknowledgementsStoreGetForPost(t, rctx, ss) })
 	t.Run("GetForPosts", func(t *testing.T) { testPostAcknowledgementsStoreGetForPosts(t, rctx, ss) })
 	t.Run("BatchSave", func(t *testing.T) { testPostAcknowledgementsStoreBatchSave(t, rctx, ss) })
-	t.Run("BatchDelete", func(t *testing.T) { testPostAcknowledgementsStoreBatchDelete(t, rctx, ss) })
+	t.Run("BatchDelete", func(t *testing.T) { testPostAcknowledgementsStoreBatchDelete(t, rctx, ss, s) })
 	t.Run("DeleteAllForPost", func(t *testing.T) { testPostAcknowledgementsStoreDeleteAllForPost(t, rctx, ss) })
 }
 
@@ -339,7 +338,7 @@ func testPostAcknowledgementsStoreBatchSave(t *testing.T, rctx request.CTX, ss s
 	})
 }
 
-func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	userID1 := model.NewId()
 	userID2 := model.NewId()
 	userID3 := model.NewId()
@@ -387,14 +386,10 @@ func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss
 		ack2, err = ss.PostAcknowledgement().SaveWithModel(ack2)
 		require.NoError(t, err)
 
-		// Get current post update timestamp
-		currentPost, err := ss.Post().GetSingle(rctx, post.Id, false)
+		// Rewind UpdateAt so BatchDelete cannot write the same millisecond as SaveWithModel.
+		oldUpdateAt := model.GetMillis() - 10000
+		_, err = s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ? WHERE Id = ?", oldUpdateAt, post.Id)
 		require.NoError(t, err)
-		oldUpdateAt := currentPost.UpdateAt
-
-		// updatePost uses model.GetMillis() (1ms resolution). Wait a millisecond
-		// so BatchDelete cannot write the same UpdateAt as SaveWithModel.
-		time.Sleep(time.Millisecond)
 
 		// Delete acknowledgements in batch
 		err = ss.PostAcknowledgement().BatchDelete([]*model.PostAcknowledgement{ack1, ack2})
