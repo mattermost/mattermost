@@ -143,8 +143,7 @@ const ACTION = /\{\{(.*?)\}\}/g;
 const tokensOf = (text) => new Set([...text.matchAll(TOKEN)].map((m) => m[1]));
 const actionsOf = (text) => [...text.matchAll(ACTION)].
     map((m) => m[1].trim().replace(/\s+/g, ' ')).
-    filter((a) => !/^\.[A-Za-z0-9_]+$/.test(a)).
-    sort();
+    filter((a) => !/^\.[A-Za-z0-9_]+$/.test(a));
 
 function checkServer(item, value, locale) {
     const out = [];
@@ -171,11 +170,12 @@ function checkServer(item, value, locale) {
         }
     }
 
-    // {{if}}, {{else}} and {{end}} have to survive translation as they are, in
-    // every form, or the template either fails to parse or shows the wrong branch.
+    // {{if}}, {{else}} and {{end}} have to survive translation as they are and in
+    // the same order, which is what nests them, in every form, or the template
+    // either fails to parse or shows the wrong branch.
     const sourceActions = actionsOf(sourceForms[0]).join('\n');
     if (forms.some((f) => actionsOf(f).join('\n') !== sourceActions)) {
-        out.push(finding('template-action', 'error', `template actions differ from the source's: ${sourceActions ? sourceActions.split('\n').map((a) => `{{${a}}}`).join(' ') : 'none'}`));
+        out.push(finding('template-action', 'error', `template actions differ from the source's, in order: ${sourceActions ? sourceActions.split('\n').map((a) => `{{${a}}}`).join(' ') : 'none'}`));
     }
 
     if (typeof value === 'object') {

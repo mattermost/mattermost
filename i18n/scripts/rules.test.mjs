@@ -66,6 +66,16 @@ describe('rules', () => {
         assert.deepEqual(check('de', '{{if .On}}On{{else}}Off{{end}}', '{{if .On}}An{{else}}Aus{{end}}', 'server'), []);
     });
 
+    test('server template actions keep their nesting', () => {
+        // The shape of app.bot.get_disable_bot_sysadmin_message. The translation
+        // has the same actions, nested so that disabled bots read as still enabled.
+        const english = '{{if .disableBotsSetting}}{{if .printAllBots}}All disabled{{else}}Some disabled{{end}}{{else}}{{if .printAllBots}}All enabled{{else}}Some enabled{{end}}{{end}}';
+        const renested = '{{if .printAllBots}}{{if .disableBotsSetting}}Alle deaktiviert{{else}}Alle aktiviert{{end}}{{else}}{{if .printAllBots}}Einige deaktiviert{{else}}Einige aktiviert{{end}}{{end}}';
+        const faithful = '{{if .disableBotsSetting}}{{if .printAllBots}}Alle deaktiviert{{else}}Einige deaktiviert{{end}}{{else}}{{if .printAllBots}}Alle aktiviert{{else}}Einige aktiviert{{end}}{{end}}';
+        assert.deepEqual(check('de', english, renested, 'server'), ['error template-action']);
+        assert.deepEqual(check('de', english, faithful, 'server'), []);
+    });
+
     test('server plural forms follow go-i18n, not CLDR', () => {
         const english = {one: '{{.Count}} item', other: '{{.Count}} items'};
         assert.deepEqual(check('es', english, {one: '{{.Count}} elemento', other: '{{.Count}} elementos'}, 'server'), []);
