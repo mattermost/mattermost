@@ -9,11 +9,11 @@ import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/sel
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {isDateLine} from 'mattermost-redux/utils/post_list';
+import {isDateLine, makeCombineUserActivityPosts} from 'mattermost-redux/utils/post_list';
 
 import {measureRhsOpened} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
-import {makePrepareReplyIdsForThreadViewer, makeGetThreadLastViewedAt} from 'selectors/views/threads';
+import {makeFilterRepliesAndAddSeparators, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
 import type {GlobalState} from 'types/store';
 import type {FakePost} from 'types/store/rhs';
@@ -30,7 +30,8 @@ type OwnProps = {
 };
 
 function makeMapStateToProps() {
-    const getRepliesListWithSeparators = makePrepareReplyIdsForThreadViewer();
+    const getRepliesListWithSeparators = makeFilterRepliesAndAddSeparators();
+    const combineUserActivityPosts = makeCombineUserActivityPosts();
     const getThreadLastViewedAt = makeGetThreadLastViewedAt();
 
     return (state: GlobalState, ownProps: OwnProps) => {
@@ -41,18 +42,20 @@ function makeMapStateToProps() {
         const lastViewedAt = getThreadLastViewedAt(state, selected.id);
         const directTeammate = getDirectTeammate(state, channelId);
 
-        // postIds is newest-first and includes the root. The separator selector skips its oldest
-        // post, so the root has to stay in that list or the first unread reply loses its
-        // new-messages line. Drop the root afterwards when the caller already shows it.
+        // postIds is newest-first and includes the root. Separators skip the oldest post, so the
+        // root stays in that list or the first unread reply loses its new-messages line. Remove it
+        // before join/leave posts are combined: those ids become user-activity-<id> and would no
+        // longer match the root.
         const replyPostIds = hideRoot ? postIds.filter((id) => id !== selected.id) : postIds;
         const lastPost = getPost(state, replyPostIds[0] || postIds[0]);
 
-        const preparedIds = getRepliesListWithSeparators(state, {
+        const separatedIds = getRepliesListWithSeparators(state, {
             postIds,
             showDate: !useRelativeTimestamp,
             lastViewedAt: collapsedThreads ? lastViewedAt : undefined,
         });
-        const replyListIds = hideRoot ? withoutRoot(preparedIds, selected.id) : preparedIds;
+        const visibleIds = hideRoot ? withoutRoot(separatedIds, selected.id) : separatedIds;
+        const replyListIds = combineUserActivityPosts(state, visibleIds);
         const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
 
         return {

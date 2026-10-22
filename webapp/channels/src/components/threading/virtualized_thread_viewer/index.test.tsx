@@ -6,7 +6,8 @@ import React from 'react';
 import {CollapsedThreads} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {DATE_LINE, START_OF_NEW_MESSAGES, isDateLine} from 'mattermost-redux/utils/post_list';
+import {Posts} from 'mattermost-redux/constants';
+import {COMBINED_USER_ACTIVITY, DATE_LINE, START_OF_NEW_MESSAGES, isDateLine} from 'mattermost-redux/utils/post_list';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -109,6 +110,71 @@ describe('virtualized thread viewer connector', () => {
         expect(ids).not.toContain('root-id');
         expect(ids).toContain(START_OF_NEW_MESSAGES);
         expect(ids.filter(isDateLine)).toHaveLength(1);
+    });
+
+    it('hides a join/leave root instead of leaving it inside a combined post', () => {
+        const rootAt = 1_000;
+        const replyAt = 2_000;
+        const root = TestHelper.getPostMock({
+            id: 'root-id',
+            channel_id: channel.id,
+            user_id: otherUser.id,
+            create_at: rootAt,
+            type: Posts.POST_TYPES.JOIN_CHANNEL,
+        });
+        const reply = TestHelper.getPostMock({
+            id: 'reply-id',
+            channel_id: channel.id,
+            user_id: otherUser.id,
+            root_id: root.id,
+            create_at: replyAt,
+            type: Posts.POST_TYPES.JOIN_CHANNEL,
+        });
+
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    config: {CollapsedThreads: CollapsedThreads.ALWAYS_ON},
+                },
+                users: {
+                    currentUserId: currentUser.id,
+                    profiles: {
+                        [currentUser.id]: currentUser,
+                        [otherUser.id]: otherUser,
+                    },
+                },
+                channels: {
+                    channels: {[channel.id]: channel},
+                },
+                posts: {
+                    posts: {
+                        [root.id]: root,
+                        [reply.id]: reply,
+                    },
+                },
+            },
+            views: {
+                threads: {
+                    lastViewedAt: {[root.id]: replyAt + 1},
+                },
+            },
+        };
+
+        renderWithContext(
+            <ConnectedThreadViewer
+                channelId={channel.id}
+                postIds={[reply.id, root.id]}
+                selected={root}
+                useRelativeTimestamp={true}
+                onCardClick={() => {}}
+                hideRoot={true}
+                isThreadView={false}
+            />,
+            state,
+        );
+
+        const ids = Viewer.mock.calls[0][0].replyListIds as string[];
+        expect(ids).toEqual([COMBINED_USER_ACTIVITY + reply.id]);
     });
 });
 
