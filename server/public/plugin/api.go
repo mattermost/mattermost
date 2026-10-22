@@ -804,7 +804,7 @@ type API interface {
 	// saved.
 	//
 	// @tag Post
-	// Minimum server version: 12.0
+	// Minimum server version: 12.1
 	UpdatePostWithFileCreator(post *model.Post, fileCreatorID string) (*model.Post, *model.AppError)
 
 	// GetProfileImage gets user's profile image.
