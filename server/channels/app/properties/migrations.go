@@ -526,8 +526,18 @@ func (ps *PropertyService) MigrateCPAFieldsToGlobalAttributes(rctx request.CTX) 
 //
 // Only runs when field.Permissions == nil: if the field already carries permissions,
 // it is left untouched so that an administrator's revocation of the grant is not
-// undone on reboot.
+// undone on reboot. A group still at version 1 is left alone too: a converted
+// field doesn't validate there, and the hook doesn't enforce the group, so
+// nothing reads the permissions until a bump brings it to version 2.
 func (ps *PropertyService) ConvertSystemOwnedFields(rctx request.CTX, groupID, groupName string) error {
+	group, err := ps.GroupByID(groupID)
+	if err != nil {
+		return fmt.Errorf("ConvertSystemOwnedFields: %w", err)
+	}
+	if !group.IsPSAv2() && !group.IsPSAv3() {
+		return nil
+	}
+
 	convertAttrs, err := ps.groupConvertsAttrs(groupID)
 	if err != nil {
 		return fmt.Errorf("ConvertSystemOwnedFields: %w", err)
@@ -602,13 +612,26 @@ func newPermissionsBackfill(service *PropertyService, accessControlGroupID strin
 // caller wrote mid-run. A PSAv1 field (empty ObjectType, e.g. the content
 // flagging group's fields) is left alone too: PropertyField.IsValid refuses a
 // Permissions object on that schema, so there is nothing for this conversion
-// to give it.
+// to give it. So is any field in a version 1 group, which on a database
+// created by 11.7 can hold fields with an ObjectType: the write would fail the
+// group version check, and the hook doesn't enforce such a group, so the field
+// works as it did before.
 //
-// A linked field whose template can't be resolved is logged and left out, and
-// counted in failed; see logUnconvertedField.
+// A field whose group or linked template can't be resolved is logged and left
+// out, and counted in failed; see logUnconvertedField.
 func (b *permissionsBackfill) convertBatch(rctx request.CTX, fields []*model.PropertyField) (converted []*model.PropertyField, failed int) {
 	for _, field := range fields {
 		if field.Permissions != nil || field.IsPSAv1() {
+			continue
+		}
+
+		group, err := b.service.GroupByID(field.GroupID)
+		if err != nil {
+			logUnconvertedField(rctx, field, err)
+			failed++
+			continue
+		}
+		if !group.IsPSAv2() && !group.IsPSAv3() {
 			continue
 		}
 
@@ -684,12 +707,12 @@ var propertyPermissionsBackfillPageSize = 200
 // a single group ID.
 //
 // Returns the number of fields given a Permissions object; the number left
-// alone, either because they already carried one or because they are PSAv1
-// (the content flagging group's fields, which cannot carry Permissions at
-// all); and the number that could not be converted. A field that fails is
-// logged and left without an object rather than failing the run (see
-// logUnconvertedField). err is only for a failure that stops the run as a
-// whole, such as reading a page of fields.
+// alone, because they already carried one, because they are PSAv1 (the
+// content flagging group's fields, which cannot carry Permissions at all), or
+// because their group is still at version 1; and the number that could not be
+// converted. A field that fails is logged and left without an object rather
+// than failing the run (see logUnconvertedField). err is only for a failure
+// that stops the run as a whole, such as reading a page of fields.
 func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) (converted, skipped, failed int, err error) {
 	accessControlGroup, err := ps.Group(model.AccessControlPropertyGroupName)
 	if err != nil {

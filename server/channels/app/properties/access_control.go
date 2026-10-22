@@ -90,14 +90,14 @@ func NewAccessControlHook(ps *PropertyService, pluginChecker PluginChecker, ladd
 }
 
 // isGroupEnforced reports whether groupID names a PSAv2 or PSAv3 property
-// group. A PSAv1 field cannot hold a permissions object at all
-// (PropertyField.IsValid), and enforceFieldGroupVersionMatch already makes
-// "v1 group" and "field that cannot hold permissions" the same set, so
-// gating on group version -- rather than an allowlist of group IDs -- is an
-// exact test for which groups this hook has anything to decide on. A group
-// ID that fails to resolve has no fields to protect, so the error is
-// returned rather than treated as unenforced: an unresolved group ID must
-// not fail open.
+// group. A version 1 group isn't enforced, so its fields' permissions are
+// never consulted. Most of its fields are PSAv1 and can't hold a permissions
+// object at all (PropertyField.IsValid), but on a database created by 11.7 a
+// version 1 group can also hold fields with an ObjectType, which the
+// permissions backfill leaves unconverted for the same reason. A group ID
+// that fails to resolve has no fields to protect, so the error is returned
+// rather than treated as unenforced: an unresolved group ID must not fail
+// open.
 func (h *AccessControlHook) isGroupEnforced(groupID string) (bool, error) {
 	group, err := h.propertyService.GroupByID(groupID)
 	if err != nil {

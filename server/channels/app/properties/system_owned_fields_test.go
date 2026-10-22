@@ -129,4 +129,29 @@ func TestConvertSystemOwnedFields(t *testing.T) {
 		require.NotNil(t, converted.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.BoardsPropertyGroupName, "", model.PropertyActionFieldWrite),
 			"a field on a later page should carry the boards service grant too")
 	})
+
+	t.Run("leaves a field in a version 1 group alone", func(t *testing.T) {
+		// A group 11.7 created and then crashed before marking its setup done:
+		// still at version 1, where a converted field doesn't validate.
+		v1Group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV1})
+		require.NoError(t, err)
+
+		v1Field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:         v1Group.ID,
+			Name:            model.ManagedCategoryPropertyFieldName,
+			Type:            model.PropertyFieldTypeText,
+			ObjectType:      model.PropertyValueTargetTypeChannel,
+			TargetType:      string(model.PropertyFieldTargetLevelSystem),
+			Protected:       true,
+			PermissionField: model.NewPointer(model.PermissionLevelNone),
+		})
+		require.Nil(t, v1Field.Permissions)
+
+		require.NoError(t, th.service.ConvertSystemOwnedFields(th.Context, v1Group.ID, model.ManagedCategoryPropertyGroupName))
+
+		stored, err := th.dbStore.PropertyField().Get(th.Context, v1Group.ID, v1Field.ID)
+		require.NoError(t, err)
+		require.Nil(t, stored.Permissions)
+		require.Equal(t, v1Field.UpdateAt, stored.UpdateAt)
+	})
 }
