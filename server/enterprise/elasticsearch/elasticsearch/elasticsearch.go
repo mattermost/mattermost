@@ -709,7 +709,10 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 
 	// Build channel access filter, optionally including non-member public channels.
 	cfg := es.Platform.Config()
-	includePublicChannels := model.SafeDereference(cfg.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership) &&
+	// A scoped search passes exactly the scope's channels; widening it to other
+	// public channels on their teams would read past the scope.
+	includePublicChannels := searchParams[0].ScopedChannels == nil &&
+		model.SafeDereference(cfg.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership) &&
 		!model.SafeDereference(cfg.ComplianceSettings.Enable)
 
 	var channelFilter types.Query

@@ -188,10 +188,7 @@ func (s SearchFileInfoStore) PermanentDeleteByUser(rctx request.CTX, userId stri
 func (s SearchFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.FileInfoList, error) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsSearchEnabled() {
-			userChannels, nErr := s.rootStore.Channel().GetChannels(teamId, userId, &model.ChannelSearchOpts{
-				IncludeDeleted: paramsList[0].IncludeDeletedChannels,
-				LastDeleteAt:   0,
-			})
+			userChannels, nErr := s.rootStore.searchChannelsForUser(paramsList, userId, teamId)
 			if nErr != nil {
 				return nil, nErr
 			}
