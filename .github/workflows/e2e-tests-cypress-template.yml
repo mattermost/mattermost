@@ -124,6 +124,9 @@ on:
         required: false
       CWS_EXTRA_HTTP_HEADERS:
         required: false
+      ANTHROPIC_API_KEY:
+        description: "Optional; enables the second judge in E2E triage"
+        required: false
 
 # Callers must grant: contents: read, statuses: write, id-token: write
 permissions:
@@ -136,6 +139,12 @@ env:
 
 jobs:
   prepare-run:
+    # Commit statuses are SHA-scoped. Keep every publisher (including the
+    # aggregate snapshot) under this same lock; never discard queued publishers.
+    concurrency:
+      group: e2e-status-publish-${{ inputs.commit_sha }}
+      cancel-in-progress: false
+      queue: max
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -197,6 +206,33 @@ jobs:
         run: |
           echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
+
+      # The lane list and the reader come from this workflow's own ref (github.sha), the tree the YAML
+      # runs from. Never from the tested commit: a commit may predate the file (release cuts).
+      - name: ci/checkout-trusted-lanes
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          sparse-checkout: .github
+          path: .e2e-trusted
+          fetch-depth: 1
+      - name: ci/status-lanes
+        id: lanes
+        uses: ./.e2e-trusted/.github/actions/e2e-status-lanes
+        with:
+          context-name: ${{ inputs.context_name }}
+      - name: ci/claim-status
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-status@bdce26eaf390d5674a736453ba9256c187cf4472  # actions/e2e-status
+        with:
+          composite-identity: ${{ steps.composite-identity.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          operation: claim
+          state: pending
+          description: E2E tests queued or running
+          triage-status-context: ${{ steps.lanes.outputs.aggregate }}
+          triage-lanes: ${{ steps.lanes.outputs.lanes }}
 
   # Decide how the workers get their deps, and bridge the gap when they can't use
   # the cache. On a hit this job is a checkout and a metadata lookup, and the
@@ -297,6 +333,7 @@ jobs:
           cypress-sort-last: ${{ inputs.cypress_sort_last }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           commit-status-context: ${{ inputs.context_name }}
+          post-pending-commit-status: "false"
           image-tag: ${{ inputs.server_image_tag }}
           image-aliases: ${{ inputs.server_image_aliases }}
 
@@ -403,16 +440,19 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      statuses: write
+      pull-requests: read
     outputs:
       commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
       webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
+      report_url: ${{ steps.summary.outputs.report_url }}
+      summary_ok: ${{ steps.summary.outcome == 'success' }}
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
       - name: ci/run-summary
+        if: always()
         id: summary
         continue-on-error: true
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@e2d5032cfa71a3ad11b0975b135cd221564f2787 # 2026-08-06
@@ -427,16 +467,29 @@ jobs:
           pr-number: ${{ inputs.pr_number }}
           ref-branch: ${{ inputs.ref_branch }}
           commit-status-context: ${{ inputs.context_name }}
+          update-commit-status: "false"
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: ci/publish-webhook
-        if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
-        env:
-          REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
-          PAYLOAD: ${{ steps.summary.outputs.webhook_payload }}
-        run: |
-          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
-      - name: ci/assert-results
-        env:
-          SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
-        run: |
-          [ "$SUMMARY_OUTCOME" = "success" ]
+
+  # Status, triage, webhook and the pass/fail gate: see e2e-tests-lane-result.yml.
+  lane-result:
+    needs: [prepare-run, dispatch-begin, workers, report]
+    if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' }}
+    permissions:
+      contents: read
+      statuses: write
+      pull-requests: read
+    uses: ./.github/workflows/e2e-tests-lane-result.yml
+    with:
+      composite_identity_json: ${{ needs.prepare-run.outputs.composite-identity-json }}
+      context_name: ${{ inputs.context_name }}
+      commit_sha: ${{ inputs.commit_sha }}
+      execution_success: ${{ needs.prepare-run.result == 'success' && needs.dispatch-begin.result == 'success' && needs.workers.result == 'success' }}
+      summary_ok: ${{ needs.report.outputs.summary_ok == 'true' }}
+      description: ${{ needs.report.outputs.commit_status_description }}
+      report_url: ${{ needs.report.outputs.report_url }}
+      test_root: e2e-tests/cypress
+      enable_reporting: ${{ inputs.enable_reporting }}
+      webhook_payload: ${{ needs.report.outputs.webhook_payload }}
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
