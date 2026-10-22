@@ -1089,8 +1089,7 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 			// the username is taken, so we unwrap via errors.As to detect this case.
 			// This can happen when a user with this username was created (e.g. by a
 			// previous partial import) but has no bot record yet.
-			var invErr *store.ErrInvalidInput
-			if !errors.As(appErr, &invErr) || invErr.Field != "username" {
+			if invErr, ok := errors.AsType[*store.ErrInvalidInput](appErr); !ok || invErr.Field != "username" {
 				return appErr
 			}
 
