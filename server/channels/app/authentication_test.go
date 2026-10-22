@@ -804,15 +804,15 @@ func TestMigratePassword(t *testing.T) {
 		user := createUserWithHash(pwdBcrypt)
 
 		err := th.App.migratePassword(user, pwd)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
-		updatedUser, err := th.App.GetUser(th.Context, user.Id)
-		require.Nil(t, err)
+		updatedUser, appErr := th.App.GetUser(th.Context, user.Id)
+		require.Nil(t, appErr)
 		require.NotEqual(t, pwdBcrypt, updatedUser.Password)
 		require.Contains(t, updatedUser.Password, "$pbkdf2")
 
 		// Re-check with updated password
-		err = th.App.checkUserPassword(updatedUser, pwd)
-		require.Nil(t, err)
+		appErr = th.App.checkUserPassword(updatedUser, pwd)
+		require.Nil(t, appErr)
 	})
 }

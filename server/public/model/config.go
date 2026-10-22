@@ -532,6 +532,18 @@ type ServiceSettings struct {
 
 var MattermostGiphySdkKey string
 
+func (s *ServiceSettings) CompressResponses() bool {
+	return *s.WebserverMode == "gzip"
+}
+
+// CompressResponsesWithBrotli reports whether API responses should negotiate
+// Brotli compression with clients that advertise support for it, falling back
+// to gzip otherwise. Requires both gzip compression and the EnableBrotliCompression
+// feature flag.
+func (s *ServiceSettings) CompressResponsesWithBrotli(enableBrotliCompression bool) bool {
+	return s.CompressResponses() && enableBrotliCompression
+}
+
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
 		// If the site URL is also not present then assume this is a clean install
@@ -1361,6 +1373,10 @@ type SSOSettings struct {
 	ButtonText           *string `access:"authentication_openid"` // telemetry: none
 	ButtonColor          *string `access:"authentication_openid"` // telemetry: none
 	UsePreferredUsername *bool   `access:"authentication_openid"` // telemetry: none
+	// AdditionalScopes are requested on top of Scope, space-separated, so that a
+	// provider releases claims it only sends for those scopes. Applied to OpenID
+	// Connect only.
+	AdditionalScopes *string `access:"authentication_openid"` // telemetry: none
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEndpoint, buttonColor string) {
@@ -1408,6 +1424,49 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEnd
 	if s.UsePreferredUsername == nil {
 		s.UsePreferredUsername = new(false)
 	}
+
+	if s.AdditionalScopes == nil {
+		s.AdditionalScopes = new("")
+	}
+}
+
+// SSOSettingsAdditionalScopesMaxLength bounds SSOSettings.AdditionalScopes.
+const SSOSettingsAdditionalScopesMaxLength = 1024
+
+func (s *SSOSettings) isValid() *AppError {
+	if s.AdditionalScopes != nil {
+		if len(*s.AdditionalScopes) > SSOSettingsAdditionalScopesMaxLength || !isValidOAuthScopeList(*s.AdditionalScopes) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.sso_additional_scopes.app_error", map[string]any{"MaxLength": SSOSettingsAdditionalScopesMaxLength}, "", http.StatusBadRequest)
+		}
+	}
+	return nil
+}
+
+// isValidOAuthScopeList reports whether scopes is a space-separated list of
+// scope tokens as defined by RFC 6749 section 3.3. An empty list is valid.
+func isValidOAuthScopeList(scopes string) bool {
+	for scope := range strings.SplitSeq(scopes, " ") {
+		for _, c := range scope {
+			if c != 0x21 && (c < 0x23 || c > 0x5B) && (c < 0x5D || c > 0x7E) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// JoinOAuthScopes returns the space-separated union of the given scope lists,
+// in order of first appearance.
+func JoinOAuthScopes(scopeLists ...string) string {
+	var scopes []string
+	for _, list := range scopeLists {
+		for scope := range strings.FieldsSeq(list) {
+			if !slices.Contains(scopes, scope) {
+				scopes = append(scopes, scope)
+			}
+		}
+	}
+	return strings.Join(scopes, " ")
 }
 
 type Office365Settings struct {
@@ -3649,7 +3708,7 @@ type PluginSettings struct {
 	SignaturePublicKeyFiles     []string                  `access:"plugins,write_restrictable,cloud_restrictable"`
 }
 
-func (s *PluginSettings) SetDefaults(ls LogSettings) {
+func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
 	if s.Enable == nil {
 		s.Enable = new(true)
 	}
@@ -3700,6 +3759,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates[PluginIdAI] == nil {
 		// Enable the AI plugin by default
 		s.PluginStates[PluginIdAI] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates[PluginIdMetrics] == nil && ms.Enable != nil && *ms.Enable {
+		// Left unset otherwise, so the plugin gets enabled once performance monitoring is turned on
+		s.PluginStates[PluginIdMetrics] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -4390,7 +4454,8 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.CacheSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
-	o.PluginSettings.SetDefaults(o.LogSettings)
+	o.LogSettings.SetDefaults()
+	o.PluginSettings.SetDefaults(o.LogSettings, o.MetricsSettings)
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
@@ -4401,7 +4466,6 @@ func (o *Config) SetDefaults() {
 	o.DataRetentionSettings.SetDefaults()
 	o.MobileEphemeralModeSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
-	o.LogSettings.SetDefaults()
 	o.ExperimentalAuditSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
@@ -4477,6 +4541,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.SamlSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.OpenIdSettings.isValid(); appErr != nil {
 		return appErr
 	}
 

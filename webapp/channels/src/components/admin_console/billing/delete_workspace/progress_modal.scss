@@ -9,18 +9,8 @@
         height: 100%;
     }
 
-    .ProcessPayment-progress {
+    &-progress {
         width: 387px;
-        height: 4px;
-        border-radius: 4px;
-        margin: 0 auto;
-        margin-top: 60px;
-        background: rgba(var(--secondary-blue-rgb), 0.12);
-    }
-
-    .ProcessPayment-progress-fill {
-        height: 100%;
-        border-radius: 4px;
-        background: var(--button-bg);
+        margin: 60px auto 0;
     }
 }
