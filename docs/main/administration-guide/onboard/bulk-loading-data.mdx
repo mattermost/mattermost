@@ -1513,7 +1513,7 @@ When an import leaves any unmatched users, the [mmctl import process](/administr
 See the report for details: <import-file>.unmatched-users.csv
 ```
 
-The report is written to your [file storage system](/administration-guide/configure/environment-configuration-settings#file-storage-system) next to the import file, named `<import-file>.unmatched-users.csv`. It has one row per unmatched user or membership, with the following columns:
+Where the report is written depends on how the import runs. In local mode (`mmctl import process --local`, typically with `--bypass-upload`), it's written to the local filesystem next to the import file. Otherwise it's written to your [file storage system](/administration-guide/configure/environment-configuration-settings#file-storage-system) under the configured import directory. Either way it's named `<import-file>.unmatched-users.csv` and has one row per unmatched user or membership, with the following columns:
 
 | Column | Description |
 | --- | --- |
@@ -1537,7 +1537,7 @@ Possible `action` values:
 - `created_inactive`: a shell account was created but deactivated pending administrator review (`--imported-users=inactive`).
 - `membership_skipped`: the membership was skipped because its team or channel wasn't present on the destination.
 
-The report reflects a single run. If you re-import the same file, a user created as a shell on the first run is matched on the second and no longer appears in the report, while a membership for a team or channel that's still missing is reported again. A shorter report on a re-run is expected and doesn't indicate lost data.
+The report reflects a single run. If you re-import the same file, a user created as a shell on the first run is matched on the second and no longer appears in the report, while a membership for a team or channel that's still missing is reported again. The count and report path recorded on the import job are specific to each run, and a run that finds no unmatched users records no report. An earlier `.unmatched-users.csv` file isn't removed or overwritten when a later run has nothing to report, so a file left on disk may reflect a previous run rather than the latest one. Check the count on the import job to see whether the current run produced a report.
 
 ## Common issues
 
