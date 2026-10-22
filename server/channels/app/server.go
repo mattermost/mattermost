@@ -338,9 +338,15 @@ func NewServer(options ...Option) (*Server, error) {
 	accessControlHook := properties.NewAccessControlHook(s.propertyService, pluginChecker, func(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool {
 		// Local-mode (unrestricted) sessions are tagged with
 		// CallerIDLocalAdmin by the HTTP layer; grant them without a
-		// user lookup, as permChecker below does for its own case.
+		// user lookup, as permChecker below does for its own case. A value
+		// write at tier none is the exception: that tier is what a sync
+		// lock, an owners list or a protected field converts to, and local
+		// mode never wrote those values, so only a grant can admit it there.
 		if userID == model.CallerIDLocalAdmin {
-			return true
+			if action != model.PropertyActionValueWrite || field.Permissions == nil ||
+				field.Permissions.Restrictions.TierFor(action) != model.PermissionLevelNone {
+				return true
+			}
 		}
 		return app.decidePropertyFieldPermission(rctx, userID, field, action, valueTargetID).Allowed
 	}, app.propertyCallerRoles, cpaGroup.ID)
