@@ -4,7 +4,7 @@
 package platform
 
 import (
-	"strings"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -13,37 +13,32 @@ import (
 )
 
 func TestChannelSet(t *testing.T) {
-	t.Run("channel sets match by key and by string", func(t *testing.T) {
-		// zero decodes to the zero key, which means "use the string", so it must take the string path both ways.
-		good, odd, zero := model.NewId(), "l0v2aaaaaaaaaaaaaaaaaaaaaa", strings.Repeat("y", 26)
-		s := newChannelSet(map[string]string{good: "", odd: "", zero: ""})
-		require.True(t, has(s, good))
-		require.True(t, has(s, odd))
-		require.True(t, has(s, zero))
-		require.Len(t, s.undecodableIDs, 2)
-		require.False(t, has(s, model.NewId()))
-	})
+	good, odd := model.NewId(), "l0v2aaaaaaaaaaaaaaaaaaaaaa"
+	s := newChannelSet(map[string]string{good: "", odd: ""})
+	require.Len(t, s, 1)
+	require.True(t, s.has(decodeChannelID(good)))
+	require.False(t, s.has(decodeChannelID(odd)), "an ID that does not decode is not a member")
+	require.False(t, s.has(decodeChannelID(model.NewId())))
 }
 
-func TestHubConnIndexChannelsThatDoNotDecode(t *testing.T) {
+func TestHubConnIndexSkipsChannelsThatDoNotDecode(t *testing.T) {
 	connIndex := newHubConnectionIndex(inactiveConnReaperInterval, nil, nil, true)
 	wc := &WebConn{UserId: model.NewId()}
 	wc.SetConnectionID(model.NewId())
-	odd := "l0v2aaaaaaaaaaaaaaaaaaaaaa"
-	channels := newChannelList(map[string]string{odd: "", model.NewId(): ""})
+	good, odd := model.NewId(), "l0v2aaaaaaaaaaaaaaaaaaaaaa"
+	channels := newChannelList(map[string]string{odd: "", good: ""})
 	connIndex.addToChannels(channels, wc)
 	connIndex.byConnection[wc] = channels
 
-	require.Len(t, connIndex.byUndecodableChannelID, 1)
 	require.Len(t, connIndex.byChannelKey, 1)
-	for c := range forChannel(connIndex, odd) {
-		require.Same(t, wc, c)
-	}
+	require.Empty(t, slices.Collect(forChannel(connIndex, odd)))
+	require.Equal(t, []*WebConn{wc}, slices.Collect(forChannel(connIndex, good)))
 	connIndex.Remove(wc)
-	require.Empty(t, connIndex.byUndecodableChannelID)
 	require.Empty(t, connIndex.byChannelKey)
 }
 
-func has(s channelSet, channelID string) bool {
-	return s.has(channelID, decodeChannelID(channelID))
+// decodeChannelID returns the key of channelID the way the hub does, for tests that call the keyed paths directly.
+func decodeChannelID(channelID string) [16]byte {
+	channelKey, _ := model.DecodeId(channelID)
+	return channelKey
 }

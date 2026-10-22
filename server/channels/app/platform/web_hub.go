@@ -771,7 +771,14 @@ func (h *Hub) Start() {
 				msg = msg.PrecomputeJSON()
 
 				// Decoded once here; each connection's ShouldSendEvent uses it to check channel membership.
-				channelKey := decodeChannelID(msg.GetBroadcast().ChannelId)
+				channelKey, ok := model.DecodeId(msg.GetBroadcast().ChannelId)
+				if !ok && msg.GetBroadcast().ChannelId != "" {
+					// No channel the server made has such an ID, so no connection can be a member.
+					mlog.Warn("webhub: event channel ID does not decode, dropping the event",
+						mlog.String("channel_id", msg.GetBroadcast().ChannelId),
+						mlog.String("event", string(msg.EventType())))
+					continue
+				}
 				broadcast := func(webConn *WebConn) {
 					h.broadcastToConn(connIndex, webConn, msg, channelKey, deliveryMarker, broadcastHooks, broadcastHookArgs)
 				}
@@ -787,7 +794,7 @@ func (h *Hub) Start() {
 				if userID := msg.GetBroadcast().UserId; userID != "" {
 					targetConns = connIndex.ForUser(userID)
 				} else if channelID := msg.GetBroadcast().ChannelId; channelID != "" && fastIteration {
-					targetConns = connIndex.ForChannel(channelID, channelKey)
+					targetConns = connIndex.ForChannel(channelKey)
 				}
 				if targetConns != nil {
 					for webConn := range targetConns {
@@ -873,8 +880,6 @@ type hubConnectionIndex struct {
 	byUserId map[string]map[*WebConn]struct{}
 	// byChannelKey stores the set of connections for each channel, by the channel ID's decoded key
 	byChannelKey map[[16]byte]connSet
-	// byUndecodableChannelID holds the channels whose IDs model.DecodeId rejects
-	byUndecodableChannelID map[string]connSet
 	// byConnection serves the dual purpose of storing the channelIDs
 	// and also to get all connections
 	byConnection   map[*WebConn]channelList
@@ -894,15 +899,14 @@ func newHubConnectionIndex(interval time.Duration,
 	fastIteration bool,
 ) *hubConnectionIndex {
 	return &hubConnectionIndex{
-		byUserId:               make(map[string]map[*WebConn]struct{}),
-		byChannelKey:           make(map[[16]byte]connSet),
-		byUndecodableChannelID: make(map[string]connSet),
-		byConnection:           make(map[*WebConn]channelList),
-		byConnectionId:         make(map[string]*WebConn),
-		staleThreshold:         interval,
-		store:                  store,
-		logger:                 logger,
-		fastIteration:          fastIteration,
+		byUserId:       make(map[string]map[*WebConn]struct{}),
+		byChannelKey:   make(map[[16]byte]connSet),
+		byConnection:   make(map[*WebConn]channelList),
+		byConnectionId: make(map[string]*WebConn),
+		staleThreshold: interval,
+		store:          store,
+		logger:         logger,
+		fastIteration:  fastIteration,
 	}
 }
 
@@ -985,33 +989,22 @@ func (i *hubConnectionIndex) ForUser(id string) iter.Seq[*WebConn] {
 	return maps.Keys(i.byUserId[id])
 }
 
-// ForChannel returns all connections for a channelID, whose key is channelKey.
-func (i *hubConnectionIndex) ForChannel(channelID string, channelKey [16]byte) iter.Seq[*WebConn] {
-	var set connSet
-	if channelKey != undecodableChannelKey {
-		set = i.byChannelKey[channelKey]
-	} else {
-		set = i.byUndecodableChannelID[channelID]
-	}
+// ForChannel returns all connections for the channel with the given decoded key.
+func (i *hubConnectionIndex) ForChannel(channelKey [16]byte) iter.Seq[*WebConn] {
+	set := i.byChannelKey[channelKey]
 	return set.all()
 }
 
 // removeFromChannel removes wc from the channel's set and drops the set once it is empty.
 func (i *hubConnectionIndex) addToChannels(channels channelList, wc *WebConn) {
-	for _, channelKey := range channels.keys {
+	for _, channelKey := range channels {
 		addToConnSet(i.byChannelKey, channelKey, wc)
-	}
-	for _, channelID := range channels.undecodableIDs {
-		addToConnSet(i.byUndecodableChannelID, channelID, wc)
 	}
 }
 
 func (i *hubConnectionIndex) removeFromChannels(channels channelList, wc *WebConn) {
-	for _, channelKey := range channels.keys {
+	for _, channelKey := range channels {
 		removeFromConnSet(i.byChannelKey, channelKey, wc)
-	}
-	for _, channelID := range channels.undecodableIDs {
-		removeFromConnSet(i.byUndecodableChannelID, channelID, wc)
 	}
 }
 
@@ -1035,20 +1028,18 @@ func removeFromConnSet[K comparable](m map[K]connSet, k K, wc *WebConn) {
 	m[k] = set
 }
 
-// channelList is a connection's channels: decoded keys, plus the IDs that do not decode.
-type channelList struct {
-	keys           [][16]byte
-	undecodableIDs []string
-}
+// channelList is a connection's channels, as decoded keys.
+type channelList [][16]byte
 
 func newChannelList(cm map[string]string) channelList {
-	l := channelList{keys: make([][16]byte, 0, len(cm))}
+	l := make(channelList, 0, len(cm))
 	for channelID := range cm {
-		if channelKey := decodeChannelID(channelID); channelKey != undecodableChannelKey {
-			l.keys = append(l.keys, channelKey)
-		} else {
-			l.undecodableIDs = append(l.undecodableIDs, channelID)
+		channelKey, ok := model.DecodeId(channelID)
+		if !ok {
+			mlog.Warn("webhub: channel ID does not decode, its events will not be delivered", mlog.String("channel_id", channelID))
+			continue
 		}
+		l = append(l, channelKey)
 	}
 	return l
 }
@@ -1120,7 +1111,6 @@ func (s *connSet) all() iter.Seq[*WebConn] {
 // repopulate the index via Add).
 func (i *hubConnectionIndex) clearChannels() {
 	clear(i.byChannelKey)
-	clear(i.byUndecodableChannelID)
 }
 
 // ForUserActiveCount returns the number of active connections for a userID

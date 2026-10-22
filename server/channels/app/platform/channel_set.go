@@ -3,45 +3,31 @@
 
 package platform
 
-import "github.com/mattermost/mattermost/server/public/model"
+import (
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+)
 
-// undecodableChannelKey is the key of an ID that does not decode; callers then use the ID string. NewId never
-// produces it, and the one string that decodes to it, all 'y', simply takes the string path everywhere.
-var undecodableChannelKey [16]byte
-
-// decodeChannelID returns the channel ID's key, or undecodableChannelKey when the ID does not decode.
-func decodeChannelID(channelID string) [16]byte {
-	channelKey, _ := model.DecodeId(channelID)
-	return channelKey
-}
-
-// channelSet is a set of channels: decoded keys, plus the IDs that do not decode.
-type channelSet struct {
-	keys           map[[16]byte]struct{}
-	undecodableIDs map[string]struct{}
-}
+// channelSet is a set of channels by the key model.DecodeId gives their IDs. Every channel ID the server
+// makes decodes: NewId has produced them since the first release, and the store refuses a caller-supplied
+// ID unless the channel is shared. An ID that does not decode, which only a shared-channel invite from a
+// plugin remote could store, is logged and left out, so its events are delivered to no one.
+type channelSet map[[16]byte]struct{}
 
 func newChannelSet(channelIDs map[string]string) channelSet {
-	s := channelSet{keys: make(map[[16]byte]struct{}, len(channelIDs))}
+	s := make(channelSet, len(channelIDs))
 	for channelID := range channelIDs {
-		if channelKey := decodeChannelID(channelID); channelKey != undecodableChannelKey {
-			s.keys[channelKey] = struct{}{}
-		} else {
-			if s.undecodableIDs == nil {
-				s.undecodableIDs = make(map[string]struct{})
-			}
-			s.undecodableIDs[channelID] = struct{}{}
+		channelKey, ok := model.DecodeId(channelID)
+		if !ok {
+			mlog.Warn("webhub: channel ID does not decode, its events will not be delivered", mlog.String("channel_id", channelID))
+			continue
 		}
+		s[channelKey] = struct{}{}
 	}
 	return s
 }
 
-// has reports whether the set holds channelID, whose key is channelKey.
-func (s channelSet) has(channelID string, channelKey [16]byte) bool {
-	if channelKey != undecodableChannelKey {
-		_, ok := s.keys[channelKey]
-		return ok
-	}
-	_, ok := s.undecodableIDs[channelID]
+func (s channelSet) has(channelKey [16]byte) bool {
+	_, ok := s[channelKey]
 	return ok
 }

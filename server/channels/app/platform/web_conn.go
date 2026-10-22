@@ -817,7 +817,7 @@ func (wc *WebConn) drainDeadQueue(index int) error {
 
 // InvalidateCache resets all internal data of the WebConn.
 func (wc *WebConn) InvalidateCache() {
-	wc.allChannelMembers = channelSet{}
+	wc.allChannelMembers = nil
 	wc.lastAllChannelMembersTime = 0
 	wc.SetSession(nil)
 	wc.SetSessionExpiresAt(0)
@@ -933,8 +933,9 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	return canSee
 }
 
-// ShouldSendEvent returns whether the message should be sent or not. channelKey is the event's channel ID
-// decoded by model.DecodeId (zero when it does not decode); the hub decodes it once per broadcast.
+// ShouldSendEvent returns whether the message should be sent or not. channelKey
+// is the event's channel ID decoded by model.DecodeId; the hub decodes it once
+// per broadcast and drops events whose ID does not decode.
 func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent, channelKey [16]byte) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session and completed MFA
 	if !wc.IsAuthenticated() {
@@ -1050,11 +1051,11 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent, channelKey [16]byt
 		}
 
 		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
-			wc.allChannelMembers = channelSet{}
+			wc.allChannelMembers = nil
 			wc.lastAllChannelMembersTime = 0
 		}
 
-		if wc.allChannelMembers.keys == nil {
+		if wc.allChannelMembers == nil {
 			result, err := wc.Platform.Store.Channel().GetAllChannelMembersForUser(
 				sqlstore.RequestContextWithMaster(request.EmptyContext(wc.Platform.logger)),
 				wc.UserId,
@@ -1069,7 +1070,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent, channelKey [16]byt
 			wc.lastAllChannelMembersTime = model.GetMillis()
 		}
 
-		return wc.allChannelMembers.has(chID, channelKey)
+		return wc.allChannelMembers.has(channelKey)
 	}
 
 	// Only report events to users who are in the team for the event

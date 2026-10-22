@@ -996,5 +996,5 @@ func TestConnSet(t *testing.T) {
 
 // forChannel returns the connections for channelID, decoding it as the hub does.
 func forChannel(connIndex *hubConnectionIndex, channelID string) iter.Seq[*WebConn] {
-	return connIndex.ForChannel(channelID, decodeChannelID(channelID))
+	return connIndex.ForChannel(decodeChannelID(channelID))
 }
