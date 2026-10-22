@@ -2330,6 +2330,27 @@ func (s *RetryLayerChannelStore) GetChannelsByUser(userID string, includeDeleted
 
 }
 
+func (s *RetryLayerChannelStore) GetChannelsInSessionScope(teamID string, resources *model.SessionScopeResources) (model.ChannelList, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetChannelsInSessionScope(teamID, resources)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]int64, error) {
 
 	tries := 0

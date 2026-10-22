@@ -363,3 +363,38 @@ func (ch *Channels) revokeAllScopedSessions() {
 		rctx.Logger().Error("Failed to revoke scoped sessions", mlog.Err(appErr))
 	}
 }
+
+// searchScopeForUser returns the channels a search by userID is limited to
+// when the request runs on that user's scoped session.
+func (a *App) searchScopeForUser(rctx request.CTX, userID string) (resources *model.SessionScopeResources, scoped bool) {
+	if rctx == nil || rctx.Session() == nil || rctx.Session().UserId != userID {
+		return nil, false
+	}
+	scope, scoped := rctx.Session().Scope()
+	if !scoped {
+		return nil, false
+	}
+	if !scope.HasPermission(model.PermissionReadChannelContent.Id) {
+		return &model.SessionScopeResources{}, true
+	}
+	return &model.SessionScopeResources{
+		ChannelIDs:             slices.Clone(scope.Resources.ChannelIDs),
+		OpenTeamPublicChannels: scope.Resources.OpenTeamPublicChannels && !*a.Config().ComplianceSettings.Enable,
+	}, true
+}
+
+// FilterChannelsToSessionScope drops the channels a scoped session may not
+// read. For an unscoped session it returns channels unchanged.
+func (a *App) FilterChannelsToSessionScope(rctx request.CTX, session *model.Session, channels model.ChannelList) model.ChannelList {
+	scope, scoped := session.Scope()
+	if !scoped {
+		return channels
+	}
+	filtered := model.ChannelList{}
+	for _, channel := range channels {
+		if a.ScopeAllowsChannel(rctx, scope, channel) {
+			filtered = append(filtered, channel)
+		}
+	}
+	return filtered
+}

@@ -4623,3 +4623,23 @@ func (s SqlChannelStore) IsChannelReadOnlyScheme(schemeID string) (bool, error) 
 	permissionList := strings.Split(permissions, " ")
 	return slices.Index(permissionList, model.PermissionCreatePost.Id) == -1, nil
 }
+
+func (s SqlChannelStore) GetChannelsInSessionScope(teamID string, resources *model.SessionScopeResources) (model.ChannelList, error) {
+	scopedSQL, scopedArgs, err := sessionScopeChannelIDsQuery(s.getSubQueryBuilder(), resources).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channels_in_session_scope_tosql")
+	}
+
+	query := s.tableSelectQuery.
+		Where(fmt.Sprintf("Id IN (%s)", scopedSQL), scopedArgs...).
+		OrderBy("DisplayName")
+	if teamID != "" {
+		query = query.Where(sq.Or{sq.Eq{"TeamId": teamID}, sq.Eq{"TeamId": ""}})
+	}
+
+	channels := model.ChannelList{}
+	if err := s.GetReplica().SelectBuilder(&channels, query); err != nil {
+		return nil, errors.Wrap(err, "failed to get channels in session scope")
+	}
+	return channels, nil
+}

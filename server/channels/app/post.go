@@ -2525,10 +2525,12 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 	}
 
 	finalParamsList := []*model.SearchParams{}
+	scopedChannels, _ := a.searchScopeForUser(rctx, userID)
 
 	for _, params := range paramsList {
 		params.OrTerms = isOrSearch
 		params.IncludeDeletedChannels = includeDeletedChannels
+		params.ScopedChannels = scopedChannels
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// TODO: we have to send channel ids
