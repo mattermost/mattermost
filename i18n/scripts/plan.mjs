@@ -17,9 +17,11 @@ import fs from 'fs';
 import path from 'path';
 import {parseArgs} from 'util';
 
-import {SURFACES} from './lib/catalogs.mjs';
+import {catalogPath, isBlank, parseCatalog, readSource, SURFACES} from './lib/catalogs.mjs';
+import {readGlossary, readStyle, termsIn} from './lib/glossary.mjs';
 import {computePlan, counts} from './lib/plan.mjs';
 import {commitTrees, isAncestor, mergeBase, revParse, workingTree} from './lib/repo.mjs';
+import {isRightToLeft, serverPluralCategories} from './lib/rules.mjs';
 import {paths, PLAN_VERSION, writeJSON} from './lib/workdir.mjs';
 
 const usage = 'usage: node i18n/scripts/plan.mjs <workdir> [--upstream <ref> | --base <rev>] [--max-repairs <n>] [--accept-unusual]';
@@ -126,16 +128,90 @@ if (plan.unusual.length && !acceptUnusual) {
     console.error(`\nunusual, so no worklists were written:\n  ${plan.unusual.join('\n  ')}\nfind out why before translating; --accept-unusual if it is expected`);
     process.exit(1);
 }
-writeJSON(p.plan, {version: PLAN_VERSION, root, upstream: baseArg ? null : upstream, ...plan});
+writeJSON(p.plan, {version: PLAN_VERSION, root, upstream: baseArg ? null : upstream, ...plan, maxRepairs});
+
+// Hints for each item, gathered from the locale's own catalog, so a translator
+// can match what the product already says without searching for it:
+//   terms        glossary entries the English uses, with this locale's target
+//   siblings     translations of the nearest keys under the same prefix
+//   sameEnglish  how this locale already translates the identical English
+function hintsFor(surface, locale, items) {
+    const en = readSource(tree, surface);
+    const {map} = parseCatalog(tree.read(catalogPath(surface, locale)), surface);
+    const glossary = readGlossary(tree, locale);
+
+    const done = [...map].filter(([k, v]) => en.has(k) && !items[k] && !isBlank(v));
+    const byPrefix = new Map();
+    const byEnglish = new Map();
+    for (const [k, v] of done) {
+        const parts = k.split('.');
+        for (let i = 1; i < parts.length; i++) {
+            const prefix = parts.slice(0, i).join('.');
+            byPrefix.set(prefix, [...(byPrefix.get(prefix) || []), k]);
+        }
+        const english = JSON.stringify(en.get(k).english);
+        byEnglish.set(english, new Set([...(byEnglish.get(english) || []), JSON.stringify(v)]));
+    }
+
+    const out = {};
+    for (const [k, item] of Object.entries(items)) {
+        const siblings = {};
+        const parts = k.split('.');
+        for (let i = parts.length - 1; i > 0 && Object.keys(siblings).length < 4; i--) {
+            for (const s of byPrefix.get(parts.slice(0, i).join('.')) || []) {
+                if (Object.keys(siblings).length >= 4) {
+                    break;
+                }
+                if (!(s in siblings)) {
+                    siblings[s] = {english: en.get(s).english, translation: map.get(s)};
+                }
+            }
+        }
+        const same = [...(byEnglish.get(JSON.stringify(item.english)) || [])].slice(0, 3).map((v) => JSON.parse(v));
+        const terms = termsIn(glossary, item.english);
+        out[k] = {
+            ...item,
+            ...(terms.length ? {terms} : {}),
+            ...(Object.keys(siblings).length ? {siblings} : {}),
+            ...(same.length ? {sameEnglish: same} : {}),
+        };
+    }
+    return out;
+}
+
+const COUNTS = Array.from({length: 1001}, (_, n) => n);
+function pluralForms(locale) {
+    const rule = new Intl.PluralRules(locale);
+    const all = rule.resolvedOptions().pluralCategories;
+    const required = new Set(COUNTS.map((n) => rule.select(n)));
+    return {
+        webapp: {required: all.filter((cat) => cat === 'other' || required.has(cat)), optional: all.filter((cat) => cat !== 'other' && !required.has(cat))},
+        server: serverPluralCategories(locale),
+    };
+}
+
+function addressOf(locale) {
+    const style = readStyle(tree, locale);
+    return style ? {address: {form: style.address, use: style.use, avoid: style.avoid}} : {};
+}
 
 let written = 0;
 for (const locale of locales) {
-    const body = {locale, base};
+    const body = {
+        locale,
+        base,
+        language: {
+            direction: isRightToLeft(locale) ? 'rtl' : 'ltr',
+            script: new Intl.Locale(locale).maximize().script,
+            pluralForms: pluralForms(locale),
+            ...addressOf(locale),
+        },
+    };
     let any = false;
     for (const surface of Object.keys(SURFACES)) {
         const items = plan.surfaces[surface].locales[locale]?.items || {};
         if (Object.keys(items).length) {
-            body[surface] = items;
+            body[surface] = hintsFor(surface, locale, items);
             any = true;
         }
     }

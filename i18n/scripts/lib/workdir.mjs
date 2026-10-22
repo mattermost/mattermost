@@ -1,7 +1,7 @@
 // The files a run keeps in its working directory, outside the repository.
 //
 //   plan.json               what plan.mjs decided
-//   worklists/<locale>.json one locale's work, for its translator
+//   worklists/<locale>.json one locale's work, with hints, for its translator
 //   strings.json            every new and changed English string, for the
 //                           description and glossary passes
 //   undescribed.json        worklist keys with no description, when there are any

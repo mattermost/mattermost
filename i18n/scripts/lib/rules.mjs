@@ -23,7 +23,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const icu = await import(pathToFileURL(path.join(here, '../../../webapp/channels/scripts/icu_rules.mjs')).href);
 const SERVER_PLURALS = JSON.parse(fs.readFileSync(path.join(here, 'server_plurals.json'), 'utf8'));
 
-const {analyzeSource, checkMessage, isRightToLeft, HORIZONTAL_GLYPH} = icu;
+const {analyzeSource, checkMessage, HORIZONTAL_GLYPH} = icu;
+export const {isRightToLeft} = icu;
 
 // What CI reports as a warning, new work must not do at all, except an arrow in a
 // right-to-left locale, which can be the clearest way to write a sequence.
@@ -256,3 +257,5 @@ export function repairProblems({english, value, locale, surface, style}) {
     problems.push(...addressFindings(value, locale, surface, style).map((f) => f.message));
     return problems;
 }
+
+export const serverPluralCategories = (locale) => SERVER_PLURALS[locale] || null;

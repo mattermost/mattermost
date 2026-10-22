@@ -207,6 +207,34 @@ describe('a translation run', () => {
         assert.equal(plan.surfaces.webapp.locales.de.items['app.count'], undefined);
     });
 
+    test('a worklist carries what its translator needs to match the catalog', () => {
+        const w = worklist('ru');
+        assert.equal(w.language.direction, 'ltr');
+        assert.equal(w.language.script, 'Cyrl');
+        assert.equal(w.language.address.form, 'formal');
+        assert.deepEqual(w.language.pluralForms.webapp.required, ['one', 'few', 'many', 'other']);
+        assert.deepEqual(w.language.pluralForms.server, ['few', 'many', 'one', 'other']);
+
+        assert.deepEqual(Object.keys(w.webapp['app.new'].siblings), ['app.plain', 'app.title']);
+        assert.deepEqual(w.webapp['app.new'].siblings['app.title'], {english: 'Channel settings', translation: 'Настройки канала'});
+
+        const original = repo.read('webapp/channels/src/i18n/en.json');
+        const en = JSON.parse(original);
+        en['app.copy'] = {defaultMessage: 'Channel settings', description: 'Title of a copied modal'};
+        en['app.brand'] = {defaultMessage: 'Open Mattermost', description: 'Menu item'};
+        repo.write('webapp/channels/src/i18n/en.json', json(en));
+        const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'i18n-run-'));
+        try {
+            assert.equal(repo.run('plan.mjs', scratch, '--base', base).status, 0);
+            const items = JSON.parse(fs.readFileSync(path.join(scratch, 'worklists', 'ru.json'), 'utf8')).webapp;
+            assert.deepEqual(items['app.copy'].sameEnglish, ['Настройки канала']);
+            assert.deepEqual(items['app.brand'].terms, [{term: 'Mattermost', target: 'Mattermost', doNotTranslate: true}]);
+        } finally {
+            repo.write('webapp/channels/src/i18n/en.json', original);
+            fs.rmSync(scratch, {recursive: true, force: true});
+        }
+    });
+
     test('plan takes repairs up to the cap, and counts the rest', () => {
         const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'i18n-run-'));
         try {
