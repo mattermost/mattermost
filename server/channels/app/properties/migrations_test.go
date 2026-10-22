@@ -1887,3 +1887,41 @@ func TestMigrateBackfillPropertyPermissionsSkipsFieldsThatFailToConvert(t *testi
 		})
 	}
 }
+
+// TestMigrateBackfillPropertyPermissionsLeavesVersion1GroupsAlone covers a
+// database created by 11.7: a group that existed then is at version 1 after
+// the upgrade, but a plugin could have put fields with an ObjectType in it.
+// Converting one would fail the group version check on every startup, and the
+// hook doesn't enforce the group anyway, so the backfill skips it.
+func TestMigrateBackfillPropertyPermissionsLeavesVersion1GroupsAlone(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	v1Group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+	member := model.PermissionLevelMember
+
+	v1Field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID: v1Group.ID, Name: "V1-" + model.NewId(), Type: model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser, TargetType: string(model.PropertyFieldTargetLevelSystem),
+		PermissionField: &member, PermissionValues: &member, PermissionOptions: &member,
+	})
+	require.Nil(t, v1Field.Permissions)
+	v2Field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID: th.CPAGroupID, Name: "V2-" + model.NewId(), Type: model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser, TargetType: string(model.PropertyFieldTargetLevelSystem),
+		PermissionField: &member, PermissionValues: &member, PermissionOptions: &member,
+	})
+
+	converted, skipped, failed, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 1, converted)
+	assert.Equal(t, 1, skipped)
+	assert.Equal(t, 0, failed)
+
+	storedV1, err := th.dbStore.PropertyField().Get(th.Context, v1Group.ID, v1Field.ID)
+	require.NoError(t, err)
+	assert.Nil(t, storedV1.Permissions)
+	assert.Equal(t, v1Field.UpdateAt, storedV1.UpdateAt, "the version 1 field must not be written")
+
+	storedV2, err := th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, v2Field.ID)
+	require.NoError(t, err)
+	assert.NotNil(t, storedV2.Permissions, "a field in a version 2 group in the same run must still convert")
+}
