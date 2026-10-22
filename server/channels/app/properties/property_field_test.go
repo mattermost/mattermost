@@ -1418,6 +1418,122 @@ func TestUpdatePropertyFieldTranslatesLegacyPermissionKeys(t *testing.T) {
 	})
 }
 
+// TestUpdatePropertyFieldSyncLinkReconvertsPermissions links an existing,
+// unlinked field to each sync source through an update. A sync attr is a
+// legacy permission key, so the update reconverts the field's permissions:
+// a user field takes the sync lock, and a template takes its sync's option
+// grant, exactly as when it is created with the link.
+func TestUpdatePropertyFieldSyncLinkReconvertsPermissions(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
+	th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "sync-link-plugin" })
+	t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+	rctxAdmin := RequestContextWithCallerID(th.Context, model.NewId())
+
+	sysadmin := model.PermissionLevelSysadmin
+	member := model.PermissionLevelMember
+	wildcardPlugin := func(p *model.Permissions) *model.Grant {
+		for i := range p.Grants {
+			if p.Grants[i].Identity == (model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"}) {
+				return &p.Grants[i]
+			}
+		}
+		return nil
+	}
+
+	for _, source := range model.PropertySyncSources() {
+		syncAttr := model.PropertySyncSourceAttr(source)
+		syncCallerID := model.PropertySyncCallerID(source)
+
+		t.Run(source, func(t *testing.T) {
+			t.Run("linking a user field takes the sync lock", func(t *testing.T) {
+				field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+					GroupID:          th.CPAGroupID,
+					Name:             "Late-Synced-" + model.NewId(),
+					Type:             model.PropertyFieldTypeText,
+					ObjectType:       model.PropertyFieldObjectTypeUser,
+					TargetType:       string(model.PropertyFieldTargetLevelSystem),
+					PermissionValues: &member,
+				})
+				require.NoError(t, err)
+				require.Nil(t, field.Permissions.MatchingGrant(model.PropertyOwnerTypeService, syncAttr, "", model.PropertyActionValueWrite))
+				require.NotNil(t, wildcardPlugin(field.Permissions))
+				require.Contains(t, wildcardPlugin(field.Permissions).Allow, model.PropertyActionValueWrite)
+
+				if field.Attrs == nil {
+					field.Attrs = model.StringInterface{}
+				}
+				field.Attrs[syncAttr] = "department"
+				updated, _, err := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, field)
+				require.NoError(t, err)
+
+				assert.NotNil(t, updated.Permissions.MatchingGrant(model.PropertyOwnerTypeService, syncAttr, "", model.PropertyActionValueWrite))
+				assert.Equal(t, model.PermissionLevelNone, updated.Permissions.Restrictions.Value.Write)
+				if wildcard := wildcardPlugin(updated.Permissions); wildcard != nil {
+					assert.NotContains(t, wildcard.Allow, model.PropertyActionValueWrite)
+				}
+
+				newValue := func() *model.PropertyValue {
+					return &model.PropertyValue{
+						GroupID:    th.CPAGroupID,
+						FieldID:    field.ID,
+						TargetType: "user",
+						TargetID:   model.NewId(),
+						Value:      json.RawMessage(`"Engineering"`),
+					}
+				}
+				_, err = th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, syncCallerID), newValue())
+				require.NoError(t, err)
+
+				refused := []string{model.NewId(), "sync-link-plugin"}
+				for _, other := range model.PropertySyncSources() {
+					if other != source {
+						refused = append(refused, model.PropertySyncCallerID(other))
+					}
+				}
+				for _, callerID := range refused {
+					_, err = th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, callerID), newValue())
+					assert.Error(t, err, "caller %q", callerID)
+				}
+			})
+
+			t.Run("linking a template gives its sync the option grant and no value lock", func(t *testing.T) {
+				template, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+					GroupID:           th.CPAGroupID,
+					Name:              "Late-Synced-Template-" + model.NewId(),
+					Type:              model.PropertyFieldTypeText,
+					ObjectType:        model.PropertyFieldObjectTypeTemplate,
+					TargetType:        string(model.PropertyFieldTargetLevelSystem),
+					PermissionField:   &sysadmin,
+					PermissionOptions: &sysadmin,
+					PermissionValues:  &sysadmin,
+				})
+				require.NoError(t, err)
+				require.Nil(t, template.Permissions.MatchingGrant(model.PropertyOwnerTypeService, syncAttr, "", model.PropertyActionOptionWrite))
+
+				if template.Attrs == nil {
+					template.Attrs = model.StringInterface{}
+				}
+				template.Attrs[syncAttr] = "department"
+				updated, _, err := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, template)
+				require.NoError(t, err)
+
+				// The shape a template created with the link has (see
+				// TestLinkedFieldSyncLock): its sync reads and writes the
+				// options, and nothing locks the values it doesn't hold.
+				syncGrant := updated.Permissions.MatchingGrant(model.PropertyOwnerTypeService, syncAttr, "", model.PropertyActionOptionWrite)
+				require.NotNil(t, syncGrant)
+				assert.Equal(t, []string{model.PropertyActionOptionRead, model.PropertyActionOptionWrite}, syncGrant.Allow)
+				assert.Nil(t, updated.Permissions.MatchingGrant(model.PropertyOwnerTypeService, syncAttr, "", model.PropertyActionValueWrite))
+				assert.Equal(t, model.PermissionLevelSysadmin, updated.Permissions.Restrictions.Value.Write)
+				require.NotNil(t, wildcardPlugin(updated.Permissions))
+				assert.Contains(t, wildcardPlugin(updated.Permissions).Allow, model.PropertyActionValueWrite)
+			})
+		})
+	}
+}
+
 func TestUpdatePropertyField(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	rctx := RequestContextWithCallerID(th.Context, model.NewId())
