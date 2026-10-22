@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.26.7
+go 1.26.10
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
@@ -55,6 +55,7 @@ require (
 	github.com/mholt/archives v0.1.5
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/minio/minio-go/v7 v7.4.1
+	github.com/molecule-man/go-brrr v1.3.0
 	github.com/opensearch-project/opensearch-go/v4 v4.8.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.25.0

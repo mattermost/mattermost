@@ -179,6 +179,18 @@ func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, error) {
 	return count, nil
 }
 
+func (s SqlStatusStore) PermanentDeleteByUser(userId string) error {
+	query := s.getQueryBuilder().
+		Delete("Status").
+		Where(sq.Eq{"UserId": userId})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete Status with userId=%s", userId)
+	}
+
+	return nil
+}
+
 func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) error {
 	builder := s.getQueryBuilder().
 		Update("Status").

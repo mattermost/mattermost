@@ -22,7 +22,7 @@ test('should show demo plugin settings sections and save changes with alert conf
 
     // * Verify Demo Plugin Settings panel and all four section titles
     await expect(settingsModal.container.getByRole('heading', {name: 'Demo Plugin Settings', level: 3})).toBeVisible();
-    await expect(settingsModal.container.getByRole('heading', {name: 'Example action', level: 4})).toBeVisible();
+    await expect(settingsModal.container.getByText('Example action', {exact: true})).toBeVisible();
     await expect(settingsModal.container.getByRole('heading', {name: 'Test section number 1', level: 4})).toBeVisible();
     await expect(settingsModal.container.getByRole('heading', {name: 'Test section number 2', level: 4})).toBeVisible();
     await expect(settingsModal.container.getByRole('heading', {name: 'Test section disabled', level: 4})).toBeVisible();

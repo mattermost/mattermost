@@ -6,6 +6,7 @@ on:
       - "webapp/channels/src/i18n/**"
       # The checkers themselves, so a change to one is verified by it.
       - "webapp/channels/scripts/check_icu.mjs"
+      - "webapp/channels/scripts/icu_rules.mjs"
       - "tools/mmgotool/**"
       - ".github/workflows/i18n-ci-pr.yml"
       - ".github/workflows/i18n-ci-template.yml"
