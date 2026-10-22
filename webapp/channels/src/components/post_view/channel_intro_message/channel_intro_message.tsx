@@ -6,8 +6,8 @@ import {FormattedDate, FormattedMessage, defineMessages, useIntl} from 'react-in
 import {useDispatch, useSelector} from 'react-redux';
 
 import {BellRingOutlineIcon, PencilOutlineIcon, StarOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
-import {ActionButton} from '@mattermost/compass-ui/components/action-button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {TileButton} from '@mattermost/compass-ui/components/tile-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile as UserProfileType} from '@mattermost/types/users';
@@ -785,7 +785,7 @@ const SetHeaderButton = ({channel}: {channel: Channel}) => {
     };
 
     return (
-        <ActionButton
+        <TileButton
             aria-label={label}
             aria-haspopup='dialog'
             icon={<Icon glyph={<PencilOutlineIcon/>}/>}
@@ -810,7 +810,7 @@ const NotificationPrefsButton = ({channel, currentUser}: {channel: Channel; curr
     }, [channel, currentUser, dispatch]);
 
     return (
-        <ActionButton
+        <TileButton
             id='channelIntroNotificationPreferencesButton'
             aria-label={label}
             aria-haspopup='dialog'
@@ -834,9 +834,9 @@ const FavoriteButton = ({
     const label = formatMessage({id: 'channel_info_rhs.top_buttons.favorite', defaultMessage: 'Favorite'});
 
     const button = (
-        <ActionButton
+        <TileButton
             id='toggleFavoriteIntroButton'
-            active={isFavorite}
+            toggled={isFavorite}
             onClick={toggleFavorite}
             disabled={disabled}
             aria-label={label}

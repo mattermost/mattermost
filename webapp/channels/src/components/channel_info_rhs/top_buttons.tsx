@@ -14,8 +14,8 @@ import {
     StarIcon,
     StarOutlineIcon,
 } from '@mattermost/compass-icons/components';
-import {ActionButton} from '@mattermost/compass-ui/components/action-button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {TileButton} from '@mattermost/compass-ui/components/tile-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import useCopyText from 'components/common/hooks/useCopyText';
@@ -29,7 +29,7 @@ const ChannelInfoRhsTopButtons = styled.div`
     margin-top: 24px;
     padding: 0 18px;
 
-    /* ActionButton defaults to a fixed 88px width; share the RHS row evenly. */
+    /* TileButton defaults to a fixed 108px width; share the RHS row evenly. */
     > button {
         flex: 1 1 0;
         width: auto;
@@ -76,7 +76,7 @@ export default function TopButtons({
 
     const canCopyLink = [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType);
 
-    // Toggle labels stay constant; state is conveyed by aria-pressed (via ActionButton `active`).
+    // Toggle labels stay constant; state is conveyed by aria-pressed (via TileButton `toggled`).
     const favoriteIcon = isFavorite ? <StarIcon/> : <StarOutlineIcon/>;
     const favoriteText = formatMessage({id: 'channel_info_rhs.top_buttons.favorite', defaultMessage: 'Favorite'});
 
@@ -104,9 +104,9 @@ export default function TopButtons({
                     )
                 }
             >
-                <ActionButton
+                <TileButton
                     onClick={actions.toggleFavorite}
-                    active={isFavorite}
+                    toggled={isFavorite}
                     disabled={isInManagedCategory}
                     aria-label={favoriteText}
                     id='channelInfoRHSAddFavoriteButton'
@@ -122,9 +122,9 @@ export default function TopButtons({
                     />
                 }
             >
-                <ActionButton
+                <TileButton
                     onClick={actions.toggleMute}
-                    active={isMuted}
+                    toggled={isMuted}
                     aria-label={mutedText}
                     id='channelInfoRHSMuteChannelButton'
                     icon={<Icon glyph={mutedIcon}/>}
@@ -140,7 +140,7 @@ export default function TopButtons({
                         />
                     }
                 >
-                    <ActionButton
+                    <TileButton
                         onClick={actions.addPeople}
                         id='channelInfoRHSAddPeopleButton'
                         aria-label={formatMessage({id: 'channel_info_rhs.top_buttons.add_people', defaultMessage: 'Add People'})}
@@ -164,7 +164,7 @@ export default function TopButtons({
                         />
                     }
                 >
-                    <ActionButton
+                    <TileButton
                         onClick={copyLink.onClick}
                         aria-label={copyText}
                         icon={<Icon glyph={copyIcon}/>}
