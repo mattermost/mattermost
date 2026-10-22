@@ -34,31 +34,63 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
-                <input
-                  data-testid="enableComplianceExporttrue"
-                  id="enableComplianceExporttrue"
-                  name="enableComplianceExport"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  checked=""
-                  data-testid="enableComplianceExportfalse"
-                  id="enableComplianceExportfalse"
-                  name="enableComplianceExport"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="enableComplianceExporttrue"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="enableComplianceExporttrue"
+                    id="enableComplianceExporttrue"
+                    name="enableComplianceExport"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="enableComplianceExportfalse"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="enableComplianceExportfalse"
+                    id="enableComplianceExportfalse"
+                    name="enableComplianceExport"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="enableComplianceExporthelp-text"
@@ -274,31 +306,63 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
-                <input
-                  data-testid="enableComplianceExporttrue"
-                  id="enableComplianceExporttrue"
-                  name="enableComplianceExport"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  checked=""
-                  data-testid="enableComplianceExportfalse"
-                  id="enableComplianceExportfalse"
-                  name="enableComplianceExport"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="enableComplianceExporttrue"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="enableComplianceExporttrue"
+                    id="enableComplianceExporttrue"
+                    name="enableComplianceExport"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="enableComplianceExportfalse"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="enableComplianceExportfalse"
+                    id="enableComplianceExportfalse"
+                    name="enableComplianceExport"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="enableComplianceExporthelp-text"
@@ -422,52 +486,94 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
                   class="col-sm-8"
                 >
                   <label
-                    class="RadioSetting__label RadioSetting__label--disabled"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio RadioSetting__radio--disabled"
+                    for="_r_a_"
                   >
                     <input
-                      class="RadioSetting__input"
+                      class="_radio__input_1hdqa_14"
                       disabled=""
+                      id="_r_a_"
                       name="globalRelayCustomerType"
                       type="radio"
                       value="A9"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_1hdqa_33"
                     >
-                      A9/Type 9
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_1hdqa_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_1hdqa_116"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        A9/Type 9
+                      </span>
                     </span>
                   </label>
                   <label
-                    class="RadioSetting__label RadioSetting__label--disabled"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio RadioSetting__radio--disabled"
+                    for="_r_b_"
                   >
                     <input
                       checked=""
-                      class="RadioSetting__input"
+                      class="_radio__input_1hdqa_14"
                       disabled=""
+                      id="_r_b_"
                       name="globalRelayCustomerType"
                       type="radio"
                       value="A10"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_1hdqa_33"
                     >
-                      A10/Type 10
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_1hdqa_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_1hdqa_116"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        A10/Type 10
+                      </span>
                     </span>
                   </label>
                   <label
-                    class="RadioSetting__label RadioSetting__label--disabled"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio RadioSetting__radio--disabled"
+                    for="_r_c_"
                   >
                     <input
-                      class="RadioSetting__input"
+                      class="_radio__input_1hdqa_14"
                       disabled=""
+                      id="_r_c_"
                       name="globalRelayCustomerType"
                       type="radio"
                       value="CUSTOM"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_1hdqa_33"
                     >
-                      Custom
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_1hdqa_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_1hdqa_116"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        Custom
+                      </span>
                     </span>
                   </label>
                   <div
@@ -720,31 +826,63 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
-                <input
-                  checked=""
-                  data-testid="enableComplianceExporttrue"
-                  id="enableComplianceExporttrue"
-                  name="enableComplianceExport"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  data-testid="enableComplianceExportfalse"
-                  id="enableComplianceExportfalse"
-                  name="enableComplianceExport"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="enableComplianceExporttrue"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="enableComplianceExporttrue"
+                    id="enableComplianceExporttrue"
+                    name="enableComplianceExport"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="enableComplianceExportfalse"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="enableComplianceExportfalse"
+                    id="enableComplianceExportfalse"
+                    name="enableComplianceExport"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="enableComplianceExporthelp-text"
@@ -957,31 +1095,63 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
-                <input
-                  checked=""
-                  data-testid="enableComplianceExporttrue"
-                  id="enableComplianceExporttrue"
-                  name="enableComplianceExport"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  data-testid="enableComplianceExportfalse"
-                  id="enableComplianceExportfalse"
-                  name="enableComplianceExport"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="enableComplianceExporttrue"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="enableComplianceExporttrue"
+                    id="enableComplianceExporttrue"
+                    name="enableComplianceExport"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="enableComplianceExportfalse"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="enableComplianceExportfalse"
+                    id="enableComplianceExportfalse"
+                    name="enableComplianceExport"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="enableComplianceExporthelp-text"
@@ -1103,49 +1273,91 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                   class="col-sm-8"
                 >
                   <label
-                    class="RadioSetting__label"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio"
+                    for="_r_h_"
                   >
                     <input
-                      class="RadioSetting__input"
+                      class="_radio__input_1hdqa_14"
+                      id="_r_h_"
                       name="globalRelayCustomerType"
                       type="radio"
                       value="A9"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_1hdqa_33"
                     >
-                      A9/Type 9
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_1hdqa_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_1hdqa_116"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        A9/Type 9
+                      </span>
                     </span>
                   </label>
                   <label
-                    class="RadioSetting__label"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio"
+                    for="_r_i_"
                   >
                     <input
                       checked=""
-                      class="RadioSetting__input"
+                      class="_radio__input_1hdqa_14"
+                      id="_r_i_"
                       name="globalRelayCustomerType"
                       type="radio"
                       value="A10"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_1hdqa_33"
                     >
-                      A10/Type 10
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_1hdqa_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_1hdqa_116"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        A10/Type 10
+                      </span>
                     </span>
                   </label>
                   <label
-                    class="RadioSetting__label"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio"
+                    for="_r_j_"
                   >
                     <input
-                      class="RadioSetting__input"
+                      class="_radio__input_1hdqa_14"
+                      id="_r_j_"
                       name="globalRelayCustomerType"
                       type="radio"
                       value="CUSTOM"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_1hdqa_33"
                     >
-                      Custom
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_1hdqa_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_1hdqa_116"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        Custom
+                      </span>
                     </span>
                   </label>
                   <div
@@ -1393,31 +1605,63 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
             <div
               class="col-sm-8"
             >
-              <label
-                class="Label-eJcoMl iShgPr"
+              <div
+                class="BooleanRadioGroup-caqMkq klbaOn"
               >
-                <input
-                  checked=""
-                  data-testid="enableComplianceExporttrue"
-                  id="enableComplianceExporttrue"
-                  name="enableComplianceExport"
-                  type="radio"
-                  value="true"
-                />
-                True
-              </label>
-              <label
-                class="Label-eJcoMl iShgPr"
-              >
-                <input
-                  data-testid="enableComplianceExportfalse"
-                  id="enableComplianceExportfalse"
-                  name="enableComplianceExport"
-                  type="radio"
-                  value="false"
-                />
-                False
-              </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="enableComplianceExporttrue"
+                >
+                  <input
+                    checked=""
+                    class="_radio__input_1hdqa_14"
+                    data-testid="enableComplianceExporttrue"
+                    id="enableComplianceExporttrue"
+                    name="enableComplianceExport"
+                    type="radio"
+                    value="true"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    True
+                  </span>
+                </label>
+                <label
+                  class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                  for="enableComplianceExportfalse"
+                >
+                  <input
+                    class="_radio__input_1hdqa_14"
+                    data-testid="enableComplianceExportfalse"
+                    id="enableComplianceExportfalse"
+                    name="enableComplianceExport"
+                    type="radio"
+                    value="false"
+                  />
+                  <span
+                    class="_radio__circle_1hdqa_33"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_radio__dot_1hdqa_59"
+                    />
+                  </span>
+                  <span
+                    class="_radio__label_1hdqa_116"
+                  >
+                    False
+                  </span>
+                </label>
+              </div>
               <div
                 class="help-text"
                 data-testid="enableComplianceExporthelp-text"
@@ -1539,49 +1783,91 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                   class="col-sm-8"
                 >
                   <label
-                    class="RadioSetting__label"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio"
+                    for="_r_o_"
                   >
                     <input
-                      class="RadioSetting__input"
+                      class="_radio__input_1hdqa_14"
+                      id="_r_o_"
                       name="globalRelayCustomerType"
                       type="radio"
                       value="A9"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_1hdqa_33"
                     >
-                      A9/Type 9
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_1hdqa_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_1hdqa_116"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        A9/Type 9
+                      </span>
                     </span>
                   </label>
                   <label
-                    class="RadioSetting__label"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio"
+                    for="_r_p_"
                   >
                     <input
-                      class="RadioSetting__input"
+                      class="_radio__input_1hdqa_14"
+                      id="_r_p_"
                       name="globalRelayCustomerType"
                       type="radio"
                       value="A10"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_1hdqa_33"
                     >
-                      A10/Type 10
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_1hdqa_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_1hdqa_116"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        A10/Type 10
+                      </span>
                     </span>
                   </label>
                   <label
-                    class="RadioSetting__label"
+                    class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140 RadioSetting__radio"
+                    for="_r_q_"
                   >
                     <input
                       checked=""
-                      class="RadioSetting__input"
+                      class="_radio__input_1hdqa_14"
+                      id="_r_q_"
                       name="globalRelayCustomerType"
                       type="radio"
                       value="CUSTOM"
                     />
                     <span
-                      class="RadioSetting__text"
+                      class="_radio__circle_1hdqa_33"
                     >
-                      Custom
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_1hdqa_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_1hdqa_116"
+                    >
+                      <span
+                        class="RadioSetting__text"
+                      >
+                        Custom
+                      </span>
                     </span>
                   </label>
                   <div

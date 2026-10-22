@@ -52,8 +52,8 @@ test.describe('Unarchive - required channel attribute warning', {tag: ['@channel
     test('warns and offers "Unarchive anyway" for a channel missing a required value, and restores it anyway', async ({
         pw,
     }) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const suffix = pw.random.id();
         await purgeRequiredGateFields(adminClient);
@@ -95,8 +95,8 @@ test.describe('Unarchive - required channel attribute warning', {tag: ['@channel
      * kept, when the channel already has a value for the required attribute.
      */
     test('shows no warning and the plain "Unarchive" label when the channel already has a value', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const suffix = pw.random.id();
         await purgeRequiredGateFields(adminClient);

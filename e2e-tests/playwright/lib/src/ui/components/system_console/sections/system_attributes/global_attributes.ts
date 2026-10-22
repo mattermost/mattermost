@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Locator} from '@playwright/test';
+import type {Locator, Request} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 import ChannelsWithoutValueModal from './channels_without_value_modal';
@@ -30,6 +30,10 @@ async function setToggle(toggle: Locator, on: boolean) {
  * The channel settings themselves — required, display locations, change policy.
  * Two pages host them, each with its own chrome around this body.
  */
+function isPropertyWrite(request: Request): boolean {
+    return !['GET', 'HEAD', 'OPTIONS'].includes(request.method()) && request.url().includes('/api/v4/properties/');
+}
+
 class ChannelResourceSettings {
     readonly container: Locator;
 
@@ -236,14 +240,44 @@ export default class GlobalAttributes {
      * Saves without waiting for a redirect: the classification page stays put, unlike
      * the New attribute form which returns to the list.
      *
-     * Waits for Save to go back to disabled, which is the page's own "nothing left to
-     * save" state. Waiting for it to be enabled would pass before the request even
-     * left, and the assertions that follow read the field straight from the API.
+     * Waits for the property writes the click starts to finish. Save is disabled while they
+     * are in flight too, so the disabled state alone passes before the server has applied
+     * the change that the assertions after this read straight from the API.
      */
     async saveInPlace() {
         await expect(this.saveButton).toBeEnabled();
-        await this.saveButton.click();
-        await expect(this.saveButton).toBeDisabled();
+
+        const page = this.container.page();
+        const pending = new Set<Request>();
+        let sent = 0;
+        let lastActivity = Date.now();
+        const onRequest = (request: Request) => {
+            if (isPropertyWrite(request)) {
+                pending.add(request);
+                sent++;
+                lastActivity = Date.now();
+            }
+        };
+        const onDone = (request: Request) => {
+            if (pending.delete(request)) {
+                lastActivity = Date.now();
+            }
+        };
+        page.on('request', onRequest);
+        page.on('requestfinished', onDone);
+        page.on('requestfailed', onDone);
+
+        try {
+            await this.saveButton.click();
+
+            // Quiet for a moment, so a write chained after another is not missed.
+            await expect.poll(() => sent > 0 && pending.size === 0 && Date.now() - lastActivity > 150).toBe(true);
+            await expect(this.saveButton).toBeDisabled();
+        } finally {
+            page.off('request', onRequest);
+            page.off('requestfinished', onDone);
+            page.off('requestfailed', onDone);
+        }
     }
 
     async setDisplayName(displayName: string) {

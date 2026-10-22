@@ -58,8 +58,8 @@ test.describe(
          * missing-values banner instead, and leaves the rest of the page usable.
          */
         test('does not flip Required while a channel lacks a value, and the page stays usable', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             await purgeRequiredGateFields(adminClient);
@@ -113,8 +113,8 @@ test.describe(
          * missing values -- the escape hatch for a field that started required.
          */
         test('always allows turning Required off, even while channels are missing values', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             await purgeRequiredGateFields(adminClient);
@@ -161,8 +161,8 @@ test.describe(
          * just be every active channel rather than a targeted one.
          */
         test('create mode hides both Notify and View channel list', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             await purgeRequiredGateFields(adminClient);
@@ -187,8 +187,8 @@ test.describe(
          * channel from the list once it is no longer missing.
          */
         test('View channel list finds the channel and its admin, and drops it once compliant', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             await purgeRequiredGateFields(adminClient);
@@ -245,8 +245,8 @@ test.describe(
          * failure -- see MM-70717's follow-up doc §11.2.3.
          */
         test('once every channel has a value, Required can be turned on', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             await purgeRequiredGateFields(adminClient);

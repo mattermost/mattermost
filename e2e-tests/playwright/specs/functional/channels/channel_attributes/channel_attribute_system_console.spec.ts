@@ -32,8 +32,8 @@ test.describe('System Console - Channel attributes section', {tag: ['@channel_at
      * and that it is stored correctly once saved.
      */
     test('sets a channel attribute value from Channel Configuration, batched under Save', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminUser, adminClient} = await getAdminClient();
         if (!adminUser || !adminClient) {
@@ -87,8 +87,8 @@ test.describe('System Console - Channel attributes section', {tag: ['@channel_at
      * edited from the channel details page, even by a sysadmin.
      */
     test('renders a permission_values="none" attribute as disabled', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminUser, adminClient} = await getAdminClient();
         if (!adminUser || !adminClient) {

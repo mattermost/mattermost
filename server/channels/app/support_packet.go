@@ -151,11 +151,11 @@ func supportPacketMetadataFile(m *model.PacketMetadata, err error) (*model.FileD
 }
 
 func supportPacketStatsFile(s *model.SupportPacketStats, err error) (*model.FileData, error) {
-	return platform.YAMLFile("stats.yaml", s, err)
+	return platform.YAMLFile(model.SupportPacketStatsFileName, s, err)
 }
 
 func supportPacketJobsFile(j *model.SupportPacketJobList, err error) (*model.FileData, error) {
-	return platform.YAMLFile("jobs.yaml", j, err)
+	return platform.YAMLFile(model.SupportPacketJobsFileName, j, err)
 }
 
 func supportPacketPermissionsFile(p *model.SupportPacketPermissionInfo, err error) (*model.FileData, error) {
@@ -163,7 +163,7 @@ func supportPacketPermissionsFile(p *model.SupportPacketPermissionInfo, err erro
 }
 
 func supportPacketPluginsFile(p *model.SupportPacketPluginList, err error) (*model.FileData, error) {
-	return platform.JSONFile("plugins.json", p, err)
+	return platform.JSONFile(model.SupportPacketPluginsFileName, p, err)
 }
 
 func (a *App) getSupportPacketStats(rctx request.CTX) (*model.SupportPacketStats, error) {

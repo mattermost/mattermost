@@ -71,7 +71,7 @@ describe('ShareChannelWithWorkspaces', () => {
             expect(screen.getByText('Share with connected workspaces')).toBeInTheDocument();
             expect(screen.getByText('Collaborate with trusted organizations in this channel.')).toBeInTheDocument();
             const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
-            expect(toggle).not.toHaveClass('active');
+            expect(toggle).not.toBeChecked();
         });
     });
 
@@ -83,7 +83,7 @@ describe('ShareChannelWithWorkspaces', () => {
         });
 
         const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
-        expect(toggle).toHaveClass('active');
+        expect(toggle).toBeChecked();
         expect(screen.getByText('Nebula Networks')).toBeInTheDocument();
     });
 

@@ -30,8 +30,10 @@ test.describe(
          * @objective Ensure the Channels row writes every channel key onto a linked channel field.
          */
         test('creates a linked channel field carrying the configured keys', async ({pw}) => {
+            // The Required toggle this test flips only renders in the System Console
+            // while this kill switch is on (model.IsChannelAttributesRequiredEnabled).
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             const displayName = `Program ${suffix}`;
@@ -78,8 +80,8 @@ test.describe(
         test('an attribute configured here is required when creating a channel and shown in its header', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -128,8 +130,8 @@ test.describe(
          * @objective Ensure the Banner display location renders a banner and nothing else.
          */
         test('renders a Banner-only attribute as a banner, with no chip', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -174,8 +176,8 @@ test.describe(
          * @objective Ensure an attribute with no display location is stored and shown nowhere.
          */
         test('stores a value for an attribute with no display location and renders it nowhere', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -231,15 +233,11 @@ test.describe(
         });
 
         /**
-         * @objective Ensure the channel-admin tier the console pins reaches the channel
-         * field, so an attribute configured here is not editable by an ordinary member.
-         *
-         * There is no control for this, which is what makes the assertion worth keeping:
-         * the tier is only correct as long as the payload keeps pinning it.
+         * @objective Ensure "Cannot be changed once set" locks the value in Channel Info.
          */
-        test('keeps a console-configured attribute out of a plain member reach', async ({pw}) => {
+        test('locks the value in Channel Info when the change policy forbids changes', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -247,12 +245,73 @@ test.describe(
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-                name = await configureChannelAttribute(systemConsolePage, {
-                    displayName: `Restricted ${suffix}`,
-                    type: 'Select',
-                    options: ['SET'],
-                    required: true,
-                });
+                name = await configureChannelAttribute(
+                    systemConsolePage,
+                    {
+                        displayName: `Locked ${suffix}`,
+                        type: 'Select',
+                        options: ['FINAL'],
+                        required: true,
+                        changePolicy: 'Cannot be changed once set',
+                    },
+                    adminClient,
+                );
+
+                // * The console wrote both keys: change_policy, and the editable key the
+                // * channel UI still reads
+                const channelField = await findChannelField(adminClient, name);
+                expect(channelField?.attrs?.change_policy).toBe('never');
+                expect(channelField?.attrs?.editable).toBe(false);
+
+                const {team} = await pw.initSetup();
+                const {channelsPage} = await pw.testBrowser.login(adminUser);
+                await channelsPage.goto(team.name);
+                await channelsPage.toBeVisible();
+
+                const modal = await channelsPage.openNewChannelModal();
+                await modal.fillDisplayName(`Attr Locked ${suffix}`);
+                await channelsPage.page.getByTestId(`channelAttribute-${name}`).click();
+                await channelsPage.page.getByText('FINAL', {exact: true}).click();
+                await modal.create();
+                await expect(modal.container).not.toBeVisible();
+
+                // * Once set at creation the value is read-only, even to a system admin
+                const info = await channelsPage.openChannelInfo();
+                await expect(info.attributes.lock(name)).toBeVisible();
+                await expect(info.attributes.editButton(name)).toHaveCount(0);
+            } finally {
+                await deleteChannelFieldIfExists(adminClient, name);
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Ensure the channel-admin tier the console pins reaches the channel
+         * field, so an attribute configured here is not editable by an ordinary member.
+         *
+         * There is no control for this, which is what makes the assertion worth keeping:
+         * the tier is only correct as long as the payload keeps pinning it.
+         */
+        test('keeps a console-configured attribute out of a plain member reach', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const suffix = pw.random.id();
+            let name = '';
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+                name = await configureChannelAttribute(
+                    systemConsolePage,
+                    {
+                        displayName: `Restricted ${suffix}`,
+                        type: 'Select',
+                        options: ['SET'],
+                        required: true,
+                    },
+                    adminClient,
+                );
 
                 const channelField = await findChannelField(adminClient, name);
                 expect(channelField?.permission_values).toBe('admin');
@@ -298,7 +357,6 @@ test.describe(
          */
         test('channel-linked field does not inherit ldap/saml sync attrs from the template', async ({pw}) => {
             const {adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             const name = `sync_attr_regression_${suffix}`;

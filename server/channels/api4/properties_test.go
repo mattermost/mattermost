@@ -4982,6 +4982,106 @@ func TestPatchPropertyValuesUserTargetAccess(t *testing.T) {
 	})
 }
 
+func TestPatchPropertyValuesBotTargetAccess(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	defaultPerms := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+	withPerms := func(t *testing.T, perms ...*model.Permission) {
+		t.Helper()
+		th.RestoreDefaultRolePermissions(t, defaultPerms)
+		for _, p := range perms {
+			th.AddPermissionToRole(t, p.Id, model.SystemUserRoleId)
+		}
+	}
+
+	bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: GenerateTestUsername(), OwnerId: th.BasicUser.Id})
+	require.Nil(t, appErr)
+
+	cpaField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+		Name: celSafeName(),
+		Type: model.PropertyFieldTypeText,
+	})
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+
+	otherGroup, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_bot_other_group", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, appErr)
+	memberLevel := model.PermissionLevelMember
+	otherField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		Name:              model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           otherGroup.ID,
+		ObjectType:        model.PropertyFieldObjectTypeUser,
+		TargetType:        string(model.PropertyFieldTargetLevelSystem),
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}, false, "")
+	require.Nil(t, appErr)
+
+	cpaItems := []model.PropertyValuePatchItem{{FieldID: cpaField.ID, Value: json.RawMessage(`"bot-value"`)}}
+	otherItems := []model.PropertyValuePatchItem{{FieldID: otherField.ID, Value: json.RawMessage(`"other-value"`)}}
+
+	th.LoginBasic(t)
+
+	t.Run("bot manager writes own bot in access_control", func(t *testing.T) {
+		withPerms(t, model.PermissionManageBots)
+		upserted, resp, err := th.Client.PatchPropertyValues(context.Background(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser, bot.UserId, cpaItems)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Len(t, upserted, 1)
+		require.Equal(t, bot.UserId, upserted[0].TargetID)
+		require.Equal(t, json.RawMessage(`"bot-value"`), upserted[0].Value)
+
+		stored, resp, err := th.SystemAdminClient.ListCPAValues(context.Background(), bot.UserId)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, json.RawMessage(`"bot-value"`), stored[cpaField.ID])
+	})
+
+	t.Run("bot manager cannot write own bot in another group", func(t *testing.T) {
+		withPerms(t, model.PermissionManageBots)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), otherGroup.Name, model.PropertyFieldObjectTypeUser, bot.UserId, otherItems)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("other group still open to admins", func(t *testing.T) {
+		withPerms(t)
+		upserted, resp, err := th.SystemAdminClient.PatchPropertyValues(context.Background(), otherGroup.Name, model.PropertyFieldObjectTypeUser, bot.UserId, otherItems)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Len(t, upserted, 1)
+		require.Equal(t, json.RawMessage(`"other-value"`), upserted[0].Value)
+	})
+
+	t.Run("bot permissions don't open non-bot targets", func(t *testing.T) {
+		withPerms(t, model.PermissionManageBots, model.PermissionManageOthersBots)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser, th.BasicUser2.Id, cpaItems)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("nonexistent target", func(t *testing.T) {
+		withPerms(t, model.PermissionManageBots, model.PermissionManageOthersBots)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser, model.NewId(), cpaItems)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("edit_other_users cannot write a system admin in another group", func(t *testing.T) {
+		withPerms(t, model.PermissionEditOtherUsers)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), otherGroup.Name, model.PropertyFieldObjectTypeUser, th.SystemAdminUser.Id, otherItems)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+}
+
 func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {

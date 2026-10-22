@@ -48,8 +48,8 @@ test.describe('System Console - notify all channel admins', {tag: ['@system_cons
      * Bot to the channel's admin, naming the channel.
      */
     test('confirming Notify sends a real DM to the channel admin', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const suffix = pw.random.id();
         await purgeRequiredGateFields(adminClient);
@@ -95,8 +95,8 @@ test.describe('System Console - notify all channel admins', {tag: ['@system_cons
      * @objective Verify cancelling the confirmation sends nothing.
      */
     test('cancelling the confirmation sends nothing', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const suffix = pw.random.id();
         await purgeRequiredGateFields(adminClient);
@@ -152,8 +152,8 @@ test.describe('System Console - notify all channel admins', {tag: ['@system_cons
      * instead of silently dropping them.
      */
     test('the confirmation calls out channels with no channel admin', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const suffix = pw.random.id();
         await purgeRequiredGateFields(adminClient);

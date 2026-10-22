@@ -2434,10 +2434,11 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	// For the time being, we only support getting the login type when
 	// guest magic link is enabled. We can consider adding support for other
 	// login methods in the future, and this check may be removed.
+	license := c.App.Channels().License()
 	if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink ||
 		!*c.App.Config().GuestAccountsSettings.Enable ||
-		!*c.App.Channels().License().Features.GuestAccounts {
-		w.WriteHeader(http.StatusNotFound)
+		license == nil || !*license.Features.GuestAccounts {
+		c.Err = model.NewAppError("getLoginType", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusNotFound)
 		return
 	}
 
@@ -3962,6 +3963,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "no-store")
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	} else {
@@ -4049,6 +4051,8 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Unread state changes constantly, so intermediaries must not replay these responses.
+	w.Header().Set("Cache-Control", "no-store")
 	if err := json.NewEncoder(w).Encode(threads); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 		return
