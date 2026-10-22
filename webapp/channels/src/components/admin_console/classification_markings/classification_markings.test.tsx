@@ -763,15 +763,16 @@ describe('ClassificationMarkings component', () => {
         });
 
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-        await screen.findByTestId('clearanceAttributeCheckbox');
+        const checkbox = await screen.findByRole('checkbox', {name: 'Enable clearance attribute'});
 
-        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeChecked();
+        expect(checkbox).toHaveAttribute('data-testid', 'clearanceAttributeCheckbox');
+        expect(checkbox).toBeChecked();
         expect(
             screen.queryByRole('heading', {name: 'Classification markings are informational only'}),
         ).not.toBeInTheDocument();
 
         // ...and it comes back the moment enforcement is turned off again.
-        await userEvent.setup().click(screen.getByTestId('clearanceAttributeCheckbox'));
+        await userEvent.setup().click(checkbox);
         expect(
             await screen.findByRole('heading', {name: 'Classification markings are informational only'}),
         ).toBeInTheDocument();
