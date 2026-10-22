@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -69,6 +70,11 @@ func contentFlaggingRequired(h handlerFunc) handlerFunc {
 }
 
 func requireTeamContentReviewer(c *Context, userId, teamId string) {
+	if c.AppContext.Session().IsScoped() {
+		c.Err = web.NewScopedSessionOutOfScopeError("requireTeamContentReviewer")
+		return
+	}
+
 	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, teamId)
 	if appErr != nil {
 		c.Err = appErr

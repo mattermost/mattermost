@@ -28,6 +28,17 @@ func (s *SessionService) Create(session *model.Session) (*model.Session, error) 
 	return session, normalizeAppErr(appErr)
 }
 
+// CreateScoped creates a session for userID that can only read what scope
+// allows, expiring at expiresAt (unix milliseconds, at most 24 hours ahead).
+// See plugin.API.CreateScopedSession.
+//
+// Minimum server version: 12.2
+func (s *SessionService) CreateScoped(userID string, scope *model.SessionScope, expiresAt int64) (*model.Session, error) {
+	session, appErr := s.api.CreateScopedSession(userID, scope, expiresAt)
+
+	return session, normalizeAppErr(appErr)
+}
+
 // ExtendSessionExpiry extends the duration of an existing session.
 //
 // Minimum server version: 6.2

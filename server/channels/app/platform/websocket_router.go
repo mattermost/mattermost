@@ -53,6 +53,11 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			conn.WebSocket.Close()
 			return
 		}
+		if session.IsScoped() {
+			conn.Platform.Log().Debug("Rejecting websocket authentication with a scoped session", mlog.String("user_id", session.UserId))
+			conn.WebSocket.Close()
+			return
+		}
 		conn.SetSession(session)
 		conn.SetSessionToken(session.Token)
 		conn.UserId = session.UserId
