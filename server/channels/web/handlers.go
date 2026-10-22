@@ -89,6 +89,10 @@ type Handler struct {
 	DisableWhenBusy           bool
 	FileAPI                   bool
 
+	// AllowScopedSession lets scoped sessions reach this handler. Every other
+	// handler rejects them, and so does any path on the hard-deny list.
+	AllowScopedSession bool
+
 	cspShaDirective string
 }
 
@@ -177,6 +181,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if c.AppContext.Session().IsUserAccessToken() {
 				responseLogFields = append(responseLogFields, mlog.String("user_access_token_id", c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]))
 			}
+			responseLogFields = append(responseLogFields, scopedSessionLogFields(c.AppContext.Session())...)
 		}
 
 		statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
@@ -338,9 +343,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.AppContext.Session().IsUserAccessToken() {
 		loggerFields = append(loggerFields, mlog.String("user_access_token_id", c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]))
 	}
+	loggerFields = append(loggerFields, scopedSessionLogFields(c.AppContext.Session())...)
 	c.Logger = c.App.Log().With(loggerFields...)
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
 	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
+
+	if c.Err == nil && c.AppContext.Session().IsScoped() && (!h.AllowScopedSession || IsScopedSessionHardDeniedPath(r.URL.Path)) {
+		c.Err = NewScopedSessionOutOfScopeError("ServeHTTP")
+	}
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()
@@ -375,6 +385,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err == nil {
 		h.HandleFunc(c, w, r)
+	}
+
+	if c.Err != nil && c.Err.Id == "api.context.permissions.app_error" && c.AppContext.Session().IsScoped() {
+		c.Err = NewScopedSessionOutOfScopeError(c.Err.Where)
 	}
 
 	// Handle errors that have occurred

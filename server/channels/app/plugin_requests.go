@@ -251,6 +251,14 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	// using the token if MFA or CSRF fail below.
 	r.Header.Del(model.HeaderAuth)
 
+	if session.IsScoped() {
+		rctx.Logger().Debug("Treating scoped session as unauthenticated for plugin request",
+			mlog.String("user_id", session.UserId),
+		)
+		handler(context, w, r)
+		return
+	}
+
 	rctx = rctx.
 		WithLogFields(mlog.String("user_id", session.UserId)).
 		WithSession(session)

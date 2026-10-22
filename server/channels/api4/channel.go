@@ -89,7 +89,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelCategories.Handle("/{category_id:[A-Za-z0-9_-]+}", api.APISessionRequired(updateCategoryForTeamForUser)).Methods(http.MethodPut)
 	api.BaseRoutes.ChannelCategories.Handle("/{category_id:[A-Za-z0-9_-]+}", api.APISessionRequired(deleteCategoryForTeamForUser)).Methods(http.MethodDelete)
 
-	api.BaseRoutes.Channel.Handle("", api.APISessionRequired(getChannel)).Methods(http.MethodGet)
+	api.BaseRoutes.Channel.Handle("", api.APISessionRequired(getChannel, handlerParamScopedSession)).Methods(http.MethodGet)
 	api.BaseRoutes.Channel.Handle("", api.APISessionRequired(updateChannel)).Methods(http.MethodPut)
 	api.BaseRoutes.Channel.Handle("/patch", api.APISessionRequired(patchChannel)).Methods(http.MethodPut)
 	api.BaseRoutes.Channel.Handle("/privacy", api.APISessionRequired(updateChannelPrivacy)).Methods(http.MethodPut)
@@ -1132,6 +1132,9 @@ func discoverableNonMemberView(c *Context, channel *model.Channel) (*model.Chann
 // 403/404 to a non-member can keep its prior failure shape while opting in
 // to the discoverable surface with a single `if served { return }` guard.
 func serveDiscoverableNonMember(c *Context, w http.ResponseWriter, channel *model.Channel) bool {
+	if c.AppContext.Session().IsScoped() {
+		return false
+	}
 	sanitized, err := discoverableNonMemberView(c, channel)
 	if err != nil {
 		c.Err = err

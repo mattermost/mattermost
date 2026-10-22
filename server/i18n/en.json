@@ -2661,6 +2661,11 @@
     "description": "API error returned when a request body exceeds the server's maximum allowed size."
   },
   {
+    "id": "api.context.scoped_session_out_of_scope.app_error",
+    "translation": "This request is outside the scope of the session.",
+    "description": "API error returned when a scoped (read-only, plugin-issued) session calls an endpoint or reads data that its scope does not cover. Distinct from a missing-permission error so callers can tell the two apart."
+  },
+  {
     "id": "api.context.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable.",
     "description": "API error returned while the server is in high-load ('server busy') mode and rejecting non-critical requests."
@@ -12002,6 +12007,36 @@
     "description": "Internal error when counting user sessions fails; used by System Console analytics and session expiry notifications."
   },
   {
+    "id": "app.session.create.scope_prop.app_error",
+    "translation": "Scoped sessions can only be created with CreateScopedSession.",
+    "description": "Error returned when a plugin or internal caller tries to create a regular session that carries a scope property."
+  },
+  {
+    "id": "app.session.create_scoped.channel.app_error",
+    "translation": "Scoped session channels must exist and cannot be direct or group messages.",
+    "description": "Error returned when a plugin requests a scoped session listing a channel that does not exist or is a direct or group message."
+  },
+  {
+    "id": "app.session.create_scoped.expires_at.app_error",
+    "translation": "Scoped sessions must expire in the future and within 24 hours.",
+    "description": "Error returned when a plugin requests or extends a scoped session with an expiry in the past or more than 24 hours ahead."
+  },
+  {
+    "id": "app.session.create_scoped.plugin_id.app_error",
+    "translation": "Only plugins can create scoped sessions.",
+    "description": "Error returned when a scoped session is requested without a plugin ID."
+  },
+  {
+    "id": "app.session.create_scoped.scope_missing.app_error",
+    "translation": "A scope is required to create a scoped session.",
+    "description": "Error returned when a plugin calls CreateScopedSession without a scope."
+  },
+  {
+    "id": "app.session.create_scoped.user.app_error",
+    "translation": "Scoped sessions can only be created for active local users.",
+    "description": "Error returned when a plugin requests a scoped session for a deactivated or remote (shared channel) user."
+  },
+  {
     "id": "app.session.extend_session_expiry.app_error",
     "translation": "Unable to extend session length",
     "description": "Internal error from the plugin API when extending a login session's expiry time fails."
@@ -18755,6 +18790,26 @@
     "id": "model.session.is_valid.user_id.app_error",
     "translation": "Invalid UserId field for session.",
     "description": "API error when a login session record's UserId field is malformed; 'UserId' is the field name and can stay untranslated."
+  },
+  {
+    "id": "model.session_scope.is_valid.channel_ids.app_error",
+    "translation": "Session scope channel IDs must be valid, at most {{.Max}}.",
+    "description": "Validation error when a plugin asks for a scoped session with an invalid channel ID or too many channels. {{.Max}} is the maximum number of channels."
+  },
+  {
+    "id": "model.session_scope.is_valid.created_by_plugin_id.app_error",
+    "translation": "Session scope must name the plugin that created it.",
+    "description": "Validation error when a scoped session has no creating plugin ID."
+  },
+  {
+    "id": "model.session_scope.is_valid.on_behalf_of_user_id.app_error",
+    "translation": "Session scope on-behalf-of user ID is invalid.",
+    "description": "Validation error when the user ID recorded for audit on a scoped session is not a valid ID."
+  },
+  {
+    "id": "model.session_scope.is_valid.permissions.app_error",
+    "translation": "Session scope permissions must be a non-empty list of read permissions.",
+    "description": "Validation error when a plugin asks for a scoped session whose permission list is empty or includes a permission other than the allowed read permissions."
   },
   {
     "id": "model.team.is_valid.characters.app_error",

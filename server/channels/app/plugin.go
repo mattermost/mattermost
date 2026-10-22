@@ -122,6 +122,9 @@ func (ch *Channels) syncPluginsActiveState() {
 				defer wg.Done()
 
 				deactivated := pluginsEnvironment.Deactivate(plugin.Manifest.Id)
+				if deactivated {
+					ch.revokeScopedSessionsForPlugin(plugin.Manifest.Id)
+				}
 				if deactivated && plugin.Manifest.HasClient() {
 					message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil, "")
 					message.Add("manifest", plugin.Manifest.ClientManifest())

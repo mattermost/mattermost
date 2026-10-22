@@ -11423,6 +11423,22 @@ func (s *TimerLayerSessionStore) GetMobileSessionMetadata() ([]*model.MobileSess
 	return result, err
 }
 
+func (s *TimerLayerSessionStore) GetScopedSessions(rctx request.CTX) ([]*model.Session, error) {
+	start := time.Now()
+
+	result, err := s.SessionStore.GetScopedSessions(rctx)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetScopedSessions", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSessionStore) GetSessions(rctx request.CTX, userID string) ([]*model.Session, error) {
 	start := time.Now()
 
