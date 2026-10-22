@@ -1756,7 +1756,7 @@ describe('AttributeDetails', () => {
 
             // An exact match is the case the server rejects, so the notice reads
             // as a danger rather than a warning.
-            expect(warning.querySelector('.sectionNoticeContainer')).toHaveClass('danger');
+            expect(warning.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
             expect(createPropertyField).not.toHaveBeenCalled();
 
             // * The warning appears and rewrites itself while the admin is still
@@ -1826,7 +1826,7 @@ describe('AttributeDetails', () => {
 
             // A case-only match does not collide on the server, so the notice
             // reads as a warning rather than a danger and Users stays addable.
-            expect(warning.querySelector('.sectionNoticeContainer')).toHaveClass('warning');
+            expect(warning.querySelector('[class*="section-notice--type-warning"]')).toBeInTheDocument();
 
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
             const users = screen.getByRole('menuitem', {name: /^Users/});
@@ -3856,7 +3856,7 @@ describe('AttributeDetails', () => {
 
             const warning = await screen.findByTestId('attributeNameConflictWarning');
             expect(warning).toHaveTextContent('Another attribute already uses this name.');
-            expect(warning.querySelector('.sectionNoticeContainer')).toHaveClass('danger');
+            expect(warning.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
 
             // Still saveable: this template applies to nothing, so the rename
             // creates no second user field for the server to reject.

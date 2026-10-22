@@ -29843,10 +29843,6 @@
     "defaultMessage": "Your teams",
     "description": "Section header in the search box team selector dropdown listing the teams the user belongs to."
   },
-  "sectionNotice.dismiss": {
-    "defaultMessage": "Dismiss notice",
-    "description": "Accessible label of the X close button on dismissible notice banners."
-  },
   "select_team.join.icon": {
     "defaultMessage": "Join Team Icon",
     "description": "Accessible title of the arrow icon next to a joinable team in the team selection list."
@@ -34616,8 +34612,8 @@
     "description": "Menu item in the help menu that opens the keyboard shortcuts reference."
   },
   "userGuideHelp.mattermostUserGuide": {
-    "defaultMessage": "Mattermost user guide",
-    "description": "Menu item in the help menu linking to the official user documentation."
+    "defaultMessage": "Mattermost documentation",
+    "description": "Menu item in the help menu linking to the Mattermost documentation."
   },
   "userGuideHelp.reportAProblem": {
     "defaultMessage": "Report a problem",

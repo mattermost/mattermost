@@ -1172,6 +1172,12 @@ func (s *CacheSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.invalid_redis_db.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// Keys are namespaced as "<prefix>:<cache>:<key>" and purged with SCAN MATCH "<prefix>:<cache>:*",
+	// so a separator or glob character in the prefix would let one server match another's keys.
+	if *s.CacheType == CacheTypeRedis && strings.ContainsAny(*s.RedisCachePrefix, `:*?[]\`) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.invalid_redis_cache_prefix.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
