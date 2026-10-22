@@ -1087,10 +1087,7 @@ func (s *connSet) remove(wc *WebConn) {
 		return
 	}
 	if i := slices.Index(s.small, wc); i >= 0 {
-		last := len(s.small) - 1
-		s.small[i] = s.small[last]
-		s.small[last] = nil
-		s.small = s.small[:last]
+		s.small = slices.Delete(s.small, i, i+1)
 	}
 }
 
@@ -1099,7 +1096,7 @@ func (s *connSet) len() int {
 }
 
 // all yields the set's connections. The slice is walked from the end, so the hub can remove the
-// connection it is visiting: remove moves the last element, already visited, into its place.
+// connection it is visiting: remove shifts down only the elements after it, which were already visited.
 func (s *connSet) all() iter.Seq[*WebConn] {
 	if s.large != nil {
 		return maps.Keys(s.large)
