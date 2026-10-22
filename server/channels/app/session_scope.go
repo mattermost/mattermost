@@ -160,9 +160,9 @@ func (a *App) CreateScopedSession(rctx request.CTX, pluginID, userID string, sco
 	}
 
 	for _, channelID := range scopeCopy.Resources.ChannelIDs {
-		channel, appErr := a.GetChannel(rctx, channelID)
-		if appErr != nil {
-			return nil, model.NewAppError("CreateScopedSession", "app.session.create_scoped.channel.app_error", nil, "channel_id="+channelID, http.StatusBadRequest).Wrap(appErr)
+		channel, chErr := a.GetChannel(rctx, channelID)
+		if chErr != nil {
+			return nil, model.NewAppError("CreateScopedSession", "app.session.create_scoped.channel.app_error", nil, "channel_id="+channelID, http.StatusBadRequest).Wrap(chErr)
 		}
 		if channel.IsGroupOrDirect() {
 			return nil, model.NewAppError("CreateScopedSession", "app.session.create_scoped.channel.app_error", nil, "direct or group channel_id="+channelID, http.StatusBadRequest)
