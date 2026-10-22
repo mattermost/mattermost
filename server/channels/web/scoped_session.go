@@ -16,8 +16,8 @@ import (
 // session can never reach, even if the route is flagged for scoped sessions:
 // token and session management, authentication, and system administration.
 var scopedSessionHardDenied = regexp.MustCompile(`^/(` +
-	`users/([^/]+/)?(tokens|sessions|auth|mfa|password|login|logout|roles|active|demote|promote|convert_to_bot|oauth|patch)(/|$)` +
-	`|users/[^/]+/(email|typing)(/|$)` +
+	`users/(([a-z0-9]{26}|me)/)?(tokens|sessions|auth|mfa|password|login|logout|roles|active|demote|promote|convert_to_bot|oauth|patch)(/|$)` +
+	`|users/([a-z0-9]{26}|me)/(email|typing)(/|$)` +
 	`|users/(login|logout|sessions|tokens|mfa|password|switch|migrate_auth|invalid_emails)(/|$)` +
 	`|bots(/|$)` +
 	`|oauth(/|$)` +
@@ -57,6 +57,11 @@ func IsScopedSessionHardDeniedPath(path string) bool {
 	}
 	return scopedSessionHardDenied.MatchString(rest)
 }
+
+// ScopedSessionRouteDeniedDetail is the detailed error of a request rejected
+// because its route is not open to scoped sessions, as opposed to a read the
+// scope does not cover.
+const ScopedSessionRouteDeniedDetail = "route not allowed for scoped sessions"
 
 func NewScopedSessionOutOfScopeError(where string) *model.AppError {
 	return model.NewAppError(where, "api.context.scoped_session_out_of_scope.app_error", nil, "", http.StatusForbidden)
