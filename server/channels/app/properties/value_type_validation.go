@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -18,8 +19,9 @@ import (
 // now refuse: a plugin, the REST API, and an import all get the same answer.
 //
 // It reads the fields the values name, once per group per write. A value naming
-// a field that does not exist is refused, as the service already refuses it
-// before any hook runs (see rejectTemplateValues).
+// a field its group does not hold is not checked here: that was allowed before
+// these types existed, and refusing it would change writes that never involve
+// them.
 type ValueTypeValidationHook struct {
 	BasePropertyHook
 	propertyService *PropertyService
@@ -95,7 +97,7 @@ func (h *ValueTypeValidationHook) validate(rctx request.CTX, values []*model.Pro
 
 	fieldTypes := make(map[string]model.PropertyFieldType, len(seen))
 	for groupID, fieldIDs := range fieldIDsByGroup {
-		fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
+		fields, err := h.fieldsOfGroup(rctx, groupID, fieldIDs)
 		if err != nil {
 			return fmt.Errorf("failed to fetch fields for value validation: %w", err)
 		}
@@ -117,4 +119,29 @@ func (h *ValueTypeValidationHook) validate(rctx request.CTX, values []*model.Pro
 		}
 	}
 	return nil
+}
+
+// fieldsOfGroup returns those of the fields the group holds. When some are not
+// in it, the rest are read one at a time, so their values are still checked.
+func (h *ValueTypeValidationHook) fieldsOfGroup(rctx request.CTX, groupID string, fieldIDs []string) ([]*model.PropertyField, error) {
+	fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
+	if err == nil {
+		return fields, nil
+	}
+	if !errors.Is(err, ErrFieldNotFound) {
+		return nil, err
+	}
+
+	fields = fields[:0]
+	for _, id := range fieldIDs {
+		found, err := h.propertyService.getPropertyFields(rctx, groupID, []string{id})
+		if errors.Is(err, ErrFieldNotFound) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		fields = append(fields, found...)
+	}
+	return fields, nil
 }

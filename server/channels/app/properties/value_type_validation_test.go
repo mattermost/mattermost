@@ -95,6 +95,20 @@ func TestValueTypeValidationHook(t *testing.T) {
 		assert.ErrorIs(t, err, ErrInvalidValue)
 	})
 
+	t.Run("leaves a value whose field is not in its group to the service, and checks the rest", func(t *testing.T) {
+		// Allowed before number and checkbox existed (a custom profile attribute test relies on it).
+		stray := newValue(numberField, `"x"`)
+		stray.GroupID = model.NewId()
+		_, err := th.service.CreatePropertyValue(th.Context, stray)
+		assert.NoError(t, err)
+
+		// In a batch, the fields the group does hold are still checked.
+		missing := newValue(textField, `"ok"`)
+		missing.FieldID = model.NewId()
+		_, err = th.service.UpsertPropertyValues(th.Context, []*model.PropertyValue{missing, newValue(numberField, `"x"`)})
+		assert.ErrorIs(t, err, ErrInvalidValue)
+	})
+
 	t.Run("leaves the values of other types alone", func(t *testing.T) {
 		_, err := th.service.UpsertPropertyValues(th.Context, []*model.PropertyValue{newValue(textField, `12`), newValue(numberField, `5`)})
 		assert.NoError(t, err)
