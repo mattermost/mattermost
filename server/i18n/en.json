@@ -11353,7 +11353,7 @@
   {
     "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
     "translation": "Cannot change this field's permissions and its permission levels, owners, access mode, protected or sync settings in the same update. Send the change in one form or the other.",
-    "description": "API error when one update to a property field both changes its permissions object and changes one of the older permission settings (permission levels, owners, access mode, protected, or LDAP/SAML sync attributes). The caller must send the change using only one of the two forms."
+    "description": "API error when one update to a property field both changes its permissions object and changes one of the older permission settings (permission levels, owners, access mode, protected, or AD/LDAP, SAML or OpenID Connect sync attributes). The caller must send the change using only one of the two forms."
   },
   {
     "id": "app.property_field.update.protected.app_error",
