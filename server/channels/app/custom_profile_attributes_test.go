@@ -304,8 +304,8 @@ func TestCPAValueSyncLock(t *testing.T) {
 		requireAccessDenied(upsertAs(model.CallerIDSAMLSync, ldapField))
 	})
 
-	// Local mode passes every restrictions tier but a value.write of none,
-	// which is what the sync lock and an owners list convert to.
+	// Local mode passes the ladder except for a value write to a field that is
+	// itself synced, owner-managed or protected.
 	t.Run("a local-mode admin is blocked on an LDAP-synced field", func(t *testing.T) {
 		requireAccessDenied(upsertAs(model.CallerIDLocalAdmin, ldapField))
 	})
