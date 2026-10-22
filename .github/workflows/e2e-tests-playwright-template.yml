@@ -193,7 +193,7 @@ jobs:
         with:
           context-name: ${{ inputs.context_name }}
       - name: ci/claim-status
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-status@bdce26eaf390d5674a736453ba9256c187cf4472  # actions/e2e-status
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@24bf2087f0f6725460a5e2f35c96e0055c7cc795  # actions/e2e-test-status
         with:
           composite-identity: ${{ steps.composite-identity.outputs.composite-identity-json }}
           status-context: ${{ inputs.context_name }}
