@@ -2,30 +2,27 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useRef, type JSX} from 'react';
-import {useDispatch} from 'react-redux';
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 
-import {createDirectChannel} from 'mattermost-redux/actions/channels';
+import {useStartDMCall} from 'components/call_options_menu';
 
 import {Constants} from 'utils/constants';
 
 import type {CallButtonAction} from 'types/store/plugins';
 
 type Props = {
-    channelMember?: ChannelMembership;
     pluginCallComponents: CallButtonAction[];
     sidebarOpen: boolean;
-    currentUserId: string;
     userId: string;
     customButton?: JSX.Element;
     dmChannel?: Channel | null;
 };
 
-export default function ProfilePopoverCallButton({pluginCallComponents, channelMember, sidebarOpen, customButton, dmChannel, currentUserId, userId}: Props) {
+export default function ProfilePopoverCallButton({pluginCallComponents, sidebarOpen, customButton, dmChannel, userId}: Props) {
     const [clickEnabled, setClickEnabled] = useState(true);
     const prevSidebarOpen = useRef(sidebarOpen);
-    const dispatch = useDispatch();
+    const startDMCall = useStartDMCall(userId, dmChannel);
 
     useEffect(() => {
         if (prevSidebarOpen.current && !sidebarOpen) {
@@ -41,24 +38,9 @@ export default function ProfilePopoverCallButton({pluginCallComponents, channelM
         return null;
     }
 
-    const getDmChannel = async () => {
-        if (!dmChannel) {
-            const {data} = await dispatch(createDirectChannel(currentUserId, userId));
-            if (data) {
-                return data;
-            }
-        }
-        return dmChannel;
-    };
-
-    const item = pluginCallComponents[0];
-    const handleStartCall = async () => {
-        const channelForCall = await getDmChannel();
-        item.action?.(channelForCall, channelMember);
-    };
-    const clickHandler = async () => {
+    const clickHandler = () => {
         if (clickEnabled) {
-            handleStartCall();
+            startDMCall();
         }
     };
 

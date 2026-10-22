@@ -491,7 +491,11 @@ type Hooks interface {
 	// Minimum server version: 9.8
 	GenerateSupportData(c *Context) ([]*model.FileData, error)
 
-	// OnSAMLLogin is invoked after a successful SAML login.
+	// OnSAMLLogin is invoked during SAML login, after the SAML assertion has been validated and the
+	// user has been authenticated (and created or updated if needed), but before a session, desktop
+	// token, or mobile login code is issued. Because no session exists yet, c.SessionId is empty.
+	//
+	// To reject the login, return an error. The user is shown an error and no session is created.
 	//
 	// Minimum server version: 10.7
 	OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error

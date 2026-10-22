@@ -123,9 +123,9 @@ test(
             - heading "Keywords that get highlighted (without notifications)" [level=4]
             - button "Keywords that get highlighted (without notifications) Edit"
             - heading "Troubleshooting notifications" [level=4]
-            - paragraph: Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
+            - text: Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
             - button "Send a test notification"
-            - button "Troubleshooting docs 󰏌"
+            - button "Troubleshooting docs"
         `);
 
         // * Analyze the Notifications settings panel for accessibility issues

@@ -215,6 +215,7 @@ type ChannelStore interface {
 	Update(rctx request.CTX, channel *model.Channel) (*model.Channel, error)
 	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamID string) error
 	ClearSidebarOnTeamLeave(userID, teamID string) error
+	PermanentDeleteSidebarByUser(userID string) error
 	Get(id string, allowFromCache bool) (*model.Channel, error)
 	GetBoardChannel(id string) (*model.Channel, error)
 	GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error)
@@ -360,6 +361,7 @@ type ChannelMemberHistoryStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	GetChannelsLeftSince(userID string, since int64) ([]string, error)
 	GetMembershipChanges(channelID string, since int64, limit int) ([]*model.ChannelMemberHistory, error)
+	PermanentDeleteByUser(userID string) error
 }
 type ThreadStore interface {
 	GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error)
@@ -384,6 +386,7 @@ type ThreadStore interface {
 	GetMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userID, postID string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userID, postID string) error
+	PermanentDeleteMembershipsByUser(userID string) error
 	MaintainMembership(userID, postID string, opts ThreadMembershipOpts) (*model.ThreadMembership, error)
 	PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	PermanentDeleteBatchThreadMembershipsForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
@@ -450,6 +453,7 @@ type PostStore interface {
 	GetPostReminders(now int64) ([]*model.PostReminder, error)
 	GetPostRemindersForPost(postId string) ([]*model.PostReminder, error)
 	DeleteAllPostRemindersForPost(postId string) error
+	PermanentDeletePostRemindersByUser(userId string) error
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
@@ -720,6 +724,7 @@ type CommandWebhookStore interface {
 	Get(id string) (*model.CommandWebhook, error)
 	TryUse(id string, limit int) error
 	Cleanup()
+	PermanentDeleteByUser(userID string) error
 }
 
 type PreferenceStore interface {
@@ -781,6 +786,7 @@ type StatusStore interface {
 	GetTotalActiveUsersCount() (int64, error)
 	UpdateLastActivityAt(userID string, lastActivityAt int64) error
 	UpdateExpiredDNDStatuses() ([]*model.Status, error)
+	PermanentDeleteByUser(userID string) error
 }
 
 type FileInfoStore interface {
@@ -792,6 +798,7 @@ type FileInfoStore interface {
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postID string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
 	GetForUser(userID string) ([]*model.FileInfo, error)
+	GetForPermanentDeleteByUser(userID string, limit int) ([]*model.FileInfo, error)
 	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error)
 	InvalidateFileInfosForPostCache(postID string, deleted bool)
 	AttachToPost(rctx request.CTX, fileID string, postID string, channelID, creatorID string) error
@@ -820,6 +827,7 @@ type UploadSessionStore interface {
 	Get(rctx request.CTX, id string) (*model.UploadSession, error)
 	GetForUser(userID string) ([]*model.UploadSession, error)
 	Delete(id string) error
+	PermanentDeleteByUser(userID string) error
 }
 
 type ReactionStore interface {
@@ -943,12 +951,14 @@ type ProductNoticesStore interface {
 	Clear(notices []string) error
 	ClearOldNotices(currentNotices model.ProductNotices) error
 	GetViews(userID string) ([]model.ProductNoticeViewState, error)
+	PermanentDeleteByUser(userID string) error
 }
 
 type UserTermsOfServiceStore interface {
 	GetByUser(userID string) (*model.UserTermsOfService, error)
 	Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error)
 	Delete(userID, termsOfServiceID string) error
+	PermanentDeleteByUser(userID string) error
 }
 
 type GroupStore interface {
@@ -1069,6 +1079,7 @@ type NotifyAdminStore interface {
 	Get(trial bool) ([]*model.NotifyAdminData, error)
 	DeleteBefore(trial bool, now int64) error
 	Update(userID string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error
+	PermanentDeleteByUser(userID string) error
 }
 
 type SharedChannelStore interface {
@@ -1095,6 +1106,7 @@ type SharedChannelStore interface {
 	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
 	GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error)
 	GetUsersForUser(userID string) ([]*model.SharedChannelUser, error)
+	PermanentDeleteUsersByUser(userID string) error
 	GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error)
 	UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error
 
@@ -1150,6 +1162,7 @@ type PostAcknowledgementStore interface {
 	Delete(acknowledgement *model.PostAcknowledgement) error
 	DeleteAllForPost(postID string) error
 	BatchDelete(acknowledgements []*model.PostAcknowledgement) error
+	PermanentDeleteByUser(userID string) error
 }
 
 type PostPersistentNotificationStore interface {
@@ -1246,6 +1259,12 @@ type PropertyValueStore interface {
 	Delete(groupID string, id string) error
 	DeleteForField(groupID, fieldID string) error
 	DeleteForTarget(groupID string, targetType string, targetID string) error
+	// GetReferencedOptionIDs returns the distinct option IDs that live values
+	// of the given select-shaped fields reference, from both single-option
+	// (JSON string) and multi-option (JSON string array) values. Pass a
+	// template together with the fields linking to it to cover every value
+	// that points at the template's options.
+	GetReferencedOptionIDs(groupID string, fieldIDs []string) ([]string, error)
 }
 
 type AccessControlPolicyStore interface {
@@ -1317,6 +1336,7 @@ type AttributesStore interface {
 type SessionAttributeStore interface {
 	Refresh(sessionID string, attrs map[string]any, updatedAt int64) error
 	Get(sessionID string) (map[string]any, map[string]int64, error)
+	GetEpoch(sessionID string) (string, error)
 	Invalidate(sessionID string) error
 	Clear() error
 }
@@ -1381,6 +1401,7 @@ type ReadReceiptStore interface {
 	Update(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error)
 	Delete(rctx request.CTX, postID, userID string) error
 	DeleteByPost(rctx request.CTX, postID string) error
+	PermanentDeleteByUser(rctx request.CTX, userID string) error
 	Get(rctx request.CTX, postID, userID string) (*model.ReadReceipt, error)
 	GetByPost(rctx request.CTX, postID string) ([]*model.ReadReceipt, error)
 	GetReadCountForPost(rctx request.CTX, postID string) (int64, error)
@@ -1494,6 +1515,7 @@ type ChannelJoinRequestStore interface {
 	GetForUser(userId string, opts model.GetChannelJoinRequestsOpts) ([]*model.ChannelJoinRequest, int64, error)
 	Update(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error)
 	CountPending(channelId string) (int64, error)
+	PermanentDeleteByUser(userId string) error
 }
 
 type RecapStore interface {
@@ -1511,6 +1533,7 @@ type RecapStore interface {
 	MarkRecapsAsViewed(userId string, statuses []string) ([]string, error)
 	DeleteRecap(id string) error
 	DeleteRecapChannels(recapId string) error
+	PermanentDeleteByUser(userId string) error
 	SaveRecapChannel(recapChannel *model.RecapChannel) error
 	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
 
@@ -1539,6 +1562,7 @@ type ScheduledRecapStore interface {
 	Get(id string) (*model.ScheduledRecap, error)
 	Update(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error)
 	Delete(id string) error // Soft delete (sets DeleteAt)
+	PermanentDeleteByUser(userId string) error
 
 	// Query operations
 	GetForUser(userId string, page, perPage int) ([]*model.ScheduledRecap, error)

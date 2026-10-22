@@ -91,6 +91,27 @@ describe('BannerTokenControls', () => {
         await waitFor(() => expect(onInsertToken).toHaveBeenCalledWith('{{caveat}}'));
     });
 
+    test('flags the attributes that have no value on this channel', async () => {
+        stubLayout();
+
+        renderWithContext(
+            <BannerTokenControls
+                attributes={[attribute('program', 'AURORA'), attribute('caveat', '')]}
+                onInsertToken={jest.fn()}
+            />,
+        );
+
+        await userEvent.click(screen.getByTestId('bannerAttributeTokenButton'));
+
+        // Only the attribute with no value is flagged.
+        expect(await screen.findByTestId('bannerAttributeTokenUnset-caveat')).toBeInTheDocument();
+        expect(screen.queryByTestId('bannerAttributeTokenUnset-program')).not.toBeInTheDocument();
+
+        // The icon is not the only carrier: the state is part of each item's name.
+        expect(screen.getByRole('menuitem', {name: /program.*Value on this channel: AURORA/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /caveat.*has no value set and won't render in the banner/})).toBeInTheDocument();
+    });
+
     test('disables insertion when the banner fields are locked', () => {
         renderWithContext(
             <BannerTokenControls

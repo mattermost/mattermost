@@ -55,7 +55,7 @@ describe('BannerPreview', () => {
         expect(screen.getByTestId('bannerAttributePreview')).toHaveTextContent('Handle with care');
     });
 
-    test('says so when every referenced attribute is unset, rather than rendering an empty bar', () => {
+    test('shows a warning notice and hides the preview bar when nothing resolves', () => {
         renderWithContext(
             <BannerPreview
                 template='{{program}}'
@@ -63,7 +63,61 @@ describe('BannerPreview', () => {
             />,
         );
 
-        expect(screen.getByTestId('bannerAttributePreview')).toHaveTextContent('nothing yet');
+        expect(screen.queryByTestId('bannerAttributePreview')).not.toBeInTheDocument();
+        expect(screen.getByTestId('bannerPreviewEmptyNotice')).toHaveTextContent(
+            'The banner will not be displayed',
+        );
+        expect(screen.getByTestId('bannerPreviewEmptyNotice')).toHaveTextContent(
+            "There's nothing to display until the attributes in the banner text have values.",
+        );
+    });
+
+    // Two tokens that resolve to nothing leave the space between them behind.
+    test('shows the empty notice when unresolved tokens leave only whitespace', () => {
+        renderWithContext(
+            <BannerPreview
+                template='{{graph_option}} {{classification}}'
+                attributes={[]}
+            />,
+        );
+
+        expect(screen.queryByTestId('bannerAttributePreview')).not.toBeInTheDocument();
+        expect(screen.getByTestId('bannerPreviewEmptyNotice')).toBeInTheDocument();
+    });
+
+    test('asks for text, rather than values, when the template has no attributes', () => {
+        renderWithContext(
+            <BannerPreview
+                template=' · '
+                attributes={[]}
+            />,
+        );
+
+        expect(screen.getByTestId('bannerPreviewEmptyNotice')).toHaveTextContent('Add banner text to display a banner.');
+    });
+
+    test('hides the empty notice once the template resolves to text', () => {
+        renderWithContext(
+            <BannerPreview
+                template='Handle with care'
+                attributes={[]}
+            />,
+        );
+
+        expect(screen.queryByTestId('bannerPreviewEmptyNotice')).not.toBeInTheDocument();
+        expect(screen.getByTestId('bannerAttributePreview')).toBeInTheDocument();
+    });
+
+    test('shows the empty notice when only whitespace resolves', () => {
+        renderWithContext(
+            <BannerPreview
+                template='  {{program}}  '
+                attributes={[attribute('program', '')]}
+            />,
+        );
+
+        expect(screen.getByTestId('bannerPreviewEmptyNotice')).toBeInTheDocument();
+        expect(screen.queryByTestId('bannerAttributePreview')).not.toBeInTheDocument();
     });
 
     test('paints itself in the banner colour, with contrasting text', () => {

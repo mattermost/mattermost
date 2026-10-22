@@ -811,30 +811,27 @@ func isMachineCaller(pluginChecker PluginChecker, callerID string) bool {
 		return false
 	}
 	return isCallerPlugin(pluginChecker, callerID) ||
-		callerID == model.CallerIDLDAPSync ||
-		callerID == model.CallerIDSAMLSync
+		model.PropertySyncSourceForCallerID(callerID) != ""
 }
 
 // callerOwnerIdentity maps a machine caller (and its acting-as scope) to the
 // owner identity it would match in a field's owners list. A built-in sync
-// service is a singleton (one LDAP, one SAML), so its owner type is "service"
-// and it carries no scope; for a plugin the manifest ID is the owner ID and the
-// scope is whatever the plugin declared on the request context.
-func (h *AccessControlHook) callerOwnerIdentity(callerID, scope string) (ownerID, ownerType, effectiveScope string) {
-	switch callerID {
-	case model.CallerIDLDAPSync:
-		return model.PropertyFieldAttrLDAP, model.PropertyOwnerTypeService, ""
-	case model.CallerIDSAMLSync:
-		return model.PropertyFieldAttrSAML, model.PropertyOwnerTypeService, ""
-	default:
-		return callerID, model.PropertyOwnerTypePlugin, scope
+// service is a singleton (one LDAP, one SAML, one OpenID Connect), so its owner
+// type is "service" and it carries no scope; for a plugin the manifest ID is
+// the owner ID and the scope is whatever the plugin declared on the request
+// context.
+func callerOwnerIdentity(callerID, scope string) (ownerID, ownerType, effectiveScope string) {
+	if source := model.PropertySyncSourceForCallerID(callerID); source != "" {
+		return model.PropertySyncSourceAttr(source), model.PropertyOwnerTypeService, ""
 	}
+	return callerID, model.PropertyOwnerTypePlugin, scope
 }
 
 // effectiveOwners returns the owners list used for value-write access checks on
 // an owner-managed field. Explicit owners from the attrs blob are augmented
-// with implicit service owners derived from attrs.ldap / attrs.saml so a field
-// can be written by both a listed plugin/scope and its legacy sync source.
+// with implicit service owners derived from attrs.ldap / attrs.saml /
+// attrs.openid so a field can be written by both a listed plugin/scope and its
+// sync source.
 // Implicit service owners are only added when explicit owners are present;
 // legacy synced-only fields continue through checkSyncLock instead.
 func (h *AccessControlHook) effectiveOwners(field *model.PropertyField) []model.PropertyOwner {
@@ -843,15 +840,9 @@ func (h *AccessControlHook) effectiveOwners(field *model.PropertyField) []model.
 		return owners
 	}
 
-	if ldap, _ := field.Attrs[model.PropertyFieldAttrLDAP].(string); ldap != "" {
+	for _, source := range model.GetPropertyFieldSyncSources(field) {
 		owners = append(owners, model.PropertyOwner{
-			ID:   model.PropertyFieldAttrLDAP,
-			Type: model.PropertyOwnerTypeService,
-		})
-	}
-	if saml, _ := field.Attrs[model.PropertyFieldAttrSAML].(string); saml != "" {
-		owners = append(owners, model.PropertyOwner{
-			ID:   model.PropertyFieldAttrSAML,
+			ID:   model.PropertySyncSourceAttr(source),
 			Type: model.PropertyOwnerTypeService,
 		})
 	}
@@ -873,7 +864,7 @@ func (h *AccessControlHook) checkOwnerValueWriteAccess(field *model.PropertyFiel
 		return fmt.Errorf("field %s is owner-managed and cannot be modified by human caller %q: %w", field.ID, callerID, ErrAccessDenied)
 	}
 
-	ownerID, ownerType, effectiveScope := h.callerOwnerIdentity(callerID, scope)
+	ownerID, ownerType, effectiveScope := callerOwnerIdentity(callerID, scope)
 	for _, owner := range h.effectiveOwners(field) {
 		if owner.Type == ownerType && owner.ID == ownerID &&
 			(len(owner.Scopes) == 0 || slices.Contains(owner.Scopes, effectiveScope)) {
@@ -887,8 +878,8 @@ func (h *AccessControlHook) checkOwnerValueWriteAccess(field *model.PropertyFiel
 // isListedOwner reports whether the machine caller matches an explicit owner
 // entry on the field (by id and type). Scope is not consulted: being a listed
 // owner is what authorizes managing the field; scope only gates value writes.
-func (h *AccessControlHook) isListedOwner(field *model.PropertyField, callerID string) bool {
-	ownerID, ownerType, _ := h.callerOwnerIdentity(callerID, "")
+func isListedOwner(field *model.PropertyField, callerID string) bool {
+	ownerID, ownerType, _ := callerOwnerIdentity(callerID, "")
 	for _, owner := range model.GetPropertyFieldOwners(field) {
 		if owner.Type == ownerType && owner.ID == ownerID {
 			return true
@@ -908,7 +899,7 @@ func (h *AccessControlHook) isListedOwner(field *model.PropertyField, callerID s
 // protected / source_plugin_id rules continue to apply.
 func (h *AccessControlHook) enforceFieldUpdateAccess(existing, updated *model.PropertyField, callerID string) error {
 	if model.HasPropertyFieldOwners(existing) {
-		if isMachineCaller(h.pluginChecker, callerID) && !h.isListedOwner(existing, callerID) {
+		if isMachineCaller(h.pluginChecker, callerID) && !isListedOwner(existing, callerID) {
 			return fmt.Errorf("field %s is owner-managed and can only be modified by an administrator or a listed owner: %w", existing.ID, ErrAccessDenied)
 		}
 		return nil
@@ -942,7 +933,7 @@ func (h *AccessControlHook) getAccessMode(field *model.PropertyField) string {
 }
 
 // hasUnrestrictedFieldReadAccess checks if the given caller can read a PropertyField without restrictions.
-// Returns true if the caller has unrestricted read access (public field or source plugin).
+// Returns true if the caller has unrestricted read access (public field, source plugin, or the field's sync).
 func (h *AccessControlHook) hasUnrestrictedFieldReadAccess(field *model.PropertyField, callerID string) bool {
 	accessMode := h.getAccessMode(field)
 
@@ -952,6 +943,13 @@ func (h *AccessControlHook) hasUnrestrictedFieldReadAccess(field *model.Property
 
 	sourcePluginID := h.getSourcePluginID(field)
 	if sourcePluginID != "" && sourcePluginID == callerID {
+		return true
+	}
+
+	// A field's sync matches source values to its options by name, so it has
+	// to see all of them: a filtered view would have it create options that
+	// already exist.
+	if syncCallerID := model.PropertySyncCallerID(model.GetPropertyFieldSyncSource(field)); syncCallerID != "" && syncCallerID == callerID {
 		return true
 	}
 
@@ -1014,7 +1012,7 @@ func (h *AccessControlHook) checkLegacyFieldWriteAccess(field *model.PropertyFie
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
 func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, callerID string) error {
 	if model.HasPropertyFieldOwners(field) {
-		if isMachineCaller(h.pluginChecker, callerID) && !h.isListedOwner(field, callerID) {
+		if isMachineCaller(h.pluginChecker, callerID) && !isListedOwner(field, callerID) {
 			return fmt.Errorf("field %s is owner-managed and can only be deleted by an administrator or a listed owner: %w", field.ID, ErrAccessDenied)
 		}
 		return nil
@@ -1041,23 +1039,17 @@ func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, c
 }
 
 // checkSyncLock checks whether the caller is allowed to write values for a
-// synced field. Synced fields have an ldap or saml attr set, and only the
-// corresponding sync service (identified by well-known caller IDs) may write
-// their values.
+// synced field. Synced fields have an ldap, saml or openid attr set, and only
+// the corresponding sync service (identified by well-known caller IDs) may
+// write their values.
 func (h *AccessControlHook) checkSyncLock(field *model.PropertyField, callerID string) error {
 	syncSource := model.GetPropertyFieldSyncSource(field)
 	if syncSource == "" {
 		return nil
 	}
 
-	// Map sync source to the expected caller ID
-	var expectedCallerID string
-	switch syncSource {
-	case "ldap":
-		expectedCallerID = model.CallerIDLDAPSync
-	case "saml":
-		expectedCallerID = model.CallerIDSAMLSync
-	default:
+	expectedCallerID := model.PropertySyncCallerID(syncSource)
+	if expectedCallerID == "" {
 		return fmt.Errorf("field %s has unknown sync source %q: %w", field.ID, syncSource, ErrInvalidFieldAttrs)
 	}
 

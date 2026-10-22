@@ -10,7 +10,6 @@ export const ALLOW_EXACT = ['docs/api/examples.mdx', 'docs/api/index.mdx'];
 export const DENY_PREFIXES = [
   'docs/site/',
   'docs/styles/',
-  'docs/pdf/',
   'docs/vendor/',
   'docs/api/reference/',
   'docs/main/agents/docs/',
@@ -19,6 +18,10 @@ export const DENY_PREFIXES = [
 // Paths the gap prompt and sticky comment are allowed to name.
 export const DOCS_PATH_RE =
   /docs\/(?:main|develop)\/[A-Za-z0-9_./-]+\.(?:mdx|md)|docs\/api\/(?:examples|index)\.mdx/g;
+
+// Release notes are written by the release team on release day, never by the writer.
+const RELEASE_NOTES_RE =
+  /^docs\/main\/(?:product-overview\/(?:[a-z0-9-]+-changelog|version-archive)|administration-guide\/upgrade\/important-upgrade-notes)\.mdx?$/;
 
 export function extractDocsPaths(text) {
   if (!text) return [];
@@ -31,6 +34,7 @@ export function isAllowedPath(relPath) {
   const rel = relPath.replace(/^\.\//, '');
   if (rel.startsWith('/') || rel.includes('\0') || rel.includes('..')) return false;
   if (DENY_PREFIXES.some((p) => rel.startsWith(p))) return false;
+  if (RELEASE_NOTES_RE.test(rel)) return false;
   if (ALLOW_EXACT.includes(rel)) return true;
   return ALLOW_PREFIXES.some((p) => rel.startsWith(p));
 }
