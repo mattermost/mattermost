@@ -234,6 +234,9 @@ type ChannelStore interface {
 	GetDeletedByName(teamID string, name string) (*model.Channel, error)
 	GetDeleted(teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, error)
 	GetChannels(teamID, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, error)
+	// GetChannelsInSessionScope returns the channels in a session scope's
+	// resources, limited to teamID (and team-less channels) when it is set.
+	GetChannelsInSessionScope(teamID string, resources *model.SessionScopeResources) (model.ChannelList, error)
 	GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error)
 	GetAllChannelMemberIdsByChannelId(id string) ([]string, error)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (model.ChannelListWithTeamData, error)

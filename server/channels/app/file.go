@@ -1475,10 +1475,12 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 	}
 
 	finalParamsList := []*model.SearchParams{}
+	scopedChannels, _ := a.searchScopeForUser(rctx, userId)
 
 	for _, params := range paramsList {
 		params.OrTerms = isOrSearch
 		params.IncludeDeletedChannels = includeDeletedChannels
+		params.ScopedChannels = scopedChannels
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs

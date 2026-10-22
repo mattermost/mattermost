@@ -4,7 +4,6 @@
 package searchlayer
 
 import (
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -158,14 +157,9 @@ func (s SearchPostStore) searchPostsForUserByEngine(engine searchengine.SearchEn
 		return nil, err
 	}
 
-	// We only allow the user to search in channels they are a member of.
-	userChannels, err2 := s.rootStore.Channel().GetChannels(teamId, userId,
-		&model.ChannelSearchOpts{
-			IncludeDeleted: paramsList[0].IncludeDeletedChannels,
-			LastDeleteAt:   0,
-		})
+	userChannels, err2 := s.rootStore.searchChannelsForUser(paramsList, userId, teamId)
 	if err2 != nil {
-		return nil, errors.Wrap(err2, "error getting channel for user")
+		return nil, err2
 	}
 
 	postIds, matches, err := engine.SearchPosts(userChannels, paramsList, page, perPage)

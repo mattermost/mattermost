@@ -203,3 +203,14 @@ func TestSessionScopeAllowsChannel(t *testing.T) {
 	assert.False(t, SessionScopeAllowsChannel(noOpenTeams, publicOnOpen, openTeam, false), "open-team grant off")
 	assert.False(t, SessionScopeAllowsChannel(nil, listedPrivate, nil, false), "nil scope")
 }
+
+func TestSearchParamsScopedChannelsNotFromJSON(t *testing.T) {
+	var params SearchParams
+	require.NoError(t, json.Unmarshal([]byte(`{"terms":"x","ScopedChannels":{"open_team_public_channels":true},"scoped_channels":{"channel_ids":["a"]}}`), &params))
+	assert.Nil(t, params.ScopedChannels)
+
+	params.ScopedChannels = &SessionScopeResources{OpenTeamPublicChannels: true}
+	b, err := json.Marshal(params)
+	require.NoError(t, err)
+	assert.NotContains(t, string(b), "open_team_public_channels")
+}

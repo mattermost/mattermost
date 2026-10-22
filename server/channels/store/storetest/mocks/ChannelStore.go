@@ -1188,6 +1188,36 @@ func (_m *ChannelStore) GetChannelsByUser(userID string, includeDeleted bool, la
 	return r0, r1
 }
 
+// GetChannelsInSessionScope provides a mock function with given fields: teamID, resources
+func (_m *ChannelStore) GetChannelsInSessionScope(teamID string, resources *model.SessionScopeResources) (model.ChannelList, error) {
+	ret := _m.Called(teamID, resources)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetChannelsInSessionScope")
+	}
+
+	var r0 model.ChannelList
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, *model.SessionScopeResources) (model.ChannelList, error)); ok {
+		return rf(teamID, resources)
+	}
+	if rf, ok := ret.Get(0).(func(string, *model.SessionScopeResources) model.ChannelList); ok {
+		r0 = rf(teamID, resources)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelList)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, *model.SessionScopeResources) error); ok {
+		r1 = rf(teamID, resources)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChannelsMemberCount provides a mock function with given fields: channelIDs
 func (_m *ChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]int64, error) {
 	ret := _m.Called(channelIDs)
