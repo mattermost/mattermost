@@ -4,7 +4,9 @@
 import classNames from 'classnames';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
+
+import {Button} from '@mattermost/shared/components/button';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
@@ -15,7 +17,7 @@ import type {InviteResult} from './result_table';
 export type InviteResults = {
     sent: InviteResult[];
     notSent: InviteResult[];
-}
+};
 
 export type ResultState = {
     sent: InviteResult[];
@@ -39,6 +41,7 @@ type Props = {
 } & ResultState;
 
 export default function ResultView(props: Props) {
+    const {formatMessage} = useIntl();
     let inviteType;
     if (props.inviteType === InviteType.MEMBER) {
         inviteType = (
@@ -88,28 +91,28 @@ export default function ResultView(props: Props) {
                 )}
             </Modal.Body>
             <Modal.Footer className={classNames('InviteView__footer', props.footerClass)}>
-                <button
+                <Button
                     onClick={props.inviteMore}
-                    className='btn btn-tertiary ResultView__inviteMore'
+                    emphasis='tertiary'
                     data-testid='invite-more'
                 >
                     <FormattedMessage
                         id='invitation_modal.invite.more'
                         defaultMessage='Invite More People'
                     />
-                </button>
-                <button
+                </Button>
+                <Button
                     onClick={props.onDone}
-                    className='btn btn-primary'
+                    emphasis='primary'
                     data-testid='confirm-done'
-                    aria-label='Close'
-                    title='Close'
+                    aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
+                    title={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                 >
                     <FormattedMessage
                         id='invitation_modal.confirm.done'
                         defaultMessage='Done'
                     />
-                </button>
+                </Button>
             </Modal.Footer>
         </>
     );

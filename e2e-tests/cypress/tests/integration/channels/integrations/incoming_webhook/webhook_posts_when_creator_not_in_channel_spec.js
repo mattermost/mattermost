@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @integrations
 
-import {getRandomId} from '../../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Integrations', () => {
     let testUser;

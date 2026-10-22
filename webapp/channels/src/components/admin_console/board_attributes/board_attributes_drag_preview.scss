@@ -1,0 +1,24 @@
+.BoardAttributes__dragPreview {
+    padding: 6px 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    color: var(--center-channel-color);
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+}
+
+.BoardAttributes__optionDragPreview {
+    display: inline-flex;
+    padding: 2px 10px;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    color: var(--center-channel-color);
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+}

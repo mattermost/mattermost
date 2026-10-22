@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
+import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions';
 
 import SettingSet from 'components/admin_console/setting_set';
 import FormError from 'components/form_error';
-import WithTooltip from 'components/with_tooltip';
 
 import {Constants} from 'utils/constants';
 
@@ -44,242 +46,220 @@ type Props = {
     unRegisterSaveAction: (saveAction: () => Promise<unknown>) => void;
 };
 
-type State = {
-    deleteBrandImage: boolean;
-    brandImage?: Blob;
-    brandImageExists: boolean;
-    brandImageTimestamp: number;
-    error: string;
-};
+const BrandImageSetting = ({
+    id,
+    disabled,
+    setSaveNeeded,
+    registerSaveAction,
+    unRegisterSaveAction,
+}: Props) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-export default class BrandImageSetting extends React.PureComponent<Props, State> {
-    private imageRef: React.RefObject<HTMLImageElement>;
-    private fileInputRef: React.RefObject<HTMLInputElement>;
+    const [brandImage, setBrandImage] = useState<File | undefined>();
+    const [brandImagePreview, setBrandImagePreview] = useState('');
+    const [shouldDeleteBrandImage, setShouldDeleteBrandImage] = useState(false);
+    const [brandImageExists, setBrandImageExists] = useState(false);
+    const [brandImageTimestamp, setBrandImageTimestamp] = useState(Date.now());
 
-    constructor(props: Props) {
-        super(props);
+    const [errorFromState, setErrorFromState] = useState('');
 
-        this.state = {
-            deleteBrandImage: false,
-            brandImageExists: false,
-            brandImageTimestamp: Date.now(),
-            error: '',
-        };
-
-        this.imageRef = React.createRef();
-        this.fileInputRef = React.createRef();
-    }
-
-    componentDidMount() {
-        fetch(
-            Client4.getBrandImageUrl(String(this.state.brandImageTimestamp)),
-        ).then((resp) => {
-            if (resp.status === HTTP_STATUS_OK) {
-                this.setState({brandImageExists: true});
-            } else {
-                this.setState({brandImageExists: false});
-            }
-        }).catch((err) => {
-            console.error(`unable to retrieve brand image: ${err}`); //eslint-disable-line no-console
-            this.setState({brandImageExists: false});
-        });
-
-        this.props.registerSaveAction(this.handleSave);
-    }
-
-    componentWillUnmount() {
-        this.props.unRegisterSaveAction(this.handleSave);
-    }
-
-    componentDidUpdate() {
-        if (this.imageRef.current) {
-            const reader = new FileReader();
-
-            const img = this.imageRef.current;
-            reader.onload = (e) => {
-                const src =
-          e.target?.result instanceof ArrayBuffer ? e.target?.result.toString() : e.target?.result;
-
-                if (src) {
-                    img.setAttribute('src', src);
-                }
-            };
-
-            if (this.state.brandImage) {
-                reader.readAsDataURL(this.state.brandImage);
-            }
-        }
-    }
-
-    handleSelectClick = () => {
-        this.fileInputRef.current?.click();
-    };
-
-    handleImageChange = () => {
-        if (!this.fileInputRef.current) {
-            return;
-        }
-        const element = this.fileInputRef.current;
-        if (element.files && element.files.length > 0) {
-            this.props.setSaveNeeded();
-            this.setState({
-                brandImage: element.files[0],
-                deleteBrandImage: false,
-            });
-        }
-    };
-
-    handleDeleteButtonPressed = () => {
-        this.setState({
-            deleteBrandImage: true,
-            brandImage: undefined,
-            brandImageExists: false,
-        });
-        this.props.setSaveNeeded();
-    };
-
-    handleSave = async () => {
-        this.setState({
-            error: '',
-        });
+    const handleSave = useCallback(async () => {
+        setErrorFromState('');
 
         let error;
-        if (this.state.deleteBrandImage) {
+        if (shouldDeleteBrandImage) {
             await deleteBrandImage(
                 () => {
-                    this.setState({
-                        deleteBrandImage: false,
-                        brandImageExists: false,
-                        brandImage: undefined,
-                    });
+                    setShouldDeleteBrandImage(false);
+                    setBrandImageExists(false);
+                    setBrandImage(undefined);
                 },
                 (err: Error) => {
                     error = err;
-                    this.setState({
-                        error: err.message,
-                    });
+                    setErrorFromState(err.message);
                 },
             );
-        } else if (this.state.brandImage) {
+        } else if (brandImage) {
             await uploadBrandImage(
-                this.state.brandImage,
+                brandImage,
                 () => {
-                    this.setState({
-                        brandImageExists: true,
-                        brandImage: undefined,
-                        brandImageTimestamp: Date.now(),
-                    });
+                    setBrandImageExists(true);
+                    setBrandImage(undefined);
+                    setBrandImageTimestamp(Date.now());
                 },
                 (err: Error) => {
                     error = err;
-                    this.setState({
-                        error: err.message,
-                    });
+                    setErrorFromState(err.message);
                 },
             );
         }
         return {error};
-    };
+    }, [brandImage, shouldDeleteBrandImage]);
 
-    render() {
-        let img = null;
-        if (this.state.brandImage) {
-            img = (
-                <div className='remove-image__img mb-5'>
-                    <img
-                        ref={this.imageRef}
-                        alt='brand image'
-                        src=''
-                    />
-                </div>
-            );
-        } else if (this.state.brandImageExists) {
-            let overlay;
-            if (!this.props.disabled) {
-                overlay = (
-                    <WithTooltip
-                        title={(
-                            <FormattedMessage
-                                id='admin.team.removeBrandImage'
-                                defaultMessage='Remove brand image'
-                            />
-                        )}
-                        isVertical={false}
-                    >
-                        <button
-                            type='button'
-                            className='remove-image__btn'
-                            onClick={this.handleDeleteButtonPressed}
-                        >
-                            <span aria-hidden={true}>{'×'}</span>
-                        </button>
-                    </WithTooltip>
-                );
+    useEffect(() => {
+        fetch(
+            Client4.getBrandImageUrl(String(Date.now())),
+        ).then((resp) => {
+            if (resp.status === HTTP_STATUS_OK) {
+                setBrandImageExists(true);
+            } else {
+                setBrandImageExists(false);
             }
-            img = (
-                <div className='remove-image__img mb-5'>
-                    <img
-                        alt='brand image'
-                        src={Client4.getBrandImageUrl(
-                            String(this.state.brandImageTimestamp),
-                        )}
-                    />
-                    {overlay}
-                </div>
-            );
-        } else {
-            img = (
-                <p className='mt-2'>
-                    <FormattedMessage
-                        id='admin.team.noBrandImage'
-                        defaultMessage='No brand image uploaded'
-                    />
-                </p>
-            );
+        }).catch((err) => {
+            console.error(`unable to retrieve brand image: ${err}`); //eslint-disable-line no-console
+            setBrandImageExists(false);
+        });
+    }, []);
+
+    useEffect(() => {
+        registerSaveAction(handleSave);
+
+        return () => {
+            unRegisterSaveAction(handleSave);
+        };
+    }, [handleSave, registerSaveAction, unRegisterSaveAction]);
+
+    useEffect(() => {
+        setBrandImagePreview('');
+
+        if (!brandImage) {
+            return undefined;
         }
 
-        return (
-            <SettingSet
-                inputId={this.props.id}
-                helpText={
-                    <FormattedMessage
-                        id='admin.team.uploadDesc'
-                        defaultMessage='Customize your user experience by adding a custom image to your login screen. Recommended maximum image size is less than 2 MB.'
-                    />
-                }
-                label={
-                    <FormattedMessage
-                        id='admin.team.brandImageTitle'
-                        defaultMessage='Custom Brand Image:'
-                    />
-                }
-                setByEnv={false}
-            >
-                <div>
-                    <div className='remove-image'>{img}</div>
-                </div>
-                <div className='file__upload mt-5'>
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const result = e.target?.result;
+            setBrandImagePreview(result instanceof ArrayBuffer ? result.toString() : (result ?? ''));
+        };
+        reader.readAsDataURL(brandImage);
+
+        return () => reader.abort();
+    }, [brandImage]);
+
+    const handleSelectClick = useCallback(() => {
+        fileInputRef.current?.click();
+    }, []);
+
+    const handleImageChange = useCallback(() => {
+        if (!fileInputRef.current) {
+            return;
+        }
+        const element = fileInputRef.current;
+        if (element.files && element.files.length > 0) {
+            setSaveNeeded();
+            setBrandImage(element.files[0]);
+            setShouldDeleteBrandImage(false);
+        }
+    }, [setSaveNeeded]);
+
+    const handleDeleteButtonPressed = useCallback(() => {
+        setShouldDeleteBrandImage(true);
+        setBrandImage(undefined);
+        setBrandImageExists(false);
+
+        setSaveNeeded();
+    }, [setSaveNeeded]);
+
+    let img = null;
+    if (brandImage) {
+        img = brandImagePreview ? (
+            <div className='remove-image__img mb-5'>
+                <img
+                    alt='brand image'
+                    src={brandImagePreview}
+                />
+            </div>
+        ) : null;
+    } else if (brandImageExists) {
+        let overlay;
+        if (!disabled) {
+            overlay = (
+                <WithTooltip
+                    title={(
+                        <FormattedMessage
+                            id='admin.team.removeBrandImage'
+                            defaultMessage='Remove brand image'
+                        />
+                    )}
+                    isVertical={false}
+                >
                     <button
                         type='button'
-                        className='btn btn-tertiary'
-                        disabled={this.props.disabled}
-                        onClick={this.handleSelectClick}
+                        className='remove-image__btn'
+                        data-testid='remove-image__btn'
+                        onClick={handleDeleteButtonPressed}
                     >
-                        <FormattedMessage
-                            id='admin.team.chooseImage'
-                            defaultMessage='Select Image'
-                        />
+                        <span aria-hidden={true}>{'×'}</span>
                     </button>
-                    <input
-                        ref={this.fileInputRef}
-                        type='file'
-                        accept={Constants.ACCEPT_STATIC_IMAGE}
-                        disabled={this.props.disabled}
-                        onChange={this.handleImageChange}
-                    />
-                </div>
-                <FormError error={this.state.error}/>
-            </SettingSet>
+                </WithTooltip>
+            );
+        }
+        img = (
+            <div className='remove-image__img mb-5'>
+                <img
+                    alt='brand image'
+                    src={Client4.getBrandImageUrl(
+                        String(brandImageTimestamp),
+                    )}
+                />
+                {overlay}
+            </div>
+        );
+    } else {
+        img = (
+            <p className='mt-2'>
+                <FormattedMessage
+                    id='admin.team.noBrandImage'
+                    defaultMessage='No brand image uploaded'
+                />
+            </p>
         );
     }
-}
+
+    return (
+        <SettingSet
+            inputId={id}
+            helpText={
+                <FormattedMessage
+                    id='admin.team.uploadDesc'
+                    defaultMessage='Customize your user experience by adding a custom image to your login screen. Recommended maximum image size is less than 2 MB.'
+                />
+            }
+            label={
+                <FormattedMessage
+                    id='admin.team.brandImageTitle'
+                    defaultMessage='Custom Brand Image:'
+                />
+            }
+            setByEnv={false}
+        >
+            <div>
+                <div className='remove-image'>{img}</div>
+            </div>
+            <div className='file__upload mt-5'>
+                <Button
+                    type='button'
+                    emphasis='tertiary'
+                    disabled={disabled}
+                    onClick={handleSelectClick}
+                >
+                    <FormattedMessage
+                        id='admin.team.chooseImage'
+                        defaultMessage='Select Image'
+                    />
+                </Button>
+                <input
+                    ref={fileInputRef}
+                    data-testid='file__upload-input'
+                    type='file'
+                    accept={Constants.ACCEPT_STATIC_IMAGE}
+                    disabled={disabled}
+                    onChange={handleImageChange}
+                />
+            </div>
+            <FormError error={errorFromState}/>
+        </SettingSet>
+    );
+};
+
+export default memo(BrandImageSetting);

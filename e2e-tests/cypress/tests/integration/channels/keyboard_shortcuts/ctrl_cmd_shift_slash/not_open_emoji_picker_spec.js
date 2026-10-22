@@ -10,12 +10,12 @@
 // Stage: @prod
 // Group: @channels @emoji @keyboard_shortcuts
 
-import * as MESSAGES from '../../../../fixtures/messages';
-
 import {
     doReactToLastMessageShortcut,
     pressEscapeKey,
 } from './helpers';
+
+import * as MESSAGES from '@/fixtures/messages';
 
 describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last message', () => {
     let testUser;
@@ -98,7 +98,7 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
     });
 
     it('MM-T4059_3 Do not open emoji picker if any modal is open', () => {
-        cy.uiOpenProductMenu('About Mattermost');
+        cy.uiOpenSwitchProductMenu('About Mattermost');
         verifyEmojiPickerNotOpen();
 
         cy.uiOpenTeamMenu('View members');

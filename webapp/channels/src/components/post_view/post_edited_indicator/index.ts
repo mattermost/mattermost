@@ -28,7 +28,7 @@ import PostEditedIndicator from './post_edited_indicator';
 type OwnProps = {
     postId?: string;
     editedAt?: number;
-}
+};
 
 type StateProps = {
     postOwner?: boolean;
@@ -36,13 +36,13 @@ type StateProps = {
     timeZone?: string;
     post?: Post;
     canEdit: boolean;
-}
+};
 
 type DispatchProps = {
     actions: {
         openShowEditHistory: (post: Post) => void;
     };
-}
+};
 
 export type Props = OwnProps & StateProps & DispatchProps;
 

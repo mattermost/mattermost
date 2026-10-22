@@ -4,8 +4,11 @@
 package api4
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
@@ -26,27 +29,53 @@ func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
 }
 
 func postHardenedModeCheckWithContext(where string, c *Context, props model.StringInterface) {
-	isIntegration := c.AppContext.Session().IsIntegration()
-
-	if appErr := app.PostHardenedModeCheckWithApp(c.App, isIntegration, props); appErr != nil {
+	if appErr := app.PostHardenedModeCheckWithApp(c.App, c.AppContext.Session().IsIntegration(), props); appErr != nil {
 		appErr.Where = where
 		c.Err = appErr
 	}
 }
 
 func postPriorityCheckWithContext(where string, c *Context, priority *model.PostPriority, rootId string) {
-	appErr := app.PostPriorityCheckWithApp(where, c.App, c.AppContext.Session().UserId, priority, rootId)
+	appErr := app.PostPriorityCheckWithApp(where, c.App, c.AppContext, c.AppContext.Session().UserId, priority, rootId)
 	if appErr != nil {
 		appErr.Where = where
 		c.Err = appErr
 	}
 }
 
+func postCardTypeCheckWithContext(where string, c *Context, postType string) {
+	if appErr := app.PostCardTypeCheckWithApp(where, c.App, postType); appErr != nil {
+		appErr.Where = where
+		c.Err = appErr
+	}
+}
+
+// postBurnOnReadCheckWithContext runs the channel/participant checks and then
+// the ABAC create_burn_on_read_post policy check.
+//
+// The policy check is here rather than inside PostBurnOnReadCheckWithApp
+// because the scheduled-post send job calls that function too: a post that was
+// allowed when the user scheduled it must still send, even if the policy has
+// since tightened.
+//
+// It must also stay after the create-post permission check that both callers
+// run first. A user who cannot post in the channel at all is refused on that
+// basis rather than told burn-on-read is unavailable, and a burn-on-read allow
+// must never override a create-post deny.
 func postBurnOnReadCheckWithContext(where string, c *Context, post *model.Post, channel *model.Channel) {
 	appErr := app.PostBurnOnReadCheckWithApp(where, c.App, c.AppContext, post.UserId, post.ChannelId, post.Type, channel)
 	if appErr != nil {
 		appErr.Where = where
 		c.Err = appErr
+		return
+	}
+
+	if post.Type != model.PostTypeBurnOnRead {
+		return
+	}
+
+	if !c.App.HasPermissionToChannelAction(c.AppContext, post.UserId, c.AppContext.Session().Roles, post.ChannelId, model.AccessControlPolicyActionCreateBurnOnReadPost) {
+		c.Err = model.NewAppError(where, "api.post.create_post.burn_on_read.abac_denied.app_error", nil, "", http.StatusForbidden)
 	}
 }
 
@@ -75,5 +104,16 @@ func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, origi
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
+	}
+}
+
+// checkEditFileAttachmentPermission checks edit_file_attachment permission
+// when file IDs are being changed (files added or removed) during post edit.
+func checkEditFileAttachmentPermission(c *Context, newFileIds []string, originalPost *model.Post) {
+	if utils.SliceEqualUnordered(newFileIds, originalPost.FileIds) {
+		return
+	}
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditFileAttachment); !ok {
+		c.SetPermissionError(model.PermissionEditFileAttachment)
 	}
 }

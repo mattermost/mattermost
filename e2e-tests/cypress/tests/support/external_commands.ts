@@ -10,7 +10,6 @@ import {getRandomId} from '../utils';
 
 import {getAdminAccount} from './env';
 
-
 function externalActivateUser(userId: string, active = true) {
     const admin = getAdminAccount();
 
@@ -82,7 +81,7 @@ function externalCreateUser(user: Partial<UserProfile>): Cypress.Chainable<UserP
 }
 Cypress.Commands.add('externalCreateUser', externalCreateUser);
 
-function externalUpdateUserRoles(userId: string, roles: string): Cypress.Chainable<unknown> {
+function externalUpdateUserRoles(userId: string, roles: string) {
     const admin = getAdminAccount();
 
     return cy.externalRequest({

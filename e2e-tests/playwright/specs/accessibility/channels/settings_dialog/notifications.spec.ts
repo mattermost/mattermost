@@ -52,6 +52,10 @@ test(
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(notificationsSettings.emailEditButton);
 
+        // # Press Tab to move focus to Auto-follow threads on channel-wide mentions button
+        await page.keyboard.press('Tab');
+        await pw.toBeFocusedWithFocusVisible(notificationsSettings.channelMentionAutoFollowEditButton);
+
         // # Press Tab to move focus to Keywords that trigger notifications button
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(notificationsSettings.keywordsTriggerNotificationsEditButton);
@@ -110,6 +114,9 @@ test(
             - text: "\\"Bing\\" for messages"
             - heading "Email notifications" [level=4]
             - button "Email notifications Edit"
+            - heading "Auto-follow threads on channel-wide mentions" [level=4]
+            - button "Auto-follow threads on channel-wide mentions Edit"
+            - text: "On"
             - heading "Keywords that trigger notifications" [level=4]
             - button "Keywords that trigger notifications Edit"
             - text: "\\"@${user.username}\\", \\"@channel\\", \\"@all\\", \\"@here\\""
@@ -137,7 +144,11 @@ test(
     {tag: ['@accessibility', '@settings', '@notification_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, adminClient} = await pw.initSetup();
+
+        // # Send push notifications, without which the mobile settings in this section are replaced
+        // # by a "not enabled by your system administrator" message
+        await adminClient.patchConfig({EmailSettings: {SendPushNotifications: true}});
 
         // # Log in a user in new browser context
         const {page, channelsPage} = await pw.testBrowser.login(user);

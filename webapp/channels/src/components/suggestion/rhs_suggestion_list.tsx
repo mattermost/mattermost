@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, type JSX} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getIsMobileView} from 'selectors/views/browser';
@@ -11,9 +11,9 @@ import Constants from 'utils/constants';
 import SuggestionList from './suggestion_list';
 
 type Props = React.ComponentProps<typeof SuggestionList> & {
-    inputRef: React.RefObject<HTMLTextAreaElement>;
+    inputRef: React.RefObject<HTMLTextAreaElement | null>;
     open: boolean;
-}
+};
 
 export default function RhsSuggestionList(props: Props): JSX.Element {
     const [position, setPosition] = useState<Props['position']>('top');

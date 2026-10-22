@@ -59,9 +59,9 @@ func (rcs *Service) sendFile(task sendFileTask) {
 	var response Response
 
 	if err != nil {
-		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send file failed",
+		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceError, "Remote Cluster send file failed",
 			mlog.String("remote", task.rc.DisplayName),
-			mlog.String("uploadId", task.us.Id),
+			mlog.String("upload_id", task.us.Id),
 			mlog.Err(err),
 		)
 		response.Status = ResponseStatusFail
@@ -69,7 +69,7 @@ func (rcs *Service) sendFile(task sendFileTask) {
 	} else {
 		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster file sent successfully",
 			mlog.String("remote", task.rc.DisplayName),
-			mlog.String("uploadId", task.us.Id),
+			mlog.String("upload_id", task.us.Id),
 		)
 		response.Status = ResponseStatusOK
 		response.SetPayload(fi)
@@ -91,7 +91,7 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 
 	rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "sending file to remote...",
 		mlog.String("remote", task.rc.DisplayName),
-		mlog.String("uploadId", task.us.Id),
+		mlog.String("upload_id", task.us.Id),
 		mlog.String("file_path", task.us.Path),
 	)
 

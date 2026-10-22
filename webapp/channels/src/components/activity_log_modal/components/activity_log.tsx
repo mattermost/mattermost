@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedDate, FormattedMessage, FormattedTime, defineMessages} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Session} from '@mattermost/types/sessions';
 
 import {General} from 'mattermost-redux/constants';
@@ -203,15 +204,15 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
                     </div>
                 </div>
                 <div className='activity-log__action'>
-                    <button
+                    <Button
                         onClick={this.submitRevoke}
-                        className='btn btn-primary'
+                        emphasis='primary'
                     >
                         <FormattedMessage
                             id='activity_log.logout'
                             defaultMessage='Log Out'
                         />
-                    </button>
+                    </Button>
                 </div>
             </div>
         );

@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 
@@ -23,12 +23,13 @@ describe('components/AdminConsole/ClientSideUserIdsSetting', () => {
                 value: [],
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <ClientSideUserIdsSetting {...props}/>,
             );
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
 
-            expect(wrapper.state('value')).toEqual('');
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            expect(input.value).toEqual('');
         });
 
         test('with one item', () => {
@@ -37,12 +38,13 @@ describe('components/AdminConsole/ClientSideUserIdsSetting', () => {
                 value: ['userid1'],
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <ClientSideUserIdsSetting {...props}/>,
             );
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
 
-            expect(wrapper.state('value')).toEqual('userid1');
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            expect(input.value).toEqual('userid1');
         });
 
         test('with multiple items', () => {
@@ -51,57 +53,63 @@ describe('components/AdminConsole/ClientSideUserIdsSetting', () => {
                 value: ['userid1', 'userid2', 'id3'],
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <ClientSideUserIdsSetting {...props}/>,
             );
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
 
-            expect(wrapper.state('value')).toEqual('userid1,userid2,id3');
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            expect(input.value).toEqual('userid1,userid2,id3');
         });
     });
 
     describe('onChange', () => {
-        test('called on change to empty', () => {
+        test('called on change to empty', async () => {
             const props = {
                 ...baseProps,
                 onChange: jest.fn(),
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <ClientSideUserIdsSetting {...props}/>,
             );
 
-            wrapper.find('input').simulate('change', {target: {value: ''}});
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            await userEvent.clear(input);
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, []);
         });
 
-        test('called on change to one item', () => {
+        test('called on change to one item', async () => {
             const props = {
                 ...baseProps,
                 onChange: jest.fn(),
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <ClientSideUserIdsSetting {...props}/>,
             );
 
-            wrapper.find('input').simulate('change', {target: {value: '  id2  '}});
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            await userEvent.clear(input);
+            await userEvent.type(input, '  id2  ');
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['id2']);
         });
 
-        test('called on change to two items', () => {
+        test('called on change to two items', async () => {
             const props = {
                 ...baseProps,
                 onChange: jest.fn(),
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <ClientSideUserIdsSetting {...props}/>,
             );
 
-            wrapper.find('input').simulate('change', {target: {value: 'id1, id99'}});
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            await userEvent.clear(input);
+            await userEvent.type(input, 'id1, id99');
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['id1', 'id99']);
         });
@@ -113,10 +121,10 @@ describe('components/AdminConsole/ClientSideUserIdsSetting', () => {
             disabled: true,
         };
 
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <ClientSideUserIdsSetting {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('renders properly when set by environment variable', () => {
@@ -125,9 +133,9 @@ describe('components/AdminConsole/ClientSideUserIdsSetting', () => {
             setByEnv: true,
         };
 
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <ClientSideUserIdsSetting {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

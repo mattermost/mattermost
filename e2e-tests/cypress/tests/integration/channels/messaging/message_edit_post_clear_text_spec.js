@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Delete the post on text clear', () => {
     let offtopiclink;

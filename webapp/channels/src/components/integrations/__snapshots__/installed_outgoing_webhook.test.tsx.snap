@@ -1,184 +1,137 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`components/integrations/InstalledOutgoingWebhook Should match snapshot of makeDisplayName 1`] = `"hook display name"`;
+exports[`components/integrations/InstalledOutgoingWebhook Should match snapshot of makeDisplayName 1`] = `
+<strong
+  class="item-details__name"
+>
+  hook display name
+</strong>
+`;
 
-exports[`components/integrations/InstalledOutgoingWebhook Should match snapshot of makeDisplayName 2`] = `"channel display name"`;
+exports[`components/integrations/InstalledOutgoingWebhook Should match snapshot of makeDisplayName 2`] = `
+<strong
+  class="item-details__name"
+>
+  channel display name
+</strong>
+`;
 
-exports[`components/integrations/InstalledOutgoingWebhook Should match snapshot of makeDisplayName 3`] = `"name"`;
+exports[`components/integrations/InstalledOutgoingWebhook Should match snapshot of makeDisplayName 3`] = `
+<strong
+  class="item-details__name"
+>
+  A Private Webhook
+</strong>
+`;
 
 exports[`components/integrations/InstalledOutgoingWebhook should match snapshot 1`] = `
-<div
-  className="backstage-list__item"
->
+<div>
   <div
-    className="item-details"
+    class="backstage-list__item"
   >
     <div
-      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      class="item-details"
     >
-      <strong
-        className="item-details__name"
-      >
-        build
-      </strong>
       <div
-        className="item-actions"
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
       >
-        <button
-          className="style--none color--link"
-          onClick={[Function]}
+        <strong
+          class="item-details__name"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Regenerate Token"
-            id="installed_integrations.regenToken"
-          />
-        </button>
-         - 
-        <Link
-          to="/test/integrations/outgoing_webhooks/edit?id=7h88x419ubbyuxzs7dfwtgkffr"
+          build
+        </strong>
+        <div
+          class="item-actions"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Edit"
-            id="installed_integrations.edit"
-          />
-        </Link>
-         - 
-        <Connect(DeleteIntegrationLink)
-          modalMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="This action permanently deletes the outgoing webhook and breaks any integrations using it. Are you sure you want to delete it?"
-              id="installed_outgoing_webhooks.delete.confirm"
-            />
-          }
-          onDelete={[Function]}
-        />
+          <button
+            class="style--none color--link"
+          >
+            Regenerate Token
+          </button>
+           - 
+          <a
+            href="/test/integrations/outgoing_webhooks/edit?id=7h88x419ubbyuxzs7dfwtgkffr"
+          >
+            Edit
+          </a>
+           - 
+          <button>
+            Delete
+          </button>
+        </div>
       </div>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__description"
+      <div
+        class="item-details__row"
       >
-        build status
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__content_type"
+        <span
+          class="item-details__description"
+        >
+          build status
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Content-Type: {contentType}"
-          id="installed_integrations.content_type"
-          values={
-            Object {
-              "contentType": "application/x-www-form-urlencoded",
-            }
-          }
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__trigger-words"
+        <span
+          class="item-details__content_type"
+        >
+          Content-Type: application/x-www-form-urlencoded
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Trigger Words: {triggerWords}"
-          id="installed_integrations.triggerWords"
-          values={
-            Object {
-              "triggerWords": "build",
-            }
-          }
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__trigger-when"
+        <span
+          class="item-details__trigger-words"
+        >
+          Trigger Words: build
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Trigger When: {triggerWhen}"
-          id="installed_integrations.triggerWhen"
-          values={
-            Object {
-              "triggerWhen": <Memo(MemoizedFormattedMessage)
-                defaultMessage="First word matches a trigger word exactly"
-                id="add_outgoing_webhook.triggerWordsTriggerWhenFullWord"
-              />,
-            }
-          }
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__token"
+        <span
+          class="item-details__trigger-when"
+        >
+          Trigger When: 
+          First word matches a trigger word exactly
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Token: {token}"
-          id="installed_integrations.token"
-          values={
-            Object {
-              "token": <code>
-                xoxz1z7c3tgi9xhrfudn638q9r
-              </code>,
-            }
-          }
-        />
-        <Memo(CopyText)
-          label={
-            Object {
-              "defaultMessage": "Copy Token",
-              "id": "integrations.copy_token",
-            }
-          }
-          value="xoxz1z7c3tgi9xhrfudn638q9r"
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__creation"
+        <span
+          class="item-details__token"
+        >
+          Token: 
+          <code>
+            xoxz1z7c3tgi9xhrfudn638q9r
+          </code>
+          <button
+            aria-label="Copy Token"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
+          />
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Created by {creator} on {createAt, date, full}"
-          id="installed_integrations.creation"
-          values={
-            Object {
-              "createAt": 1508327769020,
-              "creator": "some-user",
-            }
-          }
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__url word-break--all"
+        <span
+          class="item-details__creation"
+        >
+          Created by some-user on Wednesday, October 18, 2017
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Callback URLs: {urls}"
-          id="installed_integrations.callback_urls"
-          values={
-            Object {
-              "urls": "http://adsfdasd.com",
-            }
-          }
-        />
-      </span>
+        <span
+          class="item-details__url word-break--all"
+        >
+          Callback URLs: http://adsfdasd.com
+        </span>
+      </div>
     </div>
   </div>
 </div>

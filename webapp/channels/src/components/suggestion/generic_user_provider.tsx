@@ -9,6 +9,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
+import ImportedInactiveTag from 'components/widgets/tag/imported_inactive_tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import * as Utils from 'utils/utils';
@@ -56,6 +57,7 @@ const GenericUserSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Us
             <div className='suggestion-list__ellipsis'>
                 <span
                     id={ids.name}
+                    data-testid='suggestion-list__main'
                     className='suggestion-list__main'
                 >
                     {'@' + username}
@@ -64,6 +66,7 @@ const GenericUserSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Us
             </div>
             {item.is_bot && <span id={ids.botTag}><BotTag/></span>}
             {isGuest(item.roles) && <span id={ids.guestTag}><GuestTag/></span>}
+            {item.props?.importedInactive === 'true' && <ImportedInactiveTag/>}
         </SuggestionContainer>
     );
 });
@@ -86,7 +89,10 @@ export default class GenericUserProvider extends Provider {
                 return;
             }
 
-            const users = data.users;
+            const users = data?.users;
+            if (!users) {
+                return;
+            }
 
             resultsCallback({
                 matchedPretext: normalizedPretext,

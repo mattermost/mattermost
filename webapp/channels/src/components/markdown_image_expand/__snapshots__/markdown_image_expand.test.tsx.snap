@@ -1,39 +1,41 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/MarkdownImageExpand should match snapshot for collapsed embeds 1`] = `
-<div
-  className="markdown-image-expand "
->
-  <button
-    className="markdown-image-expand__expand-button"
-    onClick={[Function]}
-    type="button"
+<div>
+  <div
+    class="markdown-image-expand "
   >
-    <span
-      className="icon icon-menu-right markdown-image-expand__expand-icon"
-    />
-    <span
-      className="markdown-image-expand__alt-text"
+    <button
+      class="markdown-image-expand__expand-button"
+      type="button"
     >
-      Some alt text
-    </span>
-  </button>
+      <span
+        class="icon icon-menu-right markdown-image-expand__expand-icon"
+      />
+      <span
+        class="markdown-image-expand__alt-text"
+      >
+        Some alt text
+      </span>
+    </button>
+  </div>
 </div>
 `;
 
 exports[`components/MarkdownImageExpand should match snapshot for expanded embeds 1`] = `
-<div
-  className="markdown-image-expand markdown-image-expand--expanded"
->
-  <button
-    className="markdown-image-expand__collapse-button"
-    onClick={[Function]}
-    type="button"
+<div>
+  <div
+    class="markdown-image-expand markdown-image-expand--expanded"
   >
-    <span
-      className="icon icon-menu-down"
-    />
-  </button>
-  An image to expand
+    <button
+      class="markdown-image-expand__collapse-button"
+      type="button"
+    >
+      <span
+        class="icon icon-menu-down"
+      />
+    </button>
+    An image to expand
+  </div>
 </div>
 `;

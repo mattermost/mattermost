@@ -10,17 +10,21 @@ import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
 import type {Emoji} from '@mattermost/types/emojis';
 import {FileDownloadTypes} from '@mattermost/types/files';
 import type {Group, GroupMember} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
+import type {Job} from '@mattermost/types/jobs';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import {supportsHierarchy, type PropertyField, type PropertyValue} from '@mattermost/types/properties';
+import {SESSION_ATTRIBUTES_OBJECT_TYPE, USER_OBJECT_TYPE} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import type {GlobalState} from '@mattermost/types/store';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 
@@ -30,25 +34,27 @@ import {
     EmojiTypes,
     FileTypes,
     GroupTypes,
+    JobTypes,
     PostTypes,
     TeamTypes,
     UserTypes,
     RoleTypes,
     GeneralTypes,
-    AdminTypes,
     IntegrationTypes,
     PreferenceTypes,
     AppsTypes,
     CloudTypes,
     ChannelBookmarkTypes,
+    PropertyTypes,
     ScheduledPostTypes,
     ContentFlaggingTypes,
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
-import {addChannelToInitialCategory, fetchMyCategories, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
+import {addChannelToInitialCategory, fetchMyCategories, handleManagedCategoryPropertyValuesUpdated, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
+    getChannelMember,
     getMyChannelMember,
     getChannelStats,
     markMultipleChannelsAsRead,
@@ -60,10 +66,12 @@ import {
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
+import {getJobsByType} from 'mattermost-redux/actions/jobs';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
     getCustomEmojiForReaction,
     getPosts,
+    getPostsAround,
     getPostThread,
     getPostThreads,
     postDeleted,
@@ -72,9 +80,16 @@ import {
     resetReloadPostsInChannel,
     resetReloadPostsInTranslatedChannels,
 } from 'mattermost-redux/actions/posts';
+import {
+    fetchPropertyFields,
+    fetchPropertyValues,
+    fetchSystemPropertyValues,
+} from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
+import {invalidateRenderDecisionsForChannel, clearRenderDecisions} from 'mattermost-redux/actions/render_permissions';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
+import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
@@ -90,11 +105,13 @@ import {
 } from 'mattermost-redux/actions/threads';
 import {
     checkForModifiedUsers,
+    getCustomProfileAttributeValues,
     getUser as loadUser,
 } from 'mattermost-redux/actions/users';
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {Client4} from 'mattermost-redux/client';
 import {General, Permissions} from 'mattermost-redux/constants';
+import {ACCESS_CONTROL_PROPERTY_GROUP} from 'mattermost-redux/constants/properties';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {
     getChannel,
@@ -106,11 +123,13 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getPropertyFieldById, getPropertyGroupById, getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getScheduledPostTeamId, isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
     getTeamIdByChannelId,
     getMyTeams,
@@ -136,7 +155,7 @@ import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {setGlobalItem} from 'actions/storage';
 import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'actions/user_actions';
-import {syncPostsInChannel} from 'actions/views/channel';
+import {loadUnreads, syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -147,15 +166,28 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
+import {
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+    CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_ID,
+} from 'components/admin_console/classification_markings/utils';
+import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
+import {clearGraphOptionNamesForField, commitGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, JobStatuses, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {getIntl} from 'utils/i18n';
+import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'utils/interactive_dialog';
+import {isEnterpriseLicense} from 'utils/license_utils';
+import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
+import {isWithheldPropertyValue} from 'utils/properties';
 import {getSiteURL} from 'utils/url';
 
 import type {ActionFunc, ThunkActionFunc} from 'types/store';
@@ -272,7 +304,9 @@ export function reconnect() {
         }
 
         dispatch(fetchAllMyTeamsChannels());
-        dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
+        if (isScheduledPostsEnabled(state)) {
+            dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
+        }
         dispatch(fetchAllMyChannelMembers());
         dispatch(fetchMyCategories(currentTeamId));
         loadProfilesForSidebar();
@@ -318,11 +352,37 @@ export function reconnect() {
     });
 
     // Refresh custom profile attributes on reconnect
-    dispatch(getCustomProfileAttributeFields());
+    if (isEnterpriseLicense(getLicense(state))) {
+        dispatch(getCustomProfileAttributeFields());
+    }
+
+    // Refresh classification fields and values on reconnect when the feature flag is active
+    if (getFeatureFlagValue(state, 'ClassificationMarkings') === 'true') {
+        dispatch(
+            fetchPropertyFields(
+                ACCESS_CONTROL_PROPERTY_GROUP,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
+            ),
+        );
+        dispatch(
+            fetchPropertyFields(
+                ACCESS_CONTROL_PROPERTY_GROUP,
+                CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
+            ),
+        );
+        dispatch(fetchSystemPropertyValues(ACCESS_CONTROL_PROPERTY_GROUP));
+    }
 
     if (state.websocket.lastDisconnectAt) {
         dispatch(checkForModifiedUsers());
     }
+
+    // Manifest may have changed; tell the Desktop App to re-fetch it.
+    DesktopApp.invalidateSessionAttributeManifest();
 
     dispatch(resetWsErrorCount());
     dispatch(clearErrors());
@@ -367,6 +427,9 @@ function handleFirstConnect() {
         },
         clearErrors(),
     ]));
+
+    // Tell the Desktop App to re-deliver its session attributes on the next request.
+    DesktopApp.resendSessionAttributes();
 }
 
 function handleClose(failCount: number) {
@@ -478,6 +541,10 @@ export function handleEvent(msg: WebSocketMessage) {
         handleChannelConvertedEvent(msg);
         break;
 
+    case WebSocketEvents.SharedChannelRemoteUpdated:
+        handleSharedChannelRemoteUpdatedEvent(msg);
+        break;
+
     case WebSocketEvents.ChannelUpdated:
         dispatch(handleChannelUpdatedEvent(msg));
         break;
@@ -500,6 +567,26 @@ export function handleEvent(msg: WebSocketMessage) {
 
     case WebSocketEvents.ChannelBookmarkSorted:
         dispatch(handleChannelBookmarkSorted(msg));
+        break;
+
+    case WebSocketEvents.ChannelAccessControlUpdated:
+        dispatch(handleChannelAccessControlUpdatedEvent(msg));
+        break;
+
+    case WebSocketEvents.PermissionPolicyUpdated:
+        dispatch(handlePermissionPolicyUpdatedEvent());
+        break;
+
+    case WebSocketEvents.TeamAccessControlUpdated:
+        dispatch(handleTeamAccessControlUpdatedEvent(msg));
+        break;
+
+    case WebSocketEvents.ChannelJoinRequestCreated:
+        dispatch(handleChannelJoinRequestCreated(msg));
+        break;
+
+    case WebSocketEvents.ChannelJoinRequestUpdated:
+        dispatch(handleChannelJoinRequestUpdated(msg));
         break;
 
     case WebSocketEvents.DirectAdded:
@@ -566,10 +653,6 @@ export function handleEvent(msg: WebSocketMessage) {
         handleLicenseChanged(msg);
         break;
 
-    case WebSocketEvents.PluginStatusesChanged:
-        handlePluginStatusesChangedEvent(msg);
-        break;
-
     case WebSocketEvents.OpenDialog:
         handleOpenDialogEvent(msg);
         break;
@@ -615,6 +698,26 @@ export function handleEvent(msg: WebSocketMessage) {
         break;
     case WebSocketEvents.SidebarCategoryOrderUpdated:
         dispatch(handleSidebarCategoryOrderUpdated(msg));
+        break;
+    case WebSocketEvents.PropertyFieldCreated:
+    case WebSocketEvents.PropertyFieldUpdated:
+        dispatch(
+            handlePropertyFieldCreatedOrUpdated(
+                msg as
+                    WebSocketMessages.PropertyFieldCreated |
+                    WebSocketMessages.PropertyFieldUpdated,
+            ),
+        );
+        break;
+    case WebSocketEvents.PropertyFieldDeleted:
+        dispatch(
+            handlePropertyFieldDeleted(
+                msg as WebSocketMessages.PropertyFieldDeleted,
+            ),
+        );
+        break;
+    case WebSocketEvents.PropertyValuesUpdated:
+        dispatch(handlePropertyValuesUpdated(msg));
         break;
     case WebSocketEvents.UserActivationStatusChange:
         dispatch(handleUserActivationStatusChange());
@@ -686,11 +789,17 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.PostTranslationUpdated:
         dispatch(handlePostTranslationUpdated(msg));
         break;
+    case WebSocketEvents.JobUpdated:
+        dispatch(handleJobUpdated(msg as WebSocketMessages.JobUpdated));
+        break;
     case WebSocketEvents.RecapUpdated:
         dispatch(handleRecapUpdated(msg));
         break;
     case WebSocketEvents.FileDownloadRejected:
         dispatch(handleFileDownloadRejected(msg));
+        break;
+    case WebSocketEvents.FileUploadRejected:
+        dispatch(handleFileUploadRejected(msg));
         break;
     case WebSocketEvents.ShowToast:
         dispatch(handleShowToast(msg));
@@ -709,15 +818,35 @@ export function handleEvent(msg: WebSocketMessage) {
     });
 }
 
-// handleChannelConvertedEvent handles updating of channel which is converted from public to private
+// The server publishes shared_channel_remote_updated from the onInvite callback after a remote
+// (cluster or plugin) accepts a channel invitation. The channel is already shared at that point,
+// and the channel_updated event that set shared=true ran earlier in the share flow, so the local
+// channel should already reflect shared=true when this arrives. If it doesn't, the event isn't
+// meaningful for us and we skip the fetch.
+function handleSharedChannelRemoteUpdatedEvent(msg: WebSocketMessages.SharedChannelRemoteUpdated) {
+    const channelId = msg.data.channel_id || msg.broadcast.channel_id;
+    if (!channelId) {
+        return;
+    }
+
+    const channel = getChannel(getState(), channelId);
+    if (!channel?.shared) {
+        return;
+    }
+
+    dispatch(fetchChannelRemotes(channelId, true));
+}
+
+// handleChannelConvertedEvent handles updating of channel which is converted between public and private
 function handleChannelConvertedEvent(msg: WebSocketMessages.ChannelConverted) {
     const channelId = msg.data.channel_id;
     if (channelId) {
         const channel = getChannel(getState(), channelId);
         if (channel) {
+            const newType = msg.data.channel_type === General.OPEN_CHANNEL ? General.OPEN_CHANNEL : General.PRIVATE_CHANNEL;
             dispatch({
                 type: ChannelTypes.RECEIVED_CHANNEL,
-                data: {...channel, type: General.PRIVATE_CHANNEL},
+                data: {...channel, type: newType},
             });
         }
     }
@@ -747,6 +876,10 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
             if (hasAutotranslationBecomeEnabled(state, channel)) {
                 doDispatch(resetReloadPostsInChannel(channel.id));
             }
+
+            if (existingChannel.disable_join_leave_messages !== channel.disable_join_leave_messages) {
+                doDispatch(resetReloadPostsInChannel(channel.id));
+            }
         }
 
         doDispatch(batchActions(actions));
@@ -754,7 +887,147 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
         if (channel.id === getCurrentChannelId(state)) {
             // using channel's team_id to ensure we always redirect to current channel even if channel's team changes.
             const teamId = channel.team_id || getCurrentTeamId(state);
-            getHistory().replace(`${getRelativeTeamUrl(state, teamId)}/channels/${channel.name}`);
+            const teamUrl = getRelativeTeamUrl(state, teamId);
+            let channelPath = `${teamUrl}/channels/${channel.name}`;
+
+            // For the popout we make an exception and redirect to the popout path instead of the channel path.
+            // DM/GM names never change, so we only need to handle regular channels here.
+            if (isChannelPopoutWindow() && channel.type !== General.DM_CHANNEL && channel.type !== General.GM_CHANNEL) {
+                channelPath = `/_popout/channel${teamUrl}/channels/${channel.name}`;
+            }
+            getHistory().replace(channelPath);
+        }
+    };
+}
+
+export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.ChannelAccessControlUpdated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (!msg.data.channel) {
+            return;
+        }
+
+        const channel = JSON.parse(msg.data.channel) as Channel;
+
+        // Refresh the channel record so consumers see the latest
+        // policy_enforced flag (and any other access-control-derived fields).
+        doDispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: channel});
+
+        // Drop any cached access control attributes for this channel so
+        // consumers (e.g. the channel invite modal banner) refetch the
+        // latest attribute set after a policy change.
+        invalidateAccessControlAttributesCache(EntityType.Channel, channel.id);
+
+        // Nothing sanitizes posts or gates affordances without the feature, so no stale render
+        // state to drop. Matches the CPA and role handlers.
+        if (!isPermissionPoliciesEnabled(doGetState())) {
+            return;
+        }
+
+        doDispatch(invalidateRenderDecisionsForChannel(channel.id));
+        doDispatch(refreshPostsAfterPolicyChange(channel.id));
+    };
+}
+
+// Posts already loaded were sanitized under the old policy. Off-screen channels just lose their
+// chunks and reload on next visit; the channel in view is refetched explicitly, rather than via
+// resetReloadPostsInChannel's deselect/reselect, which does not reliably remount PostList.
+//
+// loadUnreads and not loadLatestPosts: the unread endpoint carries no ETag, so it cannot 304 onto
+// the metadata the old policy produced.
+function refreshPostsAfterPolicyChange(channelId?: string): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        doDispatch({type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId});
+
+        const currentChannelId = getCurrentChannelId(doGetState());
+        if (currentChannelId && (!channelId || channelId === currentChannelId)) {
+            doDispatch(loadUnreads(currentChannelId));
+        }
+    };
+}
+
+// Permission policies are system-scoped, hence no resource ID on the event and no narrower reset.
+export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (!isPermissionPoliciesEnabled(doGetState())) {
+            return;
+        }
+
+        doDispatch(clearRenderDecisions());
+        doDispatch(refreshPostsAfterPolicyChange());
+    };
+}
+
+export function handleTeamAccessControlUpdatedEvent(msg: WebSocketMessages.TeamAccessControlUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        if (!msg.data.team) {
+            return;
+        }
+
+        const team = JSON.parse(msg.data.team) as Team;
+
+        // Refresh the team record so consumers see the latest policy_enforced
+        // flag (and any other access-control-derived fields).
+        doDispatch({type: TeamTypes.RECEIVED_TEAM, data: team});
+    };
+}
+
+// channel_join_request_created arrives on the admin set only (server-side
+// hook narrows the channel-id broadcast). When the current user is the
+// requester we never see this event — the create path's thunk dispatches the
+// row directly.
+function handleChannelJoinRequestCreated(msg: WebSocketMessages.ChannelJoinRequestCreated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (!msg.data.request) {
+            return;
+        }
+        let req: ChannelJoinRequest;
+        try {
+            req = JSON.parse(msg.data.request) as ChannelJoinRequest;
+        } catch {
+            return;
+        }
+        doDispatch({
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_CREATED,
+            data: req,
+        });
+
+        // If the current user happens to be the requester (e.g. tab open in
+        // two windows) keep myPendingByChannel in sync.
+        const currentUserId = getCurrentUserId(doGetState());
+        if (req.user_id === currentUserId) {
+            doDispatch({
+                type: ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUEST,
+                data: req,
+            });
+        }
+    };
+}
+
+// channel_join_request_updated covers approve / deny / withdraw transitions
+// AND the dedicated requester-scoped copy so a non-member requester sees
+// their own row flip in real time.
+function handleChannelJoinRequestUpdated(msg: WebSocketMessages.ChannelJoinRequestUpdated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (!msg.data.request) {
+            return;
+        }
+        let req: ChannelJoinRequest;
+        try {
+            req = JSON.parse(msg.data.request) as ChannelJoinRequest;
+        } catch {
+            return;
+        }
+        doDispatch({
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED,
+            data: req,
+        });
+
+        const currentUserId = getCurrentUserId(doGetState());
+        if (req.user_id === currentUserId) {
+            doDispatch({
+                type: ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUEST,
+                data: req,
+            });
         }
     };
 }
@@ -886,6 +1159,39 @@ export function handlePostEditEvent(msg: WebSocketMessages.PostEdited) {
     dispatch(receivedPost(post, crtEnabled));
 
     dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
+
+    // This is to handle the case for Data Spillage handling. When a hidden flagged post is restored,
+    // this ensures the post is made visible if a) lies within the boundaries of loaded post blocks,
+    // or b) is newer than all loaded blocks. This ensures an old restored post doesn't become visible on
+    // channel page and cause issue when user scrolls up and loads the older posts in order.
+    if (!post.root_id) {
+        const state = getState();
+        const channelBlocks = state.entities.posts.postsInChannel[post.channel_id];
+        if (channelBlocks && !channelBlocks.some((b) => b.order.includes(post.id))) {
+            const postsDict = state.entities.posts.posts;
+
+            let globalNewest = 0;
+
+            const inLoadedRange = channelBlocks.some((block) => {
+                if (block.order.length === 0) {
+                    return false;
+                }
+                const newest = postsDict[block.order[0]];
+                const oldest = postsDict[block.order[block.order.length - 1]];
+                if (!newest || !oldest) {
+                    return false;
+                }
+
+                globalNewest = Math.max(globalNewest, newest.create_at);
+                return post.create_at >= oldest.create_at && post.create_at <= newest.create_at;
+            });
+
+            const currentChannelId = getCurrentChannelId(state);
+            if (inLoadedRange || (post.create_at > globalNewest && post.channel_id === currentChannelId)) {
+                dispatch(getPostsAround(post.channel_id, post.id));
+            }
+        }
+    }
 }
 
 async function handlePostDeleteEvent(msg: WebSocketMessages.PostDeleted) {
@@ -1093,6 +1399,9 @@ function handleDeleteTeamEvent(msg: WebSocketMessages.Team) {
             } else {
                 getHistory().push('/');
             }
+            if (isChannelPopoutWindow()) {
+                window.close();
+            }
         }
     }
 }
@@ -1117,7 +1426,7 @@ function handleGroupAddedEvent(msg: WebSocketMessages.GroupChannelCreated) {
     return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
 }
 
-function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkActionFunc<void> {
+export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const config = getConfig(state);
@@ -1129,6 +1438,24 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
                 type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
                 data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
             });
+
+            // The member list selectors drop users whose profile is not loaded. This
+            // happens for remote users synced into a shared channel, since the viewer
+            // has never loaded their profile. Fetch it if missing.
+            if (!getUser(state, msg.data.user_id)) {
+                doDispatch(loadUser(msg.data.user_id));
+            }
+
+            // The member list also requires the ChannelMembership relation, which the
+            // user_added event does not carry. Without it, the participant list filters
+            // the user out even when their profile is loaded (e.g. after they post), so
+            // members added while the channel is open (notably remote shared-channel
+            // members synced in from another server) never appear until the member list
+            // is fully reloaded. Fetch the membership if we don't already have it.
+            if (!getChannelMembersInChannels(state)[currentChannelId]?.[msg.data.user_id]) {
+                doDispatch(getChannelMember(currentChannelId, msg.data.user_id));
+            }
+
             if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {
                 doDispatch(getChannelMemberCountsByGroup(currentChannelId));
             }
@@ -1148,6 +1475,250 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
         if (msg.data.team_id && config.RestrictDirectMessage === 'team') {
             dispatch({type: ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED});
         }
+    };
+}
+
+/**
+ * User attributes reach the server two ways: the custom profile attribute REST
+ * API, which emits custom_profile_attributes_field_*, and Attribute Management,
+ * which writes the same fields through the generic property-fields API and emits
+ * only property_field_*. Everything that renders user attributes reads the
+ * custom profile attribute slice, so the generic events have to land there too.
+ *
+ * property_field_* events for a system-targeted field fan out to every connected
+ * client, not just admins, and the custom profile attribute slice only exists
+ * under an Enterprise license. Gate on the license the same way the reconnect
+ * refresh does so unlicensed servers never touch the slice off these events.
+ *
+ * The access_control group lives under a server-generated UUID. The property
+ * group cache only learns that mapping once something fetches the group by name,
+ * so fall back to the cached definitions, which all come from that group. While
+ * neither is known a user-object field cannot be told apart from a plugin's own,
+ * so treat it as not-a-CPA-field; the mount and reconnect fetches pick up
+ * anything missed rather than refetch on every unrelated event.
+ */
+function isUserAttributeField(state: GlobalState, field: PropertyField): boolean {
+    if (field.object_type !== USER_OBJECT_TYPE || !isEnterpriseLicense(getLicense(state))) {
+        return false;
+    }
+    const groupId = getPropertyGroupByName(state, ACCESS_CONTROL_PROPERTY_GROUP)?.id ?? getCustomProfileAttributes(state)[0]?.group_id;
+    return Boolean(groupId) && field.group_id === groupId;
+}
+
+export function handlePropertyFieldCreatedOrUpdated(
+    msg:
+    | WebSocketMessages.PropertyFieldCreated |
+    WebSocketMessages.PropertyFieldUpdated,
+): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        let field;
+        try {
+            field = JSON.parse(msg.data.property_field);
+        } catch {
+            return;
+        }
+
+        // A broadcast field carries no option list the sender considered
+        // caller-specific; options_omitted marks where the list was withheld.
+        // Storing it as received would empty the list for every client, so the
+        // cached options ride along on the dispatch and a refetch of the field's
+        // scope brings back the authoritative, per-caller-filtered list.
+        const optionsOmitted = field.attrs?.options_omitted === true;
+        if (optionsOmitted) {
+            const state = doGetState();
+            const cached = getPropertyFieldById(state, field.id);
+            if (cached) {
+                field = {
+                    ...field,
+                    attrs: {
+                        ...field.attrs,
+                        options: cached.attrs?.options,
+                        options_count: cached.attrs?.options_count,
+                    },
+                };
+            }
+
+            const groupName = getPropertyGroupById(state, field.group_id)?.name;
+            if (groupName) {
+                doDispatch(fetchPropertyFields(groupName, field.object_type, field.target_type, field.target_id));
+            }
+        }
+
+        // A renamed or added graph option would otherwise show its stale cached
+        // name. An inline option list is authoritative for this caller, so it
+        // replaces the cache; a withheld list is caller-specific, so the next
+        // display fetches the names itself.
+        if (supportsHierarchy(field)) {
+            clearGraphOptionNamesForField(field.id);
+            if (!optionsOmitted && Array.isArray(field.attrs?.options)) {
+                const names: Record<string, string> = {};
+                for (const option of field.attrs.options) {
+                    if (option.id) {
+                        names[option.id] = option.name;
+                    }
+                }
+                commitGraphOptionNames(field.id, names);
+            }
+        }
+
+        doDispatch({
+            type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
+            data: {fields: [field]},
+        });
+
+        if (isUserAttributeField(doGetState(), field)) {
+            if (optionsOmitted) {
+                // The broadcast withheld this field's option list. The cached
+                // options restored above come from the properties slice, which a
+                // session that only loaded user attributes never populates, so
+                // restore them from the field's own custom profile attribute
+                // entry instead and patch it in place. Caching the stripped
+                // definition would blank the options for every reader; only fall
+                // back to a refetch when the slice has no prior copy to draw on.
+                const cached = doGetState().entities.general.customProfileAttributes[field.id];
+                if (cached) {
+                    doDispatch({
+                        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+                        data: {
+                            ...field,
+                            attrs: {
+                                ...field.attrs,
+                                options: cached.attrs?.options,
+                                options_count: cached.attrs?.options_count,
+                            },
+                        },
+                    });
+
+                    // User Management skips its mount fetch while this
+                    // slice is nonempty, so a restored list would otherwise
+                    // stay until reconnect. Follow with a refetch only for
+                    // admins who can open that page (the same
+                    // SYSCONSOLE_WRITE_USERMANAGEMENT_USERS gate as
+                    // getShowManageUserSettings; license is already required
+                    // to reach this branch). Other clients keep the restored
+                    // list.
+                    if (haveISystemPermission(doGetState(), {permission: Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS})) {
+                        doDispatch(getCustomProfileAttributeFields());
+                    }
+                } else {
+                    doDispatch(getCustomProfileAttributeFields());
+                }
+            } else {
+                doDispatch({
+                    type: msg.event === WebSocketEvents.PropertyFieldCreated ? GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED : GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+                    data: field,
+                });
+            }
+        }
+
+        // Session attribute field changed; forward the updated field to the Desktop App.
+        if (msg.data.object_type === SESSION_ATTRIBUTES_OBJECT_TYPE) {
+            DesktopApp.updateSessionAttribute(field);
+        }
+    };
+}
+
+export function handlePropertyFieldDeleted(
+    msg: WebSocketMessages.PropertyFieldDeleted,
+): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        doDispatch({
+            type: PropertyTypes.PROPERTY_FIELD_DELETED,
+            data: {fieldId: msg.data.field_id},
+        });
+
+        // The payload carries no field, so the group it belonged to is unknown
+        // here. The reducer leaves the slice alone for an id it doesn't hold,
+        // which is the same membership test a group check would make.
+        doDispatch({
+            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED,
+            data: msg.data.field_id,
+        });
+    };
+}
+
+// The server emits five distinct payloads under one event, distinguished only by
+// which keys are present (see TestPropertyValuesUpdatedPayloadShapes):
+//
+//   upsert            object_type + target_id + the target's full values array
+//   single delete     same keys, but one synthesized row with an empty id
+//   delete for target same keys, values "[]"
+//   delete for field  field_id, no object_type/target_id, values "[]"
+//   withheld          same keys as upsert, but one or more rows carry the
+//                     withheld marker in place of their value
+//
+// A delete tombstone carries no value, and a nil RawMessage marshals to null, so
+// it is byte-identical to a user-initiated `PATCH value: null` apart from the
+// empty id. Treating either of the empty-array shapes as an upsert is a no-op,
+// and treating a tombstone as one leaves a blank row in place of the deleted
+// value — so each shape has to be routed to its own reducer action. A withheld
+// row carries a real id, so it can't be mistaken for the tombstone shape either;
+// it is split out below and repaired with a refetch instead of being stored.
+export function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        let values;
+        try {
+            values = JSON.parse(msg.data.values ?? '[]');
+        } catch {
+            // invalid JSON
+            return;
+        }
+
+        // Shape routing stays keyed on the full array: an event whose every row is
+        // withheld must not be mistaken for the values.length === 0 branch below,
+        // which would wipe the target's values for fields the client can't see.
+        const withheld: Array<PropertyValue<string>> = values.filter((value: PropertyValue<unknown>) => isWithheldPropertyValue(value.value));
+        const visible: Array<PropertyValue<string>> = values.filter((value: PropertyValue<unknown>) => !isWithheldPropertyValue(value.value));
+
+        const parsedPropertyValuesUpdated = {
+            object_type: msg.data.object_type,
+            target_id: msg.data.target_id,
+            field_id: msg.data.field_id,
+            values: visible,
+        };
+
+        const {object_type: objectType, target_id: targetId, field_id: fieldId} = msg.data;
+        const isTargetScoped = objectType !== undefined && targetId !== undefined;
+
+        if (!isTargetScoped && fieldId) {
+            doDispatch({
+                type: PropertyTypes.PROPERTY_VALUES_DELETED_FOR_FIELD,
+                data: {fieldId},
+            });
+        } else if (isTargetScoped && values.length === 0) {
+            doDispatch({
+                type: PropertyTypes.PROPERTY_VALUES_DELETED_FOR_TARGET,
+                data: {targetId},
+            });
+        } else if (isTargetScoped && values.every((value: PropertyValue<unknown>) => !value.id)) {
+            for (const value of values) {
+                doDispatch({
+                    type: PropertyTypes.PROPERTY_VALUE_DELETED,
+                    data: {targetId: value.target_id ?? targetId, fieldId: value.field_id},
+                });
+            }
+        } else if (visible.length > 0) {
+            // Populate the Redux property values store so any component that reads
+            // from entities.properties.values (e.g. GlobalClassificationBanner) gets
+            // real-time updates without an extra network round-trip.
+            doDispatch({
+                type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+                data: {values: visible},
+            });
+        }
+
+        if (withheld.length > 0 && isTargetScoped) {
+            const state = doGetState();
+            const groupIds = new Set<string>(withheld.map((value) => value.group_id));
+            for (const groupId of groupIds) {
+                const groupName = getPropertyGroupById(state, groupId)?.name;
+                if (groupName) {
+                    doDispatch(fetchPropertyValues(groupName, objectType, targetId));
+                }
+            }
+        }
+
+        doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
     };
 }
 
@@ -1206,7 +1777,10 @@ export function handleUserRemovedEvent(msg: WebSocketMessages.UserRemovedFromCha
         });
 
         if (currentChannel && msg.data.channel_id === currentChannel.id) {
-            redirectUserToDefaultTeam();
+            const redirect = redirectUserToDefaultTeam();
+            if (isChannelPopoutWindow()) {
+                redirect.then(() => window.close());
+            }
         }
 
         if (isGuest(currentUser.roles)) {
@@ -1464,6 +2038,12 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
         store.dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...user, roles}});
         dispatch(loadRolesIfNeeded(newRoles));
 
+        if (msg.data.user_id === getCurrentUserId(store.getState()) &&
+                isPermissionPoliciesEnabled(store.getState())) {
+            store.dispatch(clearRenderDecisions());
+            store.dispatch(refreshPostsAfterPolicyChange());
+        }
+
         if (demoted && global.location.pathname.startsWith('/admin_console')) {
             redirectUserToDefaultTeam();
         }
@@ -1483,24 +2063,34 @@ function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {
         dispatch(resetReloadPostsInTranslatedChannels());
     }
 
+    // If the permission-policies feature availability changed, cached render
+    // decisions may no longer be valid; clear them so they are recomputed.
+    if (currentConfig?.FeatureFlagPermissionPolicies !== newConfig?.FeatureFlagPermissionPolicies) {
+        store.dispatch(clearRenderDecisions());
+    }
+
     store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: newConfig});
 }
 
 function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
     store.dispatch({type: GeneralTypes.CLIENT_LICENSE_RECEIVED, data: msg.data.license});
 
+    // A license change can flip ABAC availability, so clear cached render
+    // decisions; they will be recomputed on demand.
+    store.dispatch(clearRenderDecisions());
+
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
-}
-
-function handlePluginStatusesChangedEvent(msg: WebSocketMessages.PluginStatusesChanged) {
-    store.dispatch({type: AdminTypes.RECEIVED_PLUGIN_STATUSES, data: msg.data.plugin_statuses});
 }
 
 function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
     const data = (msg.data && msg.data.dialog);
     const dialog = JSON.parse(data) as OpenDialogRequest || {};
 
+    // Store the dialog before the trigger-id guard. The WS open_dialog event can
+    // arrive before the command/action response has set dialogTriggerId; storing
+    // the dialog now lets the store.subscribe fallback in interactive_dialog.ts
+    // open it once the trigger id lands. Skipping this dispatch loses the dialog.
     store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
 
     const currentTriggerId = getState().entities.integrations.dialogTriggerId;
@@ -1509,7 +2099,22 @@ function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
         return;
     }
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
+    if (getOpenDialogCount(getState()) >= MAX_OPEN_DIALOGS) {
+        // eslint-disable-next-line no-console
+        console.warn('Maximum number of open dialogs reached');
+        store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: dialog.trigger_id});
+        return;
+    }
+
+    const modalId = `${ModalIdentifiers.INTERACTIVE_DIALOG}_${dialog.trigger_id}`;
+    store.dispatch(openModal({
+        modalId,
+        dialogType: DialogRouter,
+        dialogProps: {
+            triggerId: dialog.trigger_id,
+            onExited: () => store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: dialog.trigger_id}),
+        },
+    }));
 }
 
 function handleGroupUpdatedEvent(msg: WebSocketMessages.ReceivedGroup) {
@@ -1904,11 +2509,13 @@ function handleCreateScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): T
 function handleUpdateScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const scheduledPost = JSON.parse(msg.data.scheduledPost) as ScheduledPost;
+        const teamId = getScheduledPostTeamId(getState(), scheduledPost);
 
         doDispatch({
             type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
             data: {
                 scheduledPost,
+                teamId,
             },
         });
     };
@@ -1995,10 +2602,33 @@ function handleChannelBookmarkSorted(msg: WebSocketMessages.ChannelBookmarkSorte
     };
 }
 
-export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAValuesUpdated) {
-    return {
-        type: UserTypes.RECEIVED_CPA_VALUES,
-        data: {userID: msg.data.user_id, customAttributeValues: msg.data.values},
+export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAValuesUpdated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        const entries = Object.entries(msg.data.values);
+        const withheld = entries.filter(([, value]) => isWithheldPropertyValue(value));
+        const visible = Object.fromEntries(entries.filter(([, value]) => !isWithheldPropertyValue(value)));
+
+        if (Object.keys(visible).length > 0) {
+            doDispatch({
+                type: UserTypes.RECEIVED_CPA_VALUES,
+                data: {userID: msg.data.user_id, customAttributeValues: visible},
+            });
+        }
+
+        // A withheld field id is dropped rather than stored, so the reducer's merge
+        // leaves whatever the store already had for it until the refetch below lands.
+        if (withheld.length > 0) {
+            doDispatch(getCustomProfileAttributeValues(msg.data.user_id));
+        }
+
+        // The current user's attribute values are an input to ABAC evaluation, so
+        // their render decisions are now stale. Other users' updates do not affect
+        // the current user's own decisions.
+        if (msg.data.user_id === getCurrentUserId(doGetState()) &&
+                isPermissionPoliciesEnabled(doGetState())) {
+            doDispatch(clearRenderDecisions());
+            doDispatch(refreshPostsAfterPolicyChange());
+        }
     };
 }
 
@@ -2060,6 +2690,35 @@ export function handlePostTranslationUpdated(msg: WebSocketMessages.PostTranslat
                 ...t,
             },
         });
+    };
+}
+
+const terminalJobStatuses = new Set([
+    JobStatuses.SUCCESS,
+    JobStatuses.ERROR,
+    JobStatuses.WARNING,
+    JobStatuses.CANCELED,
+]);
+
+export function handleJobUpdated(msg: WebSocketMessages.JobUpdated): ThunkActionFunc<void> {
+    return (dispatch) => {
+        let job;
+        try {
+            job = JSON.parse(msg.data.job) as Job;
+        } catch {
+            return;
+        }
+        dispatch({
+            type: JobTypes.RECEIVED_JOB,
+            data: job,
+        });
+
+        // Re-fetch the full job list on terminal status to populate details
+        // (run time, error message) that are intentionally omitted from the
+        // WebSocket payload for security.
+        if (terminalJobStatuses.has(job.status)) {
+            dispatch(getJobsByType(job.type));
+        }
     };
 }
 
@@ -2143,6 +2802,33 @@ export function handleFileDownloadRejected(msg: WebSocketMessages.FileDownloadRe
                 position: 'bottom-center',
                 onExited: () => {
                     // Close the modal when the toast is dismissed
+                    dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
+                },
+            },
+        }));
+    };
+}
+
+export function handleFileUploadRejected(msg: WebSocketMessages.FileUploadRejected): ThunkActionFunc<void> {
+    return (dispatch) => {
+        const {rejection_reason: rejectionReason} = msg.data;
+
+        const intl = getIntl();
+        const displayMessage = intl.formatMessage(
+            {id: 'file_upload.rejected.file', defaultMessage: 'File upload blocked: {reason}'},
+            {reason: rejectionReason},
+        );
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.INFO_TOAST,
+            dialogType: InfoToast,
+            dialogProps: {
+                content: {
+                    icon: React.createElement(AlertCircleOutlineIcon, {size: 18}),
+                    message: displayMessage,
+                },
+                position: 'bottom-center',
+                onExited: () => {
                     dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
                 },
             },

@@ -9,14 +9,14 @@
 
 // Group: @channels @channel_sidebar
 
-import {getAdminAccount} from '../../../support/env';
+import {getAdminAccount} from '@/support/env';
 
 describe('Channel switching', () => {
     const sysadmin = getAdminAccount();
     const cmdOrCtrl = Cypress.platform === 'darwin' ? '{cmd}' : '{ctrl}';
 
-    let testTeam;
-    let testChannel;
+    let testTeam: Cypress.Team;
+    let testChannel: Cypress.Channel;
 
     beforeEach(() => {
         // # Start with a new team

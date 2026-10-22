@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	sq "github.com/mattermost/squirrel"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -76,7 +77,7 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	// Check for environment variable override for console log level (useful for debugging tests)
 	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
 	if consoleLevel == "" {
-		consoleLevel = mlog.LvlStdLog.Name
+		consoleLevel = mlog.LvlDebug.Name
 	}
 	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
 
@@ -125,7 +126,7 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
-	options = append(options, SetLogger(testLogger))
+	options = append(options, SetLogger(testLogger), DisableGlobalLogger())
 
 	s, err := NewServer(options...)
 	require.NoError(tb, err)
@@ -167,15 +168,6 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	th.App.Srv().Store().MarkSystemRanUnitTests()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
-
-	// Disable strict password requirements for test
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PasswordSettings.MinimumLength = 5
-		*cfg.PasswordSettings.Lowercase = false
-		*cfg.PasswordSettings.Uppercase = false
-		*cfg.PasswordSettings.Symbol = false
-		*cfg.PasswordSettings.Number = false
-	})
 
 	tb.Cleanup(func() {
 		if th.IncludeCacheLayer {
@@ -269,9 +261,26 @@ func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	return setupTestHelper(dbStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, true, nil, nil, tb)
 }
 
+func useCustomPushNotificationServer(cfg *model.Config) {
+	*cfg.EmailSettings.PushNotificationServer = "https://push.example.com"
+}
+
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
+	return SetupConfigWithStoreMock(tb, nil)
+}
+
+// SetupConfigWithStoreMock applies updateConfig before Server.Start() wires the config listeners
+// that read from the store. Set the starting config here rather than via a later
+// th.App.UpdateConfig, which fires those listeners against the store mock.
+func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(*model.Config)) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false, nil, nil, tb)
+	setupConfig := func(cfg *model.Config) {
+		useCustomPushNotificationServer(cfg)
+		if updateConfig != nil {
+			updateConfig(cfg)
+		}
+	}
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false, setupConfig, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -292,7 +301,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), true, false, nil, nil, tb)
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), true, false, useCustomPushNotificationServer, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -319,15 +328,15 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	th.SystemAdminUser = th.CreateUser(tb)
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 	require.Nil(tb, appErr)
-	th.SystemAdminUser, appErr = th.App.GetUser(th.SystemAdminUser.Id)
+	th.SystemAdminUser, appErr = th.App.GetUser(th.Context, th.SystemAdminUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser = th.CreateUser(tb)
-	th.BasicUser, appErr = th.App.GetUser(th.BasicUser.Id)
+	th.BasicUser, appErr = th.App.GetUser(th.Context, th.BasicUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser2 = th.CreateUser(tb)
-	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
+	th.BasicUser2, appErr = th.App.GetUser(th.Context, th.BasicUser2.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicTeam = th.CreateTeam(tb)
@@ -381,7 +390,7 @@ func (th *TestHelper) CreateUserOrGuest(tb testing.TB, guest bool) *model.User {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 	}
 
@@ -415,13 +424,13 @@ type ChannelOption func(*model.Channel)
 
 func WithShared(v bool) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.Shared = model.NewPointer(v)
+		channel.Shared = new(v)
 	}
 }
 
 func WithCreateAt(v int64) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.CreateAt = *model.NewPointer(v)
+		channel.CreateAt = *new(v)
 	}
 }
 
@@ -588,10 +597,10 @@ func (th *TestHelper) CreateGroup(tb testing.TB) *model.Group {
 	id := model.NewId()
 	group := &model.Group{
 		DisplayName: "dn_" + id,
-		Name:        model.NewPointer("name" + id),
+		Name:        new("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	}
 
 	group, err := th.App.CreateGroup(group)
@@ -775,7 +784,7 @@ func (th *TestHelper) CreateFileInfo(tb testing.TB, userId, postId, channelId st
 
 func (th *TestHelper) PostPatch(tb testing.TB, post *model.Post, message string, options ...PostPatchOptions) *model.Post {
 	postPatch := &model.PostPatch{
-		Message: model.NewPointer(message),
+		Message: new(message),
 	}
 	for _, optionFunc := range options {
 		optionFunc(postPatch)
@@ -823,6 +832,36 @@ func decodeJSON[T any](tb testing.TB, o any, result *T) *T {
 	return result
 }
 
+func (th *TestHelper) SetUserRemoteID(tb testing.TB, userID, remoteID string) *model.User {
+	tb.Helper()
+
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Update("Users").
+		Set("RemoteId", remoteID).
+		Where(sq.Eq{"Id": userID}).
+		ToSql()
+	require.NoError(tb, err)
+
+	_, err = th.App.Srv().Store().GetInternalMasterDB().Exec(query, args...)
+	require.NoError(tb, err)
+
+	th.App.InvalidateCacheForUser(userID)
+	user, appErr := th.App.GetUser(th.Context, userID)
+	require.Nil(tb, appErr)
+	return user
+}
+
 func (th *TestHelper) Parallel(t *testing.T) {
 	mainHelper.Parallel(t)
+}
+
+// anonymousCallerId can be used for calls to the service that aren't tied to a specific entity.
+// These calls will not be able to access any data that has access control restrictions.
+const anonymousCallerId = ""
+
+// emptyContextWithCallerID creates a new empty request context with a caller ID for testing.
+// This is used in tests when no context is available but a caller ID is needed.
+func (th *TestHelper) emptyContextWithCallerID(callerID string) request.CTX {
+	ctx := model.WithCallerID(request.EmptyContext(th.App.Log()).Context(), callerID)
+	return request.EmptyContext(th.App.Log()).WithContext(ctx)
 }

@@ -22,7 +22,7 @@ type OwnProps = {
     roleName: string;
     usersToAdd: Record<string, UserProfile>;
     usersToRemove: Record<string, UserProfile>;
-}
+};
 
 function searchUsersToAdd(users: Record<string, UserProfile>, term: string): Record<string, UserProfile> {
     const profiles = filterProfilesStartingWithTerm(Object.keys(users).map((key) => users[key]), term);

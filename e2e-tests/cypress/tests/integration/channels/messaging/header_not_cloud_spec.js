@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @messaging @plugin @not_cloud
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {matterpollPlugin} from '../../../utils/plugins';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {matterpollPlugin} from '@/utils/plugins';
 
 describe('Header', () => {
     before(() => {

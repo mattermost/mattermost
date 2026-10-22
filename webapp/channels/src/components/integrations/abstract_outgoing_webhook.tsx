@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ChangeEventHandler, FormEvent, MouseEvent} from 'react';
+import type {ChangeEventHandler, FormEvent, JSX, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -582,7 +583,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Link
-                                className='btn btn-tertiary'
+                                className={buttonClassNames({emphasis: 'tertiary'})}
                                 to={`/${this.props.team.name}/integrations/outgoing_webhooks`}
                             >
                                 <FormattedMessage
@@ -591,7 +592,6 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
                                 spinningText={this.props.loading}

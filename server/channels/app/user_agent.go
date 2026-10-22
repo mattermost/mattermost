@@ -24,6 +24,10 @@ var platformNames = map[uasurfer.Platform]string{
 	uasurfer.PlatformWindowsPhone: "Windows Phone",
 }
 
+// uasurfer has no Android platform of its own: it reports Android devices as
+// PlatformLinux, so the OS name is what tells them apart from desktop Linux.
+const platformNameAndroid = "Android"
+
 func getPlatformName(ua *uasurfer.UserAgent, userAgentString string) string {
 	platform := ua.OS.Platform
 
@@ -33,8 +37,12 @@ func getPlatformName(ua *uasurfer.UserAgent, userAgentString string) string {
 		} else if strings.Contains(userAgentString, "iPad") {
 			platform = uasurfer.PlatformiPad
 		} else {
-			platform = uasurfer.PlatformLinux
+			return platformNameAndroid
 		}
+	}
+
+	if platform == uasurfer.PlatformLinux && ua.OS.Name == uasurfer.OSAndroid {
+		return platformNameAndroid
 	}
 
 	name, ok := platformNames[platform]
@@ -107,18 +115,34 @@ func getOSName(ua *uasurfer.UserAgent, userAgentString string) string {
 	return osNames[uasurfer.OSUnknown]
 }
 
+const desktopAppVersionPrefix = "Mattermost/"
+
 var versionPrefixes = []string{
 	"Mattermost Mobile/",
-	"Mattermost/",
+	desktopAppVersionPrefix,
 	"mmctl/",
 	"Franz/",
 }
 
+func GetDesktopAppVersion(userAgentString string) (version string, ok bool) {
+	idx := strings.Index(userAgentString, desktopAppVersionPrefix)
+	if idx == -1 {
+		return "", false
+	}
+	if idx > 0 && userAgentString[idx-1] != ' ' {
+		return "", false
+	}
+	after := userAgentString[idx+len(desktopAppVersionPrefix):]
+	if fields := strings.Fields(after); len(fields) > 0 {
+		return limitStringLength(fields[0], maxUserAgentVersionLength), true
+	}
+	return "", false
+}
+
 func getBrowserVersion(ua *uasurfer.UserAgent, userAgentString string) string {
 	for _, prefix := range versionPrefixes {
-		if index := strings.Index(userAgentString, prefix); index != -1 {
-			afterPrefix := userAgentString[index+len(prefix):]
-			if fields := strings.Fields(afterPrefix); len(fields) > 0 {
+		if _, after, ok := strings.Cut(userAgentString, prefix); ok {
+			if fields := strings.Fields(after); len(fields) > 0 {
 				// MM-55320: limitStringLength prevents potential DOS caused by filling an unbounded string with junk data
 				return limitStringLength(fields[0], maxUserAgentVersionLength)
 			}

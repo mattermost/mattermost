@@ -29,11 +29,15 @@ function buildPropString(inputProps: {[x: string]: any}) {
         return undefined;
     }
 
-    const result = [(<>{'PROPS: '}</>)];
+    const result = [(<React.Fragment key='propsTitle'>{'PROPS: '}</React.Fragment>)];
     propKeys.forEach((v) => {
-        result.push((<><b>{v}</b>{`: ${inputProps[v]}, `}</>));
+        result.push((<React.Fragment key={v}><b>{v}</b>{`: ${inputProps[v]}, `}</React.Fragment >));
     });
     return result;
+}
+
+function buildPropValueKey(inputProps: {[x: string]: any}) {
+    return Object.entries(inputProps).map(([key, value]) => `${key}:${value}`).join('-');
 }
 
 export function buildComponent(
@@ -66,13 +70,13 @@ export function buildComponent(
     propsVariations.forEach((v) => {
         const propString = buildPropString(v);
         res.push(
-            <>
+            <React.Fragment key={buildPropValueKey(v)}>
                 {Boolean(propString) && <p>{propString}</p>}
                 <Component
                     {...builtSetProps}
                     {...v}
                 />
-            </>,
+            </React.Fragment>,
         );
     });
     return res;

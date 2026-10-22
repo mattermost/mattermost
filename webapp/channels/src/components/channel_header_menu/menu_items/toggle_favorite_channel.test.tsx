@@ -41,6 +41,24 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleFavoriteChannel', () => {
         expect(channelActions.favoriteChannel).toHaveBeenCalledWith(channel.id);
     });
 
+    test('should render menu item as disabled when channel is in a managed category', () => {
+        const isChannelInManagedCategorySpy = jest.spyOn(require('mattermost-redux/selectors/entities/channel_categories'), 'isChannelInManagedCategory').mockReturnValue(true);
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ToggleFavoriteChannel
+                    channelID={channel.id}
+                    isFavorite={false}
+                />
+            </WithTestMenuContext>, {},
+        );
+
+        const menuItem = screen.getByRole('menuitem', {name: 'Add to Favorites'});
+        expect(menuItem).toHaveAttribute('aria-disabled', 'true');
+
+        isChannelInManagedCategorySpy.mockRestore();
+    });
+
     test('renders the component correctly, handles correct click event, is favorite true', async () => {
         renderWithContext(
             <WithTestMenuContext>

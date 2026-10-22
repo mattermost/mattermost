@@ -31,7 +31,7 @@ type Props = {
         closeRhs: () => void;
         closeRhsMenu: () => void;
     };
-}
+};
 
 export default class MobileChannelHeader extends React.PureComponent<Props> {
     componentDidMount() {

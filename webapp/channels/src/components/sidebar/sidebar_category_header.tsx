@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {DraggableProvidedDragHandleProps} from '@hello-pangea/dnd';
 import classNames from 'classnames';
 import React from 'react';
-import type {DraggableProvidedDragHandleProps} from 'react-beautiful-dnd';
 
 import {wrapEmojis} from 'utils/emoji_utils';
 
 type StaticProps = {
     children?: React.ReactNode;
     displayName: string;
-}
+};
 
 export const SidebarCategoryHeaderStatic = React.forwardRef((props: StaticProps, ref?: React.Ref<HTMLDivElement>) => {
     return (
@@ -30,14 +30,15 @@ export const SidebarCategoryHeaderStatic = React.forwardRef((props: StaticProps,
 SidebarCategoryHeaderStatic.displayName = 'SidebarCategoryHeaderStatic';
 
 type Props = StaticProps & {
-    dragHandleProps?: DraggableProvidedDragHandleProps;
+    dragHandleProps?: DraggableProvidedDragHandleProps | null;
     isCollapsed: boolean;
     isCollapsible: boolean;
     isDragging?: boolean;
     isDraggingOver?: boolean;
+    isManaged?: boolean;
     muted: boolean;
     onClick: (event: React.MouseEvent<HTMLElement>) => void;
-}
+};
 
 export const SidebarCategoryHeader = React.forwardRef(({
     children,
@@ -46,6 +47,7 @@ export const SidebarCategoryHeader = React.forwardRef(({
     isCollapsed,
     isCollapsible = true,
     isDragging = false,
+    isManaged = false,
     muted,
     onClick,
 }: Props, ref?: React.Ref<HTMLButtonElement>) => {
@@ -75,6 +77,7 @@ export const SidebarCategoryHeader = React.forwardRef(({
                         'hide-arrow': !isCollapsible,
                     })}
                 />
+                {isManaged && <i className='icon icon-folder-outline'/>}
                 <div
                     className='SidebarChannelGroupHeader_text'
                     {...dragHandleProps}

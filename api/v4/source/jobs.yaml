@@ -3,15 +3,27 @@
       tags:
         - jobs
       summary: Get the jobs.
-      description: >
+      description: |
         Get a page of jobs. Use the query parameters to modify the behaviour of
         this endpoint.
 
         __Minimum server version: 4.1__
 
         ##### Permissions
+        Must have permission to read at least one job type returned by this call.
+        When no `job_type` query parameter is set, the server only includes job types your session may read; required permission depends on the job type:
 
-        Must have `manage_jobs` permission.
+        - `read_data_retention_job` — `data_retention`
+        - `read_compliance_export_job` — `message_export`
+        - `read_elasticsearch_post_indexing_job` — `elasticsearch_post_indexing`
+        - `read_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
+        - `read_ldap_sync_job` — `ldap_sync`
+        - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `mobile_session_metadata`, `extract_content`
+        - `manage_system` — `access_control_sync`
+
+        When `job_type` is set, you must have the permission that matches that type (same mapping as above).
+
+        This endpoint does not accept `team_id`. To list `access_control_sync` jobs scoped to a team without `manage_system`, use `GET /api/v4/jobs/type/access_control_sync` with query parameter `team_id` set to the team GUID (requires `manage_team_access_rules` on that team).
       operationId: GetJobs
       parameters:
         - name: page
@@ -59,7 +71,15 @@
         Create a new job.
         __Minimum server version: 4.1__
         ##### Permissions
-        Must have `manage_jobs` permission.
+        Must have permission to create the requested job type. Required permission depends on `type`:
+
+        - `create_data_retention_job` — `data_retention`
+        - `create_compliance_export_job` — `message_export`
+        - `create_elasticsearch_post_indexing_job` — `elasticsearch_post_indexing`
+        - `create_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
+        - `create_ldap_sync_job` — `ldap_sync`
+        - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
+        - `access_control_sync` — `manage_system`, or `manage_channel_access_rules` on the channel given in job `data`, or `manage_team_access_rules` on the team in job `data` (see server logic for scoped sync jobs)
       operationId: CreateJob
       requestBody:
         content:
@@ -100,7 +120,15 @@
         Gets a single job.
         __Minimum server version: 4.1__
         ##### Permissions
-        Must have `manage_jobs` permission.
+        Must have permission to read the job's type:
+
+        - `read_data_retention_job` — `data_retention`
+        - `read_compliance_export_job` — `message_export`
+        - `read_elasticsearch_post_indexing_job` — `elasticsearch_post_indexing`
+        - `read_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
+        - `read_ldap_sync_job` — `ldap_sync`
+        - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `mobile_session_metadata`, `extract_content`
+        - `manage_system` — `access_control_sync`
       operationId: GetJob
       parameters:
         - name: job_id
@@ -133,7 +161,7 @@
         Download the result of a single job.
         __Minimum server version: 5.28__
         ##### Permissions
-        Must have `manage_jobs` permission.
+        Must have `download_compliance_export_result` permission for message export jobs.
       operationId: DownloadJob
       parameters:
         - name: job_id
@@ -160,7 +188,15 @@
         Cancel a job.
         __Minimum server version: 4.1__
         ##### Permissions
-        Must have `manage_jobs` permission.
+        Same as creating that job type (cancel uses the create permission check):
+
+        - `create_data_retention_job` — `data_retention`
+        - `create_compliance_export_job` — `message_export`
+        - `create_elasticsearch_post_indexing_job` — `elasticsearch_post_indexing`
+        - `create_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
+        - `create_ldap_sync_job` — `ldap_sync`
+        - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
+        - `access_control_sync` — `manage_system`, or `manage_channel_access_rules` / `manage_team_access_rules` for scoped jobs as when creating
       operationId: CancelJob
       parameters:
         - name: job_id
@@ -184,26 +220,41 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  "/api/v4/jobs/type/{type}":
+  "/api/v4/jobs/type/{job_type}":
     get:
       tags:
         - jobs
       summary: Get the jobs of the given type.
-      description: >
+      description: |
         Get a page of jobs of the given type. Use the query parameters to modify
         the behaviour of this endpoint.
 
         __Minimum server version: 4.1__
 
         ##### Permissions
+        Must have permission to read the path `job_type`, using the same mapping as `GET /api/v4/jobs`:
 
-        Must have `manage_jobs` permission.
+        - `read_data_retention_job` — `data_retention`
+        - `read_compliance_export_job` — `message_export`
+        - `read_elasticsearch_post_indexing_job` — `elasticsearch_post_indexing`
+        - `read_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
+        - `read_ldap_sync_job` — `ldap_sync`
+        - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `mobile_session_metadata`, `extract_content`
+        - `manage_system` — `access_control_sync`
+
+        When `job_type` is `access_control_sync` and query parameter `team_id` is set to a valid team GUID, team admins with `manage_team_access_rules` on that team may list jobs scoped to that team without `manage_system`. When `team_id` is set, results include only jobs whose stored data matches that team for the requested type.
       operationId: GetJobsByType
       parameters:
-        - name: type
+        - name: job_type
           in: path
           description: Job type
           required: true
+          schema:
+            type: string
+        - name: team_id
+          in: query
+          description: |
+            Optional team GUID. When set, the server returns jobs of the given `job_type` whose job data includes this `team_id` (see server filtering). For `access_control_sync`, team admins with `manage_team_access_rules` on this team may use this parameter to read team-scoped jobs without `manage_system`.
           schema:
             type: string
         - name: page
@@ -238,13 +289,24 @@
       tags:
         - jobs
       summary: Update the status of a job
-      description: >
+      description: |
         Update the status of a job. Valid status updates:
         - 'in_progress' -> 'pending'
         - 'in_progress' | 'pending' -> 'cancel_requested'
         - 'cancel_requested' -> 'canceled'
 
         Add force to the body of the PATCH request to bypass the given rules, the only statuses you can go to are: pending, cancel_requested and canceled. This can have unexpected consequences and should be used with caution.
+
+        ##### Permissions
+        Must have permission to manage the job's type:
+
+        - `manage_data_retention_job` — `data_retention`
+        - `manage_compliance_export_job` — `message_export`
+        - `manage_elasticsearch_post_indexing_job` — `elasticsearch_post_indexing`
+        - `manage_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
+        - `manage_ldap_sync_job` — `ldap_sync`
+        - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
+        - `manage_system` — `access_control_sync`
       operationId: UpdateJobStatus
       parameters:
         - name: job_id

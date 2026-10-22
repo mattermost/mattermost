@@ -1,0 +1,669 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Styles for the stacked DecisionDetailsModal — the per-action
+// breakdown shown when an author clicks a decision chip. Includes
+// the modal's own flex chain (sibling to the picker modal because
+// GenericModal portals to the document root), the user-attribute /
+// session-attribute snapshot block, the per-action rule + expression
+// + AST-trace details, and the trace tree itself.
+
+// DecisionDetailsModal lives at the root level (sibling to the
+// SimulateAccessModal stacked modal) — it gets its own rules rather
+// than nesting because GenericModal renders its DOM at the document
+// portal root. Without this block long evaluation trees overflow the
+// modal frame and scroll the page background instead of the modal
+// body.
+// Flex chain (from outermost in, all need to participate or the chain
+// breaks): .modal-content (cap height) → .modal-body (Bootstrap layer,
+// must be flex 1 column with hidden overflow so its child can grow) →
+// .GenericModal__body (Mattermost wrapper, ditto) → modal content
+// scrolls inside the GenericModal body. Skipping .modal-body — which
+// is what the previous attempt did — leaves Bootstrap's default
+// block-level body in place and the height constraint never reaches
+// the inner content.
+.SimulateAccessModal__details {
+    .modal-content {
+        display: flex;
+        max-height: 90vh;
+        flex-direction: column;
+    }
+
+    .modal-body {
+        display: flex;
+        overflow: hidden;
+        min-height: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+    }
+
+    .GenericModal__body {
+        min-height: 0;
+        flex: 1 1 auto;
+        overflow-y: auto;
+    }
+}
+
+.SimulateAccessModal__detailsHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 12px;
+}
+
+.SimulateAccessModal__detailsAvatar {
+    flex-shrink: 0;
+}
+
+// Identity column needs `min-width: 0` so its ellipsizing children
+// can actually shrink — without it a long display-name pushes the
+// modal width past the configured max (each text span just expands
+// and ignores the `text-overflow: ellipsis` directive). The `flex: 1`
+// lets it claim the leftover width past the avatar.
+.SimulateAccessModal__detailsIdentity {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    line-height: 18px;
+}
+
+.SimulateAccessModal__detailsDisplayName {
+    overflow: hidden;
+    color: var(--center-channel-color);
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.SimulateAccessModal__detailsUsername {
+    overflow: hidden;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// Evaluation-trace block: the user/session attribute snapshot the
+// simulator used. Two compact dl groups stack vertically; on wide
+// viewports they could go side-by-side but the modal width is
+// constrained so a vertical layout reads better.
+.SimulateAccessModal__detailsAttributes {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: 6px;
+    margin-bottom: 16px;
+    background: rgba(var(--center-channel-color-rgb), 0.03);
+    gap: 12px;
+}
+
+.SimulateAccessModal__detailsAttributeGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.SimulateAccessModal__detailsAttributeHeading {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.SimulateAccessModal__detailsAttributeList {
+    display: grid;
+    padding: 0;
+    margin: 0;
+    column-gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 4px;
+
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.SimulateAccessModal__detailsAttributeRow {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.SimulateAccessModal__detailsAttributeKey {
+    min-width: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+    font-weight: 600;
+
+    // Attribute keys can be long (e.g.
+    // `network_classification_security_zone`) and ellipsizing them
+    // would hide which attribute is being shown. Wrap instead, and
+    // let the column shrink so the wrapped lines stay inside the
+    // grid cell.
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.SimulateAccessModal__detailsAttributeValue {
+    overflow: hidden;
+    min-width: 0;
+    flex: 1 1 auto;
+    margin: 0;
+    color: var(--center-channel-color);
+    font-family: monospace;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.SimulateAccessModal__detailsList {
+    display: flex;
+    flex-direction: column;
+    padding: 0 0 24px;
+    margin: 0;
+    gap: 6px;
+    list-style: none;
+}
+
+.SimulateAccessModal__detailsItem {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    gap: 8px;
+}
+
+.SimulateAccessModal__detailsRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.SimulateAccessModal__detailsLabel {
+    overflow: hidden;
+    min-width: 0;
+    flex: 1 1 auto;
+    color: var(--center-channel-color);
+    font-size: 13px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// Per-row disclosure toggle: the rule + tree details start collapsed
+// behind this button so the modal opens with a tight summary view.
+// Tertiary-button look matches the rest of the admin-console copy.
+// Left padding is dropped to 0 so the "Show evaluation trace" text
+// aligns with the permission label above it (both start at the card's
+// 12px content gutter). The chevron sits at the end of the line, after
+// the text, mirroring the standard expand affordance pattern.
+.SimulateAccessModal__detailsToggle {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    padding: 4px 8px 4px 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--button-bg);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 4px;
+
+    // No hover background or underline: the toggle reads as a
+    // brand-colored link inside a tinted card; a hover tint or
+    // underline both felt like clutter. Cursor change + brand color
+    // already make it discoverable as interactive. Keyboard-focus
+    // still gets the 2px outline ring so the focus state stays
+    // accessible.
+    &:focus-visible {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
+
+    i {
+        font-size: 14px;
+    }
+}
+
+.SimulateAccessModal__detailsRule {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 10px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    gap: 4px;
+}
+
+// When the deny has more than one contributing same-scope policy
+// (system console: peer policies + draft) the wrapper hosts numbered
+// policy sections instead of a single rule block. Drop the outer
+// padding/border so the per-policy cards inside own their own
+// chrome — otherwise they look like nested rectangles within a
+// rectangle. The allow / deny outcome is conveyed by the section's
+// numbered badge color (green / red) and the outcome chip on the
+// right; we deliberately do NOT also tint the section's left edge or
+// background. Three concurrent outcome cues read as visual noise and
+// made the multi-policy view look unrelated to the multi-rule view
+// inside a single policy (which has none of that tinting). A single
+// badge-color-coded affordance is enough.
+.SimulateAccessModal__detailsRule--multiPolicy {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.SimulateAccessModal__detailsPolicies {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.SimulateAccessModal__detailsPoliciesHead {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+// Per-policy section that appears either standalone (single
+// contributing policy — keeps the original look) or as one of a
+// numbered list of policies (multi-policy mode). In multi-policy
+// mode the section adopts the same card chrome as a merged-rule
+// section (`.SimulateAccessModal__detailsMergedRule`) so authors
+// see a consistent visual treatment across "multiple rules in one
+// policy" (channel settings) and "multiple policies on the same
+// scope" (system console). Standalone (single-policy) mode keeps the
+// flat layout the modal had before per-policy numbering was added.
+.SimulateAccessModal__detailsPolicySection {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .SimulateAccessModal__detailsRule--multiPolicy & {
+        padding: 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.02);
+        gap: 6px;
+    }
+}
+
+.SimulateAccessModal__detailsPolicyHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+// Per-section outcome chip (multi-policy mode only). Pushed to the
+// far end of the header row via margin-left auto so the policy badge
+// and name stay grouped on the left and the verdict reads on the
+// right — same layout as the row-level decision chip elsewhere in
+// the picker. The colored badge already conveys outcome, but we
+// keep the chip for screen readers and to spell out "Your policy:
+// Allowed" vs "Allowed" — the editing-draft / peer distinction is
+// not encodable in badge color alone.
+.SimulateAccessModal__detailsPolicyOutcome {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    white-space: nowrap;
+}
+
+.SimulateAccessModal__detailsPolicyOutcome--allow {
+    background: rgba(var(--online-indicator-rgb, 6, 167, 125), 0.16);
+    color: var(--online-indicator, #06a77d);
+}
+
+.SimulateAccessModal__detailsPolicyOutcome--deny {
+    background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.16);
+    color: var(--error-text, #d24b4e);
+}
+
+// Numeric badge stamped on each policy section in multi-policy mode.
+// Outline-only neutral style — no fill — matching the per-rule badge
+// exactly so the two layers read as a single consistent affordance.
+// Outcome at the policy layer is conveyed by the chip on the right
+// (Your policy: Allowed / Denied) instead of badge color, which kept
+// the channel-settings (rules) and system-console (policies) views
+// looking like distinct UIs. Rules nested inside a multi-policy
+// section render their badge with a "1.1", "1.2" label (see
+// MergedRuleSection.policyIndex) so the
+// inner numbering is visibly distinct from the outer one despite the
+// shared style — color-coding the layers turned out to give
+// inconsistent green / red / blue badges next to each other, which
+// looked busy without communicating new information.
+.SimulateAccessModal__detailsPolicyBadge {
+    display: inline-flex;
+    min-width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.32);
+    border-radius: 10px;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.SimulateAccessModal__detailsPolicy,
+.SimulateAccessModal__detailsRuleName {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+
+    // Policy and rule names are author-supplied text; they have no
+    // length cap on the server. `word-break: break-word` plus
+    // `overflow-wrap: anywhere` lets a name like
+    // "Restrict-File-Operations-To-Approved-Engineering-Teams-Only"
+    // wrap inside the trace block instead of forcing the modal to
+    // grow horizontally.
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+// Combined-evaluation header variant: the trace below merges multiple
+// authored rules (engine.JoinExpressions OR-fold), so the line shows
+// "Combined evaluation for role <role>" inline with a help-icon button
+// whose tooltip lists every contributing rule. Flex row instead of the
+// default block layout so the icon button stays vertically centered
+// next to the label.
+.SimulateAccessModal__detailsRuleName--combined {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 4px;
+}
+
+// Help-icon button next to "Combined evaluation for role <role>". Sized
+// to the icon glyph itself (no rectangle padding) so it sits flush
+// next to the label without inflating the header height. Inherits
+// muted color from the surrounding label and brightens to body color
+// on hover/focus so the affordance is discoverable. Reuses the same
+// 2px outline pattern as __detailsToggle (above) for keyboard focus.
+.SimulateAccessModal__detailsCombinedHelp {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: help;
+
+    i {
+        font-size: 14px;
+    }
+
+    &:hover {
+        color: var(--center-channel-color);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 1px;
+    }
+}
+
+// Tooltip body for the help icon: a short explainer paragraph followed
+// by a bulleted list of the merged rule names. Constrained width so a
+// flat list of rules wraps inside a reasonable column instead of
+// stretching to the viewport edge; gap controls the vertical rhythm
+// between the explainer and the list.
+.SimulateAccessModal__detailsCombinedTooltip {
+    display: flex;
+    max-width: 320px;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+
+.SimulateAccessModal__detailsCombinedTooltipHead {
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.SimulateAccessModal__detailsCombinedTooltipList {
+    padding-left: 18px;
+    margin: 0;
+    font-size: 12px;
+    line-height: 16px;
+
+    li {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+}
+
+// Per-rule numbered sections rendered in place of the single merged
+// evaluation tree when the server attached one tree per merged rule.
+// Each section is a small card (background + border + padding) so the
+// boundary between rules reads at a glance; the gap between sections
+// is wider than within-section spacing so the visual rhythm matches
+// "list of items" rather than "tightly nested children of one tree".
+.SimulateAccessModal__detailsMergedRules {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.SimulateAccessModal__detailsMergedRule {
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.02);
+    gap: 6px;
+}
+
+.SimulateAccessModal__detailsMergedRuleHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+// Numeric badge that pairs each section with its tooltip-list entry
+// above. Sized like a small chip — pill instead of circle so longer
+// labels like "1.1", "1.2" (rules nested under a multi-policy
+// section) still center cleanly. Outline-only neutral style matches
+// the policy-section badge for visual consistency across the two
+// views (rules within one policy / policies on the same scope); the
+// difference between layers is carried by the label format
+// ("1" vs "1.1"), not by color.
+.SimulateAccessModal__detailsMergedRuleBadge {
+    display: inline-flex;
+    min-width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.32);
+    border-radius: 10px;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.SimulateAccessModal__detailsMergedRuleName {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.SimulateAccessModal__detailsExpression {
+    padding: 6px 8px;
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.05);
+    color: var(--center-channel-color);
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 16px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+// Evaluation-trace tree: a recursive, indented breakdown of the
+// failing rule's CEL expression. Each node carries a small icon for
+// outcome (check / x / warning), the subtree expression in monospace,
+// and — for leaves — the user's actual value next to what the rule
+// expected. Compound nodes carry a header line ("ALL of the following
+// must hold (AND)") and indent their children one level via the
+// `depth` prop translated to inline padding-left.
+.SimulateAccessModal__detailsTree {
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.02);
+    gap: 6px;
+}
+
+// __traceNode is a pure structural container — colored band on the
+// left + background tint, no inner padding. Spacing is owned by the
+// children (header / values / nested traceChildren) so it's clear
+// where each pixel of vertical space comes from. This avoids the
+// "spacings compound" effect where a deeply-nested node accumulated
+// padding from every wrapping container.
+.SimulateAccessModal__traceNode {
+    display: flex;
+    flex-direction: column;
+    border-radius: 3px;
+    border-left: 3px solid transparent;
+    gap: 6px;
+
+    &--true {
+        border-left-color: var(--online-indicator, #06a77d);
+        background: rgba(var(--online-indicator-rgb, 6, 167, 125), 0.06);
+    }
+
+    &--false {
+        border-left-color: var(--error-text, #d24b4e);
+        background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.06);
+    }
+
+    &--error {
+        border-left-color: var(--away-indicator, #ffbc42);
+        background: rgba(var(--away-indicator-rgb, 255, 188, 66), 0.08);
+    }
+}
+
+.SimulateAccessModal__traceHeader {
+    display: flex;
+    align-items: center;
+
+    // Header carries the visual padding now that the wrapping node is
+    // paddingless. 6/8 keeps the icon+label off the border band
+    // without crowding the row vertically.
+    padding: 6px 8px;
+    gap: 8px;
+}
+
+.SimulateAccessModal__traceIcon {
+    flex-shrink: 0;
+    font-size: 16px;
+
+    &--true {
+        color: var(--online-indicator, #06a77d);
+    }
+
+    &--false {
+        // Hard-coded fallback matches the one used by traceNode--false
+        // (line ~301) so the icon stays red even when --error-text is
+        // undefined (e.g. preview embeds outside the channels theme).
+        color: var(--error-text, #d24b4e);
+    }
+
+    &--error {
+        color: var(--away-indicator, #b07700);
+    }
+}
+
+.SimulateAccessModal__traceCompoundLabel {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.SimulateAccessModal__traceExpression {
+    flex: 1 1 auto;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(var(--center-channel-color-rgb), 0.05);
+    color: var(--center-channel-color);
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 16px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+// The error / values strips sit below the header inside a paddingless
+// node. Padding-left 32px = 24px (icon column under the header) +
+// 8px (matching the header's own 8px left padding) so the value text
+// aligns visually under the leaf expression text, not under the
+// icon. Padding-bottom gives the strip breathing room inside the
+// colored band.
+.SimulateAccessModal__traceError {
+    padding: 0 8px 6px 32px;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 11px;
+    font-style: italic;
+    line-height: 14px;
+}
+
+// Single short line under FALSE leaves: "Actual: <value>". TRUE
+// leaves omit this strip entirely (the green tick + the expression
+// already convey "matched"). The 32px left padding aligns the line
+// under the leaf expression text (24px icon column + 8px header
+// gutter), not under the icon.
+.SimulateAccessModal__traceValues {
+    display: flex;
+    align-items: center;
+    padding: 0 8px 6px 32px;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 11px;
+    line-height: 14px;
+}
+
+.SimulateAccessModal__traceActual {
+    font-family: monospace;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+// Children indent purely via margin-left here (no per-depth inline
+// padding-left on the node); each nesting level adds 12px because the
+// wrapping __traceChildren of every compound node applies the same
+// offset. gap controls sibling vertical rhythm — same value as the
+// parent __traceNode gap so a child's gap from its siblings matches
+// its gap from the parent header.
+.SimulateAccessModal__traceChildren {
+    display: flex;
+    flex-direction: column;
+    margin-left: 12px;
+    gap: 6px;
+}

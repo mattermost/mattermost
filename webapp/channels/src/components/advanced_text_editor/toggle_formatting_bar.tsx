@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 
 import {ChevronDownIcon, ChevronUpIcon, FormatLetterCaseIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
 
 import {IconContainer} from './formatting_bar/formatting_icon';
 

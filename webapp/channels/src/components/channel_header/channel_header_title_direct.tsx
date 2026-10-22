@@ -15,7 +15,7 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 
 type Props = {
     dmUser?: UserProfile;
-}
+};
 
 const ChannelHeaderTitleDirect = ({
     dmUser,

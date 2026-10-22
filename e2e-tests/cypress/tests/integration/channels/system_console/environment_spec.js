@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @not_cloud
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Environment', () => {
     let townsquareLink;
@@ -243,7 +243,7 @@ describe('Environment', () => {
         // # Click Save button to save the settings
         cy.get('#saveSetting').click().wait(TIMEOUTS.ONE_SEC);
 
-        cy.get('#TestS3Connection').scrollIntoView().should('be.visible').within(() => {
+        cy.get('#TestFileStoreConnection').scrollIntoView().should('be.visible').within(() => {
             cy.findByText('Test Connection').should('be.visible').click().wait(TIMEOUTS.ONE_SEC);
             waitForAlert('Connection unsuccessful: S3 Bucket is required');
         });
@@ -254,9 +254,9 @@ describe('Environment', () => {
         // # Click Save button to save the settings
         cy.get('#saveSetting').click().wait(TIMEOUTS.ONE_SEC);
 
-        cy.get('#TestS3Connection').scrollIntoView().should('be.visible').within(() => {
+        cy.get('#TestFileStoreConnection').scrollIntoView().should('be.visible').within(() => {
             cy.findByText('Test Connection').should('be.visible').click().wait(TIMEOUTS.ONE_SEC);
-            waitForAlert('Connection unsuccessful: Unable to connect to S3. Verify your Amazon S3 connection authorization parameters and authentication settings.');
+            waitForAlert('Connection unsuccessful: Unable to authenticate against the file storage backend. Verify your credentials and authentication settings.');
         });
     });
 
@@ -274,6 +274,34 @@ describe('Environment', () => {
         // * Verify app continues to run successfully by querying for the header
         cy.get('.admin-console', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').within(() => {
             cy.get('.admin-console__header').should('be.visible').and('have.text', 'Web Server');
+        });
+    });
+
+    describe('Web server mode - compression', () => {
+        let originalWebserverMode;
+
+        before(() => {
+            cy.apiGetConfig().then(({config}) => {
+                originalWebserverMode = config.ServiceSettings.WebserverMode;
+            });
+        });
+
+        after(() => {
+            cy.apiUpdateConfig({ServiceSettings: {WebserverMode: originalWebserverMode}});
+        });
+
+        it('can be set back to gzip and persists', () => {
+            cy.visit('/admin_console/environment/web_server');
+
+            cy.findByTestId('ServiceSettings.WebserverModedropdown').select('gzip');
+            cy.get('#saveSetting').click().wait(TIMEOUTS.ONE_SEC);
+
+            cy.reload();
+            cy.findByTestId('ServiceSettings.WebserverModedropdown').should('have.value', 'gzip');
+
+            cy.apiGetConfig().then(({config}) => {
+                expect(config.ServiceSettings.WebserverMode).to.equal('gzip');
+            });
         });
     });
 

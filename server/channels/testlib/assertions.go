@@ -52,8 +52,7 @@ func hasMsg(t *testing.T, logs io.Reader, level, message string) bool {
 			continue
 		}
 
-		//if log.Level == level && log.Msg == message {
-		if entry.Msg == message {
+		if entry.Level == level && entry.Msg == message {
 			return true
 		}
 	}

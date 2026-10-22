@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -81,9 +82,11 @@ func (ps *PlatformService) LoadLicense() {
 	}
 
 	licenseId := ""
-	props, nErr := ps.Store.System().Get()
+	// Read from master: SaveLicense writes the active license ID then calls
+	// LoadLicense, so a replica read can return a stale ID and revert the license.
+	activeLicense, nErr := ps.Store.System().GetByNameWithContext(sqlstore.RequestContextWithMaster(c), model.SystemActiveLicenseId)
 	if nErr == nil {
-		licenseId = props[model.SystemActiveLicenseId]
+		licenseId = activeLicense.Value
 	}
 
 	if !model.IsValidId(licenseId) {
@@ -102,6 +105,15 @@ func (ps *PlatformService) LoadLicense() {
 
 	record, nErr := ps.Store.License().Get(sqlstore.RequestContextWithMaster(c), licenseId)
 	if nErr != nil {
+		// LoadLicense reruns on a 24h timer, so clearing the license on a store
+		// failure would drop every entitlement, and deactivate add-on plugins,
+		// until the next successful read.
+		var nfErr *store.ErrNotFound
+		if !errors.As(nErr, &nfErr) {
+			ps.logger.Error("Failed to read the license from the database, keeping the current license.", mlog.Err(nErr))
+			return
+		}
+
 		if ps.Config().FeatureFlags.EnableMattermostEntry && model.BuildEnterpriseReady == "true" {
 			ps.logger.Info("Mattermost Entry is enabled. Unlocking enterprise features.")
 
@@ -130,7 +142,7 @@ func (ps *PlatformService) LoadLicense() {
 func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
 	licenseStr, err := utils.LicenseValidator.ValidateLicense(licenseBytes)
 	if err != nil {
-		return nil, model.NewAppError("addLicense", model.InvalidLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, utils.NewLicenseValidationAppError("addLicense", err)
 	}
 
 	var license model.License
@@ -151,8 +163,14 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if uniqueUserCount > int64(*license.Features.Users) {
-		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]any{"Users": *license.Features.Users, "Count": uniqueUserCount}, "", http.StatusBadRequest)
+	// Single-channel guests are free and should not count against licensed seats.
+	effectiveUserCount := uniqueUserCount
+	if scgCount, scgErr := ps.Store.User().AnalyticsGetSingleChannelGuestCount(); scgErr == nil {
+		effectiveUserCount = max(uniqueUserCount-scgCount, 0)
+	}
+
+	if effectiveUserCount > int64(*license.Features.Users) {
+		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]any{"Users": *license.Features.Users, "Count": effectiveUserCount}, "", http.StatusBadRequest)
 	}
 
 	if license.IsExpired() {
@@ -404,6 +422,7 @@ func (ps *PlatformService) logLicense(message string, license *model.License) {
 		mlog.String("sku_short_name", license.SkuShortName),
 		mlog.Bool("is_trial", license.IsTrial),
 		mlog.Bool("is_gov_sku", license.IsGovSku),
+		mlog.Bool("is_non_production", license.IsNonProduction),
 	)
 
 	if license.Customer != nil {
@@ -412,9 +431,13 @@ func (ps *PlatformService) logLicense(message string, license *model.License) {
 
 	if license.Features != nil {
 		logger = logger.With(
-			mlog.Int("features.users", *license.Features.Users),
+			mlog.Int("features_users", *license.Features.Users),
 			mlog.Map("features", license.Features.ToMap()),
 		)
+	}
+
+	if len(license.AddOns) > 0 {
+		logger = logger.With(mlog.Array("add_ons", license.AddOns))
 	}
 
 	logger.Info(message)

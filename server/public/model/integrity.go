@@ -42,10 +42,10 @@ func (r *IntegrityCheckResult) UnmarshalJSON(b []byte) error {
 			var record OrphanedRecord
 			m := recData.(map[string]any)
 			if val := m["parent_id"]; val != nil {
-				record.ParentId = NewPointer(val.(string))
+				record.ParentId = new(val.(string))
 			}
 			if val := m["child_id"]; val != nil {
-				record.ChildId = NewPointer(val.(string))
+				record.ChildId = new(val.(string))
 			}
 			rdata.Records = append(rdata.Records, record)
 		}

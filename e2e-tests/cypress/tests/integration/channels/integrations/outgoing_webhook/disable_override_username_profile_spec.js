@@ -9,16 +9,17 @@
 
 // Group: @channels @outgoing_webhook
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {
     enableUsernameAndIconOverrideInt,
     enableUsernameAndIconOverride,
 } from '../incoming_webhook/helpers';
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 describe('Outgoing webhook', () => {
     const triggerWord = 'text';
     const messageWithTriggerWord = 'text with some more text';
-    const callbackUrl = `${Cypress.env().webhookBaseUrl}/post_outgoing_webhook`;
+    const callbackUrl = `${Cypress.expose().webhookBaseUrl}/post_outgoing_webhook`;
     const noChannelSelectionOption = '--- Select a channel ---';
     const overrideIconUrl = 'http://via.placeholder.com/150/00F/888';
     const defaultUsername = 'webhook';
@@ -295,7 +296,7 @@ function postMessageInChannel(user, channelUrl, message) {
 }
 
 function setOutgoingWebhook(teamName, siteName, {callbackUrl, channelSelect, triggerWord}) {
-    cy.uiOpenProductMenu('Integrations');
+    cy.uiOpenSwitchProductMenu('Integrations');
 
     // * Verify that it redirects to integrations URL. Then, click "Outgoing Webhooks"
     cy.url().should('include', `${teamName}/integrations`);
@@ -332,7 +333,7 @@ function setOutgoingWebhook(teamName, siteName, {callbackUrl, channelSelect, tri
 }
 
 function editOutgoingWebhook(teamName, siteName, {username, iconUrl, callbackUrl, channelSelect, withConfirmation}) {
-    cy.uiOpenProductMenu('Integrations');
+    cy.uiOpenSwitchProductMenu('Integrations');
 
     // * click "Outgoing Webhooks"
     cy.get('.backstage-sidebar').should('be.visible').findByText('Outgoing Webhooks').click();

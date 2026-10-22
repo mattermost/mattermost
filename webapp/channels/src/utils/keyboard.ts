@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import Constants from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
 
 export function cmdOrCtrlPressed(e: React.KeyboardEvent | KeyboardEvent, allowAlt = false) {
     const isMac = UserAgent.isMac();

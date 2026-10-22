@@ -9,7 +9,13 @@ jest.mock('mattermost-redux/selectors/entities/channels', () => ({
 
 jest.mock('stores/redux_store');
 
-import ChannelMentionProvider from './channel_mention_provider';
+import React from 'react';
+
+import type {Channel} from '@mattermost/types/channels';
+
+import {renderWithContext} from 'tests/react_testing_utils';
+
+import ChannelMentionProvider, {ChannelMentionSuggestion} from './channel_mention_provider';
 
 describe('ChannelMentionProvider.handlePretextChanged', () => {
     const autocompleteChannels = jest.fn();
@@ -211,5 +217,95 @@ describe('ChannelMentionProvider.handlePretextChanged', () => {
             expect(autocompleteChannels).toHaveBeenCalledWith('', expect.anything(), expect.anything());
             expect(resultsCallback).toHaveBeenCalled();
         });
+    });
+});
+
+describe('ChannelMentionSuggestion', () => {
+    const baseProps = {
+        id: 'test-suggestion',
+        item: {
+            id: 'channel1',
+            type: 'O',
+            delete_at: 0,
+            display_name: 'Test Channel',
+            name: 'test-channel',
+        } as Channel,
+        isSelection: false,
+        term: '~test',
+        matchedPretext: '~test',
+        onClick: jest.fn(),
+        onMouseMove: jest.fn(),
+    };
+
+    function makeState(overrides: any[] = []) {
+        return {plugins: {components: {ChannelIconOverride: overrides}}} as any;
+    }
+
+    test('should render override icon when matcher matches', () => {
+        const {container} = renderWithContext(
+            <ChannelMentionSuggestion
+                ref={null}
+                {...baseProps}
+            />,
+            makeState([{id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'shield-outline'}]),
+        );
+
+        const icon = container.querySelector('i');
+        expect(icon).toHaveClass('icon', 'icon-shield-outline');
+        expect(icon).not.toHaveClass('icon-globe');
+    });
+
+    test('should render fallback globe icon when matcher returns false', () => {
+        const {container} = renderWithContext(
+            <ChannelMentionSuggestion
+                ref={null}
+                {...baseProps}
+            />,
+            makeState([{id: '1', pluginId: 'mbe', matcher: () => false, iconName: 'shield-outline'}]),
+        );
+
+        const icon = container.querySelector('i');
+        expect(icon).toHaveClass('icon', 'icon-globe');
+    });
+
+    test('should announce "Public channel" for open channel', () => {
+        const {container} = renderWithContext(
+            <ChannelMentionSuggestion
+                ref={null}
+                {...baseProps}
+            />,
+            makeState(),
+        );
+
+        const span = container.querySelector('.suggestion-list__icon');
+        expect(span).toHaveAttribute('aria-label', 'Public channel');
+    });
+
+    test('should announce "Private channel" for private channel', () => {
+        const props = {...baseProps, item: {...baseProps.item, type: 'P' as const}};
+        const {container} = renderWithContext(
+            <ChannelMentionSuggestion
+                ref={null}
+                {...props}
+            />,
+            makeState(),
+        );
+
+        const span = container.querySelector('.suggestion-list__icon');
+        expect(span).toHaveAttribute('aria-label', 'Private channel');
+    });
+
+    test('should announce "Archived channel" for archived channel', () => {
+        const props = {...baseProps, item: {...baseProps.item, delete_at: 1234}};
+        const {container} = renderWithContext(
+            <ChannelMentionSuggestion
+                ref={null}
+                {...props}
+            />,
+            makeState(),
+        );
+
+        const span = container.querySelector('.suggestion-list__icon');
+        expect(span).toHaveAttribute('aria-label', 'Archived channel');
     });
 });

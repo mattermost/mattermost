@@ -4,11 +4,11 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 type Props = {
     type: 'channel' | 'thread';
-}
+};
 
 export default function PlaceholderScheduledPostsTitle({type}: Props) {
     let title;

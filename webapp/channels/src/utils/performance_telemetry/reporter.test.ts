@@ -69,7 +69,7 @@ describe.skip('PerformanceReporter', () => {
 
         expect(sendBeacon).toHaveBeenCalled();
         expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/client_perf');
-        const report = JSON.parse(sendBeacon.mock.calls[0][1]);
+        const report = JSON.parse(await (sendBeacon.mock.calls[0][1] as Blob).text());
         expect(report).toMatchObject({
             histograms: [
                 {
@@ -116,7 +116,7 @@ describe.skip('PerformanceReporter', () => {
 
         expect(sendBeacon).toHaveBeenCalled();
         expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/client_perf');
-        const report = JSON.parse(sendBeacon.mock.calls[0][1]);
+        const report = JSON.parse(await (sendBeacon.mock.calls[0][1] as Blob).text());
         expect(report).toMatchObject({
             counters: [
                 {
@@ -168,7 +168,7 @@ describe.skip('PerformanceReporter', () => {
 
         expect(sendBeacon).toHaveBeenCalled();
         expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/client_perf');
-        const report = JSON.parse(sendBeacon.mock.calls[0][1]);
+        const report = JSON.parse(await (sendBeacon.mock.calls[0][1] as Blob).text());
         expect(report).toMatchObject({
             counters: [
                 {
@@ -196,7 +196,7 @@ describe.skip('PerformanceReporter', () => {
 
         expect(sendBeacon).toHaveBeenCalled();
         expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/client_perf');
-        let report = JSON.parse(sendBeacon.mock.calls[0][1]);
+        let report = JSON.parse(await (sendBeacon.mock.calls[0][1] as Blob).text());
         expect(report).toMatchObject({
             histograms: [
                 {
@@ -221,7 +221,7 @@ describe.skip('PerformanceReporter', () => {
 
         expect(sendBeacon).toHaveBeenCalled();
         expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/client_perf');
-        report = JSON.parse(sendBeacon.mock.calls[0][1]);
+        report = JSON.parse(await (sendBeacon.mock.calls[0][1] as Blob).text());
         expect(report).toMatchObject({
             histograms: [
                 {
@@ -313,7 +313,7 @@ describe.skip('PerformanceReporter', () => {
 
         expect(sendBeacon).toHaveBeenCalled();
         expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/client_perf');
-        const report = JSON.parse(sendBeacon.mock.calls[0][1]);
+        const report = JSON.parse(await (sendBeacon.mock.calls[0][1] as Blob).text());
         expect(report).toMatchObject({
             labels: {
                 agent: 'firefox',
@@ -357,12 +357,86 @@ describe.skip('PerformanceReporter', () => {
     });
 });
 
+describe('PerformanceReporter.disconnect', () => {
+    test('should stop reporting web vitals once disconnected', () => {
+        const {reporter, sendBeacon} = newTestReporter();
+        reporter.observe();
+
+        const onCLSCallback = (onCLS as jest.Mock).mock.calls.at(-1)[0];
+
+        reporter.disconnect();
+
+        // web-vitals has no way to unregister a callback, so a reporter left behind by an unmounted
+        // component keeps being handed metrics after it has been disconnected.
+        onCLSCallback({name: 'CLS', value: 100});
+        reporter.maybeSendReport();
+
+        expect(sendBeacon).not.toHaveBeenCalled();
+    });
+});
+
+describe('PerformanceReporter.sendReport content-type', () => {
+    const sampleReport = {
+        version: '0.1.0' as const,
+        labels: {platform: 'other' as const, agent: 'other' as const},
+        start: 1000,
+        end: 2000,
+        counters: [{metric: 'test_counter', value: 1, timestamp: 1500}],
+        histograms: [],
+    };
+
+    test('should pass a Blob with application/json type to sendBeacon', () => {
+        const {reporter, sendBeacon} = newTestReporter();
+
+        (reporter as any).sendReport(sampleReport);
+
+        expect(sendBeacon).toHaveBeenCalledTimes(1);
+        const [url, body] = sendBeacon.mock.calls[0];
+        expect(url).toContain('/api/v4/client_perf');
+        expect(body).toBeInstanceOf(Blob);
+        expect((body as Blob).type).toBe('application/json');
+    });
+
+    test('should send a Blob whose content is valid JSON matching the report', async () => {
+        const {reporter, sendBeacon} = newTestReporter();
+
+        (reporter as any).sendReport(sampleReport);
+
+        const blob = sendBeacon.mock.calls[0][1] as Blob;
+        const text = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsText(blob);
+        });
+        const parsed = JSON.parse(text);
+        expect(parsed).toMatchObject(sampleReport);
+    });
+
+    test('should include Content-Type application/json header in fallback fetch', () => {
+        const {reporter, sendBeacon} = newTestReporter();
+        sendBeacon.mockReturnValue(false);
+
+        const fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(() => Promise.resolve({} as Response));
+
+        (reporter as any).sendReport(sampleReport);
+
+        expect(fetchSpy).toHaveBeenCalledWith(
+            expect.stringContaining('/api/v4/client_perf'),
+            expect.objectContaining({
+                method: 'POST',
+                headers: expect.objectContaining({'Content-Type': 'application/json'}),
+            }),
+        );
+
+        fetchSpy.mockRestore();
+    });
+});
+
 class TestPerformanceReporter extends PerformanceReporter {
     public sendBeacon: jest.Mock = jest.fn(() => true);
     public reportPeriodBase = 10;
     public reportPeriodJitter = 0;
-
-    public disconnect = super.disconnect;
 
     public handleObservations = jest.fn(super.handleObservations);
 

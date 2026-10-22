@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @team_settings
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Teams Settings', () => {
     let sysadmin: Cypress.UserProfile;

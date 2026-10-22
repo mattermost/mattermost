@@ -27,7 +27,7 @@ type Props = {
      */
     options?: Partial<TextFormattingOptions>;
 
-}
+};
 
 const EmbeddedBindings = ({
     embeds,

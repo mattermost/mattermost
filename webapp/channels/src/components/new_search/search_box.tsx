@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef, forwardRef, useCallback, useEffect} from 'react';
+import React, {useState, useRef, forwardRef, useCallback, useEffect, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
@@ -11,7 +11,6 @@ import {hasResults} from 'components/suggestion/suggestion_results';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import {escapeRegex} from 'utils/text_formatting';
 
 import {useSearchSuggestions, useSearchSuggestionSelection} from './hooks';
 import SearchBoxHints from './search_box_hints';
@@ -168,7 +167,7 @@ const SearchBox = forwardRef(
 
         const updateSearchValue = useCallback(
             (value: string, matchedPretext: string) => {
-                const escapedMatchedPretext = escapeRegex(matchedPretext);
+                const escapedMatchedPretext = RegExp.escape(matchedPretext);
                 const caretPosition = getCaretPosition();
                 const extraSpace = caretPosition === searchTerms.length ? ' ' : '';
                 const existing = searchTerms.slice(0, caretPosition).replace(new RegExp(escapedMatchedPretext + '$', 'i'), '');

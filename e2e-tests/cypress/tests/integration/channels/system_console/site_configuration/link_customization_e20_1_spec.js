@@ -10,10 +10,10 @@
 // Stage: @prod
 // Group: @channels @system_console @enterprise @e20_only @not_cloud
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {TERMS_OF_SERVICE_LINK} from '../../../../utils/constants';
-
 import {backToTeam, saveSetting} from './helper';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {TERMS_OF_SERVICE_LINK} from '@/utils/constants';
 
 describe('SupportSettings', () => {
     const tosLink = 'https://github.com/mattermost/platform/blob/master/README.md';
@@ -129,21 +129,23 @@ describe('SupportSettings', () => {
     });
 
     it('MM-T1038 - Customization App download link - Change to different', () => {
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('open');
+        });
+
         // # Edit links in the support email field
-        const link = 'some_link';
+        const link = 'https://github.com/mattermost/desktop/releases';
         cy.findByTestId('NativeAppSettings.AppDownloadLinkinput').clear().type(link);
 
         // # Save setting then back to team view
         saveSetting();
         backToTeam();
 
-        // # Open about modal
-        cy.uiOpenProductMenu().within(() => {
-            // * Verify that 'Download Apps' has expected link
-            cy.findByText('Download Apps').
-                parents('a').
-                should('have.attr', 'href', link);
-        });
+        // # Open about switch product menu and click on Download Apps menu item
+        cy.uiOpenSwitchProductMenu('Download Apps');
+
+        // * Verify that the link is opened in a new tab
+        cy.get('@open').should('have.been.calledWith', link, '_blank', 'noopener,noreferrer');
     });
 
     it('MM-T3289_1 - Help (Ask community link setting)', () => {

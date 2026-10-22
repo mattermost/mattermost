@@ -16,7 +16,7 @@ import CombinedSystemMessage from './combined_system_message';
 type OwnProps = {
     allUserIds: string[];
     allUsernames: string[];
-}
+};
 
 function makeMapStateToProps() {
     const getProfilesByIdsAndUsernames = makeGetProfilesByIdsAndUsernames();

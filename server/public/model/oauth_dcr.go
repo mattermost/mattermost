@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -38,13 +39,20 @@ type DCRError struct {
 	ErrorDescription string `json:"error_description,omitempty"`
 }
 
+type dcrRedirectURIPattern struct {
+	scheme   string
+	host     string
+	path     string
+	rawQuery string
+}
+
 func (r *ClientRegistrationRequest) IsValid() *AppError {
 	if len(r.RedirectURIs) == 0 {
 		return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.redirect_uris.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	for _, uri := range r.RedirectURIs {
-		if !IsValidHTTPURL(uri) {
+		if !IsValidDCRRedirectURI(uri) {
 			return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.redirect_uri_format.app_error", nil, "uri="+uri, http.StatusBadRequest)
 		}
 	}
@@ -84,20 +92,29 @@ func GetDefaultResponseTypes() []string {
 	return []string{ResponseTypeCode}
 }
 
-// IsValidDCRRedirectURIPattern validates a DCR redirect URI allowlist pattern.
-// Patterns must start with http:// or https:// and be well-formed for glob matching.
-func IsValidDCRRedirectURIPattern(pattern string) bool {
-	if strings.HasPrefix(pattern, "https://") {
-		if len(pattern) < 9 { // minimum "https://x"
-			return false
-		}
-	} else if strings.HasPrefix(pattern, "http://") {
-		if len(pattern) < 8 { // minimum "http://x"
-			return false
-		}
-	} else {
+// IsValidDCRRedirectURI validates a concrete DCR redirect URI. Unlike
+// IsValidHTTPURL, it accepts custom (non-HTTP) schemes so that desktop OAuth
+// clients can use their own URI schemes (e.g. cursor://anysphere.cursor-mcp/oauth/callback).
+// The URI must be absolute with both a scheme and a host. Dangerous schemes
+// (javascript, data, vbscript, file, blob, about) are rejected even in
+// authority form (e.g. "javascript://evil.example.com/x").
+func IsValidDCRRedirectURI(rawURL string) bool {
+	u, err := url.ParseRequestURI(rawURL)
+	if err != nil || u.Scheme == "" || u.Host == "" {
 		return false
 	}
+	switch strings.ToLower(u.Scheme) {
+	case "javascript", "data", "vbscript", "file", "blob", "about":
+		return false
+	}
+	return true
+}
+
+// IsValidDCRRedirectURIPattern validates a DCR redirect URI allowlist pattern.
+// Patterns must be absolute URIs with a scheme and host and be well-formed for
+// glob matching. Custom schemes (e.g. cursor://) are permitted in addition to
+// http:// and https://.
+func IsValidDCRRedirectURIPattern(pattern string) bool {
 	// Reject control characters and other invalid chars
 	for _, r := range pattern {
 		if r < 0x20 || r == 0x7f {
@@ -118,13 +135,78 @@ func IsValidDCRRedirectURIPattern(pattern string) bool {
 	normalized = strings.ReplaceAll(normalized, "mmdoublewildcard", "1")
 	normalized = strings.ReplaceAll(normalized, "mmsinglewildcard", "1")
 
-	return IsValidHTTPURL(normalized)
+	return IsValidDCRRedirectURI(normalized)
 }
 
 // RedirectURIMatchesGlob returns true if uri matches the glob pattern.
-// * matches any chars except /, ** matches any chars including /, full-string anchored.
+// Matching is URL-component aware, so host, path, and query wildcards cannot
+// satisfy requirements from another component.
 func RedirectURIMatchesGlob(uri, pattern string) bool {
-	return redirectURIMatchesGlobRecur(uri, pattern, 0, 0)
+	candidate, err := url.ParseRequestURI(uri)
+	if err != nil || candidate.Scheme == "" || candidate.Host == "" {
+		return false
+	}
+
+	if !IsValidDCRRedirectURIPattern(pattern) {
+		return false
+	}
+
+	parsedPattern, ok := parseDCRRedirectURIPattern(pattern)
+	if !ok {
+		return false
+	}
+
+	if candidate.Scheme != parsedPattern.scheme {
+		return false
+	}
+	if !redirectURIMatchesGlobRecur(candidate.Host, parsedPattern.host, 0, 0) {
+		return false
+	}
+	if !redirectURIMatchesGlobRecur(candidate.EscapedPath(), parsedPattern.path, 0, 0) {
+		return false
+	}
+	if parsedPattern.rawQuery == "" {
+		return candidate.RawQuery == ""
+	}
+	if candidate.RawQuery == "" {
+		return false
+	}
+	return redirectURIMatchesGlobRecur(candidate.RawQuery, parsedPattern.rawQuery, 0, 0)
+}
+
+func parseDCRRedirectURIPattern(pattern string) (dcrRedirectURIPattern, bool) {
+	scheme, rest, ok := strings.Cut(pattern, "://")
+	if !ok {
+		return dcrRedirectURIPattern{}, false
+	}
+
+	hostEnd := len(rest)
+	for _, separator := range []string{"/", "?"} {
+		if i := strings.Index(rest, separator); i >= 0 && i < hostEnd {
+			hostEnd = i
+		}
+	}
+
+	host := rest[:hostEnd]
+	if host == "" {
+		return dcrRedirectURIPattern{}, false
+	}
+
+	remainder := rest[hostEnd:]
+	path := ""
+	rawQuery := ""
+	if strings.HasPrefix(remainder, "/") {
+		path, rawQuery, _ = strings.Cut(remainder, "?")
+	} else if strings.HasPrefix(remainder, "?") {
+		rawQuery = remainder[1:]
+	}
+
+	return dcrRedirectURIPattern{
+		scheme:   scheme,
+		host:     host,
+		path:     path,
+		rawQuery: rawQuery,
+	}, true
 }
 
 func redirectURIMatchesGlobRecur(uri, pattern string, ui, pi int) bool {

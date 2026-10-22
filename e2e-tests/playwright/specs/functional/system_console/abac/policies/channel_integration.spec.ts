@@ -68,7 +68,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await enableABAC(systemConsolePage.page);
 
         // Create policy without channels (we'll link via Channel Config)
-        const policyName = `Channel Config Policy ${await pw.random.id()}`;
+        const policyName = `Channel Config Policy ${pw.random.id()}`;
         await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
@@ -110,9 +110,8 @@ test.describe('ABAC Policies - Channel Integration', () => {
         const abacToggle = systemConsolePage.page.locator('[data-testid="policy-enforce-toggle-button"]');
         await abacToggle.waitFor({state: 'visible', timeout: 5000});
 
-        const isEnabled = await abacToggle.getAttribute('aria-pressed');
-        if (isEnabled !== 'true') {
-            await abacToggle.click();
+        if (!(await abacToggle.isChecked())) {
+            await abacToggle.check({force: true});
         }
         await systemConsolePage.page.waitForTimeout(500);
 
@@ -127,9 +126,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await systemConsolePage.page.waitForTimeout(500);
 
         // Select policy in modal
-        const modal = systemConsolePage.page
-            .locator('[role="dialog"]')
-            .filter({hasText: 'Select an Access Control Policy'});
+        const modal = systemConsolePage.page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
         await modal.waitFor({state: 'visible', timeout: 5000});
 
         const modalSearch = modal.locator('[data-testid="searchInput"]');
@@ -149,8 +146,8 @@ test.describe('ABAC Policies - Channel Integration', () => {
         // ============================================================
         await systemConsolePage.page.waitForTimeout(2000);
         await navigateToABACPage(systemConsolePage.page);
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const jobId1 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, jobId1);
 
         // ============================================================
         // VERIFY: Channel membership
@@ -224,7 +221,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await navigateToABACPage(page);
         await enableABAC(page);
 
-        const policyName = `ABAC-GroupSync-Test-${await pw.random.id()}`;
+        const policyName = `ABAC-GroupSync-Test-${pw.random.id()}`;
         await createBasicPolicy(page, {
             name: policyName,
             attribute: 'Department',
@@ -239,7 +236,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         // This works without LDAP configuration
         // ===========================================
 
-        const groupSyncChannelName = `ABAC-GroupSync-${await pw.random.id()}`;
+        const groupSyncChannelName = `ABAC-GroupSync-${pw.random.id()}`;
         const groupSyncChannel = await adminClient.createChannel({
             team_id: team.id,
             name: groupSyncChannelName.toLowerCase().replace(/[^a-z0-9]/g, ''),

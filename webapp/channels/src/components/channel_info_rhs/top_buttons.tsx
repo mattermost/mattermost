@@ -5,8 +5,9 @@ import React from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import useCopyText from 'components/common/hooks/useCopyText';
-import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 
@@ -42,6 +43,11 @@ const Button = styled.button`
         & i {
             color: var(--button-bg-rgb);
         }
+    }
+
+    &:disabled {
+        opacity: 0.32;
+        cursor: default;
     }
 
     & i {
@@ -84,6 +90,7 @@ export interface Props {
     isMuted: boolean;
     isInvitingPeople: boolean;
     isArchived?: boolean;
+    isInManagedCategory: boolean;
 
     canAddPeople: boolean;
 
@@ -101,6 +108,7 @@ export default function TopButtons({
     isMuted,
     isInvitingPeople,
     isArchived = false,
+    isInManagedCategory,
     canAddPeople: propsCanAddPeople,
     actions,
 }: Props) {
@@ -131,15 +139,23 @@ export default function TopButtons({
         <ChannelInfoRhsTopButtons>
             <WithTooltip
                 title={
-                    <FormattedMessage
-                        id='channel_info_rhs.top_buttons.favorite.tooltip'
-                        defaultMessage='Add this channel to favorites'
-                    />
+                    isInManagedCategory ? (
+                        <FormattedMessage
+                            id='channelHeader.managedCategoryFavoriteDisabled'
+                            defaultMessage='Channels in managed categories cannot be favorited.'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='channel_info_rhs.top_buttons.favorite.tooltip'
+                            defaultMessage='Add this channel to favorites'
+                        />
+                    )
                 }
             >
                 <Button
                     onClick={actions.toggleFavorite}
                     className={isFavorite ? 'active' : ''}
+                    disabled={isInManagedCategory}
                     aria-label={favoriteText}
                     id='channelInfoRHSAddFavoriteButton'
                 >

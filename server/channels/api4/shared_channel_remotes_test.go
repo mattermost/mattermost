@@ -4,11 +4,12 @@
 package api4
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sort"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -85,6 +86,7 @@ func TestGetSharedChannelRemotes(t *testing.T) {
 	url := fmt.Sprintf("/sharedchannels/%s/remotes", channel1.Id)
 	resp, err := th.Client.DoAPIGet(context.Background(), url, "")
 	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var result []*model.RemoteClusterInfo
 	err = json.NewDecoder(resp.Body).Decode(&result)
@@ -95,17 +97,24 @@ func TestGetSharedChannelRemotes(t *testing.T) {
 	require.Len(t, result, 2)
 
 	// Sort remote infos by display name for consistent testing
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].DisplayName < result[j].DisplayName
+	slices.SortFunc(result, func(a, b *model.RemoteClusterInfo) int {
+		return cmp.Compare(a.DisplayName, b.DisplayName)
 	})
 
 	// Verify the RemoteClusterInfo objects contain the expected data
 	assert.Equal(t, remote1.DisplayName, result[0].DisplayName)
 	assert.Equal(t, remote2.DisplayName, result[1].DisplayName)
 
-	// Should also contain other fields
+	// Should also contain other fields including remote_id for invite/uninvite
+	assert.NotEmpty(t, result[0].RemoteId)
+	assert.NotEmpty(t, result[1].RemoteId)
+	assert.Equal(t, remote1.RemoteId, result[0].RemoteId)
+	assert.Equal(t, remote2.RemoteId, result[1].RemoteId)
 	assert.NotEmpty(t, result[0].Name)
 	assert.NotEmpty(t, result[1].Name)
+	// Verify the Name matches the actual remote cluster name
+	assert.Equal(t, remote1.Name, result[0].Name)
+	assert.Equal(t, remote2.Name, result[1].Name)
 	assert.NotZero(t, result[0].LastPingAt)
 	assert.NotZero(t, result[1].LastPingAt)
 
@@ -119,4 +128,67 @@ func TestGetSharedChannelRemotes(t *testing.T) {
 	resp, err = th.Client.DoAPIGet(context.Background(), url, "")
 	require.Error(t, err)
 	require.Equal(t, http.StatusForbidden, resp.StatusCode)
+}
+
+func TestGetSharedChannelRemotes_ReturnsEmptyForNonSharedChannel(t *testing.T) {
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	// Create a channel that is NOT shared
+	channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+
+	// Request remotes for non-shared channel - should return empty array, not error
+	url := fmt.Sprintf("/sharedchannels/%s/remotes", channel.Id)
+	resp, err := th.Client.DoAPIGet(context.Background(), url, "")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var result []*model.RemoteClusterInfo
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+
+	require.NotNil(t, result)
+	require.Empty(t, result)
+}
+
+func TestGetSharedChannelRemotes_ReturnsEmptyForStaleSharedChannelState(t *testing.T) {
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	require.NoError(t, th.App.Srv().Store().Channel().SetShared(channel.Id, true))
+
+	remote, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "stale-remote",
+		DisplayName: "Stale Remote",
+		SiteURL:     "http://stale.example.com",
+		CreatorId:   th.BasicUser.Id,
+		Token:       model.NewId(),
+		LastPingAt:  model.GetMillis(),
+	})
+	require.Nil(t, appErr)
+
+	// Simulate stale DB state: the channel/remote rows remain, but the SharedChannels row is missing.
+	_, err := th.App.Srv().Store().SharedChannel().SaveRemote(&model.SharedChannelRemote{
+		ChannelId:         channel.Id,
+		RemoteId:          remote.RemoteId,
+		CreatorId:         th.BasicUser.Id,
+		IsInviteAccepted:  true,
+		IsInviteConfirmed: true,
+	})
+	require.NoError(t, err)
+
+	hasRemote, err := th.App.Srv().Store().SharedChannel().HasRemote(channel.Id, remote.RemoteId)
+	require.NoError(t, err)
+	require.True(t, hasRemote)
+
+	url := fmt.Sprintf("/sharedchannels/%s/remotes", channel.Id)
+	resp, err := th.Client.DoAPIGet(context.Background(), url, "")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var result []*model.RemoteClusterInfo
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+
+	require.NotNil(t, result)
+	require.Empty(t, result)
 }

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from '@mattermost/client';
-import {Team, TeamType} from '@mattermost/types/teams';
+import type {Client4} from '@mattermost/client';
+import type {Team, TeamType} from '@mattermost/types/teams';
 
 import {getRandomId} from '@/util';
 
@@ -27,7 +27,7 @@ export async function createRandomTeam(
     type: TeamType = 'O',
     unique = true,
 ): Promise<Team> {
-    const randomSuffix = await getRandomId();
+    const randomSuffix = getRandomId();
 
     const team = {
         name: unique ? `${name}-${randomSuffix}` : name,

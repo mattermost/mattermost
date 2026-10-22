@@ -119,7 +119,7 @@ func GetCustomStatus(message string) *model.CustomStatus {
 
 func removeUnicodeSkinTone(unicodeString string) string {
 	skinToneDetectorRegex := regexp.MustCompile("-(1f3fb|1f3fc|1f3fd|1f3fe|1f3ff)")
-	skinToneLocations := skinToneDetectorRegex.FindIndex([]byte(unicodeString))
+	skinToneLocations := skinToneDetectorRegex.FindStringIndex(unicodeString)
 
 	if len(skinToneLocations) == 0 {
 		return unicodeString

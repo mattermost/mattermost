@@ -132,7 +132,13 @@ func (fs SqlFileInfoStore) Save(rctx request.CTX, info *model.FileInfo) (*model.
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
+func (fs SqlFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache, readFromMaster bool) ([]*model.FileInfo, error) {
+	db := fs.GetReplica()
+
+	if readFromMaster {
+		db = fs.GetMaster()
+	}
+
 	query := fs.getQueryBuilder().
 		Select(fs.queryFields...).
 		From("FileInfo").
@@ -149,7 +155,7 @@ func (fs SqlFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache
 	}
 
 	items := []fileInfoWithChannelID{}
-	if err := fs.GetReplica().Select(&items, queryString, args...); err != nil {
+	if err := db.Select(&items, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find FileInfos")
 	}
 	if len(items) == 0 {
@@ -281,6 +287,10 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 		query = query.Where("FileInfo.DeleteAt = 0")
 	}
 
+	if opt.OnlyEmptyContent {
+		query = query.Where("(FileInfo.Content IS NULL OR FileInfo.Content = '')")
+	}
+
 	if opt.SortBy == "" {
 		opt.SortBy = model.FileinfoSortByCreated
 	}
@@ -388,6 +398,33 @@ func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) 
 
 	if err := fs.GetReplica().Select(&infos, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find FileInfos with creatorId=%s", userId)
+	}
+	return infos, nil
+}
+
+func (fs SqlFileInfoStore) GetForPermanentDeleteByUser(userId string, limit int) ([]*model.FileInfo, error) {
+	// Each arm is its own SELECT, combined with UNION rather than OR, so that the post-based
+	// arms can use the PostId index.
+	createdByUser := sq.Select("Id").From("FileInfo").Where(sq.Eq{"CreatorId": userId})
+	onUserPosts := sq.Select("Id").
+		From("FileInfo").
+		Where(sq.Expr("PostId IN (?)", sq.Select("Id").From("Posts").Where(sq.Eq{"UserId": userId})))
+	onRepliesToUserPosts := sq.Select("FileInfo.Id").
+		From("FileInfo").
+		Join("Posts AS Replies ON Replies.Id = FileInfo.PostId").
+		Join("Posts AS Roots ON Roots.Id = Replies.RootId").
+		Where(sq.Eq{"Roots.UserId": userId})
+
+	query := fs.getQueryBuilder().
+		Select(fs.queryFields...).
+		From("FileInfo").
+		Where(sq.Expr("FileInfo.Id IN (SELECT Id FROM ((?) UNION (?) UNION (?)) AS Ids ORDER BY Id LIMIT ?)",
+			createdByUser, onUserPosts, onRepliesToUserPosts, limit)).
+		OrderBy("FileInfo.Id")
+
+	infos := []*model.FileInfo{}
+	if err := fs.GetMaster().SelectBuilder(&infos, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to find FileInfos to permanently delete for userId=%s", userId)
 	}
 	return infos, nil
 }
@@ -624,6 +661,15 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 		}
 
+		// Unlike post message search, filenames commonly have a hyphenated
+		// name glued directly to an extension (e.g. "photo-2024.jpg"), which
+		// PostgreSQL's parser classifies as an opaque "host"-type token that
+		// to_tsquery can never match against a hyphen-preserving compound
+		// query. So, unlike post_store.go, hyphens are still replaced with
+		// spaces here rather than preserved.
+		terms = strings.Replace(terms, "-", " ", -1)
+		excludedTerms = strings.Replace(excludedTerms, "-", " ", -1)
+
 		if terms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for
 		} else {
@@ -695,13 +741,7 @@ func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID
 	query := fs.getQueryBuilder().
 		Select(fs.queryFields...).
 		From("FileInfo").
-		Where(sq.Or{
-			sq.Gt{"FileInfo.CreateAt": startTime},
-			sq.And{
-				sq.Eq{"FileInfo.CreateAt": startTime},
-				sq.Gt{"FileInfo.Id": startFileID},
-			},
-		}).
+		Where("(FileInfo.CreateAt, FileInfo.Id) > (?, ?)", startTime, startFileID).
 		OrderBy("FileInfo.CreateAt ASC, FileInfo.Id ASC").
 		Limit(uint64(limit))
 
@@ -794,12 +834,15 @@ func (fs SqlFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, 
 }
 
 func (fs SqlFileInfoStore) RefreshFileStats() error {
+	ctx, cancel := fs.analyticsContext()
+	defer cancel()
+
 	// CONCURRENTLY is not used deliberately because as per Postgres docs,
 	// not using CONCURRENTLY takes less resources and completes faster
 	// at the expense of locking the mat view. Since viewing admin console
 	// is not a very frequent activity, we accept the tradeoff to let the
 	// refresh happen as fast as possible.
-	if _, err := fs.GetMaster().Exec("REFRESH MATERIALIZED VIEW file_stats"); err != nil {
+	if _, err := fs.GetMaster().ExecContext(ctx, "REFRESH MATERIALIZED VIEW file_stats"); err != nil {
 		return errors.Wrap(err, "error refreshing materialized view file_stats")
 	}
 

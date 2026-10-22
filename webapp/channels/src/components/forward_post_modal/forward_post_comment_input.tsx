@@ -28,8 +28,8 @@ type Props = {
     onSubmit: () => void;
     onChange: (comment: string) => void;
     onError: (error: React.ReactNode) => void;
-    onHeightChange: (width: number, height: number) => void;
-}
+    onHeightChange: (height: number, maxHeight: number) => void;
+};
 
 const ForwardPostCommentInput = ({channelId, canForwardPost, comment, permaLinkLength, onChange, onError, onSubmit, onHeightChange}: Props) => {
     const {formatMessage} = useIntl();
@@ -64,11 +64,13 @@ const ForwardPostCommentInput = ({channelId, canForwardPost, comment, permaLinkL
 
         setCommentAsync(res.message).then(() => {
             const textbox = textboxRef.current?.getInputBox();
-            Utils.setSelectionRange(
-                textbox,
-                res.selectionStart,
-                res.selectionEnd,
-            );
+            if (textbox) {
+                Utils.setSelectionRange(
+                    textbox,
+                    res.selectionStart,
+                    res.selectionEnd,
+                );
+            }
         });
     };
 

@@ -1,0 +1,82 @@
+.filters {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--mm-border-subtle);
+  border-radius: 4px;
+  background: var(--mm-bg-subtle);
+}
+
+.title {
+  margin: 0 0 0.35rem;
+  font-family: var(--mm-font-heading);
+  font-size: 1.1rem;
+}
+
+.description {
+  margin: 0 0 1rem;
+  color: var(--mm-text-secondary);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.field select {
+  min-width: 10rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--mm-border-subtle);
+  border-radius: 4px;
+  background: var(--mm-bg-surface);
+  color: var(--mm-text-primary);
+}
+
+.applyButton,
+.resetButton {
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.applyButton {
+  background: var(--mm-denim-400);
+  color: var(--mm-color-white);
+}
+
+.applyButton:hover {
+  background: var(--mm-color-denim);
+}
+
+.resetButton {
+  background: transparent;
+  color: var(--mm-text-primary);
+  border: 1px solid var(--mm-border-subtle);
+}
+
+.resetButton:hover {
+  background: var(--mm-bg-surface);
+}
+
+.error {
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-left: 4px solid #e74c3c;
+  border-radius: 4px;
+  background: #fadbd8;
+  color: #922b21;
+}
+
+:global(.upgrade-notes-table tr.filtered) {
+  display: none;
+}

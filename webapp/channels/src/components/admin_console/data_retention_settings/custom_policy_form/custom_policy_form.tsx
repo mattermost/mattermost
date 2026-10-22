@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {defineMessages, FormattedMessage} from 'react-intl';
+import React, {type JSX} from 'react';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 import type {
     DataRetentionCustomPolicy,
@@ -48,7 +50,7 @@ type Props = {
         removeDataRetentionCustomPolicyChannels: (id: string, policy: string[]) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
-};
+} & WrappedComponentProps;
 
 type State = {
     policyName: string | undefined;
@@ -67,9 +69,9 @@ type State = {
     serverError: boolean;
     inputErrorText: React.ReactNode;
     formErrorText: React.ReactNode;
-}
+};
 
-export default class CustomPolicyForm extends React.PureComponent<Props, State> {
+class CustomPolicyForm extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -383,7 +385,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                                 >
                                     <Input
                                         name='policyName'
-                                        aria-label='Policy name'
+                                        aria-label={this.props.intl.formatMessage(messages.policyName)}
                                         type='text'
                                         value={this.state.policyName}
                                         onChange={(e) => {
@@ -535,7 +537,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                         )}
                     />
                     <BlockableLink
-                        className='btn btn-tertiary'
+                        className={buttonClassNames({emphasis: 'tertiary'})}
                         to='/admin_console/compliance/data_retention_settings'
                     >
                         <FormattedMessage
@@ -575,3 +577,5 @@ const messages = defineMessages({
         defaultMessage: 'Policy name',
     },
 });
+
+export default injectIntl(CustomPolicyForm);

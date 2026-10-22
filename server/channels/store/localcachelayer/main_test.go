@@ -4,8 +4,8 @@
 package localcachelayer
 
 import (
-	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -24,8 +24,12 @@ var mainHelper *testlib.MainHelper
 
 func getMockCacheProvider() cache.Provider {
 	mockCacheProvider := cachemocks.Provider{}
-	mockCacheProvider.On("NewCache", mock.Anything).
-		Return(cache.NewLRU(&cache.CacheOptions{Size: 128}), nil)
+	// Each NewCache call returns a fresh LRU so that caches are isolated
+	// from each other, matching production behaviour.
+	call := mockCacheProvider.On("NewCache", mock.Anything)
+	call.Run(func(args mock.Arguments) {
+		call.ReturnArguments = mock.Arguments{cache.NewLRU(&cache.CacheOptions{Size: 128}), nil}
+	})
 	mockCacheProvider.On("Type").Return("lru")
 	return &mockCacheProvider
 }
@@ -50,8 +54,9 @@ func getMockStore(t *testing.T) *mocks.Store {
 	fakeRole2 := model.Role{Id: "456", Name: "role-name2"}
 	mockRolesStore := mocks.RoleStore{}
 	mockRolesStore.On("Save", &fakeRole).Return(&model.Role{}, nil)
+	mockRolesStore.On("SavePreservingUnknownPermissions", &fakeRole).Return(&model.Role{}, nil)
 	mockRolesStore.On("Delete", "123").Return(&fakeRole, nil)
-	mockRolesStore.On("GetByName", context.Background(), "role-name").Return(&fakeRole, nil)
+	mockRolesStore.On("GetByName", mock.Anything, "role-name").Return(&fakeRole, nil)
 	mockRolesStore.On("GetByNames", []string{"role-name"}).Return([]*model.Role{&fakeRole}, nil)
 	mockRolesStore.On("GetByNames", []string{"role-name2"}).Return([]*model.Role{&fakeRole2}, nil)
 	mockRolesStore.On("PermanentDeleteAll").Return(nil)
@@ -65,11 +70,11 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
 
-	fakeFileInfo := model.FileInfo{PostId: "123"}
+	fakeFileInfo := model.FileInfo{Id: "123", PostId: "123"}
 	mockFileInfoStore := mocks.FileInfoStore{}
 	mockFileInfoStore.On("GetForPost", "123", true, true, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
 	mockFileInfoStore.On("GetForPost", "123", true, true, true).Return([]*model.FileInfo{&fakeFileInfo}, nil)
-	mockFileInfoStore.On("GetByIds", []string{"123"}, true, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
+	mockFileInfoStore.On("GetByIds", []string{"123"}, true, false, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
 	mockStore.On("FileInfo").Return(&mockFileInfoStore)
 
 	fakeWebhook := model.IncomingWebhook{Id: "123"}
@@ -90,6 +95,17 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockEmojiStore.On("GetByName", mock.Anything, "name123", false).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123"}).Return([]*model.Emoji{&fakeEmoji}, nil)
 	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123", "name321"}).Return([]*model.Emoji{&fakeEmoji, &fakeEmoji2}, nil)
+	missingEmoji := model.Emoji{Id: "456", Name: "missing"}
+	// Master-routed lookups find the emoji, replica ones don't; registered
+	// first so it wins over the IsType matcher below.
+	mockEmojiStore.On("GetMultipleByName", mock.MatchedBy(func(rctx request.CTX) bool {
+		return sqlstore.HasMaster(rctx.Context())
+	}), []string{"missing"}).Return([]*model.Emoji{&missingEmoji}, nil)
+	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"missing"}).Return([]*model.Emoji{}, nil)
+	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123", "missing"}).Return([]*model.Emoji{&fakeEmoji}, nil)
+	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{strings.Repeat("z", model.EmojiNameMaxLength+1)}).Return([]*model.Emoji{}, nil)
+	mockEmojiStore.On("GetByName", mock.Anything, "missing", true).Return(&missingEmoji, nil)
+	mockEmojiStore.On("Save", &missingEmoji).Return(&missingEmoji, nil)
 	mockEmojiStore.On("GetByName", mock.IsType(&request.Context{}), "master", true).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("GetByName", sqlstore.RequestContextWithMaster(request.TestContext(t)), "master", false).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("Delete", &fakeEmoji, int64(0)).Return(nil)
@@ -103,6 +119,8 @@ func getMockStore(t *testing.T) *mocks.Store {
 	fakeChannel2 := model.Channel{Id: "channel2", Name: "channel2-name"}
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("ClearCaches").Return()
+	mockChannelStore.On("Save", mock.IsType(&request.Context{}), &fakeChannel1, int64(0)).Return(&fakeChannel1, nil)
+	mockChannelStore.On("Update", mock.IsType(&request.Context{}), &fakeChannel1).Return(&fakeChannel1, nil)
 	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
 	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)
@@ -162,7 +180,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 
 	fakeUser := []*model.User{{
 		Id:          "123",
-		AuthData:    model.NewPointer("authData"),
+		AuthData:    new("authData"),
 		AuthService: "authService",
 	}}
 	mockUserStore := mocks.UserStore{}
@@ -181,7 +199,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 		fakeUser[0],
 		{
 			Id:          "456",
-			AuthData:    model.NewPointer("authData"),
+			AuthData:    new("authData"),
 			AuthService: "authService",
 		},
 	}
@@ -197,6 +215,34 @@ func getMockStore(t *testing.T) *mocks.Store {
 
 	mockContentFlaggingStore := mocks.ContentFlaggingStore{}
 	mockStore.On("ContentFlagging").Return(&mockContentFlaggingStore)
+
+	mockDeliveryTrackingStore := mocks.DeliveryTrackingStore{}
+	mockStore.On("DeliveryTracking").Return(&mockDeliveryTrackingStore)
+
+	mockSessionAttributeStore := mocks.SessionAttributeStore{}
+	mockStore.On("SessionAttribute").Return(&mockSessionAttributeStore)
+
+	fakeField := model.PropertyField{ID: "field-id", GroupID: "group-id", Name: "field-name"}
+	mockPropertyFieldStore := mocks.PropertyFieldStore{}
+	mockPropertyFieldStore.On("GetForGroup", mock.Anything, "group-id").Return([]*model.PropertyField{&fakeField}, nil)
+	mockPropertyFieldStore.On("Create", &fakeField).Return(&fakeField, nil)
+	mockPropertyFieldStore.On("Update", "group-id", []*model.PropertyField{&fakeField}, map[string]int64(nil)).Return([]*model.PropertyField{&fakeField}, nil)
+	mockPropertyFieldStore.On("Delete", "group-id", "field-id").Return(nil)
+	mockPropertyFieldStore.On("MutateOptions", "group-id", "field-id", int64(0), []*model.PropertyFieldOption(nil), []*model.PropertyOptionEdge(nil), []*model.PropertyOptionEdge(nil)).Return(nil)
+	mockStore.On("PropertyField").Return(&mockPropertyFieldStore)
+
+	mockAccessControlPolicyStore := mocks.AccessControlPolicyStore{}
+	mockAccessControlPolicyStore.On("GetEtagEpoch", mock.Anything, "channel-id").Return("100-1", nil)
+	mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+
+	mockAttributesStore := mocks.AttributesStore{}
+	mockAttributesStore.On("GetUserPropertyValuesEpoch", mock.Anything, "user-id").Return("200-1", nil)
+	fakeSubject := model.Subject{ID: "user-id", Type: "user", Attributes: map[string]any{"department": "Engineering"}}
+	mockAttributesStore.On("GetSubject", mock.Anything, "user-id", "group-id", model.PropertyFieldObjectTypeUser).Return(&fakeSubject, nil)
+	mockAttributesStore.On("GetSubject", mock.Anything, "no-attributes-user-id", "group-id", model.PropertyFieldObjectTypeUser).Return(nil, store.NewErrNotFound("Attributes", "no-attributes-user-id"))
+	fakeChannelSubject := model.Subject{ID: "channel-id", Type: "channel", Attributes: map[string]any{"public": true}}
+	mockAttributesStore.On("GetSubject", mock.Anything, "channel-id", "group-id", model.PropertyFieldObjectTypeChannel).Return(&fakeChannelSubject, nil)
+	mockStore.On("Attributes").Return(&mockAttributesStore)
 
 	mockReadReceiptStore := &mocks.ReadReceiptStore{}
 	mockStore.On("ReadReceipt").Return(mockReadReceiptStore)

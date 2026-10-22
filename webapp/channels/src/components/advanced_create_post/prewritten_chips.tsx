@@ -19,7 +19,7 @@ type Props = {
     prefillMessage: (msg: string) => void;
     channelId: string;
     currentUserId: string;
-}
+};
 
 const UsernameMention = styled.span`
     margin-left: 5px;

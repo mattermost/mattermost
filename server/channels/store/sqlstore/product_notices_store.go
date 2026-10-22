@@ -43,6 +43,17 @@ func (s SqlProductNoticesStore) Clear(notices []string) error {
 	return nil
 }
 
+func (s SqlProductNoticesStore) PermanentDeleteByUser(userId string) error {
+	query := s.getQueryBuilder().
+		Delete("ProductNoticeViewState").
+		Where(sq.Eq{"UserId": userId})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete ProductNoticeViewState with userId=%s", userId)
+	}
+	return nil
+}
+
 func (s SqlProductNoticesStore) ClearOldNotices(currentNotices model.ProductNotices) error {
 	var notices []string
 	for _, currentNotice := range currentNotices {
@@ -60,7 +71,7 @@ func (s SqlProductNoticesStore) ClearOldNotices(currentNotices model.ProductNoti
 }
 
 func (s SqlProductNoticesStore) View(userId string, notices []string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}

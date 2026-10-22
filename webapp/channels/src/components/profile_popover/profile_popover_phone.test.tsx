@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
@@ -27,6 +27,11 @@ describe('components/ProfilePopoverPhone', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             value_type: 'phone',
             visibility: 'when_set',

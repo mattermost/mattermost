@@ -5,6 +5,8 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
+
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import ExternalLink from 'components/external_link';
@@ -47,7 +49,7 @@ type State = {
 };
 
 export default class ThemeSetting extends React.PureComponent<Props, State> {
-    minRef: RefObject<SettingItemMinComponent>;
+    minRef: RefObject<SettingItemMinComponent | null>;
     originalTheme: Theme;
     constructor(props: Props) {
         super(props);
@@ -186,38 +188,32 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                 inputs.push(
                     <div
                         key='premadeCustom'
-                        className='user-settings__radio-group-inline'
+                        className='settings-radio-group-inline'
                     >
-                        <div className='radio radio-inline'>
-                            <label>
-                                <input
-                                    id='standardThemes'
-                                    type='radio'
-                                    name='theme'
-                                    checked={!displayCustom}
-                                    onChange={this.updateType.bind(this, 'premade')}
-                                />
-                                <FormattedMessage
-                                    id='user.settings.display.theme.premadeThemes'
-                                    defaultMessage='Premade Themes'
-                                />
-                            </label>
-                        </div>
-                        <div className='radio radio-inline'>
-                            <label>
-                                <input
-                                    id='customThemes'
-                                    type='radio'
-                                    name='theme'
-                                    checked={displayCustom}
-                                    onChange={this.updateType.bind(this, 'custom')}
-                                />
-                                <FormattedMessage
-                                    id='user.settings.display.theme.customTheme'
-                                    defaultMessage='Custom Theme'
-                                />
-                            </label>
-                        </div>
+                        <Radio
+                            id='standardThemes'
+                            name='theme'
+                            value='premade'
+                            checked={!displayCustom}
+                            onChange={() => this.updateType('premade')}
+                        >
+                            <FormattedMessage
+                                id='user.settings.display.theme.premadeThemes'
+                                defaultMessage='Premade Themes'
+                            />
+                        </Radio>
+                        <Radio
+                            id='customThemes'
+                            name='theme'
+                            value='custom'
+                            checked={displayCustom}
+                            onChange={() => this.updateType('custom')}
+                        >
+                            <FormattedMessage
+                                id='user.settings.display.theme.customTheme'
+                                defaultMessage='Custom Theme'
+                            />
+                        </Radio>
                     </div>,
                 );
 
@@ -238,6 +234,8 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                         </ExternalLink>
                     </div>,
                 );
+            } else {
+                inputs.push(premade);
             }
 
             let allTeamsCheckbox = null;

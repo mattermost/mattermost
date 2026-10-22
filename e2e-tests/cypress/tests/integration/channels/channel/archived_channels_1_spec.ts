@@ -10,10 +10,10 @@
 // Stage: @prod
 // Group: @channels @channel
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Leave an archived channel', () => {
     let testTeam: Team;

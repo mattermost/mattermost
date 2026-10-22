@@ -7,7 +7,6 @@ import type {Post} from '@mattermost/types/posts';
 
 import {Preferences} from 'mattermost-redux/constants';
 
-import enMessages from 'i18n/en.json';
 import {makeInitialState} from 'packages/mattermost-redux/test/test_store';
 import {PostListRowListIds, Constants} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
@@ -475,9 +474,26 @@ describe('PostUtils.shouldFocusMainTextbox', () => {
                 expected: false,
             },
         ]) {
-            const shouldFocus = PostUtils.shouldFocusMainTextbox(data.event as unknown as KeyboardEvent, data.activeElement as unknown as Element);
+            const activeElement = data.activeElement ? document.createElement(data.activeElement.tagName) : null;
+            const shouldFocus = PostUtils.shouldFocusMainTextbox(data.event as unknown as KeyboardEvent, activeElement);
             expect(shouldFocus).toEqual(data.expected);
         }
+    });
+
+    test('does not steal focus from a rich text editor', () => {
+        const event = {key: 'a'} as unknown as KeyboardEvent;
+
+        const editor = document.createElement('div');
+        editor.setAttribute('contenteditable', 'true');
+        const paragraph = document.createElement('p');
+        editor.appendChild(paragraph);
+
+        expect(PostUtils.shouldFocusMainTextbox(event, editor)).toBe(false);
+        expect(PostUtils.shouldFocusMainTextbox(event, paragraph)).toBe(false);
+
+        const readOnly = document.createElement('div');
+        readOnly.setAttribute('contenteditable', 'false');
+        expect(PostUtils.shouldFocusMainTextbox(event, readOnly)).toBe(true);
     });
 });
 
@@ -526,10 +542,6 @@ describe('PostUtils.postMessageOnKeyPress', () => {
         name: 'no override: empty message',
         input: {event: {keyCode: 13}, message: '', sendMessageOnCtrlEnter: false, sendCodeBlockOnCtrlEnter: false},
         expected: {allowSending: true},
-    }, {
-        name: 'no override: empty message on ctrl + enter',
-        input: {event: {keyCode: 13}, message: '', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
-        expected: {allowSending: true},
     }];
 
     for (const testCase of noOverrideCases) {
@@ -550,6 +562,18 @@ describe('PostUtils.postMessageOnKeyPress', () => {
 
     // on sending of message on Ctrl + Enter
     const sendMessageOnCtrlEnterCases = [{
+        name: 'sendMessageOnCtrlEnter: Test for empty message on CTRL+ENTER setting, no ctrlKey|metaKey - should not allow sending (attachment-only messages)',
+        input: {event: {keyCode: 13}, message: '', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
+        expected: {allowSending: false},
+    }, {
+        name: 'sendMessageOnCtrlEnter: Test for empty message on CTRL+ENTER setting, with ctrlKey - should allow sending',
+        input: {event: {keyCode: 13, ctrlKey: true}, message: '', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
+        expected: {allowSending: true},
+    }, {
+        name: 'sendMessageOnCtrlEnter: Test for empty message on CTRL+ENTER setting, with metaKey - should allow sending',
+        input: {event: {keyCode: 13, metaKey: true}, message: '', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
+        expected: {allowSending: true},
+    }, {
         name: 'sendMessageOnCtrlEnter: Test for overriding sending of message on CTRL+ENTER, no ctrlKey|metaKey',
         input: {event: {keyCode: 13}, message: 'message', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
         expected: {allowSending: false},
@@ -871,7 +895,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     const teammateNameDisplaySetting = 'username';
 
     test('Should show username, timestamp, message, attachments, reactions, flagged and pinned', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message',
@@ -901,7 +925,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show that message is a reply', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message',
@@ -917,7 +941,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should translate emoji into {emoji-name} emoji', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'emoji_test :smile: :+1: :non-potable_water: :space emoji: :not_an_emoji:',
@@ -936,7 +960,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Generating aria label should not break if message is undefined', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             id: '32',
@@ -951,7 +975,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should not mention reactions if passed an empty object', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message',
@@ -967,7 +991,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show the username as mention name in the message', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message @benjamin.cooke',
@@ -983,7 +1007,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show the nickname as mention name in the message', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message @benjamin.cooke',
@@ -999,7 +1023,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show translated message', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message in Spanish',
@@ -1026,7 +1050,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show original message if translation is not ready', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message in Spanish',
@@ -1053,7 +1077,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show original message if there is no translation for the current language', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message in Spanish',
@@ -1080,7 +1104,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show original message if we pass autotranslated as false', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message in Spanish',
@@ -1107,7 +1131,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show original message if the post type is not empty', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message in Spanish',
@@ -1573,6 +1597,70 @@ describe('makeGetUniqueEmojiNameReactionsForPost', () => {
         const getUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost();
 
         expect(getUniqueEmojiNameReactionsForPost(baseState, 'post_id_1')).toEqual(['smile', 'cry']);
+    });
+});
+
+describe('PostUtils.areConsecutivePostsBySameUser', () => {
+    const userId = 'user_id_1';
+    const baseTime = 1_000_000;
+
+    const makePost = (override: Partial<Post> = {}): Post => {
+        return TestHelper.getPostMock({
+            user_id: userId,
+            create_at: baseTime,
+            type: '',
+            ...override,
+        });
+    };
+
+    test('should return true for consecutive posts from the same user', () => {
+        const previousPost = makePost({create_at: baseTime});
+        const post = makePost({create_at: baseTime + 1000});
+
+        expect(PostUtils.areConsecutivePostsBySameUser(post, previousPost)).toBe(true);
+    });
+
+    test('should return false when current post is AI-generated', () => {
+        const previousPost = makePost({create_at: baseTime});
+        const post = makePost({
+            create_at: baseTime + 1000,
+            props: {
+                ai_generated_by: 'ai_user_id',
+                ai_generated_by_username: 'aibot',
+            },
+        });
+
+        expect(PostUtils.areConsecutivePostsBySameUser(post, previousPost)).toBe(false);
+    });
+
+    test('should return false when current AI post follows another AI post from the same user', () => {
+        const aiProps = {
+            ai_generated_by: 'ai_user_id',
+            ai_generated_by_username: 'aibot',
+        };
+        const previousPost = makePost({
+            create_at: baseTime,
+            props: aiProps,
+        });
+        const post = makePost({
+            create_at: baseTime + 1000,
+            props: aiProps,
+        });
+
+        expect(PostUtils.areConsecutivePostsBySameUser(post, previousPost)).toBe(false);
+    });
+
+    test('should return false when a normal post follows an AI post from the same user', () => {
+        const previousPost = makePost({
+            create_at: baseTime,
+            props: {
+                ai_generated_by: 'ai_user_id',
+                ai_generated_by_username: 'aibot',
+            },
+        });
+        const post = makePost({create_at: baseTime + 1000});
+
+        expect(PostUtils.areConsecutivePostsBySameUser(post, previousPost)).toBe(false);
     });
 });
 

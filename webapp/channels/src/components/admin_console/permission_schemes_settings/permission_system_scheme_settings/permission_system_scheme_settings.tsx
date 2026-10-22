@@ -5,6 +5,7 @@ import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 
@@ -49,7 +50,7 @@ type State = {
     selectedPermission?: string;
     openRoles: Record<string, boolean>;
     urlParams: URLSearchParams;
-}
+};
 
 type RolesState = {
     system_admin: Role;
@@ -61,8 +62,8 @@ type RolesState = {
     run_member: Role;
     all_users: {name: string; display_name: string; permissions: Role['permissions']};
     guests: {name: string; display_name: string; permissions: Role['permissions']};
-}
-class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
+};
+export class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
     private rolesNeeded: string[];
 
     constructor(props: Props) {
@@ -117,9 +118,11 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
         }
     }
 
-    UNSAFE_componentWillReceiveProps(nextProps: Props) {
-        if (!this.state.loaded && this.rolesNeeded.every((roleName) => nextProps.roles[roleName])) {
-            this.loadRolesIntoState(nextProps);
+    componentDidUpdate() {
+        // The roles requested on mount arrive asynchronously, so keep waiting for them until
+        // they're all in props. Guarded by `loaded` so the setState can't loop.
+        if (!this.state.loaded && this.rolesNeeded.every((roleName) => this.props.roles[roleName])) {
+            this.loadRolesIntoState(this.props);
         }
     }
 
@@ -324,41 +327,43 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
     };
 
     togglePermission = (roleId: string, permissions: Iterable<string>) => {
-        const roles = {...this.state.roles};
-        const role = {...roles[roleId as keyof RolesState]} as Role;
-        const newPermissions = [...role.permissions!];
-        for (const permission of permissions) {
-            if (newPermissions.indexOf(permission) === -1) {
-                newPermissions.push(permission);
-            } else {
-                newPermissions.splice(newPermissions.indexOf(permission), 1);
-            }
-        }
-        role.permissions = newPermissions;
-        roles[roleId as keyof RolesState] = role;
-
-        if (roleId === 'all_users') {
-            const channelAdminRole = {...roles.channel_admin} as Role;
-            const channelAdminPermissions = [...channelAdminRole.permissions!];
-            const teamAdminRole = {...roles.team_admin} as Role;
-            const teamAdminPermissions = [...teamAdminRole.permissions!];
+        this.setState((state) => {
+            const roles = {...state.roles};
+            const role = {...roles[roleId as keyof RolesState]} as Role;
+            const newPermissions = [...role.permissions!];
             for (const permission of permissions) {
-                if (ModeratedPermissions.indexOf(permission) !== -1 && role.permissions.indexOf(permission) !== -1) {
-                    if (channelAdminPermissions.indexOf(permission) === -1) {
-                        channelAdminPermissions.push(permission);
-                    }
-                    if (teamAdminPermissions.indexOf(permission) === -1) {
-                        teamAdminPermissions.push(permission);
-                    }
+                if (newPermissions.indexOf(permission) === -1) {
+                    newPermissions.push(permission);
+                } else {
+                    newPermissions.splice(newPermissions.indexOf(permission), 1);
                 }
             }
-            channelAdminRole.permissions = channelAdminPermissions;
-            roles.channel_admin = channelAdminRole;
-            teamAdminRole.permissions = teamAdminPermissions;
-            roles.team_admin = teamAdminRole;
-        }
+            role.permissions = newPermissions;
+            roles[roleId as keyof RolesState] = role;
 
-        this.setState({roles, saveNeeded: true});
+            if (roleId === 'all_users') {
+                const channelAdminRole = {...roles.channel_admin} as Role;
+                const channelAdminPermissions = [...channelAdminRole.permissions!];
+                const teamAdminRole = {...roles.team_admin} as Role;
+                const teamAdminPermissions = [...teamAdminRole.permissions!];
+                for (const permission of permissions) {
+                    if (ModeratedPermissions.indexOf(permission) !== -1 && role.permissions.indexOf(permission) !== -1) {
+                        if (channelAdminPermissions.indexOf(permission) === -1) {
+                            channelAdminPermissions.push(permission);
+                        }
+                        if (teamAdminPermissions.indexOf(permission) === -1) {
+                            teamAdminPermissions.push(permission);
+                        }
+                    }
+                }
+                channelAdminRole.permissions = channelAdminPermissions;
+                roles.channel_admin = channelAdminRole;
+                teamAdminRole.permissions = teamAdminPermissions;
+                roles.team_admin = teamAdminRole;
+            }
+
+            return {roles, saveNeeded: true};
+        });
         this.props.actions.setNavigationBlocked(true);
     };
 
@@ -460,6 +465,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
 
                         <AdminPanelTogglable
                             className='permissions-block'
+                            id='channelAdministratorsSection'
                             open={this.state.openRoles.channel_admin}
                             onToggle={() => this.toggleRole('channel_admin')}
                             title={defineMessage({id: 'admin.permissions.systemScheme.channelAdminsTitle', defaultMessage: 'Channel Administrators'})}
@@ -479,7 +485,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                             className='permissions-block'
                             open={this.state.openRoles.playbook_admin}
                             onToggle={() => this.toggleRole('playbook_admin')}
-                            title={defineMessage({id: 'admin.permissions.systemScheme.playbookAdmin', defaultMessage: 'Playbook Administrator'})}
+                            title={defineMessage({id: 'admin.permissions.systemScheme.playbookAdmin', defaultMessage: 'Playbook Administrators'})}
                             subtitle={defineMessage({id: 'admin.permissions.systemScheme.playbookAdminSubtitle', defaultMessage: 'Permissions granted to administrators of a playbook.'})}
                         >
                             <PermissionsTreePlaybooks
@@ -495,6 +501,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
 
                         <AdminPanelTogglable
                             className='permissions-block'
+                            id='teamAdministratorsSection'
                             open={this.state.openRoles.team_admin}
                             onToggle={() => this.toggleRole('team_admin')}
                             title={defineMessage({id: 'admin.permissions.systemScheme.teamAdminsTitle', defaultMessage: 'Team Administrators'})}
@@ -512,6 +519,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
 
                         <AdminPanelTogglable
                             className='permissions-block'
+                            id='systemAdministratorsSection'
                             open={this.state.openRoles.system_admin}
                             onToggle={() => this.toggleRole('system_admin')}
                             title={defineMessage({id: 'admin.permissions.systemScheme.systemAdminsTitle', defaultMessage: 'System Administrators'})}
@@ -536,7 +544,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                         savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
                     <BlockableLink
-                        className='btn btn-tertiary'
+                        className={buttonClassNames({emphasis: 'tertiary'})}
                         to='/admin_console/user_management/permissions'
                         data-testid='permission-scheme-cancel-button'
                     >
@@ -545,16 +553,16 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                             defaultMessage='Cancel'
                         />
                     </BlockableLink>
-                    <a
+                    <Button
                         data-testid='resetPermissionsToDefault'
                         onClick={() => this.setState({showResetDefaultModal: true})}
-                        className='btn btn-quaternary'
+                        emphasis='quaternary'
                     >
                         <FormattedMessage
                             id='admin.permissions.systemScheme.resetDefaultsButton'
                             defaultMessage='Reset to Defaults'
                         />
-                    </a>
+                    </Button>
                     <div className='error-message'>
                         <FormError error={this.state.serverError}/>
                     </div>

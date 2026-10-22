@@ -192,6 +192,75 @@ func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
+func TestIncomingWebhookValidateUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+	addIncomingWebhookPermissionsWithOthers(t, th, model.TeamAdminRoleId)
+
+	th.LoginTeamAdmin(t)
+
+	t.Run("cannot assign a user who is not a member of the team or channel", func(t *testing.T) {
+		nonMember := th.CreateUser(t)
+
+		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, UserId: nonMember.Id}
+		_, resp, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("cannot assign a user with higher privileges than the requester", func(t *testing.T) {
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		_, appErr := th.App.AddUserToChannel(th.Context, th.SystemAdminUser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, UserId: th.SystemAdminUser.Id}
+		_, resp, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("can assign a user who is a member of the channel", func(t *testing.T) {
+		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id}
+		created, _, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser2.Id, created.UserId)
+	})
+
+	t.Run("update cannot move another user's hook to a channel they cannot access", func(t *testing.T) {
+		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id}
+		created, _, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
+		require.NoError(t, err)
+
+		privateChannel := th.CreatePrivateChannel(t)
+		created.ChannelId = privateChannel.Id
+
+		_, resp, err := th.Client.UpdateIncomingWebhook(context.Background(), created)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("update validates the retained owner even when the payload also changes the owner", func(t *testing.T) {
+		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id}
+		created, _, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
+		require.NoError(t, err)
+
+		// The owner is immutable on update, so changing it alongside the channel must not
+		// let the supplied user stand in for the retained owner's channel access.
+		privateChannel := th.CreatePrivateChannel(t)
+		created.ChannelId = privateChannel.Id
+		created.UserId = th.TeamAdminUser.Id
+
+		_, resp, err := th.Client.UpdateIncomingWebhook(context.Background(), created)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
 func TestGetIncomingWebhooks(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -282,4 +283,101 @@ func (a *App) DeleteSidebarCategory(rctx request.CTX, userID, teamID, categoryId
 	a.Publish(message)
 
 	return nil
+}
+
+func (a *App) SetChannelManagedCategory(rctx request.CTX, channelID, categoryName string) *model.AppError {
+	categoryName = strings.TrimSpace(categoryName)
+	if categoryName == "" {
+		return model.NewAppError("SetChannelManagedCategory", "app.managed_category.empty_name.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	channel, appErr := a.GetChannel(rctx, channelID)
+	if appErr != nil {
+		return appErr
+	}
+	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+		return model.NewAppError("SetChannelManagedCategory", "app.managed_category.dm_gm_not_allowed.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	nameJSON, _ := json.Marshal(categoryName)
+
+	value := &model.PropertyValue{
+		GroupID:    a.Channels().managedCategoryGroupID,
+		FieldID:    a.Channels().managedCategoryFieldID,
+		TargetID:   channelID,
+		TargetType: model.PropertyValueTargetTypeChannel,
+		Value:      nameJSON,
+	}
+
+	if _, appErr := a.UpsertPropertyValues(rctx, []*model.PropertyValue{value}, model.PropertyFieldObjectTypeChannel, channelID, ""); appErr != nil {
+		return model.NewAppError("SetChannelManagedCategory", "app.managed_category.set.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	return nil
+}
+
+func (a *App) ClearChannelManagedCategory(rctx request.CTX, channelID string) *model.AppError {
+	values, appErr := a.SearchPropertyValues(rctx, a.Channels().managedCategoryGroupID, model.PropertyValueSearchOpts{
+		FieldID:   a.Channels().managedCategoryFieldID,
+		TargetIDs: []string{channelID},
+		PerPage:   1,
+	})
+	if appErr != nil {
+		return model.NewAppError("ClearChannelManagedCategory", "app.managed_category.search.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	if len(values) == 0 {
+		return nil
+	}
+
+	if appErr := a.DeletePropertyValue(rctx, a.Channels().managedCategoryGroupID, values[0].ID); appErr != nil {
+		return model.NewAppError("ClearChannelManagedCategory", "app.managed_category.clear.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	return nil
+}
+
+// GetVisibleManagedCategoryMappings returns a map of channelID -> categoryName for all channels
+// the user is a member of (within the given team) that have a managed category assigned.
+func (a *App) GetVisibleManagedCategoryMappings(rctx request.CTX, teamID string) (map[string]string, *model.AppError) {
+	channels, appErr := a.GetChannelsForTeamForUser(rctx, teamID, rctx.Session().UserId, &model.ChannelSearchOpts{})
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return map[string]string{}, nil
+		}
+		return nil, appErr
+	}
+
+	if len(channels) == 0 {
+		return map[string]string{}, nil
+	}
+
+	channelIDs := make([]string, 0, len(channels))
+	for _, ch := range channels {
+		channelIDs = append(channelIDs, ch.Id)
+	}
+
+	values, appErr := a.SearchPropertyValues(rctx, a.Channels().managedCategoryGroupID, model.PropertyValueSearchOpts{
+		FieldID:   a.Channels().managedCategoryFieldID,
+		TargetIDs: channelIDs,
+		PerPage:   len(channelIDs),
+	})
+	if appErr != nil {
+		return nil, model.NewAppError("GetVisibleManagedCategoryMappings", "app.managed_category.get_mappings.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	result := make(map[string]string, len(values))
+	for _, v := range values {
+		var name string
+		if err := json.Unmarshal(v.Value, &name); err != nil {
+			rctx.Logger().Warn("Failed to unmarshal managed category name",
+				mlog.String("channel_id", v.TargetID),
+				mlog.Err(err),
+			)
+			continue
+		}
+		result[v.TargetID] = name
+	}
+
+	return result, nil
 }

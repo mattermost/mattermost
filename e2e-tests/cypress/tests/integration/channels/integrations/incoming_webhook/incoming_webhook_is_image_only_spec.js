@@ -32,7 +32,7 @@ describe('Incoming webhook', () => {
 
         // # Go to test team/channel, open product menu and click "Integrations"
         cy.visit(`${testTeam.name}/channels/off-topic`);
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
 
         // * Verify that it redirects to integrations URL. Then, click "Incoming Webhooks"
         cy.url().should('include', `${testTeam.name}/integrations`);
@@ -79,7 +79,11 @@ describe('Incoming webhook', () => {
                     attachments: [{image_url: 'https://cdn.pixabay.com/photo/2017/10/10/22/24/wide-format-2839089_960_720.jpg'}],
                 };
                 cy.postIncomingWebhook({url: hookUrl, data: payload});
-                cy.get('.attachment__image').should('be.visible');
+                cy.getLastPostId().then((postId) => {
+                    cy.get(`#post_${postId}`).within(() => {
+                        cy.get('.mm-blocks-image').should('be.visible');
+                    });
+                });
             });
     });
 });

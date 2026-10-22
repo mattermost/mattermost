@@ -36,10 +36,10 @@ import {LoadingIndicator} from '../../system_users/system_users_filters_popover/
 import './user_multiselect.scss';
 
 export type AutocompleteOptionType<T> = {
-    label: string | ReactElement;
+    label: string | ReactElement<any>;
     value: string;
     raw?: T;
-}
+};
 
 const BASE_SELECT_COMPONENTS = {
     LoadingIndicator,
@@ -50,12 +50,12 @@ const BASE_SELECT_COMPONENTS = {
 type MultiSelectProps = {
     multiSelectOnChange?: (selectedUserIds: string[]) => void;
     multiSelectInitialValue?: string[];
-}
+};
 
 type SingleSelectProps = {
     singleSelectOnChange?: (selectedUserId: string) => void;
     singleSelectInitialValue?: string;
-}
+};
 
 type Props = MultiSelectProps & SingleSelectProps & {
     id: string;
@@ -135,7 +135,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
         }
     }, [dispatch, initialValue, isMulti, multiSelectInitialValue, singleSelectInitialValue, isGroupsEnabled, enableTeams]);
 
-    const getUsersByIds = useMemo(makeGetUsersByIds, []);
+    const getUsersByIds = useMemo(() => makeGetUsersByIds(), []);
     const initialUsers = useSelector((state: GlobalState) => getUsersByIds(state, initialValue || []));
     const allGroups = useSelector(getAllGroups);
     const allTeams = useSelector(getTeams);

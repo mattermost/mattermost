@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -64,6 +65,21 @@ func TestMoveCommand(t *testing.T) {
 	retrievedCommand, err = th.App.GetCommand(command.Id)
 	assert.Nil(t, err)
 	assert.EqualValues(t, targetTeam.Id, retrievedCommand.TeamId)
+
+	// Move a command to a team where the trigger already exists should fail.
+	command2 := &model.Command{}
+	command2.CreatorId = model.NewId()
+	command2.Method = model.CommandMethodPost
+	command2.TeamId = sourceTeam.Id
+	command2.URL = "http://nowhere.com/"
+	command2.Trigger = "trigger1"
+
+	command2, err = th.App.CreateCommand(command2)
+	assert.Nil(t, err)
+
+	moveErr := th.App.MoveCommand(targetTeam, command2)
+	assert.NotNil(t, moveErr)
+	assert.Equal(t, "api.command.duplicate_trigger.app_error", moveErr.Id)
 }
 
 func TestCreateCommandPost(t *testing.T) {
@@ -235,6 +251,17 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, resp.IconURL, post.GetProp(model.PostPropsOverrideIconURL))
 	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
+	resp.IconURL = ""
+
+	// When both command and response icon URLs are empty and EnablePostIconOverride is enabled,
+	// override_icon_url must not be set (avoids spurious "prop must be a valid URL" warning).
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+	assert.Nil(t, err)
+	assert.Nil(t, post.GetProp(model.PostPropsOverrideIconURL))
+	assert.NotContains(t, post.GetProps(), model.PostPropsOverrideIconURL)
+
+	resp.IconURL = "Response icon url"
+
 	// Test Slack text conversion.
 	resp.Text = "<!channel>"
 
@@ -244,7 +271,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
 	// Test Slack attachments text conversion.
-	resp.Attachments = []*model.SlackAttachment{
+	resp.Attachments = []*model.MessageAttachment{
 		{
 			Text: "<!here>",
 		},
@@ -270,7 +297,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	command.Trigger = "code"
 	resp.ChannelId = ""
 	resp.Text = "<test.com|test website>"
-	resp.Attachments = []*model.SlackAttachment{
+	resp.Attachments = []*model.MessageAttachment{
 		{
 			Text: "<!here>",
 		},
@@ -284,6 +311,72 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, resp.Text, post.Message, "/code text should not be converted to Slack links")
 	assert.Equal(t, "<!here>", resp.Attachments[0].Text)
+}
+
+// response.Props can carry override_* directly (in addition to response.Username /
+// response.IconURL). CreateCommandPost must apply the same EnablePost*Override
+// gates as the top-level fields so props cannot bypass admin intent.
+func TestHandleCommandResponsePostPropsOverrides(t *testing.T) {
+	th := setup(t).initBasic(t)
+
+	command := &model.Command{}
+	args := &model.CommandArgs{
+		ChannelId: th.BasicChannel.Id,
+		TeamId:    th.BasicTeam.Id,
+		UserId:    th.BasicUser.Id,
+	}
+
+	// Non-builtin so from_webhook is set and CreatePost reinjects under
+	// FromIncomingWebhook authority.
+	builtIn := false
+
+	t.Run("props overrides stripped when EnablePost*Override off", func(t *testing.T) {
+		*th.App.Config().ServiceSettings.EnablePostUsernameOverride = false
+		*th.App.Config().ServiceSettings.EnablePostIconOverride = false
+
+		resp := &model.CommandResponse{
+			Type:         model.PostTypeDefault,
+			ResponseType: model.CommandResponseTypeInChannel,
+			Text:         "props override attempt",
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername:  "PropsUser",
+				model.PostPropsOverrideIconURL:   "http://example.com/icon.png",
+				model.PostPropsOverrideIconEmoji: ":robot:",
+				"custom_key":                     "kept",
+			},
+		}
+
+		post, err := th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+		require.Nil(t, err)
+		assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
+		assert.Nil(t, post.GetProp(model.PostPropsOverrideUsername))
+		assert.Nil(t, post.GetProp(model.PostPropsOverrideIconURL))
+		assert.Nil(t, post.GetProp(model.PostPropsOverrideIconEmoji))
+		assert.Equal(t, "kept", post.GetProp("custom_key"))
+	})
+
+	t.Run("props overrides reinjected when EnablePost*Override on", func(t *testing.T) {
+		*th.App.Config().ServiceSettings.EnablePostUsernameOverride = true
+		*th.App.Config().ServiceSettings.EnablePostIconOverride = true
+
+		resp := &model.CommandResponse{
+			Type:         model.PostTypeDefault,
+			ResponseType: model.CommandResponseTypeInChannel,
+			Text:         "props override allowed",
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername:  "PropsUser",
+				model.PostPropsOverrideIconURL:   "http://example.com/icon.png",
+				model.PostPropsOverrideIconEmoji: ":robot:",
+			},
+		}
+
+		post, err := th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+		require.Nil(t, err)
+		assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
+		assert.Equal(t, "PropsUser", post.GetProp(model.PostPropsOverrideUsername))
+		assert.Equal(t, "http://example.com/icon.png", post.GetProp(model.PostPropsOverrideIconURL))
+		assert.Equal(t, ":robot:", post.GetProp(model.PostPropsOverrideIconEmoji))
+	})
 }
 
 func TestHandleCommandResponse(t *testing.T) {
@@ -347,8 +440,8 @@ func TestDoCommandRequest(t *testing.T) {
 	th := setup(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")
-		cfg.ServiceSettings.EnableCommands = model.NewPointer(true)
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
+		cfg.ServiceSettings.EnableCommands = new(true)
 	})
 
 	t.Run("with a valid text response", func(t *testing.T) {
@@ -379,6 +472,97 @@ func TestDoCommandRequest(t *testing.T) {
 
 		assert.NotNil(t, resp)
 		assert.Equal(t, "Hello, World!", resp.Text)
+	})
+
+	t.Run("with a valid json response and any 2xx status", func(t *testing.T) {
+		for _, statusCode := range []int{
+			http.StatusOK, // control: the only status accepted before MM-59493
+			http.StatusCreated,
+			http.StatusAccepted,
+			299, // upper bound of the accepted range
+		} {
+			t.Run(strconv.Itoa(statusCode), func(t *testing.T) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Add("Content-Type", "application/json")
+					w.WriteHeader(statusCode)
+
+					_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+					require.NoError(t, err)
+				}))
+				t.Cleanup(server.Close)
+
+				_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
+				require.Nil(t, err)
+
+				require.NotNil(t, resp)
+				assert.Equal(t, "Hello, World!", resp.Text)
+			})
+		}
+	})
+
+	t.Run("with an empty bodyless 2xx response", func(t *testing.T) {
+		// 204 and 205 carry no body, so an integration that nevertheless advertises a JSON
+		// content type must still be an empty success rather than a parse failure.
+		for _, statusCode := range []int{
+			http.StatusNoContent,
+			http.StatusResetContent,
+		} {
+			for _, tc := range []struct {
+				name        string
+				contentType string
+			}{
+				{"without a content type", ""},
+				{"advertising a json content type", "application/json"},
+			} {
+				t.Run(strconv.Itoa(statusCode)+" "+tc.name, func(t *testing.T) {
+					server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						if tc.contentType != "" {
+							w.Header().Add("Content-Type", tc.contentType)
+						}
+						w.WriteHeader(statusCode)
+					}))
+					t.Cleanup(server.Close)
+
+					_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
+					require.Nil(t, err)
+
+					require.NotNil(t, resp)
+					assert.Empty(t, resp.Text)
+				})
+			}
+		}
+	})
+
+	t.Run("with an unsuccessful response", func(t *testing.T) {
+		// 300 exercises the first status above the accepted 2xx range; Go's HTTP client
+		// does not treat it as a redirect, so it reaches DoCommandRequest as-is.
+		for _, tc := range []struct {
+			statusCode     int
+			expectedStatus string
+		}{
+			{http.StatusMultipleChoices, "300 Multiple Choices"},
+			{http.StatusBadRequest, "400 Bad Request"},
+			{http.StatusInternalServerError, "500 Internal Server Error"},
+		} {
+			t.Run(strconv.Itoa(tc.statusCode), func(t *testing.T) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(tc.statusCode)
+
+					_, err := io.Copy(w, strings.NewReader("the remote integration is unhappy"))
+					require.NoError(t, err)
+				}))
+				t.Cleanup(server.Close)
+
+				_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL, Trigger: "unhappy"}, url.Values{})
+				require.NotNil(t, err)
+				require.Nil(t, resp)
+
+				assert.Equal(t, "api.command.execute_command.failed_resp.app_error", err.Id)
+				assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+				assert.Contains(t, err.Message, tc.expectedStatus)
+				assert.Equal(t, "the remote integration is unhappy", err.DetailedError)
+			})
+		}
 	})
 
 	t.Run("with a large text response", func(t *testing.T) {
@@ -433,7 +617,7 @@ func TestDoCommandRequest(t *testing.T) {
 		t.Cleanup(server.Close)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(1))
 		})
 
 		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
@@ -452,7 +636,7 @@ func TestDoCommandRequest(t *testing.T) {
 		t.Cleanup(server.Close)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(2))
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(2))
 		})
 
 		_, resp, appErr := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
@@ -465,7 +649,7 @@ func TestDoCommandRequest(t *testing.T) {
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
 		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
-		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewPointer(true)
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = new(true)
 		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
 			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig

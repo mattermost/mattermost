@@ -1,0 +1,7 @@
+extends: default
+
+rules:
+  key-duplicates: enable
+  empty-lines: disable
+  line-length: disable
+  trailing-spaces: disable

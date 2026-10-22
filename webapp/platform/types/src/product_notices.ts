@@ -30,7 +30,7 @@ export type ProductNotice = {
 
     sysAdminOnly: boolean;
     teamAdminOnly: boolean;
-}
+};
 
 /** List of product notices. Order is important and is used to resolve priorities.
  * Each notice will only be show if conditions are met.

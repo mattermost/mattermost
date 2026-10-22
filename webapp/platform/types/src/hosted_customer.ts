@@ -8,4 +8,4 @@ export type HostedCustomerState = {
         products: Record<string, Product>;
         productsLoaded: boolean;
     };
-}
+};

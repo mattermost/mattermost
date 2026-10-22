@@ -11,8 +11,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func PostPriorityCheckWithApp(where string, a *App, userId string, priority *model.PostPriority, rootId string) *model.AppError {
-	user, appErr := a.GetUser(userId)
+func PostPriorityCheckWithApp(where string, a *App, rctx request.CTX, userId string, priority *model.PostPriority, rootId string) *model.AppError {
+	user, appErr := a.GetUser(rctx, userId)
 	if appErr != nil {
 		return appErr
 	}
@@ -83,7 +83,7 @@ func postPriorityCheck(
 }
 
 func PostHardenedModeCheckWithApp(a *App, isIntegration bool, props model.StringInterface) *model.AppError {
-	hardenedModeEnabled := *a.Config().ServiceSettings.ExperimentalEnableHardenedMode
+	hardenedModeEnabled := *a.Config().ServiceSettings.EnableHardenedMode
 	return postHardenedModeCheck(hardenedModeEnabled, isIntegration, props)
 }
 
@@ -115,6 +115,15 @@ func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, chan
 	return nil
 }
 
+// PostCardTypeCheckWithApp validates whether a card post can be created
+// based on the IntegratedBoards feature flag.
+func PostCardTypeCheckWithApp(where string, a *App, postType string) *model.AppError {
+	if postType == model.PostTypeCard && !a.Config().FeatureFlags.IntegratedBoards {
+		return model.NewAppError(where, "api.post.create_post.card_type_disabled.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
 // PostBurnOnReadCheckWithApp validates whether a burn-on-read post can be created
 // based on channel type and participants. This is called from the API layer before
 // post creation to enforce burn-on-read restrictions.
@@ -133,6 +142,10 @@ func PostBurnOnReadCheckWithApp(where string, a *App, rctx request.CTX, userId, 
 		channel = ch
 	}
 
+	if channel.IsShared() {
+		return model.NewAppError(where, "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	// Burn-on-read is not allowed in self-DMs or DMs with bots (including AI agents, plugins)
 	if channel.Type == model.ChannelTypeDirect {
 		// Check if it's a self-DM by comparing the channel name with the expected self-DM name
@@ -144,7 +157,7 @@ func PostBurnOnReadCheckWithApp(where string, a *App, rctx request.CTX, userId, 
 		// Check if the DM is with a bot (AI agents, plugins, etc.)
 		otherUserId := channel.GetOtherUserIdForDM(userId)
 		if otherUserId != "" && otherUserId != userId {
-			otherUser, err := a.GetUser(otherUserId)
+			otherUser, err := a.GetUser(rctx, otherUserId)
 			if err != nil {
 				// Failed to retrieve the other user (user not found, DB error, etc.)
 				// Block burn-on-read post as we cannot validate the recipient

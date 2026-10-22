@@ -30,11 +30,11 @@ Options
 
 ::
 
-      --all             Fetch all import jobs. --page flag will be ignored if provided
+      --all             Fetch all jobs. --page flag will be ignored if provided
   -h, --help            help for list
       --ids strings     Comma-separated list of job IDs to which the operation will be applied. All other flags are ignored
-      --page int        Page number to fetch for the list of import jobs
-      --per-page int    Number of import jobs to be fetched (default 5)
+      --page int        Page number to fetch for the list of jobs
+      --per-page int    Number of jobs to be fetched (default 5)
       --status string   Filter by job status
       --type string     Filter by job type
 

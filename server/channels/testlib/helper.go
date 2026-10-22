@@ -60,6 +60,29 @@ func NewMainHelper() *MainHelper {
 }
 
 func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
+	flag.Parse()
+
+	h := &MainHelper{
+		Logger: mlog.CreateConsoleLogger(),
+	}
+	if options != nil {
+		h.Options = *options
+	}
+	return h
+}
+
+func (h *MainHelper) Main(m *testing.M) {
+	if f := flag.Lookup("test.list"); f != nil && f.Value.String() != "" {
+		os.Exit(m.Run())
+	}
+
+	defer func() {
+		err := h.Logger.Shutdown()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	// Ignore any globally defined datasource if a test dsn defined
 	if os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
 		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
@@ -71,20 +94,11 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	os.Unsetenv("MM_SERVICESETTINGS_CONNECTIONSECURITY")
 	os.Unsetenv("MM_SERVICESETTINGS_ENABLEDEVELOPER")
 
-	logger := mlog.CreateConsoleLogger()
-
-	mainHelper := MainHelper{
-		Logger: logger,
-	}
-
-	_, err := mlog.NewLogger()
-	if err != nil {
+	if _, err := mlog.NewLogger(); err != nil {
 		log.Fatal(err)
 	}
-	flag.Parse()
 
-	err = utils.TranslationsPreInit()
-	if err != nil {
+	if err := utils.TranslationsPreInit(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -98,44 +112,29 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 		log.Fatal("Failed to create test logs directory: " + err.Error())
 	}
 	os.Setenv("MM_LOG_PATH", logsDir)
-	mainHelper.testLogsPath = logsDir
+	h.testLogsPath = logsDir
 
-	if options != nil {
-		mainHelper.Options = *options
-
-		if options.EnableStore && !testing.Short() {
-			mainHelper.setupStore()
-		}
-
-		if options.EnableResources {
-			mainHelper.setupResources()
-		}
-
-		if options.RunParallel && options.EnableStore {
-			driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-			if driverName == "" {
-				driverName = model.DatabaseDriverPostgres
-			}
-			// NOTE: we use a poolSize higher than the parallelism value (coming from -test.parallel flag) as we need a bit of extra buffer to cover
-			// for subtests that might also run in parallel and initialize a new store.
-			storePool, err := sqlstore.NewTestPool(mainHelper.Logger, driverName, options.Parallelism*2)
-			if err != nil {
-				panic(err)
-			}
-			mainHelper.storePool = storePool
-		}
+	if h.Options.EnableStore && !testing.Short() {
+		h.setupStore()
 	}
 
-	return &mainHelper
-}
+	if h.Options.EnableResources {
+		h.setupResources()
+	}
 
-func (h *MainHelper) Main(m *testing.M) {
-	defer func() {
-		err := h.Logger.Shutdown()
-		if err != nil {
-			log.Fatal(err)
+	if h.Options.RunParallel && h.Options.EnableStore {
+		driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+		if driverName == "" {
+			driverName = model.DatabaseDriverPostgres
 		}
-	}()
+		// NOTE: we use a poolSize higher than the parallelism value (coming from -test.parallel flag) as we need a bit of extra buffer to cover
+		// for subtests that might also run in parallel and initialize a new store.
+		storePool, err := sqlstore.NewTestPool(h.Logger, driverName, h.Options.Parallelism*2)
+		if err != nil {
+			panic(err)
+		}
+		h.storePool = storePool
+	}
 
 	if h.testResourcePath != "" {
 		prevDir, err := os.Getwd()

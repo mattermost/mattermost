@@ -31,7 +31,7 @@ import PostMarkdown, {type OwnProps} from './post_markdown';
 export function makeGetMentionKeysForPost(): (
     state: GlobalState,
     post?: Post,
-    channel?: Channel
+    channel?: Channel,
 ) => MentionKey[] {
     return createSelector(
         'makeGetMentionKeysForPost',
@@ -56,6 +56,10 @@ export function makeGetMentionKeysForPost(): (
     );
 }
 
+export function hasPluginTooltips(linkTooltip?: unknown[]): boolean {
+    return Boolean(linkTooltip?.length);
+}
+
 function makeMapStateToProps() {
     const getMentionKeysForPost = makeGetMentionKeysForPost();
 
@@ -73,7 +77,7 @@ function makeMapStateToProps() {
             channel,
             currentTeam,
             pluginHooks: state.plugins.components.MessageWillFormat,
-            hasPluginTooltips: Boolean(state.plugins.components.LinkTooltip),
+            hasPluginTooltips: hasPluginTooltips(state.plugins.components.LinkTooltip),
             isUserCanManageMembers: channel && canManageMembers(state, channel),
             mentionKeys: getMentionKeysForPost(state, ownProps.post, channel),
             highlightKeys: getHighlightWithoutNotificationKeys(state),

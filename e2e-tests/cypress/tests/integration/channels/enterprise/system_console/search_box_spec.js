@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise @not_cloud @system_console
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('System console', () => {
     before(() => {

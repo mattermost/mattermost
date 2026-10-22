@@ -1,60 +1,42 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/post_view/embedded_bindings/embedded_binding should match snapshot 1`] = `
-<div
-  className="attachment"
-  onClick={[Function]}
->
+<div>
   <div
-    className="attachment__content"
+    class="attachment"
   >
     <div
-      className="clearfix attachment__container attachment__container--"
+      class="attachment__content"
     >
-      <h1
-        className="attachment__title"
+      <div
+        class="clearfix attachment__container attachment__container--"
       >
-        <Connect(Markdown)
-          message="some text"
-          options={
-            Object {
-              "mentionHighlight": false,
-              "renderer": LinkOnlyRenderer {
-                "options": Object {},
-              },
-            }
-          }
-          postId="post_id"
-        />
-      </h1>
-      <div>
-        <div
-          className="attachment__body attachment__body--no_thumb"
+        <h1
+          class="attachment__title"
         >
-          <Connect(ShowMore)
-            isAttachmentText={true}
-            maxHeight={200}
-            text="some title"
+          some text
+        </h1>
+        <div>
+          <div
+            class="attachment__body attachment__body--no_thumb"
           >
-            <Connect(Markdown)
-              imageProps={
-                Object {
-                  "onImageHeightChanged": [Function],
-                  "onImageLoaded": [Function],
-                }
-              }
-              message="some title"
-              postId="post_id"
-            />
-          </Connect(ShowMore)>
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 200px;"
+              >
+                <p>
+                  some title
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            style="clear: both;"
+          />
         </div>
-        <div
-          style={
-            Object {
-              "clear": "both",
-            }
-          }
-        />
       </div>
     </div>
   </div>
@@ -62,60 +44,42 @@ exports[`components/post_view/embedded_bindings/embedded_binding should match sn
 `;
 
 exports[`components/post_view/embedded_bindings/embedded_binding should match snapshot when the attachment has a link in the title 1`] = `
-<div
-  className="attachment"
-  onClick={[Function]}
->
+<div>
   <div
-    className="attachment__content"
+    class="attachment"
   >
     <div
-      className="clearfix attachment__container attachment__container--"
+      class="attachment__content"
     >
-      <h1
-        className="attachment__title"
+      <div
+        class="clearfix attachment__container attachment__container--"
       >
-        <Connect(Markdown)
-          message="some text"
-          options={
-            Object {
-              "mentionHighlight": false,
-              "renderer": LinkOnlyRenderer {
-                "options": Object {},
-              },
-            }
-          }
-          postId="post_id"
-        />
-      </h1>
-      <div>
-        <div
-          className="attachment__body attachment__body--no_thumb"
+        <h1
+          class="attachment__title"
         >
-          <Connect(ShowMore)
-            isAttachmentText={true}
-            maxHeight={200}
-            text="some title"
+          some text
+        </h1>
+        <div>
+          <div
+            class="attachment__body attachment__body--no_thumb"
           >
-            <Connect(Markdown)
-              imageProps={
-                Object {
-                  "onImageHeightChanged": [Function],
-                  "onImageLoaded": [Function],
-                }
-              }
-              message="some title"
-              postId="post_id"
-            />
-          </Connect(ShowMore)>
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 200px;"
+              >
+                <p>
+                  some title
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            style="clear: both;"
+          />
         </div>
-        <div
-          style={
-            Object {
-              "clear": "both",
-            }
-          }
-        />
       </div>
     </div>
   </div>
@@ -123,60 +87,42 @@ exports[`components/post_view/embedded_bindings/embedded_binding should match sn
 `;
 
 exports[`components/post_view/embedded_bindings/embedded_binding should match snapshot when the attachment has an emoji in the title 1`] = `
-<div
-  className="attachment"
-  onClick={[Function]}
->
+<div>
   <div
-    className="attachment__content"
+    class="attachment"
   >
     <div
-      className="clearfix attachment__container attachment__container--"
+      class="attachment__content"
     >
-      <h1
-        className="attachment__title"
+      <div
+        class="clearfix attachment__container attachment__container--"
       >
-        <Connect(Markdown)
-          message="some text"
-          options={
-            Object {
-              "mentionHighlight": false,
-              "renderer": LinkOnlyRenderer {
-                "options": Object {},
-              },
-            }
-          }
-          postId="post_id"
-        />
-      </h1>
-      <div>
-        <div
-          className="attachment__body attachment__body--no_thumb"
+        <h1
+          class="attachment__title"
         >
-          <Connect(ShowMore)
-            isAttachmentText={true}
-            maxHeight={200}
-            text="some title"
+          some text
+        </h1>
+        <div>
+          <div
+            class="attachment__body attachment__body--no_thumb"
           >
-            <Connect(Markdown)
-              imageProps={
-                Object {
-                  "onImageHeightChanged": [Function],
-                  "onImageLoaded": [Function],
-                }
-              }
-              message="some title"
-              postId="post_id"
-            />
-          </Connect(ShowMore)>
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 200px;"
+              >
+                <p>
+                  some title
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            style="clear: both;"
+          />
         </div>
-        <div
-          style={
-            Object {
-              "clear": "both",
-            }
-          }
-        />
       </div>
     </div>
   </div>
@@ -184,60 +130,42 @@ exports[`components/post_view/embedded_bindings/embedded_binding should match sn
 `;
 
 exports[`components/post_view/embedded_bindings/embedded_binding should match snapshot when the attachment hasn't any emojis in the title 1`] = `
-<div
-  className="attachment"
-  onClick={[Function]}
->
+<div>
   <div
-    className="attachment__content"
+    class="attachment"
   >
     <div
-      className="clearfix attachment__container attachment__container--"
+      class="attachment__content"
     >
-      <h1
-        className="attachment__title"
+      <div
+        class="clearfix attachment__container attachment__container--"
       >
-        <Connect(Markdown)
-          message="some text"
-          options={
-            Object {
-              "mentionHighlight": false,
-              "renderer": LinkOnlyRenderer {
-                "options": Object {},
-              },
-            }
-          }
-          postId="post_id"
-        />
-      </h1>
-      <div>
-        <div
-          className="attachment__body attachment__body--no_thumb"
+        <h1
+          class="attachment__title"
         >
-          <Connect(ShowMore)
-            isAttachmentText={true}
-            maxHeight={200}
-            text="some title"
+          some text
+        </h1>
+        <div>
+          <div
+            class="attachment__body attachment__body--no_thumb"
           >
-            <Connect(Markdown)
-              imageProps={
-                Object {
-                  "onImageHeightChanged": [Function],
-                  "onImageLoaded": [Function],
-                }
-              }
-              message="some title"
-              postId="post_id"
-            />
-          </Connect(ShowMore)>
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 200px;"
+              >
+                <p>
+                  some title
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            style="clear: both;"
+          />
         </div>
-        <div
-          style={
-            Object {
-              "clear": "both",
-            }
-          }
-        />
       </div>
     </div>
   </div>

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DragDropContext, Droppable} from '@hello-pangea/dnd';
+import type {DropResult, DragStart, BeforeCapture} from '@hello-pangea/dnd';
 import classNames from 'classnames';
 import debounce from 'lodash/debounce';
 import React, {lazy} from 'react';
-import {DragDropContext, Droppable} from 'react-beautiful-dnd';
-import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 import {SpringSystem} from 'rebound';
 import type {Spring} from 'rebound';
@@ -15,16 +15,20 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import {makeAsyncComponent} from 'components/async_load';
 import Scrollbars from 'components/common/scrollbars';
+import MarkAllAsReadModal from 'components/mark_all_as_read_modal';
+import type {Props as MarkAllAsReadModalProps} from 'components/mark_all_as_read_modal';
 import SidebarCategory from 'components/sidebar/sidebar_category';
 
 import {findNextUnreadChannelId} from 'utils/channel_utils';
-import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
+import {Constants, DraggingStates, DraggingStateTypes, ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';
 import {mod} from 'utils/utils';
 
+import type {ModalData} from 'types/actions';
 import type {DraggingState} from 'types/store';
 import type {StaticPage} from 'types/store/lhs';
 
@@ -36,6 +40,7 @@ const UnreadChannels = makeAsyncComponent('UnreadChannels', lazy(() => import('.
 
 type Props = WrappedComponentProps & {
     currentTeam?: Team;
+    currentUserId: string;
     currentChannelId: string;
     categories: ChannelCategory[];
     unreadChannelIds: string[];
@@ -53,6 +58,8 @@ type Props = WrappedComponentProps & {
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     onDragStart: (initial: DragStart) => void;
     onDragEnd: (result: DropResult) => void;
+    markAllAsReadWithoutConfirm: boolean;
+    markAllAsReadShortcutEnabled: boolean;
 
     actions: {
         moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string) => void;
@@ -63,6 +70,10 @@ type Props = WrappedComponentProps & {
         setDraggingState: (data: DraggingState) => void;
         stopDragging: () => void;
         clearChannelSelection: () => void;
+        readAllMessages: (userId: string) => void;
+        markAllInTeamAsRead: (userId: string, teamId: string) => void;
+        setMarkAllAsReadWithoutConfirm: (userId: string, value: boolean) => void;
+        openModal: <P>(modalData: ModalData<P>) => void;
     };
 };
 
@@ -83,7 +94,7 @@ const scrollMarginWithUnread = 55;
 
 export class SidebarList extends React.PureComponent<Props, State> {
     channelRefs: Map<string, HTMLLIElement>;
-    scrollbar: React.RefObject<HTMLDivElement>;
+    scrollbar: React.RefObject<HTMLDivElement | null>;
     animate: SpringSystem;
     scrollAnimation: Spring;
 
@@ -106,11 +117,17 @@ export class SidebarList extends React.PureComponent<Props, State> {
     componentDidMount() {
         document.addEventListener('keydown', this.navigateChannelShortcut);
         document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
+        if (this.props.markAllAsReadShortcutEnabled) {
+            document.addEventListener('keydown', this.markAllChannelsAsReadShortcut);
+        }
     }
 
     componentWillUnmount() {
         document.removeEventListener('keydown', this.navigateChannelShortcut);
         document.removeEventListener('keydown', this.navigateUnreadChannelShortcut);
+        if (this.props.markAllAsReadShortcutEnabled) {
+            document.removeEventListener('keydown', this.markAllChannelsAsReadShortcut);
+        }
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -339,6 +356,23 @@ export class SidebarList extends React.PureComponent<Props, State> {
         }
     };
 
+    markAllChannelsAsReadShortcut = (e: KeyboardEvent) => {
+        if (!e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey && isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
+            e.preventDefault();
+            if (this.props.markAllAsReadWithoutConfirm) {
+                this.markAllAsRead();
+            } else {
+                this.props.actions.openModal<MarkAllAsReadModalProps>({
+                    modalId: ModalIdentifiers.MARK_ALL_AS_READ,
+                    dialogType: MarkAllAsReadModal,
+                    dialogProps: {
+                        onConfirm: this.onMarkAllAsReadConfirm,
+                    },
+                });
+            }
+        }
+    };
+
     renderCategory = (category: ChannelCategory, index: number) => {
         return (
             <SidebarCategory
@@ -365,7 +399,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.channelRefs.forEach((ref) => ref.classList.remove('animating'));
 
         // Turn off scrolling temporarily so that dimensions can be captured
-        const droppable = [...document.querySelectorAll<HTMLDivElement>('[data-rbd-droppable-id*="droppable-categories"]')];
+        const droppable = [...document.querySelectorAll<HTMLDivElement>('[data-rfd-droppable-id*="droppable-categories"]')];
         droppable[0].style.height = `${droppable[0].scrollHeight}px`;
 
         if (!this.props.multiSelectedChannelIds.find((id) => before.draggableId === id)) {
@@ -403,7 +437,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.props.actions.setDraggingState({state: DraggingStates.DURING});
 
         // Re-enable scroll box resizing
-        const droppable = [...document.querySelectorAll<HTMLDivElement>('[data-rbd-droppable-id*="droppable-categories"]')];
+        const droppable = [...document.querySelectorAll<HTMLDivElement>('[data-rfd-droppable-id*="droppable-categories"]')];
         droppable[0].style.height = '';
     };
 
@@ -419,6 +453,30 @@ export class SidebarList extends React.PureComponent<Props, State> {
         }
 
         this.props.actions.stopDragging();
+    };
+
+    hasAnyUnreads = () => {
+        return this.props.unreadChannelIds.length > 0 || this.props.hasUnreadThreads;
+    };
+
+    markAllAsRead = () => {
+        if (this.hasAnyUnreads()) {
+            // I'm not sure if a user can ever _not_ be in a team, but this just
+            // feels safe in case that functionality is ever introduced, so the
+            // hotkey still marks all DMs as read.
+            if (this.props.currentTeam?.id) {
+                this.props.actions.markAllInTeamAsRead(this.props.currentUserId, this.props.currentTeam.id);
+            }
+            this.props.actions.readAllMessages(this.props.currentUserId);
+        }
+    };
+
+    onMarkAllAsReadConfirm = (dontShowAgain: boolean) => {
+        this.markAllAsRead();
+        this.props.actions.setMarkAllAsReadWithoutConfirm(
+            this.props.currentUserId,
+            dontShowAgain,
+        );
     };
 
     render() {
@@ -441,11 +499,16 @@ export class SidebarList extends React.PureComponent<Props, State> {
                 );
             }
 
-            const renderedCategories = categories.map(this.renderCategory);
+            const managedCategories = categories.filter((c) => c.type === CategoryTypes.MANAGED);
+            const nonManagedCategories = categories.filter((c) => c.type !== CategoryTypes.MANAGED);
+
+            const renderedManagedCategories = managedCategories.map(this.renderCategory);
+            const renderedNonManagedCategories = nonManagedCategories.map(this.renderCategory);
 
             channelList = (
                 <>
                     {unreadsCategory}
+                    {renderedManagedCategories}
                     <DragDropContext
                         onDragEnd={this.onDragEnd}
                         onBeforeDragStart={this.onBeforeDragStart}
@@ -463,7 +526,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                     >
-                                        {renderedCategories}
+                                        {renderedNonManagedCategories}
                                         {provided.placeholder}
                                     </div>
                                 );

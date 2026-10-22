@@ -10,9 +10,9 @@
 // Stage: @prod
 // Group: @channels @signin_authentication
 
-import timeouts from '../../../fixtures/timeouts';
-
 import {fillCredentialsForUser} from './helpers';
+
+import timeouts from '@/fixtures/timeouts';
 
 describe('Authentication', () => {
     let testTeam;

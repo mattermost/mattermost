@@ -5,7 +5,7 @@ import moment from 'moment';
 import React, {useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 interface Props {
     date?: number;
@@ -19,8 +19,9 @@ export function ElapsedDurationCell(props: Props) {
     const {elapsedDays, exactPassedInDate} = useMemo(() => {
         const startOfTodayMoment = moment().startOf('day');
         const passedInDateMoment = moment(props.date);
-        const exactPassedInDate = passedInDateMoment.format(
-            `MMMM DD, Y [${formatMessage({id: 'adminConsole.list.table.exactTime.at', defaultMessage: 'at'})}] hh:mm:ss A`,
+        const exactPassedInDate = formatMessage(
+            {id: 'adminConsole.list.table.exactTime', defaultMessage: '{date, date, long} at {date, time, medium}'},
+            {date: props.date},
         );
 
         const startOfPassedInDateMoment = passedInDateMoment.startOf('day');
@@ -32,7 +33,7 @@ export function ElapsedDurationCell(props: Props) {
             elapsedDays,
             exactPassedInDate,
         };
-    }, [props.date, todaysDate]);
+    }, [props.date, todaysDate, formatMessage]);
 
     if (!props.date) {
         return null;

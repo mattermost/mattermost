@@ -56,14 +56,15 @@ Cypress.Commands.add('apiUploadPlugin', (filename) => {
 
 Cypress.Commands.add('apiUploadAndEnablePlugin', ({filename, url, id, version}) => {
     return cy.apiGetPluginStatus(id, version).then((data) => {
-        // # If already active, then only return the data
-        if (data.isActive) {
+        // # Only short-circuit when version is specified, so we know the exact
+        // installed version matches the desired artifact. Without a version,
+        // any installed version would match and we'd silently skip the install.
+        if (version && data.isActive) {
             cy.log(`${id}: Plugin is active.`);
             return cy.wrap(data);
         }
 
-        // # If already installed, then only enable the plugin
-        if (data.isInstalled) {
+        if (version && data.isInstalled) {
             cy.log(`${id}: Plugin is inactive. Only going to enable.`);
             return cy.apiEnablePluginById(id).then(() => {
                 cy.wait(TIMEOUTS.ONE_SEC);
@@ -71,23 +72,39 @@ Cypress.Commands.add('apiUploadAndEnablePlugin', ({filename, url, id, version}) 
             });
         }
 
+        // # Remove any old version of the plugin before installing the new one
+        const removeOldVersion = () => {
+            return cy.apiGetPluginStatus(id).then((anyVersionData) => {
+                if (anyVersionData.isInstalled || anyVersionData.isActive) {
+                    cy.log(`${id}: Removing old version before installing new one.`);
+                    return cy.apiRemovePluginById(id);
+                }
+
+                return cy.wrap(null);
+            });
+        };
+
         if (url) {
             // # Upload plugin by URL then enable
             cy.log(`${id}: Plugin is to be uploaded via URL and then enable.`);
-            return cy.apiInstallPluginFromUrl(url).then(() => {
-                cy.wait(TIMEOUTS.FIVE_SEC);
-                return cy.apiEnablePluginById(id).then(() => {
-                    cy.wait(TIMEOUTS.ONE_SEC);
-                    return cy.wrap({isInstalled: true, isActive: true});
+            return removeOldVersion().then(() => {
+                return cy.apiInstallPluginFromUrl(url).then(() => {
+                    cy.wait(TIMEOUTS.FIVE_SEC);
+                    return cy.apiEnablePluginById(id).then(() => {
+                        cy.wait(TIMEOUTS.ONE_SEC);
+                        return cy.wrap({isInstalled: true, isActive: true});
+                    });
                 });
             });
         }
 
         // # Upload plugin by file then enable
         cy.log(`${id}: Plugin is to be uploaded by filename and then enable.`);
-        return cy.apiUploadPlugin(filename).then(() => {
-            return cy.apiEnablePluginById(id).then(() => {
-                return cy.wrap({isInstalled: true, isActive: true});
+        return removeOldVersion().then(() => {
+            return cy.apiUploadPlugin(filename).then(() => {
+                return cy.apiEnablePluginById(id).then(() => {
+                    return cy.wrap({isInstalled: true, isActive: true});
+                });
             });
         });
     });

@@ -3,7 +3,7 @@
 
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {Route, Switch, useParams, useRouteMatch} from 'react-router-dom';
+import {Route, Switch, useLocation, useParams, useRouteMatch} from 'react-router-dom';
 
 import {fetchChannelsAndMembers, getChannelMembers, selectChannel} from 'mattermost-redux/actions/channels';
 import {selectTeam} from 'mattermost-redux/actions/teams';
@@ -11,6 +11,7 @@ import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
 
 import {useTeamByName} from 'components/common/hooks/use_team';
 import RhsPluginPopout from 'components/rhs_plugin_popout';
+import RhsSearchPopout from 'components/rhs_search_popout';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import type {GlobalState} from 'types/store';
@@ -21,12 +22,15 @@ export default function RhsPopout() {
     const match = useRouteMatch();
 
     const dispatch = useDispatch();
-    const {team: teamName, identifier: channelIdentifier} = useParams<{team: string; pluginId: string; identifier: string}>();
+    const location = useLocation();
+
+    const {team: teamName} = useParams<{team: string}>();
 
     const team = useTeamByName(teamName);
-    const channel = useSelector((state: GlobalState) => getChannelByName(state, channelIdentifier));
-
+    const channelIdentifier = new URLSearchParams(location.search).get('channel') ?? '';
+    const channel = useSelector((state: GlobalState) => (channelIdentifier ? getChannelByName(state, channelIdentifier) : undefined));
     const teamId = team?.id;
+
     const channelId = channel?.id;
 
     useEffect(() => {
@@ -50,6 +54,10 @@ export default function RhsPopout() {
                 <div className='sidebar--right'>
                     <div className='sidebar-right__body'>
                         <Switch>
+                            <Route
+                                path={`${match.path}/search`}
+                                component={RhsSearchPopout}
+                            />
                             <Route
                                 path={`${match.path}/plugin/:pluginId`}
                                 component={RhsPluginPopout}

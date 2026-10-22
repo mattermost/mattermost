@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
+import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostPluginComponent} from 'types/store/plugins';
@@ -29,28 +30,28 @@ describe('comoponents/rhs_card/RhsCard', () => {
     };
 
     it('should match when no post is selected', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <RhsCard
                 {...baseProps}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should match on post when no plugin defining card types', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <RhsCard
                 {...baseProps}
                 selected={post}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should match on post when plugin defining card types don\'t match with the post type', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <RhsCard
                 {...baseProps}
                 selected={post}
@@ -58,11 +59,11 @@ describe('comoponents/rhs_card/RhsCard', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should match on post when plugin defining card types match with the post type', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <RhsCard
                 {...baseProps}
                 selected={post}
@@ -70,6 +71,18 @@ describe('comoponents/rhs_card/RhsCard', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
+    });
+
+    testPluginComponentErrorHandling((pluginComponent) => {
+        const cardPost = {...post, type: 'custom_plugin_type' as any};
+
+        renderWithContext(
+            <RhsCard
+                {...baseProps}
+                selected={cardPost}
+                pluginPostCardTypes={{custom_plugin_type: pluginComponent as unknown as PostPluginComponent}}
+            />,
+        );
     });
 });

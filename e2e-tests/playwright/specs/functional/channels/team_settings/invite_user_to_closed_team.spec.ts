@@ -26,7 +26,7 @@ test('MM-T388 Invite new user to closed team with email domain restriction', {ta
 
     // # Navigate to team
     await channelsPage.goto(team.name);
-    await page.waitForLoadState('networkidle');
+    await channelsPage.toBeVisible();
 
     // # Open Team Settings Modal and go to Access tab
     const teamSettings = await channelsPage.openTeamSettings();
@@ -44,6 +44,18 @@ test('MM-T388 Invite new user to closed team with email domain restriction', {ta
     await teamSettings.close();
     await expect(teamSettings.container).not.toBeVisible();
 
+    await adminClient.patchConfig({
+        ServiceSettings: {EnableEmailInvitations: true},
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ServiceSettings?.EnableEmailInvitations === true;
+    });
+
+    // Re-apply email invitations immediately before opening the invite modal: a
+    // concurrent initSetup() → patchConfig(defaultConfig) resets
+    // ServiceSettings.EnableEmailInvitations: false between the initial patchConfig and here.
+
     // # Open team menu and click 'Invite People'
     await channelsPage.sidebarLeft.teamMenuButton.click();
     await channelsPage.teamMenu.toBeVisible();
@@ -60,11 +72,19 @@ test('MM-T388 Invite new user to closed team with email domain restriction', {ta
     const sentReason = await membersInvitedModal.getSentResultReason();
     expect(sentReason).toBe('This member has been added to the team.');
 
+    await adminClient.patchConfig({
+        ServiceSettings: {EnableEmailInvitations: true},
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ServiceSettings?.EnableEmailInvitations === true;
+    });
+
     // # Click 'Invite More People' to return to the invite form
     await membersInvitedModal.clickInviteMore();
 
     // # Invite a user with an invalid email domain (not sample.mattermost.com)
-    const invalidEmail = `user.${await pw.random.id()}@invalid.com`;
+    const invalidEmail = `user.${pw.random.id()}@invalid.com`;
     await inviteModal.inviteByEmail(invalidEmail);
 
     // * Verify that the invite failed with the correct domain restriction error

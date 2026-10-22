@@ -39,3 +39,8 @@ insert_final_newline = false
 [*.yml,*.yaml]
 indent_style = space
 indent_size = 2
+
+[*.mdx]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false

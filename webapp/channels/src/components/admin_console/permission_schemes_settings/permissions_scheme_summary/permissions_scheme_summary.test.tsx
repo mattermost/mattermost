@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import PermissionsSchemeSummary from 'components/admin_console/permission_schemes_settings/permissions_scheme_summary/permissions_scheme_summary';
-import ConfirmModal from 'components/confirm_modal';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+
+import PermissionsSchemeSummary from './permissions_scheme_summary';
 
 describe('components/admin_console/permission_schemes_settings/permissions_scheme_summary', () => {
     const defaultProps = {
@@ -23,17 +23,33 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
         actions: {
             deleteScheme: jest.fn().mockResolvedValue({data: true}),
         },
+        history: {
+            push: jest.fn(),
+        },
+        location: {
+            pathname: '',
+        },
+        match: {
+            url: '',
+        },
     } as any;
 
     test('should match snapshot on default data', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PermissionsSchemeSummary {...defaultProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
+        expect(screen.getByText('Test')).toBeInTheDocument();
+        expect(screen.getByText('Test description')).toBeInTheDocument();
+        expect(screen.getByText('Team 1')).toBeInTheDocument();
+        expect(screen.getByText('Team 2')).toBeInTheDocument();
+        expect(screen.getByText('Team 3')).toBeInTheDocument();
+        expect(screen.getByText('Edit')).toBeInTheDocument();
+        expect(screen.getByText('Delete')).toBeInTheDocument();
     });
 
     test('should match snapshot on more than eight teams', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PermissionsSchemeSummary
                 {...defaultProps}
                 teams={[
@@ -46,26 +62,42 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
                     {id: 'ggg', name: 'team-7', display_name: 'Team 7'},
                     {id: 'hhh', name: 'team-8', display_name: 'Team 8'},
                     {id: 'iii', name: 'team-9', display_name: 'Team 9'},
-                    {id: 'jjj', name: 'team-9', display_name: 'Team 10'},
+                    {id: 'jjj', name: 'team-10', display_name: 'Team 10'},
                 ]}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(container).toMatchSnapshot();
+
+        // First 8 teams should be visible
+        for (let i = 1; i <= 8; i++) {
+            expect(screen.getByText(`Team ${i}`)).toBeInTheDocument();
+        }
+
+        // Teams 9 and 10 should not be directly visible
+        expect(screen.queryByText('Team 9')).not.toBeInTheDocument();
+        expect(screen.queryByText('Team 10')).not.toBeInTheDocument();
+
+        // "+2 more" indicator should be shown
+        expect(screen.getByText('+2 more')).toBeInTheDocument();
     });
 
     test('should match snapshot on no teams', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PermissionsSchemeSummary
                 {...defaultProps}
                 teams={[]}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
+        expect(screen.getByText('Test')).toBeInTheDocument();
+        expect(screen.getByText('Test description')).toBeInTheDocument();
+        expect(screen.queryByText('Team 1')).not.toBeInTheDocument();
     });
 
-    test('should ask to toggle on row toggle', () => {
+    test('should ask to toggle on row toggle', async () => {
         const deleteScheme = jest.fn().mockResolvedValue({data: true});
-        const wrapper = shallow(
+        renderWithContext(
             <PermissionsSchemeSummary
                 {...defaultProps}
                 actions={{
@@ -73,14 +105,24 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
                 }}
             />,
         );
-        expect(deleteScheme).not.toHaveBeenCalled();
-        wrapper.find('.delete-button').first().simulate('click', {stopPropagation: jest.fn()});
-        expect(deleteScheme).not.toHaveBeenCalled();
-        wrapper.find(ConfirmModal).first().props().onCancel?.(true);
+
         expect(deleteScheme).not.toHaveBeenCalled();
 
-        wrapper.find('.delete-button').first().simulate('click', {stopPropagation: jest.fn()});
-        wrapper.find(ConfirmModal).first().props().onConfirm?.(true);
-        expect(deleteScheme).toHaveBeenCalledWith('id');
+        // Click delete to open confirm modal
+        await userEvent.click(screen.getByTestId('Test-delete'));
+        expect(deleteScheme).not.toHaveBeenCalled();
+
+        // Cancel the deletion
+        await userEvent.click(screen.getByTestId('cancel-button'));
+        expect(deleteScheme).not.toHaveBeenCalled();
+
+        // Click delete again to open confirm modal
+        await userEvent.click(screen.getByTestId('Test-delete'));
+
+        // Confirm the deletion
+        await userEvent.click(screen.getByRole('button', {name: /yes, delete/i}));
+        await waitFor(() => {
+            expect(deleteScheme).toHaveBeenCalledWith('id');
+        });
     });
 });

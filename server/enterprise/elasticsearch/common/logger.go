@@ -43,12 +43,19 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		level = 2
 	}
 
-	// Capture fields.
+	// Capture fields. req and res are nil when the client logs failures
+	// outside a round trip, such as node discovery on start.
 	fields := []mlog.Field{
-		mlog.String("method", req.Method),
-		mlog.Int("status_code", res.StatusCode),
 		mlog.String("duration", dur.String()),
-		mlog.String("url", req.URL.String()),
+	}
+	if req != nil {
+		fields = append(fields, mlog.String("method", req.Method), mlog.String("url", req.URL.String()))
+	}
+	if res != nil {
+		fields = append(fields, mlog.Int("status_code", res.StatusCode))
+	}
+	if err != nil {
+		fields = append(fields, mlog.Err(err))
 	}
 
 	var logFn func(string, ...logr.Field)
@@ -69,7 +76,7 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 func (l *Logger) RequestBodyEnabled() bool { return l.trace }
 
 // ResponseBodyEnabled makes the client pass response body to logger
-func (l *Logger) ResponseBodyEnabled() bool { return false }
+func (l *Logger) ResponseBodyEnabled() bool { return l.trace }
 
 func NewBulkIndexerLogger(mlogger mlog.LoggerIFace, name string) BulkIndexerDebugLogger {
 	return BulkIndexerDebugLogger{

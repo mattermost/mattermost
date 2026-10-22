@@ -4,7 +4,7 @@
 // Stage: @prod
 // Group: @channels @multi_team_and_dm
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Direct messages: redirections', () => {
     let testUser;

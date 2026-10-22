@@ -4,16 +4,8 @@
 import path from 'node:path';
 import fs from 'node:fs';
 
-// Lazy-load the ESM-only uuid package dynamically
-let uuidv4: (() => string) | null = null;
+import {v4 as uuidv4} from 'uuid';
 
-async function loadUuid() {
-    if (!uuidv4) {
-        const {v4} = await import('uuid');
-        uuidv4 = v4;
-    }
-    return uuidv4!;
-}
 const second = 1000;
 const minute = 60 * 1000;
 
@@ -27,6 +19,7 @@ export const duration = {
     one_min: minute,
     two_min: minute * 2,
     four_min: minute * 4,
+    ten_min: minute * 10,
 };
 
 /**
@@ -38,15 +31,59 @@ export const wait = async (ms = 0): Promise<void> => {
     return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-/**
- * Generate a random ID string.
- * Because uuid is dynamically loaded, this is async.
- */
-export async function getRandomId(length = 7): Promise<string> {
-    const MAX_SUBSTRING_INDEX = 27;
+// Node's fetch (used by Client4) rejects a self-signed cert by default; kept here (not in
+// containers/server) to avoid a circular import.
+let previousTlsRejectUnauthorized: string | undefined;
+let tlsVerificationDisabled = false;
+let tlsWarningSuppressed = false;
 
-    const v4 = await loadUuid();
-    return v4()
+// Suppresses Node's one-time NODE_TLS_REJECT_UNAUTHORIZED warning without hiding other warnings.
+function suppressTlsRejectUnauthorizedWarning(): void {
+    if (tlsWarningSuppressed) {
+        return;
+    }
+    tlsWarningSuppressed = true;
+    const existingListeners = process.listeners('warning');
+    process.removeAllListeners('warning');
+    process.on('warning', (warning) => {
+        if (warning.message.includes('NODE_TLS_REJECT_UNAUTHORIZED')) {
+            return;
+        }
+        existingListeners.forEach((listener) => listener(warning));
+    });
+}
+
+// A worker process can inherit NODE_TLS_REJECT_UNAUTHORIZED='0' without calling
+// disableTlsVerificationForSelfSignedProxy() itself, so install the filter regardless.
+if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0') {
+    suppressTlsRejectUnauthorizedWarning();
+}
+
+export function disableTlsVerificationForSelfSignedProxy(): void {
+    if (tlsVerificationDisabled) {
+        return;
+    }
+    suppressTlsRejectUnauthorizedWarning();
+    previousTlsRejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    tlsVerificationDisabled = true;
+}
+
+export function restoreTlsVerification(): void {
+    if (!tlsVerificationDisabled) {
+        return;
+    }
+    if (previousTlsRejectUnauthorized === undefined) {
+        delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+    } else {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = previousTlsRejectUnauthorized;
+    }
+    tlsVerificationDisabled = false;
+}
+
+export function getRandomId(length = 7): string {
+    const MAX_SUBSTRING_INDEX = 27;
+    return uuidv4()
         .replace(/-/g, '')
         .substring(MAX_SUBSTRING_INDEX - length, MAX_SUBSTRING_INDEX);
 }
@@ -56,14 +93,20 @@ export async function getRandomId(length = 7): Promise<string> {
 // It should not be used for testing.
 export const defaultTeam = {name: 'ad-1', displayName: 'eligendi', type: 'O'};
 
+// Returns a FIPS-compliant test password (>= 14 chars with complexity).
+// Static for now but could generate unique passwords if requirements change.
+export function newTestPassword(): string {
+    return 'Passwd4Testing!';
+}
+
 export const illegalRe = /[/?<>\\:*|":&();]/g;
 export const simpleEmailRe = /\S+@\S+\.\S+/;
 
 export function hexToRgb(hex: string): string {
-    hex = hex.replace(/^#/, '');
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
+    const hexColor = hex.replace(/^#/, '');
+    const r = parseInt(hexColor.substring(0, 2), 16);
+    const g = parseInt(hexColor.substring(2, 4), 16);
+    const b = parseInt(hexColor.substring(4, 6), 16);
     return `rgb(${r}, ${g}, ${b})`;
 }
 

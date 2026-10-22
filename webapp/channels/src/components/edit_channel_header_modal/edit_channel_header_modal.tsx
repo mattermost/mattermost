@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+import {isMobile} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -15,7 +17,6 @@ import type TextboxClass from 'components/textbox/textbox';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
-import {isMobile} from 'utils/user_agent';
 import {insertLineBreakFromKeyEvent, isUnhandledLineBreakKeyCombo} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
@@ -43,12 +44,13 @@ type State = {
     header?: string;
     saving: boolean;
     show: boolean;
+    showPreview: boolean;
     serverError?: ServerError | null;
     postError?: React.ReactNode;
-}
+};
 
 export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
-    private editChannelHeaderTextboxRef: React.RefObject<TextboxClass>;
+    private editChannelHeaderTextboxRef: React.RefObject<TextboxClass | null>;
 
     constructor(props: Props) {
         super(props);
@@ -57,6 +59,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
             header: props.channel.header,
             saving: false,
             show: true,
+            showPreview: false,
         };
         this.editChannelHeaderTextboxRef = React.createRef<TextboxClass>();
     }
@@ -67,8 +70,8 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
         }
     };
 
-    private setShowPreview = (newState: boolean): void => {
-        this.props.actions.setShowPreview(newState);
+    private togglePreview = (): void => {
+        this.setState((prevState) => ({showPreview: !prevState.showPreview}));
     };
 
     private handleChange = (e: React.ChangeEvent<TextboxElement>): void => {
@@ -250,14 +253,14 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                                 id='edit_textbox'
                                 ref={this.editChannelHeaderTextboxRef}
                                 characterLimit={headerMaxLength}
-                                preview={this.props.shouldShowPreview}
+                                preview={this.state.showPreview}
                                 useChannelMentions={false}
                             />
                         </div>
                         <div className='post-create-footer'>
                             <TextboxLinks
-                                showPreview={this.props.shouldShowPreview}
-                                updatePreview={this.setShowPreview}
+                                showPreview={this.state.showPreview}
+                                updatePreview={this.togglePreview}
                                 hasText={this.state.header ? this.state.header.length > 0 : false}
                                 hasExceededCharacterLimit={this.state.header ? this.state.header.length > headerMaxLength : false}
                                 previewMessageLink={
@@ -272,27 +275,27 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary cancel-button'
+                        emphasis='tertiary'
                         onClick={this.hideModal}
                     >
                         <FormattedMessage
                             id='edit_channel_header_modal.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         disabled={this.state.saving}
                         type='button'
-                        className='btn btn-primary save-button'
+                        emphasis='primary'
                         onClick={this.handleSave}
                     >
                         <FormattedMessage
                             id='edit_channel_header_modal.save'
                             defaultMessage='Save'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

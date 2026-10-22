@@ -668,6 +668,24 @@ func (_m *WebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) (*model.I
 	return r0, r1
 }
 
+// UpdateIncomingLastUsed provides a mock function with given fields: webhookID, lastUsed
+func (_m *WebhookStore) UpdateIncomingLastUsed(webhookID string, lastUsed int64) error {
+	ret := _m.Called(webhookID, lastUsed)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateIncomingLastUsed")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
+		r0 = rf(webhookID, lastUsed)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateOutgoing provides a mock function with given fields: hook
 func (_m *WebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, error) {
 	ret := _m.Called(hook)

@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import FullScreenModal from './full_screen_modal';
 
 describe('components/widgets/modals/FullScreenModal', () => {
     test('showing content', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <FullScreenModal
                 show={true}
                 onClose={jest.fn()}
@@ -18,46 +18,10 @@ describe('components/widgets/modals/FullScreenModal', () => {
                 {'test'}
             </FullScreenModal>,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <CSSTransition
-              appear={true}
-              classNames="FullScreenModal"
-              in={true}
-              mountOnEnter={true}
-              timeout={100}
-              unmountOnExit={true}
-            >
-              <div
-                aria-label="test"
-                aria-modal={true}
-                className="FullScreenModal"
-                role="none"
-                tabIndex={-1}
-              >
-                <button
-                  aria-label="Close"
-                  className="close-x"
-                  onClick={[Function]}
-                >
-                  <CloseIcon
-                    id="closeIcon"
-                  />
-                </button>
-                test
-              </div>
-              <div
-                style={
-                  Object {
-                    "display": "none",
-                  }
-                }
-                tabIndex={0}
-              />
-            </CSSTransition>
-        `);
+        expect(container).toMatchSnapshot();
     });
     test('not showing content', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <FullScreenModal
                 show={false}
                 onClose={jest.fn()}
@@ -66,46 +30,10 @@ describe('components/widgets/modals/FullScreenModal', () => {
                 {'test'}
             </FullScreenModal>,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <CSSTransition
-              appear={true}
-              classNames="FullScreenModal"
-              in={false}
-              mountOnEnter={true}
-              timeout={100}
-              unmountOnExit={true}
-            >
-              <div
-                aria-label="test"
-                aria-modal={true}
-                className="FullScreenModal"
-                role="none"
-                tabIndex={-1}
-              >
-                <button
-                  aria-label="Close"
-                  className="close-x"
-                  onClick={[Function]}
-                >
-                  <CloseIcon
-                    id="closeIcon"
-                  />
-                </button>
-                test
-              </div>
-              <div
-                style={
-                  Object {
-                    "display": "none",
-                  }
-                }
-                tabIndex={0}
-              />
-            </CSSTransition>
-        `);
+        expect(container).toMatchSnapshot();
     });
     test('with back icon', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <FullScreenModal
                 show={true}
                 onClose={jest.fn()}
@@ -115,57 +43,12 @@ describe('components/widgets/modals/FullScreenModal', () => {
                 {'test'}
             </FullScreenModal>,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <CSSTransition
-              appear={true}
-              classNames="FullScreenModal"
-              in={true}
-              mountOnEnter={true}
-              timeout={100}
-              unmountOnExit={true}
-            >
-              <div
-                aria-label="test"
-                aria-modal={true}
-                className="FullScreenModal"
-                role="none"
-                tabIndex={-1}
-              >
-                <button
-                  aria-label="Back"
-                  className="back"
-                  onClick={[MockFunction]}
-                >
-                  <BackIcon
-                    id="backIcon"
-                  />
-                </button>
-                <button
-                  aria-label="Close"
-                  className="close-x"
-                  onClick={[Function]}
-                >
-                  <CloseIcon
-                    id="closeIcon"
-                  />
-                </button>
-                test
-              </div>
-              <div
-                style={
-                  Object {
-                    "display": "none",
-                  }
-                }
-                tabIndex={0}
-              />
-            </CSSTransition>
-        `);
+        expect(container).toMatchSnapshot();
     });
 
-    test('close on close icon click', () => {
+    test('close on close icon click', async () => {
         const close = jest.fn();
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <FullScreenModal
                 show={true}
                 onClose={close}
@@ -175,13 +58,13 @@ describe('components/widgets/modals/FullScreenModal', () => {
             </FullScreenModal>,
         );
         expect(close).not.toHaveBeenCalled();
-        wrapper.find('button.close-x').simulate('click');
+        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
         expect(close).toHaveBeenCalled();
     });
 
-    test('go back on back icon click', () => {
+    test('go back on back icon click', async () => {
         const back = jest.fn();
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <FullScreenModal
                 show={true}
                 onClose={jest.fn()}
@@ -192,13 +75,13 @@ describe('components/widgets/modals/FullScreenModal', () => {
             </FullScreenModal>,
         );
         expect(back).not.toHaveBeenCalled();
-        wrapper.find('button.back').simulate('click');
+        await userEvent.click(screen.getByRole('button', {name: 'Back'}));
         expect(back).toHaveBeenCalled();
     });
 
     test('close on esc keypress', () => {
         const close = jest.fn();
-        shallowWithIntl(
+        renderWithContext(
             <FullScreenModal
                 show={true}
                 onClose={close}

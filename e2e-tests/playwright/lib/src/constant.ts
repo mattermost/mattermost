@@ -1,9 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+export const aiPluginId = 'mattermost-ai';
 export const appsPluginId = 'com.mattermost.apps';
 export const callsPluginId = 'com.mattermost.calls';
+export const npsPluginId = 'com.mattermost.nps';
 export const playbooksPluginId = 'playbooks';
+
+// Not prepackaged — installed from this URL by tests that exercise it.
+export const demoPluginId = 'com.mattermost.demo-plugin';
+export const demoPluginVersion = '0.12.1';
+export const demoPluginUrl = `https://github.com/mattermost/mattermost-plugin-demo/releases/download/v${demoPluginVersion}/mattermost-plugin-demo-v${demoPluginVersion}.tar.gz`;
+
+// License SKU short names — mirrored from webapp/channels/src/utils/constants.tsx LicenseSkus
+export const LicenseSkus = {
+    E10: 'E10',
+    E20: 'E20',
+    Starter: 'starter',
+    Professional: 'professional',
+    Enterprise: 'enterprise',
+    EnterpriseAdvanced: 'advanced',
+    Entry: 'entry',
+} as const;
 
 // Remote users hour limit taken from webapp/channels/src/utils/constants.ts
 export const REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY = 22;

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import moment from 'moment';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {matchPath, useLocation} from 'react-router-dom';
@@ -35,7 +35,7 @@ export type Props = {
     onClose?: () => void;
     onExited: () => void;
     trialJustStarted?: boolean;
-}
+};
 
 const TrialBenefitsModal = ({
     onClose,

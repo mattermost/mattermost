@@ -5,16 +5,18 @@ package api4
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -41,6 +43,7 @@ func TestPlugin(t *testing.T) {
 		states := map[string]*model.PluginState{}
 		err = json.Unmarshal(statesJson, &states)
 		require.NoError(t, err)
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.EnableUploads = true
@@ -285,6 +288,135 @@ func TestPlugin(t *testing.T) {
 	})
 }
 
+func TestUploadPluginConflictDetails(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+		*cfg.ServiceSettings.EnableDeveloper = false
+	})
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	manifest, _, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+	require.NoError(t, err)
+	defer os.RemoveAll("plugins/testplugin")
+	require.Equal(t, "testplugin", manifest.Id)
+
+	_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "app.plugin.install_id.app_error")
+
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr))
+	require.Empty(t, appErr.DetailedError, "detailed error must still be wiped with EnableDeveloper disabled")
+	require.NotEmpty(t, appErr.Props, "conflict props must survive with EnableDeveloper disabled")
+
+	assert.Equal(t, "testplugin", appErr.Props[model.PluginInstallConflictPropPluginID])
+	assert.Equal(t, manifest.Version, appErr.Props[model.PluginInstallConflictPropExistingVersion])
+	assert.Equal(t, manifest.Version, appErr.Props[model.PluginInstallConflictPropUploadedVersion])
+	assert.Equal(t, model.PluginInstallConflictVersionDirectionSame, appErr.Props[model.PluginInstallConflictPropVersionDirection])
+}
+
+func TestPluginInstallDirectoryConflict(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	t.Run("plugin directory is subdirectory of import directory", func(t *testing.T) {
+		originalPluginDir := *th.App.Config().PluginSettings.Directory
+		originalImportDir := *th.App.Config().ImportSettings.Directory
+
+		// Use non-existent paths to test conflict detection without filesystem dependencies
+		importDir := "/nonexistent/conflict-test/data"
+		pluginDir := "/nonexistent/conflict-test/data/plugins"
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = originalPluginDir
+			*cfg.ImportSettings.Directory = originalImportDir
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ImportSettings.Directory = importDir
+			*cfg.PluginSettings.Directory = pluginDir
+		})
+
+		_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.plugin.install.directory_conflict.app_error")
+	})
+
+	t.Run("import directory is subdirectory of plugin directory", func(t *testing.T) {
+		originalPluginDir := *th.App.Config().PluginSettings.Directory
+		originalImportDir := *th.App.Config().ImportSettings.Directory
+
+		// Use non-existent paths to test conflict detection without filesystem dependencies
+		pluginDir := "/nonexistent/conflict-test/plugins"
+		importDir := "/nonexistent/conflict-test/plugins/imports"
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = originalPluginDir
+			*cfg.ImportSettings.Directory = originalImportDir
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = pluginDir
+			*cfg.ImportSettings.Directory = importDir
+		})
+
+		_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.plugin.install.directory_conflict.app_error")
+	})
+
+	t.Run("same directory", func(t *testing.T) {
+		originalPluginDir := *th.App.Config().PluginSettings.Directory
+		originalImportDir := *th.App.Config().ImportSettings.Directory
+
+		// Use non-existent path to test conflict detection without filesystem dependencies
+		sharedDir := "/nonexistent/conflict-test/shared"
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = originalPluginDir
+			*cfg.ImportSettings.Directory = originalImportDir
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = sharedDir
+			*cfg.ImportSettings.Directory = sharedDir
+		})
+
+		_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.plugin.install.directory_conflict.app_error")
+	})
+
+	t.Run("separate directories should succeed", func(t *testing.T) {
+		manifest, _, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+		require.NoError(t, err)
+		assert.Equal(t, "testplugin", manifest.Id)
+
+		_, err = th.SystemAdminClient.RemovePlugin(context.Background(), manifest.Id)
+		require.NoError(t, err)
+	})
+}
+
 func TestNotifyClusterPluginEvent(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -338,12 +470,17 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	// Successful remove
 	webSocketClient := th.CreateConnectedWebSocketClientWithClient(t, th.SystemAdminClient)
 
+	var statusesPresent bool
+	var receivedStatuses any
 	done := make(chan bool)
 	go func() {
 		for {
 			select {
 			case resp := <-webSocketClient.EventChannel:
-				if resp.EventType() == model.WebsocketEventPluginStatusesChanged && len(resp.GetData()["plugin_statuses"].([]any)) == 0 {
+				// The event only signals admins to refetch statuses; it carries an empty
+				// plugin_statuses array (compatibility shim), not the full slice.
+				if resp.EventType() == model.WebsocketEventPluginStatusesChanged {
+					receivedStatuses, statusesPresent = resp.GetData()["plugin_statuses"]
 					done <- true
 					return
 				}
@@ -360,6 +497,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 
 	result := <-done
 	require.True(t, result, "plugin_statuses_changed websocket event was not received")
+	require.True(t, statusesPresent, "plugin_statuses field should be present")
+	assert.Empty(t, receivedStatuses, "plugin_statuses should be an empty array")
 
 	messages = testCluster.GetMessages()
 
@@ -778,8 +917,8 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			},
 			InstalledVersion: manifest.Version,
 		})
-		sort.SliceStable(expectedPlugins, func(i, j int) bool {
-			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		slices.SortStableFunc(expectedPlugins, func(a, b *model.MarketplacePlugin) int {
+			return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 		})
 
 		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
@@ -816,8 +955,8 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			InstalledVersion: manifest.Version,
 		}
 		expectedPlugins := append(samplePlugins, newPlugin)
-		sort.SliceStable(expectedPlugins, func(i, j int) bool {
-			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		slices.SortStableFunc(expectedPlugins, func(a, b *model.MarketplacePlugin) int {
+			return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 		})
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -938,8 +1077,8 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 			InstalledVersion: manifest.Version,
 		}
 		expectedPlugins = append(expectedPlugins, plugin2)
-		sort.SliceStable(expectedPlugins, func(i, j int) bool {
-			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		slices.SortStableFunc(expectedPlugins, func(a, b *model.MarketplacePlugin) int {
+			return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 		})
 
 		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})

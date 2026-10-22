@@ -3,7 +3,7 @@
 
 import nock from 'nock';
 
-import type {DialogSubmission, IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {DialogSubmission, IncomingWebhook, IncomingWebhooksWithCount, OutgoingWebhook} from '@mattermost/types/integrations';
 
 import * as Actions from 'mattermost-redux/actions/integrations';
 import * as TeamsActions from 'mattermost-redux/actions/teams';
@@ -37,13 +37,13 @@ describe('Actions.Integrations', () => {
             post('/hooks/incoming').
             reply(201, TestHelper.testIncomingHook());
 
-        const {data: created} = await store.dispatch(Actions.createIncomingHook(
+        const created = (await store.dispatch(Actions.createIncomingHook(
             {
                 channel_id: TestHelper.basicChannel!.id,
                 display_name: 'test',
                 description: 'test',
             } as IncomingWebhook,
-        ));
+        ))).data!;
 
         const state = store.getState();
 
@@ -57,13 +57,13 @@ describe('Actions.Integrations', () => {
             post('/hooks/incoming').
             reply(201, TestHelper.testIncomingHook());
 
-        const {data: created} = await store.dispatch(Actions.createIncomingHook(
+        const created = (await store.dispatch(Actions.createIncomingHook(
             {
                 channel_id: TestHelper.basicChannel!.id,
                 display_name: 'test',
                 description: 'test',
             } as IncomingWebhook,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             get(`/hooks/incoming/${created.id}`).
@@ -82,13 +82,13 @@ describe('Actions.Integrations', () => {
             post('/hooks/incoming').
             reply(201, TestHelper.testIncomingHook());
 
-        const {data: created} = await store.dispatch(Actions.createIncomingHook(
+        const created = (await store.dispatch(Actions.createIncomingHook(
             {
                 channel_id: TestHelper.basicChannel!.id,
                 display_name: 'test',
                 description: 'test',
             } as IncomingWebhook,
-        ));
+        ))).data!;
 
         /* Test with include_total_count being set to false */
         nock(Client4.getBaseRoute()).
@@ -98,7 +98,7 @@ describe('Actions.Integrations', () => {
 
         const response = await store.dispatch(Actions.getIncomingHooks(TestHelper.basicTeam!.id));
         expect(response.data).toBeTruthy();
-        expect(response.data[0].id === created.id).toBeTruthy();
+        expect((response.data as IncomingWebhook[])[0].id === created.id).toBeTruthy();
 
         const state = store.getState();
         const hooks = state.entities.integrations.incomingHooks;
@@ -112,9 +112,9 @@ describe('Actions.Integrations', () => {
             reply(200, {incoming_webhooks: [created], total_count: 1});
 
         const responseWithCount = await store.dispatch(Actions.getIncomingHooks(TestHelper.basicTeam!.id, 0, 10, true));
-        expect(responseWithCount.data.incoming_webhooks).toBeTruthy();
-        expect(responseWithCount.data.incoming_webhooks[0].id === created.id).toBeTruthy();
-        expect(responseWithCount.data.total_count === 1).toBeTruthy();
+        expect((responseWithCount.data as IncomingWebhooksWithCount).incoming_webhooks).toBeTruthy();
+        expect((responseWithCount.data as IncomingWebhooksWithCount).incoming_webhooks[0].id === created.id).toBeTruthy();
+        expect((responseWithCount.data as IncomingWebhooksWithCount).total_count === 1).toBeTruthy();
     });
 
     it('removeIncomingHook', async () => {
@@ -122,13 +122,13 @@ describe('Actions.Integrations', () => {
             post('/hooks/incoming').
             reply(201, TestHelper.testIncomingHook());
 
-        const {data: created} = await store.dispatch(Actions.createIncomingHook(
+        const created = (await store.dispatch(Actions.createIncomingHook(
             {
                 channel_id: TestHelper.basicChannel!.id,
                 display_name: 'test',
                 description: 'test',
             } as IncomingWebhook,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             delete(`/hooks/incoming/${created.id}`).
@@ -146,13 +146,13 @@ describe('Actions.Integrations', () => {
             post('/hooks/incoming').
             reply(201, TestHelper.testIncomingHook());
 
-        const {data: created} = await store.dispatch(Actions.createIncomingHook(
+        const created = (await store.dispatch(Actions.createIncomingHook(
             {
                 channel_id: TestHelper.basicChannel!.id,
                 display_name: 'test',
                 description: 'test',
             } as IncomingWebhook,
-        ));
+        ))).data!;
 
         const updated = {...created};
         updated.display_name = 'test2';
@@ -173,7 +173,7 @@ describe('Actions.Integrations', () => {
             post('/hooks/outgoing').
             reply(201, TestHelper.testOutgoingHook());
 
-        const {data: created} = await store.dispatch(Actions.createOutgoingHook(
+        const created = (await store.dispatch(Actions.createOutgoingHook(
             {
                 channel_id: TestHelper.basicChannel!.id,
                 team_id: TestHelper.basicTeam!.id,
@@ -181,7 +181,7 @@ describe('Actions.Integrations', () => {
                 trigger_words: [TestHelper.generateId()],
                 callback_urls: ['http://localhost/notarealendpoint'],
             } as OutgoingWebhook,
-        ));
+        ))).data!;
 
         const state = store.getState();
 
@@ -195,7 +195,7 @@ describe('Actions.Integrations', () => {
             post('/hooks/outgoing').
             reply(201, TestHelper.testOutgoingHook());
 
-        const {data: created} = await store.dispatch(Actions.createOutgoingHook(
+        const created = (await store.dispatch(Actions.createOutgoingHook(
             {
                 channel_id: TestHelper.basicChannel!.id,
                 team_id: TestHelper.basicTeam!.id,
@@ -203,7 +203,7 @@ describe('Actions.Integrations', () => {
                 trigger_words: [TestHelper.generateId()],
                 callback_urls: ['http://localhost/notarealendpoint'],
             } as OutgoingWebhook,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             get(`/hooks/outgoing/${created.id}`).
@@ -222,7 +222,7 @@ describe('Actions.Integrations', () => {
             post('/hooks/outgoing').
             reply(201, TestHelper.testOutgoingHook());
 
-        const {data: created} = await store.dispatch(Actions.createOutgoingHook(
+        const created = (await store.dispatch(Actions.createOutgoingHook(
             {
                 channel_id: TestHelper.basicChannel!.id,
                 team_id: TestHelper.basicTeam!.id,
@@ -230,7 +230,7 @@ describe('Actions.Integrations', () => {
                 trigger_words: [TestHelper.generateId()],
                 callback_urls: ['http://localhost/notarealendpoint'],
             } as OutgoingWebhook,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             get('/hooks/outgoing').
@@ -250,7 +250,7 @@ describe('Actions.Integrations', () => {
             post('/hooks/outgoing').
             reply(201, TestHelper.testOutgoingHook());
 
-        const {data: created} = await store.dispatch(Actions.createOutgoingHook(
+        const created = (await store.dispatch(Actions.createOutgoingHook(
             {
                 channel_id: TestHelper.basicChannel!.id,
                 team_id: TestHelper.basicTeam!.id,
@@ -258,7 +258,7 @@ describe('Actions.Integrations', () => {
                 trigger_words: [TestHelper.generateId()],
                 callback_urls: ['http://localhost/notarealendpoint'],
             } as OutgoingWebhook,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             delete(`/hooks/outgoing/${created.id}`).
@@ -276,7 +276,7 @@ describe('Actions.Integrations', () => {
             post('/hooks/outgoing').
             reply(201, TestHelper.testOutgoingHook());
 
-        const {data: created} = await store.dispatch(Actions.createOutgoingHook(
+        const created = (await store.dispatch(Actions.createOutgoingHook(
             {
                 channel_id: TestHelper.basicChannel!.id,
                 team_id: TestHelper.basicTeam!.id,
@@ -284,7 +284,7 @@ describe('Actions.Integrations', () => {
                 trigger_words: [TestHelper.generateId()],
                 callback_urls: ['http://localhost/notarealendpoint'],
             } as OutgoingWebhook,
-        ));
+        ))).data!;
 
         const updated = {...created};
         updated.display_name = 'test2';
@@ -304,7 +304,7 @@ describe('Actions.Integrations', () => {
             post('/hooks/outgoing').
             reply(201, TestHelper.testOutgoingHook());
 
-        const {data: created} = await store.dispatch(Actions.createOutgoingHook(
+        const created = (await store.dispatch(Actions.createOutgoingHook(
             {
                 channel_id: TestHelper.basicChannel!.id,
                 team_id: TestHelper.basicTeam!.id,
@@ -312,7 +312,7 @@ describe('Actions.Integrations', () => {
                 trigger_words: [TestHelper.generateId()],
                 callback_urls: ['http://localhost/notarealendpoint'],
             } as OutgoingWebhook,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             post(`/hooks/outgoing/${created.id}/regen_token`).
@@ -334,9 +334,9 @@ describe('Actions.Integrations', () => {
             post('/teams').
             reply(201, TestHelper.fakeTeamWithId());
 
-        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+        const team = (await store.dispatch(TeamsActions.createTeam(
             TestHelper.fakeTeam(),
-        ));
+        ))).data!;
 
         const teamCommand = TestHelper.testCommand(team.id);
 
@@ -344,9 +344,9 @@ describe('Actions.Integrations', () => {
             post('/commands').
             reply(201, {...teamCommand, token: TestHelper.generateId(), id: TestHelper.generateId()});
 
-        const {data: created} = await store.dispatch(Actions.addCommand(
+        const created = (await store.dispatch(Actions.addCommand(
             teamCommand,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             get('/commands').
@@ -372,9 +372,9 @@ describe('Actions.Integrations', () => {
             post('/teams').
             reply(201, TestHelper.fakeTeamWithId());
 
-        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+        const team = (await store.dispatch(TeamsActions.createTeam(
             TestHelper.fakeTeam(),
-        ));
+        ))).data!;
 
         const teamCommandWithAutocomplete = TestHelper.testCommand(team.id);
 
@@ -382,9 +382,9 @@ describe('Actions.Integrations', () => {
             post('/commands').
             reply(201, {...teamCommandWithAutocomplete, token: TestHelper.generateId(), id: TestHelper.generateId()});
 
-        const {data: createdWithAutocomplete} = await store.dispatch(Actions.addCommand(
+        const createdWithAutocomplete = (await store.dispatch(Actions.addCommand(
             teamCommandWithAutocomplete,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             get(`/teams/${team.id}/commands/autocomplete`).
@@ -406,9 +406,9 @@ describe('Actions.Integrations', () => {
             post('/teams').
             reply(201, TestHelper.fakeTeamWithId());
 
-        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+        const team = (await store.dispatch(TeamsActions.createTeam(
             TestHelper.fakeTeam(),
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             get('/commands').
@@ -427,9 +427,9 @@ describe('Actions.Integrations', () => {
             post('/commands').
             reply(201, {...command, token: TestHelper.generateId(), id: TestHelper.generateId()});
 
-        const {data: created} = await store.dispatch(Actions.addCommand(
+        const created = (await store.dispatch(Actions.addCommand(
             command,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             get('/commands').
@@ -452,9 +452,9 @@ describe('Actions.Integrations', () => {
             post('/teams').
             reply(201, TestHelper.fakeTeamWithId());
 
-        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+        const team = (await store.dispatch(TeamsActions.createTeam(
             TestHelper.fakeTeam(),
-        ));
+        ))).data!;
 
         const args = {
             channel_id: TestHelper.basicChannel!.id,
@@ -473,9 +473,9 @@ describe('Actions.Integrations', () => {
             post('/teams').
             reply(201, TestHelper.fakeTeamWithId());
 
-        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+        const team = (await store.dispatch(TeamsActions.createTeam(
             TestHelper.fakeTeam(),
-        ));
+        ))).data!;
 
         const expected = TestHelper.testCommand(team.id);
 
@@ -483,7 +483,7 @@ describe('Actions.Integrations', () => {
             post('/commands').
             reply(201, {...expected, token: TestHelper.generateId(), id: TestHelper.generateId()});
 
-        const {data: created} = await store.dispatch(Actions.addCommand(expected));
+        const created = (await store.dispatch(Actions.addCommand(expected))).data!;
 
         const {commands} = store.getState().entities.integrations;
         expect(commands[created.id]).toBeTruthy();
@@ -511,9 +511,9 @@ describe('Actions.Integrations', () => {
             post('/teams').
             reply(201, TestHelper.fakeTeamWithId());
 
-        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+        const team = (await store.dispatch(TeamsActions.createTeam(
             TestHelper.fakeTeam(),
-        ));
+        ))).data!;
 
         const command = TestHelper.testCommand(team.id);
 
@@ -521,9 +521,9 @@ describe('Actions.Integrations', () => {
             post('/commands').
             reply(201, {...command, token: TestHelper.generateId(), id: TestHelper.generateId()});
 
-        const {data: created} = await store.dispatch(Actions.addCommand(
+        const created = (await store.dispatch(Actions.addCommand(
             command,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             put(`/commands/${created.id}/regen_token`).
@@ -560,9 +560,9 @@ describe('Actions.Integrations', () => {
             post('/teams').
             reply(201, TestHelper.fakeTeamWithId());
 
-        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+        const team = (await store.dispatch(TeamsActions.createTeam(
             TestHelper.fakeTeam(),
-        ));
+        ))).data!;
 
         const command = TestHelper.testCommand(team.id);
 
@@ -570,9 +570,9 @@ describe('Actions.Integrations', () => {
             post('/commands').
             reply(201, {...command, token: TestHelper.generateId(), id: TestHelper.generateId()});
 
-        const {data: created} = await store.dispatch(Actions.addCommand(
+        const created = (await store.dispatch(Actions.addCommand(
             command,
-        ));
+        ))).data!;
 
         const expected = Object.assign({}, created);
         expected.trigger = 'modified';
@@ -601,9 +601,9 @@ describe('Actions.Integrations', () => {
             post('/teams').
             reply(201, TestHelper.fakeTeamWithId());
 
-        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+        const team = (await store.dispatch(TeamsActions.createTeam(
             TestHelper.fakeTeam(),
-        ));
+        ))).data!;
 
         const command = TestHelper.testCommand(team.id);
 
@@ -611,9 +611,9 @@ describe('Actions.Integrations', () => {
             post('/commands').
             reply(201, {...command, token: TestHelper.generateId(), id: TestHelper.generateId()});
 
-        const {data: created} = await store.dispatch(Actions.addCommand(
+        const created = (await store.dispatch(Actions.addCommand(
             command,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             delete(`/commands/${created.id}`).
@@ -631,7 +631,7 @@ describe('Actions.Integrations', () => {
             post('/oauth/apps').
             reply(201, TestHelper.fakeOAuthAppWithId());
 
-        const {data: created} = await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()));
+        const created = (await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()))).data!;
 
         const {oauthApps} = store.getState().entities.integrations;
         expect(oauthApps[created.id]).toBeTruthy();
@@ -642,7 +642,7 @@ describe('Actions.Integrations', () => {
             post('/oauth/apps').
             reply(201, TestHelper.fakeOAuthAppWithId());
 
-        const {data: created} = await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()));
+        const created = (await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()))).data!;
 
         nock(Client4.getBaseRoute()).
             get(`/oauth/apps/${created.id}`).
@@ -658,7 +658,7 @@ describe('Actions.Integrations', () => {
             post('/oauth/apps').
             reply(201, TestHelper.fakeOAuthAppWithId());
 
-        const {data: created} = await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()));
+        const created = (await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()))).data!;
 
         const expected = Object.assign({}, created);
         expected.name = 'modified';
@@ -682,7 +682,7 @@ describe('Actions.Integrations', () => {
         expect(actual.update_at).not.toEqual(expected.update_at);
         const actualWithoutUpdateAt = {...actual};
         delete actualWithoutUpdateAt.update_at;
-        delete expected.update_at;
+        delete (expected as Partial<typeof expected>).update_at;
         expect(JSON.stringify(actualWithoutUpdateAt)).toEqual(JSON.stringify(expected));
     });
 
@@ -691,7 +691,7 @@ describe('Actions.Integrations', () => {
             post('/oauth/apps').
             reply(201, TestHelper.fakeOAuthAppWithId());
 
-        const {data: created} = await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()));
+        const created = (await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()))).data!;
 
         const user = TestHelper.basicUser;
         nock(Client4.getBaseRoute()).
@@ -708,7 +708,7 @@ describe('Actions.Integrations', () => {
             post('/oauth/apps').
             reply(201, TestHelper.fakeOAuthAppWithId());
 
-        const {data: created} = await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()));
+        const created = (await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()))).data!;
 
         nock(Client4.getBaseRoute()).
             delete(`/oauth/apps/${created.id}`).
@@ -724,7 +724,7 @@ describe('Actions.Integrations', () => {
             post('/oauth/apps').
             reply(201, TestHelper.fakeOAuthAppWithId());
 
-        const {data: created} = await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()));
+        const created = (await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()))).data!;
 
         nock(Client4.getBaseRoute()).
             post(`/oauth/apps/${created.id}/regen_secret`).
@@ -751,10 +751,10 @@ describe('Actions.Integrations', () => {
             user_id: '',
         };
 
-        const {data} = await store.dispatch(Actions.submitInteractiveDialog(submit));
+        const data = (await store.dispatch(Actions.submitInteractiveDialog(submit))).data!;
 
         expect(data.errors).toBeTruthy();
-        expect(data.errors.name).toEqual('some error');
+        expect(data.errors!.name).toEqual('some error');
     });
 
     it('submitInteractiveDialog uses submission data', async () => {
@@ -774,7 +774,7 @@ describe('Actions.Integrations', () => {
             post('/actions/dialogs/submit', submit).
             reply(200, OK_RESPONSE);
 
-        const {data} = await store.dispatch(Actions.submitInteractiveDialog(submit));
+        const data = (await store.dispatch(Actions.submitInteractiveDialog(submit))).data!;
         expect(data).toEqual(OK_RESPONSE);
     });
 
@@ -817,7 +817,7 @@ describe('Actions.Integrations', () => {
             post('/actions/dialogs/submit', expectedRequest).
             reply(200, OK_RESPONSE);
 
-        const {data} = await store.dispatch(Actions.submitInteractiveDialog(submit));
+        const data = (await store.dispatch(Actions.submitInteractiveDialog(submit))).data!;
         expect(data).toEqual(OK_RESPONSE);
     });
 
@@ -849,7 +849,7 @@ describe('Actions.Integrations', () => {
                 post('/actions/dialogs/lookup', lookup).
                 reply(200, expectedResponse);
 
-            const {data} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            const data = (await store.dispatch(Actions.lookupInteractiveDialog(lookup))).data!;
             expect(data).toEqual(expectedResponse);
             expect(data.items).toHaveLength(3);
             expect(data.items[0].text).toEqual('Option 1');
@@ -876,7 +876,7 @@ describe('Actions.Integrations', () => {
                 post('/actions/dialogs/lookup', lookup).
                 reply(200, emptyResponse);
 
-            const {data} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            const data = (await store.dispatch(Actions.lookupInteractiveDialog(lookup))).data!;
             expect(data).toEqual(emptyResponse);
             expect(data.items).toHaveLength(0);
         });
@@ -957,7 +957,7 @@ describe('Actions.Integrations', () => {
                 post('/actions/dialogs/lookup', expectedRequest).
                 reply(200, expectedResponse);
 
-            const {data} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            const data = (await store.dispatch(Actions.lookupInteractiveDialog(lookup))).data!;
             expect(data).toEqual(expectedResponse);
         });
 
@@ -1015,7 +1015,7 @@ describe('Actions.Integrations', () => {
                 post('/actions/dialogs/lookup', lookup).
                 reply(200, expectedResponse);
 
-            const {data} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            const data = (await store.dispatch(Actions.lookupInteractiveDialog(lookup))).data!;
             expect(data).toEqual(expectedResponse);
             expect(data.items).toHaveLength(2);
             expect(data.items[0].text).toEqual('Complex Option 1');

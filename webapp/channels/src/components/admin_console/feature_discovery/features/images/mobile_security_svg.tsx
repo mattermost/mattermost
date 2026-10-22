@@ -6,7 +6,7 @@ import React from 'react';
 type SvgProps = {
     width?: number;
     height?: number;
-}
+};
 
 const MobileSecuritySVG = (props: SvgProps) => (
     <svg

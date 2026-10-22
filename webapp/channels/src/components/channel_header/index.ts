@@ -13,15 +13,17 @@ import {getCustomEmojisInText} from 'mattermost-redux/actions/emojis';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {General} from 'mattermost-redux/constants';
 import {
+    canManageChannelJoinRequests,
     getCurrentChannel,
     getMyCurrentChannelMembership,
     isCurrentChannelMuted,
     getCurrentChannelStats,
     isMyChannelAutotranslated,
+    getPendingJoinRequestsCount,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
     displayLastActiveLabel,
     getCurrentUser,
@@ -41,7 +43,7 @@ import {
 import {getRhsState} from 'selectors/rhs';
 import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
 
-import {isFileAttachmentsEnabled} from 'utils/file_utils';
+import {canSearchFiles} from 'utils/file_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -56,8 +58,6 @@ function makeMapStateToProps() {
         const channel = getCurrentChannel(state);
         const user = getCurrentUser(state);
         const config = getConfig(state);
-        const sharedChannelsPluginsEnabled = getFeatureFlagValue(state, 'EnableSharedChannelsPlugins') === 'true';
-
         let dmUser;
         let gmMembers;
         let customStatus;
@@ -85,8 +85,15 @@ function makeMapStateToProps() {
             timestampUnits = getLastActiveTimestampUnits(state, dmUser.id);
         }
 
+        const canManageJoinRequests = canManageChannelJoinRequests(state, channel);
+        const hasPendingJoinRequests = Boolean(
+            canManageJoinRequests &&
+            channel &&
+            getPendingJoinRequestsCount(state, channel.id) > 0,
+        );
+
         return {
-            teamId: getCurrentTeamId(state),
+            team: getCurrentTeam(state),
             channel,
             channelMember: getMyCurrentChannelMembership(state),
             memberCount: stats?.member_count || 0,
@@ -102,12 +109,12 @@ function makeMapStateToProps() {
             isCustomStatusEnabled: isCustomStatusEnabled(state),
             isCustomStatusExpired: isCustomStatusExpired(state, customStatus),
             lastActivityTimestamp,
-            isFileAttachmentsEnabled: isFileAttachmentsEnabled(config),
+            canSearchFiles: canSearchFiles(config),
             isLastActiveEnabled,
             timestampUnits,
             hideGuestTags: config.HideGuestTags === 'true',
-            sharedChannelsPluginsEnabled,
             isChannelAutotranslated: channel ? isMyChannelAutotranslated(state, channel.id) : false,
+            hasPendingJoinRequests,
         };
     };
 }

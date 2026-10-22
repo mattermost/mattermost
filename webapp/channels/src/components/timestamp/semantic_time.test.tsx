@@ -30,13 +30,13 @@ describe('components/timestamp/SemanticTime', () => {
     });
 
     test('should support custom label', () => {
-        const {container} = render(
+        render(
             <SemanticTime
                 value={new Date('2020-06-05T10:20:30Z')}
                 aria-label='A custom label'
             />,
         );
 
-        expect(container).toMatchSnapshot();
+        expect(screen.getByRole('time')).toHaveAttribute('aria-label', 'A custom label');
     });
 });

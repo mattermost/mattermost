@@ -4,14 +4,18 @@
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {UserPropertyValueType} from '@mattermost/types/properties';
+import {supportsHierarchy} from '@mattermost/types/properties';
+import type {UserPropertyValueType} from '@mattermost/types/properties_user';
 
 import {getCustomProfileAttributeValues} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
+import {getUserPropertyFieldLabel} from 'utils/properties';
+
 import type {GlobalState} from 'types/store';
 
+import ProfilePopoverGraphAttribute from './profile_popover_graph_attribute';
 import ProfilePopoverPhone from './profile_popover_phone';
 import ProfilePopoverSelectAttribute from './profile_popover_select_attribute';
 import ProfilePopoverTextAttribute from './profile_popover_text_attribute';
@@ -19,11 +23,9 @@ import ProfilePopoverUrl from './profile_popover_url';
 
 type Props = {
     userID: string;
-    hideStatus?: boolean;
-}
+};
 const ProfilePopoverCustomAttributes = ({
     userID,
-    hideStatus = false,
 }: Props) => {
     const dispatch = useDispatch();
     const userProfile = useSelector((state: GlobalState) => getUser(state, userID));
@@ -33,10 +35,10 @@ const ProfilePopoverCustomAttributes = ({
         if (!userProfile.custom_profile_attributes) {
             dispatch(getCustomProfileAttributeValues(userID));
         }
-    });
+    }, [dispatch, userID, userProfile.custom_profile_attributes]);
 
     const attributeSections = customProfileAttributeFields.map((attribute) => {
-        if (!hideStatus && userProfile.custom_profile_attributes) {
+        if (userProfile.custom_profile_attributes) {
             // Hide source_only fields from profile popover
             if (attribute.attrs?.access_mode === 'source_only') {
                 return null;
@@ -52,7 +54,7 @@ const ProfilePopoverCustomAttributes = ({
 
             if (!hasValue && visibility === 'when_set') {
                 return null;
-            } else if (visibility === 'when_set' && (attribute.type === 'multiselect' || attribute.type === 'select')) {
+            } else if (visibility === 'when_set' && (attribute.type === 'multiselect' || attribute.type === 'select' || attribute.type === 'rank')) {
                 const attributeValue = userProfile.custom_profile_attributes[attribute.id];
 
                 // make sure attribute contains legitimate values
@@ -82,11 +84,19 @@ const ProfilePopoverCustomAttributes = ({
                     <strong
                         id={`user-popover__custom_attributes-title-${attribute.id}`}
                         className='user-popover__subtitle'
+                        role='heading'
+                        aria-level={3}
                     >
-                        {attribute.name}
+                        {getUserPropertyFieldLabel(attribute)}
                     </strong>
-                    {(attribute.type === 'multiselect' || attribute.type === 'select') && (
+                    {(attribute.type === 'multiselect' || attribute.type === 'select' || attribute.type === 'rank') && (
                         <ProfilePopoverSelectAttribute
+                            attribute={attribute}
+                            userProfile={userProfile}
+                        />
+                    )}
+                    {supportsHierarchy(attribute) && (
+                        <ProfilePopoverGraphAttribute
                             attribute={attribute}
                             userProfile={userProfile}
                         />

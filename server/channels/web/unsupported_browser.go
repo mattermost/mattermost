@@ -44,9 +44,10 @@ type SystemBrowser struct {
 	MakeDefaultString      string
 }
 
-func renderUnsupportedBrowser(rctx request.CTX, r *http.Request) templates.Data {
+func renderUnsupportedBrowser(rctx request.CTX, r *http.Request, subpath string) templates.Data {
 	data := templates.Data{
 		Props: map[string]any{
+			"Subpath":                           ensureTrailingSlash(subpath),
 			"DownloadAppOrUpgradeBrowserString": rctx.T("web.error.unsupported_browser.download_app_or_upgrade_browser"),
 			"LearnMoreString":                   rctx.T("web.error.unsupported_browser.learn_more"),
 		},
@@ -92,7 +93,7 @@ func renderUnsupportedBrowser(rctx request.CTX, r *http.Request) templates.Data 
 
 func renderMattermostAppMac(rctx request.CTX) MattermostApp {
 	return MattermostApp{
-		"/static/images/browser-icons/mac.png",
+		"mac.png",
 		rctx.T("web.error.unsupported_browser.download_the_app"),
 		rctx.T("web.error.unsupported_browser.min_os_version.mac"),
 		rctx.T("web.error.unsupported_browser.download"),
@@ -104,7 +105,7 @@ func renderMattermostAppMac(rctx request.CTX) MattermostApp {
 
 func renderMattermostAppWindows(rctx request.CTX) MattermostApp {
 	return MattermostApp{
-		"/static/images/browser-icons/windows.svg",
+		"windows.svg",
 		rctx.T("web.error.unsupported_browser.download_the_app"),
 		rctx.T("web.error.unsupported_browser.min_os_version.windows"),
 		rctx.T("web.error.unsupported_browser.download"),
@@ -116,7 +117,7 @@ func renderMattermostAppWindows(rctx request.CTX) MattermostApp {
 
 func renderBrowserChrome(rctx request.CTX) Browser {
 	return Browser{
-		"/static/images/browser-icons/chrome.svg",
+		"chrome.svg",
 		rctx.T("web.error.unsupported_browser.browser_title.chrome"),
 		rctx.T("web.error.unsupported_browser.min_browser_version.chrome"),
 		"http://www.google.com/chrome",
@@ -126,7 +127,7 @@ func renderBrowserChrome(rctx request.CTX) Browser {
 
 func renderBrowserFirefox(rctx request.CTX) Browser {
 	return Browser{
-		"/static/images/browser-icons/firefox.svg",
+		"firefox.svg",
 		rctx.T("web.error.unsupported_browser.browser_title.firefox"),
 		rctx.T("web.error.unsupported_browser.min_browser_version.firefox"),
 		"https://www.mozilla.org/firefox/new/",
@@ -136,7 +137,7 @@ func renderBrowserFirefox(rctx request.CTX) Browser {
 
 func renderBrowserSafari(rctx request.CTX) Browser {
 	return Browser{
-		"/static/images/browser-icons/safari.svg",
+		"safari.svg",
 		rctx.T("web.error.unsupported_browser.browser_title.safari"),
 		rctx.T("web.error.unsupported_browser.min_browser_version.safari"),
 		"macappstore://showUpdatesPage",
@@ -146,7 +147,7 @@ func renderBrowserSafari(rctx request.CTX) Browser {
 
 func renderSystemBrowserEdge(rctx request.CTX, r *http.Request) SystemBrowser {
 	return SystemBrowser{
-		"/static/images/browser-icons/edge.svg",
+		"edge.svg",
 		rctx.T("web.error.unsupported_browser.browser_title.edge"),
 		rctx.T("web.error.unsupported_browser.min_browser_version.edge"),
 		rctx.T("web.error.unsupported_browser.open_system_browser.edge"),

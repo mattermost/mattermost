@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -14,6 +15,8 @@ const (
 	MinTriggerLength  = 1
 	MaxTriggerLength  = 128
 )
+
+var validCommandTriggerChars = regexp.MustCompile(`^[A-Za-z0-9_./-]+$`)
 
 type Command struct {
 	Id               string `json:"id"`
@@ -96,7 +99,7 @@ func (o *Command) IsValid() *AppError {
 		return NewAppError("Command.IsValid", "model.command.is_valid.team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.Trigger) < MinTriggerLength || len(o.Trigger) > MaxTriggerLength || strings.Index(o.Trigger, "/") == 0 || strings.Contains(o.Trigger, " ") {
+	if len(o.Trigger) < MinTriggerLength || len(o.Trigger) > MaxTriggerLength || strings.Index(o.Trigger, "/") == 0 || !validCommandTriggerChars.MatchString(o.Trigger) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.trigger.app_error", nil, "", http.StatusBadRequest)
 	}
 

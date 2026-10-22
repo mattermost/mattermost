@@ -8,8 +8,9 @@ import {useDispatch} from 'react-redux';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {batchGetProfilesInChannel, getMissingProfilesByIds} from 'mattermost-redux/actions/users';
+import {batchGetProfilesInGroupChannel, getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 
+import ChannelTypeIcon from 'components/channel_type_icon';
 import Avatar from 'components/widgets/users/avatar';
 
 import {Constants} from 'utils/constants';
@@ -24,7 +25,7 @@ type Props = {
     teammate?: UserProfile;
     teammateId?: string;
     type: 'channel' | 'thread';
-}
+};
 
 function DraftTitle({
     channel,
@@ -51,7 +52,7 @@ function DraftTitle({
         // The action uses a data loader so it is safe to call do this for multiple
         // scheduled posts for the same GM without causing any duplicate API calls.
         if (channel.type === Constants.GM_CHANNEL && !membersCount) {
-            dispatch(batchGetProfilesInChannel(channel.id));
+            dispatch(batchGetProfilesInGroupChannel(channel.id));
         }
     }, [channel.id, channel.type, dispatch, membersCount]);
 
@@ -70,11 +71,7 @@ function DraftTitle({
         );
     }
 
-    let icon = <i className='icon icon-globe'/>;
-
-    if (channel.type === Constants.PRIVATE_CHANNEL) {
-        icon = <i className='icon icon-lock-outline'/>;
-    }
+    let icon: React.ReactNode = <ChannelTypeIcon channel={channel}/>;
 
     if (channel.type === Constants.DM_CHANNEL && teammate) {
         icon = (

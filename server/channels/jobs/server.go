@@ -19,6 +19,7 @@ type JobServer struct {
 	Store         store.Store
 	metrics       einterfaces.MetricsInterface
 	logger        mlog.LoggerIFace
+	publish       func(*model.WebSocketEvent)
 
 	// mut is used to protect the following fields from concurrent access.
 	mut        sync.Mutex
@@ -26,12 +27,13 @@ type JobServer struct {
 	schedulers *Schedulers
 }
 
-func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface, logger mlog.LoggerIFace) *JobServer {
+func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface, logger mlog.LoggerIFace, publish func(*model.WebSocketEvent)) *JobServer {
 	srv := &JobServer{
 		ConfigService: configService,
 		Store:         store,
 		metrics:       metrics,
 		logger:        logger,
+		publish:       publish,
 	}
 	srv.initWorkers()
 	srv.initSchedulers()

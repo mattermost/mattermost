@@ -5,6 +5,8 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {LicenseSkuBadge} from 'components/widgets/badges';
 
 import {LicenseSkus} from 'utils/constants';
@@ -52,24 +54,24 @@ const InlineSectionFeatureDiscovery: React.FC<Props> = ({
                     <FormattedMessage {...description}/>
                 </p>
                 <div className='InlineSectionFeatureDiscovery__actions'>
-                    <button
-                        className='btn btn-primary'
+                    <Button
+                        emphasis='primary'
                         onClick={handleContactSales}
                     >
                         <FormattedMessage
                             id='admin.feature_discovery.contact_sales'
                             defaultMessage='Contact sales'
                         />
-                    </button>
-                    <button
-                        className='btn btn-tertiary'
+                    </Button>
+                    <Button
+                        emphasis='tertiary'
                         onClick={handleLearnMore}
                     >
                         <FormattedMessage
                             id='admin.feature_discovery.learn_more'
                             defaultMessage='Learn more'
                         />
-                    </button>
+                    </Button>
                 </div>
             </div>
             {SvgImage && (

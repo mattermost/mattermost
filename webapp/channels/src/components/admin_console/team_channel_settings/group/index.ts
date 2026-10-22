@@ -23,7 +23,7 @@ export type OwnProps = {
     onPageChangedCallback?: () => void;
     team?: Team;
     channel?: Partial<Channel>;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     return {

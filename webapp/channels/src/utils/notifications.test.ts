@@ -3,6 +3,7 @@
 
 /* eslint-disable global-require */
 
+import icon50 from 'images/icon50x50.png';
 import configureStore from 'tests/test_store';
 
 import type {showNotification} from './notifications';
@@ -93,8 +94,8 @@ describe('Notifications.showNotification', () => {
         const call = window.Notification.mock.calls[0];
         expect(call[1]).toEqual({
             body: 'body',
-            tag: 'body',
-            icon: '',
+            tag: '',
+            icon: icon50,
             requireInteraction: true,
             silent: false,
         });
@@ -119,11 +120,65 @@ describe('Notifications.showNotification', () => {
         const call = window.Notification.mock.calls[0];
         expect(call[1]).toEqual({
             body: 'body',
-            tag: 'body',
-            icon: '',
+            tag: '',
+            icon: icon50,
             requireInteraction: true,
             silent: false,
         });
+    });
+
+    it('should not leak notification text via the Notifications API tag when no tag is provided', async () => {
+        // The Notifications API tag is serialised into the activation command line on Chromium
+        // and captured by EDR / SIEM tooling. The tag must therefore never carry message content.
+        window.Notification.permission = 'granted';
+        jest.resetModules();
+        Notifications = require('utils/notifications');
+
+        const sensitiveBody = '@alice: token=AKIA-SECRET-VALUE confidential incident details';
+        const visibleTitle = '@alice posted in Town Square';
+
+        await store.dispatch(Notifications.showNotification({
+            title: visibleTitle,
+            body: sensitiveBody,
+            requireInteraction: false,
+            silent: false,
+        }));
+
+        expect(window.Notification).toHaveBeenCalledTimes(1);
+        const options = window.Notification.mock.calls[0][1];
+        expect(options.body).toBe(sensitiveBody);
+        expect(options.tag).not.toContain('AKIA-SECRET-VALUE');
+        expect(options.tag).not.toContain('token=');
+        expect(options.tag).not.toContain(visibleTitle);
+        expect(options.tag).toBe('');
+    });
+
+    it('should use the explicit tag identifier when the caller provides one', async () => {
+        // When a stable opaque id is passed, it must be used verbatim so that
+        // subsequent updates to the same message replace the previous notification, and
+        // so that no user-visible text leaks into the tag field at all.
+        window.Notification.permission = 'granted';
+        jest.resetModules();
+        Notifications = require('utils/notifications');
+
+        const sensitiveBody = '@bob: AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY';
+        const visibleTitle = '@bob posted in #incident-response';
+        const postId = 'post-9bg7p4dyitggimxtxctt7gwp4y';
+
+        await store.dispatch(Notifications.showNotification({
+            title: visibleTitle,
+            body: sensitiveBody,
+            tag: postId,
+            requireInteraction: false,
+            silent: false,
+        }));
+
+        expect(window.Notification).toHaveBeenCalledTimes(1);
+        const options = window.Notification.mock.calls[0][1];
+        expect(options.tag).toBe(postId);
+        expect(options.tag).not.toContain('AWS_SECRET_ACCESS_KEY');
+        expect(options.tag).not.toContain(visibleTitle);
+        expect(options.body).toBe(sensitiveBody);
     });
 
     it('should do nothing if permissions previously requested but not granted', async () => {

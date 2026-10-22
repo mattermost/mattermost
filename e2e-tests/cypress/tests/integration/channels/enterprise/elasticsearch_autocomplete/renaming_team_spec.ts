@@ -10,16 +10,16 @@
 // Stage: @prod
 // Group: @channels @enterprise @elasticsearch @autocomplete @not_cloud
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-
-import {getRandomId} from '../../../../utils';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {
     enableElasticSearch,
     searchAndVerifyChannel,
     searchAndVerifyUser,
 } from './helpers';
+
+import {getRandomId} from '@/utils';
 
 describe('Autocomplete with Elasticsearch - Renaming Team', () => {
     const randomId = getRandomId();

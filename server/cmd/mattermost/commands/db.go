@@ -110,7 +110,7 @@ func initDbCmdF(command *cobra.Command, _ []string) error {
 		return errors.Wrap(err, "error loading custom configuration defaults")
 	}
 
-	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), false, customDefaults, true)
+	configStore, err := newCommandConfigStore(dsn, false, customDefaults)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
@@ -167,7 +167,7 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 	recoverFlag, _ := command.Flags().GetBool("auto-recover")
 	savePlan, _ := command.Flags().GetBool("save-plan")
 	dryRun, _ := command.Flags().GetBool("dry-run")
-	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
+	cfgStore, err := newCommandConfigStore(cfgDSN, true, nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
@@ -216,6 +216,12 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 				strings.Repeat("*", 80), fileName+".json", strings.Repeat("*", 80)))
 	}
 
+	if !dryRun {
+		if preMigrationError := migrator.PreMigrate(); preMigrationError != nil {
+			return errors.Wrap(preMigrationError, "failed to run pre-migrations")
+		}
+	}
+
 	err = migrator.MigrateWithPlan(plan, dryRun)
 	if err != nil {
 		return errors.Wrap(err, "failed to migrate with the plan")
@@ -231,7 +237,7 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 	defer logger.Shutdown()
 
 	cfgDSN := getConfigDSN(command, config.GetEnvironment())
-	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
+	cfgStore, err := newCommandConfigStore(cfgDSN, true, nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
@@ -327,6 +333,21 @@ func ConfigToFileBackendSettings(s *model.FileSettings, enableComplianceFeature 
 		return filestore.FileBackendSettings{
 			DriverName: *s.DriverName,
 			Directory:  *s.Directory,
+		}
+	}
+	if *s.DriverName == model.ImageDriverAzure {
+		return filestore.FileBackendSettings{
+			DriverName:                      *s.DriverName,
+			AzureStorageAccount:             *s.AzureStorageAccount,
+			AzureAuthMode:                   *s.AzureAuthMode,
+			AzureAccessKey:                  *s.AzureAccessKey,
+			AzureContainer:                  *s.AzureContainer,
+			AzurePathPrefix:                 *s.AzurePathPrefix,
+			AzureCloud:                      *s.AzureCloud,
+			AzureEndpoint:                   *s.AzureEndpoint,
+			AzureSSL:                        s.AzureSSL == nil || *s.AzureSSL,
+			AzureRequestTimeoutMilliseconds: *s.AzureRequestTimeoutMilliseconds,
+			SkipVerify:                      skipVerify,
 		}
 	}
 	return filestore.FileBackendSettings{

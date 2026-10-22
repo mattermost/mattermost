@@ -4,18 +4,20 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
+
 import Tag from 'components/widgets/tag/tag';
 
 type RadioGroupProps = {
     id: string;
-    values: Array<{ key: React.ReactNode | React.ReactNodeArray; value: string; testId?: string}>;
+    values: Array<{key: React.ReactNode | readonly React.ReactNode[]; value: string; testId?: string}>;
     value: string;
     badge?: {matchVal: string; badgeContent: ReactNode; extraClass?: string} | undefined | null;
     sideLegend?: {matchVal: string; text: ReactNode};
     isDisabled?: null | ((id: string) => boolean);
     onChange(e: React.ChangeEvent<HTMLInputElement>): void;
     testId?: string;
-}
+};
 const RadioButtonGroup = ({
     id,
     onChange,
@@ -31,34 +33,33 @@ const RadioButtonGroup = ({
     };
 
     const options = [];
-    for (const {value: val, key, testId} of values) {
+    for (const {value: val, key, testId: optionTestId} of values) {
         const disabled = isDisabled ? isDisabled(val) : false;
-        const moreProps: {'data-testid'?: string} = {};
-        if (testId) {
-            moreProps['data-testid'] = testId;
-        }
+
+        // Put data-testid on the visible option wrapper. Compass Radio applies
+        // extra DOM props to the native input, which is opacity:0 and skipped by
+        // Testing Library / Cypress visibility queries.
         options.push(
             <div
-                className='radio'
+                className='radio-list__option'
                 key={val}
+                data-testid={optionTestId}
             >
-                <label className={val === value ? 'selected' : ''}>
-                    <input
-                        type='radio'
-                        value={val}
-                        name={id}
-                        checked={val === value}
-                        onChange={handleChange}
-                        disabled={disabled}
-                        {...moreProps}
-                    />
+                <Radio
+                    className={val === value ? 'selected' : ''}
+                    value={val}
+                    name={id}
+                    checked={val === value}
+                    onChange={handleChange}
+                    disabled={disabled}
+                >
                     {key}
                     {(sideLegend && val === sideLegend?.matchVal) &&
                         <span className='side-legend'>
                             {sideLegend.text}
                         </span>
                     }
-                </label>
+                </Radio>
                 {(badge && val === badge?.matchVal) &&
                     <Tag
                         className={`radio-badge ${badge.extraClass ?? ''}`}

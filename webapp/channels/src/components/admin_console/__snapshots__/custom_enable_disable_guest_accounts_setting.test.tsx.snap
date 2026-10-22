@@ -15,36 +15,68 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
     <div
       class="col-sm-8"
     >
-      <label
-        class="Label-eJcoMl iShgPr"
+      <div
+        class="BooleanRadioGroup-caqMkq klbaOn"
       >
-        <input
-          data-testid="MySettingtrue"
-          id="MySettingtrue"
-          name="MySetting"
-          type="radio"
-          value="true"
-        />
-        True
-      </label>
-      <label
-        class="Label-eJcoMl iShgPr"
-      >
-        <input
-          checked=""
-          data-testid="MySettingfalse"
-          id="MySettingfalse"
-          name="MySetting"
-          type="radio"
-          value="false"
-        />
-        False
-      </label>
+        <label
+          class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+          for="MySettingtrue"
+        >
+          <input
+            class="_radio__input_1hdqa_14"
+            data-testid="MySettingtrue"
+            id="MySettingtrue"
+            name="MySetting"
+            type="radio"
+            value="true"
+          />
+          <span
+            class="_radio__circle_1hdqa_33"
+          >
+            <span
+              aria-hidden="true"
+              class="_radio__dot_1hdqa_59"
+            />
+          </span>
+          <span
+            class="_radio__label_1hdqa_116"
+          >
+            True
+          </span>
+        </label>
+        <label
+          class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+          for="MySettingfalse"
+        >
+          <input
+            checked=""
+            class="_radio__input_1hdqa_14"
+            data-testid="MySettingfalse"
+            id="MySettingfalse"
+            name="MySetting"
+            type="radio"
+            value="false"
+          />
+          <span
+            class="_radio__circle_1hdqa_33"
+          >
+            <span
+              aria-hidden="true"
+              class="_radio__dot_1hdqa_59"
+            />
+          </span>
+          <span
+            class="_radio__label_1hdqa_116"
+          >
+            False
+          </span>
+        </label>
+      </div>
       <div
         class="help-text"
         data-testid="MySettinghelp-text"
       >
-        When true, external guest can be invited to channels within teams. Please see 
+        When true, external guests can be invited to channels within teams. Please see 
         <a
           href="/admin_console/user_management/permissions/system_scheme"
         >
@@ -72,36 +104,68 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
     <div
       class="col-sm-8"
     >
-      <label
-        class="Label-eJcoMl iShgPr"
+      <div
+        class="BooleanRadioGroup-caqMkq klbaOn"
       >
-        <input
-          checked=""
-          data-testid="MySettingtrue"
-          id="MySettingtrue"
-          name="MySetting"
-          type="radio"
-          value="true"
-        />
-        True
-      </label>
-      <label
-        class="Label-eJcoMl iShgPr"
-      >
-        <input
-          data-testid="MySettingfalse"
-          id="MySettingfalse"
-          name="MySetting"
-          type="radio"
-          value="false"
-        />
-        False
-      </label>
+        <label
+          class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+          for="MySettingtrue"
+        >
+          <input
+            checked=""
+            class="_radio__input_1hdqa_14"
+            data-testid="MySettingtrue"
+            id="MySettingtrue"
+            name="MySetting"
+            type="radio"
+            value="true"
+          />
+          <span
+            class="_radio__circle_1hdqa_33"
+          >
+            <span
+              aria-hidden="true"
+              class="_radio__dot_1hdqa_59"
+            />
+          </span>
+          <span
+            class="_radio__label_1hdqa_116"
+          >
+            True
+          </span>
+        </label>
+        <label
+          class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+          for="MySettingfalse"
+        >
+          <input
+            class="_radio__input_1hdqa_14"
+            data-testid="MySettingfalse"
+            id="MySettingfalse"
+            name="MySetting"
+            type="radio"
+            value="false"
+          />
+          <span
+            class="_radio__circle_1hdqa_33"
+          >
+            <span
+              aria-hidden="true"
+              class="_radio__dot_1hdqa_59"
+            />
+          </span>
+          <span
+            class="_radio__label_1hdqa_116"
+          >
+            False
+          </span>
+        </label>
+      </div>
       <div
         class="help-text"
         data-testid="MySettinghelp-text"
       >
-        When true, external guest can be invited to channels within teams. Please see 
+        When true, external guests can be invited to channels within teams. Please see 
         <a
           href="/admin_console/user_management/permissions/system_scheme"
         >

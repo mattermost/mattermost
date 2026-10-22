@@ -4,10 +4,11 @@
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
+
 import type {openModal as openModalAction} from 'actions/views/modals';
 
 import ConfirmModalRedux from 'components/confirm_modal_redux';
-import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 const ModalId = 'delete_integration_confirm';
 
@@ -36,6 +37,7 @@ export default function DeleteIntegrationLink(props: Props) {
             />
         ),
         modalMessage,
+        subtitleText,
         modalTitle = (
             <FormattedMessage
                 id='integrations.delete.confirm.title'
@@ -51,21 +53,22 @@ export default function DeleteIntegrationLink(props: Props) {
             modalId: ModalId,
             dialogProps: {
                 confirmButtonText,
-                confirmButtonClass: 'btn btn-danger',
+                confirmButtonVariant: 'destructive',
                 modalClass: 'integrations-backstage-modal',
                 message: (
                     <>
-                        {props.subtitleText && (
+                        {subtitleText && (
                             <p>
-                                {props.subtitleText}
+                                {subtitleText}
                             </p>
                         )}
-                        <div className='alert alert-danger'>
-                            <WarningIcon additionalClassName='mr-1'/>
-                            <strong>
-                                {props.modalMessage}
-                            </strong>
-                        </div>
+                        {modalMessage && (
+                            <SectionNotice
+                                className='integration-delete-notice'
+                                title={modalMessage}
+                                type='danger'
+                            />
+                        )}
                     </>
                 ),
                 onConfirm: onDelete,
@@ -73,7 +76,7 @@ export default function DeleteIntegrationLink(props: Props) {
             },
             dialogType: ConfirmModalRedux,
         });
-    }, [confirmButtonText, modalMessage, modalTitle, onDelete, openModal]);
+    }, [confirmButtonText, modalMessage, modalTitle, onDelete, openModal, subtitleText]);
 
     return (
         <button

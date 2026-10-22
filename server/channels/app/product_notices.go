@@ -202,7 +202,7 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue any) boo
 	if vt.IsNil() {
 		return expectedValue == nil
 	}
-	if vt.Kind() == reflect.Ptr {
+	if vt.Kind() == reflect.Pointer {
 		vt = vt.Elem()
 	}
 	val := vt.Interface()
@@ -314,7 +314,7 @@ func (a *App) UpdateViewedProductNoticesForNewUser(userID string) {
 		noticeIds = append(noticeIds, notice.ID)
 	}
 	if err := a.Srv().Store().ProductNotices().View(userID, noticeIds); err != nil {
-		mlog.Error("Cannot update product notices viewed state for user", mlog.String("userId", userID))
+		mlog.Error("Cannot update product notices viewed state for user", mlog.String("user_id", userID))
 	}
 }
 

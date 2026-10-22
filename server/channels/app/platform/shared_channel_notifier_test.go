@@ -76,7 +76,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		mockChannelStore := &mocks.ChannelStore{}
 		mockChannelStore.On("Get", "channelID", true).Return(&model.Channel{
 			Id:     "channelID",
-			Shared: model.NewPointer(true),
+			Shared: new(true),
 		}, nil)
 
 		mockUserStore := &mocks.UserStore{}

@@ -18,13 +18,13 @@ export enum ZendeskFormFieldIDs {
     BILLING_SALES_CATEGORY = '360031056451',
     EMAIL = 'anonymous_requester_email',
     SUBJECT = 'subject',
-    DESCRIPTION = 'description'
+    DESCRIPTION = 'description',
 }
 
 export type PrefillFieldFormFieldIDs = {
     id: ZendeskFormFieldIDs;
     val: string;
-}
+};
 
 export const buildZendeskSupportForm = (form: ZendeskSupportForm, formFieldIDs: PrefillFieldFormFieldIDs[]): string => {
     let formUrl = `${baseZendeskFormURL}?ticket_form_id=${form}`;

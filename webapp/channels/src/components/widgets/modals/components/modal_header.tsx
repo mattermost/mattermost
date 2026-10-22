@@ -10,7 +10,7 @@ type Props = {
     title: string;
     subtitle: string;
     handleClose?: (e: React.MouseEvent) => void;
-}
+};
 
 function ModalHeader({id, title, subtitle, handleClose}: Props) {
     const intl = useIntl();

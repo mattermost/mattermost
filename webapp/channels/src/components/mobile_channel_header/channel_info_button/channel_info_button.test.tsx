@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelInfoButton from './channel_info_button';
@@ -19,10 +19,10 @@ describe('components/ChannelHeaderMobile/ChannelInfoButton', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <ChannelInfoButton {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

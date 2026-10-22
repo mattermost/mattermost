@@ -14,7 +14,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
-	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 )
 
 func TestUserAuditable(t *testing.T) {
@@ -35,7 +34,7 @@ func TestUserAuditable(t *testing.T) {
 			DeleteAt:       now,
 			Username:       "some user_name",
 			Password:       "some password",
-			AuthData:       NewPointer("some_auth_data"),
+			AuthData:       new("some_auth_data"),
 			AuthService:    UserAuthServiceLdap,
 			Email:          "test@example.org",
 			EmailVerified:  true,
@@ -51,7 +50,7 @@ func TestUserAuditable(t *testing.T) {
 			Locale:    DefaultLocale,
 			Timezone:  timezones.DefaultUserTimezone(),
 			MfaActive: true,
-			RemoteId:  NewPointer("some_remote"),
+			RemoteId:  new("some_remote"),
 		}
 		m := u.Auditable()
 
@@ -115,7 +114,7 @@ func TestUserLogClone(t *testing.T) {
 			DeleteAt:       now,
 			Username:       "some user_name",
 			Password:       "some password",
-			AuthData:       NewPointer("some_auth_data"),
+			AuthData:       new("some_auth_data"),
 			AuthService:    UserAuthServiceLdap,
 			Email:          "test@example.org",
 			EmailVerified:  true,
@@ -131,7 +130,7 @@ func TestUserLogClone(t *testing.T) {
 			Locale:    DefaultLocale,
 			Timezone:  timezones.DefaultUserTimezone(),
 			MfaActive: true,
-			RemoteId:  NewPointer("some_remote"),
+			RemoteId:  new("some_remote"),
 		}
 
 		l := u.LogClone()
@@ -173,7 +172,7 @@ func TestUserDeepCopy(t *testing.T) {
 	mapKey := "key"
 	mapValue := "key"
 
-	user := &User{Id: id, AuthData: NewPointer(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
+	user := &User{Id: id, AuthData: new(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
 	user.Props[mapKey] = mapValue
 	user.NotifyProps[mapKey] = mapValue
 	user.Timezone[mapKey] = mapValue
@@ -197,10 +196,19 @@ func TestUserDeepCopy(t *testing.T) {
 	assert.Equal(t, id, copyUser.Id)
 }
 
+type stubHasherFunc func(password string) (string, error)
+
+func (f stubHasherFunc) Hash(password string) (string, error) { return f(password) }
+
 func TestUserPreSave(t *testing.T) {
+	hasher := stubHasherFunc(func(password string) (string, error) {
+		return "hashed_" + password, nil
+	})
+
 	user := User{Password: "test"}
-	err := user.PreSave()
+	err := user.PreSave(hasher)
 	require.Nil(t, err)
+	assert.Equal(t, "hashed_test", user.Password)
 	user.Etag(true, true)
 	assert.NotNil(t, user.Timezone, "Timezone is nil")
 	assert.Equal(t, user.Timezone["useAutomaticTimezone"], "true", "Timezone is not set to default")
@@ -218,9 +226,14 @@ func TestUserPreSave(t *testing.T) {
 }
 
 func TestUserPreSavePwdTooLong(t *testing.T) {
+	hasher := stubHasherFunc(func(password string) (string, error) {
+		return "", ErrPasswordTooLong
+	})
+
 	user := User{Password: strings.Repeat("1234567890", 8)}
-	err := user.PreSave()
-	assert.ErrorIs(t, err, hashers.ErrPasswordTooLong)
+	err := user.PreSave(hasher)
+	require.NotNil(t, err)
+	assert.Equal(t, "model.user.pre_save.password_too_long.app_error", err.Id)
 }
 
 func TestUserPreUpdate(t *testing.T) {
@@ -237,6 +250,93 @@ func TestUserPreUpdate(t *testing.T) {
 		assert.True(t, ok, "Notify prop %s is not set", notifyPropKey)
 		assert.Equal(t, expectedNotifyPropValue, actualNotifyPropValue, "Notify prop %s is not set to default", notifyPropKey)
 	}
+}
+
+func TestUserGetMentionKeys(t *testing.T) {
+	u := User{NotifyProps: map[string]string{MentionKeysNotifyProp: "  Alpha  ,\tBETA\n,,  "}}
+	assert.Equal(t, []string{"alpha", "beta"}, u.GetMentionKeys())
+}
+
+func TestUserMentionKeysLimits(t *testing.T) {
+	// An oversized key count survives PreUpdate intact, for IsValid to reject.
+	// Asserted against the stored value: GetMentionKeys caps on read, so it
+	// cannot distinguish a capped write from an uncapped one.
+	keys := make([]string, MentionKeysMaxCount+10)
+	for i := range keys {
+		keys[i] = fmt.Sprintf("key%d", i)
+	}
+	u := User{NotifyProps: map[string]string{MentionKeysNotifyProp: strings.Join(keys, ",")}}
+	u.PreUpdate()
+	assert.Equal(t, strings.Join(keys, ","), u.NotifyProps[MentionKeysNotifyProp])
+	assert.True(t, MentionKeysExceedLimits(u.NotifyProps[MentionKeysNotifyProp]))
+
+	// An oversized byte length likewise survives PreUpdate intact.
+	keyA := strings.Repeat("a", MentionKeysMaxLength/2+1)
+	keyB := strings.Repeat("b", MentionKeysMaxLength/2+1)
+	u2 := User{NotifyProps: map[string]string{MentionKeysNotifyProp: keyA + "," + keyB}}
+	u2.PreUpdate()
+	assert.Equal(t, keyA+","+keyB, u2.NotifyProps[MentionKeysNotifyProp])
+	assert.True(t, MentionKeysExceedLimits(u2.NotifyProps[MentionKeysNotifyProp]))
+
+	// GetMentionKeys truncates at MentionKeysMaxCount without PreUpdate.
+	bigKeys := make([]string, MentionKeysMaxCount+5)
+	for i := range bigKeys {
+		bigKeys[i] = fmt.Sprintf("k%d", i)
+	}
+	u3 := User{NotifyProps: map[string]string{MentionKeysNotifyProp: strings.Join(bigKeys, ",")}}
+	assert.Len(t, u3.GetMentionKeys(), MentionKeysMaxCount)
+
+	// GetMentionKeys also truncates by byte length: a few very long keys must not
+	// exceed MentionKeysMaxLength total bytes in the returned slice.
+	longKey := strings.Repeat("a", MentionKeysMaxLength/2+1)
+	u4 := User{NotifyProps: map[string]string{
+		MentionKeysNotifyProp: longKey + "," + longKey + "," + longKey,
+	}}
+	got4 := u4.GetMentionKeys()
+	totalLen := 0
+	for i, k := range got4 {
+		if i > 0 {
+			totalLen++
+		}
+		totalLen += len(k)
+	}
+	assert.LessOrEqual(t, totalLen, MentionKeysMaxLength)
+
+	// A value that normalizes away to nothing is still rejected on raw length,
+	// otherwise it would be accepted and stored at any size.
+	assert.True(t, MentionKeysExceedLimits(strings.Repeat(",", MentionKeysMaxLength+1)))
+	assert.True(t, MentionKeysExceedLimits(strings.Repeat(" , ", MentionKeysMaxLength)))
+	u5 := User{NotifyProps: map[string]string{
+		MentionKeysNotifyProp: strings.Repeat(",", MentionKeysMaxLength+1),
+	}}
+	assert.Empty(t, u5.GetMentionKeys())
+
+	// A raw value at the limit that normalizes within it is still accepted.
+	assert.False(t, MentionKeysExceedLimits(strings.Repeat("a", MentionKeysMaxLength)))
+	assert.False(t, MentionKeysExceedLimits(""))
+
+	// Keys joining to exactly MentionKeysMaxLength are all kept; one byte more
+	// and the last no longer fits.
+	const n = 3
+	exact := make([]string, n)
+	for i := range exact {
+		exact[i] = strings.Repeat("a", (MentionKeysMaxLength-(n-1))/n)
+	}
+	atLimit := strings.Join(exact, ",")
+	require.Equal(t, MentionKeysMaxLength, len(atLimit))
+
+	u6 := User{NotifyProps: map[string]string{MentionKeysNotifyProp: atLimit}}
+	assert.Len(t, u6.GetMentionKeys(), n)
+
+	u7 := User{NotifyProps: map[string]string{MentionKeysNotifyProp: atLimit + "a"}}
+	assert.Len(t, u7.GetMentionKeys(), n-1)
+
+	// Lowercasing grows some runes, so a raw value inside the byte limit can
+	// still normalize past it.
+	grows := strings.Repeat("\u023a", 20000)
+	require.LessOrEqual(t, len(grows), MentionKeysMaxLength)
+	require.Greater(t, len(strings.ToLower(grows)), MentionKeysMaxLength)
+	assert.True(t, MentionKeysExceedLimits(grows))
 }
 
 func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
@@ -303,7 +403,7 @@ func TestUserIsValid(t *testing.T) {
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
 
-	user.RemoteId = NewPointer(NewId())
+	user.RemoteId = new(NewId())
 	require.Nil(t, user.IsValid())
 
 	user.FirstName = strings.Repeat("a", 65)
@@ -331,6 +431,54 @@ func TestUserIsValid(t *testing.T) {
 	user.Roles = strings.Repeat("a", UserRolesMaxLength+1)
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "roles_limit", user.Id, user.Roles), "expected user is valid error: %s", appErr.Error())
+	user.Roles = ""
+
+	// over the byte-length limit
+	user.NotifyProps = map[string]string{
+		MentionKeysNotifyProp: strings.Repeat("a", MentionKeysMaxLength+1),
+	}
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "mention_keys", user.Id, ""), "expected mention_keys error: %s", appErr.Error())
+
+	// blank padding within the raw limit must not trigger the limit
+	user.NotifyProps = map[string]string{
+		MentionKeysNotifyProp: strings.Repeat(",", MentionKeysMaxLength),
+	}
+	require.Nil(t, user.IsValid())
+
+	// blank padding beyond the raw limit is rejected on length alone
+	user.NotifyProps = map[string]string{
+		MentionKeysNotifyProp: strings.Repeat(",", MentionKeysMaxLength+1),
+	}
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "mention_keys", user.Id, ""), "expected mention_keys error: %s", appErr.Error())
+
+	// over the key-count limit
+	keys := make([]string, MentionKeysMaxCount+1)
+	for i := range keys {
+		keys[i] = "k"
+	}
+	user.NotifyProps = map[string]string{
+		MentionKeysNotifyProp: strings.Join(keys, ","),
+	}
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "mention_keys", user.Id, ""), "expected mention_keys error: %s", appErr.Error())
+
+	// blank padding must not trigger the count limit
+	user.NotifyProps = map[string]string{
+		MentionKeysNotifyProp: strings.Repeat(",", MentionKeysMaxCount+1),
+	}
+	require.Nil(t, user.IsValid())
+
+	// empty mention_keys is fine
+	user.NotifyProps = map[string]string{MentionKeysNotifyProp: ""}
+	require.Nil(t, user.IsValid())
+
+	// exactly at the count limit is fine
+	user.NotifyProps = map[string]string{
+		MentionKeysNotifyProp: strings.Join(keys[:MentionKeysMaxCount], ","),
+	}
+	require.Nil(t, user.IsValid())
 }
 
 func TestUserSanitizeInput(t *testing.T) {
@@ -346,10 +494,10 @@ func TestUserSanitizeInput(t *testing.T) {
 	user.Nickname = "nickname"
 	user.FirstName = "firstname"
 	user.LastName = "lastname"
-	user.RemoteId = NewPointer(NewId())
+	user.RemoteId = new(NewId())
 	user.Position = "position"
 	user.Roles = "system_admin"
-	user.AuthData = NewPointer("authdata")
+	user.AuthData = new("authdata")
 	user.AuthService = "saml"
 	user.EmailVerified = true
 	user.FailedAttempts = 10
@@ -359,10 +507,10 @@ func TestUserSanitizeInput(t *testing.T) {
 	user.SanitizeInput(false)
 
 	// these fields should be reset
-	require.Equal(t, NewPointer(""), user.AuthData)
+	require.Equal(t, new(""), user.AuthData)
 	require.Equal(t, "", user.AuthService)
 	require.False(t, user.EmailVerified)
-	require.Equal(t, NewPointer(""), user.RemoteId)
+	require.Equal(t, new(""), user.RemoteId)
 	require.Equal(t, int64(0), user.CreateAt)
 	require.Equal(t, int64(0), user.UpdateAt)
 	require.Equal(t, int64(0), user.DeleteAt)
@@ -631,4 +779,70 @@ func TestSanitizeProfile(t *testing.T) {
 		require.Empty(t, user.Email)
 		require.Empty(t, user.Props[UserPropsKeyRemoteEmail])
 	})
+}
+
+func TestIsValidUserAuthService(t *testing.T) {
+	valid := []string{
+		UserAuthServiceEmail,
+		UserAuthServiceGitlab,
+		UserAuthServiceLdap,
+		UserAuthServiceSaml,
+		ServiceGoogle,
+		ServiceOffice365,
+		ServiceOpenid,
+	}
+	for _, s := range valid {
+		t.Run("valid/"+s, func(t *testing.T) {
+			require.True(t, IsValidUserAuthService(s))
+		})
+	}
+
+	invalid := []string{"", "not-a-real-service", UserAuthServiceMagicLink, "EMAIL"}
+	for _, s := range invalid {
+		t.Run("invalid/"+s, func(t *testing.T) {
+			require.False(t, IsValidUserAuthService(s))
+		})
+	}
+}
+
+func TestUserAuthIsValid(t *testing.T) {
+	authData := "test@test.com"
+
+	tests := []struct {
+		name     string
+		userAuth UserAuth
+		expected bool
+	}{
+		{
+			name:     "email auth with nil auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceEmail},
+			expected: true,
+		},
+		{
+			name:     "email auth with auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceEmail, AuthData: &authData},
+			expected: false,
+		},
+		{
+			name:     "sso auth with auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceSaml, AuthData: &authData},
+			expected: true,
+		},
+		{
+			name:     "sso auth with nil auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceSaml},
+			expected: false,
+		},
+		{
+			name:     "unknown auth service",
+			userAuth: UserAuth{AuthService: "not-a-real-service", AuthData: &authData},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.expected, tt.userAuth.IsValid())
+		})
+	}
 }

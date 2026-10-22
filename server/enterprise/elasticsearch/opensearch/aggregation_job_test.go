@@ -44,7 +44,7 @@ func TestElasticsearchAggregation(t *testing.T) {
 	mockUserStore.On("GetAllProfiles", mock.Anything).Return(nil, nil)
 
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
@@ -99,7 +99,7 @@ func TestElasticsearchAggregation(t *testing.T) {
 	})
 
 	esImpl := th.App.SearchEngine().ElasticsearchEngine
-	appErr := esImpl.Start()
+	appErr := esImpl.Start(context.Background())
 	if appErr != nil && appErr.Id != "ent.elasticsearch.start.already_started.app_error" {
 		require.Fail(t, "failed to start elasticsearch", appErr)
 	}
@@ -155,7 +155,7 @@ func TestElasticsearchAggregationSkipDuringBulkIndexing(t *testing.T) {
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
@@ -206,7 +206,7 @@ func indexPost(t *testing.T, th *api4.TestHelper, esImpl *OpensearchInterfaceImp
 		createTime.Add(-1*24*time.Hour),
 		model.GetMillisForTime(createTime),
 	)
-	searchPost, err := common.ESPostFromPost(post, "teamID")
+	searchPost, err := common.ESPostFromPost(post, "teamID", "O", true)
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(),
 		time.Duration(*esImpl.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)

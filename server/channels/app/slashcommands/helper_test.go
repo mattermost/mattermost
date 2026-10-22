@@ -83,7 +83,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	require.NoError(tb, errCfg, "failed to configure test logger")
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
-	options = append(options, app.SetLogger(testLogger))
+	options = append(options, app.SetLogger(testLogger), app.DisableGlobalLogger())
 
 	s, err := app.NewServer(options...)
 	require.NoError(tb, err)
@@ -128,15 +128,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	th.App.Srv().Store().MarkSystemRanUnitTests()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
-
-	// Disable strict password requirements for test
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PasswordSettings.MinimumLength = 5
-		*cfg.PasswordSettings.Lowercase = false
-		*cfg.PasswordSettings.Uppercase = false
-		*cfg.PasswordSettings.Symbol = false
-		*cfg.PasswordSettings.Number = false
-	})
 
 	tb.Cleanup(func() {
 		if th.IncludeCacheLayer {
@@ -249,7 +240,7 @@ func (th *TestHelper) createUserOrGuest(tb testing.TB, guest bool) *model.User {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 	}
 
@@ -268,7 +259,7 @@ type ChannelOption func(*model.Channel)
 
 func WithShared(v bool) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.Shared = model.NewPointer(v)
+		channel.Shared = new(v)
 	}
 }
 

@@ -33,21 +33,21 @@ export type LogObject = {
     msg: string;
     timestamp: string;
     worker: string;
-}
+};
 
 export type LogFilter = {
     serverNames: LogServerNames;
     logLevels: LogLevels;
     dateFrom: LogDateFrom;
     dateTo: LogDateTo;
-}
+};
 
 export type LogFilterQuery = {
     server_names: LogServerNames;
     log_levels: LogLevels;
     date_from: LogDateFrom;
     date_to: LogDateTo;
-}
+};
 
 export type AdminState = {
     logs: LogObject[];
@@ -97,7 +97,8 @@ export type AnalyticsState = {
     REGISTERED_USERS?: number;
     TOTAL_FILE_COUNT?: number;
     TOTAL_FILE_SIZE?: number;
-}
+    SINGLE_CHANNEL_GUESTS?: number;
+};
 
 export type ClusterInfo = {
     id: string;
@@ -115,7 +116,7 @@ export type AnalyticsRow = {
 
 export type IndexedPluginAnalyticsRow = {
     [key: string]: PluginAnalyticsRow;
-}
+};
 
 export enum AnalyticsVisualizationType {
     Count = 'count',
@@ -142,7 +143,7 @@ export type SupportPacketContent = {
     label: string;
     selected: boolean;
     mandatory: boolean;
-}
+};
 
 export type LdapSampleEntry = {
     dn: string;

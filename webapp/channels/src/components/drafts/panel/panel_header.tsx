@@ -6,10 +6,10 @@ import type {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
-import WithTooltip from 'components/with_tooltip';
 
 import './panel_header.scss';
 import {isToday} from 'utils/datetime';
@@ -36,6 +36,7 @@ type Props = {
     remote: boolean;
     title: React.ReactNode;
     error?: string;
+    repeatsWeekly?: boolean;
 };
 
 function PanelHeader({
@@ -45,11 +46,15 @@ function PanelHeader({
     remote,
     title,
     error,
+    repeatsWeekly,
 }: Props) {
     const timestampDateObject = useMemo(() => new Date(timestamp), [timestamp]);
 
     return (
-        <div className='PanelHeader'>
+        <div
+            className='PanelHeader'
+            data-testid='draft-panel-header'
+        >
             <div className='PanelHeader__left'>{title}</div>
             <div className='PanelHeader__right'>
                 <div className='PanelHeader__actions'>
@@ -101,6 +106,18 @@ function PanelHeader({
                         }
                     </div>
 
+                    {kind === 'scheduledPost' && repeatsWeekly && !error && (
+                        <Tag
+                            variant={'info'}
+                            uppercase={false}
+                            text={(
+                                <FormattedMessage
+                                    id='scheduled_post.panel.header.repeats_weekly'
+                                    defaultMessage='Repeats weekly'
+                                />
+                            )}
+                        />
+                    )}
                     {kind === 'draft' && !error && (
                         <Tag
                             variant={'danger'}

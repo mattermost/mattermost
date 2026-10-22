@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import TrialBenefitsModalStep from 'components/trial_benefits_modal/trial_benefits_modal_step';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/trial_benefits_modal/trial_benefits_modal_step', () => {
     const props = {
@@ -17,15 +18,15 @@ describe('components/trial_benefits_modal/trial_benefits_modal_step', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <TrialBenefitsModalStep {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should match snapshot with optional params', () => {
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <TrialBenefitsModalStep
                 {...props}
                 bottomLeftMessage='Step bottom message'
@@ -34,6 +35,6 @@ describe('components/trial_benefits_modal/trial_benefits_modal_step', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 });

@@ -1,20 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+
+import {Button} from '@mattermost/shared/components/button';
 
 type Props = {
     currentUserId: string;
     onExited: () => void;
     channelName?: string;
     remover?: string;
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export default class RemovedFromChannelModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -91,9 +93,9 @@ export default class RemovedFromChannelModal extends React.PureComponent<Props, 
                     </p>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-primary'
+                        emphasis='primary'
                         onClick={this.onHide}
                         id='removedChannelBtn'
                     >
@@ -101,7 +103,7 @@ export default class RemovedFromChannelModal extends React.PureComponent<Props, 
                             id='removed_channel.okay'
                             defaultMessage='Okay'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

@@ -5,6 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
@@ -176,9 +177,9 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
                     {modalMessage}
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.handleHide}
                         id='leaveTeamNo'
                     >
@@ -186,10 +187,10 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
                             id='leave_team_modal.no'
                             defaultMessage='No'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className='btn btn-danger'
+                        variant='destructive'
                         onClick={this.handleSubmit}
                         id='leaveTeamYes'
                     >
@@ -197,7 +198,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
                             id='leave_team_modal.yes'
                             defaultMessage='Yes'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

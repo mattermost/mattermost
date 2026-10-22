@@ -16,7 +16,7 @@ export default class ValidationResult {
         return this.result;
     }
 
-    public error(intl: IntlShape): string|null {
+    public error(intl: IntlShape): string | null {
         if (this.result) {
             return null;
         }

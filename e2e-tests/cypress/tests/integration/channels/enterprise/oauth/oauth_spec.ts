@@ -9,18 +9,19 @@
 
 // Group: @channels @enterprise @integrations
 
-import {getRandomId} from '../../../../utils';
 import {checkboxesTitleToIdMap} from '../system_console/channel_moderation/constants';
 import {enablePermission, goToSystemScheme, saveConfigForScheme} from '../system_console/channel_moderation/helpers';
 
-describe('Integrations page', () => {
-    const webhookBaseUrl = Cypress.env('webhookBaseUrl');
+import {getRandomId} from '@/utils';
 
-    let user1;
-    let user2;
-    let testChannelUrl1;
-    let oauthClientID;
-    let oauthClientSecret;
+describe('Integrations page', () => {
+    const webhookBaseUrl = Cypress.expose('webhookBaseUrl');
+
+    let user1: Cypress.UserProfile;
+    let user2: Cypress.UserProfile;
+    let testChannelUrl1: string;
+    let oauthClientID: string;
+    let oauthClientSecret: string;
     const testApp = `Test${getRandomId()}`;
 
     before(() => {
@@ -50,7 +51,7 @@ describe('Integrations page', () => {
         cy.visit(testChannelUrl1);
 
         // # Navigate to OAuthApps in integrations menu
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
         cy.get('#oauthApps').click();
 
         // # Click on the Add button
@@ -68,7 +69,7 @@ describe('Integrations page', () => {
         cy.visit(testChannelUrl1);
 
         // # Navigate to OAuthApps in integrations menu
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
         cy.get('#oauthApps').click();
 
         // # Click on the Add button
@@ -134,7 +135,7 @@ describe('Integrations page', () => {
         cy.visit(testChannelUrl1);
 
         // # Navigate to OAuthApps in integrations menu
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
         cy.get('#oauthApps').click();
 
         // # Click on the Add button
@@ -163,9 +164,9 @@ describe('Integrations page', () => {
         });
 
         cy.get('@clientID').then((clientID) => {
-            oauthClientID = clientID;
+            oauthClientID = clientID as unknown as string;
             cy.get('@clientSecret').then((clientSecret) => {
-                oauthClientSecret = clientSecret;
+                oauthClientSecret = clientSecret as unknown as string;
 
                 // # Send credentials
                 cy.postIncomingWebhook({
@@ -219,7 +220,7 @@ describe('Integrations page', () => {
         cy.visit(testChannelUrl1);
 
         // # Navigate to OAuthApps in integrations menu
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
         cy.get('#oauthApps').click();
 
         // # Other users should not see the apps from other users
@@ -230,7 +231,7 @@ describe('Integrations page', () => {
         cy.visit(testChannelUrl1);
 
         // # Navigate to OAuthApps in integrations menu
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
         cy.get('#oauthApps').click();
 
         // * Sysadmin should see the app
@@ -245,7 +246,7 @@ describe('Integrations page', () => {
 
         // # Update description
         cy.get('#description').invoke('val').then(($text) => {
-            if (!$text.match('Edited$')) {
+            if (!(String($text)).match('Edited$')) {
                 cy.get('#description').type('Edited');
             }
         });
@@ -355,7 +356,7 @@ describe('Integrations page', () => {
         cy.visit(testChannelUrl1);
 
         // # Navigate to OAuthApps in integrations menu
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
         cy.get('#oauthApps').click();
 
         cy.contains('.item-details', oauthClientID).within(() => {
@@ -430,7 +431,7 @@ describe('Integrations page', () => {
         cy.visit(testChannelUrl1);
 
         // # Navigate to OAuthApps in integrations menu
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
         cy.get('#oauthApps').click();
 
         cy.contains('.item-details', oauthClientID).within(() => {

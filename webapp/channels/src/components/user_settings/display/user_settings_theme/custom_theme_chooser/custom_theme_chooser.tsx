@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {createRef} from 'react';
-import type {ChangeEvent, ClipboardEvent, MouseEvent, RefObject} from 'react';
+import type {ChangeEvent, ClipboardEvent, JSX, MouseEvent, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
-
-import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 
@@ -127,13 +128,13 @@ type State = {
 };
 
 export class CustomThemeChooser extends React.PureComponent<Props, State> {
-    textareaRef: RefObject<HTMLTextAreaElement>;
-    sidebarStylesHeaderRef: RefObject<HTMLButtonElement>;
-    centerChannelStylesHeaderRef: RefObject<HTMLButtonElement>;
-    linkAndButtonStylesHeaderRef: RefObject<HTMLButtonElement>;
-    sidebarStylesRef: RefObject<HTMLDivElement>;
-    centerChannelStylesRef: RefObject<HTMLDivElement>;
-    linkAndButtonStylesRef: RefObject<HTMLDivElement>;
+    textareaRef: RefObject<HTMLTextAreaElement | null>;
+    sidebarStylesHeaderRef: RefObject<HTMLButtonElement | null>;
+    centerChannelStylesHeaderRef: RefObject<HTMLButtonElement | null>;
+    linkAndButtonStylesHeaderRef: RefObject<HTMLButtonElement | null>;
+    sidebarStylesRef: RefObject<HTMLDivElement | null>;
+    centerChannelStylesRef: RefObject<HTMLDivElement | null>;
+    linkAndButtonStylesRef: RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);
@@ -199,7 +200,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
         let theme;
         try {
             theme = JSON.parse(text);
-        } catch (err) {
+        } catch {
             return;
         }
 
@@ -433,15 +434,15 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                     onClick={this.selectTheme}
                 />
                 <div className='mt-3'>
-                    <button
-                        className='btn btn-tertiary'
+                    <Button
+                        emphasis='tertiary'
                         onClick={this.copyTheme}
                     >
                         <FormattedMessage
                             id='user.settings.custom_theme.copyThemeColors'
                             defaultMessage='Copy Theme Colors'
                         />
-                    </button>
+                    </Button>
                     <span
                         className='alert alert-success copy-theme-success'
                         role='alert'

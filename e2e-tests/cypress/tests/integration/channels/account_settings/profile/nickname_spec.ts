@@ -10,11 +10,11 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Settings > Sidebar > General', () => {
-    let testUser;
-    let testTeam;
+    let testUser: Cypress.UserProfile;
+    let testTeam: Cypress.Team;
 
     before(() => {
         // # Login as new user and visit off-topic
@@ -93,7 +93,7 @@ describe('Settings > Sidebar > General', () => {
             cy.get('#name_formatEdit').click();
 
             // # Choose Show first and last name
-            cy.get('#name_formatFormatC').check();
+            cy.get('#name_formatFormatC').check({force: true});
 
             // # Click Save button to save the settings
             cy.uiSave();
@@ -176,7 +176,7 @@ describe('Settings > Sidebar > General', () => {
         cy.uiClose();
     });
 
-    function getInnerText(el) {
+    function getInnerText(el: JQuery<HTMLElement>) {
         return el[0].innerText.replace(/\n/g, '').replace(/\s/g, ' ');
     }
 });

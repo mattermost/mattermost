@@ -6,7 +6,7 @@ import React from 'react';
 import {InvoiceLineItemType} from '@mattermost/types/cloud';
 import type {Invoice} from '@mattermost/types/cloud';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import InvoiceUserCount from './invoice_user_count';
 
@@ -110,8 +110,8 @@ describe('InvoiceUserCount', () => {
 
     tests.forEach(({name, invoice, expected}) => {
         it(name, () => {
-            const wrapper = mountWithIntl(<InvoiceUserCount invoice={invoice}/>);
-            expect(wrapper.text()).toBe(expected);
+            const {container} = renderWithContext(<InvoiceUserCount invoice={invoice}/>);
+            expect(container.textContent).toBe(expected);
         });
     });
 });

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 
 import TrialBenefitsModalStepMore from './trial_benefits_modal_step_more';
 
@@ -18,7 +18,7 @@ export type TrialBenefitsModalStepProps = {
     pageURL?: string;
     isCloud?: boolean;
     onClose?: () => void;
-}
+};
 
 const TrialBenefitsModalStep = (
     {

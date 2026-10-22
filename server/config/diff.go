@@ -40,8 +40,9 @@ var configSensitivePaths = map[string]bool{
 	"LdapSettings.BindPassword":                              true,
 	"FileSettings.PublicLinkSalt":                            true,
 	"FileSettings.AmazonS3SecretAccessKey":                   true,
+	"FileSettings.AzureAccessKey":                            true,
+	"FileSettings.ExportAzureAccessKey":                      true,
 	"SqlSettings.DataSource":                                 true,
-	"SqlSettings.AtRestEncryptKey":                           true,
 	"SqlSettings.DataSourceReplicas":                         true,
 	"SqlSettings.DataSourceSearchReplicas":                   true,
 	"EmailSettings.SMTPPassword":                             true,
@@ -109,7 +110,7 @@ func diff(base, actual reflect.Value, label string) ([]ConfigDiff, error) {
 	baseType := base.Type()
 	actualType := actual.Type()
 
-	if baseType.Kind() == reflect.Ptr {
+	if baseType.Kind() == reflect.Pointer {
 		base = reflect.Indirect(base)
 		actual = reflect.Indirect(actual)
 		baseType = base.Type()
@@ -125,7 +126,7 @@ func diff(base, actual reflect.Value, label string) ([]ConfigDiff, error) {
 		if base.NumField() != actual.NumField() {
 			return nil, fmt.Errorf("not same number of fields in struct")
 		}
-		for i := 0; i < base.NumField(); i++ {
+		for i := range base.NumField() {
 			fieldLabel := baseType.Field(i).Name
 			if label != "" {
 				fieldLabel = label + "." + fieldLabel

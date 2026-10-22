@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {useHistory} from 'react-router-dom';
 
 import TrialBenefitsModalStepMore from 'components/trial_benefits_modal/trial_benefits_modal_step_more';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 jest.mock('react-router-dom', () => {
     const original = jest.requireActual('react-router-dom');
@@ -26,24 +27,24 @@ describe('components/trial_benefits_modal/trial_benefits_modal_step_more', () =>
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <TrialBenefitsModalStepMore {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should handle on click', () => {
+    test('should handle on click', async () => {
         const mockHistory = useHistory();
         const mockOnClick = jest.fn();
 
-        const wrapper = shallow(
+        renderWithContext(
             <TrialBenefitsModalStepMore
                 {...props}
                 onClick={mockOnClick}
             />,
         );
 
-        wrapper.find('.learn-more-button').simulate('click');
+        await userEvent.click(screen.getByText('Test Message'));
 
         expect(mockHistory.push).toHaveBeenCalledWith(props.route);
         expect(mockOnClick).toHaveBeenCalled();

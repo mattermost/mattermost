@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"sync"
 	"testing"
 	"time"
@@ -150,13 +150,9 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		var wg sync.WaitGroup
 
 		for range 10 {
-			wg.Add(1)
-
-			go func() {
-				defer wg.Done()
-
+			wg.Go(func() {
 				_, _ = ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
-			}()
+			})
 		}
 
 		wg.Wait()
@@ -2261,11 +2257,11 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 	// Put them into a channel so that we can ensure they're evenly used across goroutines, and put 4x the number of
 	// goroutines in since that should ensure we have enough
 	channelChan := make(chan string, 4*numGoroutines)
-	for i := 0; i < cap(channelChan); i++ {
+	for i := range cap(channelChan) {
 		channelChan <- channels[i%len(channels)].Id
 	}
 	dmChannelChan := make(chan string, 4*numGoroutines)
-	for i := 0; i < cap(dmChannelChan); i++ {
+	for i := range cap(dmChannelChan) {
 		dmChannelChan <- dmChannels[i%len(dmChannels)].Id
 	}
 
@@ -2294,14 +2290,12 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 	var wg sync.WaitGroup
 
 	for i := range numGoroutines {
-		wg.Add(1)
 		// Run GetSidebarCategoriesForTeamForUser
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			categories, getErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
 			require.NoError(t, getErr)
 			require.NotEmpty(t, categories.Categories)
-		}()
+		})
 
 		// Run UpdateSidebarCategories with different update patterns
 		wg.Add(1)
@@ -2393,7 +2387,7 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 				}
 			case 7:
 				// Update category properties
-				customCatIndex := rand.Intn(2)
+				customCatIndex := rand.IntN(2)
 				updatedCategories = []*model.SidebarCategoryWithChannels{
 					{
 						SidebarCategory: model.SidebarCategory{
@@ -2419,7 +2413,7 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 		}(i)
 
 		// Small sleep to vary timing between iterations
-		time.Sleep(time.Millisecond * time.Duration(rand.Intn(3)))
+		time.Sleep(time.Millisecond * time.Duration(rand.IntN(3)))
 	}
 
 	// Wait with timeout to catch any deadlocks

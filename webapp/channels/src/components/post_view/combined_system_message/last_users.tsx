@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
@@ -58,11 +58,11 @@ type Props = {
     intl: IntlShape;
     postType: string;
     usernames: string[];
-}
+};
 
 type State = {
     expand: boolean;
-}
+};
 
 export class LastUsers extends React.PureComponent<Props, State> {
     constructor(props: Props) {

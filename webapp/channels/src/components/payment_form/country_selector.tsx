@@ -13,7 +13,7 @@ type CountrySelectorProps = {
     onChange: (option: any) => void;
     value?: string;
     testId?: string;
-}
+};
 
 const CountrySelector = (props: CountrySelectorProps) => {
     const {formatMessage} = useIntl();

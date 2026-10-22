@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback, useEffect, useRef, useMemo} from 'react';
+import React, {useState, useCallback, useEffect, useRef, useMemo, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import type {RouterProps} from 'react-router-dom';
@@ -63,12 +63,12 @@ export type Actions = {
     updateTeam: (team: Team) => Promise<ActionResult>;
     checkIfTeamExists: (teamName: string) => Promise<ActionResult<boolean>>;
     getProfiles: (page: number, perPage: number, options: Record<string, any>) => Promise<ActionResult>;
-}
+};
 
 type Props = RouterProps & {
     background?: JSX.Element | string;
     actions: Actions;
-}
+};
 
 const PreparingWorkspace = ({
     actions,
@@ -94,7 +94,7 @@ const PreparingWorkspace = ({
 
     const config = useSelector(getConfig);
     const pluginsEnabled = config.PluginsEnabled === 'true';
-    const showOnMountTimeout = useRef<NodeJS.Timeout>();
+    const showOnMountTimeout = useRef<NodeJS.Timeout>(undefined);
     const configSiteUrl = config.SiteURL;
     const isConfigSiteUrlDefault = Boolean(config.SiteURL && config.SiteURL === Constants.DEFAULT_SITE_URL);
     const isSelfHosted = useSelector(getLicense).Cloud !== 'true';
@@ -113,7 +113,7 @@ const PreparingWorkspace = ({
 
     const [[mostRecentStep, currentStep], setStepHistory] = useState<[WizardStep, WizardStep]>([stepOrder[0], stepOrder[0]]);
     const [submissionState, setSubmissionState] = useState<SubmissionState>(SubmissionStates.Presubmit);
-    const browserSiteUrl = useMemo(getSiteURL, []);
+    const browserSiteUrl = useMemo(() => getSiteURL(), []);
     const [form, setForm] = useState({
         ...emptyForm,
     });
@@ -214,7 +214,7 @@ const PreparingWorkspace = ({
                     redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                     return;
                 }
-            } catch (e) {
+            } catch {
                 redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                 return;
             }
@@ -240,7 +240,7 @@ const PreparingWorkspace = ({
         try {
             await Client4.completeSetup(completeSetupRequest);
             dispatch({type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED, data: true});
-        } catch (e) {
+        } catch {
             redirectWithError(WizardSteps.Plugins, genericSubmitError);
             return;
         }

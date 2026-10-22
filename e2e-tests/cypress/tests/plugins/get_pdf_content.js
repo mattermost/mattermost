@@ -3,7 +3,7 @@
 
 const fs = require('fs');
 
-const pdf = require('pdf-parse');
+const {PDFParse} = require('pdf-parse');
 
 /**
  * Checks whether a file exist in the tests/downloads folder and return the content of it.
@@ -11,6 +11,12 @@ const pdf = require('pdf-parse');
  */
 module.exports = async (filePath) => {
     const dataBuffer = fs.readFileSync(filePath);
-    const data = await pdf(dataBuffer);
-    return data;
+    const parser = new PDFParse({data: dataBuffer});
+    try {
+        const text = await parser.getText();
+        const info = await parser.getInfo();
+        return {text, info, numpages: info.numPages};
+    } finally {
+        await parser.destroy();
+    }
 };

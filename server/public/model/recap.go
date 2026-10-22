@@ -11,9 +11,12 @@ type Recap struct {
 	UpdateAt          int64           `json:"update_at"`
 	DeleteAt          int64           `json:"delete_at"`
 	ReadAt            int64           `json:"read_at"`
+	ViewedAt          int64           `json:"viewed_at"`
 	TotalMessageCount int             `json:"total_message_count"`
 	Status            string          `json:"status"`
 	BotID             string          `json:"bot_id"`
+	ScheduledRecapId  string          `json:"scheduled_recap_id,omitempty"` // Set if created from scheduled recap
+	SkipReason        string          `json:"skip_reason,omitempty"`        // Why the recap was skipped; see SkipReason* constants
 	Channels          []*RecapChannel `json:"channels,omitempty"`
 }
 
@@ -39,6 +42,11 @@ type AIRecapSummaryResponse struct {
 	ActionItems []string `json:"action_items"`
 }
 
+type RecapProcessingOptions struct {
+	TimePeriod         string
+	CustomInstructions string
+}
+
 // RecapChannelResult represents the result of processing a single channel for a recap
 type RecapChannelResult struct {
 	ChannelID    string
@@ -51,6 +59,14 @@ const (
 	RecapStatusProcessing = "processing"
 	RecapStatusCompleted  = "completed"
 	RecapStatusFailed     = "failed"
+	RecapStatusSkipped    = "skipped" // Recap skipped due to a limit violation or a non-recoverable creation failure
+)
+
+// Skip reason constants for when a recap is skipped
+const (
+	SkipReasonDailyLimit        = "daily_limit_reached"
+	SkipReasonCooldown          = "cooldown_active"
+	SkipReasonJobCreationFailed = "job_creation_failed" // Recap row committed but its processing job could not be enqueued
 )
 
 // Auditable returns safe-to-log fields for audit logging
@@ -68,8 +84,11 @@ func (r *Recap) Auditable() map[string]any {
 		"channel_ids":         channelIDs,
 		"total_message_count": r.TotalMessageCount,
 		"bot_id":              r.BotID,
+		"scheduled_recap_id":  r.ScheduledRecapId,
+		"skip_reason":         r.SkipReason,
 		"create_at":           r.CreateAt,
 		"update_at":           r.UpdateAt,
 		"read_at":             r.ReadAt,
+		"viewed_at":           r.ViewedAt,
 	}
 }

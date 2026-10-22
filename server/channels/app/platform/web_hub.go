@@ -29,8 +29,10 @@ type SuiteIFace interface {
 	GetSession(token string) (*model.Session, *model.AppError)
 	RolesGrantPermission(roleNames []string, permissionId string) bool
 	HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool)
+	HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool
+	HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool
 	UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError)
-	MFARequired(rctx request.CTX) *model.AppError
+	MFARequired(rctx request.CTX, method string) *model.AppError
 	MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord
 	LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord, err error)
 }
@@ -76,22 +78,24 @@ var hubSemaphoreCount = runtime.NumCPU() * 4
 type Hub struct {
 	// connectionCount should be kept first.
 	// See https://github.com/mattermost/mattermost-server/pull/7281
-	connectionCount int64
-	platform        *PlatformService
-	connectionIndex int
-	register        chan *webConnRegisterMessage
-	unregister      chan *WebConn
-	broadcast       chan *model.WebSocketEvent
-	stop            chan struct{}
-	didStop         chan struct{}
-	invalidateUser  chan string
-	activity        chan *webConnActivityMessage
-	directMsg       chan *webConnDirectMessage
-	explicitStop    bool
-	checkRegistered chan *webConnSessionMessage
-	checkConn       chan *webConnCheckMessage
-	connCount       chan *webConnCountMessage
-	broadcastHooks  map[string]BroadcastHook
+	connectionCount    int64
+	platform           *PlatformService
+	connectionIndex    int
+	register           chan *webConnRegisterMessage
+	unregister         chan *WebConn
+	broadcast          chan *model.WebSocketEvent
+	stop               chan struct{}
+	didStop            chan struct{}
+	invalidateUser     chan string
+	invalidateAll      chan struct{}
+	invalidateAllCache chan struct{}
+	activity           chan *webConnActivityMessage
+	directMsg          chan *webConnDirectMessage
+	explicitStop       bool
+	checkRegistered    chan *webConnSessionMessage
+	checkConn          chan *webConnCheckMessage
+	connCount          chan *webConnCountMessage
+	broadcastHooks     map[string]BroadcastHook
 
 	// Hub-specific semaphore for limiting concurrent goroutines
 	hubSemaphore chan struct{}
@@ -100,19 +104,21 @@ type Hub struct {
 // newWebHub creates a new Hub.
 func newWebHub(ps *PlatformService) *Hub {
 	return &Hub{
-		platform:        ps,
-		register:        make(chan *webConnRegisterMessage),
-		unregister:      make(chan *WebConn),
-		broadcast:       make(chan *model.WebSocketEvent, broadcastQueueSize),
-		stop:            make(chan struct{}),
-		didStop:         make(chan struct{}),
-		invalidateUser:  make(chan string),
-		activity:        make(chan *webConnActivityMessage),
-		directMsg:       make(chan *webConnDirectMessage),
-		checkRegistered: make(chan *webConnSessionMessage),
-		checkConn:       make(chan *webConnCheckMessage),
-		connCount:       make(chan *webConnCountMessage),
-		hubSemaphore:    make(chan struct{}, hubSemaphoreCount),
+		platform:           ps,
+		register:           make(chan *webConnRegisterMessage),
+		unregister:         make(chan *WebConn),
+		broadcast:          make(chan *model.WebSocketEvent, broadcastQueueSize),
+		stop:               make(chan struct{}),
+		didStop:            make(chan struct{}),
+		invalidateUser:     make(chan string),
+		invalidateAll:      make(chan struct{}),
+		invalidateAllCache: make(chan struct{}),
+		activity:           make(chan *webConnActivityMessage),
+		directMsg:          make(chan *webConnDirectMessage),
+		checkRegistered:    make(chan *webConnSessionMessage),
+		checkConn:          make(chan *webConnCheckMessage),
+		connCount:          make(chan *webConnCountMessage),
+		hubSemaphore:       make(chan struct{}, hubSemaphoreCount),
 	}
 }
 
@@ -161,9 +167,9 @@ func (ps *PlatformService) GetHubForUserId(userID string) *Hub {
 	// https://mattermost.atlassian.net/browse/MM-26629.
 	var hash maphash.Hash
 	hash.SetSeed(ps.hashSeed)
-	_, err := hash.Write([]byte(userID))
+	_, err := hash.WriteString(userID)
 	if err != nil {
-		ps.logger.Error("Unable to write userID to hash", mlog.String("userID", userID), mlog.Err(err))
+		ps.logger.Error("Unable to write userID to hash", mlog.String("user_id", userID), mlog.Err(err))
 	}
 	index := hash.Sum64() % uint64(len(ps.hubs))
 
@@ -462,6 +468,24 @@ func (h *Hub) InvalidateUser(userID string) {
 	}
 }
 
+// InvalidateAll invalidates the cached session state of every WebConn
+// registered with this hub. Global counterpart of InvalidateUser.
+func (h *Hub) InvalidateAll() {
+	select {
+	case h.invalidateAll <- struct{}{}:
+	case <-h.stop:
+	}
+}
+
+// InvalidateAllCache is like InvalidateAll but keeps session tokens, so
+// each WebConn reloads its session on next use.
+func (h *Hub) InvalidateAllCache() {
+	select {
+	case h.invalidateAllCache <- struct{}{}:
+	case <-h.stop:
+	}
+}
+
 // UpdateActivity sets the LastUserActivityAt field for the connection
 // of the user.
 func (h *Hub) UpdateActivity(userID, sessionToken string, activityAt int64) {
@@ -518,6 +542,37 @@ func (h *Hub) Stop() {
 	// before shutting down.
 	for range hubSemaphoreCount {
 		h.hubSemaphore <- struct{}{}
+	}
+}
+
+func (h *Hub) recordPostDelivery(marker *model.PostDeliveryMarker, userID string) {
+	if marker == nil || userID == "" || userID == marker.UserId || h.platform.postDeliveryRecorder == nil {
+		return
+	}
+	h.platform.postDeliveryRecorder(marker, userID)
+}
+
+// broadcastToConn delivers msg to a single web connection, if it is still registered and
+// should receive the event. A post delivery is recorded only when the event is actually
+// enqueued onto the connection's send buffer — never before the ShouldSendEvent check, and
+// never on the default branch where the buffer is full and the connection is dropped.
+func (h *Hub) broadcastToConn(connIndex *hubConnectionIndex, webConn *WebConn, msg *model.WebSocketEvent, marker *model.PostDeliveryMarker, broadcastHooks []string, broadcastHookArgs []map[string]any) {
+	if !connIndex.Has(webConn) {
+		return
+	}
+	if webConn.ShouldSendEvent(msg) {
+		select {
+		case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
+			h.recordPostDelivery(marker, webConn.UserId)
+		default:
+			// Don't log the warning if it's an inactive connection.
+			if webConn.Active.Load() {
+				mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
+					mlog.String("user_id", webConn.UserId),
+					mlog.String("conn_id", webConn.GetConnectionID()))
+			}
+			closeAndRemoveConn(connIndex, webConn)
+		}
 	}
 }
 
@@ -663,6 +718,22 @@ func (h *Hub) Start() {
 						closeAndRemoveConn(connIndex, webConn)
 					}
 				}
+			case <-h.invalidateAll:
+				// Mirrors the invalidateUser arm across every conn,
+				// also clearing the session token so the next
+				// IsBasicAuthenticated check short-circuits instead
+				// of re-fetching from the cache.
+				for webConn := range connIndex.All() {
+					webConn.InvalidateCache()
+					webConn.SetSessionToken("")
+				}
+				if *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+					connIndex.clearChannels()
+				}
+			case <-h.invalidateAllCache:
+				for webConn := range connIndex.All() {
+					webConn.InvalidateCache()
+				}
 			case activity := <-h.activity:
 				for webConn := range connIndex.ForUser(activity.userID) {
 					if !webConn.Active.Load() {
@@ -694,26 +765,12 @@ func (h *Hub) Start() {
 
 				// Remove the broadcast hook information before precomputing the JSON so that those aren't included in it
 				msg, broadcastHooks, broadcastHookArgs := msg.WithoutBroadcastHooks()
+				msg, deliveryMarker := msg.WithoutRecordPostDelivery()
 
 				msg = msg.PrecomputeJSON()
 
 				broadcast := func(webConn *WebConn) {
-					if !connIndex.Has(webConn) {
-						return
-					}
-					if webConn.ShouldSendEvent(msg) {
-						select {
-						case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
-						default:
-							// Don't log the warning if it's an inactive connection.
-							if webConn.Active.Load() {
-								mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
-									mlog.String("user_id", webConn.UserId),
-									mlog.String("conn_id", webConn.GetConnectionID()))
-							}
-							closeAndRemoveConn(connIndex, webConn)
-						}
-					}
+					h.broadcastToConn(connIndex, webConn, msg, deliveryMarker, broadcastHooks, broadcastHookArgs)
 				}
 
 				// Quick return for a single connection.
@@ -954,6 +1011,16 @@ func (i *hubConnectionIndex) ForUser(id string) iter.Seq[*WebConn] {
 // ForChannel returns all connections for a channelID.
 func (i *hubConnectionIndex) ForChannel(channelID string) iter.Seq[*WebConn] {
 	return maps.Keys(i.byChannelID[channelID])
+}
+
+// clearChannels empties the channel-routing index in one shot. Intended
+// for paths that have already invalidated every conn registered with
+// the hub: any broadcast addressed to a channel will be filtered out
+// upstream by ShouldSendEvent, so the routing entries are dead weight
+// until conns either re-handshake or fully reconnect (both of which
+// repopulate the index via Add).
+func (i *hubConnectionIndex) clearChannels() {
+	clear(i.byChannelID)
 }
 
 // ForUserActiveCount returns the number of active connections for a userID

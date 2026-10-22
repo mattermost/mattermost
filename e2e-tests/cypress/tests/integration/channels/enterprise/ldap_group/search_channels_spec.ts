@@ -10,11 +10,11 @@
 // Stage: @prod
 // Group: @channels @enterprise @ldap_group
 
-import {getRandomId} from '../../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Search channels', () => {
     const PAGE_SIZE = 10;
-    let testTeamId;
+    let testTeamId: string;
 
     before(() => {
         // * Check if server has license for LDAP Groups

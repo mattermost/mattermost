@@ -16,11 +16,16 @@ describe('Verify Accessibility Support in Different Images', () => {
     let otherUser;
 
     before(() => {
-        cy.apiInitSetup().then(({offTopicUrl, user}) => {
-            otherUser = user;
+        cy.apiInitSetup().then(({team, offTopicUrl, user}) => {
+            cy.apiCreateUser({prefix: 'other'}).then(({user: user1}) => {
+                otherUser = user1;
+                return cy.apiAddUserToTeam(team.id, otherUser.id);
+            }).then(() => {
+                cy.apiLogin(user);
 
-            // Visit the Off Topic channel
-            cy.visit(offTopicUrl);
+                // Visit the Off Topic channel
+                cy.visit(offTopicUrl);
+            });
         });
     });
 

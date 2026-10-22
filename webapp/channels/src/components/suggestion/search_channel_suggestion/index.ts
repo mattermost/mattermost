@@ -14,7 +14,7 @@ import SearchChannelSuggestion from './search_channel_suggestion';
 
 type OwnProps = {
     item: Channel;
-}
+};
 
 const mapStateToProps = (state: GlobalState, ownProps: OwnProps) => {
     const teammate = getDirectTeammate(state, ownProps.item.id);

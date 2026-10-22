@@ -14,7 +14,7 @@ import {getDefaultSelectedValueFromList} from '../../utils';
 type OptionType = {
     label: string;
     value: StatusFilter;
-}
+};
 
 interface Props {
     initialValue: AdminConsoleUserManagementTableProperties['filterStatus'];

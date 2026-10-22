@@ -10,7 +10,7 @@ import {formatAsString} from 'utils/i18n';
 type Props = {
     devicePicture?: string;
     deviceTitle: MessageDescriptor | string;
-}
+};
 
 export default function DeviceIcon(props: Props) {
     const intl = useIntl();

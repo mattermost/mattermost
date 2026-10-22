@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {AppField, AppFormValues} from '@mattermost/types/apps';
+
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
 import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
@@ -438,6 +440,81 @@ describe('AppsFormComponent', () => {
             expect(submit).toHaveBeenCalledWith({
                 values: expect.any(Object),
             });
+        });
+
+        test('should submit the clicked button value even when it is an empty string', async () => {
+            const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    submit,
+                },
+                form: {
+                    ...baseProps.form,
+                    submit_buttons: 'action_buttons',
+                    fields: [
+                        {
+                            name: 'action_buttons',
+                            type: 'static_select',
+                            options: [
+                                {label: 'Save', value: 'save'},
+                                {label: 'Discard', value: ''},
+                            ],
+                            value: {label: 'Save', value: 'save'},
+                        },
+                    ],
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Discard'}));
+
+            expect(submit).toHaveBeenCalledWith({
+                values: expect.objectContaining({action_buttons: ''}),
+            });
+        });
+
+        test('should submit the first submit_buttons option when Enter is pressed', async () => {
+            const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    submit,
+                },
+                form: {
+                    ...baseProps.form,
+                    submit_buttons: 'action_buttons',
+                    fields: [
+                        {name: 'note', type: 'text', label: 'Note'},
+                        {
+                            name: 'action_buttons',
+                            type: 'static_select',
+                            is_required: true,
+                            options: [
+                                {label: 'Add Note', value: 'add'},
+                                {label: 'Save & Close', value: 'save'},
+                            ],
+                        },
+                    ],
+                },
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Implicit form submission clicks the first submit button, so the hidden
+            // select gets that option's value rather than failing validation.
+            await userEvent.type(screen.getByRole('textbox', {name: /note/i}), 'hello{enter}');
+
+            expect(submit).toHaveBeenCalledTimes(1);
+            expect(submit).toHaveBeenCalledWith({
+                values: expect.objectContaining({note: 'hello', action_buttons: 'add'}),
+            });
+            expect(screen.queryByText(/please fix all field errors/i)).not.toBeInTheDocument();
         });
     });
 
@@ -1348,9 +1425,11 @@ describe('AppsFormComponent', () => {
                         type: 'datetime',
                         is_required: true,
                         label: 'Meeting Time',
-                        time_interval: 30,
-                        min_date: 'today',
-                        max_date: '+30d',
+                        datetime_config: {
+                            time_interval: 30,
+                            min_date: 'today',
+                            max_date: '+30d',
+                        },
                     },
                 ],
             };
@@ -1374,8 +1453,10 @@ describe('AppsFormComponent', () => {
                     {
                         name: 'invalid_field',
                         type: 'datetime',
-                        time_interval: -1, // Invalid interval
-                        min_date: 'invalid-date', // Invalid date format
+                        datetime_config: {
+                            time_interval: -1, // Invalid interval
+                            min_date: 'invalid-date', // Invalid date format
+                        },
                         label: 'Invalid Field',
                     },
                 ],
@@ -1429,7 +1510,7 @@ describe('AppsFormComponent', () => {
                         {
                             name: 'valid_datetime',
                             type: 'datetime',
-                            time_interval: interval,
+                            datetime_config: {time_interval: interval},
                             label: `DateTime with ${interval}min interval`,
                         },
                     ],
@@ -1456,7 +1537,7 @@ describe('AppsFormComponent', () => {
                         {
                             name: 'invalid_datetime',
                             type: 'datetime',
-                            time_interval: interval,
+                            datetime_config: {time_interval: interval},
                             label: `DateTime with ${interval}min interval`,
                         },
                     ],
@@ -1494,7 +1575,7 @@ describe('AppsFormComponent', () => {
                         {
                             name: 'out_of_range_datetime',
                             type: 'datetime',
-                            time_interval: interval,
+                            datetime_config: {time_interval: interval},
                             label: `DateTime with ${interval}min interval`,
                         },
                     ],
@@ -1532,7 +1613,7 @@ describe('AppsFormComponent', () => {
                         {
                             name: 'non_numeric_datetime',
                             type: 'datetime',
-                            time_interval: interval as any,
+                            datetime_config: {time_interval: interval as any},
                             label: `DateTime with ${interval} interval`,
                         },
                     ],
@@ -1570,13 +1651,13 @@ describe('AppsFormComponent', () => {
                     {
                         name: 'text_with_interval',
                         type: 'text',
-                        time_interval: 729, // Invalid but should be ignored for text fields
+                        datetime_config: {time_interval: 729}, // Invalid but should be ignored for text fields
                         label: 'Text Field',
                     },
                     {
                         name: 'date_with_interval',
                         type: 'date',
-                        time_interval: 729, // Invalid but should be ignored for date fields
+                        datetime_config: {time_interval: 729}, // Invalid but should be ignored for date fields
                         label: 'Date Field',
                     },
                 ],
@@ -1594,31 +1675,56 @@ describe('AppsFormComponent', () => {
 
             consoleSpy.mockRestore();
         });
+    });
 
-        it('should validate min_date and max_date formats for date and datetime fields', () => {
+    describe('DateTime Field Validation - datetime_config', () => {
+        it('should validate invalid datetime_config.time_interval', () => {
             const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-            const formWithInvalidDates = {
+            const form = {
                 ...baseProps.form,
                 fields: [
                     {
-                        name: 'invalid_dates',
+                        name: 'config_interval',
                         type: 'datetime',
-                        min_date: 'invalid-date-format',
-                        max_date: '2025/01/01', // Wrong format
-                        label: 'DateTime with Invalid Dates',
+                        datetime_config: {time_interval: 729}, // Not a divisor of 1440
+                        label: 'DateTime with datetime_config interval',
                     },
                 ],
             };
 
-            const props = {
-                ...baseProps,
-                form: formWithInvalidDates,
+            renderWithContext(<AppsForm {...{...baseProps, form}}/>);
+
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'AppForm field validation errors:',
+                expect.arrayContaining([
+                    expect.stringContaining('time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got 729'),
+                ]),
+            );
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should validate invalid datetime_config.min_date and max_date formats', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const form = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'config_dates',
+                        type: 'datetime',
+                        datetime_config: {
+                            min_date: 'invalid-date-format',
+                            max_date: '2025/01/01',
+                        },
+                        label: 'DateTime with Invalid datetime_config Dates',
+                    },
+                ],
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            renderWithContext(<AppsForm {...{...baseProps, form}}/>);
 
-            // Should log warnings for invalid date formats
             expect(consoleSpy).toHaveBeenCalledWith(
                 'AppForm field validation errors:',
                 expect.arrayContaining([
@@ -1630,30 +1736,26 @@ describe('AppsFormComponent', () => {
             consoleSpy.mockRestore();
         });
 
-        it('should validate date range when min_date is after max_date', () => {
+        it('should validate datetime_config range when min_date is after max_date', () => {
             const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-            const formWithInvalidDateRange = {
+            const form = {
                 ...baseProps.form,
                 fields: [
                     {
-                        name: 'invalid_range',
+                        name: 'config_range',
                         type: 'date',
-                        min_date: '2025-12-31',
-                        max_date: '2025-01-01', // Before min_date
-                        label: 'Date with Invalid Range',
+                        datetime_config: {
+                            min_date: '2025-12-31',
+                            max_date: '2025-01-01',
+                        },
+                        label: 'Date with Invalid datetime_config Range',
                     },
                 ],
             };
 
-            const props = {
-                ...baseProps,
-                form: formWithInvalidDateRange,
-            };
+            renderWithContext(<AppsForm {...{...baseProps, form}}/>);
 
-            renderWithContext(<AppsForm {...props}/>);
-
-            // Should log warning for invalid date range
             expect(consoleSpy).toHaveBeenCalledWith(
                 'AppForm field validation errors:',
                 expect.arrayContaining([
@@ -1662,6 +1764,896 @@ describe('AppsFormComponent', () => {
             );
 
             consoleSpy.mockRestore();
+        });
+    });
+
+    describe('collapsible fields', () => {
+        // Build props whose form contains a collapsible wrapping leaf fields
+
+        const makeForm = (expanded: boolean): Props['form'] => ({
+            ...baseProps.form,
+            fields: [
+                {name: 'top', type: 'text'},
+                {
+                    name: 'sec',
+                    type: 'collapsible',
+                    label: 'Section',
+                    collapsible_config: {
+                        expanded,
+                        fields: [
+                            {name: 'inner', type: 'text', label: 'inner'},
+                            {name: 'innerRequired', type: 'text', label: 'innerRequired', is_required: true},
+                        ],
+                    },
+                },
+            ],
+        });
+
+        it('renders leaf fields inside a collapsible section', () => {
+            const formExpanded = makeForm(true);
+
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={formExpanded}
+                />,
+            );
+
+            expect(screen.getByText('Section')).toBeInTheDocument();
+            expect(screen.getByText('inner')).toBeInTheDocument();
+            expect(screen.getByText('innerRequired')).toBeInTheDocument();
+        });
+
+        it('renders the collapsible toggle and child fields are hidden when collapsed', () => {
+            // TODO: expanded=false; section header present, inner inputs not in DOM.
+            const formCollapsed = makeForm(false);
+
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={formCollapsed}
+                />,
+            );
+
+            expect(screen.queryByText('Section')).toBeInTheDocument();
+            expect(screen.queryByText('inner')).not.toBeInTheDocument();
+            expect(screen.queryByText('innerRequired')).not.toBeInTheDocument();
+        });
+
+        it('validates required fields inside a collapsed section on submit', async () => {
+            const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+
+            const props: Props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    submit,
+                },
+            };
+
+            const formCollapsed = makeForm(false);
+
+            renderWithContext(
+                <AppsForm
+                    {...props}
+                    form={formCollapsed}
+                />,
+            );
+
+            const submitButton = screen.getByRole('button', {name: /submit/i});
+
+            await userEvent.click(submitButton);
+
+            expect(submit).not.toHaveBeenCalled();
+        });
+
+        it('seeds initial values from leaf fields only (no value for the container)', async () => {
+            const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+
+            const formExpanded = makeForm(true);
+
+            // Pre-fill the required child so validation doesn't block submit.
+            formExpanded.fields![1].collapsible_config!.fields![1].value = 'filled';
+
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    actions={{...baseProps.actions, submit}}
+                    form={formExpanded}
+                />,
+            );
+
+            const submitButton = screen.getByRole('button', {name: /submit/i});
+
+            await userEvent.click(submitButton);
+
+            expect(submit).toHaveBeenCalledTimes(1);
+            const {values} = submit.mock.calls[0][0];
+
+            // Leaf fields are hoisted to the top level...
+            expect(values).toHaveProperty('inner');
+            expect(values).toHaveProperty('innerRequired');
+
+            // ...but the collapsible container itself carries no value.
+            expect(values).not.toHaveProperty('sec');
+        });
+
+        it('routes onChange for a field nested inside a collapsible', async () => {
+            const formExpanded = makeForm(true);
+
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={formExpanded}
+                />,
+            );
+
+            // grab the nested text field to put input
+            const formFieldInput = screen.getByTestId('innerinput');
+
+            await userEvent.type(formFieldInput, 'test text');
+
+            // assert that the value we put in really made it in
+            expect(formFieldInput).toHaveValue('test text');
+        });
+
+        it('keeps autoFocus on the first top-level field when a collapsible is present', () => {
+            const formExpanded = makeForm(true);
+
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={formExpanded}
+                />,
+            );
+
+            expect(screen.getByTestId('topinput')).toHaveFocus();
+        });
+
+        it('forwards autoFocus to the first child when the first top-level field is a collapsible', () => {
+            const form: Props['form'] = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'sec',
+                        type: 'collapsible',
+                        label: 'Section',
+                        collapsible_config: {
+                            expanded: true,
+                            fields: [
+                                {name: 'inner', type: 'text', label: 'inner'},
+                                {name: 'innerSecond', type: 'text', label: 'innerSecond'},
+                            ],
+                        },
+                    },
+                ],
+            };
+
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={form}
+                />,
+            );
+
+            expect(screen.getByTestId('innerinput')).toHaveFocus();
+        });
+    });
+
+    describe('refreshNonce and hidden', () => {
+        const textField = (name: string, value: string, label = name) => ({name, type: 'text' as const, label, value});
+
+        const initialForm: Props['form'] = {
+            ...baseProps.form,
+            refresh_on_return: true,
+            fields: [textField('text_a', 'server a'), textField('text_b', 'server b')],
+        };
+
+        const deferred = <T,>() => {
+            let resolve!: (v: T) => void;
+            let reject!: (e: unknown) => void;
+            const promise = new Promise<T>((res, rej) => {
+                resolve = res;
+                reject = rej;
+            });
+            return {promise, resolve, reject};
+        };
+
+        const formResponse = (fields: Props['form']['fields']) => ({
+            data: {type: AppCallResponseTypes.FORM, form: {...initialForm, fields}},
+        });
+
+        // Mimics AppsFormContainer: the latest refreshed form is fed back to AppsForm as
+        // the form prop, and superseded or post-unmount responses are not applied.
+        const renderForm = (refreshForm: jest.Mock, extra?: Partial<Props>) => {
+            let currentForm = extra?.form ?? initialForm;
+            let nonce: number | undefined;
+            let seq = 0;
+            let unmounted = false;
+            let rerenderForm: () => void = () => {};
+
+            const containerRefreshForm = async (values: AppFormValues) => {
+                const mySeq = ++seq;
+                const res = await refreshForm(values);
+                if (unmounted || mySeq !== seq) {
+                    return {data: {type: AppCallResponseTypes.OK}};
+                }
+                if (res?.data?.type === AppCallResponseTypes.FORM) {
+                    currentForm = res.data.form;
+                    rerenderForm();
+                }
+                return res;
+            };
+
+            const buildProps = (): Props => ({
+                ...baseProps,
+                ...extra,
+                form: currentForm,
+                refreshNonce: nonce,
+                actions: {...baseProps.actions, ...extra?.actions, refreshForm: containerRefreshForm},
+            });
+            const view = renderWithContext(<AppsForm {...buildProps()}/>);
+            rerenderForm = () => view.rerender(<AppsForm {...buildProps()}/>);
+
+            const bump = (next: number) => {
+                nonce = next;
+                rerenderForm();
+            };
+            const unmount = () => {
+                unmounted = true;
+                view.unmount();
+            };
+            return {...view, bump, unmount};
+        };
+
+        test('should re-apply user-entered values and show server values for untouched fields after refresh', async () => {
+            const refreshForm = jest.fn().mockResolvedValue(
+                formResponse([textField('text_a', 'refreshed a'), textField('text_b', 'refreshed b')]),
+            );
+            const {bump} = renderForm(refreshForm);
+
+            await userEvent.clear(screen.getByDisplayValue('server a'));
+            await userEvent.type(screen.getByRole('textbox', {name: /text_a/}), 'typed by user');
+
+            bump(1);
+
+            await waitFor(() => {
+                expect(screen.getByDisplayValue('typed by user')).toBeVisible();
+                expect(screen.getByDisplayValue('refreshed b')).toBeVisible();
+            });
+            expect(refreshForm).toHaveBeenCalledTimes(1);
+            expect(refreshForm).toHaveBeenCalledWith(expect.objectContaining({text_a: 'typed by user', text_b: 'server b'}));
+            expect(screen.getByDisplayValue('typed by user')).toBeVisible();
+            expect(screen.queryByDisplayValue('refreshed a')).not.toBeInTheDocument();
+        });
+
+        test('should not re-apply a user value to a field that became an action button', async () => {
+            const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+            const refreshForm = jest.fn().mockResolvedValue(formResponse([
+                {name: 'text_a', type: 'action_button', label: 'Go', action_button_url: 'https://example.com/a'},
+                textField('text_b', 'refreshed b'),
+            ]));
+            const {bump} = renderForm(refreshForm, {actions: {...baseProps.actions, submit}});
+
+            await userEvent.type(screen.getByRole('textbox', {name: /text_a/}), 'typed');
+
+            bump(1);
+
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'Go'})).toBeVisible();
+            });
+            await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+
+            await waitFor(() => {
+                expect(submit).toHaveBeenCalled();
+            });
+            expect(submit.mock.calls[0][0].values.text_a).toBeUndefined();
+        });
+
+        describe('re-applying option values', () => {
+            const radioField = (options: string[], value = 'a') => ({
+                name: 'mission',
+                type: 'radio' as const,
+                label: 'Mission',
+                value,
+                options: options.map((o) => ({label: o.toUpperCase(), value: o})),
+            });
+            const radioForm = {...initialForm, fields: [radioField(['a', 'b'])]};
+
+            test('should keep a picked option that still exists after refresh', async () => {
+                const refreshForm = jest.fn().mockResolvedValue(formResponse([radioField(['a', 'b', 'c'])]));
+                const {bump} = renderForm(refreshForm, {form: radioForm});
+
+                await userEvent.click(screen.getByRole('radio', {name: 'B'}));
+                bump(1);
+
+                await waitFor(() => {
+                    expect(screen.getByRole('radio', {name: 'C'})).toBeInTheDocument();
+                    expect(document.querySelector('.apps-form-modal-body-loading')).toBeNull();
+                });
+                expect(screen.getByRole('radio', {name: 'B'})).toBeChecked();
+            });
+
+            test('should use the server value when the picked option was removed', async () => {
+                const refreshForm = jest.fn().mockResolvedValue(formResponse([radioField(['a', 'c'])]));
+                const {bump} = renderForm(refreshForm, {form: radioForm});
+
+                await userEvent.click(screen.getByRole('radio', {name: 'B'}));
+                bump(1);
+
+                await waitFor(() => {
+                    expect(screen.getByRole('radio', {name: 'C'})).toBeInTheDocument();
+                    expect(document.querySelector('.apps-form-modal-body-loading')).toBeNull();
+                });
+                expect(screen.getByRole('radio', {name: 'A'})).toBeChecked();
+            });
+
+            test('should drop removed options from a multi-value field', async () => {
+                const checkboxField = (options: string[]) => ({
+                    name: 'crew',
+                    type: 'checkbox_group' as const,
+                    label: 'Crew',
+                    options: options.map((o) => ({label: o.toUpperCase(), value: o})),
+                });
+                const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+                const refreshForm = jest.fn().mockResolvedValue(formResponse([checkboxField(['x', 'z'])]));
+                const {bump} = renderForm(refreshForm, {
+                    form: {...initialForm, fields: [checkboxField(['x', 'y', 'z'])]},
+                    actions: {...baseProps.actions, submit},
+                });
+
+                await userEvent.click(screen.getByRole('checkbox', {name: 'X'}));
+                await userEvent.click(screen.getByRole('checkbox', {name: 'Y'}));
+                bump(1);
+
+                await waitFor(() => {
+                    expect(screen.queryByRole('checkbox', {name: 'Y'})).not.toBeInTheDocument();
+                });
+                await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+
+                await waitFor(() => {
+                    expect(submit).toHaveBeenCalled();
+                });
+                expect(submit.mock.calls[0][0].values.crew).toEqual(['x']);
+            });
+
+            test('should not re-apply a user value to a field that changed type', async () => {
+                const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+                const refreshForm = jest.fn().mockResolvedValue(formResponse([
+                    {name: 'text_a', type: 'bool', label: 'text_a'},
+                    textField('text_b', 'refreshed b'),
+                ]));
+                const {bump} = renderForm(refreshForm, {actions: {...baseProps.actions, submit}});
+
+                await userEvent.type(screen.getByRole('textbox', {name: /text_a/}), 'typed');
+                bump(1);
+
+                await waitFor(() => {
+                    expect(screen.getByDisplayValue('refreshed b')).toBeVisible();
+                });
+                await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+
+                await waitFor(() => {
+                    expect(submit).toHaveBeenCalled();
+                });
+                expect(submit.mock.calls[0][0].values.text_a).toBe(false);
+            });
+        });
+
+        test('should not send a clicked submit button value with a later refresh', async () => {
+            const submit = jest.fn().mockResolvedValue({error: {type: 'error', text: 'Try again'}});
+            const refreshForm = jest.fn().mockResolvedValue(formResponse([textField('text_a', 'refreshed a')]));
+            const {bump} = renderForm(refreshForm, {
+                form: {
+                    ...initialForm,
+                    submit_buttons: 'action',
+                    fields: [
+                        textField('text_a', 'server a'),
+                        {name: 'action', type: 'static_select', label: 'Action', options: [{label: 'Retry', value: 'retry'}]},
+                    ],
+                },
+                actions: {...baseProps.actions, submit},
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: 'Retry'}));
+            await waitFor(() => {
+                expect(screen.getByText('Try again')).toBeVisible();
+            });
+            expect(submit).toHaveBeenCalledWith({values: expect.objectContaining({action: 'retry'})});
+
+            bump(1);
+
+            await waitFor(() => {
+                expect(refreshForm).toHaveBeenCalledTimes(1);
+            });
+            expect(refreshForm.mock.calls[0][0].action).toBeNull();
+        });
+
+        test('should ignore a superseded refresh response', async () => {
+            const first = deferred<ReturnType<typeof formResponse>>();
+            const second = deferred<ReturnType<typeof formResponse>>();
+            const refreshForm = jest.fn().
+                mockReturnValueOnce(first.promise).
+                mockReturnValueOnce(second.promise);
+            const {bump} = renderForm(refreshForm);
+
+            bump(1);
+            bump(2);
+            expect(refreshForm).toHaveBeenCalledTimes(2);
+
+            // The older response must not clear the loading state of the newer refresh.
+            first.resolve(formResponse([textField('text_a', 'stale a'), textField('text_b', 'stale b')]));
+            await first.promise;
+            expect(document.querySelector('.apps-form-modal-body-loading')).not.toBeNull();
+            expect(screen.queryByDisplayValue('stale a')).not.toBeInTheDocument();
+
+            second.resolve(formResponse([textField('text_a', 'newest a'), textField('text_b', 'newest b')]));
+            await waitFor(() => {
+                expect(screen.getByDisplayValue('newest a')).toBeVisible();
+            });
+            await waitFor(() => {
+                expect(document.querySelector('.apps-form-modal-body-loading')).toBeNull();
+            });
+            expect(screen.queryByDisplayValue('stale a')).not.toBeInTheDocument();
+        });
+
+        test('should not update state when the refresh response arrives after unmount', async () => {
+            const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+            const pending = deferred<ReturnType<typeof formResponse>>();
+            const refreshForm = jest.fn().mockReturnValue(pending.promise);
+            const {bump, unmount} = renderForm(refreshForm);
+
+            bump(1);
+            unmount();
+            pending.resolve(formResponse([textField('text_a', 'late a'), textField('text_b', 'late b')]));
+            await pending.promise;
+
+            const unmountedWarnings = consoleError.mock.calls.filter((args) =>
+                args.some((a) => typeof a === 'string' && a.includes('unmounted')),
+            );
+            expect(unmountedWarnings).toHaveLength(0);
+            consoleError.mockRestore();
+        });
+
+        test('should show an error and stop loading when refreshForm rejects', async () => {
+            const refreshForm = jest.fn().mockRejectedValue(new Error('refresh exploded'));
+            const {bump} = renderForm(refreshForm);
+
+            bump(1);
+
+            await waitFor(() => {
+                expect(screen.getByText('refresh exploded')).toBeVisible();
+            });
+            expect(document.querySelector('.apps-form-modal-body-loading')).toBeNull();
+            expect(screen.getByDisplayValue('server a')).toBeVisible();
+        });
+
+        test('should not refresh when the current form does not set refresh_on_return', () => {
+            const refreshForm = jest.fn();
+            const {bump} = renderForm(refreshForm, {form: {...initialForm, refresh_on_return: undefined}});
+
+            bump(1);
+
+            expect(refreshForm).not.toHaveBeenCalled();
+        });
+
+        test('should follow refresh_on_return of the form the container is showing now', async () => {
+            // The first refresh returns a form without refresh_on_return, so the next
+            // return to this dialog must not refresh again.
+            const refreshForm = jest.fn().mockResolvedValue({
+                data: {type: AppCallResponseTypes.FORM, form: {...initialForm, refresh_on_return: undefined, fields: [textField('text_a', 'refreshed a')]}},
+            });
+            const {bump} = renderForm(refreshForm);
+
+            bump(1);
+            await waitFor(() => {
+                expect(screen.getByDisplayValue('refreshed a')).toBeVisible();
+            });
+
+            bump(2);
+
+            expect(refreshForm).toHaveBeenCalledTimes(1);
+        });
+
+        test('should not refresh when refreshNonce is 0', () => {
+            const refreshForm = jest.fn().mockResolvedValue(formResponse([]));
+            const {bump} = renderForm(refreshForm);
+
+            bump(0);
+
+            expect(refreshForm).not.toHaveBeenCalled();
+        });
+
+        test('should hide the modal and its backdrop when hidden is true', () => {
+            renderForm(jest.fn(), {hidden: true});
+
+            expect(document.querySelector('.apps-form-modal')).toHaveStyle({display: 'none'});
+            expect(document.querySelector('.modal-backdrop')).toHaveStyle({display: 'none'});
+        });
+
+        test('should leave element ids off while hidden so they resolve to the visible dialog', () => {
+            renderForm(jest.fn(), {hidden: true});
+
+            expect(document.querySelector('.apps-form-modal')).not.toHaveAttribute('id');
+            expect(document.querySelector('.apps-form-modal')).not.toHaveAttribute('aria-labelledby');
+            ['#appsModalLabel', '#appsModalSubmit', '#appsModalCancel'].forEach((selector) => {
+                expect(document.querySelector(selector)).toBeNull();
+            });
+        });
+
+        test('should label the visible dialog with its own title', () => {
+            renderForm(jest.fn());
+
+            expect(screen.getByRole('dialog')).toHaveAccessibleName(/Title$/);
+        });
+
+        test('should not hide the modal when hidden is not set', () => {
+            renderForm(jest.fn());
+
+            expect(document.querySelector('#appsModal')).not.toHaveStyle({display: 'none'});
+        });
+    });
+
+    describe('modal width tier', () => {
+        // The tier lands on the modal's dialogClassName. An absent size has to
+        // leave the class list exactly as it was before Size existed, or every
+        // dialog that predates the field changes width.
+        const dialogClassList = () => document.querySelector('.modal-dialog')!.className;
+
+        const renderWithSize = (size?: 'small' | 'medium' | 'large') => renderWithContext(
+            <AppsForm
+                {...baseProps}
+                form={{...baseProps.form, size}}
+            />,
+        );
+
+        test('adds no width class when size is unset, keeping the historical width', () => {
+            renderWithSize();
+
+            expect(dialogClassList()).toContain('about-modal');
+            expect(dialogClassList()).not.toContain('modal-lg');
+            expect(dialogClassList()).not.toContain('apps-form-modal--large');
+        });
+
+        test('carries the apps-form-modal-dialog class the width styles hang off, at every tier', () => {
+            // The width transition is scoped to this class rather than to
+            // a11y__modal, which nearly every modal in the app carries and none
+            // of which should animate because this form can resize.
+            for (const size of [undefined, 'small', 'medium', 'large'] as const) {
+                const {unmount} = renderWithSize(size);
+                expect(dialogClassList()).toContain('apps-form-modal-dialog');
+                unmount();
+            }
+        });
+
+        test('adds no width class for small, which is the historical width', () => {
+            renderWithSize('small');
+
+            expect(dialogClassList()).not.toContain('modal-lg');
+            expect(dialogClassList()).not.toContain('apps-form-modal--large');
+        });
+
+        test('uses a tier of its own for medium rather than the app-wide modal-lg', () => {
+            renderWithSize('medium');
+
+            // modal-lg's width is set globally for every consumer in the app,
+            // and only above 992px, so borrowing it would tie a dialog's width
+            // to an unrelated rule and leave medium equal to small below that.
+            expect(dialogClassList()).toContain('apps-form-modal--medium');
+            expect(dialogClassList()).not.toContain('modal-lg');
+            expect(dialogClassList()).not.toContain('apps-form-modal--large');
+        });
+
+        test('uses the widest tier for large', () => {
+            renderWithSize('large');
+
+            expect(dialogClassList()).toContain('apps-form-modal--large');
+            expect(dialogClassList()).not.toContain('apps-form-modal--medium');
+            expect(dialogClassList()).not.toContain('modal-lg');
+        });
+
+        test('adds no width class for a size the client does not recognise', () => {
+            // The server logs an invalid size and opens the dialog anyway, so
+            // one can reach the client. It falls back to the default width
+            // rather than passing the string through to the class list.
+            renderWithSize('enormous' as 'large');
+
+            expect(dialogClassList()).toContain('apps-form-modal-dialog');
+            expect(dialogClassList()).not.toContain('apps-form-modal--medium');
+            expect(dialogClassList()).not.toContain('apps-form-modal--large');
+            expect(dialogClassList()).not.toContain('enormous');
+        });
+
+        test('keeps the a11y and about-modal classes at every tier', () => {
+            renderWithSize('large');
+
+            expect(dialogClassList()).toContain('a11y__modal');
+            expect(dialogClassList()).toContain('about-modal');
+        });
+    });
+
+    describe('grid layout', () => {
+        // A grid container renders its child collapsibles as table rows rather
+        // than stacking them. The rows are the same nesting the stacked
+        // renderer already handles, so the only difference is the layout flag.
+        const gridForm = (layout: 'grid' | 'stacked'): Props['form'] => ({
+            ...baseProps.form,
+            fields: [
+                {
+                    name: 'grid',
+                    type: 'collapsible',
+                    label: 'Orders',
+                    collapsible_config: {
+                        expanded: true,
+                        layout,
+                        fields: [
+                            {
+                                name: 'row1',
+                                type: 'collapsible',
+                                label: 'SO-1042',
+                                collapsible_config: {
+                                    expanded: true,
+                                    fields: [
+                                        {name: 'r1_order', type: 'text', label: 'Order #'},
+                                        {name: 'r1_weight', type: 'text', label: 'Weight'},
+                                    ],
+                                },
+                            },
+                            {
+                                name: 'row2',
+                                type: 'collapsible',
+                                label: 'SO-1043',
+                                collapsible_config: {
+                                    expanded: true,
+                                    fields: [
+                                        {name: 'r2_order', type: 'text', label: 'Order #'},
+                                        {name: 'r2_weight', type: 'text', label: 'Weight'},
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+            ],
+        });
+
+        test("renders a table when the container's layout is grid", () => {
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={gridForm('grid')}
+                />,
+            );
+
+            expect(screen.getByRole('table')).toBeInTheDocument();
+
+            // Column headers come from the first row's fields, once each,
+            // rather than once per row.
+            expect(screen.getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['Order #', 'Weight']);
+
+            // One header row plus one row per record.
+            expect(screen.getAllByRole('row')).toHaveLength(3);
+        });
+
+        test('stacks the same form into collapsible sections when layout is not grid', () => {
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={gridForm('stacked')}
+                />,
+            );
+
+            expect(screen.queryByRole('table')).not.toBeInTheDocument();
+
+            // Stacked, the row labels are section titles and the container's
+            // own label is shown too.
+            expect(screen.getByText('Orders')).toBeInTheDocument();
+            expect(screen.getByText('SO-1042')).toBeInTheDocument();
+        });
+
+        test('renders every cell as a real input, so the grid is fillable', () => {
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={gridForm('grid')}
+                />,
+            );
+
+            // Four cells across two rows, each one an input the user can type
+            // into. The grid is a layout over ordinary fields, not a widget.
+            const table = screen.getByRole('table');
+            expect(table.querySelectorAll('input')).toHaveLength(4);
+        });
+
+        test('submits grid cells as ordinary flat values', async () => {
+            const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    actions={{...baseProps.actions, submit}}
+                    form={gridForm('grid')}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+
+            await waitFor(() => expect(submit).toHaveBeenCalled());
+
+            // Cells arrive keyed by their own names at the top level; nothing
+            // nests them under the container or the row.
+            const values = submit.mock.calls[0][0].values;
+            expect(values).toHaveProperty('r1_order');
+            expect(values).toHaveProperty('r2_weight');
+            expect(values).not.toHaveProperty('grid');
+            expect(values).not.toHaveProperty('row1');
+        });
+
+        // A grid container is still an ordinary collapsible, so the three
+        // things a collapsible can say about itself have to keep working. They
+        // were dropped when the grid rendered its own subtree instead of
+        // sitting inside the section the stacked layout uses.
+        describe("the container's own settings", () => {
+            const renderGrid = (config: Partial<NonNullable<AppField['collapsible_config']>>) => {
+                const form = gridForm('grid');
+                form.fields![0].collapsible_config = {
+                    ...form.fields![0].collapsible_config,
+                    ...config,
+                };
+
+                return renderWithContext(
+                    <AppsForm
+                        {...baseProps}
+                        form={form}
+                    />,
+                );
+            };
+
+            test('keeps the heading and its caret above the table', () => {
+                renderGrid({});
+
+                const toggle = screen.getByRole('button', {name: /orders/i});
+                expect(toggle).toHaveAttribute('aria-expanded', 'true');
+                expect(screen.getByRole('table')).toBeInTheDocument();
+            });
+
+            test('starts collapsed when the container asks to, hiding the table', () => {
+                renderGrid({expanded: false});
+
+                expect(screen.getByRole('button', {name: /orders/i})).toHaveAttribute('aria-expanded', 'false');
+                expect(screen.queryByRole('table')).not.toBeInTheDocument();
+            });
+
+            test('expands a collapsed grid on click', async () => {
+                renderGrid({expanded: false});
+
+                await userEvent.click(screen.getByRole('button', {name: /orders/i}));
+
+                expect(screen.getByRole('table')).toBeInTheDocument();
+            });
+
+            // The modal renders through a portal, so the section is in the
+            // document rather than under the render container.
+            const section = () => document.querySelector('.apps-form-collapsible-section');
+
+            test('renders without a border when the container is borderless', () => {
+                renderGrid({bordered: false});
+
+                expect(section()).not.toHaveClass('apps-form-collapsible-section--bordered');
+            });
+
+            test('renders with a border by default', () => {
+                renderGrid({});
+
+                expect(section()).toHaveClass('apps-form-collapsible-section--bordered');
+            });
+        });
+
+        describe('errors inside the grid', () => {
+            test('renders a server error in the one cell it is keyed to', async () => {
+                const submit = jest.fn().mockResolvedValue({
+                    error: {
+                        text: 'Validation errors',
+                        data: {errors: {r2_weight: 'Enter a weight of 0 or more'}},
+                    },
+                });
+
+                renderWithContext(
+                    <AppsForm
+                        {...baseProps}
+                        actions={{...baseProps.actions, submit}}
+                        form={gridForm('grid')}
+                    />,
+                );
+
+                await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+
+                // The Errors map is keyed by element name and names are unique
+                // across the table, so the error has exactly one cell to land
+                // in.
+                const error = await screen.findByText('Enter a weight of 0 or more');
+                const cell = error.closest('td');
+                expect(cell).not.toBeNull();
+                expect(cell).toContainElement(screen.getByTestId('r2_weightinput'));
+
+                // The matching cell of the other row is left alone.
+                expect(screen.getByTestId('r1_weightinput').closest('td')).not.toHaveTextContent('Enter a weight of 0 or more');
+            });
+
+            test('shows a required cell as required and keeps the dialog open', async () => {
+                const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+
+                // A required column is required in every row, which is also
+                // what makes the heading the right place for the marker.
+                const form = gridForm('grid');
+                form.fields![0].collapsible_config!.fields!.forEach((row) => {
+                    row.collapsible_config!.fields![1].is_required = true;
+                });
+
+                renderWithContext(
+                    <AppsForm
+                        {...baseProps}
+                        actions={{...baseProps.actions, submit}}
+                        form={form}
+                    />,
+                );
+
+                // The cell's own label carries the marker but is clipped, so
+                // the column heading has to carry it as well or a required cell
+                // looks optional until submission fails.
+                const heading = screen.getAllByRole('columnheader')[1];
+                expect(heading).toHaveTextContent('Weight *');
+
+                await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+
+                // Client-side validation stops the submission rather than
+                // sending an empty required cell.
+                expect(submit).not.toHaveBeenCalled();
+                expect(screen.getByRole('table')).toBeInTheDocument();
+            });
+        });
+
+        test('lays a grid nested inside a grid out as a table in its cell', () => {
+            const inner: AppField = {
+                name: 'inner',
+                type: 'collapsible',
+                label: 'Lines',
+                collapsible_config: {
+                    expanded: true,
+                    layout: 'grid',
+                    fields: [
+                        {
+                            name: 'inner_row1',
+                            type: 'collapsible',
+                            label: 'L1',
+                            collapsible_config: {
+                                expanded: true,
+                                fields: [
+                                    {name: 'i1_sku', type: 'text', label: 'SKU'},
+                                    {name: 'i1_qty', type: 'text', label: 'Qty'},
+                                ],
+                            },
+                        },
+                    ],
+                },
+            };
+
+            const form = gridForm('grid');
+            form.fields![0].collapsible_config!.fields![0].collapsible_config!.fields!.push(inner);
+
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={form}
+                />,
+            );
+
+            // A nested collapsible is a cell like any other, so a grid inside a
+            // grid is a table inside a cell rather than something dropped.
+            const tables = screen.getAllByRole('table');
+            expect(tables).toHaveLength(2);
+            expect(tables[1].closest('td')).toBe(tables[0].querySelector('td:last-of-type'));
+            expect(screen.getByTestId('i1_qtyinput')).toBeInTheDocument();
         });
     });
 });

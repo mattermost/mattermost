@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {MarketplaceLabel} from '@mattermost/types/marketplace';
 
 import ExternalLink from 'components/external_link';
 import PluginIcon from 'components/widgets/icons/plugin_icon';
 import Tag from 'components/widgets/tag/tag';
-import WithTooltip from 'components/with_tooltip';
 
 // Label renders a tag showing a name and a description in a tooltip.
 // If a URL is provided, clicking on the tag will open the URL in a new tab.
@@ -63,7 +63,7 @@ export type MarketplaceItemProps = {
 
     button: JSX.Element;
     updateDetails: JSX.Element | null;
-    versionLabel: JSX.Element| null;
+    versionLabel: JSX.Element | null;
 };
 
 type MarketplaceItemState = {
@@ -71,7 +71,7 @@ type MarketplaceItemState = {
 };
 
 export default class MarketplaceItem extends React.PureComponent <MarketplaceItemProps, MarketplaceItemState> {
-    descriptionRef: React.RefObject<HTMLParagraphElement>;
+    descriptionRef: React.RefObject<HTMLParagraphElement | null>;
 
     constructor(props: MarketplaceItemProps) {
         super(props);

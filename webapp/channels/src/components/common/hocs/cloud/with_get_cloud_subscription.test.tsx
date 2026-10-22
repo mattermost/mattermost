@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 import type {ComponentType} from 'react';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import withGetCloudSubscription from './with_get_cloud_subscription';
 
@@ -22,7 +23,7 @@ describe('/components/common/hocs/with_get_cloud_subcription', () => {
 
         const getCloudSubscriptionSpy = jest.spyOn(actions, 'getCloudSubscription');
 
-        mount(
+        renderWithContext(
             <EnhancedComponent
                 isCloud={true}
                 actions={actions}
@@ -34,7 +35,7 @@ describe('/components/common/hocs/with_get_cloud_subcription', () => {
         expect(getCloudSubscriptionSpy).toHaveBeenCalledTimes(1);
     });
 
-    test('should NOT call the getCloudSubscription when NOT cloud licenced', () => {
+    test('should NOT call the getCloudSubscription when NOT cloud licensed', () => {
         const EnhancedComponent = withGetCloudSubscription(TestComponent);
         const actions = {
             getCloudSubscription: () => {},
@@ -42,7 +43,7 @@ describe('/components/common/hocs/with_get_cloud_subcription', () => {
 
         const getCloudSubscriptionSpy = jest.spyOn(actions, 'getCloudSubscription');
 
-        mount(
+        renderWithContext(
             <EnhancedComponent
                 isCloud={false}
                 actions={actions}
@@ -62,7 +63,7 @@ describe('/components/common/hocs/with_get_cloud_subcription', () => {
 
         const getCloudSubscriptionSpy = jest.spyOn(actions, 'getCloudSubscription');
 
-        mount(
+        renderWithContext(
             <EnhancedComponent
                 isCloud={true}
                 actions={actions}

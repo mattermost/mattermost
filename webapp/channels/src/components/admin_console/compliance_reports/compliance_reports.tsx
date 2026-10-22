@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime, defineMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -51,19 +52,19 @@ type Props = {
             */
         createComplianceReport: (job: Partial<Compliance>) => Promise<ActionResult<Compliance>>;
     };
-}
+};
 
 type State = {
     loadingReports: boolean;
     runningReport?: boolean;
-}
+};
 
 export default class ComplianceReports extends React.PureComponent<Props, State> {
-    private descInput: React.RefObject<HTMLInputElement>;
-    private emailsInput: React.RefObject<HTMLInputElement>;
-    private fromInput: React.RefObject<HTMLInputElement>;
-    private keywordsInput: React.RefObject<HTMLInputElement>;
-    private toInput: React.RefObject<HTMLInputElement>;
+    private descInput: React.RefObject<HTMLInputElement | null>;
+    private emailsInput: React.RefObject<HTMLInputElement | null>;
+    private fromInput: React.RefObject<HTMLInputElement | null>;
+    private keywordsInput: React.RefObject<HTMLInputElement | null>;
+    private toInput: React.RefObject<HTMLInputElement | null>;
 
     constructor(props: Props) {
         super(props);
@@ -421,10 +422,10 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                     </div>
                 </div>
                 <div className='clearfix'>
-                    <button
+                    <Button
                         id='run-button'
                         type='submit'
-                        className='btn btn-primary'
+                        emphasis='primary'
                         onClick={this.runReport}
                         disabled={this.props.readOnly}
                     >
@@ -432,13 +433,13 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                             id='admin.compliance_reports.run'
                             defaultMessage='Run Compliance Report'
                         />
-                    </button>
+                    </Button>
                 </div>
                 {serverError}
                 <div className='text-right'>
-                    <button
+                    <Button
                         type='submit'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         disabled={this.state.runningReport}
                         onClick={this.reload}
                     >
@@ -447,7 +448,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                             id='admin.compliance_reports.reload'
                             defaultMessage='Reload Completed Compliance Reports'
                         />
-                    </button>
+                    </Button>
                 </div>
                 <div className='compliance-panel__table'>
                     {content}

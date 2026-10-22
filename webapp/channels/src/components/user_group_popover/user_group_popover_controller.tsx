@@ -16,8 +16,11 @@ import {
 } from '@floating-ui/react';
 import type {ReactNode} from 'react';
 import React, {useCallback, useState} from 'react';
+import {useDispatch} from 'react-redux';
 
 import type {Group} from '@mattermost/types/groups';
+
+import {getProfilesInGroup} from 'mattermost-redux/actions/users';
 
 import {A11yClassNames} from 'utils/constants';
 
@@ -40,10 +43,18 @@ interface Props {
 
 export function UserGroupPopoverController(props: Props) {
     const [isOpen, setOpen] = useState(false);
+    const dispatch = useDispatch();
+
+    const handleOpenChange = useCallback((open: boolean) => {
+        setOpen(open);
+        if (open) {
+            dispatch(getProfilesInGroup(props.group.id, 0, 100, 'display_name'));
+        }
+    }, [dispatch, props.group.id]);
 
     const {refs, floatingStyles, context: floatingContext} = useFloating({
         open: isOpen,
-        onOpenChange: setOpen,
+        onOpenChange: handleOpenChange,
         whileElementsMounted: autoUpdate,
         middleware: [autoPlacement()],
     });

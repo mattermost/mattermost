@@ -11,7 +11,10 @@ test(
     {tag: ['@accessibility', '@settings', '@advanced_settings']},
     async ({pw}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, adminClient} = await pw.initSetup();
+        const config = await adminClient.getConfig();
+        const wysiwygEnabled =
+            config.FeatureFlags?.WysiwygEditor === true || config.FeatureFlags?.WysiwygEditor === 'true';
 
         // # Log in a user in new browser context
         const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -45,6 +48,12 @@ test(
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(advancedSettings.ctrlEnterEditButton);
 
+        if (wysiwygEnabled) {
+            // # Press Tab to move focus to Rich text editing button
+            await page.keyboard.press('Tab');
+            await pw.toBeFocusedWithFocusVisible(advancedSettings.wysiwygEditorEditButton);
+        }
+
         // # Press Tab to move focus to Enable Post Formatting button
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(advancedSettings.postFormattingEditButton);
@@ -71,7 +80,11 @@ test(
     {tag: ['@accessibility', '@settings', '@advanced_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, adminClient} = await pw.initSetup();
+
+        const config = await adminClient.getConfig();
+        const wysiwygEnabled =
+            config.FeatureFlags?.WysiwygEditor === true || config.FeatureFlags?.WysiwygEditor === 'true';
 
         // # Log in a user in new browser context
         const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -95,13 +108,20 @@ test(
         // * Advanced Settings panel should be visible
         await expect(settingsModal.advancedSettings.container).toBeVisible();
 
+        const wysiwygSnapshot = wysiwygEnabled
+            ? `
+            - heading "Rich text editing (Beta)" [level=4]
+            - button "Rich text editing (Beta) Edit"
+            - text: /(Markdown editing [(]default[)]|Rich text editing.*)/`
+            : '';
+
         // * Verify aria snapshot of Advanced settings tab
         await expect(settingsModal.advancedSettings.container).toMatchAriaSnapshot(`
           - tabpanel "advanced":
             - heading "Advanced Settings" [level=3]
             - heading /Send Messages on (CTRL|⌘)\\+ENTER/ [level=4]
             - button /Send Messages on (CTRL|⌘)\\+ENTER Edit/
-            - text: /(On for all messages|On only for code blocks starting with \`\`\`|Off)/
+            - text: /(On for all messages|On only for code blocks starting with \`\`\`|Off)/${wysiwygSnapshot}
             - heading "Enable Post Formatting" [level=4]
             - button "Enable Post Formatting Edit"
             - text: /(On|Off)/

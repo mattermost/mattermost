@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
+import {isMac} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {ProductIdentifier} from '@mattermost/types/products';
 import type {Team} from '@mattermost/types/teams';
@@ -24,7 +25,6 @@ import a11yController from 'utils/a11y_controller_instance';
 import {focusElement, getFirstFocusableChild} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
-import {isMac} from 'utils/user_agent';
 
 import type {RhsState} from 'types/store/rhs';
 
@@ -62,15 +62,15 @@ export type Props = {
         showChannelFiles: (channelId: string) => void;
         showChannelInfo: (channelId: string) => void;
     };
-}
+};
 
 type State = {
     isOpened: boolean;
-}
+};
 
 export default class SidebarRight extends React.PureComponent<Props, State> {
-    sidebarRight: React.RefObject<HTMLDivElement>;
-    sidebarRightWidthHolder: React.RefObject<HTMLDivElement>;
+    sidebarRight: React.RefObject<HTMLDivElement | null>;
+    sidebarRightWidthHolder: React.RefObject<HTMLDivElement | null>;
     previous: Partial<Props> | undefined = undefined;
     focusSearchBar?: () => void;
     private previousActiveElement: HTMLElement | null = null;

@@ -44,16 +44,18 @@ func (a *App) NotifySessionsExpired() error {
 		tmpMessage := msg.DeepCopy()
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 		tmpMessage.AckId = model.NewId()
-		tmpMessage.Message = a.getSessionExpiredPushMessage(session)
 
 		rctx := request.EmptyContext(a.Log().With(
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("ack_id", tmpMessage.AckId),
 			mlog.String("push_type", tmpMessage.Type),
 			mlog.String("user_id", session.UserId),
-			mlog.String("device_id", tmpMessage.DeviceId),
+			mlog.String("session_id", session.Id),
+			mlog.String("device_id", model.RedactDeviceId(tmpMessage.DeviceId)),
 			mlog.String("post_id", msg.PostId),
 		))
+
+		tmpMessage.Message = a.getSessionExpiredPushMessage(rctx, session)
 
 		errPush := a.sendToPushProxy(rctx, tmpMessage, session)
 		if errPush != nil {
@@ -80,15 +82,19 @@ func (a *App) NotifySessionsExpired() error {
 
 		err = a.ch.srv.Store().Session().UpdateExpiredNotify(session.Id, true)
 		if err != nil {
-			mlog.Error("Failed to update ExpiredNotify flag", mlog.String("sessionid", session.Id), mlog.Err(err))
+			mlog.Error("Failed to update ExpiredNotify flag",
+				mlog.String("sessionid", session.Id),
+				mlog.String("device_id", model.RedactDeviceId(tmpMessage.DeviceId)),
+				mlog.Err(err),
+			)
 		}
 	}
 	return nil
 }
 
-func (a *App) getSessionExpiredPushMessage(session *model.Session) string {
+func (a *App) getSessionExpiredPushMessage(rctx request.CTX, session *model.Session) string {
 	locale := model.DefaultLocale
-	user, err := a.GetUser(session.UserId)
+	user, err := a.GetUser(rctx, session.UserId)
 	if err == nil {
 		locale = user.Locale
 	}

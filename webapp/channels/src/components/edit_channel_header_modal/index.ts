@@ -10,16 +10,12 @@ import {patchChannel} from 'mattermost-redux/actions/channels';
 import {Preferences} from 'mattermost-redux/constants';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
-import {setShowPreviewOnEditChannelHeaderModal} from 'actions/views/textbox';
-import {showPreviewOnEditChannelHeaderModal} from 'selectors/views/textbox';
-
 import type {GlobalState} from 'types/store';
 
 import EditChannelHeaderModal from './edit_channel_header_modal';
 
 function mapStateToProps(state: GlobalState) {
     return {
-        shouldShowPreview: showPreviewOnEditChannelHeaderModal(state),
         ctrlSend: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
     };
 }
@@ -28,7 +24,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             patchChannel,
-            setShowPreview: setShowPreviewOnEditChannelHeaderModal,
         }, dispatch),
     };
 }
@@ -37,4 +32,4 @@ const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default connect(mapStateToProps, mapDispatchToProps)(EditChannelHeaderModal);
+export default connector(EditChannelHeaderModal);

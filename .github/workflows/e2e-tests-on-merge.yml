@@ -16,16 +16,23 @@ on:
         required: true
         description: "Docker image tag (e.g., 'abc1234_def5678' or 'master')"
 
+permissions: {}
+
 jobs:
   generate-build-variables:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     outputs:
       report_type: "${{ steps.vars.outputs.report_type }}"
       ref_branch: "${{ steps.vars.outputs.ref_branch }}"
+      fips_supported: "${{ steps.vars.outputs.fips_supported }}"
+      should_run_subpath: "${{ steps.vars.outputs.should_run_subpath }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.branch }}
           fetch-depth: 50
       - name: ci/generate-variables
@@ -37,11 +44,18 @@ jobs:
           # Strip refs/heads/ prefix if present
           BRANCH="${BRANCH#refs/heads/}"
 
-          # Validate branch is master or release-X.Y
+          # Validate branch is master or release-X.Y, and decide whether FIPS is supported.
+          # FIPS builds were introduced in release-11.0; skip FIPS tests for older branches.
           if [[ "$BRANCH" == "master" ]]; then
             echo "report_type=MASTER" >> $GITHUB_OUTPUT
-          elif [[ "$BRANCH" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
+            echo "fips_supported=true" >> $GITHUB_OUTPUT
+          elif [[ "$BRANCH" =~ ^release-([0-9]+)\.[0-9]+$ ]]; then
             echo "report_type=RELEASE" >> $GITHUB_OUTPUT
+            if [[ "${BASH_REMATCH[1]}" -ge 11 ]]; then
+              echo "fips_supported=true" >> $GITHUB_OUTPUT
+            else
+              echo "fips_supported=false" >> $GITHUB_OUTPUT
+            fi
           else
             echo "::error::Branch ${BRANCH} must be 'master' or 'release-X.Y' format."
             exit 1
@@ -55,9 +69,74 @@ jobs:
             exit 1
           fi
 
+          # Subpath: run the full suite against a server booted under a subpath when this commit
+          # changed subpath-specific server code or test specs.
+          CHANGED_FILES=$(git diff --name-only "${COMMIT_SHA}^" "${COMMIT_SHA}")
+          SHOULD_RUN_SUBPATH="false"
+          if echo "$CHANGED_FILES" | grep -qE '^server/channels/utils/subpath\.go$'; then
+            echo "Found server subpath.go changes"
+            SHOULD_RUN_SUBPATH="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^e2e-tests/playwright/specs/functional/subpath/'; then
+            echo "Found subpath spec changes"
+            SHOULD_RUN_SUBPATH="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^(\.github/workflows/e2e-tests-playwright(-template)?\.yml|e2e-tests/playwright/(playwright\.config\.ts|lib/src/(flag\.ts|test_config\.ts|browser_context\.ts|test_fixture\.ts|util\.ts|server/server_env\.ts|ui/pages/(channels|system_console)\.ts|containers/(nginx_container\.ts|mattermost_container\.ts|stack\.ts|constants\.ts|default_images\.ts|requirements\.ts))))$'; then
+            echo "Found subpath deployment implementation changes"
+            SHOULD_RUN_SUBPATH="true"
+          fi
+          echo "should_run_subpath=${SHOULD_RUN_SUBPATH}" >> $GITHUB_OUTPUT
+          echo "Should run subpath E2E tests: ${SHOULD_RUN_SUBPATH}"
+
+  check-changes:
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    outputs:
+      should_run_rolling_upgrades: "${{ steps.check.outputs.should_run_rolling_upgrades }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 2
+      - name: ci/check-relevant-changes
+        id: check
+        env:
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+        run: |
+          # Merges land as a single commit on master/release branches, so diff
+          # against its parent instead of a PR base (mirrors e2e-tests-ci.yml).
+          CHANGED_FILES=$(git diff --name-only "${COMMIT_SHA}~1" "${COMMIT_SHA}")
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Rolling upgrades: auto when the merge touches the harness or a
+          # server surface an upgrade has to survive (same conditions as the
+          # PR pipeline's check-changes job).
+          SHOULD_RUN_ROLLING_UPGRADES="false"
+          if echo "$CHANGED_FILES" | grep -qE '^e2e-tests/playwright/(upgrade-specs/|script/resolve_upgrade_matrix\.mjs)'; then
+            echo "Found Playwright upgrade-path harness changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-tests-playwright-rolling-upgrades'; then
+            echo "Found Playwright rolling-upgrade workflow changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^server/(channels/db/migrations/|config/migrations/|channels/app/(migrations|permissions_migrations)\.go$|public/model/version\.go$)'; then
+            echo "Found server migration or version changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          fi
+
+          echo "should_run_rolling_upgrades=${SHOULD_RUN_ROLLING_UPGRADES}" >> $GITHUB_OUTPUT
+          echo "Should run rolling upgrades: ${SHOULD_RUN_ROLLING_UPGRADES}"
+
   # Enterprise Edition
   e2e-cypress:
     needs: generate-build-variables
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -76,7 +155,14 @@ jobs:
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
 
   e2e-playwright:
-    needs: generate-build-variables
+    needs:
+      - generate-build-variables
+      - check-changes
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -85,15 +171,45 @@ jobs:
       enable_reporting: true
       report_type: ${{ needs.generate-build-variables.outputs.report_type }}
       ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+      run_rolling_upgrades: ${{ needs.check-changes.outputs.should_run_rolling_upgrades }}
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
-      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
-      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+
+  # Full Playwright suite against a server booted under a subpath (PW_SERVER_DEPLOY=subpath).
+  # Only when subpath-specific server code or test specs changed in this commit.
+  e2e-playwright-subpath:
+    needs: generate-build-variables
+    if: needs.generate-build-variables.outputs.should_run_subpath == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
+    uses: ./.github/workflows/e2e-tests-playwright.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+      server_image_tag: ${{ inputs.server_image_tag }}
+      server: onprem
+      enable_reporting: true
+      report_type: ${{ needs.generate-build-variables.outputs.report_type }}
+      ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+      server_deploy: subpath
+      playwright_project: subpath
+    secrets:
+      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
 
   # Enterprise FIPS Edition
+  # FIPS builds were introduced in release-11.0; skip for older branches.
   e2e-cypress-fips:
     needs: generate-build-variables
+    if: needs.generate-build-variables.outputs.fips_supported == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -113,7 +229,15 @@ jobs:
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
 
   e2e-playwright-fips:
-    needs: generate-build-variables
+    needs:
+      - generate-build-variables
+      - check-changes
+    if: needs.generate-build-variables.outputs.fips_supported == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -123,8 +247,7 @@ jobs:
       enable_reporting: true
       report_type: ${{ needs.generate-build-variables.outputs.report_type }}
       ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+      run_rolling_upgrades: ${{ needs.check-changes.outputs.should_run_rolling_upgrades }}
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
-      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
-      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"

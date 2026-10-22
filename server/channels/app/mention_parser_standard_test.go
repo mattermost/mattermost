@@ -4,19 +4,64 @@
 package app
 
 import (
+	"fmt"
+	"maps"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
 )
 
+// withFillerKeywords returns the given keywords along with count additional single-byte keywords
+// that are not expected to match anything.
+func withFillerKeywords(keywords map[string][]string, count int) map[string][]string {
+	result := make(map[string][]string, len(keywords)+count)
+	maps.Copy(result, keywords)
+
+	filler := model.NewId()
+	for i := range count {
+		result[fmt.Sprintf("keyword%d", i)] = []string{filler}
+	}
+
+	return result
+}
+
+func TestMakeStandardMentionParser(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("should precompute only the multibyte keywords", func(t *testing.T) {
+		id := model.NewId()
+		p := makeStandardMentionParser(mapsToMentionKeywords(map[string][]string{
+			"apple":  {id},
+			"banana": {id},
+			"番茄":     {id},
+			"世界":     {id},
+			"café":   {id},
+		}, nil))
+
+		assert.ElementsMatch(t, []string{"番茄", "世界", "café"}, p.multibyteKeywords)
+	})
+
+	t.Run("should precompute nothing when no keyword is multibyte", func(t *testing.T) {
+		id := model.NewId()
+		p := makeStandardMentionParser(mapsToMentionKeywords(map[string][]string{
+			"apple":  {id},
+			"banana": {id},
+		}, nil))
+
+		assert.Empty(t, p.multibyteKeywords)
+	})
+}
+
 func TestIsKeywordMultibyte(t *testing.T) {
 	mainHelper.Parallel(t)
 	id1 := model.NewId()
+	id2 := model.NewId()
 
 	for name, tc := range map[string]struct {
 		Message     string
-		Attachments []*model.SlackAttachment
+		Attachments []*model.MessageAttachment
 		Keywords    map[string][]string
 		Groups      map[string]*model.Group
 		Expected    *MentionResults
@@ -101,6 +146,38 @@ func TestIsKeywordMultibyte(t *testing.T) {
 				Mentions: nil,
 			},
 		},
+		"MultibyteCharacterAlongsideManySingleByteKeywords": {
+			Message:  "我爱吃番茄炒饭",
+			Keywords: withFillerKeywords(map[string][]string{"番茄": {id1}}, 500),
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					id1: KeywordMention,
+				},
+			},
+		},
+		"MultibyteCharacterWithOnlySingleByteKeywords": {
+			Message:  "我爱吃番茄炒饭",
+			Keywords: map[string][]string{"tomato": {id1}},
+			Expected: &MentionResults{
+				Mentions: nil,
+			},
+		},
+		"SingleByteWordWithOnlyMultibyteKeywords": {
+			Message:  "the quick brown fox",
+			Keywords: map[string][]string{"番茄": {id1}},
+			Expected: &MentionResults{
+				Mentions: nil,
+			},
+		},
+		"MultipleMultibyteKeywordsWhereOnlyOneMatches": {
+			Message:  "我爱吃番茄炒饭",
+			Keywords: map[string][]string{"番茄": {id1}, "世界": {id2}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					id1: KeywordMention,
+				},
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			post := &model.Post{
@@ -110,7 +187,7 @@ func TestIsKeywordMultibyte(t *testing.T) {
 				},
 			}
 
-			m := getExplicitMentions(post, mapsToMentionKeywords(tc.Keywords, tc.Groups))
+			m := getExplicitMentions(post, mapsToMentionKeywords(tc.Keywords, tc.Groups), true)
 			assert.EqualValues(t, tc.Expected, m)
 		})
 	}
@@ -123,7 +200,7 @@ func TestCheckForMentionUsers(t *testing.T) {
 
 	for name, tc := range map[string]struct {
 		Word        string
-		Attachments []*model.SlackAttachment
+		Attachments []*model.MessageAttachment
 		Keywords    map[string][]string
 		Expected    *MentionResults
 	}{
@@ -232,24 +309,24 @@ func TestCheckForMentionGroups(t *testing.T) {
 		"No matching groups": {
 			Word: "nothing",
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{},
 		},
 		"matching group with no @": {
 			Word: "engineering",
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{},
 		},
 		"matching group with preceding @": {
 			Word: "@engineering",
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{
 				GroupMentions: map[string]MentionType{
@@ -260,8 +337,8 @@ func TestCheckForMentionGroups(t *testing.T) {
 		"matching upper case group with preceding @": {
 			Word: "@Engineering",
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{
 				GroupMentions: map[string]MentionType{
@@ -298,8 +375,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello user @user1",
 			Keywords: map[string][]string{"@user1": {userID1}},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
@@ -311,8 +388,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello user.@user1",
 			Keywords: map[string][]string{"@user1": {userID1}},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
@@ -333,8 +410,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello user:@user1",
 			Keywords: map[string][]string{"@user1": {userID1}},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
@@ -346,8 +423,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello all:@here",
 			Keywords: map[string][]string{},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{
 				HereMentioned: true,
@@ -357,8 +434,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello all-@all",
 			Keywords: map[string][]string{},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{
 				AllMentioned: true,
@@ -368,8 +445,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello channel.@channel",
 			Keywords: map[string][]string{},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{
 				ChannelMentioned: true,
@@ -379,8 +456,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello @potentialuser and @otherpotentialuser",
 			Keywords: map[string][]string{},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{
 				OtherPotentialMentions: []string{"potentialuser", "otherpotentialuser"},
@@ -390,8 +467,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "@user1, you can use @systembot to get help",
 			Keywords: map[string][]string{"@user1": {userID1}},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
@@ -404,8 +481,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "@engineering",
 			Keywords: map[string][]string{"@user1": {userID1}},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{
 				GroupMentions: map[string]MentionType{groupID1: GroupMention},
@@ -415,8 +492,8 @@ func TestProcessText(t *testing.T) {
 			Text:     "@engineering @user1, you can use @systembot to get help from",
 			Keywords: map[string][]string{"@user1": {userID1}},
 			Groups: map[string]*model.Group{
-				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
-				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+				groupID1: {Id: groupID1, Name: new("engineering")},
+				groupID2: {Id: groupID2, Name: new("developers")},
 			},
 			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
@@ -433,5 +510,50 @@ func TestProcessText(t *testing.T) {
 
 			assert.EqualValues(t, tc.Expected, p.Results())
 		})
+	}
+}
+
+// makeBenchmarkKeywords returns count single-byte keywords, optionally alongside one multibyte
+// keyword, all belonging to a single user.
+func makeBenchmarkKeywords(count int, multibyteKeyword string) MentionKeywords {
+	keywords := make(MentionKeywords, count+1)
+
+	id := mentionableUserID(model.NewId())
+	for i := range count {
+		keywords[fmt.Sprintf("keyword%d", i)] = []MentionableID{id}
+	}
+
+	if multibyteKeyword != "" {
+		keywords[multibyteKeyword] = []MentionableID{id}
+	}
+
+	return keywords
+}
+
+func BenchmarkGetExplicitMentions(b *testing.B) {
+	// Roughly 1800 words, matching the scale of a long message in a busy channel.
+	asciiMessage := strings.Repeat("the quick brown fox jumps over the lazy dog ", 200)
+	multibyteMessage := strings.Repeat("こんにちは、世界 the quick brown fox ", 200)
+
+	for _, tc := range []struct {
+		name             string
+		message          string
+		multibyteKeyword string
+	}{
+		{name: "ascii post, no multibyte keywords", message: asciiMessage},
+		{name: "ascii post, one multibyte keyword", message: asciiMessage, multibyteKeyword: "世界"},
+		{name: "multibyte post, one multibyte keyword", message: multibyteMessage, multibyteKeyword: "世界"},
+	} {
+		for _, numKeywords := range []int{10, 1000, 10000, 55000} {
+			b.Run(fmt.Sprintf("%s/keywords=%d", tc.name, numKeywords), func(b *testing.B) {
+				keywords := makeBenchmarkKeywords(numKeywords, tc.multibyteKeyword)
+				post := &model.Post{Message: tc.message}
+
+				b.ReportAllocs()
+				for b.Loop() {
+					getExplicitMentions(post, keywords, true)
+				}
+			})
+		}
 	}
 }

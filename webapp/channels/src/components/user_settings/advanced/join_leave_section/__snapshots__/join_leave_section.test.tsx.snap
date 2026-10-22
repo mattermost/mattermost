@@ -4,6 +4,7 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
 <div>
   <div
     class="section-min"
+    data-testid="section-min"
   >
     <div
       class="section-min__header"
@@ -68,34 +69,59 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
               Enable Join/Leave Messages
             </legend>
             <div
-              class="radio"
+              class="settings-radio-group"
             >
-              <label>
+              <label
+                class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                for="joinLeaveOn"
+              >
                 <input
                   checked=""
-                  class="a11y--active a11y--focused"
+                  class="_radio__input_1hdqa_14 a11y--active a11y--focused"
                   id="joinLeaveOn"
                   name="joinLeave"
                   type="radio"
                   value="true"
                 />
-                On
+                <span
+                  class="_radio__circle_1hdqa_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_1hdqa_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_1hdqa_116"
+                >
+                  On
+                </span>
               </label>
-              <br />
-            </div>
-            <div
-              class="radio"
-            >
-              <label>
+              <label
+                class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+                for="joinLeaveOff"
+              >
                 <input
+                  class="_radio__input_1hdqa_14"
                   id="joinLeaveOff"
                   name="joinLeave"
                   type="radio"
                   value="false"
                 />
-                Off
+                <span
+                  class="_radio__circle_1hdqa_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_1hdqa_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_1hdqa_116"
+                >
+                  Off
+                </span>
               </label>
-              <br />
             </div>
             <div
               class="mt-5"
@@ -112,7 +138,7 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
             role="alert"
           />
           <button
-            class="btn btn-primary "
+            class="btn btn-primary"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"

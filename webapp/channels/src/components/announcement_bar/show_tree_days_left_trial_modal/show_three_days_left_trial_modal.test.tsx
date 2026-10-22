@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 
 import ShowThreeDaysLeftTrialModal from 'components/announcement_bar/show_tree_days_left_trial_modal/show_three_days_left_trial_modal';
 
+import {render} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 
@@ -22,6 +22,8 @@ jest.mock('react-redux', () => ({
 
 describe('components/sidebar/show_three_days_left_trial_modal', () => {
     beforeEach(() => {
+        mockDispatch.mockClear();
+
         // required state to mount using the provider
         mockState = {
             entities: {
@@ -134,7 +136,7 @@ describe('components/sidebar/show_three_days_left_trial_modal', () => {
     });
 
     test('should show the modal when is cloud, free trial, admin, have not dimissed previously and there are less than 3 days in the trial, ', () => {
-        mount(
+        render(
             <ShowThreeDaysLeftTrialModal/>,
         );
         expect(mockDispatch).toHaveBeenCalledTimes(1);
@@ -156,7 +158,7 @@ describe('components/sidebar/show_three_days_left_trial_modal', () => {
             },
         };
 
-        mount(
+        render(
             <ShowThreeDaysLeftTrialModal/>,
         );
         expect(mockDispatch).toHaveBeenCalledTimes(0);
@@ -165,7 +167,7 @@ describe('components/sidebar/show_three_days_left_trial_modal', () => {
     test('should NOT show the modal when is not Cloud', () => {
         mockState = {...mockState, entities: {...mockState.entities, general: {...mockState.general, license: {Cloud: 'false'}}}};
 
-        mount(
+        render(
             <ShowThreeDaysLeftTrialModal/>,
         );
         expect(mockDispatch).toHaveBeenCalledTimes(0);
@@ -186,7 +188,7 @@ describe('components/sidebar/show_three_days_left_trial_modal', () => {
             },
         };
 
-        mount(
+        render(
             <ShowThreeDaysLeftTrialModal/>,
         );
         expect(mockDispatch).toHaveBeenCalledTimes(0);
@@ -213,7 +215,7 @@ describe('components/sidebar/show_three_days_left_trial_modal', () => {
                 },
             },
         };
-        mount(
+        render(
             <ShowThreeDaysLeftTrialModal/>,
         );
         expect(mockDispatch).toHaveBeenCalledTimes(0);
@@ -236,7 +238,7 @@ describe('components/sidebar/show_three_days_left_trial_modal', () => {
                 preferences: modalDismissedPreference,
             },
         };
-        mount(
+        render(
             <ShowThreeDaysLeftTrialModal/>,
         );
         expect(mockDispatch).toHaveBeenCalledTimes(0);

@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
+import {useUserIdsInGroupChannel} from 'components/common/hooks/useUserIdsInGroupChannel';
 import Timestamp from 'components/timestamp';
 
 import UserDetails from './user_details';
@@ -34,7 +35,7 @@ export type Props = {
     isSelected: boolean;
     add: (value: OptionValue) => void;
     select: (value: OptionValue) => void;
-}
+};
 
 const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>) => {
     const {
@@ -61,6 +62,7 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
     return (
         <div
             ref={ref}
+            data-testid={isGroupChannel(option) ? 'group-message-row' : 'direct-message-row'}
             className={classNames('more-modal__row clickable', {'more-modal__row--selected': isSelected})}
             onClick={handleClick}
             onMouseEnter={handleMouseEnter}
@@ -96,6 +98,9 @@ export default ListItem;
 
 function GMDetails(props: {option: GroupChannel}) {
     const {option} = props;
+
+    // Indirectly populate option.profiles when needed
+    useUserIdsInGroupChannel(option.id);
 
     return (
         <>

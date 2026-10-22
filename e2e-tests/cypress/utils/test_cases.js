@@ -6,7 +6,7 @@
 // See reference: https://support.smartbear.com/tm4j-cloud/api-docs/
 
 const axios = require('axios');
-const chalk = require('chalk');
+const chalk = require('chalk').default;
 
 const {getAllTests} = require('./report');
 
@@ -42,7 +42,7 @@ function getStepStateSummary(steps = []) {
 
 function getTM4JTestCases(report) {
     return getAllTests(report.results).
-        filter((item) => /^(MM-T)\w+/g.test(item.title)).
+        filter((item) => (/^(MM-T)\w+/g).test(item.title)).
         map((item) => {
             return {
                 title: item.title,
@@ -140,8 +140,7 @@ async function createTestExecutions(report, testCycle) {
             environmentName: TM4J_ENVIRONMENT_NAME || environment[BROWSER] || 'Chrome',
             actualEndDate: testScriptResults[testScriptResults.length - 1].actualEndDate,
             executionTime: steps.reduce((acc, prev) => {
-                acc += prev.duration;
-                return acc;
+                return acc + prev.duration;
             }, 0),
             comment: `Cypress automated test - ${getStepStateSummary(steps)}`,
         };

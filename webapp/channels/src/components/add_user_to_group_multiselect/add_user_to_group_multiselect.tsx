@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessage, injectIntl} from 'react-intl';
 
@@ -52,7 +52,6 @@ export type Props = {
     buttonSubmitText?: string | MessageDescriptor;
     buttonSubmitLoadingText?: string | MessageDescriptor;
     backButtonClick?: () => void;
-    backButtonClass?: string;
     backButtonText?: string | MessageDescriptor;
 
     actions: {
@@ -61,13 +60,13 @@ export type Props = {
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     values: UserProfileValue[];
     term: string;
     loadingUsers: boolean;
-}
+};
 
 export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State> {
     private searchTimeoutId = 0;
@@ -241,7 +240,6 @@ export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State>
                 focusOnLoad={this.props.focusOnLoad}
                 savingEnabled={this.props.savingEnabled}
                 backButtonClick={this.props.backButtonClick}
-                backButtonClass={this.props.backButtonClass}
                 backButtonText={this.props.backButtonText}
                 maxValues={maxValues}
                 numRemainingText={numRemainingText}

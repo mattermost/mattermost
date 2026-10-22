@@ -9,10 +9,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 	"github.com/spf13/cobra"
+	"go.uber.org/mock/gomock"
 )
 
 func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
@@ -546,5 +546,43 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to get CPA fields")
 		s.Require().Contains(err.Error(), "fields API error")
+	})
+}
+
+// TestResolveOptionNamesToIDs covers the assignment side of rank-typed
+// attribute resolution: when an admin sets a rank value by option name, the
+// name is resolved to the stored option ID. Rank fields share the single-value
+// resolution path with select fields.
+func (s *MmctlUnitTestSuite) TestResolveOptionNamesToIDs() {
+	secretID := model.NewId()
+	topSecretID := model.NewId()
+	rankField := &model.PropertyField{
+		ID:   model.NewId(),
+		Name: "clearance",
+		Type: model.PropertyFieldTypeRank,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": secretID, "name": "SECRET", "rank": 2},
+				map[string]any{"id": topSecretID, "name": "TOP SECRET", "rank": 3},
+			},
+		},
+	}
+
+	s.Run("resolves an option name to its ID for assignment", func() {
+		resolved, err := resolveOptionNamesToIDs(rankField, []string{"TOP SECRET"})
+		s.Require().NoError(err)
+		s.Equal([]string{topSecretID}, resolved)
+	})
+
+	s.Run("passes through a value that is already an option ID", func() {
+		resolved, err := resolveOptionNamesToIDs(rankField, []string{secretID})
+		s.Require().NoError(err)
+		s.Equal([]string{secretID}, resolved)
+	})
+
+	s.Run("passes through an unknown option name unchanged", func() {
+		resolved, err := resolveOptionNamesToIDs(rankField, []string{"UNKNOWN"})
+		s.Require().NoError(err)
+		s.Equal([]string{"UNKNOWN"}, resolved)
 	})
 }

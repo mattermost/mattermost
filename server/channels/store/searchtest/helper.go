@@ -165,7 +165,7 @@ func (th *SearchTestHelper) makeEmail() string {
 func (th *SearchTestHelper) createUser(username, nickname, firstName, lastName string) (*model.User, error) {
 	return th.Store.User().Save(th.Context, &model.User{
 		Username:  username,
-		Password:  username,
+		Password:  model.NewTestPassword(),
 		Nickname:  nickname,
 		FirstName: firstName,
 		LastName:  lastName,
@@ -176,7 +176,7 @@ func (th *SearchTestHelper) createUser(username, nickname, firstName, lastName s
 func (th *SearchTestHelper) createGuest(username, nickname, firstName, lastName string) (*model.User, error) {
 	return th.Store.User().Save(th.Context, &model.User{
 		Username:  username,
-		Password:  username,
+		Password:  model.NewTestPassword(),
 		Nickname:  nickname,
 		FirstName: firstName,
 		LastName:  lastName,

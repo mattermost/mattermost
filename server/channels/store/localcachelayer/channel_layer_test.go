@@ -365,6 +365,92 @@ func TestChannelStoreChannel(t *testing.T) {
 	})
 }
 
+func TestChannelStoreSavePopulatesCache(t *testing.T) {
+	channelId := "channel1"
+	fakeChannel := model.Channel{Id: channelId, Name: "channel1-name"}
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	t.Run("save populates cache so subsequent get does not hit store", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		_, err = cachedStore.Channel().Save(request.TestContext(t), &fakeChannel, int64(0))
+		require.NoError(t, err)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Save", 1)
+
+		// Get should be served from cache without hitting the underlying store
+		channel, err := cachedStore.Channel().Get(channelId, true)
+		require.NoError(t, err)
+		assert.Equal(t, &fakeChannel, channel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 0)
+	})
+
+	t.Run("save populates cache, invalidate removes it, get hits store", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		_, err = cachedStore.Channel().Save(request.TestContext(t), &fakeChannel, int64(0))
+		require.NoError(t, err)
+
+		cachedStore.Channel().InvalidateChannel(channelId)
+
+		_, err = cachedStore.Channel().Get(channelId, true)
+		require.NoError(t, err)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 1)
+	})
+}
+
+func TestChannelStoreUpdateInvalidatesCache(t *testing.T) {
+	channelId := "channel1"
+	fakeChannel := model.Channel{Id: channelId, Name: "channel1-name"}
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	t.Run("update after save invalidates cache, get hits store", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		// Save populates cache
+		_, err = cachedStore.Channel().Save(request.TestContext(t), &fakeChannel, int64(0))
+		require.NoError(t, err)
+
+		// Update invalidates cache
+		_, err = cachedStore.Channel().Update(request.TestContext(t), &fakeChannel)
+		require.NoError(t, err)
+
+		// Get should miss cache and hit the store
+		_, err = cachedStore.Channel().Get(channelId, true)
+		require.NoError(t, err)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 1)
+	})
+
+	t.Run("update after get invalidates cache, next get hits store", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		// First Get populates cache
+		_, err = cachedStore.Channel().Get(channelId, true)
+		require.NoError(t, err)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 1)
+
+		// Update invalidates cache
+		_, err = cachedStore.Channel().Update(request.TestContext(t), &fakeChannel)
+		require.NoError(t, err)
+
+		// Second Get should miss cache and hit the store again
+		_, err = cachedStore.Channel().Get(channelId, true)
+		require.NoError(t, err)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 2)
+	})
+}
+
 func TestChannelStoreGetManyCache(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
 

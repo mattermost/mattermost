@@ -32,3 +32,11 @@
 .modal-header {
     background-color: var(--center-channel-bg);
 }
+
+.TeamAccessTab {
+    &__discoverabilitySelector {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+}

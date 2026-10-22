@@ -10,14 +10,14 @@
 // Stage: @prod
 // Group: @channels @channel_sidebar
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import * as MESSAGES from '../../../fixtures/messages';
-import {getAdminAccount} from '../../../support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as MESSAGES from '@/fixtures/messages';
+import {getAdminAccount} from '@/support/env';
 
 describe('Channel sidebar', () => {
     const sysadmin = getAdminAccount();
 
-    let testTeam;
+    let testTeam: Cypress.Team;
 
     beforeEach(() => {
         // # Start with a new team

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
 
@@ -65,12 +65,12 @@ type Props = {
     userDetailCallback: (teamsId: TeamMembership[]) => void;
     refreshTeams: boolean;
     readOnly?: boolean;
-}
+};
 
 type State = {
     teamsWithMemberships: TeamWithMembership[];
     serverError: string | null;
-}
+};
 
 export default class TeamList extends React.PureComponent<Props, State> {
     public static defaultProps = {

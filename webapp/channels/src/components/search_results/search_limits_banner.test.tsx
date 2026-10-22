@@ -2,10 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {DataSearchTypes} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 import {makeEmptyUsage} from 'utils/limits_test';
@@ -61,7 +59,6 @@ describe('components/select_results/SearchLimitsBanner', () => {
                     isSearchingTerm: false,
                     isSearchGettingMore: false,
                     matches: {},
-                    recent: {},
                     current: {},
                     truncationInfo: undefined,
                 },
@@ -73,9 +70,8 @@ describe('components/select_results/SearchLimitsBanner', () => {
                 },
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType='messages'/></Provider>);
-        expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(false);
+        const {container} = renderWithContext(<SearchLimitsBanner searchType='messages'/>, state);
+        expect(container.querySelector('#messages_search_limits_banner')).toBeNull();
     });
     test('should show banner when doing messages search above the limit in Entry with limits', () => {
         const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
@@ -113,7 +109,7 @@ describe('components/select_results/SearchLimitsBanner', () => {
                     isSearchingTerm: false,
                     isSearchGettingMore: false,
                     matches: {},
-                    recent: {},
+
                     current: {},
                     truncationInfo: {
                         posts: 1, // Indicate that search is truncated
@@ -127,9 +123,8 @@ describe('components/select_results/SearchLimitsBanner', () => {
                 },
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType='messages'/></Provider>);
-        expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(true);
+        const {container} = renderWithContext(<SearchLimitsBanner searchType='messages'/>, state);
+        expect(container.querySelector('#messages_search_limits_banner')).not.toBeNull();
     });
 
     test('should display "View plans" CTA text for messages search when banner is shown', () => {
@@ -169,7 +164,7 @@ describe('components/select_results/SearchLimitsBanner', () => {
                     isSearchingTerm: false,
                     isSearchGettingMore: false,
                     matches: {},
-                    recent: {},
+
                     current: {},
                     truncationInfo: {
                         posts: 1, // Indicate that search is truncated
@@ -184,11 +179,10 @@ describe('components/select_results/SearchLimitsBanner', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/></Provider>);
+        const {container} = renderWithContext(<SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/>, state);
 
-        expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(true);
-        expect(wrapper.text()).toContain('paid plans');
+        expect(container.querySelector('#messages_search_limits_banner')).not.toBeNull();
+        expect(container.textContent).toContain('paid plans');
     });
 
     test('should display correct banner message format for messages search', () => {
@@ -228,7 +222,7 @@ describe('components/select_results/SearchLimitsBanner', () => {
                     isSearchingTerm: false,
                     isSearchGettingMore: false,
                     matches: {},
-                    recent: {},
+
                     current: {},
                     truncationInfo: {
                         posts: 1, // Indicate that search is truncated
@@ -243,10 +237,9 @@ describe('components/select_results/SearchLimitsBanner', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/></Provider>);
+        const {container} = renderWithContext(<SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/>, state);
 
-        const bannerText = wrapper.text();
+        const bannerText = container.textContent;
         expect(bannerText).toContain('Limited history is displayed');
         expect(bannerText).toContain('Full access to message history is included in');
     });
@@ -290,7 +283,7 @@ describe('components/select_results/SearchLimitsBanner', () => {
                     isSearchingTerm: false,
                     isSearchGettingMore: false,
                     matches: {},
-                    recent: {},
+
                     current: {},
                     truncationInfo: {
                         posts: 1, // Indicate that search is truncated
@@ -305,16 +298,15 @@ describe('components/select_results/SearchLimitsBanner', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/></Provider>);
+        const {container} = renderWithContext(<SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/>, state);
 
         // Verify the banner is shown and contains the CTA link
-        expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(true);
-        expect(wrapper.text()).toContain('paid plans');
+        expect(container.querySelector('#messages_search_limits_banner')).not.toBeNull();
+        expect(container.textContent).toContain('paid plans');
 
         // Find the CTA link
-        const ctaLink = wrapper.find('a');
-        expect(ctaLink).toHaveLength(1);
+        const ctaLinks = container.querySelectorAll('a');
+        expect(ctaLinks).toHaveLength(1);
     });
 
     test('should NOT show banner when RHS is showing pinned posts even with truncated search results', () => {
@@ -354,7 +346,7 @@ describe('components/select_results/SearchLimitsBanner', () => {
                     isSearchingTerm: false,
                     isSearchGettingMore: false,
                     matches: {},
-                    recent: {},
+
                     current: {},
                     truncationInfo: {
                         posts: 1, // Search is truncated, but...
@@ -369,10 +361,9 @@ describe('components/select_results/SearchLimitsBanner', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/></Provider>);
+        const {container} = renderWithContext(<SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/>, state);
 
         // Banner should NOT show because RHS is showing pinned posts, not search results
-        expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(false);
+        expect(container.querySelector('#messages_search_limits_banner')).toBeNull();
     });
 });

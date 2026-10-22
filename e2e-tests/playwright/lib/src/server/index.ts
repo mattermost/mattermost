@@ -2,17 +2,43 @@
 // See LICENSE.txt for license information.
 
 export {makeClient} from './client';
+export {PlaywrightClient4} from './playwright_client';
 export {createRandomChannel} from './channel';
-export {getOnPremServerConfig, mergeWithOnPremServerConfig} from './default_config';
 export {initSetup, getAdminClient} from './init';
+export {clearAdminLoginLockout, getAdminClientHealing} from './admin_lockout';
+export {clearAdminLockout} from './lockout';
+export {restorePendingConfigPatches} from './patch_config';
+export type {RestoreConfig} from './patch_config';
+export {resetConfig} from './reset_config';
+export {resetRoles} from './roles';
 export {createRandomPost} from './post';
 export {createNewTeam, createRandomTeam} from './team';
-export {createNewUserProfile, createRandomUser, getDefaultAdminUser, isOutsideRemoteUserHour} from './user';
+export {
+    createNewUserProfile,
+    createRandomUser,
+    ensureChannelIntroActions,
+    getDefaultAdminUser,
+    isOutsideRemoteUserHour,
+    setDefaultOnboardingPreferences,
+} from './user';
+export {extractEmailLink, getRecentEmail} from './email';
+export type {InbucketEmail} from './email';
+export {
+    enableAIBridgeTestMode,
+    configureAIBridgeMock,
+    getAIBridgeMock,
+    resetAIBridgeMock,
+    createMockAIAgent,
+    rewriteCompletion,
+    recapCompletion,
+} from './ai_bridge';
 export {
     createUserWithAttributes,
     enableABAC,
     disableABAC,
     navigateToABACPage,
+    navigateToPermissionPoliciesPage,
+    navigateToAttributeBasedAccessPage,
     createBasicPolicy,
     createAdvancedPolicy,
     editPolicy,
@@ -22,4 +48,52 @@ export {
     verifyUserNotInChannel,
     updateUserAttributes,
 } from './abac_helpers';
-export {installAndEnablePlugin, isPluginActive, getPluginStatus} from './plugin';
+export {
+    defaultEnabledPluginIds,
+    disableUnexpectedPlugins,
+    ensureDemoPlugin,
+    installAndEnablePlugin,
+    isPluginActive,
+    getPluginStatus,
+} from './plugin';
+export type {EnsureDemoPluginOptions} from './plugin';
+export {isWebhookTestServerReachable, setupWebhookTestServer} from './webhook_server';
+export {
+    generateLdapUser,
+    createLdapUser,
+    updateLdapUser,
+    deleteLdapUser,
+    ldapServerConfig,
+    ensureOpenldap,
+} from './openldap';
+export type {LdapUser} from './openldap';
+export {
+    generateKeycloakUser,
+    createKeycloakUser,
+    deleteKeycloakUser,
+    setKeycloakUserAttributes,
+    suspendKeycloakUser,
+    samlServerConfig,
+    keycloakSamlDescriptorUrl,
+    ensureKeycloak,
+    openidServerConfig,
+    ensureKeycloakOpenId,
+} from './keycloak';
+export type {KeycloakUser} from './keycloak';
+export {listMinioObjectKeys, ensureMinio} from './minio';
+export {elasticsearchServerConfig, ensureElasticsearch} from './elasticsearch';
+export {opensearchServerConfig, ensureOpensearch} from './opensearch';
+export {ensureAzurite, listAzuriteBlobNames} from './azurite';
+export {ensureLocalFile, listMattermostDataFiles} from './filestore';
+export {ensurePostgresSearch} from './postgres_search';
+export {ensureFeatureFlag} from './feature_flags';
+export {ensureDefaultServerEnv} from './default_server_env';
+export {defaultFeatureFlags} from './default_feature_flags';
+export {ensurePhase2MigrationCompleted} from './migrations';
+export {ensureInternalSiteUrl, ensureServerEnv, ensureSiteUrl, requireSubpathServer} from './server_env';
+export {generateTotp, enableUserMfa} from './mfa';
+export {runMmctl, runMmctlLocal, ensureMmctl} from './mmctl';
+export type {MmctlResult} from './mmctl';
+export {upgradeServerImage} from './version';
+export {saveUpgradePhaseLogs} from './upgrade_logs';
+export type {UpgradeLogPhase} from './upgrade_logs';

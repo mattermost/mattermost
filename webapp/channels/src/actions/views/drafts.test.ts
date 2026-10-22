@@ -104,6 +104,9 @@ describe('draft actions', () => {
                     AllowSyncedDrafts: 'true',
                 },
             },
+            channels: {
+                channels: {},
+            },
         },
         storage: {
             storage: {

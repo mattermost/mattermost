@@ -13,7 +13,7 @@ type LanguageObject = {
         extensions: string[];
         aliases?: string[];
     };
-}
+};
 
 const HighlightedLanguages: LanguageObject = Constants.HighlightedLanguages;
 
@@ -24,7 +24,7 @@ export async function highlight(lang: string, code: string) {
         try {
             await registerLanguage(language);
             return hlJS.highlight(code, {language}).value;
-        } catch (e) {
+        } catch {
             // fall through if highlighting fails and handle below
         }
     }
@@ -66,6 +66,10 @@ export function getLanguageName(language: string): string {
     }
 
     return '';
+}
+
+export function getLanguageFromDisplayName(displayName: string): string {
+    return Object.keys(HighlightedLanguages).find((key) => HighlightedLanguages[key].name === displayName) ?? '';
 }
 
 function getLanguageFromNameOrAlias(name: string) {

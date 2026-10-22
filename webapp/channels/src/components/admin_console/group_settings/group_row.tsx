@@ -21,7 +21,7 @@ type Props = {
         link: (group_id: string) => void;
         unlink: (group_id: string) => void;
     };
-}
+};
 
 const GroupRow = (props: Props) => {
     const [loading, setLoading] = useState(false);

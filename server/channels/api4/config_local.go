@@ -116,6 +116,15 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.HandleMessageExportConfig(cfg, appCfg)
 	}
 
+	// Preserve the existing configs for those not present in the patch.
+	if cfg.PluginSettings.Plugins != nil {
+		for id, storedSettings := range appCfg.PluginSettings.Plugins {
+			if _, present := cfg.PluginSettings.Plugins[id]; !present {
+				cfg.PluginSettings.Plugins[id] = storedSettings
+			}
+		}
+	}
+
 	updatedCfg, mergeErr := config.Merge(appCfg, cfg, &utils.MergeConfig{
 		StructFieldFilter: filterFn,
 	})

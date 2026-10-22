@@ -119,7 +119,6 @@ describe('components/multiselect/multiselect', () => {
                 {...baseProps}
                 backButtonClick={handleBackButtonClick}
                 backButtonText='Cancel'
-                backButtonClass='tertiary-button'
                 saveButtonPosition='bottom'
             />,
         );

@@ -29,19 +29,19 @@ export type AppManifest = {
     description?: string;
     requested_permissions?: Permission[];
     requested_locations?: Locations[];
-}
+};
 
 export type AppModalState = {
     form: AppForm;
     call: AppCallRequest;
-}
+};
 
-export type AppCommandFormMap = { [location: string]: AppForm }
+export type AppCommandFormMap = {[location: string]: AppForm};
 
 export type BindingsInfo = {
     bindings: AppBinding[];
     forms: AppCommandFormMap;
-}
+};
 
 export type AppsState = {
     main: BindingsInfo;
@@ -203,7 +203,7 @@ export type AppCallResponse<Res = unknown> = {
 export type AppMetadataForClient = {
     bot_user_id: string;
     bot_username: string;
-}
+};
 
 export type AppContext = {
     app_id: string;
@@ -223,13 +223,14 @@ export type AppContextProps = {
     [name: string]: string;
 };
 
-export type AppExpandLevel = ''
-| 'none'
-| 'summary'
-| '+summary'
-| 'all'
-| '+all'
-| 'id';
+export type AppExpandLevel =
+    '' |
+    'none' |
+    'summary' |
+    '+summary' |
+    'all' |
+    '+all' |
+    'id';
 
 export type AppExpand = {
     app?: AppExpandLevel;
@@ -315,6 +316,9 @@ export type AppForm = {
     submit_on_cancel?: boolean;
     fields?: AppField[];
 
+    // Width tier for the modal. Absent means 'small', the historical width.
+    size?: 'small' | 'medium' | 'large';
+
     // source is used in 2 cases:
     //   - if submit is not set, it is used to fetch the submittable form from
     //     the app.
@@ -325,6 +329,10 @@ export type AppForm = {
     // submit is called when one of the submit buttons is pressed, or the
     // command is executed.
     submit?: AppCall;
+
+    // refresh_on_return re-fetches the form from source when a dialog stacked on
+    // top of it closes. Set by interactive dialogs (Dialog.refresh_on_return).
+    refresh_on_return?: boolean;
 
     depends_on?: string[];
 };
@@ -360,6 +368,10 @@ function isAppForm(v: unknown): v is AppForm {
         return false;
     }
 
+    if (form.refresh_on_return !== undefined && typeof form.refresh_on_return !== 'boolean') {
+        return false;
+    }
+
     if (form.cancel_button !== undefined && typeof form.cancel_button !== 'boolean') {
         return false;
     }
@@ -387,7 +399,7 @@ function isAppForm(v: unknown): v is AppForm {
     return true;
 }
 
-export type AppFormValue = string | AppSelectOption | AppSelectOption[] | boolean | null;
+export type AppFormValue = string | string[] | AppSelectOption | AppSelectOption[] | boolean | null;
 
 function isAppFormValue(v: unknown): v is AppFormValue {
     if (typeof v === 'string') {
@@ -403,13 +415,13 @@ function isAppFormValue(v: unknown): v is AppFormValue {
     }
 
     if (Array.isArray(v)) {
-        return v.every(isAppSelectOption);
+        return v.every((e) => typeof e === 'string' || isAppSelectOption(e));
     }
 
     return isAppSelectOption(v);
 }
 
-export type AppFormValues = { [name: string]: AppFormValue };
+export type AppFormValues = {[name: string]: AppFormValue};
 
 export type AppSelectOption = {
     label: string;
@@ -417,7 +429,7 @@ export type AppSelectOption = {
     icon_data?: string;
 };
 
-function isAppSelectOption(v: unknown): v is AppSelectOption {
+export function isAppSelectOption(v: unknown): v is AppSelectOption {
     if (typeof v !== 'object' || v === null) {
         return false;
     }
@@ -438,10 +450,36 @@ function isAppSelectOption(v: unknown): v is AppSelectOption {
 export type AppFieldType = string;
 
 // DateTime field configuration
+export type CollapsibleConfig = {
+    fields?: AppField[]; // Child fields grouped inside this collapsible section
+    expanded?: boolean; // Whether the section starts expanded (default: true)
+    bordered?: boolean; // Whether the section renders with a border (default: true)
+
+    // How the child fields are laid out inside the section. 'stacked' (the
+    // default) renders them vertically, one under the next.
+    //
+    // 'grid' renders each child collapsible as a row of a table and each of
+    // that child's own fields as a cell of that row — including a nested
+    // collapsible, which renders as an ordinary section inside its cell.
+    // Columns are matched by position, and a row's first cell is its header: a
+    // real, editable field in a sticky column rather than the row's label. The
+    // row's label is kept as the row's accessible name, and the section's own
+    // label, caret and border are the same in either layout.
+    layout?: 'stacked' | 'grid';
+};
+
 export type DateTimeConfig = {
+    min_date?: string; // Minimum allowed date (ISO date, datetime, or relative like "+2H", "today")
+    max_date?: string; // Maximum allowed date (ISO date, datetime, or relative like "+7d", "tomorrow")
     time_interval?: number; // Minutes between time options (default: 60)
     location_timezone?: string; // IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
-    allow_manual_time_entry?: boolean; // Allow text entry for time
+    manual_time_entry?: boolean; // Allow text entry for time
+};
+
+export type MatrixConfig = {
+    rows: AppSelectOption[];
+    columns: AppSelectOption[];
+    row_selection?: 'multiple' | 'single';
 };
 
 // This should go in mattermost-redux
@@ -470,6 +508,9 @@ export type AppField = {
     multiselect?: boolean;
     lookup?: AppCall;
 
+    // File props
+    allow_multiple?: boolean;
+
     // Text props
     subtype?: string;
     min_length?: number;
@@ -478,10 +519,15 @@ export type AppField = {
     // Date/datetime configuration
     datetime_config?: DateTimeConfig;
 
-    // Simple date/datetime configuration (fallback when datetime_config not provided)
-    min_date?: string;
-    max_date?: string;
-    time_interval?: number;
+    // Collapsible section config. A field of type 'collapsible' groups child
+    // fields behind an expandable title and contributes no value of its own.
+    collapsible_config?: CollapsibleConfig;
+    label_position?: 'before' | 'after';
+    matrix_config?: MatrixConfig;
+
+    // Action button props
+    action_button_url?: string;
+    action_button_context?: Record<string, string>;
 };
 
 /**
@@ -493,7 +539,7 @@ function isValidDateString(dateStr: string): boolean {
         /^today$/,
         /^tomorrow$/,
         /^yesterday$/,
-        /^[+-]\d{1,4}[dwm]$/i,
+        /^[+-]\d{1,3}[dwmHMS]$/,
     ];
 
     for (const pattern of relativePatterns) {
@@ -561,6 +607,10 @@ function isAppField(v: unknown): v is AppField {
         return false;
     }
 
+    if (field.allow_multiple !== undefined && typeof field.allow_multiple !== 'boolean') {
+        return false;
+    }
+
     if (field.lookup !== undefined && !isAppCall(field.lookup)) {
         return false;
     }
@@ -577,30 +627,41 @@ function isAppField(v: unknown): v is AppField {
         return false;
     }
 
-    if (field.min_date !== undefined) {
-        if (typeof field.min_date !== 'string') {
+    // Validate datetime_config fields
+    if (field.datetime_config !== undefined) {
+        if (typeof field.datetime_config !== 'object' || field.datetime_config === null) {
             return false;
         }
-
-        // Validate that min_date is a valid date format (ISO or relative)
-        if (!isValidDateString(field.min_date)) {
+        if (field.datetime_config.min_date !== undefined) {
+            if (typeof field.datetime_config.min_date !== 'string' || !isValidDateString(field.datetime_config.min_date)) {
+                return false;
+            }
+        }
+        if (field.datetime_config.max_date !== undefined) {
+            if (typeof field.datetime_config.max_date !== 'string' || !isValidDateString(field.datetime_config.max_date)) {
+                return false;
+            }
+        }
+        if (field.datetime_config.time_interval !== undefined && typeof field.datetime_config.time_interval !== 'number') {
+            return false;
+        }
+        if (field.datetime_config.manual_time_entry !== undefined && typeof field.datetime_config.manual_time_entry !== 'boolean') {
             return false;
         }
     }
 
-    if (field.max_date !== undefined) {
-        if (typeof field.max_date !== 'string') {
-            return false;
-        }
-
-        // Validate that max_date is a valid date format (ISO or relative)
-        if (!isValidDateString(field.max_date)) {
-            return false;
-        }
-    }
-
-    if (field.time_interval !== undefined && typeof field.time_interval !== 'number') {
+    // Validate action button fields
+    if (field.action_button_url !== undefined && typeof field.action_button_url !== 'string') {
         return false;
+    }
+
+    if (field.action_button_context !== undefined) {
+        if (typeof field.action_button_context !== 'object' || field.action_button_context === null) {
+            return false;
+        }
+        if (!Object.values(field.action_button_context).every((value) => typeof value === 'string')) {
+            return false;
+        }
     }
 
     return true;
@@ -612,11 +673,11 @@ export type AutocompleteSuggestion = {
     description?: string;
     hint?: string;
     iconData?: string;
-}
+};
 
 export type AutocompleteSuggestionWithComplete = AutocompleteSuggestion & {
     complete: string;
-}
+};
 
 export type AutocompleteElement = AppField;
 export type AutocompleteStaticSelect = AutocompleteElement & {
@@ -633,8 +694,8 @@ export type FormResponseData = {
     errors?: {
         [field: string]: string;
     };
-}
+};
 
 export type AppLookupResponse = {
     items: AppSelectOption[];
-}
+};

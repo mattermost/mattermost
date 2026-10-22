@@ -14,9 +14,9 @@
  * Note: This test requires Enterprise license to be uploaded
  */
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {getRandomId} from '../../../../utils';
-import {getAdminAccount} from '../../../../support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import {getRandomId} from '@/utils';
 
 describe('Guest Account - Verify Manage Guest Users', () => {
     const admin = getAdminAccount();
@@ -66,13 +66,13 @@ describe('Guest Account - Verify Manage Guest Users', () => {
         cy.get('#systemUsersTable-cell-0_actionsColumn').should('have.text', 'Guest').click();
 
         // * Verify the manage options which should be displayed for Guest User
-        const includeOptions = ['Deactivate', 'Manage roles', 'Manage teams', 'Reset password', 'Update email', 'Promote to member', 'Revoke sessions'];
+        const includeOptions = ['Deactivate', 'Manage teams', 'Reset password', 'Update email', 'Promote to member', 'Revoke sessions'];
         includeOptions.forEach((includeOption) => {
             cy.findByText(includeOption).should('be.visible');
         });
 
         // * Verify the manage options which should not be displayed for Guest user
-        const missingOptions = ['Demote to Guest'];
+        const missingOptions = ['Manage roles', 'Demote to guest'];
         missingOptions.forEach((missingOption) => {
             cy.findByText(missingOption).should('not.exist');
         });

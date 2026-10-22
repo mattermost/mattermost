@@ -1,4 +1,4 @@
-ARG ELASTICSEARCH_VERSION=8.9.0
-FROM mattermostdevelopment/mattermost-elasticsearch:${ELASTICSEARCH_VERSION}
+ARG ELASTICSEARCH_VERSION=9.0.0
+FROM docker.elastic.co/elasticsearch/elasticsearch:${ELASTICSEARCH_VERSION}
 
-RUN /usr/share/elasticsearch/bin/elasticsearch-plugin install --batch analysis-nori analysis-kuromoji analysis-smartcn
+RUN /usr/share/elasticsearch/bin/elasticsearch-plugin install --batch analysis-icu analysis-nori analysis-kuromoji analysis-smartcn

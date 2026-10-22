@@ -6,10 +6,9 @@ import React from 'react';
 import type {Channel} from '@mattermost/types/channels';
 
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal/edit_channel_purpose_modal';
-import type {EditChannelPurposeModal as EditChannelPurposeModalClass} from 'components/edit_channel_purpose_modal/edit_channel_purpose_modal';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -19,17 +18,16 @@ describe('comoponents/EditChannelPurposeModal', () => {
     });
 
     it('should match on init', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={true}
                 onExited={jest.fn()}
                 actions={{patchChannel: jest.fn()}}
             />,
-            {disableLifecycleMethods: true},
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should match with display name', () => {
@@ -38,17 +36,16 @@ describe('comoponents/EditChannelPurposeModal', () => {
             display_name: 'channel name',
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <EditChannelPurposeModal
                 channel={channelWithDisplayName}
                 ctrlSend={true}
                 onExited={jest.fn()}
                 actions={{patchChannel: jest.fn()}}
             />,
-            {disableLifecycleMethods: true},
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should match for private channel', () => {
@@ -57,31 +54,29 @@ describe('comoponents/EditChannelPurposeModal', () => {
             type: 'P',
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <EditChannelPurposeModal
                 channel={privateChannel}
                 ctrlSend={true}
                 onExited={jest.fn()}
                 actions={{patchChannel: jest.fn()}}
             />,
-            {disableLifecycleMethods: true},
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should match submitted', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={true}
                 onExited={jest.fn()}
                 actions={{patchChannel: jest.fn()}}
             />,
-            {disableLifecycleMethods: true},
-        ).dive();
+        );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('match with modal error', async () => {
@@ -90,20 +85,19 @@ describe('comoponents/EditChannelPurposeModal', () => {
             message: 'error',
         };
 
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={false}
                 onExited={jest.fn()}
                 actions={{patchChannel: jest.fn().mockResolvedValue({error: serverError})}}
             />,
-            {disableLifecycleMethods: true},
         );
 
-        const instance = wrapper.instance() as EditChannelPurposeModalClass;
-        await instance.handleSave();
+        const saveButton = screen.getByRole('button', {name: /save/i});
+        await userEvent.click(saveButton);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('error')).toBeInTheDocument();
     });
 
     it('match with modal error with fake id', async () => {
@@ -112,95 +106,97 @@ describe('comoponents/EditChannelPurposeModal', () => {
             message: 'error',
         };
 
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={false}
                 onExited={jest.fn()}
                 actions={{patchChannel: jest.fn().mockResolvedValue({error: serverError})}}
             />,
-            {disableLifecycleMethods: true},
         );
 
-        const instance = wrapper.instance() as EditChannelPurposeModalClass;
-        await instance.handleSave();
+        const saveButton = screen.getByRole('button', {name: /save/i});
+        await userEvent.click(saveButton);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('error')).toBeInTheDocument();
     });
 
     it('clear error on next', async () => {
-        const wrapper = shallowWithIntl(
-            <EditChannelPurposeModal
-                channel={channel}
-                ctrlSend={false}
-                onExited={jest.fn()}
-                actions={{patchChannel: jest.fn().mockResolvedValue({data: true})}}
-            />,
-            {disableLifecycleMethods: true},
-        );
-
         const serverError = {
             id: 'fake-error-id',
             message: 'error',
         };
-        const instance = wrapper.instance();
-        instance.setState({serverError});
 
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(
+            <EditChannelPurposeModal
+                channel={channel}
+                ctrlSend={false}
+                onExited={jest.fn()}
+                actions={{patchChannel: jest.fn().mockResolvedValue({error: serverError})}}
+            />,
+        );
+
+        // Trigger the error by clicking Save
+        const saveButton = screen.getByRole('button', {name: /save/i});
+        await userEvent.click(saveButton);
+
+        // Verify error is displayed
+        expect(screen.getByText('error')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('update purpose state', () => {
-        const wrapper = shallowWithIntl(
+    it('update purpose state', async () => {
+        renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={true}
                 onExited={jest.fn()}
                 actions={{patchChannel: jest.fn()}}
             />,
-            {disableLifecycleMethods: true},
         );
 
-        wrapper.find('textarea').simulate(
-            'change',
-            {
-                preventDefault: jest.fn(),
-                target: {value: 'new info'},
-            },
-        );
+        const textarea = screen.getByRole('textbox');
+        await userEvent.clear(textarea);
+        await userEvent.type(textarea, 'new info');
 
-        expect(wrapper.state('purpose')).toBe('new info');
+        expect(textarea).toHaveValue('new info');
     });
 
     it('hide on success', async () => {
-        const wrapper = shallowWithIntl(
+        const onExited = jest.fn();
+
+        renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={true}
-                onExited={jest.fn()}
+                onExited={onExited}
                 actions={{patchChannel: jest.fn().mockResolvedValue({data: true})}}
             />,
-            {disableLifecycleMethods: true},
         );
-        const instance = wrapper.instance() as EditChannelPurposeModalClass;
-        await instance.handleSave();
 
-        expect(wrapper.state('show')).toBeFalsy();
+        const saveButton = screen.getByRole('button', {name: /save/i});
+        await userEvent.click(saveButton);
+
+        // After successful save, the modal should start hiding (show state is false)
+        // The modal element gets the 'fade' class without 'in' when hiding
+        const modal = screen.getByRole('dialog');
+        expect(modal.classList.contains('in')).toBe(false);
     });
 
-    it('submit on save button click', () => {
+    it('submit on save button click', async () => {
         const patchChannel = jest.fn().mockResolvedValue({data: true});
 
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={true}
                 onExited={jest.fn()}
                 actions={{patchChannel}}
             />,
-            {disableLifecycleMethods: true},
         );
 
-        wrapper.find('.btn-primary').simulate('click');
+        const saveButton = screen.getByRole('button', {name: /save/i});
+        await userEvent.click(saveButton);
 
         expect(patchChannel).toHaveBeenCalledWith('channel_id', {purpose: 'testPurpose'});
     });
@@ -208,22 +204,22 @@ describe('comoponents/EditChannelPurposeModal', () => {
     it('submit on ctrl + enter', () => {
         const patchChannel = jest.fn().mockResolvedValue({data: true});
 
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={true}
                 onExited={jest.fn()}
                 actions={{patchChannel}}
             />,
-            {disableLifecycleMethods: true},
         );
 
-        wrapper.find('textarea').simulate('keydown', {
-            preventDefault: jest.fn(),
+        const textarea = screen.getByRole('textbox');
+        textarea.dispatchEvent(new KeyboardEvent('keydown', {
             key: Constants.KeyCodes.ENTER[0],
             keyCode: Constants.KeyCodes.ENTER[1],
             ctrlKey: true,
-        });
+            bubbles: true,
+        }));
 
         expect(patchChannel).toHaveBeenCalledWith('channel_id', {purpose: 'testPurpose'});
     });
@@ -231,22 +227,22 @@ describe('comoponents/EditChannelPurposeModal', () => {
     it('submit on enter', () => {
         const patchChannel = jest.fn().mockResolvedValue({data: true});
 
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={false}
                 onExited={jest.fn()}
                 actions={{patchChannel}}
             />,
-            {disableLifecycleMethods: true},
         );
 
-        wrapper.find('textarea').simulate('keydown', {
-            preventDefault: jest.fn(),
+        const textarea = screen.getByRole('textbox');
+        textarea.dispatchEvent(new KeyboardEvent('keydown', {
             key: Constants.KeyCodes.ENTER[0],
             keyCode: Constants.KeyCodes.ENTER[1],
             ctrlKey: false,
-        });
+            bubbles: true,
+        }));
 
         expect(patchChannel).toHaveBeenCalledWith('channel_id', {purpose: 'testPurpose'});
     });
@@ -261,5 +257,5 @@ describe('comoponents/EditChannelPurposeModal', () => {
             onExited={jest.fn()}
             actions={{patchChannel: jest.fn()}}
         />
-    ), (instance: React.Component<any, any>) => instance.state.purpose);
+    ), (container: HTMLElement) => (container.querySelector('textarea') as HTMLTextAreaElement)?.value ?? '');
 });

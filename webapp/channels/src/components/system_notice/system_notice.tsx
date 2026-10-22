@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AnalyticsState} from '@mattermost/types/admin';
 import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
@@ -140,27 +141,29 @@ export class SystemNotice extends React.PureComponent<Props> {
                     {notice.body}
                     {visibleMessage}
                     <div className='system-notice__footer'>
-                        <button
+                        <Button
                             id='systemnotice_remindme'
-                            className='btn btn-sm btn-primary'
+                            emphasis='primary'
+                            size='sm'
                             onClick={this.hideAndRemind}
                         >
                             <FormattedMessage
                                 id='system_notice.remind_me'
                                 defaultMessage='Remind Me Later'
                             />
-                        </button>
+                        </Button>
                         {notice.allowForget &&
-                            <button
+                            <Button
                                 id='systemnotice_dontshow'
-                                className='btn btn-sm btn-tertiary'
+                                emphasis='tertiary'
+                                size='sm'
                                 onClick={this.hideAndForget}
                             >
                                 <FormattedMessage
                                     id='system_notice.dont_show'
                                     defaultMessage="Don't Show Again"
                                 />
-                            </button>}
+                            </Button>}
                     </div>
                 </div>
             </div>

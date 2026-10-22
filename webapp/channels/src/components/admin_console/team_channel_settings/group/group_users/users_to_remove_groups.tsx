@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
-
-import WithTooltip from 'components/with_tooltip';
 
 type ProfileWithGroups = Partial<UserProfile & {
     groups: Array<Partial<Group>>;

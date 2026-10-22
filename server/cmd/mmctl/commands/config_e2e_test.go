@@ -51,7 +51,7 @@ func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
 	invalidFile, err := os.CreateTemp(os.TempDir(), "invalid_config_*.json")
 	s.Require().Nil(err)
 
-	_, err = tmpFile.Write([]byte(configFilePayload))
+	_, err = tmpFile.WriteString(configFilePayload)
 	s.Require().Nil(err)
 
 	defer func() {
@@ -144,6 +144,32 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 		s.Require().Equal("postgres", *(config.SqlSettings.DriverName))
 	})
 
+	s.RunForSystemAdminAndLocal("Set a list config value to multiple values and then to a single value", func(c client.Client) {
+		printer.Clean()
+		originalChannels := s.th.App.Config().TeamSettings.ExperimentalDefaultChannels
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalDefaultChannels = originalChannels
+		})
+
+		args := []string{"TeamSettings.ExperimentalDefaultChannels", "off-topic", "town-square"}
+		err := configSetCmdF(c, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal([]string{"off-topic", "town-square"}, s.th.App.Config().TeamSettings.ExperimentalDefaultChannels)
+
+		printer.Clean()
+		args = []string{"TeamSettings.ExperimentalDefaultChannels", "town-square"}
+		err = configSetCmdF(c, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		config, ok := printer.GetLines()[0].(*model.Config)
+		s.Require().True(ok)
+		s.Require().Equal([]string{"town-square"}, config.TeamSettings.ExperimentalDefaultChannels)
+		s.Require().Equal([]string{"town-square"}, s.th.App.Config().TeamSettings.ExperimentalDefaultChannels)
+	})
+
 	s.RunForSystemAdminAndLocal("Get error if the key doesn't exist", func(c client.Client) {
 		printer.Clean()
 
@@ -212,7 +238,7 @@ rm $1'old'`
 		defer func() {
 			os.Remove(file.Name())
 		}()
-		_, err = file.Write([]byte(content))
+		_, err = file.WriteString(content)
 		s.Require().Nil(err)
 		s.Require().Nil(file.Close())
 		s.Require().Nil(os.Chmod(file.Name(), 0700))

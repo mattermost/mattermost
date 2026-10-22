@@ -4,6 +4,7 @@
 package markdown
 
 import (
+	"slices"
 	"strings"
 )
 
@@ -32,7 +33,7 @@ func (b *Paragraph) Continuation(indentation int, r Range) *continuation {
 
 func (b *Paragraph) Close() {
 	for {
-		for i := 0; i < len(b.Text); i++ {
+		for i := range b.Text {
 			b.Text[i] = trimLeftSpace(b.markdown, b.Text[i])
 			if b.Text[i].Position < b.Text[i].End {
 				break
@@ -51,8 +52,8 @@ func (b *Paragraph) Close() {
 		b.Text = remaining
 	}
 
-	for i := len(b.Text) - 1; i >= 0; i-- {
-		b.Text[i] = trimRightSpace(b.markdown, b.Text[i])
+	for i, v := range slices.Backward(b.Text) {
+		b.Text[i] = trimRightSpace(b.markdown, v)
 		if b.Text[i].Position < b.Text[i].End {
 			break
 		}

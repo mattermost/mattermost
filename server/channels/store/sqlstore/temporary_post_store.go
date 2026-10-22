@@ -54,7 +54,7 @@ func (s *SqlTemporaryPostStore) Save(rctx request.CTX, post *model.TemporaryPost
 	}
 
 	var tx *sqlxTxWrapper
-	tx, err = s.GetMaster().Beginx()
+	tx, err = s.GetMaster().Begin()
 	if err != nil {
 		return nil, err
 	}

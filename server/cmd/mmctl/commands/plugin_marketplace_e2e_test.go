@@ -4,15 +4,42 @@
 package commands
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
-	s.SetupTestHelper().InitBasic(s.T())
+	testsPath, found := fileutils.FindDir("tests")
+	s.Require().True(found, "failed to find tests directory")
+
+	prepackagedPluginsDir := "prepackaged_plugins"
+	os.RemoveAll(prepackagedPluginsDir)
+	err := os.Mkdir(prepackagedPluginsDir, os.ModePerm)
+	s.Require().NoError(err)
+	s.T().Cleanup(func() { os.RemoveAll(prepackagedPluginsDir) })
+
+	ppDir, found := fileutils.FindDir(prepackagedPluginsDir)
+	s.Require().True(found, "failed to find prepackaged plugins directory")
+
+	err = testlib.CopyFile(filepath.Join(testsPath, "testplugin.tar.gz"), filepath.Join(ppDir, "testplugin.tar.gz"))
+	s.Require().NoError(err)
+	err = testlib.CopyFile(filepath.Join(testsPath, "testplugin.tar.gz.asc"), filepath.Join(ppDir, "testplugin.tar.gz.sig"))
+	s.Require().NoError(err)
+
+	s.SetupTestHelperWithConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
+		cfg.PluginSettings.SignaturePublicKeyFiles = []string{
+			filepath.Join(testsPath, "development-public-key.asc"),
+		}
+	}).InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("install a plugin", func(c client.Client) {
 		printer.Clean()
@@ -20,7 +47,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 		marketPlacePlugins, appErr := s.th.App.GetMarketplacePlugins(s.th.Context, &model.MarketplacePluginFilter{
 			Page:    0,
 			PerPage: 100,
-			Filter:  "jira",
+			Filter:  "testplugin",
 		})
 		s.Require().Nil(appErr)
 		s.Require().NotEmpty(marketPlacePlugins)
@@ -52,7 +79,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 		printer.Clean()
 
 		const (
-			pluginID = "jira"
+			pluginID = "testplugin"
 		)
 
 		defer removePluginIfInstalled(s.th.Client, s, pluginID)

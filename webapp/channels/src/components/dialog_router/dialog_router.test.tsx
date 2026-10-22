@@ -8,19 +8,6 @@ import DialogRouter from './dialog_router';
 
 import type {PropsFromRedux} from './index';
 
-// Mock the components
-jest.mock('components/interactive_dialog/interactive_dialog', () => {
-    return function MockInteractiveDialog(props: any) {
-        return (
-            <div data-testid='interactive-dialog'>
-                <div data-testid='legacy-title'>{props.title}</div>
-                <div data-testid='legacy-url'>{props.url}</div>
-                <div data-testid='legacy-callback-id'>{props.callbackId}</div>
-            </div>
-        );
-    };
-});
-
 jest.mock('./interactive_dialog_adapter', () => {
     return function MockInteractiveDialogAdapter(props: any) {
         return (
@@ -34,7 +21,7 @@ jest.mock('./interactive_dialog_adapter', () => {
 });
 
 describe('components/dialog_router/DialogRouter', () => {
-    const baseProps: Partial<PropsFromRedux> & Pick<PropsFromRedux, 'emojiMap' | 'isAppsFormEnabled' | 'hasUrl' | 'actions'> & {onExited?: () => void} = {
+    const baseProps: Partial<PropsFromRedux> & Pick<PropsFromRedux, 'emojiMap' | 'hasUrl' | 'actions'> & {onExited?: () => void} = {
         url: 'http://example.com',
         callbackId: 'abc123',
         elements: [],
@@ -45,7 +32,6 @@ describe('components/dialog_router/DialogRouter', () => {
         notifyOnCancel: true,
         state: 'test-state',
         emojiMap: new (require('utils/emoji_map').default)(new Map()),
-        isAppsFormEnabled: true,
         hasUrl: true,
         actions: {
             submitInteractiveDialog: jest.fn(),
@@ -63,7 +49,7 @@ describe('components/dialog_router/DialogRouter', () => {
     });
 
     describe('Component Selection Logic', () => {
-        test('should render InteractiveDialogAdapter when apps form is enabled and URL is present', () => {
+        test('should render InteractiveDialogAdapter when URL is present', () => {
             const {getByTestId} = render(
                 <DialogRouter {...baseProps}/>,
             );
@@ -72,22 +58,6 @@ describe('components/dialog_router/DialogRouter', () => {
             expect(getByTestId('adapter-title')).toHaveTextContent('Test Dialog');
             expect(getByTestId('adapter-url')).toHaveTextContent('http://example.com');
             expect(getByTestId('adapter-callback-id')).toHaveTextContent('abc123');
-        });
-
-        test('should render InteractiveDialog when apps form is disabled', () => {
-            const propsWithAppsFormDisabled = {
-                ...baseProps,
-                isAppsFormEnabled: false,
-            };
-
-            const {getByTestId} = render(
-                <DialogRouter {...propsWithAppsFormDisabled}/>,
-            );
-
-            expect(getByTestId('interactive-dialog')).toBeInTheDocument();
-            expect(getByTestId('legacy-title')).toHaveTextContent('Test Dialog');
-            expect(getByTestId('legacy-url')).toHaveTextContent('http://example.com');
-            expect(getByTestId('legacy-callback-id')).toHaveTextContent('abc123');
         });
 
         test('should return null when URL is missing (configuration error)', () => {
@@ -106,6 +76,69 @@ describe('components/dialog_router/DialogRouter', () => {
             expect(consoleSpy).toHaveBeenCalledWith('Interactive dialog missing URL - this is a configuration error');
 
             consoleSpy.mockRestore();
+        });
+    });
+
+    describe('Props rendering', () => {
+        // DialogRouter is a pure passthrough — isolation between concurrent dialogs
+        // is handled by the Redux dialogs map (each instance receives only its own
+        // data via its triggerId ownProp). The component itself re-renders normally
+        // whenever its props change.
+
+        test('passes props to the adapter on initial render', () => {
+            const propsA = {
+                ...baseProps,
+                url: 'http://dialog-a.example.com',
+                title: 'Dialog A',
+                callbackId: 'callback-a',
+            };
+
+            const {getByTestId} = render(<DialogRouter {...propsA}/>);
+
+            expect(getByTestId('adapter-url')).toHaveTextContent('http://dialog-a.example.com');
+            expect(getByTestId('adapter-title')).toHaveTextContent('Dialog A');
+            expect(getByTestId('adapter-callback-id')).toHaveTextContent('callback-a');
+        });
+
+        test('re-renders with updated props when parent provides new data', () => {
+            const propsA = {
+                ...baseProps,
+                url: 'http://dialog-a.example.com',
+                title: 'Dialog A',
+                callbackId: 'callback-a',
+            };
+
+            const {getByTestId, rerender} = render(<DialogRouter {...propsA}/>);
+
+            expect(getByTestId('adapter-url')).toHaveTextContent('http://dialog-a.example.com');
+
+            const propsB = {
+                ...baseProps,
+                url: 'http://dialog-b.example.com',
+                title: 'Dialog B',
+                callbackId: 'callback-b',
+            };
+
+            rerender(<DialogRouter {...propsB}/>);
+
+            expect(getByTestId('adapter-url')).toHaveTextContent('http://dialog-b.example.com');
+            expect(getByTestId('adapter-title')).toHaveTextContent('Dialog B');
+            expect(getByTestId('adapter-callback-id')).toHaveTextContent('callback-b');
+        });
+
+        test('renders null and calls console.error when hasUrl is false', () => {
+            const propsNoUrl = {
+                ...baseProps,
+                hasUrl: false as const,
+                url: undefined,
+            };
+
+            const {container} = render(<DialogRouter {...propsNoUrl}/>);
+
+            expect(container.firstChild).toBeNull();
+            expect(console.error).toHaveBeenCalledWith(
+                'Interactive dialog missing URL - this is a configuration error',
+            );
         });
     });
 });

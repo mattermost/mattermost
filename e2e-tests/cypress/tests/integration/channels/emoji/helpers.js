@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 export function getCustomEmoji() {
     const customEmoji = `emoji${getRandomId()}`;

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -15,10 +15,11 @@ import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import TeamFilterDropdown from 'components/admin_console/filter/team_filter_dropdown';
 import {PAGE_SIZE} from 'components/admin_console/team_channel_settings/abstract_list';
-import SharedChannelIndicator from 'components/shared_channel_indicator';
+import {ChannelIcon} from 'components/channel_type_icon';
 
 import {getHistory} from 'utils/browser_history';
-import {getChannelIconComponent} from 'utils/channel_utils';
+
+import AdminChannelSharedIndicator from './admin_channel_shared_indicator';
 
 import './channel_list.scss';
 
@@ -186,18 +187,18 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
         channelsToDisplay = channelsToDisplay.slice(startCount - 1, endCount);
 
         return channelsToDisplay.map((channel) => {
-            const ChannelIconComponent = getChannelIconComponent(channel);
             const iconToDisplay = (
-                <ChannelIconComponent
+                <ChannelIcon
+                    channel={channel}
                     className='channel-icon'
                     data-testid={`${channel.name}-archive-icon`}
                 />
             );
 
             const sharedChannelIcon = channel.shared ? (
-                <SharedChannelIndicator
+                <AdminChannelSharedIndicator
+                    channelId={channel.id}
                     className='channel-icon'
-                    withTooltip={true}
                 />
             ) : null;
 

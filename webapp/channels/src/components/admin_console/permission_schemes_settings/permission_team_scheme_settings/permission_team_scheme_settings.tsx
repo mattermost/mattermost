@@ -6,6 +6,7 @@ import {defineMessage, FormattedMessage} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 import type {Scheme, SchemePatch} from '@mattermost/types/schemes';
@@ -501,48 +502,50 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
     };
 
     togglePermission = (roleId: string, permissions: string[]) => {
-        const roles = {...this.getStateRoles()} as RolesMap;
-        const rolesKey = Object.keys(roles).find((roleKey) => roles[roleKey].name === roleId);
+        this.setState((state) => {
+            const roles = {...(state.roles ?? this.getStateRoles())} as RolesMap;
+            const rolesKey = Object.keys(roles).find((roleKey) => roles[roleKey].name === roleId);
 
-        if (!rolesKey) {
-            return;
-        }
-
-        const role = {...roles[rolesKey]} as Role;
-
-        const newPermissions = [...role.permissions];
-        for (const permission of permissions) {
-            if (newPermissions.indexOf(permission) === -1) {
-                newPermissions.push(permission);
-            } else {
-                newPermissions.splice(newPermissions.indexOf(permission), 1);
+            if (!rolesKey) {
+                return null;
             }
-        }
-        role.permissions = newPermissions;
-        roles[rolesKey] = role;
 
-        if (roleId === 'all_users') {
-            const channelAdminRole = {...roles.channel_admin} as Role;
-            const channelAdminPermissions = [...channelAdminRole.permissions!];
-            const teamAdminRole = {...roles.team_admin} as Role;
-            const teamAdminPermissions = [...teamAdminRole.permissions!];
+            const role = {...roles[rolesKey]} as Role;
+
+            const newPermissions = [...role.permissions];
             for (const permission of permissions) {
-                if (ModeratedPermissions.indexOf(permission) !== -1 && role.permissions.indexOf(permission) !== -1) {
-                    if (channelAdminPermissions.indexOf(permission) === -1) {
-                        channelAdminPermissions.push(permission);
-                    }
-                    if (teamAdminPermissions.indexOf(permission) === -1) {
-                        teamAdminPermissions.push(permission);
-                    }
+                if (newPermissions.indexOf(permission) === -1) {
+                    newPermissions.push(permission);
+                } else {
+                    newPermissions.splice(newPermissions.indexOf(permission), 1);
                 }
             }
-            channelAdminRole.permissions = channelAdminPermissions;
-            roles.channel_admin = channelAdminRole;
-            teamAdminRole.permissions = teamAdminPermissions;
-            roles.team_admin = teamAdminRole;
-        }
+            role.permissions = newPermissions;
+            roles[rolesKey] = role;
 
-        this.setState({roles, saveNeeded: true});
+            if (roleId === 'all_users') {
+                const channelAdminRole = {...roles.channel_admin} as Role;
+                const channelAdminPermissions = [...channelAdminRole.permissions!];
+                const teamAdminRole = {...roles.team_admin} as Role;
+                const teamAdminPermissions = [...teamAdminRole.permissions!];
+                for (const permission of permissions) {
+                    if (ModeratedPermissions.indexOf(permission) !== -1 && role.permissions.indexOf(permission) !== -1) {
+                        if (channelAdminPermissions.indexOf(permission) === -1) {
+                            channelAdminPermissions.push(permission);
+                        }
+                        if (teamAdminPermissions.indexOf(permission) === -1) {
+                            teamAdminPermissions.push(permission);
+                        }
+                    }
+                }
+                channelAdminRole.permissions = channelAdminPermissions;
+                roles.channel_admin = channelAdminRole;
+                teamAdminRole.permissions = teamAdminPermissions;
+                roles.team_admin = teamAdminRole;
+            }
+
+            return {roles, saveNeeded: true};
+        });
         this.props.actions.setNavigationBlocked(true);
     };
 
@@ -769,7 +772,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                             className='permissions-block'
                             open={this.state.openRoles.playbook_admin}
                             onToggle={() => this.toggleRole('playbook_admin')}
-                            title={defineMessage({id: 'admin.permissions.systemScheme.playbookAdmin', defaultMessage: 'Playbook Administrator'})}
+                            title={defineMessage({id: 'admin.permissions.systemScheme.playbookAdmin', defaultMessage: 'Playbook Administrators'})}
                             subtitle={defineMessage({id: 'admin.permissions.systemScheme.playbookAdminSubtitle', defaultMessage: 'Permissions granted to administrators of a playbook.'})}
                         >
                             <PermissionsTreePlaybooks
@@ -815,7 +818,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                         }
                     />
                     <BlockableLink
-                        className='btn btn-tertiary'
+                        className={buttonClassNames({emphasis: 'tertiary'})}
                         to='/admin_console/user_management/permissions'
                         data-testid='permission-scheme-cancel-button'
                     >

@@ -98,6 +98,13 @@ export const isEnterpriseLicense = (license?: ClientLicense) => {
 
 export const isNonEnterpriseLicense = (license?: ClientLicense) => !isEnterpriseLicense(license);
 
+// Delegated Granular Administration is gated behind the LDAPGroups license feature and is
+// not available on the Entry SKU. Mirrors the gating used by the Delegated Granular
+// Administration screen in admin_definition (system_roles).
+export const isLicensedForDelegatedAdministration = (license?: ClientLicense) => {
+    return Boolean(license?.IsLicensed === 'true' && license.LDAPGroups === 'true' && license.SkuShortName !== LicenseSkus.Entry);
+};
+
 export const licenseSKUWithFirstLetterCapitalized = (license: ClientLicense) => {
     const sku = license.SkuShortName;
     return sku.charAt(0).toUpperCase() + sku.slice(1);

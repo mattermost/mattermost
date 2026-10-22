@@ -11,8 +11,8 @@
 // Group: @channels @dm_category
 
 describe('DM on sidebar', () => {
-    let testUser;
-    let otherUser;
+    let testUser: Cypress.UserProfile;
+    let otherUser: Cypress.UserProfile;
 
     before(() => {
         cy.apiCreateUser().then(({user}) => {

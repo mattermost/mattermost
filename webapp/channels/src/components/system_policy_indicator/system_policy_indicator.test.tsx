@@ -93,8 +93,11 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         );
 
         expect(screen.getByText('Confidential DS-BP')).toBeInTheDocument();
-        expect(screen.getByText(/System access policy applied to this channel/)).toBeInTheDocument();
-        expect(screen.getByText(/Any custom access rules you set here will be applied in addition to this policy/)).toBeInTheDocument();
+        expect(screen.getByText(/System membership policy applied to this channel/)).toBeInTheDocument();
+
+        // Body uses singular "a system-level membership policy" to agree with the title.
+        expect(screen.getByText(/This channel has a system-level membership policy applied/)).toBeInTheDocument();
+        expect(screen.getByText(/Any custom membership rules you set here will be applied in addition to this policy/)).toBeInTheDocument();
 
         // Check for alert banner structure
         expect(screen.getByTestId('system-policy-indicator')).toBeInTheDocument();
@@ -109,11 +112,11 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
         expect(screen.getByText('Confidential DS-BP')).toBeInTheDocument();
         expect(screen.getByText('Northern Command Filter')).toBeInTheDocument();
-        expect(screen.getByText(/Multiple system access policies applied to this channel/)).toBeInTheDocument();
-        expect(screen.getByText(/Any custom access rules you set here will be applied in addition to this policy/)).toBeInTheDocument();
+        expect(screen.getByText(/Multiple system membership policies applied to this channel/)).toBeInTheDocument();
+        expect(screen.getByText(/Any custom membership rules you set here will be applied in addition to these policies/)).toBeInTheDocument();
 
         // Check that both policy names appear in the description
-        const description = screen.getByText(/This channel has system-level access policies applied/);
+        const description = screen.getByText(/This channel has system-level membership policies applied/);
         expect(description).toBeInTheDocument();
     });
 
@@ -169,6 +172,78 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         expect(moreButton).toHaveClass('system-policy-indicator__more-link');
     });
 
+    test('should join two policy names with a locale-formatted conjunction', () => {
+        renderWithContext(
+            <SystemPolicyIndicator policies={[mockPolicy1, mockPolicy2]}/>,
+            initialState,
+        );
+
+        expect(screen.getByRole('region')).toHaveTextContent(
+            'This channel has system-level membership policies applied: Confidential DS-BP and Northern Command Filter. ',
+        );
+    });
+
+    test('should end a truncated policy list with a singular "more" label for one remaining policy', () => {
+        const mockPolicy3: AccessControlPolicy = {
+            ...mockPolicy1,
+            id: 'policy3',
+            name: 'Test Policy 3',
+        };
+
+        renderWithContext(
+            <SystemPolicyIndicator policies={[mockPolicy1, mockPolicy2, mockPolicy3]}/>,
+            initialState,
+        );
+
+        expect(screen.getByRole('region')).toHaveTextContent(
+            'This channel has system-level membership policies applied: Confidential DS-BP, Northern Command Filter, and 1 more. ',
+        );
+        expect(screen.getByText('1 more')).toHaveAttribute('aria-label', 'View 1 more policy');
+    });
+
+    test('should render the detailed variant for a file with access wording', () => {
+        renderWithContext(
+            <SystemPolicyIndicator
+                policies={[mockPolicy1]}
+                resourceType='file'
+            />,
+            initialState,
+        );
+
+        expect(screen.getByRole('heading')).toHaveTextContent('System access policy applied to this file');
+        expect(screen.getByRole('region')).toHaveTextContent(
+            'This file has a system-level access policy applied: Confidential DS-BP. Any custom access rules you set here will be applied in addition to this policy.',
+        );
+    });
+
+    test('should render whole translated sentences and a locale-formatted list in another locale', () => {
+        const mockPolicy3: AccessControlPolicy = {
+            ...mockPolicy1,
+            id: 'policy3',
+            name: 'Test Policy 3',
+        };
+
+        const ruMessages = {
+            'system_policy_indicator.title.multiple': '{resourceType, select, team {К этой команде применено несколько системных политик членства} file {К этому файлу применено несколько системных политик доступа} other {К этому каналу применено несколько системных политик членства}}',
+            'system_policy_indicator.description_with_names.multiple': '{resourceType, select, team {К этой команде применены политики членства на уровне системы: {policies}. Любые настраиваемые правила членства, заданные здесь, будут применяться в дополнение к этим политикам.} file {К этому файлу применены политики доступа на уровне системы: {policies}. Любые настраиваемые правила доступа, заданные здесь, будут применяться в дополнение к этим политикам.} other {К этому каналу применены политики членства на уровне системы: {policies}. Любые настраиваемые правила членства, заданные здесь, будут применяться в дополнение к этим политикам.}}',
+            'system_policy_indicator.more_policies': 'ещё {count}',
+        };
+
+        renderWithContext(
+            <SystemPolicyIndicator
+                policies={[mockPolicy1, mockPolicy2, mockPolicy3]}
+                resourceType='team'
+            />,
+            initialState,
+            {locale: 'ru', intlMessages: ruMessages},
+        );
+
+        expect(screen.getByRole('heading')).toHaveTextContent('К этой команде применено несколько системных политик членства');
+        expect(screen.getByRole('region')).toHaveTextContent(
+            'К этой команде применены политики членства на уровне системы: Confidential DS-BP, Northern Command Filter и ещё 1.',
+        );
+    });
+
     test('should render compact variant', () => {
         renderWithContext(
             <SystemPolicyIndicator
@@ -179,9 +254,9 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         );
 
         // Should show basic message but not the detailed policy list or names
-        expect(screen.getByText(/This channel has system-level access policies applied/)).toBeInTheDocument();
+        expect(screen.getByText(/This channel has system-level membership policies applied/)).toBeInTheDocument();
         expect(screen.queryByText('Confidential DS-BP')).not.toBeInTheDocument();
-        expect(screen.queryByText(/System access policy applied to this channel/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/System membership policy applied to this channel/)).not.toBeInTheDocument();
     });
 
     test('should handle different resource types in compact variant', () => {
@@ -194,7 +269,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
             initialState,
         );
 
-        expect(screen.getByText(/This team has system-level access policy applied/)).toBeInTheDocument();
+        expect(screen.getByText(/This team has a system-level membership policy applied/)).toBeInTheDocument();
     });
 
     test('should handle file resource type in compact variant', () => {
@@ -207,7 +282,8 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
             initialState,
         );
 
-        expect(screen.getByText(/This file has system-level access policy applied/)).toBeInTheDocument();
+        // Files keep the access-oriented wording since users aren't members of files.
+        expect(screen.getByText(/This file has a system-level access policy applied/)).toBeInTheDocument();
     });
 
     test('should not show policy names when showPolicyNames is false', () => {
@@ -220,7 +296,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         );
 
         expect(screen.queryByText('Confidential DS-BP')).not.toBeInTheDocument();
-        expect(screen.getByText(/System access policy applied to this channel/)).toBeInTheDocument();
+        expect(screen.getByText(/System membership policy applied to this channel/)).toBeInTheDocument();
     });
 
     // Test more button functionality

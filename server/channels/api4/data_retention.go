@@ -229,6 +229,7 @@ func getTeamsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+	c.App.SanitizeTeams(*c.AppContext.Session(), teams.Teams)
 
 	b, err := json.Marshal(teams)
 	if err != nil {
@@ -254,8 +255,8 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props.PolicyID = model.NewPointer(c.Params.PolicyId)
-	props.IncludePolicyID = model.NewPointer(true)
+	props.PolicyID = new(c.Params.PolicyId)
+	props.IncludePolicyID = new(true)
 
 	teams, _, appErr := c.App.SearchAllTeams(&props)
 	if appErr != nil {

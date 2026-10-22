@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @not_cloud @plugin
 
-import {demoPlugin} from '../../../utils';
+import {demoPlugin} from '@/utils';
 
 describe('Link tooltips', () => {
     before(() => {
@@ -47,7 +47,7 @@ describe('Link tooltips', () => {
         cy.uiWaitUntilMessagePostedIncludes(url);
 
         // # Hover over the plugin link
-        cy.findByText(url).should('exist').focus();
+        cy.getLastPost().findByText(url).should('exist').focus();
 
         // * Check tooltip has appeared
         cy.findByText('This is a custom tooltip from the Demo Plugin').should('be.visible');

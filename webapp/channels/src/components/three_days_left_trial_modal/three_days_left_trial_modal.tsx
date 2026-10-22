@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React, {useMemo, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -30,7 +30,7 @@ import './three_days_left_trial_modal.scss';
 type Props = {
     onExited?: () => void;
     limitsOverpassed: boolean;
-}
+};
 
 function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
     const dispatch = useDispatch();

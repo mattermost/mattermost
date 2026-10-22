@@ -7,7 +7,7 @@
         <div class='browser'>
             <img 
                 class='browser-image' 
-                src='{{.LogoSrc}}'
+                src='static/images/browser-icons/{{.LogoSrc}}'
             />
             <div class='browser-top-text'>{{.Title}}</div>
             <div class='browser-bottom-text'>{{.SupportedVersionString}}</div>
@@ -18,7 +18,7 @@
         >
             <img 
                 class='browser-image' 
-                src='{{.LogoSrc}}'
+                src='static/images/browser-icons/{{.LogoSrc}}'
             />
             <div class='browser-top-text'>{{.GetLatestString}}</div>
         </div>
@@ -32,7 +32,7 @@
         <div class='browser'>
             <img 
                 class='browser-image' 
-                src='{{.LogoSrc}}'
+                src='static/images/browser-icons/{{.LogoSrc}}'
             />
             <div class='browser-top-text'>{{.Title}}</div>
             <div class='browser-bottom-text'>{{.SupportedVersionString}}</div>
@@ -40,7 +40,7 @@
         <div class='browser browser-hover no-pointer hidden'>
             <img 
                 class='browser-image' 
-                src='{{.LogoSrc}}'
+                src='static/images/browser-icons/{{.LogoSrc}}'
             />
             <div 
                 class='browser-top-text pointer' 
@@ -66,7 +66,7 @@
         <div class='mattermost-app'>
             <img 
                 class='mattermost-app-image' 
-                src='{{.LogoSrc}}'
+                src='static/images/browser-icons/{{.LogoSrc}}'
             />
             <div class='browser-top-text'>{{.Title}}</div>
             <div class='browser-bottom-text'>{{.SupportedVersionString}}</div>
@@ -74,7 +74,7 @@
         <div class='mattermost-app mattermost-app-hover hidden'>
             <img 
                 class='mattermost-app-image' 
-                src='{{.LogoSrc}}'
+                src='static/images/browser-icons/{{.LogoSrc}}'
             />
             <button 
                 class='mattermost-app-button' 
@@ -92,6 +92,7 @@
     <!DOCTYPE html>
     <html>
         <head>
+            <base href="{{.Props.Subpath}}">
             <style>
                 body {
                     overflow: hidden;
@@ -264,10 +265,24 @@
                     text-decoration: underline;
                 }
             </style>
-            <link 
-                href='https://fonts.googleapis.com/css?family=Open+Sans&display=swap' 
-                rel='stylesheet'
-            />
+            <style>
+                @font-face {
+                    font-family: 'Open Sans';
+                    font-style: normal;
+                    font-weight: 400;
+                    src:
+                        url("static/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff2") format('woff2'),
+                        url("static/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff") format('woff');
+                }
+                @font-face {
+                    font-family: 'Open Sans';
+                    font-style: normal;
+                    font-weight: 600;
+                    src:
+                        url("static/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2") format('woff2'),
+                        url("static/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff") format('woff');
+                }
+            </style>
             <script 
                 type='text/javascript' 
                 src='/unsupported_browser.js'

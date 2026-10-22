@@ -302,7 +302,7 @@ func TestUserFromGitLabUser(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.description, func(t *testing.T) {
 			settings := &model.SSOSettings{
-				UsePreferredUsername: model.NewPointer(tc.usePreferredUsername),
+				UsePreferredUsername: new(tc.usePreferredUsername),
 			}
 
 			user := userFromGitLabUser(logger, &tc.gitlabUser, settings)

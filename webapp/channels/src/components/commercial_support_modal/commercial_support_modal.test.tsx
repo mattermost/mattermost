@@ -77,7 +77,7 @@ describe('components/CommercialSupportModal', () => {
         renderWithContext(<CommercialSupportModal {...baseProps}/>);
 
         const user = userEvent.setup();
-        const downloadLink = screen.getByText('Download Support Packet').closest('a');
+        const downloadLink = screen.getByRole('button', {name: 'Download Support Packet'});
         if (!downloadLink) {
             throw new Error('Download Support Packet link not found');
         }
@@ -112,7 +112,7 @@ describe('components/CommercialSupportModal', () => {
 
         // Start download
         const user = userEvent.setup();
-        const downloadLink = screen.getByText('Download Support Packet').closest('a');
+        const downloadLink = screen.getByText('Download Support Packet').closest('button');
         if (!downloadLink) {
             throw new Error('Download Support Packet link not found');
         }

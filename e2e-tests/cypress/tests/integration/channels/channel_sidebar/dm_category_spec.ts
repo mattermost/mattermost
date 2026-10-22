@@ -9,14 +9,14 @@
 
 // Group: @channels @dm_category
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const SpaceKeyCode = 32;
 const DownArrowKeyCode = 40;
 
 describe('MM-T3156 DM category', () => {
-    let testUser;
-    const usernames = [];
+    let testUser: Cypress.UserProfile;
+    const usernames: string[] = [];
 
     before(() => {
         // # Login as test user and visit town-square

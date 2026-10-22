@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Create bot', () => {
     it('MM-T1810 Create a Bot via the UI', () => {
@@ -41,7 +41,7 @@ function createBot() {
         cy.postMessage('hello');
 
         // # Go to bot integrations page
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
         cy.get('a.integration-option[href$="/bots"]').click();
         cy.get('#addBotAccount').click();
 

@@ -6,6 +6,8 @@ import React, {useState, useRef, memo, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import Constants from 'utils/constants';
@@ -95,16 +97,16 @@ const PasswordResetForm = ({location, siteName, actions}: Props) => {
                         />
                     </div>
                     {errorElement}
-                    <button
+                    <Button
                         id='resetPasswordButton'
                         type='submit'
-                        className='btn btn-primary'
+                        emphasis='primary'
                     >
                         <FormattedMessage
                             id='password_form.change'
                             defaultMessage='Change my password'
                         />
-                    </button>
+                    </Button>
                 </form>
             </div>
         </div>

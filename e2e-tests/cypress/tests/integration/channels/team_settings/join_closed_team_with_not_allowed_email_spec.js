@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @team_settings
 
-import {getRandomId, stubClipboard} from '../../../utils';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import {getRandomId, stubClipboard, newTestPassword} from '@/utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Team Settings', () => {
     const randomId = getRandomId();
@@ -79,7 +79,7 @@ describe('Team Settings', () => {
 
             const email = `user${randomId}@sample.gmail.com`;
             const username = `user${randomId}`;
-            const password = 'passwd';
+            const password = newTestPassword();
             const errorMessage = `The following email addresses do not belong to an accepted domain: ${emailDomain}. Please contact your System Administrator for details.`;
 
             // # Type email, username and password
@@ -107,10 +107,8 @@ describe('Team Settings', () => {
             // # Go to Access section
             cy.get('#accessButton').click();
 
-            cy.get('.access-invite-domains-section').should('exist').within(() => {
-                // # Enable any user with an account on the server to join the team
-                cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
-            });
+            // # Click 'Public Team' card to allow any user to join the team
+            cy.get('#public-private-selector-button-O').should('exist').click();
 
             // # Click on the 'Allow only users with a specific email domain to join this team' edit button
             cy.get('.access-allowed-domains-section').should('exist').within(() => {
@@ -130,7 +128,7 @@ describe('Team Settings', () => {
         });
 
         // # Create a new user
-        cy.apiCreateUser({user: {email: `user${randomId}@sample.gmail.com`, username: `user${randomId}`, password: 'passwd'}}).then(({user}) => {
+        cy.apiCreateUser({user: {email: `user${randomId}@sample.gmail.com`, username: `user${randomId}`, password: newTestPassword()}}).then(({user}) => {
             // # Create a second team
             cy.apiCreateTeam('other-team', 'Other Team').then(({team: otherTeam}) => {
                 // # Add user to the other team

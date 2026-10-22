@@ -3,36 +3,74 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
+import "time"
 
 const (
 	CurrentSupportPacketVersion = 2
 	SupportPacketErrorFile      = "warning.txt"
+
+	SupportPacketDiagnosticsFileName = "diagnostics.yaml"
+	SupportPacketConfigFileName      = "sanitized_config.json"
+	SupportPacketStatsFileName       = "stats.yaml"
+	SupportPacketJobsFileName        = "jobs.yaml"
+	SupportPacketPluginsFileName     = "plugins.json"
 )
 
+type SupportPacketLicense struct {
+	Company         string `yaml:"company"`
+	Users           int    `yaml:"users"`
+	SkuShortName    string `yaml:"sku_short_name"`
+	IsTrial         bool   `yaml:"is_trial,omitempty"`
+	IsGovSKU        bool   `yaml:"is_gov_sku,omitempty"`
+	IsNonProduction bool   `yaml:"is_non_production,omitempty"`
+	IsCloud         bool   `yaml:"is_cloud,omitempty"`
+	// ExpiresAt is in epoch milliseconds.
+	ExpiresAt           int64 `yaml:"expires_at,omitempty"`
+	IsSeatCountEnforced bool  `yaml:"is_seat_count_enforced,omitempty"`
+	ExtraUsers          *int  `yaml:"extra_users,omitempty"`
+	// Features is nil in packets from servers that predate it.
+	Features *Features `yaml:"features,omitempty"`
+}
+
+func (l *SupportPacketLicense) IsMattermostEntry() bool {
+	return l != nil && l.SkuShortName == LicenseShortSkuMattermostEntry
+}
+
+// MinimumEnterprise reports whether the license is at least Enterprise, as MinimumEnterpriseLicense does for a License.
+func (l *SupportPacketLicense) MinimumEnterprise() bool {
+	return l != nil && MinimumEnterpriseLicense(&License{SkuShortName: l.SkuShortName})
+}
+
+// SupportPacketDiagnostics reports one node's diagnostics. A nil pointer field was not collected, which is not the same as zero.
 type SupportPacketDiagnostics struct {
 	Version int `yaml:"version"`
 
-	License struct {
-		Company      string `yaml:"company"`
-		Users        int    `yaml:"users"`
-		SkuShortName string `yaml:"sku_short_name"`
-		IsTrial      bool   `yaml:"is_trial,omitempty"`
-		IsGovSKU     bool   `yaml:"is_gov_sku,omitempty"`
-	} `yaml:"license"`
+	License SupportPacketLicense `yaml:"license"`
 
 	Server struct {
-		OS               string `yaml:"os"`
-		Architecture     string `yaml:"architecture"`
-		CPUCores         int    `yaml:"cpu_cores"`
-		TotalMemoryMB    uint64 `yaml:"total_memory_mb"`
-		Hostname         string `yaml:"hostname"`
-		Version          string `yaml:"version"`
-		BuildHash        string `yaml:"build_hash"`
-		InstallationType string `yaml:"installation_type"`
+		// Machine
+		OS               string  `yaml:"os"`
+		Architecture     string  `yaml:"architecture"`
+		Hostname         *string `yaml:"hostname,omitempty"`
+		InstallationType string  `yaml:"installation_type"`
+
+		// Capacity
+		CPUCores               int     `yaml:"cpu_cores"`
+		TotalMemoryMB          *uint64 `yaml:"total_memory_mb,omitempty"`
+		ContainerCPULimit      float64 `yaml:"container_cpu_limit,omitempty"`
+		ContainerMemoryLimitMB uint64  `yaml:"container_memory_limit_mb,omitempty"`
+
+		// Process lifecycle
+		ProcessID           int       `yaml:"process_id"`
+		StartedAt           time.Time `yaml:"started_at"`
+		HostStartedAt       time.Time `yaml:"host_started_at,omitempty"`
+		OpenFileDescriptors *int64    `yaml:"open_file_descriptors,omitempty"`
+		MaxFileDescriptors  *int64    `yaml:"max_file_descriptors,omitempty"`
+
+		// Software
+		Version   string `yaml:"version"`
+		BuildHash string `yaml:"build_hash"`
+		GoVersion string `yaml:"go_version"`
 	} `yaml:"server"`
 
 	Config struct {
@@ -40,18 +78,44 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"config"`
 
 	Database struct {
-		Type              string `yaml:"type"`
-		Version           string `yaml:"version"`
-		SchemaVersion     string `yaml:"schema_version"`
-		MasterConnectios  int    `yaml:"master_connections"`
-		ReplicaConnectios int    `yaml:"replica_connections"`
-		SearchConnections int    `yaml:"search_connections"`
+		Type                                *string    `yaml:"type,omitempty"`
+		Version                             *string    `yaml:"version,omitempty"`
+		SchemaVersion                       *string    `yaml:"schema_version,omitempty"`
+		MasterConnections                   int        `yaml:"master_connections"`
+		ReplicaConnections                  int        `yaml:"replica_connections"`
+		SearchConnections                   int        `yaml:"search_connections"`
+		MasterConnectionsInUse              *int       `yaml:"master_connections_in_use,omitempty"`
+		MasterConnectionsIdle               *int       `yaml:"master_connections_idle,omitempty"`
+		MasterPoolWaitCount                 *int64     `yaml:"master_pool_wait_count,omitempty"`
+		MasterPoolWaitDurationMs            *int64     `yaml:"master_pool_wait_duration_ms,omitempty"`
+		MasterConnectionsClosedMaxIdle      *int64     `yaml:"master_connections_closed_max_idle,omitempty"`
+		MasterConnectionsClosedMaxLifetime  *int64     `yaml:"master_connections_closed_max_lifetime,omitempty"`
+		ReplicaConnectionsInUse             *int       `yaml:"replica_connections_in_use,omitempty"`
+		ReplicaConnectionsIdle              *int       `yaml:"replica_connections_idle,omitempty"`
+		ReplicaPoolWaitCount                *int64     `yaml:"replica_pool_wait_count,omitempty"`
+		ReplicaPoolWaitDurationMs           *int64     `yaml:"replica_pool_wait_duration_ms,omitempty"`
+		ReplicaConnectionsClosedMaxIdle     *int64     `yaml:"replica_connections_closed_max_idle,omitempty"`
+		ReplicaConnectionsClosedMaxLifetime *int64     `yaml:"replica_connections_closed_max_lifetime,omitempty"`
+		ReplicasOnline                      *int       `yaml:"replicas_online,omitempty"`
+		CacheHitRatio                       *float64   `yaml:"cache_hit_ratio,omitempty"`
+		Deadlocks                           *int64     `yaml:"deadlocks,omitempty"`
+		TempFiles                           *int64     `yaml:"temp_files,omitempty"`
+		TempBytesMB                         *float64   `yaml:"temp_bytes_mb,omitempty"`
+		Rollbacks                           *int64     `yaml:"rollbacks,omitempty"`
+		IdleInTransactionCount              *int64     `yaml:"idle_in_transaction_count,omitempty"`
+		LongestQueryDurationSeconds         *float64   `yaml:"longest_query_duration_seconds,omitempty"`
+		WaitingForLockCount                 *int64     `yaml:"waiting_for_lock_count,omitempty"`
+		PostsDeadTuples                     *int64     `yaml:"posts_dead_tuples,omitempty"`
+		PostsLastAutovacuum                 *time.Time `yaml:"posts_last_autovacuum,omitempty"`
 	} `yaml:"database"`
 
 	FileStore struct {
-		Status string `yaml:"file_status"`
-		Error  string `yaml:"erorr,omitempty"`
-		Driver string `yaml:"file_driver"`
+		Status         string  `yaml:"file_status"`
+		Error          string  `yaml:"error,omitempty"`
+		Driver         string  `yaml:"file_driver"`
+		FilesystemType *string `yaml:"filesystem_type,omitempty"`
+		TotalMB        *uint64 `yaml:"total_mb,omitempty"`
+		AvailableMB    *uint64 `yaml:"available_mb,omitempty"`
 	} `yaml:"file_store"`
 
 	Websocket struct {
@@ -60,8 +124,22 @@ type SupportPacketDiagnostics struct {
 
 	Cluster struct {
 		ID            string `yaml:"id"`
-		NumberOfNodes int    `yaml:"number_of_nodes"`
+		NumberOfNodes *int   `yaml:"number_of_nodes,omitempty"`
+		// NumberOfConnectedNodes leaves out nodes that are registered in the database but not in the gossip cluster.
+		NumberOfConnectedNodes *int `yaml:"number_of_connected_nodes,omitempty"`
+		IsLeader               bool `yaml:"is_leader,omitempty"`
 	} `yaml:"cluster"`
+
+	Notifications struct {
+		Email struct {
+			Status string `yaml:"status"`
+			Error  string `yaml:"error,omitempty"`
+		} `yaml:"email,omitempty"`
+		Push struct {
+			Status string `yaml:"status"`
+			Error  string `yaml:"error,omitempty"`
+		} `yaml:"push,omitempty"`
+	} `yaml:"notifications,omitempty"`
 
 	LDAP struct {
 		Status        string `yaml:"status,omitempty"`
@@ -72,30 +150,51 @@ type SupportPacketDiagnostics struct {
 
 	SAML struct {
 		ProviderType string `yaml:"provider_type,omitempty"`
+		Status       string `yaml:"status,omitempty"`
+		Error        string `yaml:"error,omitempty"`
 	} `yaml:"saml"`
 
 	ElasticSearch struct {
+		Status        string   `yaml:"status,omitempty"`
 		Backend       string   `yaml:"backend,omitempty"`
 		ServerVersion string   `yaml:"server_version,omitempty"`
 		ServerPlugins []string `yaml:"server_plugins,omitempty"`
 		Error         string   `yaml:"error,omitempty"`
 	} `yaml:"elastic"`
+
+	OAuthProviders OAuthProviders `yaml:"oauth_providers,omitempty"`
 }
 
+// OAuthProviderStatus reports the connectivity status of a single OAuth2/OpenID Connect provider.
+type OAuthProviderStatus struct {
+	Status string `yaml:"status,omitempty"` // ok / fail / disabled
+	Error  string `yaml:"error,omitempty"`
+}
+
+// OAuthProviders aggregates the connectivity status for the configured OAuth2/OpenID Connect providers.
+type OAuthProviders struct {
+	GitLab    OAuthProviderStatus `yaml:"gitlab,omitempty"`
+	Google    OAuthProviderStatus `yaml:"google,omitempty"`
+	Office365 OAuthProviderStatus `yaml:"office365,omitempty"`
+	OpenID    OAuthProviderStatus `yaml:"openid,omitempty"`
+}
+
+// SupportPacketStats reports workspace-scale analytics. Every field is a pointer: a nil value means the underlying query failed, which is not the same as zero.
 type SupportPacketStats struct {
-	RegisteredUsers    int64 `yaml:"registered_users"`
-	ActiveUsers        int64 `yaml:"active_users"`
-	DailyActiveUsers   int64 `yaml:"daily_active_users"`
-	MonthlyActiveUsers int64 `yaml:"monthly_active_users"`
-	DeactivatedUsers   int64 `yaml:"deactivated_users"`
-	Guests             int64 `yaml:"guests"`
-	BotAccounts        int64 `yaml:"bot_accounts"`
-	Posts              int64 `yaml:"posts"`
-	Channels           int64 `yaml:"channels"`
-	Teams              int64 `yaml:"teams"`
-	SlashCommands      int64 `yaml:"slash_commands"`
-	IncomingWebhooks   int64 `yaml:"incoming_webhooks"`
-	OutgoingWebhooks   int64 `yaml:"outgoing_webhooks"`
+	RegisteredUsers     *int64 `yaml:"registered_users,omitempty"`
+	ActiveUsers         *int64 `yaml:"active_users,omitempty"`
+	DailyActiveUsers    *int64 `yaml:"daily_active_users,omitempty"`
+	MonthlyActiveUsers  *int64 `yaml:"monthly_active_users,omitempty"`
+	DeactivatedUsers    *int64 `yaml:"deactivated_users,omitempty"`
+	Guests              *int64 `yaml:"guests,omitempty"`
+	SingleChannelGuests *int64 `yaml:"single_channel_guests,omitempty"`
+	BotAccounts         *int64 `yaml:"bot_accounts,omitempty"`
+	Posts               *int64 `yaml:"posts,omitempty"`
+	Channels            *int64 `yaml:"channels,omitempty"`
+	Teams               *int64 `yaml:"teams,omitempty"`
+	SlashCommands       *int64 `yaml:"slash_commands,omitempty"`
+	IncomingWebhooks    *int64 `yaml:"incoming_webhooks,omitempty"`
+	OutgoingWebhooks    *int64 `yaml:"outgoing_webhooks,omitempty"`
 }
 
 // SupportPacketJobList contains the list of latest run enterprise job runs.
@@ -167,17 +266,10 @@ type FileData struct {
 }
 
 type SupportPacketOptions struct {
-	IncludeLogs   bool     `json:"include_logs"`   // IncludeLogs is the option to include server logs
-	PluginPackets []string `json:"plugin_packets"` // PluginPackets is a list of pluginids to call hooks
-}
-
-// SupportPacketOptionsFromReader decodes a json-encoded request from the given io.Reader.
-func SupportPacketOptionsFromReader(reader io.Reader) (*SupportPacketOptions, error) {
-	var r *SupportPacketOptions
-	err := json.NewDecoder(reader).Decode(&r)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, nil
+	IncludeLogs   bool     // IncludeLogs is the option to include server logs
+	PluginPackets []string // PluginPackets is a list of pluginids to call hooks
+	// CPUProfileDuration lets programmatic callers (e.g. tests) override how long to sample
+	// the CPU profile for. It is not exposed via the HTTP API.
+	// nil leaves the server default in place; 0 skips CPU profile generation entirely.
+	CPUProfileDuration *time.Duration
 }

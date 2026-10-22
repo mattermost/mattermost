@@ -20,6 +20,7 @@ describe('shared_channels actions', () => {
                 create_at: 123,
                 last_ping_at: 456,
                 delete_at: 0,
+                remote_id: 'remote1',
             },
             {
                 name: 'remote2',
@@ -27,6 +28,7 @@ describe('shared_channels actions', () => {
                 create_at: 789,
                 last_ping_at: 101,
                 delete_at: 0,
+                remote_id: 'remote2',
             },
         ];
 
@@ -50,6 +52,7 @@ describe('shared_channels actions', () => {
                 create_at: 123,
                 last_ping_at: 456,
                 delete_at: 0,
+                remote_id: 'remote1',
             },
             {
                 name: 'remote2',
@@ -57,6 +60,7 @@ describe('shared_channels actions', () => {
                 create_at: 789,
                 last_ping_at: 101,
                 delete_at: 0,
+                remote_id: 'remote2',
             },
         ];
 
@@ -97,6 +101,7 @@ describe('shared_channels actions', () => {
                 create_at: 123,
                 last_ping_at: 456,
                 delete_at: 0,
+                remote_id: 'remote1',
             },
         ];
 
@@ -130,6 +135,7 @@ describe('shared_channels actions', () => {
                 create_at: 123,
                 last_ping_at: 456,
                 delete_at: 0,
+                remote_id: 'remote1',
             },
         ];
 
@@ -140,6 +146,7 @@ describe('shared_channels actions', () => {
                 create_at: 123,
                 last_ping_at: 456,
                 delete_at: 0,
+                remote_id: 'remote1',
             },
             {
                 name: 'remote2',
@@ -147,6 +154,7 @@ describe('shared_channels actions', () => {
                 create_at: 789,
                 last_ping_at: 101,
                 delete_at: 0,
+                remote_id: 'remote2',
             },
         ];
 

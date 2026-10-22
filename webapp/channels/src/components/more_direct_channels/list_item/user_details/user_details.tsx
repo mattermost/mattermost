@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React, {useEffect, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -26,7 +26,7 @@ type Props = {
     option: UserProfile;
     status: string;
     actions: {
-        fetchRemoteClusterInfo: (remoteId: string, forceRefresh?: boolean) => void;
+        fetchRemoteClusterInfo: (remoteId: string, includeDeleted?: boolean, forceRefresh?: boolean) => void;
     };
 };
 
@@ -40,7 +40,7 @@ export default function UserDetails(props: Props): JSX.Element {
     // Fetch remote info when component mounts for remote users
     useEffect(() => {
         if (option.remote_id) {
-            actions.fetchRemoteClusterInfo(option.remote_id);
+            actions.fetchRemoteClusterInfo(option.remote_id, true);
         }
     }, [option.remote_id]);
 

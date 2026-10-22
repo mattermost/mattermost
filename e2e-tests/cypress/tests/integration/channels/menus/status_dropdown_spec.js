@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @menu @custom_status @status_menu
 
-import theme from '../../../fixtures/theme.json';
+import theme from '@/fixtures/theme.json';
 
 describe('Status dropdown menu', () => {
     const statusTestCases = [

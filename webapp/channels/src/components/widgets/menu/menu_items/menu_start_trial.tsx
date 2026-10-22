@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
@@ -32,7 +32,7 @@ const FreeVersionBadge = styled.div`
 
 type Props = {
     id: string;
-}
+};
 
 const MenuStartTrial = (props: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
@@ -61,7 +61,7 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
                 {isEntryLicense ? (
                     formatMessage({
                         id: 'navbar_dropdown.entryVersionText',
-                        defaultMessage: 'Entry offers Enterprise Advance capabilities <link>with limits</link> designed to support evaluation.',
+                        defaultMessage: 'Entry offers Enterprise Advanced capabilities <link>with limits</link> designed to support evaluation.',
                     },
                     {
                         link: (msg: React.ReactNode) => (

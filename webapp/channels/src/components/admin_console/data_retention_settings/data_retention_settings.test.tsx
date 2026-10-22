@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import DataRetentionSettings from './data_retention_settings';
 
@@ -33,17 +33,30 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
         },
     };
 
+    const getBaseProps = () => ({
+        ...baseProps,
+        config: {
+            ...baseProps.config,
+            DataRetentionSettings: {
+                ...baseProps.config.DataRetentionSettings,
+            },
+        },
+        customPolicies: {
+            ...baseProps.customPolicies,
+        },
+    });
+
     test('should match snapshot with no custom policies', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <DataRetentionSettings
-                {...baseProps}
+                {...getBaseProps()}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with custom policy', () => {
-        const props = baseProps;
+        const props = getBaseProps();
         props.customPolicies = {
             1234567: {
                 id: '1234567',
@@ -54,16 +67,16 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             },
         };
         props.customPoliciesCount = 1;
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <DataRetentionSettings
                 {...props}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with custom policy keep forever', () => {
-        const props = baseProps;
+        const props = getBaseProps();
         props.customPolicies = {
             1234567: {
                 id: '1234567',
@@ -74,23 +87,23 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             },
         };
         props.customPoliciesCount = 1;
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <DataRetentionSettings
                 {...props}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with Global Policies disabled', () => {
-        const props = baseProps;
+        const props = getBaseProps();
         props.config.DataRetentionSettings.EnableMessageDeletion = false;
         props.config.DataRetentionSettings.EnableFileDeletion = false;
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <DataRetentionSettings
                 {...props}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

@@ -6,9 +6,14 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+
 import {getSearchButtons} from 'selectors/plugins';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
+import {canSearchFiles} from 'utils/file_utils';
+
+import type {GlobalState} from 'types/store';
 
 const SearchTypeSelectorContainer = styled.div`
     margin: 20px 20px 0px 20px;
@@ -46,13 +51,14 @@ const SearchTypeItem = styled.button<SearchTypeItemProps>`
 type Props = {
     searchType: string;
     setSearchType: (searchType: string) => void;
-}
+};
 
 const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
     const setMessagesSearchType = useCallback(() => setSearchType('messages'), [setSearchType]);
     const setFilesSearchType = useCallback(() => setSearchType('files'), [setSearchType]);
 
     const searchPluginButtons = useSelector(getSearchButtons);
+    const showFiles = useSelector((state: GlobalState) => canSearchFiles(getConfig(state)));
 
     return (
         <SearchTypeSelectorContainer
@@ -68,16 +74,18 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
                     defaultMessage='Messages'
                 />
             </SearchTypeItem>
-            <SearchTypeItem
-                selected={searchType === 'files'}
-                onClick={setFilesSearchType}
-                role='radio'
-            >
-                <FormattedMessage
-                    id='search_bar.usage.search_type_files'
-                    defaultMessage='Files'
-                />
-            </SearchTypeItem>
+            {showFiles && (
+                <SearchTypeItem
+                    selected={searchType === 'files'}
+                    onClick={setFilesSearchType}
+                    role='radio'
+                >
+                    <FormattedMessage
+                        id='search_bar.usage.search_type_files'
+                        defaultMessage='Files'
+                    />
+                </SearchTypeItem>
+            )}
             {searchPluginButtons.map(({component, pluginId}: any) => {
                 const Component = component as React.ComponentType;
                 return (
@@ -87,7 +95,7 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
                         onClick={() => setSearchType(pluginId)}
                         role='radio'
                     >
-                        <ErrorBoundary>
+                        <ErrorBoundary pluginId={pluginId}>
                             <Component/>
                         </ErrorBoundary>
                     </SearchTypeItem>

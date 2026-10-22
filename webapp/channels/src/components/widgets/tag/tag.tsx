@@ -11,7 +11,7 @@ import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 export type TagVariant = 'info' | 'success' | 'warning' | 'danger' | 'dangerDim' | 'default';
 
-export type TagSize = 'xs' | 'sm' | 'md' | 'lg'
+export type TagSize = 'xs' | 'sm' | 'md' | 'lg';
 
 type Props = {
     text: React.ReactNode;
@@ -127,7 +127,7 @@ const TagText = styled.span`
     text-overflow: ellipsis;
 `;
 
-const Tag = ({
+const Tag = React.forwardRef<HTMLElement, Props>(({
     variant,
     onClick,
     className,
@@ -136,7 +136,7 @@ const Tag = ({
     size = 'xs',
     uppercase = false,
     ...rest
-}: Props) => {
+}, ref) => {
     const Icon = iconName ? glyphMap[iconName] : null;
     const element = onClick ? 'button' : 'div';
 
@@ -157,6 +157,10 @@ const Tag = ({
     return (
         <TagWrapper
             {...rest}
+
+            // TagWrapper renders a div or a button, but styled-components types
+            // its ref as one or the other, never HTMLElement.
+            ref={ref as React.Ref<HTMLDivElement>}
             as={element}
             uppercase={uppercase}
             onClick={onClick}
@@ -166,6 +170,7 @@ const Tag = ({
             <TagText>{text}</TagText>
         </TagWrapper>
     );
-};
+});
+Tag.displayName = 'Tag';
 
 export default memo(Tag);

@@ -9,7 +9,7 @@
 
 // Group: @channels @accessibility @smoke
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
     let testUser;

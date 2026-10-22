@@ -13,7 +13,7 @@ type Props = {
     title?: string;
     text?: string;
     author_name?: string;
-}
+};
 
 function AttachmentCard({
     fallback,

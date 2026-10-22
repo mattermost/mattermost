@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @multi_team_and_dm
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Multi Team and DM', () => {
     let testChannel;

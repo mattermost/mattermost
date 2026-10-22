@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @multi_team_and_dm
 
-import {DEFAULT_TEAM} from '../../../support/constants';
+import {DEFAULT_TEAM} from '@/support/constants';
 
 const NUMBER_OF_TEAMS = 3;
 

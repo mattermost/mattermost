@@ -10,10 +10,10 @@
 // Stage: @prod
 // Group: @channels @incoming_webhook
 
-import {getRandomId} from '../../../../utils';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-
 import {enableUsernameAndIconOverride} from './helpers';
+
+import {getRandomId} from '@/utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Incoming webhook', () => {
     let sysadmin;
@@ -45,7 +45,10 @@ describe('Incoming webhook', () => {
     });
 
     it('MM-T622 Disallow override of username and profile picture', () => {
-        const iconUrl = 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png';
+        // The mattermost.com marketing asset this used to point at was removed (404), which the
+        // server can't fetch/proxy — points at a fixture already committed to this repo instead,
+        // so the URL doesn't rot again.
+        const iconUrl = 'https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/mattermost-icon.png';
 
         // # Enable username and icon override
         cy.apiAdminLogin();

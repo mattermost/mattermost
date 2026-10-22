@@ -2,10 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 import {limitThresholds} from 'utils/limits';
@@ -95,9 +93,8 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 },
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuCloudTrial id='menuCloudTrial'/></Provider>);
-        expect(wrapper.find('.MenuCloudTrial').exists()).toEqual(true);
+        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        expect(container.querySelector('.MenuCloudTrial')).not.toBeNull();
     });
 
     test('should NOT render when NOT on cloud license and NOT during free trial period', () => {
@@ -115,9 +112,8 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 usage,
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuCloudTrial id='menuCloudTrial'/></Provider>);
-        expect(wrapper.find('.MenuCloudTrial').exists()).toEqual(false);
+        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        expect(container.querySelector('.MenuCloudTrial')).toBeNull();
     });
 
     test('should NOT render when NO license is available', () => {
@@ -131,9 +127,8 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 usage,
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuCloudTrial id='menuCloudTrial'/></Provider>);
-        expect(wrapper.find('.MenuCloudTrial').exists()).toEqual(false);
+        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        expect(container.querySelector('.MenuCloudTrial')).toBeNull();
     });
 
     test('should NOT render when is cloud and not on a trial', () => {
@@ -156,10 +151,9 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 usage,
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuCloudTrial id='menuCloudTrial'/></Provider>);
-        expect(wrapper.find('.open-learn-more-trial-modal').exists()).toEqual(false);
-        expect(wrapper.find('.MenuCloudTrial').exists()).toEqual(false);
+        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        expect(container.querySelector('.open-learn-more-trial-modal')).toBeNull();
+        expect(container.querySelector('.MenuCloudTrial')).toBeNull();
     });
 
     test('should show the open trial benefits modal when is free trial', () => {
@@ -189,11 +183,10 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 usage,
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuCloudTrial id='menuCloudTrial'/></Provider>);
-        const openModalLink = wrapper.find('.open-trial-benefits-modal');
-        expect(openModalLink.exists()).toEqual(true);
-        expect(openModalLink.text()).toBe('Learn more');
+        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        const openModalLink = container.querySelector('.open-trial-benefits-modal');
+        expect(openModalLink).not.toBeNull();
+        expect(openModalLink?.textContent).toBe('Learn more');
     });
 
     test('should show the invitation to see plans when is not in Trial and has had previous Trial', () => {
@@ -228,11 +221,10 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 },
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuCloudTrial id='menuCloudTrial'/></Provider>);
-        const openModalLink = wrapper.find('.open-see-plans-modal');
-        expect(openModalLink.exists()).toEqual(true);
-        expect(openModalLink.text()).toEqual('See plans');
+        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        const openModalLink = container.querySelector('.open-see-plans-modal');
+        expect(openModalLink).not.toBeNull();
+        expect(openModalLink?.textContent).toEqual('See plans');
     });
 
     test('should show the invitation to open the trial benefits modal when is End User and is in TRIAL', () => {
@@ -267,11 +259,10 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 },
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuCloudTrial id='menuCloudTrial'/></Provider>);
-        const openModalLink = wrapper.find('.open-trial-benefits-modal');
-        expect(openModalLink.exists()).toEqual(true);
-        expect(openModalLink.text()).toEqual('Learn more');
+        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        const openModalLink = container.querySelector('.open-trial-benefits-modal');
+        expect(openModalLink).not.toBeNull();
+        expect(openModalLink?.textContent).toEqual('Learn more');
     });
 
     test('should NOT show the menu cloud trial when is End User and is NOT in TRIAL', () => {
@@ -306,10 +297,9 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 },
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuCloudTrial id='menuCloudTrial'/></Provider>);
-        const openModalLink = wrapper.find('.open-trial-benefits-modal');
-        expect(openModalLink.exists()).toEqual(false);
+        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        const openModalLink = container.querySelector('.open-trial-benefits-modal');
+        expect(openModalLink).toBeNull();
     });
 
     test('should return null if some limit needs attention', () => {
@@ -345,11 +335,10 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 },
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuCloudTrial id='menuCloudTrial'/></Provider>);
-        expect(wrapper.find('.MenuCloudTrial').exists()).toEqual(false);
-        expect(wrapper.find('.open-see-plans-modal').exists()).toEqual(false);
-        expect(wrapper.find('.open-learn-more-trial-modal').exists()).toEqual(false);
-        expect(wrapper.find('.open-trial-benefits-modal').exists()).toEqual(false);
+        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        expect(container.querySelector('.MenuCloudTrial')).toBeNull();
+        expect(container.querySelector('.open-see-plans-modal')).toBeNull();
+        expect(container.querySelector('.open-learn-more-trial-modal')).toBeNull();
+        expect(container.querySelector('.open-trial-benefits-modal')).toBeNull();
     });
 });

@@ -1,211 +1,161 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/channel_members_dropdown should match snapshot for channel_members_dropdown 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
->
-  <button
-    className="dropdown-toggle theme color--link style--none"
-    type="button"
+<div>
+  <div
+    class="MenuWrapper "
   >
-    <span
-      className="sr-only"
-    />
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Channel Admin"
-        id="channel_members_dropdown.channel_admin"
+    <button
+      class="dropdown-toggle theme color--link style--none"
+      type="button"
+    >
+      <span
+        class="sr-only"
       />
-       
-    </span>
-    <DropdownIcon />
-  </button>
-  <Menu
-    ariaLabel="Change the role of channel member"
-    openLeft={true}
-    openUp={false}
-  >
-    <MenuItemAction
-      data-testid="removeFromChannel"
-      isDangerous={true}
-      onClick={[Function]}
-      show={true}
-      text="Remove from Channel"
-    />
-  </Menu>
-</MenuWrapper>
+      <span>
+        Channel Admin
+         
+      </span>
+      <i
+        class="fa fa-angle-down"
+        title="Dropdown Icon"
+      />
+    </button>
+  </div>
+</div>
 `;
 
 exports[`components/channel_members_dropdown should match snapshot for dropdown with guest user 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
->
-  <button
-    className="dropdown-toggle theme color--link style--none"
-    type="button"
+<div>
+  <div
+    class="MenuWrapper "
   >
-    <span
-      className="sr-only"
-    />
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Channel Admin"
-        id="channel_members_dropdown.channel_admin"
+    <button
+      class="dropdown-toggle theme color--link style--none"
+      type="button"
+    >
+      <span
+        class="sr-only"
       />
-       
-    </span>
-    <DropdownIcon />
-  </button>
-  <Menu
-    ariaLabel="Change the role of channel member"
-    openLeft={true}
-    openUp={false}
-  >
-    <MenuItemAction
-      id="undefined-make-channel-member"
-      onClick={[Function]}
-      show={true}
-      text="Make Channel Member"
-    />
-    <MenuItemAction
-      data-testid="removeFromChannel"
-      isDangerous={true}
-      onClick={[Function]}
-      show={true}
-      text="Remove from Channel"
-    />
-  </Menu>
-</MenuWrapper>
+      <span>
+        Channel Admin
+         
+      </span>
+      <i
+        class="fa fa-angle-down"
+        title="Dropdown Icon"
+      />
+    </button>
+  </div>
+</div>
 `;
 
-exports[`components/channel_members_dropdown should match snapshot for dropdown with shared user 1`] = `<Fragment />`;
+exports[`components/channel_members_dropdown should match snapshot for dropdown with shared user 1`] = `<div />`;
 
 exports[`components/channel_members_dropdown should match snapshot for group_constrained channel 1`] = `
 <div>
-  <MemoizedFormattedMessage
-    defaultMessage="Channel Admin"
-    id="channel_members_dropdown.channel_admin"
-  />
+  <div>
+    Channel Admin
+  </div>
 </div>
 `;
 
 exports[`components/channel_members_dropdown should match snapshot for not dropdown with guest user 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
->
-  <button
-    className="dropdown-toggle theme color--link style--none"
-    type="button"
+<div>
+  <div
+    class="MenuWrapper "
   >
-    <span
-      className="sr-only"
-    />
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Channel Admin"
-        id="channel_members_dropdown.channel_admin"
+    <button
+      class="dropdown-toggle theme color--link style--none"
+      type="button"
+    >
+      <span
+        class="sr-only"
       />
-       
-    </span>
-    <DropdownIcon />
-  </button>
-  <Menu
-    ariaLabel="Change the role of channel member"
-    openLeft={true}
-    openUp={false}
-  >
-    <MenuItemAction
-      data-testid="removeFromChannel"
-      isDangerous={true}
-      onClick={[Function]}
-      show={true}
-      text="Remove from Channel"
-    />
-  </Menu>
-</MenuWrapper>
+      <span>
+        Channel Admin
+         
+      </span>
+      <i
+        class="fa fa-angle-down"
+        title="Dropdown Icon"
+      />
+    </button>
+  </div>
+</div>
 `;
 
 exports[`components/channel_members_dropdown should match snapshot opening dropdown upwards 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
->
-  <button
-    className="dropdown-toggle theme color--link style--none"
-    type="button"
+<div>
+  <div
+    class="MenuWrapper "
   >
-    <span
-      className="sr-only"
-    />
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Channel Admin"
-        id="channel_members_dropdown.channel_admin"
+    <button
+      class="dropdown-toggle theme color--link style--none"
+      type="button"
+    >
+      <span
+        class="sr-only"
       />
-       
-    </span>
-    <DropdownIcon />
-  </button>
-  <Menu
-    ariaLabel="Change the role of channel member"
-    openLeft={true}
-    openUp={true}
-  >
-    <MenuItemAction
-      data-testid="removeFromChannel"
-      isDangerous={true}
-      onClick={[Function]}
-      show={true}
-      text="Remove from Channel"
-    />
-  </Menu>
-</MenuWrapper>
+      <span>
+        Channel Admin
+         
+      </span>
+      <i
+        class="fa fa-angle-down"
+        title="Dropdown Icon"
+      />
+    </button>
+  </div>
+</div>
 `;
 
 exports[`components/channel_members_dropdown should match snapshot when user is current user 1`] = `
 <div>
-  <MemoizedFormattedMessage
-    defaultMessage="Channel Admin"
-    id="channel_members_dropdown.channel_admin"
-  />
+  <div
+    class="MenuWrapper "
+  >
+    <button
+      class="dropdown-toggle theme color--link style--none"
+      type="button"
+    >
+      <span
+        class="sr-only"
+      />
+      <span>
+        Channel Admin
+         
+      </span>
+      <i
+        class="fa fa-angle-down"
+        title="Dropdown Icon"
+      />
+    </button>
+  </div>
 </div>
 `;
 
 exports[`components/channel_members_dropdown should match snapshot with role change possible 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
->
-  <button
-    className="dropdown-toggle theme color--link style--none"
-    type="button"
+<div>
+  <div
+    class="MenuWrapper "
   >
-    <span
-      className="sr-only"
-    />
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Channel Admin"
-        id="channel_members_dropdown.channel_admin"
+    <button
+      class="dropdown-toggle theme color--link style--none"
+      type="button"
+    >
+      <span
+        class="sr-only"
       />
-       
-    </span>
-    <DropdownIcon />
-  </button>
-  <Menu
-    ariaLabel="Change the role of channel member"
-    openLeft={true}
-    openUp={false}
-  >
-    <MenuItemAction
-      id="undefined-make-channel-member"
-      onClick={[Function]}
-      show={true}
-      text="Make Channel Member"
-    />
-  </Menu>
-</MenuWrapper>
+      <span>
+        Channel Admin
+         
+      </span>
+      <i
+        class="fa fa-angle-down"
+        title="Dropdown Icon"
+      />
+    </button>
+  </div>
+</div>
 `;

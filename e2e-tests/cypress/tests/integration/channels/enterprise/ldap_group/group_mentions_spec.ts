@@ -9,16 +9,16 @@
 
 // Group: @channels @enterprise @ldap_group
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import users from '../../../../fixtures/ldap_users.json';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import users from '@/fixtures/ldap_users.json';
 
-let groupID;
-let boardUser;
-let regularUser;
-let testTeam;
+let groupID: string;
+let boardUser: {username: string; password: string; email: string};
+let regularUser: Cypress.UserProfile;
+let testTeam: Cypress.Team;
 
 // Goes to the groups page for the group specified by id as sysadmin
-const navigateToGroup = (id) => {
+const navigateToGroup = (id: string) => {
     // # Login as sysadmin and visit board group page, and wait until board user is visible
     cy.apiAdminLogin();
     cy.visit(`/admin_console/user_management/groups/${id}`);
@@ -33,7 +33,7 @@ const navigateToGroup = (id) => {
 // Attempts to @mention the given group
 // Checks to see that the group is not highlighted as a link when viewed by a user without permission to mention
 // Checks to see that the group is not highlighted as a mention when viewed by user inside the group
-const assertGroupMentionDisabled = (groupName) => {
+const assertGroupMentionDisabled = (groupName: string) => {
     const suggestion = groupName.substring(0, groupName.length - 1);
 
     // # Visit off-topic
@@ -73,7 +73,7 @@ const assertGroupMentionDisabled = (groupName) => {
 // Attempts to @mention the given group
 // Checks to see that the group is highlighted as a link when viewed by a user outside of the group
 // Checks to see that the group is highlighted as a mention when viewed by user inside the group
-const assertGroupMentionEnabled = (groupName) => {
+const assertGroupMentionEnabled = (groupName: string) => {
     const suggestion = groupName.substring(0, groupName.length - 1);
 
     // # Visit off-topic
@@ -151,7 +151,7 @@ describe('System Console', () => {
 
         // # Get board group id
         cy.apiGetGroups().then((res) => {
-            res.body.forEach((group) => {
+            res.body.forEach((group: {display_name: string; id: string; allow_reference: boolean}) => {
                 if (group.display_name === 'board') {
                     // # Set groupID to navigate to group page directly
                     groupID = group.id;
@@ -187,33 +187,29 @@ describe('System Console', () => {
         // # Login as sysadmin and navigate to board group page
         navigateToGroup(groupID);
 
-        // # Click the allow reference button
-        cy.findByTestId('allowReferenceSwitch').then((el) => {
-            el.find('button').click();
+        // # Enable group mentions
+        cy.findByTestId('allowReferenceSwitch-button').click({force: true});
 
-            // # Give the group a custom name different from its DisplayName attribute
-            cy.get('#groupMention').find('input').clear().type(groupName);
+        // # Give the group a custom name different from its DisplayName attribute
+        cy.get('#groupMention').find('input').clear().type(groupName);
 
-            // # Click save button
-            saveConfig();
+        // # Click save button
+        saveConfig();
 
-            // * Assert that the group mention works as expected since the group is enabled and sysadmin always has permission to mention
-            assertGroupMentionEnabled(groupName);
+        // * Assert that the group mention works as expected since the group is enabled and sysadmin always has permission to mention
+        assertGroupMentionEnabled(groupName);
 
-            // # Login as sysadmin and navigate to board group page
-            navigateToGroup(groupID);
+        // # Login as sysadmin and navigate to board group page
+        navigateToGroup(groupID);
 
-            // # Click the allow reference button
-            cy.findByTestId('allowReferenceSwitch').then((elSwitch) => {
-                elSwitch.find('button').click();
+        // # Disable group mentions
+        cy.findByTestId('allowReferenceSwitch-button').click({force: true});
 
-                // # Click save button
-                saveConfig();
+        // # Click save button
+        saveConfig();
 
-                // * Assert that the group mention does not do anything since the group is disabled even though sysadmin has permission to mention
-                assertGroupMentionDisabled(groupName);
-            });
-        });
+        // * Assert that the group mention does not do anything since the group is disabled even though sysadmin has permission to mention
+        assertGroupMentionDisabled(groupName);
     });
 
     it('MM-23937 - Can restrict users from mentioning a group through the use_group_mentions permission', () => {

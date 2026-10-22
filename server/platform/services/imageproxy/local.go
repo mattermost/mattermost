@@ -19,12 +19,15 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
+
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 var imageContentTypes = []string{
 	"image/bmp", "image/cgm", "image/g3fax", "image/gif", "image/ief", "image/jp2",
-	"image/jpeg", "image/jpg", "image/pict", "image/png", "image/prs.btif", "image/svg+xml",
+	"image/jpeg", "image/jpg", "image/pict", "image/png", "image/prs.btif",
 	"image/tiff", "image/vnd.adobe.photoshop", "image/vnd.djvu", "image/vnd.dwg",
 	"image/vnd.dxf", "image/vnd.fastbidsheet", "image/vnd.fpx", "image/vnd.fst",
 	"image/vnd.fujixerox.edmics-mmr", "image/vnd.fujixerox.edmics-rlc",
@@ -38,6 +41,13 @@ var imageContentTypes = []string{
 var msgNotAllowed = "requested URL is not allowed"
 
 var ErrLocalRequestFailed = Error{errors.New("imageproxy.LocalBackend: failed to request proxied image")}
+
+var ErrImageTooLarge = Error{errors.New("imageproxy.LocalBackend: image exceeds maximum allowed size")}
+
+// maxImageSize caps how many bytes of a remote response GetImageDirect will
+// buffer into its in-memory recorder (var, not const, so tests can override it).
+// GetImage streams to a real connection instead of buffering, so it's unaffected.
+var maxImageSize int64 = 1024 * 1024 * 50 // 50 MiB, matching app.MaxMetadataImageSize
 
 type LocalBackend struct {
 	client  *http.Client
@@ -112,7 +122,7 @@ func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, im
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; img-src data:; style-src 'unsafe-inline'")
 
 	rec := contentTypeRecorder{w, filepath.Base(u.Path)}
-	backend.ServeImage(&rec, req)
+	backend.ServeImage(&rec, req, 0)
 }
 
 func (backend *LocalBackend) GetImageDirect(imageURL string) (io.ReadCloser, string, error) {
@@ -124,7 +134,16 @@ func (backend *LocalBackend) GetImageDirect(imageURL string) (io.ReadCloser, str
 
 	recorder := httptest.NewRecorder()
 
-	backend.ServeImage(recorder, req)
+	if truncated := backend.ServeImage(recorder, req, maxImageSize); truncated {
+		// Log only the host, not the full URL: the path/query may carry
+		// sensitive tokens or signed parameters that shouldn't hit the logs.
+		fields := []mlog.Field{mlog.Int("max_bytes", maxImageSize)}
+		if parsed, parseErr := url.Parse(imageURL); parseErr == nil {
+			fields = append(fields, mlog.String("host", parsed.Host))
+		}
+		mlog.Warn("Discarding proxied image that exceeded max size for direct fetch", fields...)
+		return nil, "", ErrImageTooLarge
+	}
 
 	if recorder.Code != http.StatusOK {
 		return nil, "", ErrLocalRequestFailed
@@ -133,17 +152,21 @@ func (backend *LocalBackend) GetImageDirect(imageURL string) (io.ReadCloser, str
 	return io.NopCloser(recorder.Body), recorder.Header().Get("Content-Type"), nil
 }
 
-func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request) {
+// ServeImage fetches the remote image referenced by req and writes it to w.
+// maxBytes limits how many bytes of the response body are copied to w; pass 0
+// to disable the limit. The return value reports whether the body was truncated
+// (always false when maxBytes is 0).
+func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request, maxBytes int64) (truncated bool) {
 	proxyReq, err := newProxyRequest(req, backend.baseURL)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("invalid request URL: %v", err), http.StatusBadRequest)
-		return
+		return false
 	}
 
 	actualReq, err := http.NewRequest("GET", proxyReq.String(), nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return false
 	}
 	actualReq.Header.Set("Accept", strings.Join(imageContentTypes, ", "))
 
@@ -155,29 +178,37 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 			statusCode = http.StatusGatewayTimeout
 		}
 		http.Error(w, fmt.Sprintf("error fetching remote image: %v", err), statusCode)
-		return
+		return false
 	}
 	// close the original resp.Body, even if we wrap it in a NopCloser below
 	defer resp.Body.Close()
 
 	copyHeader(w.Header(), resp.Header, "Cache-Control", "Last-Modified", "Expires", "Etag", "Link")
 
-	if should304(req, resp) {
-		w.WriteHeader(http.StatusNotModified)
-		return
+	// Wrap the body in a bufio.Reader so we can peek at bytes for
+	// content-type detection without consuming the stream.
+	b := bufio.NewReaderSize(resp.Body, contentPeekSize)
+	resp.Body = io.NopCloser(b)
+
+	if isSVGContent(b) {
+		http.Error(w, msgNotAllowed, http.StatusForbidden)
+		return false
 	}
 
 	contentType, _, _ := mime.ParseMediaType(resp.Header.Get("Content-Type"))
 	if contentType == "" || contentType == "application/octet-stream" || contentType == "binary/octet-stream" {
-		// try to detect content type
-		b := bufio.NewReader(resp.Body)
-		resp.Body = io.NopCloser(b)
 		contentType = peekContentType(b)
 	}
 	if resp.ContentLength != 0 && !contentTypeMatches(imageContentTypes, contentType) {
 		http.Error(w, msgNotAllowed, http.StatusForbidden)
-		return
+		return false
 	}
+
+	if should304(req, resp) {
+		w.WriteHeader(http.StatusNotModified)
+		return false
+	}
+
 	w.Header().Set("Content-Type", contentType)
 
 	copyHeader(w.Header(), resp.Header, "Content-Length")
@@ -195,9 +226,20 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 	w.Header().Set("X-XSS-Protection", "1; mode=block")
 
 	w.WriteHeader(resp.StatusCode)
-	if _, err := io.Copy(w, resp.Body); err != nil {
+
+	var body io.Reader = resp.Body
+	if maxBytes > 0 {
+		// Read one byte past the limit so a source that has more data than
+		// maxBytes can be distinguished from one that has exactly maxBytes.
+		body = io.LimitReader(resp.Body, maxBytes+1)
+	}
+
+	n, err := io.Copy(w, body)
+	if err != nil {
 		mlog.Warn("error copying response", mlog.Err(err))
 	}
+
+	return maxBytes > 0 && n > maxBytes
 }
 
 // copyHeader copies header values from src to dst, adding to any existing
@@ -246,6 +288,41 @@ func peekContentType(p *bufio.Reader) string {
 		return ""
 	}
 	return http.DetectContentType(byt)
+}
+
+// contentPeekSize is the number of bytes read ahead for content inspection.
+// It must match the bufio.Reader buffer size created in ServeImage.
+const contentPeekSize = 8192
+
+// isSVGContent peeks at the first contentPeekSize bytes of p and reports whether
+// they contain SVG markers. UTF-16 encoded content (identified by a BOM) is
+// decoded to ASCII before scanning.
+func isSVGContent(p *bufio.Reader) bool {
+	byt, err := p.Peek(contentPeekSize)
+	if err != nil && err != bufio.ErrBufferFull && err != io.EOF {
+		return false
+	}
+	if len(byt) == 0 {
+		return false
+	}
+
+	// UseBOM selects endianness from a BOM when present (0xFF 0xFE → LE,
+	// 0xFE 0xFF → BE), defaulting to LE otherwise.
+	enc := unicode.UTF16(unicode.LittleEndian, unicode.UseBOM)
+	if decoded, _, decodeErr := transform.Bytes(enc.NewDecoder(), byt); decodeErr == nil {
+		lower := strings.ToLower(string(decoded))
+		if strings.Contains(lower, "<svg") ||
+			(strings.Contains(lower, "<?xml") && strings.Contains(lower, "<svg")) {
+			return true
+		}
+	}
+
+	// Raw-byte scan for UTF-8 / ASCII content; interleaved-NUL patterns cover BOM-less UTF-16 BE.
+	rawLower := strings.ToLower(string(byt))
+	return strings.Contains(rawLower, "<svg") ||
+		(strings.Contains(rawLower, "<?xml") && strings.Contains(rawLower, "<svg")) ||
+		strings.Contains(rawLower, "<\x00s\x00v\x00g\x00") || // BOM-less UTF-16 LE
+		strings.Contains(rawLower, "\x00<\x00s\x00v\x00g") // BOM-less UTF-16 BE
 }
 
 // contentTypeMatches returns whether contentType matches one of the allowed patterns.

@@ -8,6 +8,7 @@ import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import {PaperclipIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo, FileUploadResponse} from '@mattermost/types/files';
 
@@ -22,17 +23,12 @@ import {
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import dragster from 'utils/dragster';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {hasPlainText, createFileFromClipboardDataItem} from 'utils/paste';
-import {
-    isIosChrome,
-    isMobileApp,
-} from 'utils/user_agent';
 import {
     clearFileInput,
     generateId,
@@ -145,6 +141,13 @@ export type Props = {
     canUploadFiles: boolean;
 
     /**
+     * An access control policy denies uploads here. Renders the control disabled with an
+     * explanation, unlike canUploadFiles which hides it: policy denial is user-specific, so the
+     * user needs to know why their experience differs from a colleague's in the same channel.
+     */
+    disabledByPolicy?: boolean;
+
+    /**
      * Plugin file upload methods to be added
      */
     pluginFileUploadMethods: FileUploadMethodAction[];
@@ -173,7 +176,7 @@ type State = {
 };
 
 export class FileUpload extends PureComponent<Props, State> {
-    fileInput: RefObject<HTMLInputElement>;
+    fileInput: RefObject<HTMLInputElement | null>;
     unbindDragsterEvents?: () => void;
 
     static defaultProps = {
@@ -382,6 +385,11 @@ export class FileUpload extends PureComponent<Props, State> {
             return;
         }
 
+        if (this.props.disabledByPolicy) {
+            this.props.onUploadError(localizeMessage({id: 'file_upload.disabled_by_policy', defaultMessage: 'File uploads are restricted in this channel'}));
+            return;
+        }
+
         this.props.onUploadError(null);
 
         const items = e.dataTransfer.items || [];
@@ -527,6 +535,11 @@ export class FileUpload extends PureComponent<Props, State> {
                 return;
             }
 
+            if (this.props.disabledByPolicy) {
+                this.props.onUploadError(this.props.intl.formatMessage({id: 'file_upload.disabled_by_policy', defaultMessage: 'File uploads are restricted in this channel'}));
+                return;
+            }
+
             const fileNamePrefixIfNoName = this.props.intl.formatMessage({id: 'file_upload.pasted', defaultMessage: 'Image Pasted at '});
 
             const fileList = fileClipboardItems.
@@ -552,6 +565,12 @@ export class FileUpload extends PureComponent<Props, State> {
                 this.props.onUploadError(localizeMessage({id: 'file_upload.disabled', defaultMessage: 'File attachments are disabled.'}));
                 return;
             }
+
+            if (this.props.disabledByPolicy) {
+                this.props.onUploadError(localizeMessage({id: 'file_upload.disabled_by_policy', defaultMessage: 'File uploads are restricted in this channel'}));
+                return;
+            }
+
             const postTextbox = this.props.postType === 'post' && document.activeElement?.id === 'post_textbox';
             const commentTextbox = this.props.postType === 'comment' && document.activeElement?.id === 'reply_textbox';
             const threadTextbox = this.props.postType === 'thread' && document.activeElement?.id === 'reply_textbox';
@@ -600,22 +619,16 @@ export class FileUpload extends PureComponent<Props, State> {
     simulateInputClick = (e: MouseEvent<HTMLButtonElement | HTMLAnchorElement> | TouchEvent) => {
         e.preventDefault();
         e.stopPropagation();
+
+        if (this.props.disabledByPolicy) {
+            return;
+        }
+
         this.fileInput.current?.click();
     };
 
     render() {
         const {formatMessage} = this.props.intl;
-        let multiple = true;
-        if (isMobileApp()) {
-            // iOS WebViews don't upload videos properly in multiple mode
-            multiple = false;
-        }
-
-        let accept = '';
-        if (isIosChrome()) {
-            // iOS Chrome can't upload videos at all
-            accept = 'image/*';
-        }
 
         const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.fileCount;
 
@@ -623,35 +636,51 @@ export class FileUpload extends PureComponent<Props, State> {
         const buttonAriaLabel = formatMessage({id: 'accessibility.button.attachment', defaultMessage: 'attachment'});
         const iconAriaLabel = formatMessage({id: 'generic_icons.attach', defaultMessage: 'Attachment Icon'});
 
-        if (this.props.pluginFileUploadMethods.length === 0) {
+        const {disabledByPolicy} = this.props;
+
+        const dimmed = uploadsRemaining <= 0 || disabledByPolicy;
+
+        const uploadTooltip = disabledByPolicy ? formatMessage({id: 'file_upload.disabled_by_policy', defaultMessage: 'File uploads are restricted in this channel'}) : (
+            <KeyboardShortcutSequence
+                shortcut={KEYBOARD_SHORTCUTS.filesUpload}
+                hoistDescription={true}
+                isInsideTooltip={true}
+            />
+        );
+
+        // aria-disabled, not the disabled attribute: a disabled button emits no pointer or focus
+        // events, so WithTooltip could never show the tooltip explaining the denial — the whole
+        // reason the control stays visible. Every upload entry point checks disabledByPolicy.
+        const attachmentButton = (onActivate?: (e: MouseEvent<HTMLButtonElement | HTMLAnchorElement> | TouchEvent) => void) => (
+            <WithTooltip title={uploadTooltip}>
+                <button
+                    type='button'
+                    id='fileUploadButton'
+                    aria-label={buttonAriaLabel}
+                    aria-disabled={disabledByPolicy}
+                    className={classNames('style--none AdvancedTextEditor__action-button', {
+                        disabled: dimmed,
+                    })}
+                    onClick={onActivate}
+                    onTouchEnd={onActivate}
+                >
+                    <PaperclipIcon
+                        size={18}
+                        color={'currentColor'}
+                        aria-label={iconAriaLabel}
+                    />
+                </button>
+            </WithTooltip>
+        );
+
+        // No entry points for a denied user: a menu of plugin sources that would each be rejected
+        // is worse than one control that says why.
+        if (disabledByPolicy) {
+            bodyAction = <div>{attachmentButton()}</div>;
+        } else if (this.props.pluginFileUploadMethods.length === 0) {
             bodyAction = (
                 <div>
-                    <WithTooltip
-                        title={
-                            <KeyboardShortcutSequence
-                                shortcut={KEYBOARD_SHORTCUTS.filesUpload}
-                                hoistDescription={true}
-                                isInsideTooltip={true}
-                            />
-                        }
-                    >
-                        <button
-                            type='button'
-                            id='fileUploadButton'
-                            aria-label={buttonAriaLabel}
-                            className={classNames('style--none AdvancedTextEditor__action-button', {
-                                disabled: uploadsRemaining <= 0,
-                            })}
-                            onClick={this.simulateInputClick}
-                            onTouchEnd={this.simulateInputClick}
-                        >
-                            <PaperclipIcon
-                                size={18}
-                                color={'currentColor'}
-                                aria-label={iconAriaLabel}
-                            />
-                        </button>
-                    </WithTooltip>
+                    {attachmentButton(this.simulateInputClick)}
                     <input
                         id='fileUploadInput'
                         tabIndex={-1}
@@ -660,8 +689,7 @@ export class FileUpload extends PureComponent<Props, State> {
                         type='file'
                         onChange={this.handleChange}
                         onClick={this.handleLocalFileUploaded}
-                        multiple={multiple}
-                        accept={accept}
+                        multiple={true}
                     />
                 </div>
             );
@@ -696,32 +724,10 @@ export class FileUpload extends PureComponent<Props, State> {
                         className='file-attachment-menu-item-input'
                         onChange={this.handleChange}
                         onClick={this.handleLocalFileUploaded}
-                        multiple={multiple}
-                        accept={accept}
+                        multiple={true}
                     />
                     <MenuWrapper>
-                        <WithTooltip
-                            title={
-                                <KeyboardShortcutSequence
-                                    shortcut={KEYBOARD_SHORTCUTS.filesUpload}
-                                    hoistDescription={true}
-                                    isInsideTooltip={true}
-                                />
-                            }
-                        >
-                            <button
-                                type='button'
-                                id='fileUploadButton'
-                                aria-label={buttonAriaLabel}
-                                className='style--none AdvancedTextEditor__action-button'
-                            >
-                                <PaperclipIcon
-                                    size={18}
-                                    color={'currentColor'}
-                                    aria-label={iconAriaLabel}
-                                />
-                            </button>
-                        </WithTooltip>
+                        {attachmentButton()}
                         <Menu
                             id='fileUploadOptions'
                             openLeft={true}
@@ -756,7 +762,7 @@ export class FileUpload extends PureComponent<Props, State> {
         }
 
         return (
-            <div className={uploadsRemaining <= 0 ? ' style--none btn-file__disabled' : 'style--none'}>
+            <div className={dimmed ? ' style--none btn-file__disabled' : 'style--none'}>
                 {bodyAction}
             </div>
         );

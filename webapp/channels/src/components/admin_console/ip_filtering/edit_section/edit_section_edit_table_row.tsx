@@ -8,9 +8,8 @@ import {
     PencilOutlineIcon,
     TrashCanOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {AllowedIPRange} from '@mattermost/types/config';
-
-import WithTooltip from 'components/with_tooltip';
 
 type EditTableRowProps = {
     allowedIPRange: AllowedIPRange;
@@ -48,7 +47,7 @@ const EditTableRow = ({
                         >
                             <div
                                 className='edit'
-                                aria-label='Edit'
+                                aria-label={formatMessage({id: 'admin.ip_filtering.edit', defaultMessage: 'Edit'})}
                                 role='button'
                                 onClick={() => setEditFilter(allowedIPRange)}
                             >
@@ -60,7 +59,7 @@ const EditTableRow = ({
                         >
                             <div
                                 className='delete'
-                                aria-label='Delete'
+                                aria-label={formatMessage({id: 'admin.ip_filtering.delete', defaultMessage: 'Delete'})}
                                 role='button'
                                 onClick={() => handleConfirmDeleteFilter(allowedIPRange)}
                             >

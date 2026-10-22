@@ -20,6 +20,19 @@ export type ModalFilters = {
     team_roles?: string[];
 };
 
+export type UserGridSearchFilters = {
+    roles?: string[];
+    channel_roles?: string[];
+    team_roles?: string[];
+};
+
+export type ChannelListSearchFilters = {
+    public?: boolean;
+    private?: boolean;
+    deleted?: boolean;
+    team_ids?: string[];
+};
+
 export type AdminConsoleUserManagementTableProperties = {
     sortColumn: string;
     sortIsDescending: boolean;
@@ -141,21 +154,12 @@ export type ViewsState = {
         modalFilters: ModalFilters;
         userGridSearch: {
             term: string;
-            filters: {
-                roles?: string[];
-                channel_roles?: string[];
-                team_roles?: string[];
-            };
+            filters: UserGridSearchFilters;
         };
         teamListSearch: string;
         channelListSearch: {
             term: string;
-            filters: {
-                public?: boolean;
-                private?: boolean;
-                deleted?: boolean;
-                team_ids?: string[];
-            };
+            filters: ChannelListSearchFilters;
         };
     };
 
@@ -186,16 +190,14 @@ export type ViewsState = {
         filter: string;
     };
 
-    productMenu: {
-        switcherOpen: boolean;
-    };
-
     channelSidebar: {
         unreadFilterEnabled: boolean;
         draggingState: DraggingState;
         newCategoryIds: string[];
         multiSelectedChannelIds: string[];
         lastSelectedChannel: string;
+        initChannelsLoaded: boolean;
+        initChannelMembershipsLoaded: boolean;
     };
 
     addChannelCtaDropdown: {
@@ -214,14 +216,5 @@ export type ViewsState = {
         lastUpdateAt: {[id: string]: number};
         manuallyUnread: {[id: string]: boolean};
         toastStatus: boolean;
-    };
-
-    textbox: {
-        shouldShowPreviewOnCreateComment: boolean;
-        shouldShowPreviewOnCreatePost: boolean;
-        shouldShowPreviewOnEditChannelHeaderModal: boolean;
-        shouldShowPreviewOnEditPostModal: boolean;
-        shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
-        shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
     };
 };

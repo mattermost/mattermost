@@ -8,7 +8,12 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"flag"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -24,9 +29,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 var testDir = ""
@@ -57,6 +64,62 @@ func fileBytes(t *testing.T, path string) []byte {
 	bb, err := io.ReadAll(f)
 	require.NoError(t, err)
 	return bb
+}
+
+var updateImageFixtures = flag.Bool("update-fixtures", false, "overwrite image fixture files with actual server output")
+
+// compareImageBytes decodes both byte slices as images and compares them
+// pixel-by-pixel. For JPEG a small per-channel tolerance absorbs encoder
+// drift across Go versions; PNG comparisons are exact.
+// When -update-fixtures is set, actual is written over the fixture file instead.
+func compareImageBytes(t *testing.T, name string, actual []byte) {
+	t.Helper()
+
+	fixturePath := filepath.Join(testDir, name)
+
+	if *updateImageFixtures {
+		require.NoError(t, os.WriteFile(fixturePath, actual, 0600), "updating fixture %s", name)
+		return
+	}
+
+	expected, err := os.ReadFile(fixturePath)
+	require.NoError(t, err, "reading fixture %s", name)
+
+	wantImg, _, err := image.Decode(bytes.NewReader(expected))
+	require.NoError(t, err, "decoding expected %s", name)
+	gotImg, _, err := image.Decode(bytes.NewReader(actual))
+	require.NoError(t, err, "decoding actual %s", name)
+
+	require.Equal(t, wantImg.Bounds(), gotImg.Bounds(), "image bounds mismatch for %s", name)
+
+	ext := strings.ToLower(filepath.Ext(name))
+	var tolerance uint32
+	if ext == ".jpg" || ext == ".jpeg" {
+		tolerance = 514 // ±2 in 8-bit space (16-bit RGBA values: 2*257=514)
+	}
+
+	b := gotImg.Bounds()
+	total := b.Dx() * b.Dy()
+	var diffCount int
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			wr, wg, wb, wa := wantImg.At(x, y).RGBA()
+			gr, gg, gb, ga := gotImg.At(x, y).RGBA()
+			if absDiff32(wr, gr) > tolerance || absDiff32(wg, gg) > tolerance || absDiff32(wb, gb) > tolerance || absDiff32(wa, ga) > tolerance {
+				diffCount++
+			}
+		}
+	}
+	if diffCount > 0 {
+		t.Errorf("image %s: %d/%d pixels (%.2f%%) differ beyond tolerance", name, diffCount, total, 100*float64(diffCount)/float64(total))
+	}
+}
+
+func absDiff32(a, b uint32) uint32 {
+	if a > b {
+		return a - b
+	}
+	return b - a
 }
 
 func testDoUploadFileRequest(tb testing.TB, c *model.Client4, url string, blob []byte, contentType string,
@@ -759,16 +822,21 @@ func TestUploadFiles(t *testing.T) {
 								t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d.", name, tf.Name(), len(expected), len(data))
 							}
 						}
+						compareImage := func(get func(context.Context, string) ([]byte, *model.Response, error), name string) {
+							data, _, getErr := get(context.Background(), ri.Id)
+							require.NoError(t, getErr)
+							compareImageBytes(t, name, data)
+						}
 						if len(tc.expectedPayloadNames) == 0 {
 							tc.expectedPayloadNames = tc.names
 						}
 
 						compare(client.GetFile, tc.expectedPayloadNames[i])
 						if len(tc.expectedImageThumbnailNames) > i {
-							compare(client.GetFileThumbnail, tc.expectedImageThumbnailNames[i])
+							compareImage(client.GetFileThumbnail, tc.expectedImageThumbnailNames[i])
 						}
-						if len(tc.expectedImageThumbnailNames) > i {
-							compare(client.GetFilePreview, tc.expectedImagePreviewNames[i])
+						if len(tc.expectedImagePreviewNames) > i {
+							compareImage(client.GetFilePreview, tc.expectedImagePreviewNames[i])
 						}
 					}
 
@@ -845,11 +913,11 @@ func TestGetFile(t *testing.T) {
 		reviewer := th.CreateUser(t)
 		response, err := th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
-				EnableContentFlagging: model.NewPointer(true),
+				EnableContentFlagging: new(true),
 			},
 			ReviewerSettings: &model.ReviewSettingsRequest{
 				ReviewerSettings: model.ReviewerSettings{
-					CommonReviewers: model.NewPointer(true),
+					CommonReviewers: new(true),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
 					CommonReviewerIds: []string{reviewer.Id},
@@ -860,14 +928,14 @@ func TestGetFile(t *testing.T) {
 		CheckOKStatus(t, response)
 
 		response, err = client.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
-			Reason:  "Sensitive data",
+			Reason:  "Classification mismatch",
 			Comment: "This is sensitive content",
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
 
 		reviewerClient := th.CreateClient()
-		_, response, err = reviewerClient.Login(context.Background(), reviewer.Email, "Pa$$word11")
+		_, response, err = reviewerClient.Login(context.Background(), reviewer.Email, reviewer.Password)
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
 
@@ -878,11 +946,11 @@ func TestGetFile(t *testing.T) {
 		// Try again after removing the user from content reviewers
 		response, err = th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
-				EnableContentFlagging: model.NewPointer(true),
+				EnableContentFlagging: new(true),
 			},
 			ReviewerSettings: &model.ReviewSettingsRequest{
 				ReviewerSettings: model.ReviewerSettings{
-					CommonReviewers: model.NewPointer(true),
+					CommonReviewers: new(true),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
 					CommonReviewerIds: []string{th.BasicUser.Id},
@@ -895,6 +963,109 @@ func TestGetFile(t *testing.T) {
 		_, response, err = reviewerClient.GetFileAsContentReviewer(context.Background(), fileResp.FileInfos[0].Id, post.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
+	})
+
+	t.Run("deleted file is indistinguishable from a file that never existed", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		post, fileInfo := uploadFileAndCreatePost(t, th, client)
+
+		// Soft-delete the file info directly: DeletePost does this in a background
+		// goroutine, which would make the test racy.
+		_, storeErr := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
+		require.NoError(t, storeErr)
+
+		// GetByIds caches per file ID, and nothing evicts those keys on delete, so a
+		// stale DeleteAt == 0 entry would otherwise make the request succeed.
+		th.App.Srv().Store().FileInfo().ClearCaches()
+
+		_, deletedResp, err := client.GetFile(context.Background(), fileInfo.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, deletedResp)
+		CheckErrorID(t, err, "api.file.get_file_info.app_error")
+
+		_, missingResp, err := client.GetFile(context.Background(), model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, missingResp)
+		CheckErrorID(t, err, "api.file.get_file_info.app_error")
+	})
+}
+
+func TestGetFileAsContentReviewer(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "failed to set license")
+	defer th.RemoveLicense(t)
+
+	appErr := setBasicCommonReviewerConfig(th)
+	require.Nil(t, appErr)
+
+	owningPost, fileInfo := uploadFileAndCreatePost(t, th, th.Client)
+	flagPostViaAPI(t, th.Client, owningPost.Id)
+
+	otherFlaggedPost := th.CreatePost(t)
+	flagPostViaAPI(t, th.Client, otherFlaggedPost.Id)
+
+	unflaggedPost := th.CreatePost(t)
+
+	nonReviewer := th.CreateUser(t)
+	isReviewer, appErr := th.App.IsUserTeamContentReviewer(nonReviewer.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+	require.False(t, isReviewer, "test fixture is wrong: the probing user must not be a reviewer")
+
+	nonReviewerClient := th.CreateClient()
+	_, response, err := nonReviewerClient.Login(context.Background(), nonReviewer.Email, nonReviewer.Password)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+
+	t.Run("non-reviewer cannot distinguish content flagging state", func(t *testing.T) {
+		probes := []struct {
+			name          string
+			flaggedPostId string
+		}{
+			{"file's own post, flagged", owningPost.Id},
+			{"post exists but is not flagged", unflaggedPost.Id},
+			{"post is flagged but does not own the file", otherFlaggedPost.Id},
+		}
+
+		for _, probe := range probes {
+			t.Run(probe.name, func(t *testing.T) {
+				data, response, err := nonReviewerClient.GetFileAsContentReviewer(context.Background(), fileInfo.Id, probe.flaggedPostId)
+				require.Error(t, err)
+				CheckForbiddenStatus(t, response)
+				CheckErrorID(t, err, "api.data_spillage.error.user_not_reviewer")
+				require.Empty(t, data, "no file content should be returned")
+			})
+		}
+	})
+
+	t.Run("reviewer cannot fetch a file from a DM or GM channel", func(t *testing.T) {
+		sent, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		for _, channel := range []*model.Channel{dmChannel, gmChannel} {
+			fileResponse, _, err := th.Client.UploadFile(context.Background(), sent, channel.Id, "test.png")
+			require.NoError(t, err)
+			require.Len(t, fileResponse.FileInfos, 1)
+
+			post := th.CreatePostInChannelWithFiles(t, channel, fileResponse.FileInfos[0])
+
+			data, response, err := th.Client.GetFileAsContentReviewer(context.Background(), fileResponse.FileInfos[0].Id, post.Id)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, response)
+			CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+			require.Empty(t, data, "no file content should be returned")
+		}
 	})
 }
 
@@ -1708,5 +1879,79 @@ func TestHeadRequestsFileEndpoints(t *testing.T) {
 		defer resp.Body.Close()
 
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+}
+
+func TestUploadFileABACEnforcement(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	}).InitBasic(t)
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	// The channel permission check runs before ABAC, so the user must already be able to upload
+	// for this to reach the gate under test.
+	mockUploadDecision := func(t *testing.T, allowed bool) {
+		t.Helper()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
+	}
+
+	// UploadFileAsRequestBody drives uploadFileSimple, UploadFile drives uploadFileMultipart.
+	// Each carries its own copy of the gate.
+	t.Run("simple upload is rejected when the policy denies the upload action", func(t *testing.T) {
+		mockUploadDecision(t, false)
+
+		_, resp, err := th.Client.UploadFileAsRequestBody(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("multipart upload is rejected when the policy denies the upload action", func(t *testing.T) {
+		mockUploadDecision(t, false)
+
+		_, resp, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("upload is accepted when the policy allows the upload action", func(t *testing.T) {
+		mockUploadDecision(t, true)
+
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		require.Len(t, fileResp.FileInfos, 1)
+	})
+
+	t.Run("upload is unaffected when ABAC is disabled", func(t *testing.T) {
+		mockUploadDecision(t, false)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			})
+		})
+
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		require.Len(t, fileResp.FileInfos, 1)
 	})
 }

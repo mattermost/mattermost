@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 
 import FormError from 'components/form_error';
@@ -22,7 +23,7 @@ export const NeedGroupsError = ({warning, isChannel = false}: NeedGroupsErrorPro
     let error = (
         <FormattedMessage
             id='admin.team_channel_settings.need_groups'
-            defaultMessage='You must add at least one group to manage this team by sync group members.'
+            defaultMessage='You must add at least one group to manage this team by syncing group members.'
         />
     );
 
@@ -30,7 +31,7 @@ export const NeedGroupsError = ({warning, isChannel = false}: NeedGroupsErrorPro
         error = (
             <FormattedMessage
                 id='admin.team_channel_settings.need_groups_channel'
-                defaultMessage='You must add at least one group to manage this channel by sync group members.'
+                defaultMessage='You must add at least one group to manage this channel by syncing group members.'
             />
         );
     }
@@ -59,7 +60,7 @@ type UsersWillBeRemovedProps = {
     total: number;
     scope: string;
     scopeId: string;
-}
+};
 
 export const UsersWillBeRemovedError = ({users, total, scope, scopeId}: UsersWillBeRemovedProps) => {
     let error = (
@@ -88,7 +89,7 @@ export const UsersWillBeRemovedError = ({users, total, scope, scopeId}: UsersWil
                 <span>
                     {error}
                     <ToggleModalButton
-                        className='btn btn-tertiary'
+                        className={buttonClassNames({emphasis: 'tertiary'})}
                         modalId={ModalIdentifiers.USERS_TO_BE_REMOVED}
                         dialogType={UsersToBeRemovedModal}
                         dialogProps={{total, users, scope, scopeId}}

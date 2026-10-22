@@ -142,9 +142,9 @@ func (_m *FileInfoStore) Get(id string) (*model.FileInfo, error) {
 	return r0, r1
 }
 
-// GetByIds provides a mock function with given fields: ids, includeDeleted, allowFromCache
-func (_m *FileInfoStore) GetByIds(ids []string, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, error) {
-	ret := _m.Called(ids, includeDeleted, allowFromCache)
+// GetByIds provides a mock function with given fields: ids, includeDeleted, allowFromCache, readFromMaster
+func (_m *FileInfoStore) GetByIds(ids []string, includeDeleted bool, allowFromCache bool, readFromMaster bool) ([]*model.FileInfo, error) {
+	ret := _m.Called(ids, includeDeleted, allowFromCache, readFromMaster)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByIds")
@@ -152,19 +152,19 @@ func (_m *FileInfoStore) GetByIds(ids []string, includeDeleted bool, allowFromCa
 
 	var r0 []*model.FileInfo
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]string, bool, bool) ([]*model.FileInfo, error)); ok {
-		return rf(ids, includeDeleted, allowFromCache)
+	if rf, ok := ret.Get(0).(func([]string, bool, bool, bool) ([]*model.FileInfo, error)); ok {
+		return rf(ids, includeDeleted, allowFromCache, readFromMaster)
 	}
-	if rf, ok := ret.Get(0).(func([]string, bool, bool) []*model.FileInfo); ok {
-		r0 = rf(ids, includeDeleted, allowFromCache)
+	if rf, ok := ret.Get(0).(func([]string, bool, bool, bool) []*model.FileInfo); ok {
+		r0 = rf(ids, includeDeleted, allowFromCache, readFromMaster)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.FileInfo)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]string, bool, bool) error); ok {
-		r1 = rf(ids, includeDeleted, allowFromCache)
+	if rf, ok := ret.Get(1).(func([]string, bool, bool, bool) error); ok {
+		r1 = rf(ids, includeDeleted, allowFromCache, readFromMaster)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -225,6 +225,36 @@ func (_m *FileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID s
 
 	if rf, ok := ret.Get(1).(func(int64, string, bool, int) error); ok {
 		r1 = rf(startTime, startFileID, includeDeleted, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetForPermanentDeleteByUser provides a mock function with given fields: userID, limit
+func (_m *FileInfoStore) GetForPermanentDeleteByUser(userID string, limit int) ([]*model.FileInfo, error) {
+	ret := _m.Called(userID, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForPermanentDeleteByUser")
+	}
+
+	var r0 []*model.FileInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int) ([]*model.FileInfo, error)); ok {
+		return rf(userID, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, int) []*model.FileInfo); ok {
+		r0 = rf(userID, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.FileInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int) error); ok {
+		r1 = rf(userID, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

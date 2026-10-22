@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
@@ -16,13 +16,13 @@ import ExpiryTime from './expiry_time';
 type ExpiryMenuItem = {
     text: string;
     value: string;
-}
+};
 
 type Props = {
     duration: CustomStatusDuration;
     expiryTime?: string;
     handleDurationChange: (expiryValue: CustomStatusDuration) => void;
-}
+};
 
 const {
     DONT_CLEAR,
@@ -40,7 +40,7 @@ const ExpiryMenu: React.FC<Props> = (props: Props) => {
     const {formatMessage} = useIntl();
     const [menuItems, setMenuItems] = useState<JSX.Element[]>([]);
 
-    const expiryMenuItems: { [key in CustomStatusDuration]?: ExpiryMenuItem } = {
+    const expiryMenuItems: {[key in CustomStatusDuration]?: ExpiryMenuItem} = {
         [DONT_CLEAR]: {
             text: formatMessage(durationValues[DONT_CLEAR]),
             value: formatMessage(durationValues[DONT_CLEAR]),

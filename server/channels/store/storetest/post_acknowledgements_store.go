@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -31,9 +32,9 @@ func testPostAcknowledgementsStoreSave(t *testing.T, rctx request.CTX, ss store.
 	p1.Message = NewTestID()
 	p1.Metadata = &model.PostMetadata{
 		Priority: &model.PostPriority{
-			Priority:                model.NewPointer("important"),
-			RequestedAck:            model.NewPointer(true),
-			PersistentNotifications: model.NewPointer(false),
+			Priority:                new("important"),
+			RequestedAck:            new(true),
+			PersistentNotifications: new(false),
 		},
 	}
 	post, err := ss.Post().Save(rctx, &p1)
@@ -80,9 +81,9 @@ func testPostAcknowledgementsStoreGetForPost(t *testing.T, rctx request.CTX, ss 
 	p1.Message = NewTestID()
 	p1.Metadata = &model.PostMetadata{
 		Priority: &model.PostPriority{
-			Priority:                model.NewPointer("important"),
-			RequestedAck:            model.NewPointer(true),
-			PersistentNotifications: model.NewPointer(false),
+			Priority:                new("important"),
+			RequestedAck:            new(true),
+			PersistentNotifications: new(false),
 		},
 	}
 	_, err := ss.Post().Save(rctx, &p1)
@@ -134,9 +135,9 @@ func testPostAcknowledgementsStoreGetForPosts(t *testing.T, rctx request.CTX, ss
 	p1.Message = NewTestID()
 	p1.Metadata = &model.PostMetadata{
 		Priority: &model.PostPriority{
-			Priority:                model.NewPointer("important"),
-			RequestedAck:            model.NewPointer(true),
-			PersistentNotifications: model.NewPointer(false),
+			Priority:                new("important"),
+			RequestedAck:            new(true),
+			PersistentNotifications: new(false),
 		},
 	}
 	p2 := model.Post{}
@@ -145,9 +146,9 @@ func testPostAcknowledgementsStoreGetForPosts(t *testing.T, rctx request.CTX, ss
 	p2.Message = NewTestID()
 	p2.Metadata = &model.PostMetadata{
 		Priority: &model.PostPriority{
-			Priority:                model.NewPointer(""),
-			RequestedAck:            model.NewPointer(true),
-			PersistentNotifications: model.NewPointer(false),
+			Priority:                new(""),
+			RequestedAck:            new(true),
+			PersistentNotifications: new(false),
 		},
 	}
 	_, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p1, &p2})
@@ -391,6 +392,10 @@ func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss
 		require.NoError(t, err)
 		oldUpdateAt := currentPost.UpdateAt
 
+		// updatePost uses model.GetMillis() (1ms resolution). Wait a millisecond
+		// so BatchDelete cannot write the same UpdateAt as SaveWithModel.
+		time.Sleep(time.Millisecond)
+
 		// Delete acknowledgements in batch
 		err = ss.PostAcknowledgement().BatchDelete([]*model.PostAcknowledgement{ack1, ack2})
 		require.NoError(t, err)
@@ -433,9 +438,9 @@ func testPostAcknowledgementsStoreDeleteAllForPost(t *testing.T, rctx request.CT
 		p1.Message = NewTestID()
 		p1.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewPointer("important"),
-				RequestedAck:            model.NewPointer(true),
-				PersistentNotifications: model.NewPointer(false),
+				Priority:                new("important"),
+				RequestedAck:            new(true),
+				PersistentNotifications: new(false),
 			},
 		}
 		post, err := ss.Post().Save(rctx, &p1)

@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import {fireEvent, renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AudioVideoPreview from './audio_video_preview';
@@ -19,17 +19,21 @@ describe('AudioVideoPreview', () => {
     };
 
     test('should match snapshot without children', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AudioVideoPreview {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, cannot play', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AudioVideoPreview {...baseProps}/>,
         );
-        wrapper.setState({canPlay: false});
-        expect(wrapper).toMatchSnapshot();
+
+        // Trigger the error handler to set canPlay to false; fireEvent.error dispatches the <source> error (media load failure).
+        const source = container.querySelector('source')!;
+        fireEvent.error(source);
+
+        expect(container).toMatchSnapshot();
     });
 });

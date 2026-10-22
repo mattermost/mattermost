@@ -8,7 +8,7 @@ import './menu_header.scss';
 type Props = {
     children?: React.ReactNode;
     onClick?: () => void;
-}
+};
 
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.

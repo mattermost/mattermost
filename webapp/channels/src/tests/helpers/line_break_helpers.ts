@@ -6,11 +6,9 @@
  * consolidate testing of similar behavior across components
  */
 
-import type {ShallowWrapper} from 'enzyme';
-import {shallow} from 'enzyme';
-import type React from 'react';
+import type {JSX} from 'react';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, fireEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 export const INPUT = 'Hello world!';
@@ -76,50 +74,61 @@ export const getShiftKeyEvent = (e?: KeyboardEvent): KeyboardEvent => ({...BASE_
 
 /**
  * helper to test line break on key down behavior common to many textarea inputs
- * @param  {function} generateInstance - single paramater "value" of the initial value
- * @param  {function} getValue - single parameter for the React Component instance
- * @param  {boolean} intlInhected -
+ * @param  {function} generateInstance - single parameter "value" of the initial value
+ * @param  {function} getValue - single parameter for getting the current value from the rendered DOM
+ * @param  {boolean} _intlInjected - kept for backward compatibility (unused; renderWithContext handles intl)
  * NOTE: runs Jest tests
  */
-export function testComponentForLineBreak(generateInstance: (input: string) => JSX.Element, getValue: (instance: React.Component<any, any>) => string, intlInjected = true) {
-    const shallowRender: (instance: JSX.Element) => ShallowWrapper = intlInjected ? shallowWithIntl : shallow;
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function testComponentForLineBreak(generateInstance: (input: string) => JSX.Element, getValue: (container: HTMLElement) => string, _intlInjected = true) {
     test('component appends line break to input on shift + enter', () => {
         const event = getAppendEvent(getShiftKeyEvent());
-        const instance = shallowRender(generateInstance(INPUT));
-        instance.simulate('keyDown', event);
+        const {container} = renderWithContext(generateInstance(INPUT));
+        const textarea = container.querySelector('textarea') || container.querySelector('input');
+        if (textarea) {
+            fireEvent.keyDown(textarea, event);
+        }
         setTimeout(() => {
-            expect(getValue(instance.instance())).toBe(OUTPUT_APPEND);
+            expect(getValue(container)).toBe(OUTPUT_APPEND);
             expect((event.target as any).value).toBe(OUTPUT_APPEND);
         }, 0);
     });
 
     test('component appends line break to input on alt + enter', () => {
         const event = getAppendEvent(getAltKeyEvent());
-        const instance = shallowRender(generateInstance(INPUT));
-        instance.simulate('keyDown', event);
+        const {container} = renderWithContext(generateInstance(INPUT));
+        const textarea = container.querySelector('textarea') || container.querySelector('input');
+        if (textarea) {
+            fireEvent.keyDown(textarea, event);
+        }
         setTimeout(() => {
-            expect(getValue(instance.instance())).toBe(OUTPUT_APPEND);
+            expect(getValue(container)).toBe(OUTPUT_APPEND);
             expect((event.target as any).value).toBe(OUTPUT_APPEND);
         }, 0);
     });
 
     test('component inserts line break and replaces selection on shift + enter', () => {
         const event = getReplaceEvent(getShiftKeyEvent());
-        const instance = shallowRender(generateInstance(INPUT));
-        instance.simulate('keyDown', event);
+        const {container} = renderWithContext(generateInstance(INPUT));
+        const textarea = container.querySelector('textarea') || container.querySelector('input');
+        if (textarea) {
+            fireEvent.keyDown(textarea, event);
+        }
         setTimeout(() => {
-            expect(getValue(instance.instance())).toBe(OUTPUT_REPLACE);
+            expect(getValue(container)).toBe(OUTPUT_REPLACE);
             expect((event.target as any).value).toBe(OUTPUT_REPLACE);
         }, 0);
     });
 
     test('component inserts line break and replaces selection on alt + enter', () => {
         const event = getReplaceEvent(getAltKeyEvent());
-        const instance = shallowRender(generateInstance(INPUT));
-        instance.simulate('keyDown', event);
+        const {container} = renderWithContext(generateInstance(INPUT));
+        const textarea = container.querySelector('textarea') || container.querySelector('input');
+        if (textarea) {
+            fireEvent.keyDown(textarea, event);
+        }
         setTimeout(() => {
-            expect(getValue(instance.instance())).toBe(OUTPUT_REPLACE);
+            expect(getValue(container)).toBe(OUTPUT_REPLACE);
             expect((event.target as any).value).toBe(OUTPUT_REPLACE);
         }, 0);
     });

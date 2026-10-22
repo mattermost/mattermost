@@ -6,7 +6,7 @@ import React from 'react';
 type SvgProps = {
     height?: number;
     width?: number;
-}
+};
 
 const AirgappedTrialActivationConfirmSvg = ({height = 474, width = 578}: SvgProps) => (
     <svg

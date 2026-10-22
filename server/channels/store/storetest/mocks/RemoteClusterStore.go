@@ -102,6 +102,36 @@ func (_m *RemoteClusterStore) GetAll(offset int, limit int, filter model.RemoteC
 	return r0, r1
 }
 
+// GetAllByPluginID provides a mock function with given fields: pluginID
+func (_m *RemoteClusterStore) GetAllByPluginID(pluginID string) ([]*model.RemoteCluster, error) {
+	ret := _m.Called(pluginID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllByPluginID")
+	}
+
+	var r0 []*model.RemoteCluster
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.RemoteCluster, error)); ok {
+		return rf(pluginID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.RemoteCluster); ok {
+		r0 = rf(pluginID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.RemoteCluster)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(pluginID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByPluginID provides a mock function with given fields: pluginID
 func (_m *RemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteCluster, error) {
 	ret := _m.Called(pluginID)
@@ -125,6 +155,36 @@ func (_m *RemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteClust
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(pluginID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetBySiteURL provides a mock function with given fields: siteURL
+func (_m *RemoteClusterStore) GetBySiteURL(siteURL string) (*model.RemoteCluster, error) {
+	ret := _m.Called(siteURL)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBySiteURL")
+	}
+
+	var r0 *model.RemoteCluster
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.RemoteCluster, error)); ok {
+		return rf(siteURL)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.RemoteCluster); ok {
+		r0 = rf(siteURL)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.RemoteCluster)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(siteURL)
 	} else {
 		r1 = ret.Error(1)
 	}

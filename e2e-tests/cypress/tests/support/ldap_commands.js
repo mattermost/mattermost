@@ -88,7 +88,6 @@ Cypress.Commands.add('waitForLdapSyncCompletion', (start, timeout) => {
             throw new Error('LdapSync Unsuccessful');
         }
 
-
         cy.wait(TIMEOUTS.FIVE_SEC);
         cy.waitForLdapSyncCompletion(start, timeout);
     });

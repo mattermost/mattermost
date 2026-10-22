@@ -6,6 +6,8 @@ import React, {useState} from 'react';
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 
+import ModalController from 'components/modal_controller';
+
 import {
     renderWithContext,
     screen,
@@ -13,6 +15,7 @@ import {
     waitFor,
     waitForElementToBeRemoved,
 } from 'tests/react_testing_utils';
+import {WindowSizes} from 'utils/constants';
 
 import {Menu} from './menu';
 import {MenuItem} from './menu_item';
@@ -263,3 +266,293 @@ function OtherMenuItem(props: any) {
         />
     );
 }
+
+/**
+ * In mobile view the menu renders as a modal with no MenuContext, so it can only dismiss
+ * once the click bubbles up to the list wrapping the menu items. Items that opt out of
+ * closing rely on that same mechanism by stopping propagation.
+ */
+describe('Menu in mobile view', () => {
+    const mobileState = {
+        views: {
+            browser: {
+                windowSize: WindowSizes.MOBILE_VIEW,
+            },
+        },
+    };
+
+    const onItemClick = jest.fn();
+
+    beforeEach(() => {
+        onItemClick.mockReset();
+    });
+
+    function MobileMenu({disableCloseOnSelect}: {disableCloseOnSelect?: boolean}) {
+        return (
+            <>
+                <Menu
+                    menu={{id: 'Menu'}}
+                    menuButton={{
+                        id: 'Menu-Button',
+                        'aria-label': 'mobile menu button',
+                        children: <DotsVerticalIcon size={16}/>,
+                    }}
+                >
+                    <MenuItem
+                        labels={<span>{'Item 1'}</span>}
+                        disableCloseOnSelect={disableCloseOnSelect}
+                        onClick={onItemClick}
+                    />
+                </Menu>
+                <ModalController/>
+            </>
+        );
+    }
+
+    function menuModal() {
+        return document.querySelector('.modal-dialog.menuModal');
+    }
+
+    test('opens as a modal and closes when a menu item is selected', async () => {
+        renderWithContext(<MobileMenu/>, mobileState);
+
+        await userEvent.click(screen.getByLabelText('mobile menu button'));
+
+        expect(menuModal()).toBeVisible();
+
+        await userEvent.click(screen.getByText('Item 1'));
+
+        expect(onItemClick).toHaveBeenCalledTimes(1);
+        expect(menuModal()).toBeNull();
+    });
+
+    test('stays open when a menu item opts out of closing on select', async () => {
+        renderWithContext(<MobileMenu disableCloseOnSelect={true}/>, mobileState);
+
+        await userEvent.click(screen.getByLabelText('mobile menu button'));
+
+        await userEvent.click(screen.getByText('Item 1'));
+
+        expect(onItemClick).toHaveBeenCalledTimes(1);
+        expect(menuModal()).toBeVisible();
+    });
+});
+
+/**
+ * isMenuOpen control transition matrix.
+ *
+ * Reference: react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+ *
+ * The Menu mirrors the controlled `isMenuOpen` prop into internal state on
+ * transition. After the transition, internal state is the source of truth;
+ * releasing control (true → undefined) leaves the menu open until the user
+ * dismisses, and a controlled-false closes regardless of internal state.
+ */
+describe('Menu — isMenuOpen control transition matrix', () => {
+    function ControllableMenu({forceOpen, onToggle}: {forceOpen?: boolean; onToggle?: (open: boolean) => void}) {
+        return (
+            <Menu
+                menu={{
+                    id: 'Menu',
+                    isMenuOpen: forceOpen,
+                    onToggle,
+                }}
+                menuButton={{
+                    id: 'Menu-Button',
+                    'aria-label': 'controlled menu button',
+                    children: <DotsVerticalIcon size={16}/>,
+                }}
+            >
+                <MenuItem
+                    labels={<span>{'Item 1'}</span>}
+                    onClick={() => { /* noop */ }}
+                />
+            </Menu>
+        );
+    }
+
+    function getMenu() {
+        return screen.queryByText('Item 1');
+    }
+
+    describe('uncontrolled (no isMenuOpen prop)', () => {
+        test('starts closed; user click opens', async () => {
+            renderWithContext(<ControllableMenu/>);
+
+            expect(getMenu()).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByLabelText('controlled menu button'));
+
+            expect(getMenu()).toBeInTheDocument();
+        });
+
+        test('Escape closes the open menu', async () => {
+            renderWithContext(<ControllableMenu/>);
+
+            await userEvent.click(screen.getByLabelText('controlled menu button'));
+            expect(getMenu()).toBeInTheDocument();
+
+            await userEvent.keyboard('{Escape}');
+
+            await waitForElementToBeRemoved(getMenu);
+        });
+    });
+
+    describe('controlled mount', () => {
+        test('mounting with isMenuOpen={true} opens immediately', () => {
+            renderWithContext(<ControllableMenu forceOpen={true}/>);
+
+            expect(getMenu()).toBeInTheDocument();
+        });
+
+        test('mounting with isMenuOpen={false} stays closed', () => {
+            renderWithContext(<ControllableMenu forceOpen={false}/>);
+
+            expect(getMenu()).not.toBeInTheDocument();
+        });
+    });
+
+    describe('controlled prop transitions', () => {
+        test('undefined → true: opens', () => {
+            const {rerender} = renderWithContext(<ControllableMenu/>);
+            expect(getMenu()).not.toBeInTheDocument();
+
+            rerender(<ControllableMenu forceOpen={true}/>);
+
+            expect(getMenu()).toBeInTheDocument();
+        });
+
+        test('true → false: closes', async () => {
+            const {rerender} = renderWithContext(<ControllableMenu forceOpen={true}/>);
+            expect(getMenu()).toBeInTheDocument();
+
+            rerender(<ControllableMenu forceOpen={false}/>);
+
+            await waitForElementToBeRemoved(getMenu);
+        });
+
+        test('false → true: opens', () => {
+            const {rerender} = renderWithContext(<ControllableMenu forceOpen={false}/>);
+            expect(getMenu()).not.toBeInTheDocument();
+
+            rerender(<ControllableMenu forceOpen={true}/>);
+
+            expect(getMenu()).toBeInTheDocument();
+        });
+
+        test('true → undefined: stays open (releases control)', () => {
+            const {rerender} = renderWithContext(<ControllableMenu forceOpen={true}/>);
+            expect(getMenu()).toBeInTheDocument();
+
+            rerender(<ControllableMenu/>);
+
+            expect(getMenu()).toBeInTheDocument();
+        });
+
+        test('false → undefined: stays closed', () => {
+            const {rerender} = renderWithContext(<ControllableMenu forceOpen={false}/>);
+            expect(getMenu()).not.toBeInTheDocument();
+
+            rerender(<ControllableMenu/>);
+
+            expect(getMenu()).not.toBeInTheDocument();
+        });
+    });
+
+    describe('hybrid (controlled prop + user actions)', () => {
+        test('uncontrolled-open → controlled-true → controlled-false closes', async () => {
+            // The bookmark keyboard-reorder integration relies on this exact
+            // sequence: user opens menu (uncontrolled), reorder fallback
+            // promotes to controlled-true, then onOverflowOpenChange(false)
+            // sets controlled-false, menu must close.
+            const {rerender} = renderWithContext(<ControllableMenu/>);
+            await userEvent.click(screen.getByLabelText('controlled menu button'));
+            expect(getMenu()).toBeInTheDocument();
+
+            // Reorder starts → fallback promotes to controlled-true
+            rerender(<ControllableMenu forceOpen={true}/>);
+            expect(getMenu()).toBeInTheDocument();
+
+            // Cross overflow→bar → controlled-false issued
+            rerender(<ControllableMenu forceOpen={false}/>);
+
+            await waitForElementToBeRemoved(getMenu);
+        });
+
+        test('after release, user can dismiss the open menu', async () => {
+            const {rerender} = renderWithContext(<ControllableMenu forceOpen={true}/>);
+            expect(getMenu()).toBeInTheDocument();
+
+            // Caller releases control; menu stays open in uncontrolled mode
+            rerender(<ControllableMenu/>);
+            expect(getMenu()).toBeInTheDocument();
+
+            // User dismisses
+            await userEvent.keyboard('{Escape}');
+
+            await waitForElementToBeRemoved(getMenu);
+        });
+
+        test('after release, user can re-open via the button', async () => {
+            const {rerender} = renderWithContext(<ControllableMenu forceOpen={false}/>);
+            expect(getMenu()).not.toBeInTheDocument();
+
+            // Caller releases the close command
+            rerender(<ControllableMenu/>);
+            expect(getMenu()).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByLabelText('controlled menu button'));
+
+            expect(getMenu()).toBeInTheDocument();
+        });
+    });
+
+    describe('onToggle callback', () => {
+        test('fires (true) when the menu opens via prop', () => {
+            const onToggle = jest.fn();
+            renderWithContext(
+                <ControllableMenu
+                    forceOpen={true}
+                    onToggle={onToggle}
+                />,
+            );
+
+            expect(onToggle).toHaveBeenCalledWith(true);
+        });
+
+        test('fires (false) when controlled prop closes the menu', async () => {
+            const onToggle = jest.fn();
+            const {rerender} = renderWithContext(
+                <ControllableMenu
+                    forceOpen={true}
+                    onToggle={onToggle}
+                />,
+            );
+            onToggle.mockClear();
+
+            rerender(
+                <ControllableMenu
+                    forceOpen={false}
+                    onToggle={onToggle}
+                />,
+            );
+
+            await waitFor(() => expect(onToggle).toHaveBeenCalledWith(false));
+        });
+
+        test('fires (false) when user dismisses the menu', async () => {
+            const onToggle = jest.fn();
+            renderWithContext(
+                <ControllableMenu
+                    forceOpen={true}
+                    onToggle={onToggle}
+                />,
+            );
+            onToggle.mockClear();
+
+            await userEvent.keyboard('{Escape}');
+
+            await waitFor(() => expect(onToggle).toHaveBeenCalledWith(false));
+        });
+    });
+});

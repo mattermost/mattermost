@@ -6,7 +6,7 @@
 // https://api.mattermost.com/#tag/groups
 // *****************************************************************************
 
-import {ChainableT} from '../../types';
+import type {ChainableT} from '../../types';
 
 function apiCreateCustomUserGroup(displayName: string, name: string, userIds: string[]): ChainableT<Cypress.Response<any>> {
     return cy.request({

@@ -11,6 +11,32 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestContext_WithConnectionId(t *testing.T) {
+	t.Run("returns new context with connection id", func(t *testing.T) {
+		originalCtx := TestContext(t)
+		connectionId := "test-connection-id-123"
+
+		newCtx := originalCtx.WithConnectionId(connectionId)
+
+		require.NotNil(t, newCtx)
+		assert.NotSame(t, originalCtx, newCtx, "should return a new context instance")
+		assert.Equal(t, connectionId, newCtx.ConnectionId())
+		assert.Empty(t, originalCtx.ConnectionId(), "original context should remain unchanged")
+	})
+
+	t.Run("returns new context with empty connection id", func(t *testing.T) {
+		originalCtx := TestContext(t)
+		originalCtx = originalCtx.WithConnectionId("existing-id").(*Context)
+
+		newCtx := originalCtx.WithConnectionId("")
+
+		require.NotNil(t, newCtx)
+		assert.NotSame(t, originalCtx, newCtx, "should return a new context instance")
+		assert.Empty(t, newCtx.ConnectionId())
+		assert.Equal(t, "existing-id", originalCtx.ConnectionId(), "original context should remain unchanged")
+	})
+}
+
 func TestContext_WithSession(t *testing.T) {
 	t.Run("returns new context with empty session when session is nil", func(t *testing.T) {
 		originalCtx := TestContext(t)

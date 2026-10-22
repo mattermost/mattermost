@@ -13,7 +13,7 @@ import type {GlobalState} from 'types/store';
 
 type Props = {
     userId: string;
-}
+};
 const ProfilePopoverLastActive = ({
     userId,
 }: Props) => {

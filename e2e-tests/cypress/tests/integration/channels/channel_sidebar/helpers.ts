@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 type ClickCategoryMenuItemProps = {
     categoryDisplayName: string;
     menuItemText: string;
     categoryMenuButtonName?: string;
     isSubMenu?: boolean;
-}
+};
 
 export function clickCategoryMenuItem({categoryDisplayName, menuItemText, categoryMenuButtonName = categoryDisplayName, isSubMenu = false}: ClickCategoryMenuItemProps) {
     cy.get('#SidebarContainer').should('be.visible').within(() => {
@@ -28,7 +28,7 @@ export function clickCategoryMenuItem({categoryDisplayName, menuItemText, catego
     });
 }
 
-export function clickSortCategoryMenuItem(categoryDisplayName, menuItemText) {
+export function clickSortCategoryMenuItem(categoryDisplayName: string, menuItemText: string) {
     clickCategoryMenuItem({categoryDisplayName, menuItemText: 'Sort', isSubMenu: true});
 
     cy.wait(TIMEOUTS.HALF_SEC);

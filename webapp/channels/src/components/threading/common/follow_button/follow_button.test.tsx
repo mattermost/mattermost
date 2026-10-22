@@ -3,54 +3,79 @@
 
 import React from 'react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import FollowButton from './follow_button';
 
-import Button from '../button';
-
 describe('components/threading/common/follow_button', () => {
-    test('should say follow', () => {
+    test('should say follow', async () => {
         const clickHandler = jest.fn();
 
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <FollowButton
                 isFollowing={false}
                 onClick={clickHandler}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper.find(Button).text()).toBe('Follow');
+        expect(screen.getByText('Follow')).toBeInTheDocument();
 
-        wrapper.find(Button).simulate('click');
+        await userEvent.click(screen.getByRole('button'));
         expect(clickHandler).toHaveBeenCalled();
     });
 
     test('should say following', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <FollowButton
                 isFollowing={true}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper.find(Button).text()).toBe('Following');
+        expect(screen.getByText('Following')).toBeInTheDocument();
     });
 
-    test('should fire click handler', () => {
+    test('as an icon button, uses the Compass bell off/on glyphs', async () => {
+        const {rerender} = renderWithContext(
+            <FollowButton
+                isFollowing={false}
+                iconOnly={true}
+            />,
+        );
+
+        const offButton = screen.getByRole('button', {name: 'Follow'});
+        expect(offButton).toHaveAttribute('aria-pressed', 'false');
+        expect(offButton.querySelector('.icon-bell-off-outline')).toBeInTheDocument();
+        expect(screen.queryByText('Follow')).not.toBeInTheDocument();
+
+        rerender(
+            <FollowButton
+                isFollowing={true}
+                iconOnly={true}
+            />,
+        );
+
+        const onButton = screen.getByRole('button', {name: 'Following'});
+        expect(onButton).toHaveAttribute('aria-pressed', 'true');
+        expect(onButton).toHaveClass('btn-force-active');
+        expect(onButton.querySelector('.icon-bell-outline')).toBeInTheDocument();
+        expect(onButton.querySelector('.icon-bell-off-outline')).not.toBeInTheDocument();
+    });
+
+    test('should fire click handler', async () => {
         const clickHandler = jest.fn();
 
-        const wrapper = mountWithIntl(
+        renderWithContext(
             <FollowButton
                 isFollowing={false}
                 onClick={clickHandler}
             />,
         );
 
-        wrapper.find(Button).simulate('click');
+        await userEvent.click(screen.getByRole('button'));
         expect(clickHandler).toHaveBeenCalled();
     });
 });

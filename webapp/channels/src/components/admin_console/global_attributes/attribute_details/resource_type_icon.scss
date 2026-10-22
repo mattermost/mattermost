@@ -1,0 +1,23 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.GlobalAttributesResourceIcon {
+    position: relative;
+    display: inline-flex;
+    overflow: hidden;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+
+    > svg {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        display: block;
+        max-width: none;
+        transform: translate(-50%, -50%);
+    }
+}

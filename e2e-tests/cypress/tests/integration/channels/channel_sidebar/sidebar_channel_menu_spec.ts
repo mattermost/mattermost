@@ -14,16 +14,16 @@ import {
     beRead,
     beUnmuted,
     beUnread,
-} from '../../../support/assertions';
-import {getAdminAccount} from '../../../support/env';
-import {getRandomId, stubClipboard} from '../../../utils';
+} from '@/support/assertions';
+import {getAdminAccount} from '@/support/env';
+import {getRandomId, stubClipboard} from '@/utils';
 
 describe('Sidebar channel menu', () => {
     const sysadmin = getAdminAccount();
     const townSquare = 'Town Square';
 
-    let teamName;
-    let userName;
+    let teamName: string;
+    let userName: string;
 
     before(() => {
         cy.apiInitSetup({loginAfter: true}).then(({team, user}) => {

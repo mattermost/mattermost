@@ -5,10 +5,11 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 
+import {Button, type ButtonProps} from '@mattermost/shared/components/button';
+
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    children?: ReactNode;
+export interface SpinnerButtonProps extends Omit<ButtonProps, 'emphasis'> {
     spinning: boolean;
     spinningText: ReactNode | MessageDescriptor;
 }
@@ -17,12 +18,13 @@ const SpinnerButton = ({
     spinning = false,
     spinningText,
     children,
-    ...props
-}: Props) => {
+    disabled,
+    ...otherProps
+}: SpinnerButtonProps) => {
     return (
-        <button
-            disabled={spinning}
-            {...props}
+        <Button
+            disabled={disabled || spinning}
+            {...otherProps}
         >
             <LoadingWrapper
                 loading={spinning}
@@ -30,7 +32,7 @@ const SpinnerButton = ({
             >
                 {children}
             </LoadingWrapper>
-        </button>
+        </Button>
     );
 };
 export default React.memo(SpinnerButton);

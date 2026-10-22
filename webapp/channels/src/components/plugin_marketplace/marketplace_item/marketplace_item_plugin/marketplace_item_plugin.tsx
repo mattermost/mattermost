@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 import semver from 'semver';
@@ -58,7 +58,7 @@ export const UpdateDetails = ({version, releaseNotesUrl, installedVersion, isIns
     let isUpdate = false;
     try {
         isUpdate = semver.gt(version, installedVersion);
-    } catch (e) {
+    } catch {
         // If we fail to parse the version, assume not an update;
     }
 
@@ -109,7 +109,7 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
     let isUpdate = false;
     try {
         isUpdate = semver.gt(version, installedVersion);
-    } catch (e) {
+    } catch {
         // If we fail to parse the version, assume not an update;
     }
 
@@ -161,7 +161,7 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
     let sameMajorVersion = false;
     try {
         sameMajorVersion = semver.major(version) === semver.major(installedVersion);
-    } catch (e) {
+    } catch {
         // If we fail to parse the version, assume a potentially breaking change.
         // In practice, this won't happen since we already tried to parse the version above.
     }

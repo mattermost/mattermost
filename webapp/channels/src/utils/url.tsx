@@ -8,7 +8,6 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {getModule} from 'module_registry';
 import Constants from 'utils/constants';
 import {latinise} from 'utils/latinise';
-import * as TextFormatting from 'utils/text_formatting';
 
 import {unescapeHtmlEntities} from './markdown/renderer';
 
@@ -20,7 +19,7 @@ type WindowObject = {
         port: string;
     };
     basename?: string;
-}
+};
 
 export function cleanUpUrlable(input: string): string {
     let cleaned: string = latinise(input);
@@ -82,7 +81,7 @@ export function isUrlSafe(url: string): boolean {
 
     try {
         unescaped = decodeURIComponent(url);
-    } catch (e) {
+    } catch {
         unescaped = unescape(url);
     }
 
@@ -111,7 +110,7 @@ export function removeScheme(url: string) {
     return url.replace(/^([a-z0-9+.-]+):\/\//i, '');
 }
 
-function formattedError(message: MessageDescriptor, intl?: IntlShape): React.ReactElement | string {
+function formattedError(message: MessageDescriptor, intl?: IntlShape): React.ReactElement<any> | string {
     if (intl) {
         return intl.formatMessage(message);
     }
@@ -126,8 +125,8 @@ function formattedError(message: MessageDescriptor, intl?: IntlShape): React.Rea
     );
 }
 
-export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.ReactElement | string> {
-    const errors: Array<React.ReactElement | string> = [];
+export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.ReactElement<any> | string> {
+    const errors: Array<React.ReactElement<any> | string> = [];
 
     const USER_ID_LENGTH = 26;
     const directMessageRegex = new RegExp(`^.{${USER_ID_LENGTH}}__.{${USER_ID_LENGTH}}$`);
@@ -264,7 +263,7 @@ export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourc
     // Paths managed by another service shouldn't be handled by the web app either
     if (managedResourcePaths) {
         for (const managedPath of managedResourcePaths) {
-            unhandledPaths.push(TextFormatting.escapeRegex(managedPath));
+            unhandledPaths.push(RegExp.escape(managedPath));
         }
     }
 
@@ -293,7 +292,7 @@ export function isStringContainingUrl(text: string): boolean {
 export type UrlValidationCheck = {
     url: string;
     error: typeof BadUrlReasons[keyof typeof BadUrlReasons] | false;
-}
+};
 
 export const BadUrlReasons = {
     Empty: 'Empty',

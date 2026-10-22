@@ -40,7 +40,7 @@ func TestClientConfigWithComputed(t *testing.T) {
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -73,25 +73,25 @@ func TestEnsureInstallationDate(t *testing.T) {
 			Name:                     "New installation: no users, no installation date",
 			PrevInstallationDate:     nil,
 			UsersCreationDates:       nil,
-			ExpectedInstallationDate: model.NewPointer(utils.MillisFromTime(time.Now())),
+			ExpectedInstallationDate: new(utils.MillisFromTime(time.Now())),
 		},
 		{
 			Name:                     "Old installation: users, no installation date",
 			PrevInstallationDate:     nil,
 			UsersCreationDates:       []int64{10000000000, 30000000000, 20000000000},
-			ExpectedInstallationDate: model.NewPointer(int64(10000000000)),
+			ExpectedInstallationDate: new(int64(10000000000)),
 		},
 		{
 			Name:                     "New installation, second run: no users, installation date",
-			PrevInstallationDate:     model.NewPointer(int64(80000000000)),
+			PrevInstallationDate:     new(int64(80000000000)),
 			UsersCreationDates:       []int64{10000000000, 30000000000, 20000000000},
-			ExpectedInstallationDate: model.NewPointer(int64(80000000000)),
+			ExpectedInstallationDate: new(int64(80000000000)),
 		},
 		{
 			Name:                     "Old installation already updated: users, installation date",
-			PrevInstallationDate:     model.NewPointer(int64(90000000000)),
+			PrevInstallationDate:     new(int64(90000000000)),
 			UsersCreationDates:       []int64{10000000000, 30000000000, 20000000000},
-			ExpectedInstallationDate: model.NewPointer(int64(90000000000)),
+			ExpectedInstallationDate: new(int64(90000000000)),
 		},
 	}
 

@@ -1,4 +1,12 @@
 .SystemUserDetail {
+    .SystemUserDetail__pictureError {
+        margin-top: 12px;
+
+        .has-error .control-label {
+            margin: 0;
+        }
+    }
+
     .AdminUserCard__body {
         .two-column-layout {
             .field-row {
@@ -60,10 +68,6 @@
             }
         }
 
-        .cpa-field {
-            position: relative;
-        }
-
         .cpa-section-divider {
             display: flex;
             align-items: center;
@@ -78,21 +82,6 @@
                 font-weight: 600;
                 letter-spacing: 0.5px;
                 text-transform: uppercase;
-            }
-        }
-
-        .user-property-field-values__sync-indicator {
-            display: flex;
-            align-items: center;
-            margin-top: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.7);
-            font-size: 11px;
-            
-            svg {
-                width: 14px;
-                height: 14px;
-                margin-right: 6px;
-                fill: rgba(var(--center-channel-color-rgb), 0.5);
             }
         }
 

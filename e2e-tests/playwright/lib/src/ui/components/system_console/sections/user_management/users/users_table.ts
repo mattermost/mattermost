@@ -1,9 +1,44 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import {expect} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 import {UserActionMenu} from './user_action_menu';
+
+const USERS_REPORT_RESPONSE_TIMEOUT_MS = 10_000;
+
+/**
+ * Resolves when GET /api/v4/reports/users completes. Start this promise before the
+ * action that triggers the fetch (click, search, etc.) so Playwright does not sit
+ * on the timeout when the response already finished.
+ */
+export function waitForUsersReportResponse(page: Page, searchTerm?: string) {
+    return page.waitForResponse(
+        (response) => {
+            if (
+                !response.url().includes('/api/v4/reports/users') ||
+                response.url().includes('/count') ||
+                response.request().method() !== 'GET' ||
+                !response.ok()
+            ) {
+                return false;
+            }
+            if (searchTerm === undefined) {
+                return true;
+            }
+            return new URL(response.url()).searchParams.get('search_term') === searchTerm;
+        },
+        {timeout: USERS_REPORT_RESPONSE_TIMEOUT_MS},
+    );
+}
+
+function expectedSortDirection(previousSort: string | null): 'ascending' | 'descending' {
+    if (previousSort === 'ascending') {
+        return 'descending';
+    }
+    return 'ascending';
+}
 
 /**
  * Users table component
@@ -22,12 +57,13 @@ export class UsersTable {
     readonly lastPostHeader: Locator;
     readonly daysActiveHeader: Locator;
     readonly messagesPostedHeader: Locator;
+    readonly channelCountHeader: Locator;
     readonly actionsHeader: Locator;
 
     constructor(container: Locator) {
         this.container = container;
-        this.headerRow = container.locator('thead tr');
-        this.bodyRows = container.locator('tbody tr');
+        this.headerRow = container.getByTestId('listTableHeadRow');
+        this.bodyRows = container.getByTestId('listTableBodyRow');
 
         // Column headers
         this.userDetailsHeader = container.locator('#systemUsersTable-header-usernameColumn');
@@ -38,6 +74,7 @@ export class UsersTable {
         this.lastPostHeader = container.locator('#systemUsersTable-header-lastPostDateColumn');
         this.daysActiveHeader = container.locator('#systemUsersTable-header-daysActiveColumn');
         this.messagesPostedHeader = container.locator('#systemUsersTable-header-totalPostsColumn');
+        this.channelCountHeader = container.locator('#systemUsersTable-header-channelCountColumn');
         this.actionsHeader = container.locator('#systemUsersTable-header-actionsColumn');
     }
 
@@ -53,6 +90,22 @@ export class UsersTable {
     }
 
     /**
+     * Get a user row by exact username, since the search is a partial LIKE match and can
+     * return more than one row.
+     */
+    async getRowByUsername(username: string): Promise<UserRow> {
+        const count = await this.bodyRows.count();
+        for (let index = 0; index < count; index++) {
+            const row = this.getRowByIndex(index);
+            const text = (await row.userName.textContent())?.trim();
+            if (text === username) {
+                return row;
+            }
+        }
+        throw new Error(`No user row found for username "${username}"`);
+    }
+
+    /**
      * Get a column header by display name
      */
     getColumnHeader(columnName: string): Locator {
@@ -65,6 +118,7 @@ export class UsersTable {
             'Last post': this.lastPostHeader,
             'Days active': this.daysActiveHeader,
             'Messages posted': this.messagesPostedHeader,
+            'Channel count': this.channelCountHeader,
             Actions: this.actionsHeader,
         };
         const header = headerMap[columnName];
@@ -87,43 +141,28 @@ export class UsersTable {
      * @param columnName - The display name of the column
      * @returns The new sort direction after clicking
      */
-    async sortByColumn(columnName: string): Promise<'ascending' | 'descending' | 'none'> {
+    async sortByColumn(columnName: string): Promise<'ascending' | 'descending'> {
         const header = this.getColumnHeader(columnName);
+        await expect(header).toBeEnabled();
 
-        // Get current sort direction
-        const currentSort = await header.getAttribute('aria-sort');
+        const previousSort = await header.getAttribute('aria-sort');
+        const expectedSort = expectedSortDirection(previousSort);
 
-        // Click to sort
-        await header.click();
+        await Promise.all([waitForUsersReportResponse(this.container.page()), header.click()]);
 
-        // Wait for sort direction to change (or for it to be set if it wasn't before)
-        if (currentSort) {
-            // Wait for the attribute to change
-            await expect(header).not.toHaveAttribute('aria-sort', currentSort);
-        } else {
-            // Wait for the attribute to be set
-            await expect(header).toHaveAttribute('aria-sort');
-        }
+        // aria-sort updates with Redux; disabled={loading} on the header clears when the fetch ends
+        await expect(header).toHaveAttribute('aria-sort', expectedSort);
+        await expect(header).toBeEnabled();
 
-        // Wait for table to stabilize
-        await this.waitForLoadingComplete();
-
-        // Return the new sort direction
-        const newSort = await header.getAttribute('aria-sort');
-        return (newSort as 'ascending' | 'descending' | 'none') ?? 'none';
+        return expectedSort;
     }
 
     /**
-     * Wait for the table to finish loading (spinner to disappear)
+     * Read all visible email cells in one pass (avoids torn reads while the table re-renders).
      */
-    async waitForLoadingComplete() {
-        // Wait for any loading spinners to disappear
-        const loadingSpinner = this.container.locator('.loading-screen, .LoadingSpinner');
-        await loadingSpinner.waitFor({state: 'detached', timeout: 10000}).catch(() => {
-            // Spinner may not appear for fast loads, ignore timeout
-        });
-        // Also wait for at least one row to be visible
-        await this.bodyRows.first().waitFor({state: 'visible'});
+    async getVisibleEmails(): Promise<string[]> {
+        const texts = await this.bodyRows.getByTestId('emailColumn').allTextContents();
+        return texts.map((text) => text.trim()).filter(Boolean);
     }
 }
 
@@ -143,6 +182,7 @@ export class UserRow {
     readonly lastPostCell: Locator;
     readonly daysActiveCell: Locator;
     readonly messagesPostedCell: Locator;
+    readonly channelCountCell: Locator;
     readonly actionsCell: Locator;
 
     // User details components
@@ -160,19 +200,20 @@ export class UserRow {
         this.container = container;
         this.index = index;
 
-        this.userDetailsCell = container.locator('.usernameColumn');
-        this.emailCell = container.locator('.emailColumn');
-        this.memberSinceCell = container.locator('.createAtColumn');
-        this.lastLoginCell = container.locator('.lastLoginColumn');
-        this.lastActivityCell = container.locator('.lastStatusAtColumn');
-        this.lastPostCell = container.locator('.lastPostDateColumn');
-        this.daysActiveCell = container.locator('.daysActiveColumn');
-        this.messagesPostedCell = container.locator('.totalPostsColumn');
-        this.actionsCell = container.locator('.actionsColumn');
+        this.userDetailsCell = container.getByTestId('usernameColumn');
+        this.emailCell = container.getByTestId('emailColumn');
+        this.memberSinceCell = container.getByTestId('createAtColumn');
+        this.lastLoginCell = container.getByTestId('lastLoginColumn');
+        this.lastActivityCell = container.getByTestId('lastStatusAtColumn');
+        this.lastPostCell = container.getByTestId('lastPostDateColumn');
+        this.daysActiveCell = container.getByTestId('daysActiveColumn');
+        this.messagesPostedCell = container.getByTestId('totalPostsColumn');
+        this.channelCountCell = container.getByTestId('channelCountColumn');
+        this.actionsCell = container.getByTestId('actionsColumn');
 
-        this.profilePicture = this.userDetailsCell.locator('.profilePicture');
-        this.displayName = this.userDetailsCell.locator('.displayName');
-        this.userName = this.userDetailsCell.locator('.userName');
+        this.profilePicture = this.userDetailsCell.getByTestId('profilePicture');
+        this.displayName = this.userDetailsCell.getByTestId('displayName');
+        this.userName = this.userDetailsCell.getByTestId('userName');
 
         this.actionMenuButton = this.actionsCell.getByRole('button');
 

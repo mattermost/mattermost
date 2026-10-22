@@ -55,11 +55,11 @@ export type FilesState = {
 export type FileUploadResponse = {
     file_infos: FileInfo[];
     client_ids: string[];
-}
+};
 
 export type FileSearchResultItem = FileInfo & {
     channel_id: string;
-}
+};
 
 export type FileSearchResults = {
     order: Array<FileSearchResultItem['id']>;

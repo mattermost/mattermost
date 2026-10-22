@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS groupchanels;
+DROP TABLE IF EXISTS groupchannels;

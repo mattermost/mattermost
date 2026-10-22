@@ -11,7 +11,7 @@
 // Group: @channels @channel
 
 describe('Leaving archived channels', () => {
-    let testTeam;
+    let testTeam: Cypress.Team;
 
     before(() => {
         cy.apiInitSetup({loginAfter: true}).then(({team}) => {

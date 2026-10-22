@@ -10,7 +10,7 @@
 export function isEmbedded(): boolean {
     try {
         return window.self !== window.parent;
-    } catch (e) {
+    } catch {
         // If accessing window.parent throws an error, we're in a cross-origin iframe
         return true;
     }

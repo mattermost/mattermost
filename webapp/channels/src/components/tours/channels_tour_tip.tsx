@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import type {Placement} from '@floating-ui/react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
-import type {Placement} from 'tippy.js';
 
 import type {PunchOutCoordsHeightAndWidth} from '@mattermost/components';
 import {TourTip} from '@mattermost/components';
@@ -31,7 +31,7 @@ export type ChannelsTourTipProps = {
     overlayPunchOut: PunchOutCoordsHeightAndWidth | null;
     singleTip?: boolean;
     placement?: Placement;
-    pulsatingDotPlacement?: Omit<Placement, 'auto'| 'auto-end'>;
+    pulsatingDotPlacement?: Omit<Placement, 'auto' | 'auto-end'>;
     pulsatingDotTranslate?: {x: number; y: number};
     offset?: [number, number];
     width?: string | number;
@@ -40,7 +40,7 @@ export type ChannelsTourTipProps = {
     tippyBlueStyle?: boolean;
     showOptOut?: boolean;
     interactivePunchOut?: boolean;
-}
+};
 
 export const ChannelsTourTip = ({
     title,

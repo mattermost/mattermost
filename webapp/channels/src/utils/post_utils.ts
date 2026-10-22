@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {isMobile} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
@@ -42,7 +43,6 @@ import * as Keyboard from 'utils/keyboard';
 import {formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {allAtMentions} from 'utils/text_formatting';
-import {isMobile} from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 
@@ -61,6 +61,17 @@ export function fromAutoResponder(post: Post): boolean {
 
 export function isFromWebhook(post: Post): boolean {
     return post.props?.from_webhook === 'true';
+}
+
+export function isSilentNotification(post: Post): boolean {
+    return post.props?.silent_notification === true;
+}
+
+export function isNotificationSuppressed(post: Post): boolean {
+    if (post.props?.force_notification) {
+        return false;
+    }
+    return isSilentNotification(post);
 }
 
 export function isFromBot(post: Post): boolean {
@@ -84,6 +95,11 @@ export function isEdited(post: Post): boolean {
 
 export function getImageSrc(src: string, hasImageProxy = false): string {
     if (!src) {
+        return src;
+    }
+
+    // Don't proxy base64-encoded images
+    if (src.startsWith('data:image/')) {
         return src;
     }
 
@@ -232,9 +248,13 @@ export function shouldFocusMainTextbox(e: React.KeyboardEvent | KeyboardEvent, a
         return false;
     }
 
-    // Do not focus if we're currently focused on a textarea or input
+    // Do not focus if we're currently focused on a textarea, an input, or a
+    // rich text editor
     const keepFocusTags = ['TEXTAREA', 'INPUT'];
     if (!activeElement || keepFocusTags.includes(activeElement.tagName)) {
+        return false;
+    }
+    if (activeElement.closest('[contenteditable="true"]')) {
         return false;
     }
 
@@ -329,10 +349,7 @@ export function postMessageOnKeyPress(
         return {allowSending: false, ignoreKeyPress: true};
     }
 
-    if (
-        message.trim() === '' ||
-        !(sendMessageOnCtrlEnter || sendCodeBlockOnCtrlEnter)
-    ) {
+    if (!(sendMessageOnCtrlEnter || sendCodeBlockOnCtrlEnter)) {
         return {allowSending: true};
     }
 
@@ -341,6 +358,9 @@ export function postMessageOnKeyPress(
     if (sendMessageOnCtrlEnter) {
         return sendOnCtrlEnter(message, ctrlOrMetaKeyPressed, true, caretPosition);
     } else if (sendCodeBlockOnCtrlEnter) {
+        if (message.trim() === '') {
+            return {allowSending: true};
+        }
         return sendOnCtrlEnter(message, ctrlOrMetaKeyPressed, false, caretPosition);
     }
 
@@ -465,9 +485,9 @@ export function makeGetMentionsFromMessage(): (state: GlobalState, post: Post) =
 export function usePostAriaLabel(post: Post | undefined, autotranslated: boolean) {
     const intl = useIntl();
 
-    const getDisplayName = useMemo(makeGetDisplayName, []);
-    const getReactionsForPost = useMemo(makeGetReactionsForPost, []);
-    const getMentionsFromMessage = useMemo(makeGetMentionsFromMessage, []);
+    const getDisplayName = useMemo(() => makeGetDisplayName(), []);
+    const getReactionsForPost = useMemo(() => makeGetReactionsForPost(), []);
+    const getMentionsFromMessage = useMemo(() => makeGetMentionsFromMessage(), []);
 
     const createAriaLabelMemoized = memoizeResult(createAriaLabelForPost);
 
@@ -666,6 +686,10 @@ export function splitMessageBasedOnTextSelection(selectionStart: number, selecti
 
 export function areConsecutivePostsBySameUser(post: Post, previousPost: Post): boolean {
     if (!(post && previousPost)) {
+        return false;
+    }
+
+    if (hasAiGeneratedMetadata(post)) {
         return false;
     }
 

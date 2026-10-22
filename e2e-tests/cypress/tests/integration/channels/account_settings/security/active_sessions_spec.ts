@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Profile > Security > View and Log Out of Active Sessions', () => {
     const platforms = [

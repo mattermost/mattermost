@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Messaging - Opening a private channel using keyboard shortcuts', () => {
     let testTeam;

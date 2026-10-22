@@ -1,13 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
+
+import {getDayPickerDayCell, goToDisplayedMonth} from '../day_picker';
 
 export default class ScheduleMessageModal {
     readonly container: Locator;
     readonly dateButton: Locator;
     readonly timeButton: Locator;
     readonly timeOptionDropdown: Locator;
+    readonly repeatWeeklyCheckbox: Locator;
     readonly closeButton: Locator;
     readonly scheduleButton: Locator;
     readonly cancelButton: Locator;
@@ -17,41 +21,24 @@ export default class ScheduleMessageModal {
         this.dateButton = container.getByRole('button', {name: /Date/});
         this.timeButton = container.getByTestId('time_button');
         this.timeOptionDropdown = container.getByLabel('Choose a time');
+        this.repeatWeeklyCheckbox = container.getByRole('checkbox', {name: 'Repeat weekly'});
         this.closeButton = container.getByRole('button', {name: 'Close'});
-        this.scheduleButton = container.locator('button:has-text("Schedule")');
-        this.cancelButton = container.locator('button:has-text("Cancel")');
+        this.scheduleButton = container.getByRole('button', {name: 'Schedule'});
+        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }
 
-    getDaySuffix(day: number): string {
-        if (day > 3 && day < 21) return 'th';
-
-        switch (day % 10) {
-            case 1:
-                return 'st';
-            case 2:
-                return 'nd';
-            case 3:
-                return 'rd';
-            default:
-                return 'th';
-        }
-    }
-
-    dateLocator(day: number, month: string, dayOfWeek: string) {
-        const daySuffix = this.getDaySuffix(day);
-        const name = `${day}${daySuffix} ${month} (${dayOfWeek})`;
-        return this.container.getByRole('button', {name});
+    dateLocator(day: number) {
+        return getDayPickerDayCell(this.container, day);
     }
 
     async selectDate(dayFromToday: number = 0) {
         await this.dateButton.click();
 
         const pacificDate = new Date();
-        const originDate = new Date();
 
         if (dayFromToday) {
             pacificDate.setDate(pacificDate.getDate() + dayFromToday);
@@ -59,16 +46,13 @@ export default class ScheduleMessageModal {
 
         const day = pacificDate.getDate();
         const month = pacificDate.toLocaleString('default', {month: 'long'});
-        const dayOfWeek = pacificDate.toLocaleDateString('en-US', {weekday: 'long'});
 
-        const dateLocator = this.dateLocator(day, month, dayOfWeek);
+        await goToDisplayedMonth(this.container, pacificDate);
+        await this.dateLocator(day).click();
 
-        const isMonthChanged = pacificDate.getMonth() !== originDate.getMonth();
-        if (!(await dateLocator.isVisible()) && isMonthChanged) {
-            await this.container.getByLabel('Go to next month').click();
-        }
-
-        await dateLocator.click();
+        // Wait for the date-picker calendar to fully close before returning.
+        const calendarPopper = this.container.getByTestId('date-picker-popper');
+        await calendarPopper.waitFor({state: 'hidden'});
 
         // if day is single digit then prefix with a 0
         if (day < 10) {
@@ -80,25 +64,45 @@ export default class ScheduleMessageModal {
 
     async selectTime(optionIndex: number = 0) {
         await this.timeButton.click();
-        const timeButton = this.container.page().getByTestId(`time_option_${optionIndex}`);
-        await expect(timeButton).toBeVisible();
-        await timeButton.click();
+        const timeOption = this.container.page().getByTestId(`time_option_${optionIndex}`);
+        // Use a generous timeout: the time-picker dropdown can be slow to render in CI.
+        await expect(timeOption).toBeVisible({timeout: 30000});
+        // Capture text BEFORE clicking — clicking closes the dropdown and detaches the
+        // option element from the DOM, so textContent() would time out if called after.
+        const text = await timeOption.textContent();
+        await timeOption.click();
 
-        return await timeButton.textContent();
+        return text;
     }
 
-    async scheduleMessage(dayFromToday: number = 0, timeOptionIndex: number = 0) {
+    async setRepeatWeekly(enabled: boolean) {
+        const isChecked = await this.repeatWeeklyCheckbox.isChecked();
+
+        if (isChecked !== enabled) {
+            await this.repeatWeeklyCheckbox.click();
+        }
+    }
+
+    async scheduleMessage(dayFromToday: number = 0, timeOptionIndex: number = 0, repeatWeekly?: boolean) {
         await this.toBeVisible();
 
+        if (typeof repeatWeekly === 'boolean') {
+            await this.setRepeatWeekly(repeatWeekly);
+        }
+
         const selectedDate = await this.selectDate(dayFromToday);
-        const fromDateButton = await this.dateButton.textContent();
+
+        const fromDateButtonText = (await this.dateButton.textContent()) ?? '';
 
         const selectedTime = await this.selectTime(timeOptionIndex);
         await this.scheduleButton.click();
 
         // if selectedDate is Today or Tomorrow then return Today or Tomorrow
-        if (fromDateButton === 'Today' || fromDateButton === 'Tomorrow') {
-            return {selectedDate: fromDateButton, selectedTime};
+        if (fromDateButtonText.includes('Today')) {
+            return {selectedDate: 'Today', selectedTime};
+        }
+        if (fromDateButtonText.includes('Tomorrow')) {
+            return {selectedDate: 'Tomorrow', selectedTime};
         }
 
         // if selectedDate is a date in the future then return the date

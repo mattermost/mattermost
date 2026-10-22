@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
+
+import {Button} from '@mattermost/shared/components/button';
 
 import {
     getCloudProducts,
@@ -134,25 +136,25 @@ const Limits = (): JSX.Element | null => {
                 {subscriptionProduct.sku === CloudProducts.STARTER && (
                     <>
                         {!isAirGapped && (
-                            <button
+                            <Button
                                 onClick={openPricingModal}
-                                className='btn btn-primary'
+                                emphasis='primary'
                             >
                                 {intl.formatMessage({
                                     id: 'workspace_limits.modals.view_plan_options',
                                     defaultMessage: 'View plan options',
                                 })}
-                            </button>
+                            </Button>
                         )}
-                        <button
+                        <Button
                             onClick={openSalesLink}
-                            className='btn btn-secondary'
+                            emphasis='secondary'
                         >
                             {intl.formatMessage({
                                 id: 'admin.license.trialCard.contactSales',
                                 defaultMessage: 'Contact Sales',
                             })}
-                        </button>
+                        </Button>
                     </>
                 )}
             </div>

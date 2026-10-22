@@ -2,10 +2,13 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import FilterList from './filter_list';
+
 import './filter.scss';
 
 export type Filters = {
@@ -32,19 +35,19 @@ export type FilterOption = {
     // Key value map of filter values with keys matching the keys above
     values: FilterValues;
 
-    // Filter Component type, optional parameter defaults to FilterCheckbox
+    // Filter Component type, optional parameter defaults to FilterList
     type?: React.ElementType;
-}
+};
 
 export type FilterOptions = {
     [key: string]: FilterOption;
-}
+};
 
 type Props = {
     onFilter: (filters: FilterOptions) => void;
     options: FilterOptions;
     keys: string[];
-}
+};
 
 type State = {
     show: boolean;
@@ -52,11 +55,11 @@ type State = {
     keys: string[];
     optionsModified: boolean;
     filterCount: number;
-}
+};
 
 class Filter extends React.PureComponent<Props, State> {
-    private buttonRef: React.RefObject<HTMLButtonElement>;
-    private filterRef: React.RefObject<HTMLDivElement>;
+    private buttonRef: React.RefObject<HTMLButtonElement | null>;
+    private filterRef: React.RefObject<HTMLDivElement | null>;
 
     public constructor(props: Props) {
         super(props);
@@ -230,9 +233,11 @@ class Filter extends React.PureComponent<Props, State> {
                         {filters}
                     </div>
 
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-primary btn-sm Filter_apply'
+                        emphasis='primary'
+                        size='sm'
+                        className='Filter_apply'
                         disabled={!this.state.optionsModified}
                         onClick={this.onFilter}
                     >
@@ -240,7 +245,7 @@ class Filter extends React.PureComponent<Props, State> {
                             id='admin.filter.apply'
                             defaultMessage='Apply'
                         />
-                    </button>
+                    </Button>
                 </div>
             </div>
         );

@@ -126,9 +126,9 @@ func TestCheckPendingNotifications(t *testing.T) {
 	}})
 	require.NoError(t, nErr)
 
-	var wasCalled int32
+	var wasCalled atomic.Int32
 	job.checkPendingNotifications(time.Unix(10050, 0), func(string, []*batchedNotification) {
-		atomic.StoreInt32(&wasCalled, int32(1))
+		wasCalled.Store(int32(1))
 	})
 
 	// A hack to check whether the handler was called.
@@ -138,7 +138,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 	// We do a check outside the email handler, because otherwise, failing from
 	// inside the handler doesn't let the .Go() function exit cleanly, and it gets
 	// stuck during server shutdown, trying to wait for the goroutine to exit
-	require.Equal(t, int32(0), atomic.LoadInt32(&wasCalled), "email handler should not have been called")
+	require.Equal(t, int32(0), wasCalled.Load(), "email handler should not have been called")
 
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id])
 	require.Empty(t, job.pendingNotifications[th.BasicUser.Id], "should've remove queued post since user acted")

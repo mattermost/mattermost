@@ -14,7 +14,7 @@ import YoutubeVideo from './youtube_video';
 type OwnProps = {
     postId: string;
     link: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);

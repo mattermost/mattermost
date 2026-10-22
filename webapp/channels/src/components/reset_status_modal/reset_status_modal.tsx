@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
@@ -152,13 +152,13 @@ type Props = {
          */
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
     };
-}
+};
 
 type State = {
     show: boolean;
     currentUserStatus: UserStatus;
     newStatus: string;
-}
+};
 
 export default class ResetStatusModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {

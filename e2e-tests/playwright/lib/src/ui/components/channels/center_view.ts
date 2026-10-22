@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect, Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import ChannelsHeader from './header';
 import ChannelsPostCreate from './post_create';
@@ -24,28 +25,31 @@ export default class ChannelsCenterView {
     readonly postEdit;
     readonly editedPostIcon;
     readonly channelBanner;
+    readonly autotranslationBadge;
     readonly flagPostConfirmationDialog;
-    readonly messageDeleted;
-    readonly postText;
+    readonly notificationSeparator;
+    readonly postViews;
+    readonly channelIntro;
 
     constructor(container: Locator, page: Page) {
         this.container = container;
         this.page = page;
 
-        this.header = new ChannelsHeader(this.container.locator('.channel-header'));
+        this.header = new ChannelsHeader(this.container.locator('#channel-header'));
         this.postCreate = new ChannelsPostCreate(container.getByTestId('post-create'));
         this.scheduledDraftOptions = new ChannelsPostCreate(container.locator('#dropdown_send_post_options'));
-        this.postEdit = new ChannelsPostEdit(container.locator('.post-edit__container'));
+        this.postEdit = new ChannelsPostEdit(container.getByTestId('post-edit-container'));
         this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
         this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
         this.channelBanner = container.getByTestId('channel_banner_container');
+        this.autotranslationBadge = container.getByTestId('autotranslation-badge');
         this.flagPostConfirmationDialog = new FlagPostConfirmationDialog(
-            page.locator('#FlagPostModal div.modal-content'),
+            page.getByRole('dialog', {name: 'Quarantine for Review'}),
             page,
         );
-        this.messageDeleted = (postId: string) =>
-            this.container.locator(`#${postId}_message >> text=(message deleted)`);
-        this.postText = (postID: string) => this.container.locator(`#postMessageText_${postID}`);
+        this.notificationSeparator = container.locator('.NotificationSeparator');
+        this.postViews = container.getByTestId('postView');
+        this.channelIntro = container.locator('#channelIntro');
     }
 
     async toBeVisible() {
@@ -76,14 +80,30 @@ export default class ChannelsCenterView {
     }
 
     /**
+     * Return the Center post whose body contains the given text.
+     */
+    async getPostByText(text: string) {
+        const post = this.container.getByTestId('postView').filter({hasText: text}).last();
+        await expect(post).toBeVisible();
+        return new ChannelsPost(post);
+    }
+
+    /**
+     * Return the concealed BoR post, pinned by post id so the locator survives reveal.
+     */
+    async getConcealedBorPost() {
+        const placeholder = this.container.getByTestId(/^burn-on-read-concealed-/).last();
+        await expect(placeholder).toBeVisible();
+        const testId = await placeholder.getAttribute('data-testid');
+        return this.getPostById((testId || '').replace('burn-on-read-concealed-', ''));
+    }
+
+    /**
      * Return the ID of the last post in the Center
      */
     async getLastPostID() {
-        return this.container
-            .getByTestId('postView')
-            .last()
-            .getAttribute('id')
-            .then((id) => (id ? id.split('_')[1] : null));
+        const lastPost = await this.getLastPost();
+        return lastPost.getId();
     }
 
     /**
@@ -100,9 +120,16 @@ export default class ChannelsCenterView {
     /**
      * Returns the Center post by post's id
      * @param postId Just the ID without the prefix
+     * Note: Handles both simple posts (post_id) and combined posts (post_id:timestamp)
      */
+    postById(id: string) {
+        // Match either exact ID or ID with timestamp suffix (for combined posts)
+        // Use CSS selector that matches: post_id OR post_id:*
+        return this.container.locator(`[id="post_${id}"], [id^="post_${id}:"]`).first();
+    }
+
     async getPostById(id: string) {
-        const postById = this.container.locator(`[id="post_${id}"]`);
+        const postById = this.postById(id);
         await postById.waitFor();
         return new ChannelsPost(postById);
     }
@@ -119,15 +146,15 @@ export default class ChannelsCenterView {
     }
 
     async waitUntilPostWithIdContains(id: string, text: string, timeout = duration.ten_sec) {
-        await waitUntil(
-            async () => {
-                const post = await this.getPostById(id);
-                const content = await post.container.textContent();
+        // A single retrying assertion, rather than polling around getPostById(): that helper waits
+        // on the locator itself, so a post that has not rendered yet consumes the whole budget in
+        // one iteration and the outer timeout reports nothing about what the post actually held.
+        await expect(this.postById(id)).toContainText(text, {timeout});
+    }
 
-                return content?.includes(text);
-            },
-            {timeout},
-        );
+    async toHaveNewMessagesSeparator() {
+        await expect(this.notificationSeparator).toBeVisible();
+        await expect(this.notificationSeparator).toContainText('New Messages');
     }
 
     async clickOnLastEditedPost(postID: string | null) {
@@ -151,6 +178,12 @@ export default class ChannelsCenterView {
 
     async assertChannelBannerNotVisible() {
         await expect(this.channelBanner).not.toBeVisible();
+    }
+
+    async assertChannelBannerTextNotClipped() {
+        const bannerText = this.channelBanner.getByTestId('channel_banner_text');
+        await expect(bannerText).toBeVisible();
+        await this.assertElementContainedInBanner(bannerText);
     }
 
     async assertChannelBannerHasBoldText(text: string) {
@@ -177,12 +210,85 @@ export default class ChannelsCenterView {
         expect(actualText).toBe(text);
     }
 
-    async messageDeletedVisible(isVisible: boolean = false, postId: string, message: string) {
-        await expect(this.messageDeleted(postId)).toBeVisible({visible: isVisible});
-        if (!isVisible) {
-            const postMessageText = this.postText(postId);
-            const postMessageTextContent = await postMessageText.textContent();
-            expect(postMessageTextContent).toBe(message);
-        }
+    async assertChannelBannerHasEmoticon() {
+        const emoji = this.channelBanner.getByTestId(/^postEmoji\./).first();
+        await expect(emoji).toBeVisible();
+
+        const backgroundImage = await emoji.evaluate((el) => {
+            return window.getComputedStyle(el).getPropertyValue('background-image');
+        });
+
+        expect(backgroundImage).not.toBe('none');
+    }
+
+    async assertChannelBannerImageEmojiSize(expectedSizePx: number) {
+        const emoji = this.channelBanner.getByTestId(/^postEmoji\./).first();
+        await expect(emoji).toBeVisible();
+
+        const {width, height} = await emoji.evaluate((el) => {
+            const styles = window.getComputedStyle(el);
+            return {
+                width: styles.getPropertyValue('width'),
+                height: styles.getPropertyValue('height'),
+            };
+        });
+
+        expect(width).toBe(`${expectedSizePx}px`);
+        expect(height).toBe(`${expectedSizePx}px`);
+
+        await this.assertElementContainedInBanner(emoji);
+    }
+
+    async assertChannelBannerUnicodeEmojiSize(expectedSizePx: number) {
+        const emoji = this.channelBanner.getByTestId('channel-banner-unicode-emoji').first();
+        await expect(emoji).toBeVisible();
+
+        const fontSize = await emoji.evaluate((el) => {
+            return window.getComputedStyle(el).getPropertyValue('font-size');
+        });
+
+        expect(fontSize).toBe(`${expectedSizePx}px`);
+
+        await this.assertElementContainedInBanner(emoji);
+    }
+
+    /**
+     * Asserts that the given element's bounding box lies fully within the channel
+     * banner's content area (banner bounds minus computed padding).
+     *
+     * Uses getBoundingClientRect() coordinates, which are NOT clipped by parent
+     * overflow — so if an element protrudes into or beyond the padding zone it will
+     * be visually clipped by `overflow: hidden` on the text container, and this
+     * assertion will catch that.
+     *
+     * A small epsilon is applied to each boundary to avoid flaky failures caused
+     * by sub-pixel rounding differences in layout engines.
+     */
+    private async assertElementContainedInBanner(element: Locator) {
+        const EPSILON = 0.5;
+
+        const bannerBox = await this.channelBanner.boundingBox();
+        const elementBox = await element.boundingBox();
+
+        expect(bannerBox).not.toBeNull();
+        expect(elementBox).not.toBeNull();
+
+        const banner = bannerBox!;
+        const el = elementBox!;
+
+        const {paddingTop, paddingBottom, paddingLeft, paddingRight} = await this.channelBanner.evaluate((node) => {
+            const styles = window.getComputedStyle(node);
+            return {
+                paddingTop: parseFloat(styles.paddingTop),
+                paddingBottom: parseFloat(styles.paddingBottom),
+                paddingLeft: parseFloat(styles.paddingLeft),
+                paddingRight: parseFloat(styles.paddingRight),
+            };
+        });
+
+        expect(el.y).toBeGreaterThanOrEqual(banner.y + paddingTop - EPSILON);
+        expect(el.y + el.height).toBeLessThanOrEqual(banner.y + banner.height - paddingBottom + EPSILON);
+        expect(el.x).toBeGreaterThanOrEqual(banner.x + paddingLeft - EPSILON);
+        expect(el.x + el.width).toBeLessThanOrEqual(banner.x + banner.width - paddingRight + EPSILON);
     }
 }

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {DateTime} from 'luxon';
+import type {WeekdayNumbers} from 'luxon';
 import React from 'react';
 
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
@@ -73,7 +74,7 @@ describe('CoreMenuOptions Component', () => {
         );
     }
 
-    function setMockDate(weekday: number) {
+    function setMockDate(weekday: WeekdayNumbers) {
         const mockDate = DateTime.fromObject({weekday}, {zone: userCurrentTimezone}).toJSDate();
         jest.useFakeTimers();
         jest.setSystemTime(mockDate);

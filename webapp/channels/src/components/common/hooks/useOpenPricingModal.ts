@@ -9,7 +9,7 @@ import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from './useCWSAvaila
 export type UseOpenPricingModalReturn = {
     openPricingModal: () => void;
     isAirGapped: boolean;
-}
+};
 
 export default function useOpenPricingModal(): UseOpenPricingModalReturn {
     const cwsAvailability = useCWSAvailabilityCheck();

@@ -12,10 +12,12 @@ import {
     FloatingPortal,
     offset,
 } from '@floating-ui/react';
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+import React, {useEffect, useState, useRef, useCallback, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
+
+import {isDesktopApp, getDesktopVersion, isMacApp} from '@mattermost/shared/utils/user_agent';
 
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 import {getIsCrossTeamSearchEnabled} from 'mattermost-redux/selectors/entities/general';
@@ -30,7 +32,6 @@ import {focusElement} from 'utils/a11y_utils';
 import {RootHtmlPortalId, Constants} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
-import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import SearchBox from './search_box';
 
@@ -133,7 +134,7 @@ const NewSearch = (): JSX.Element => {
         placement: 'bottom',
         middleware: [offset({mainAxis: -28})],
     });
-    const searchButtonRef = refs.reference as React.RefObject<HTMLDivElement>;
+    const searchButtonRef = refs.reference as React.RefObject<HTMLDivElement | null>;
 
     const clickInteractions = useClick(floatingContext);
     const dismissInteraction = useDismiss(floatingContext);

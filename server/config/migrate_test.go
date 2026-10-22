@@ -38,14 +38,8 @@ func TestMigrate(t *testing.T) {
 		os.Clearenv()
 		t.Helper()
 
-		tempDir, err := os.MkdirTemp("", "TestMigrate")
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			os.RemoveAll(tempDir)
-		})
-
-		err = os.Chdir(tempDir)
-		require.NoError(t, err)
+		tempDir := t.TempDir()
+		t.Chdir(tempDir)
 
 		truncateTables(t)
 	}
@@ -55,7 +49,7 @@ func TestMigrate(t *testing.T) {
 
 		cfg := source.Get()
 		originalCfg := cfg.Clone()
-		cfg.ServiceSettings.SiteURL = model.NewPointer("http://example.com")
+		cfg.ServiceSettings.SiteURL = new("http://example.com")
 		cfg.SamlSettings.IdpCertificateFile = &files[0]
 		cfg.SamlSettings.PublicCertificateFile = &files[1]
 		cfg.SamlSettings.PrivateKeyFile = &files[2]

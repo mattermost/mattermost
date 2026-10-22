@@ -9,7 +9,9 @@
         __Minimum server version__: 5.50
 
         ##### Permissions
-        Must be authenticated.
+        Must be authenticated and have the `view_team` permission for the team.
+        Results are restricted to channels the user is a member of unless the user has
+        `manage_shared_channels`.
       operationId: GetAllSharedChannels
       parameters:
         - name: team_id
@@ -56,7 +58,7 @@
         and their status.
 
         ##### Permissions
-        `manage_secure_connections`
+        `manage_secure_connections` or `manage_shared_channels`
       operationId: GetSharedChannelRemotesByRemoteCluster
       parameters:
         - name: remote_id
@@ -135,6 +137,12 @@
           required: true
           schema:
             type: string
+        - name: include_deleted
+          in: query
+          description: Include deleted remote clusters
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Remote cluster info retrieval successful
@@ -222,6 +230,8 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/StatusOK"
+        "204":
+          description: Channel was not shared with the remote cluster. No action needed.
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -234,9 +244,9 @@
       summary: Get remote clusters for a shared channel
       description: |
         Gets the remote clusters information for a shared channel.
-        
+
         __Minimum server version__: 10.11
-        
+
         ##### Permissions
         Must be authenticated and have the `read_channel` permission for the channel.
       operationId: GetSharedChannelRemotes
@@ -271,13 +281,14 @@
         - shared channels
       summary: Check if user can DM another user in shared channels context
       description: |
-        Checks if a user can send direct messages to another user, considering shared channel restrictions.
-        This is specifically for shared channels where DMs require direct connections between clusters.
-        
+        Checks if a user can send direct messages to another user in a shared channels context.
+        In addition to user visibility, this evaluates remote-cluster direct-connect restrictions
+        for remote users.
+
         __Minimum server version__: 10.11
-        
+
         ##### Permissions
-        Must be authenticated and have permission to view the user.
+        Must be authenticated and able to view the target user.
       operationId: CanUserDirectMessage
       parameters:
         - name: user_id

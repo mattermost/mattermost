@@ -34,6 +34,12 @@ import (
 
 const (
 	ImageProfilePixelDimension = 128
+
+	lockedProfileFieldUsername  = "username"
+	lockedProfileFieldFirstName = "first name"
+	lockedProfileFieldLastName  = "last name"
+	lockedProfileFieldNickname  = "nickname"
+	lockedProfileFieldPosition  = "position"
 )
 
 func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError) {
@@ -86,6 +92,17 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 	user.Email = tokenData["email"]
 	user.EmailVerified = true
 
+	// Profile fields pre-set by the inviter are authoritative over client-supplied values.
+	if username := tokenData["username"]; username != "" {
+		user.Username = strings.ToLower(username)
+	}
+	if firstName := tokenData["first_name"]; firstName != "" {
+		user.FirstName = firstName
+	}
+	if lastName := tokenData["last_name"]; lastName != "" {
+		user.LastName = lastName
+	}
+
 	var ruser *model.User
 	var err *model.AppError
 	if token.Type == model.TokenTypeTeamInvitation {
@@ -125,20 +142,15 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 // This function handles the passwordless "guest magic link" flow where clicking an email link logs the user in.
 // Follows the same pattern as SAML/OAuth SSO by creating the user then calling AddUserToTeamByToken.
 func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString string) (*model.User, *model.AppError) {
-	// Get and validate token type and expiry
-	token, err := a.Srv().Store().Token().GetByToken(tokenString)
+	// Atomically consume the token to prevent race conditions where concurrent
+	// requests could reuse the same single-use token to create multiple sessions.
+	// Try both valid token types for guest magic links.
+	token, err := a.ConsumeTokenOnce(model.TokenTypeGuestMagicLinkInvitation, tokenString)
 	if err != nil {
-		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-
-	if token.Type != model.TokenTypeGuestMagicLinkInvitation && token.Type != model.TokenTypeGuestMagicLink {
-		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token_type.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	// We have the token we were looking for, so remove it from the database ASAP
-	err = a.Srv().Store().Token().Delete(tokenString)
-	if err != nil {
-		rctx.Logger().Warn("Error while deleting token", mlog.Err(err))
+		token, err = a.ConsumeTokenOnce(model.TokenTypeGuestMagicLink, tokenString)
+		if err != nil {
+			return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
 	}
 
 	if token.IsExpired() {
@@ -375,7 +387,7 @@ func (a *App) createUserOrGuest(rctx request.CTX, user *model.User, guest bool) 
 	a.InvalidateCacheForUser(ruser.Id)
 
 	if user.EmailVerified {
-		nUser, err := a.ch.srv.userService.GetUser(ruser.Id)
+		nUser, err := a.ch.srv.userService.GetUser(rctx, ruser.Id)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -413,7 +425,7 @@ func (a *App) createUserOrGuest(rctx request.CTX, user *model.User, guest bool) 
 		}, plugin.UserHasBeenCreatedID)
 	})
 
-	userLimits, limitErr := a.GetServerLimits()
+	userLimits, limitErr := a.GetServerLimits(true)
 	if limitErr != nil {
 		// we don't want to break the create user flow just because of this.
 		// So, we log the error, not return
@@ -432,24 +444,25 @@ func (a *App) createUserOrGuest(rctx request.CTX, user *model.User, guest bool) 
 	return ruser, nil
 }
 
-func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (*model.User, *model.AppError) {
+// CreateOAuthUser creates a user from OAuth/OIDC identity data.
+func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (user *model.User, userWasCreated bool, err *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, false, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
-		return nil, e
+		return nil, false, e
 	}
 
-	settings, err := provider.GetSSOSettings(rctx, a.Config(), service)
-	if err != nil {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.oauth.get_settings.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
+	settings, getErr := provider.GetSSOSettings(rctx, a.Config(), service)
+	if getErr != nil {
+		return nil, false, model.NewAppError("CreateOAuthUser", "api.user.oauth.get_settings.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(getErr)
 	}
 
-	user, err := provider.GetUserFromJSON(rctx, userData, tokenUser, settings)
-	if err != nil {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
+	user, getErr = provider.GetUserFromJSON(rctx, userData, tokenUser, settings)
+	if getErr != nil {
+		return nil, false, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(getErr)
 	}
 	if user.AuthService == "" {
 		user.AuthService = service
@@ -466,36 +479,36 @@ func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Read
 
 	userByAuth, _ := a.ch.srv.userService.GetUserByAuth(user.AuthData, service)
 	if userByAuth != nil {
-		return userByAuth, nil
+		return userByAuth, false, nil
 	}
 
 	userByEmail, _ := a.ch.srv.userService.GetUserByEmail(user.Email)
 	if userByEmail != nil {
 		if userByEmail.AuthService == "" {
-			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
+			return nil, false, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
 		}
 		if provider.IsSameUser(rctx, userByEmail, user) {
-			if _, err = a.Srv().Store().User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
+			if _, updateErr := a.Srv().Store().User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); updateErr != nil {
 				// if the user is not updated, write a warning to the log, but don't prevent user login
-				rctx.Logger().Warn("Error attempting to update user AuthData", mlog.Err(err))
+				rctx.Logger().Warn("Error attempting to update user AuthData", mlog.Err(updateErr))
 			}
-			return userByEmail, nil
+			return userByEmail, false, nil
 		}
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email+" authData="+*user.AuthData, http.StatusBadRequest)
+		return nil, false, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email+" authData="+*user.AuthData, http.StatusBadRequest)
 	}
 
 	user.EmailVerified = true
 
 	ruser, appErr := a.CreateUser(rctx, user)
 	if appErr != nil {
-		return nil, appErr
+		return nil, false, appErr
 	}
 
 	if appErr = a.AddUserToTeamByInviteIfNeeded(rctx, ruser, inviteToken, inviteId); appErr != nil {
 		rctx.Logger().Warn("Failed to add user to team", mlog.Err(appErr))
 	}
 
-	return ruser, nil
+	return ruser, true, nil
 }
 
 func (a *App) AddUserToTeamByInviteIfNeeded(rctx request.CTX, user *model.User, inviteToken string, inviteId string) *model.AppError {
@@ -527,8 +540,8 @@ func (a *App) AddUserToTeamByInviteIfNeeded(rctx request.CTX, user *model.User, 
 	return nil
 }
 
-func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
-	user, err := a.ch.srv.userService.GetUser(userID)
+func (a *App) GetUser(rctx request.CTX, userID string) (*model.User, *model.AppError) {
+	user, err := a.ch.srv.userService.GetUser(rctx, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -605,6 +618,24 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 			return nil, model.NewAppError("GetUserByAuth", MissingAuthAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetUserByAuth", "app.user.get_by_auth.other.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return user, nil
+}
+
+func (a *App) GetUserByAuthData(authData *string) (*model.User, *model.AppError) {
+	user, err := a.ch.srv.userService.GetUserByAuthData(authData)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("GetUserByAuthData", MissingAccountError, nil, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetUserByAuthData", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetUserByAuthData", MissingAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -785,10 +816,38 @@ func (a *App) GetUsersNotInAbacChannel(rctx request.CTX, teamID string, channelI
 		return nil, model.NewAppError("GetUsersNotInAbacChannel", "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	// Use cursor-based pagination for ABAC channels
-	users, _, appErr := acs.QueryUsersForResource(rctx, channelID, "*", model.SubjectSearchOptions{
+	users, _, appErr := acs.QueryUsersForResource(rctx, channelID, model.AccessControlPolicyActionMembership, model.SubjectSearchOptions{
 		TeamID: teamID,
 		Limit:  limit,
+		Cursor: model.SubjectCursor{
+			TargetID: cursorID, // Empty string means start from beginning
+		},
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return a.sanitizeProfiles(users, asAdmin), nil
+}
+
+// GetUsersNotInAbacTeam returns users who satisfy the team's ABAC membership
+// policy, for invite candidate lists on policy-governed teams. Mirrors
+// GetUsersNotInAbacChannel. A non-empty term filters by name server-side so the
+// invite picker can typeahead instead of pre-buffering the whole matching set.
+func (a *App) GetUsersNotInAbacTeam(rctx request.CTX, teamID string, term string, cursorID string, limit int, asAdmin bool) ([]*model.User, *model.AppError) {
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("GetUsersNotInAbacTeam", "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	// Match the normal user-search privacy gate: a non-admin caller must not be
+	// able to probe users' real names via the term when ShowFullName is off.
+	excludeFullNames := !asAdmin && !*a.Config().PrivacySettings.ShowFullName
+
+	users, _, appErr := acs.QueryUsersForResource(rctx, teamID, model.AccessControlPolicyActionMembership, model.SubjectSearchOptions{
+		Term:             term,
+		ExcludeFullNames: excludeFullNames,
+		Limit:            limit,
 		Cursor: model.SubjectCursor{
 			TargetID: cursorID, // Empty string means start from beginning
 		},
@@ -875,8 +934,8 @@ func (a *App) sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User 
 	return users
 }
 
-func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError) {
-	user, appErr := a.GetUser(userID)
+func (a *App) GenerateMfaSecret(rctx request.CTX, userID string) (*model.MfaSecret, *model.AppError) {
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -893,8 +952,8 @@ func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppErro
 	return mfaSecret, nil
 }
 
-func (a *App) ActivateMfa(userID, token string) *model.AppError {
-	user, appErr := a.GetUser(userID)
+func (a *App) ActivateMfa(rctx request.CTX, userID, token string) *model.AppError {
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return appErr
 	}
@@ -922,8 +981,8 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 	return nil
 }
 
-func (a *App) DeactivateMfa(userID string) *model.AppError {
-	user, appErr := a.GetUser(userID)
+func (a *App) DeactivateMfa(rctx request.CTX, userID string) *model.AppError {
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return appErr
 	}
@@ -991,7 +1050,7 @@ func (a *App) SetDefaultProfileImage(rctx request.CTX, user *model.User) *model.
 		return err
 	}
 
-	updatedUser, appErr := a.GetUser(user.Id)
+	updatedUser, appErr := a.GetUser(rctx, user.Id)
 	if appErr != nil {
 		rctx.Logger().Warn("Error in getting users profile forcing logout", mlog.String("user_id", user.Id), mlog.Err(appErr))
 		return nil
@@ -1029,6 +1088,12 @@ func (a *App) AdjustImage(rctx request.CTX, file io.ReadSeeker) (*bytes.Buffer, 
 	img, format, err := a.ch.imgDecoder.Decode(file)
 	if err != nil {
 		return nil, model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	// Decode() reads the file to EOF; seek back to beginning so GetImageOrientation
+	// can read the EXIF data to determine the correct orientation.
+	if _, seekErr := file.Seek(0, io.SeekStart); seekErr != nil {
+		rctx.Logger().Warn("Failed to seek image file for orientation check", mlog.Err(seekErr))
 	}
 
 	orientation, err := imaging.GetImageOrientation(file, format)
@@ -1075,7 +1140,7 @@ func (a *App) SetProfileImageFromFile(rctx request.CTX, userID string, file io.R
 }
 
 func (a *App) UpdatePasswordAsUser(rctx request.CTX, userID, currentPassword, newPassword string) *model.AppError {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1107,7 +1172,7 @@ func (a *App) UpdatePasswordAsUser(rctx request.CTX, userID, currentPassword, ne
 func (a *App) userDeactivated(rctx request.CTX, userID string) *model.AppError {
 	a.SetStatusOffline(userID, false, true)
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1129,6 +1194,10 @@ func (a *App) userDeactivated(rctx request.CTX, userID string) *model.AppError {
 
 	if nErr := a.Srv().Store().OAuth().RemoveAuthDataByUserId(userID); nErr != nil {
 		rctx.Logger().Warn("unable to remove auth data by user id", mlog.Err(nErr))
+	}
+
+	if nErr := a.Srv().Store().OAuth().PermanentDeleteAuthDataByUser(userID); nErr != nil {
+		rctx.Logger().Warn("unable to remove oauth access data by user id", mlog.Err(nErr))
 	}
 
 	return nil
@@ -1221,7 +1290,7 @@ func (a *App) UpdateActive(rctx request.CTX, user *model.User, active bool) (*mo
 	}
 
 	if active {
-		userLimits, appErr := a.GetServerLimits()
+		userLimits, appErr := a.GetServerLimits(true)
 		if appErr != nil {
 			rctx.Logger().Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
 		} else {
@@ -1246,8 +1315,8 @@ func (a *App) DeactivateGuests(rctx request.CTX) *model.AppError {
 	}
 
 	for _, userID := range userIDs {
-		if err := a.Srv().Platform().RevokeAllSessions(rctx, userID); err != nil {
-			return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if err := a.RevokeAllSessions(rctx, userID); err != nil {
+			return err
 		}
 	}
 
@@ -1273,8 +1342,8 @@ func (a *App) DeactivateMagicLinkGuests(rctx request.CTX) *model.AppError {
 	}
 
 	for _, userID := range userIDs {
-		if err := a.Srv().Platform().RevokeAllSessions(rctx, userID); err != nil {
-			return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if err := a.RevokeAllSessions(rctx, userID); err != nil {
+			return err
 		}
 	}
 
@@ -1318,14 +1387,14 @@ func (a *App) UpdateUserAsUser(rctx request.CTX, user *model.User, asAdmin bool)
 	return updatedUser, nil
 }
 
+func tryingToChange(userValue *string, patchValue *string) bool {
+	return patchValue != nil && *patchValue != *userValue
+}
+
 // CheckProviderAttributes returns the empty string if the patch can be applied without
 // overriding attributes set by the user's login provider; otherwise, the name of the offending
 // field is returned.
 func (a *App) CheckProviderAttributes(rctx request.CTX, user *model.User, patch *model.UserPatch) string {
-	tryingToChange := func(userValue *string, patchValue *string) bool {
-		return patchValue != nil && *patchValue != *userValue
-	}
-
 	// If any login provider is used, then the username may not be changed
 	if user.AuthService != "" && tryingToChange(&user.Username, patch.Username) {
 		return "username"
@@ -1349,8 +1418,59 @@ func (a *App) CheckProviderAttributes(rctx request.CTX, user *model.User, patch 
 	return conflictField
 }
 
+// CheckLockedProfileFields returns the name of the first profile field in the patch that
+// conflicts with TeamSettings.LockProfileFieldsForEmailUsers, or "" when there is no conflict.
+// It only applies to email/password users on Enterprise-licensed servers and exempts sessions
+// with the edit_other_users permission.
+func (a *App) CheckLockedProfileFields(session model.Session, user *model.User, patch *model.UserPatch) string {
+	if a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) ||
+		!model.MinimumEnterpriseLicense(a.License()) ||
+		user.AuthService != "" {
+		return ""
+	}
+
+	setting := *a.Config().TeamSettings.LockProfileFieldsForEmailUsers
+	if setting != model.TeamSettingsLockProfileFieldsNameAndUsername && setting != model.TeamSettingsLockProfileFieldsAll {
+		return ""
+	}
+
+	if tryingToChange(&user.Username, patch.Username) {
+		return lockedProfileFieldUsername
+	}
+
+	// Empty first/last names may be filled in once, so users who signed up without
+	// pre-provisioned names (e.g. via a team invite link) aren't stuck nameless.
+	if user.FirstName != "" && tryingToChange(&user.FirstName, patch.FirstName) {
+		return lockedProfileFieldFirstName
+	}
+	if user.LastName != "" && tryingToChange(&user.LastName, patch.LastName) {
+		return lockedProfileFieldLastName
+	}
+
+	if setting == model.TeamSettingsLockProfileFieldsAll {
+		if tryingToChange(&user.Nickname, patch.Nickname) {
+			return lockedProfileFieldNickname
+		}
+		if tryingToChange(&user.Position, patch.Position) {
+			return lockedProfileFieldPosition
+		}
+	}
+
+	return ""
+}
+
+// IsProfileImageLockedForUser returns true when TeamSettings.LockProfileFieldsForEmailUsers
+// locks the profile picture of the given email/password user, unless the session has the
+// edit_other_users permission.
+func (a *App) IsProfileImageLockedForUser(session model.Session, user *model.User) bool {
+	return !a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) &&
+		model.MinimumEnterpriseLicense(a.License()) &&
+		user.AuthService == "" &&
+		*a.Config().TeamSettings.LockProfileFieldsForEmailUsers == model.TeamSettingsLockProfileFieldsAll
+}
+
 func (a *App) PatchUser(rctx request.CTX, userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1377,6 +1497,10 @@ func (a *App) UpdateUserAuth(rctx request.CTX, userID string, userAuth *model.Us
 	}
 
 	a.InvalidateCacheForUser(userID)
+
+	if err := a.RevokeAllSessions(rctx, userID); err != nil {
+		return nil, err
+	}
 
 	return userAuth, nil
 }
@@ -1429,7 +1553,7 @@ func (a *App) isUniqueToGroupNames(val string) *model.AppError {
 }
 
 func (a *App) UpdateUser(rctx request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
-	prev, err := a.ch.srv.userService.GetUser(user.Id)
+	prev, err := a.ch.srv.userService.GetUser(rctx, user.Id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1448,6 +1572,11 @@ func (a *App) UpdateUser(rctx request.CTX, user *model.User, sendNotifications b
 		if err := a.isUniqueToGroupNames(user.Username); err != nil {
 			err.Where = "UpdateUser"
 			return nil, err
+		}
+
+		// Blocks renaming a bot's user into a protected username; see CreateBot/PatchBot.
+		if prev.IsBot && !model.IsProtectedBotUsername(prev.Username) && model.IsProtectedBotUsername(user.Username) {
+			return nil, model.NewAppError("UpdateUser", "app.user.update.reserved_username.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
@@ -1503,6 +1632,13 @@ func (a *App) UpdateUser(rctx request.CTX, user *model.User, sendNotifications b
 		}
 	}
 
+	if userUpdate == nil {
+		return nil, model.NewAppError("UpdateUser", "app.user.update.find.app_error", nil, "received nil update result from store for userId="+user.Id, http.StatusInternalServerError)
+	}
+	if userUpdate.New == nil {
+		return nil, model.NewAppError("UpdateUser", "app.user.update.find.app_error", nil, "received update result with nil New user from store for userId="+user.Id, http.StatusInternalServerError)
+	}
+
 	newUser := userUpdate.New
 
 	if (newUser.Username != userUpdate.Old.Username) && (newUser.LastPictureUpdate <= 0) {
@@ -1511,7 +1647,7 @@ func (a *App) UpdateUser(rctx request.CTX, user *model.User, sendNotifications b
 			rctx.Logger().Warn("Error with updating default profile image", mlog.Err(err))
 		}
 
-		tempUser, getUserErr := a.GetUser(user.Id)
+		tempUser, getUserErr := a.GetUser(rctx, user.Id)
 		if getUserErr != nil {
 			rctx.Logger().Warn("Error when retrieving user after profile picture update, avatar may fail to update automatically on client applications.", mlog.Err(getUserErr))
 		} else {
@@ -1560,7 +1696,7 @@ func (a *App) UpdateUser(rctx request.CTX, user *model.User, sendNotifications b
 }
 
 func (a *App) UpdateUserActive(rctx request.CTX, userID string, active bool) *model.AppError {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1591,17 +1727,17 @@ func (a *App) updateUserNotifyProps(userID string, props map[string]string) *mod
 
 func (a *App) UpdateMfa(rctx request.CTX, activate bool, userID, token string) *model.AppError {
 	if activate {
-		if err := a.ActivateMfa(userID, token); err != nil {
+		if err := a.ActivateMfa(rctx, userID, token); err != nil {
 			return err
 		}
 	} else {
-		if err := a.DeactivateMfa(userID); err != nil {
+		if err := a.DeactivateMfa(rctx, userID); err != nil {
 			return err
 		}
 	}
 
 	a.Srv().Go(func() {
-		user, err := a.GetUser(userID)
+		user, err := a.GetUser(rctx, userID)
 		if err != nil {
 			rctx.Logger().Error("Failed to get user", mlog.Err(err))
 			return
@@ -1616,7 +1752,7 @@ func (a *App) UpdateMfa(rctx request.CTX, activate bool, userID, token string) *
 }
 
 func (a *App) UpdatePasswordByUserIdSendEmail(rctx request.CTX, userID, newPassword, method string) *model.AppError {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1692,8 +1828,8 @@ func (a *App) UpdatePasswordSendEmail(rctx request.CTX, user *model.User, newPas
 	return nil
 }
 
-func (a *App) UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError {
-	user, err := a.GetUser(userID)
+func (a *App) UpdateHashedPasswordByUserId(rctx request.CTX, userID, newHashedPassword string) *model.AppError {
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1742,7 +1878,7 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 		return model.NewAppError("resetPassword", "api.user.reset_password.token_parse.error", nil, "", http.StatusInternalServerError)
 	}
 
-	user, err := a.GetUser(tokenData.UserId)
+	user, err := a.GetUser(rctx, tokenData.UserId)
 	if err != nil {
 		return err
 	}
@@ -1825,7 +1961,7 @@ func (a *App) CreatePasswordRecoveryToken(rctx request.CTX, userID, email string
 	// remove any previously created tokens for user
 	appErr := a.InvalidatePasswordRecoveryTokensForUser(userID)
 	if appErr != nil {
-		rctx.Logger().Warn("Error while deleting additional user tokens.", mlog.Err(err))
+		rctx.Logger().Warn("Error while deleting additional user tokens.", mlog.Err(appErr))
 	}
 
 	token := model.NewToken(model.TokenTypePasswordRecovery, string(jsonData))
@@ -1923,7 +2059,7 @@ func (a *App) DeleteToken(token *model.Token) *model.AppError {
 }
 
 func (a *App) UpdateUserRoles(rctx request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		err.StatusCode = http.StatusBadRequest
 		return nil, err
@@ -2010,127 +2146,186 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 		return err
 	}
 
-	if err := a.Srv().Store().Session().PermanentDeleteSessionsByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.session.permanent_delete_sessions_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().UserAccessToken().DeleteAllForUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().OAuth().PermanentDeleteAuthDataByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.oauth.permanent_delete_auth_data_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Webhook().PermanentDeleteIncomingByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_incoming_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Webhook().PermanentDeleteOutgoingByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_outgoing_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Command().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.user.permanentdeleteuser.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Preference().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.preference.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Channel().PermanentDeleteMembersByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Group().PermanentDeleteMembersByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.group.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Post().PermanentDeleteByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Reaction().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.reaction.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().ScheduledPost().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.scheduled_post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Draft().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.drafts.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Bot().PermanentDelete(user.Id); err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
-			return model.NewAppError("PermanentDeleteUser", "app.bot.permenent_delete.bad_id", map[string]any{"user_id": invErr.Value}, "", http.StatusBadRequest).Wrap(err)
-		default: // last fallback in case it doesn't map to an existing app error.
-			return model.NewAppError("PermanentDeleteUser", "app.bot.permanent_delete.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := a.permanentDeleteUserData(rctx, user.Id); err != nil {
+		var limitErr *store.ErrLimitExceeded
+		if errors.As(err, &limitErr) {
+			return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.post_limit.app_error", map[string]any{"Max": limitErr.Count}, "", http.StatusUnprocessableEntity).Wrap(err)
 		}
-	}
-
-	infos, err := a.Srv().Store().FileInfo().GetForUser(user.Id)
-	if err != nil {
-		rctx.Logger().Warn("Error getting file list for user from FileInfoStore", mlog.Err(err))
-	}
-
-	a.RemoveFilesFromFileStore(rctx, infos)
-
-	// delete directory containing user's profile image
-	profileImageDirectory := getProfileImageDirectory(user.Id)
-	profileImagePath := getProfileImagePath(user.Id)
-	resProfileImageExists, errProfileImageExists := a.FileExists(profileImagePath)
-
-	fileHandlingErrorsFound := false
-
-	if errProfileImageExists != nil {
-		fileHandlingErrorsFound = true
-		rctx.Logger().Warn(
-			"Error checking existence of profile image.",
-			mlog.String("path", profileImagePath),
-			mlog.Err(errProfileImageExists),
-		)
-	}
-
-	if resProfileImageExists {
-		errRemoveDirectory := a.RemoveDirectory(profileImageDirectory)
-
-		if errRemoveDirectory != nil {
-			fileHandlingErrorsFound = true
-			rctx.Logger().Warn(
-				"Unable to remove profile image directory",
-				mlog.String("path", profileImageDirectory),
-				mlog.Err(errRemoveDirectory),
-			)
-		}
-	}
-
-	if _, err := a.Srv().Store().FileInfo().PermanentDeleteByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().User().PermanentDelete(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Audit().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.audit.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Team().RemoveAllMembersByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.incomplete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
 
-	if fileHandlingErrorsFound {
-		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "Couldn't delete profile image of the user.", http.StatusAccepted)
+	rctx.Logger().Warn("Permanently deleted account", mlog.String("user_email", user.Email), mlog.String("user_id", user.Id))
+
+	return nil
+}
+
+// permanentDeleteUserData deletes a deactivated user's data. Every delete must be safe to repeat,
+// and none may remove data a later one needs to find, so that running the delete again after any
+// failure finishes the job. The Users row therefore goes last.
+func (a *App) permanentDeleteUserData(rctx request.CTX, userID string) error {
+	ss := a.Srv().Store()
+
+	if err := ss.Session().PermanentDeleteSessionsByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.UserAccessToken().DeleteAllForUser(userID); err != nil {
+		return err
+	}
+	if err := ss.OAuth().PermanentDeleteAuthDataByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.OAuth().RemoveAuthDataByUserId(userID); err != nil {
+		return err
+	}
+	if err := ss.DesktopTokens().DeleteByUserId(userID); err != nil {
+		return err
+	}
+	if err := ss.CommandWebhook().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.Webhook().PermanentDeleteIncomingByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.Webhook().PermanentDeleteOutgoingByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.Command().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.Preference().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.Channel().PermanentDeleteMembersByUser(rctx, userID); err != nil {
+		return err
+	}
+	if err := ss.Channel().PermanentDeleteSidebarByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.ChannelMemberHistory().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.Group().PermanentDeleteMembersByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.Team().RemoveAllMembersByUser(rctx, userID); err != nil {
+		return err
 	}
 
-	rctx.Logger().Warn("Permanently deleted account", mlog.String("user_email", user.Email), mlog.String("user_id", user.Id))
+	// Files go before posts: once a post is gone, nothing leads back to the files attached to it.
+	if err := a.permanentDeleteUserFiles(rctx, userID); err != nil {
+		return err
+	}
+	if err := ss.Post().PermanentDeleteByUser(rctx, userID); err != nil {
+		return err
+	}
+
+	if err := ss.Post().PermanentDeletePostRemindersByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.Thread().PermanentDeleteMembershipsByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.PostAcknowledgement().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.ReadReceipt().PermanentDeleteByUser(rctx, userID); err != nil {
+		return err
+	}
+	if err := ss.Reaction().PermanentDeleteByUser(rctx, userID); err != nil {
+		return err
+	}
+	if err := ss.ScheduledPost().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.Draft().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.Status().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.ProductNotices().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.UserTermsOfService().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.NotifyAdmin().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.UploadSession().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.SharedChannel().PermanentDeleteUsersByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.PropertyValue().DeleteForTarget("", model.PropertyValueTargetTypeUser, userID); err != nil {
+		return err
+	}
+
+	// Scheduled recaps go before recaps, as the scheduler keeps creating recaps until they are gone.
+	if err := ss.ScheduledRecap().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.Recap().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+
+	if err := ss.ChannelJoinRequest().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.Audit().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
+	if err := ss.Bot().PermanentDelete(userID); err != nil {
+		return err
+	}
+	if err := a.permanentDeleteUserProfileImage(userID); err != nil {
+		return err
+	}
+
+	return ss.User().PermanentDelete(rctx, userID)
+}
+
+// permanentDeleteUserFiles removes every file that deleting the user would orphan from storage,
+// deleting each file info only once its files are gone so a failure leaves it to be retried.
+func (a *App) permanentDeleteUserFiles(rctx request.CTX, userID string) error {
+	const batchSize = 1000
+	for {
+		infos, err := a.Srv().Store().FileInfo().GetForPermanentDeleteByUser(userID, batchSize)
+		if err != nil {
+			return err
+		}
+
+		if len(infos) == 0 {
+			return nil
+		}
+
+		for _, info := range infos {
+			for _, path := range []string{info.Path, info.PreviewPath, info.ThumbnailPath} {
+				if path == "" {
+					continue
+				}
+				if appErr := a.RemoveFileFromFileStore(rctx, path); appErr != nil && appErr.StatusCode != http.StatusNotFound {
+					return errors.Wrapf(appErr, "failed to remove the files of FileInfo with id=%s", info.Id)
+				}
+			}
+
+			if err := a.Srv().Store().FileInfo().PermanentDelete(rctx, info.Id); err != nil {
+				return err
+			}
+		}
+	}
+}
+
+// permanentDeleteUserProfileImage removes the user's profile image directory. It is removed
+// unconditionally: a removal that only got as far as deleting the image leaves the directory
+// behind, and every backend tolerates the directory already being gone.
+func (a *App) permanentDeleteUserProfileImage(userID string) error {
+	if appErr := a.RemoveDirectory(getProfileImageDirectory(userID)); appErr != nil {
+		return errors.Wrap(appErr, "failed to remove the profile image")
+	}
 
 	return nil
 }
@@ -2140,10 +2335,20 @@ func (a *App) PermanentDeleteAllUsers(rctx request.CTX) *model.AppError {
 	if err != nil {
 		return model.NewAppError("PermanentDeleteAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	var failed []string
 	for _, user := range users {
 		if appErr := a.PermanentDeleteUser(rctx, user); appErr != nil {
-			rctx.Logger().Warn("Error while deleting user", mlog.Err(appErr))
+			rctx.Logger().Warn("Error while deleting user", mlog.String("user_id", user.Id), mlog.Err(appErr))
+			failed = append(failed, user.Username)
 		}
+	}
+
+	if len(failed) > 0 {
+		return model.NewAppError("PermanentDeleteAllUsers", "app.user.permanent_delete_all.incomplete.app_error", map[string]any{
+			"Count":     len(failed),
+			"Usernames": strings.Join(failed, ", "),
+		}, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -2198,13 +2403,13 @@ func (a *App) VerifyEmailFromToken(rctx request.CTX, userSuppliedTokenString str
 		return model.NewAppError("VerifyEmailFromToken", "api.user.verify_email.token_parse.error", nil, "", http.StatusInternalServerError)
 	}
 
-	user, err := a.GetUser(tokenData.UserId)
+	user, err := a.GetUser(rctx, tokenData.UserId)
 	if err != nil {
 		return err
 	}
 
 	tokenData.Email = strings.ToLower(tokenData.Email)
-	if err := a.VerifyUserEmail(tokenData.UserId, tokenData.Email); err != nil {
+	if err := a.VerifyUserEmail(rctx, tokenData.UserId, tokenData.Email); err != nil {
 		return err
 	}
 
@@ -2261,14 +2466,14 @@ func (a *App) GetFilteredUsersStats(options *model.UserCountOptions) (*model.Use
 	return stats, nil
 }
 
-func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
+func (a *App) VerifyUserEmail(rctx request.CTX, userID, email string) *model.AppError {
 	if _, err := a.Srv().Store().User().VerifyEmail(userID, email); err != nil {
 		return model.NewAppError("VerifyUserEmail", "app.user.verify_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.InvalidateCacheForUser(userID)
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return err
 	}
@@ -2322,7 +2527,7 @@ func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term stri
 	} else if ok {
 		acs := a.Srv().Channels().AccessControl
 		if acs != nil {
-			users, _, appErr := acs.QueryUsersForResource(rctx, channelID, "*", model.SubjectSearchOptions{
+			users, _, appErr := acs.QueryUsersForResource(rctx, channelID, model.AccessControlPolicyActionMembership, model.SubjectSearchOptions{
 				Term:   term,
 				TeamID: teamID,
 				Limit:  options.Limit,
@@ -2331,7 +2536,7 @@ func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term stri
 				return nil, appErr
 			}
 
-			return users, nil
+			return a.sanitizeProfiles(users, options.IsAdmin), nil
 		}
 	}
 
@@ -2340,11 +2545,7 @@ func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term stri
 		return nil, model.NewAppError("SearchUsersNotInChannel", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	for _, user := range users {
-		a.SanitizeProfile(user, options.IsAdmin)
-	}
-
-	return users, nil
+	return a.sanitizeProfiles(users, options.IsAdmin), nil
 }
 
 func (a *App) SearchUsersInTeam(rctx request.CTX, teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
@@ -2627,7 +2828,7 @@ func (a *App) userBelongsToChannels(userID string, channelIDs []string) (bool, *
 }
 
 func (a *App) GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError) {
-	if a.HasPermissionTo(userID, model.PermissionViewMembers) {
+	if a.HasPermissionTo(rctx, userID, model.PermissionViewMembers) {
 		return nil, nil
 	}
 
@@ -2659,7 +2860,7 @@ func (a *App) GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.
 // PromoteGuestToUser Convert user's roles and all his membership's roles from
 // guest roles to regular user roles.
 func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId string) *model.AppError {
-	nErr := a.ch.srv.userService.PromoteGuestToUser(user)
+	nErr := a.ch.srv.userService.PromoteGuestToUser(rctx, user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
 		return model.NewAppError("PromoteGuestToUser", "app.user.promote_guest.user_update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -2676,7 +2877,7 @@ func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId
 		}
 	}
 
-	promotedUser, err := a.GetUser(user.Id)
+	promotedUser, err := a.GetUser(rctx, user.Id)
 	if err != nil {
 		rctx.Logger().Warn("Failed to get user on promote guest to user", mlog.Err(err))
 	} else {
@@ -2721,7 +2922,11 @@ func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId
 // DemoteUserToGuest Convert user's roles and all his membership's roles from
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppError {
-	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(user)
+	if user.IsBot {
+		return model.NewAppError("DemoteUserToGuest", "api.user.demote_user_to_guest.bot_not_allowed.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(rctx, user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
 		return model.NewAppError("DemoteUserToGuest", "app.user.demote_user_to_guest.user_update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -2781,7 +2986,7 @@ func (a *App) PublishUserTyping(userID, channelID, parentId string) *model.AppEr
 func (a *App) invalidateUserCacheAndPublish(rctx request.CTX, userID string) {
 	a.InvalidateCacheForUser(userID)
 
-	user, userErr := a.GetUser(userID)
+	user, userErr := a.GetUser(rctx, userID)
 	if userErr != nil {
 		rctx.Logger().Error("Error in getting users profile", mlog.String("user_id", userID), mlog.Err(userErr))
 		return
@@ -2809,7 +3014,7 @@ func (a *App) GetKnownUsers(userID string) ([]string, *model.AppError) {
 
 // ConvertBotToUser converts a bot to user.
 func (a *App) ConvertBotToUser(rctx request.CTX, bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError) {
-	user, nErr := a.Srv().Store().User().Get(rctx.Context(), bot.UserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, bot.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2932,7 +3137,8 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 	}
 	for _, thread := range result.Threads {
 		a.sanitizeProfiles(thread.Participants, false)
-		thread.Post.SanitizeProps()
+		thread.Post.SanitizeNonIdentityProps()
+		thread.Post.StripActionIntegrations()
 		list.AddPost(thread.Post)
 	}
 
@@ -2968,11 +3174,13 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 	}
 
 	a.sanitizeProfiles(thread.Participants, false)
-	thread.Post.SanitizeProps()
+	thread.Post.SanitizeNonIdentityProps()
+	thread.Post.StripActionIntegrations()
 	a.populatePostListTranslations(rctx, &model.PostList{Posts: map[string]*model.Post{thread.Post.Id: thread.Post}})
 	return thread, nil
 }
 
+// sanitizeThreadResponse removes server-only data from a thread response before it is sent to clients.
 func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 	nErr := a.Srv().Store().Thread().MarkAllAsReadByTeam(userID, teamID)
 	if nErr != nil {
@@ -3028,7 +3236,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	if appErr != nil {
 		return appErr
 	}
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return appErr
 	}
@@ -3052,7 +3260,8 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	a.sanitizeProfiles(userThread.Participants, false)
-	userThread.Post.SanitizeProps()
+	userThread.Post.SanitizeNonIdentityProps()
+	userThread.Post.StripActionIntegrations()
 	sanitizedPost, isMemberForPreviews, appErr := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
 	if appErr != nil {
 		return appErr
@@ -3066,6 +3275,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	message.Add("thread", string(payload))
 	message.Add("previous_unread_replies", int64(0))
 	message.Add("previous_unread_mentions", int64(0))
+	a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
 	auditRec := a.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
 	defer a.LogAuditRec(rctx, auditRec, nil)
@@ -3095,7 +3305,7 @@ func (a *App) UpdateThreadReadForUserByPost(rctx request.CTX, currentSessionId, 
 }
 
 func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err
 	}

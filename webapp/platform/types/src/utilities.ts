@@ -38,7 +38,7 @@ export type DeepPartial<T> = {
                     // Else leave it as an optional primitive
                         T[K]
     );
-}
+};
 
 export type ValueOf<T> = T[keyof T];
 
@@ -48,8 +48,7 @@ export type ValueOf<T> = T[keyof T];
 export type RequireOnlyOne<T, Keys extends keyof T = keyof T> =
 Pick<T, Exclude<keyof T, Keys>> & {[K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, undefined>>}[Keys];
 
-export type Intersection<T1, T2> =
-Omit<Omit<T1&T2, keyof(Omit<T1, keyof(T2)>)>, keyof(Omit<T2, keyof(T1)>)>;
+export type Intersection<T1, T2> = Omit<Omit<T1 & T2, keyof(Omit<T1, keyof(T2)>)>, keyof(Omit<T2, keyof(T1)>)>;
 
 /** https://stackoverflow.com/a/66605669 */
 type Only<T, U> = {[P in keyof T]: T[P]} & {[P in keyof U]?: never};
@@ -115,3 +114,10 @@ export const collectionRemoveItem = <T extends {id: string}>(collection: IDMappe
 export const idMappedObjectsFromArr = <T extends {id: string}>(items: T[], current?: IDMappedObjects<T>) => {
     return items.reduce((r, item) => ({...r, [item.id]: item}), {...current} as IDMappedObjects<T>);
 };
+
+export function ensureString(v: unknown): string {
+    if (!v || typeof v !== 'string') {
+        return '';
+    }
+    return v;
+}

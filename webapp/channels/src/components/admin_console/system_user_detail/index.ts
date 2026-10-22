@@ -9,19 +9,25 @@ import type {GlobalState} from '@mattermost/types/store';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getUserPreferences} from 'mattermost-redux/actions/preferences';
 import {addUserToTeam} from 'mattermost-redux/actions/teams';
-import {updateUserActive, updateUserAuth, getUser, patchUser, updateUserMfa, getCustomProfileAttributeValues, saveCustomProfileAttribute} from 'mattermost-redux/actions/users';
-import {getConfig, getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
+import {updateUserActive, updateUserAuth, getUser, patchUser, updateUserMfa, getCustomProfileAttributeValues, saveCustomProfileAttribute, uploadProfileImage, setDefaultProfileImage} from 'mattermost-redux/actions/users';
+import {Permissions} from 'mattermost-redux/constants';
+import {getConfig, getCustomProfileAttributes, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
+import {setNavigationBlocked} from 'actions/admin_actions';
 import {openModal} from 'actions/views/modals';
 import {getShowLockedManageUserSettings, getShowManageUserSettings} from 'selectors/admin_console';
+
+import {isEnterpriseLicense} from 'utils/license_utils';
 
 import SystemUserDetail from './system_user_detail';
 
 function mapStateToProps(state: GlobalState) {
+    const license = getLicense(state);
     const config = getConfig(state);
-    const customProfileAttributeFields = Object.values(getCustomProfileAttributes(state));
+    const customProfileAttributeEnabled = isEnterpriseLicense(license);
+    const customProfileAttributeFields = customProfileAttributeEnabled ? getCustomProfileAttributes(state) : [];
 
     const showManageUserSettings = getShowManageUserSettings(state);
     const showLockedManageUserSettings = getShowLockedManageUserSettings(state);
@@ -29,7 +35,11 @@ function mapStateToProps(state: GlobalState) {
     return {
         currentUserId: getCurrentUserId(state),
         mfaEnabled: config?.EnableMultifactorAuthentication === 'true' || false,
+        maxFileSize: parseInt(config?.MaxFileSize || '', 10),
+        ldapPictureAttributeSet: config?.LdapPictureAttributeSet === 'true',
+        customProfileAttributeEnabled,
         customProfileAttributeFields,
+        canEditAdminManaged: haveISystemPermission(state, {permission: Permissions.MANAGE_SYSTEM}),
         showManageUserSettings,
         showLockedManageUserSettings,
     };
@@ -48,6 +58,8 @@ const mapDispatchToProps = {
     getCustomProfileAttributeFields,
     getCustomProfileAttributeValues,
     saveCustomProfileAttribute,
+    uploadProfileImage,
+    setDefaultProfileImage,
 };
 const connector = connect(mapStateToProps, mapDispatchToProps);
 

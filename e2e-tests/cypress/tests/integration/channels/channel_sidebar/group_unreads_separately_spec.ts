@@ -10,11 +10,11 @@
 // Stage: @prod
 // Group: @channels @channel_sidebar
 
-import {getAdminAccount} from '../../../support/env';
+import {getAdminAccount} from '@/support/env';
 
 describe('Channel sidebar - group unreads separately', () => {
-    let testTeam;
-    let testChannel;
+    let testTeam: Cypress.Team;
+    let testChannel: Cypress.Channel;
 
     beforeEach(() => {
         cy.apiAdminLogin().then(() => {

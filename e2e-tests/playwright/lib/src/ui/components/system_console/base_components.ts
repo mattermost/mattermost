@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 /**
  * Radio Setting - represents a true/false radio button group
@@ -16,13 +17,13 @@ export class RadioSetting {
     readonly container: Locator;
     readonly trueOption: Locator;
     readonly falseOption: Locator;
-    readonly helpText: Locator;
+    readonly helpText: Locator | null;
 
-    constructor(container: Locator) {
+    constructor(container: Locator, settingId?: string) {
         this.container = container;
         this.trueOption = container.getByRole('radio', {name: 'True'});
         this.falseOption = container.getByRole('radio', {name: 'False'});
-        this.helpText = container.locator('.help-text');
+        this.helpText = settingId ? container.getByTestId(settingId + 'help-text') : null;
     }
 
     /**
@@ -68,13 +69,47 @@ export class TextInputSetting {
     readonly container: Locator;
     readonly label: Locator;
     readonly input: Locator;
-    readonly helpText: Locator;
+    readonly helpText: Locator | null;
 
-    constructor(container: Locator, labelText: string) {
+    constructor(container: Locator, labelText: string, settingId?: string) {
         this.container = container;
         this.label = container.getByText(labelText);
-        this.input = container.getByRole('textbox');
-        this.helpText = container.locator('.help-text');
+        this.input = container.getByRole('textbox').first();
+        this.helpText = settingId ? container.getByTestId(settingId + 'help-text') : null;
+    }
+
+    async fill(value: string) {
+        await this.input.fill(value);
+    }
+
+    async getValue(): Promise<string> {
+        return (await this.input.inputValue()) ?? '';
+    }
+
+    async clear() {
+        await this.input.clear();
+    }
+
+    async toBeVisible() {
+        await expect(this.container).toBeVisible();
+    }
+}
+
+/**
+ * Number Input Setting - represents a number input field
+ * Uses getByRole('spinbutton') since <input type="number"> has ARIA role spinbutton
+ */
+export class NumberInputSetting {
+    readonly container: Locator;
+    readonly label: Locator;
+    readonly input: Locator;
+    readonly helpText: Locator | null;
+
+    constructor(container: Locator, labelText: string, settingId?: string) {
+        this.container = container;
+        this.label = container.getByText(labelText);
+        this.input = container.getByRole('spinbutton');
+        this.helpText = settingId ? container.getByTestId(settingId + 'help-text') : null;
     }
 
     async fill(value: string) {
@@ -101,13 +136,14 @@ export class DropdownSetting {
     readonly container: Locator;
     readonly label: Locator;
     readonly dropdown: Locator;
-    readonly helpText: Locator;
+    readonly helpText: Locator | null;
 
-    constructor(container: Locator, labelText: string) {
+    constructor(container: Locator, labelText: string, settingId?: string) {
         this.container = container;
         this.label = container.getByText(labelText);
-        this.dropdown = container.getByRole('combobox');
-        this.helpText = container.locator('.help-text');
+        // Scope combobox to this form-group (unscoped matches e.g. sidebar search).
+        this.dropdown = container.getByRole('combobox').first();
+        this.helpText = settingId ? container.getByTestId(settingId + 'help-text') : null;
     }
 
     async select(option: string) {
@@ -135,8 +171,8 @@ export class AdminSectionPanel {
     constructor(container: Locator, titleText: string) {
         this.container = container;
         this.title = container.getByRole('heading', {name: titleText});
-        this.description = container.locator('.AdminSectionPanel__description');
-        this.body = container.locator('.AdminSectionPanel__body');
+        this.description = container.getByTestId('admin-section-panel-description');
+        this.body = container.getByTestId('admin-section-panel-body');
     }
 
     async toBeVisible() {

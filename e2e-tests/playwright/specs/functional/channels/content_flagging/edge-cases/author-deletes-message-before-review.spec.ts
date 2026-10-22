@@ -30,7 +30,7 @@ test.skip('should not be able to restore flagged messages when author deletes me
 
     const {post} = await createPost(adminClient, thirdUserClient, team, postFromThirdUser, message);
 
-    await reporterUserClient.flagPost(post.id, 'Inappropriate content', 'This message is inappropriate');
+    await reporterUserClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
 
     // delete the post as the author
     await thirdUserClient.deletePost(post.id);

@@ -6,6 +6,8 @@ import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {Channel} from '@mattermost/types/channels';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
@@ -17,6 +19,7 @@ import {
     isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
 import BurnOnReadConfirmationModal from 'components/burn_on_read_confirmation_modal';
+import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
 import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
 import EditPost from 'components/edit_post';
 import FileAttachmentListContainer from 'components/file_attachment_list';
@@ -36,17 +39,19 @@ import PostMessageContainer from 'components/post_view/post_message_view';
 import PostPreHeader from 'components/post_view/post_pre_header';
 import PostTime from 'components/post_view/post_time';
 import ReactionList from 'components/post_view/reaction_list';
+import RedactedFilesPlaceholder from 'components/post_view/redacted_files_placeholder';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
+import Pluggable from 'plugins/pluggable';
 import {getHistory} from 'utils/browser_history';
 import {getArchiveIconComponent} from 'utils/channel_utils';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+import {isChannelPopoutWindow, isPopoutWindow} from 'utils/popouts/popout_windows';
 import * as PostUtils from 'utils/post_utils';
 import {makeIsEligibleForClick} from 'utils/utils';
 
@@ -74,7 +79,6 @@ export type Props = {
     isReadOnly?: boolean;
     pluginPostTypes?: {[postType: string]: PostPluginComponent};
     channelIsArchived?: boolean;
-    channelIsShared?: boolean;
     isConsecutivePost?: boolean;
     isLastPost?: boolean;
     recentEmojis: Emoji[];
@@ -109,6 +113,7 @@ export type Props = {
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
+        highlightPostInChannelPopout: (postId: string) => void;
     };
     timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
@@ -134,9 +139,41 @@ export type Props = {
     burnOnReadDurationMinutes: number;
     burnOnReadSkipConfirmation?: boolean;
     preventClickInteraction?: boolean;
+    permissionPoliciesEnabled: boolean;
+    channel?: Channel;
 };
 
 const preventInteractionStyle: React.CSSProperties = {pointerEvents: 'none'};
+
+type ArchivedChannelIconProps = {channel?: Channel; channelType?: string};
+const ArchivedChannelIcon = ({channel, channelType}: ArchivedChannelIconProps) => {
+    const {formatMessage} = useIntl();
+    const overrideName = useChannelIconOverrideName(channel);
+    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+    const IconComponent = OverrideIcon ?? getArchiveIconComponent(channelType);
+
+    if (OverrideIcon) {
+        return (
+            <span className='search-channel__archived'>
+                <IconComponent className='svg-text-color'/>
+            </span>
+        );
+    }
+
+    return (
+        <WithTooltip
+            id='channelArchivedTooltip'
+            title={formatMessage({
+                id: 'search_item.channelArchived',
+                defaultMessage: 'Archived',
+            })}
+        >
+            <span className='search-channel__archived'>
+                <IconComponent className='icon icon__archive channel-header-archived-icon svg-text-color'/>
+            </span>
+        </WithTooltip>
+    );
+};
 
 function PostComponent(props: Props) {
     const {post, shouldHighlight, togglePostMenu} = props;
@@ -361,7 +398,7 @@ function PostComponent(props: Props) {
 
     // When adding clickable targets within a root post to exclude from post's on click to open thread,
     // please add to/maintain the selector below
-    const isEligibleForClick = useMemo(() => makeIsEligibleForClick('.post-image__column, .embed-responsive-item, .attachment, .hljs, code'), []);
+    const isEligibleForClick = useMemo(() => makeIsEligibleForClick('.post-image__column, .embed-responsive-item, .attachment, .hljs, code, .suggestion-list, .select-suggestion-container, .post-attachment-dropdown, .mm-blocks-select'), []);
 
     const handlePostClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
         if (!post || props.channelIsArchived) {
@@ -406,27 +443,39 @@ function PostComponent(props: Props) {
         }
 
         props.actions.setRhsExpanded(false);
+
+        if (isChannelPopoutWindow() && props.isPinnedPosts) {
+            props.actions.highlightPostInChannelPopout(post.id);
+            return;
+        }
+
         getHistory().push(`/${props.teamName}/pl/${post.id}`);
-    }, [props.isMobileView, props.actions, props.teamName, post?.id]);
+    }, [props.isMobileView, props.actions, props.teamName, props.isPinnedPosts, post]);
 
     const {selectPostFromRightHandSideSearch} = props.actions;
 
+    const isSearchPopoutWindow = useMemo(() => isPopoutWindow() && isSearchResultItem, [isSearchResultItem]);
     const handleCommentClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
         if (!post) {
             return;
         }
+        if (isSearchPopoutWindow) {
+            const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+            getHistory().replace(`/_popout/thread/${props.teamName}/${post.root_id || post.id}?returnTo=${returnTo}`);
+            return;
+        }
         selectPostFromRightHandSideSearch(post);
-    }, [post, selectPostFromRightHandSideSearch]);
+    }, [post, props.teamName, selectPostFromRightHandSideSearch, isSearchPopoutWindow]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
-        if (props.currentTeam?.id === teamId) {
+        if (isSearchPopoutWindow || props.currentTeam?.id === teamId) {
             handleCommentClick(e);
         } else {
             handleJumpClick(e);
         }
-    }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
+    }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId, isSearchPopoutWindow]);
 
     const translation = PostUtils.getPostTranslation(post, locale);
 
@@ -535,6 +584,17 @@ function PostComponent(props: Props) {
     let profilePic;
     const hideProfilePicture = hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post);
     const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
+    const showTimestamp =
+        (!hideProfilePicture && props.location === Locations.CENTER) ||
+        hover ||
+        props.location !== Locations.CENTER;
+
+    // For a consecutive non-compact post the host renders the timestamp in narrow
+    // style, which CSS reflows out of `badges-wrapper` onto the post body's left
+    // margin. In that case a registered post-header component would be visually
+    // orphaned, so suppress it — it stays paired with the timestamp anchor in
+    // `badges-wrapper`.
+    const showPostHeaderBadge = showTimestamp && (!props.isConsecutivePost || props.compactDisplay);
     if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
             <PostProfilePicture
@@ -708,6 +768,7 @@ function PostComponent(props: Props) {
 
     // Don't show file attachments for concealed burn-on-read posts (attachments only fetched after reveal)
     const showFileAttachments = post.file_ids && post.file_ids.length > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder;
+    const redactedFileCount = post.metadata?.redacted_file_count ?? 0;
 
     return (
         <>
@@ -737,20 +798,10 @@ function PostComponent(props: Props) {
                         </span>
                         }
                         {props.channelIsArchived &&
-                        <WithTooltip
-                            id='channelArchivedTooltip'
-                            title={formatMessage({
-                                id: 'search_item.channelArchived',
-                                defaultMessage: 'Archived',
-                            })}
-                        >
-                            <span className='search-channel__archived'>
-                                {(() => {
-                                    const ArchiveIcon = getArchiveIconComponent(props.channelType);
-                                    return <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>;
-                                })()}
-                            </span>
-                        </WithTooltip>
+                        <ArchivedChannelIcon
+                            channel={props.channel}
+                            channelType={props.channelType}
+                        />
                         }
                         {(Boolean(isSearchResultItem) || props.isFlaggedPosts) && Boolean(props.teamDisplayName) &&
                         <span className='search-team__name'>
@@ -785,7 +836,7 @@ function PostComponent(props: Props) {
                                 isSystemMessage={isSystemMessage}
                             />
                             <div className='badges-wrapper col d-flex align-items-center'>
-                                {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) &&
+                                {showTimestamp &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
                                         teamName={props.team?.name}
@@ -795,11 +846,17 @@ function PostComponent(props: Props) {
                                         timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
                                     />
                                 }
+                                {showPostHeaderBadge && (
+                                    <Pluggable
+                                        pluggableName='PostHeader'
+                                        post={post}
+                                    />
+                                )}
                                 {priority}
                                 {burnOnReadBadge}
                                 {burnOnReadTimerChip}
-                                {((!props.compactDisplay && !(hasSameRoot(props) && props.isConsecutivePost)) || (props.compactDisplay && isRHS)) &&
-                                    PostUtils.hasAiGeneratedMetadata(post) && (
+                                {PostUtils.hasAiGeneratedMetadata(post) &&
+                                    ((!props.compactDisplay) || (props.compactDisplay && isRHS)) && (
                                     <AiGeneratedIndicator
                                         userId={post.props.ai_generated_by as string}
                                         username={post.props.ai_generated_by_username as string}
@@ -855,6 +912,7 @@ function PostComponent(props: Props) {
                         <div
                             className={postClass}
                             id={isRHS ? undefined : `${post.id}_message`}
+                            data-testid='post-body'
                         >
                             {post.failed && <FailedPostOptions post={post}/>}
                             <AutoHeightSwitcher
@@ -872,6 +930,12 @@ function PostComponent(props: Props) {
                                     handleFileDropdownOpened={handleFileDropdownOpened}
                                 />
                             }
+                            {props.permissionPoliciesEnabled && redactedFileCount > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder && post.state !== Posts.POST_DELETED && (
+                                <RedactedFilesPlaceholder
+                                    count={redactedFileCount}
+                                    compactDisplay={props.compactDisplay}
+                                />
+                            )}
                             <div className='post__body-reactions-acks'>
                                 {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
                                     <PostAcknowledgements

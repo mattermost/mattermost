@@ -45,6 +45,7 @@ const (
 	STATUS                          = "status"
 	StatusOk                        = "OK"
 	StatusFail                      = "FAIL"
+	StatusDisabled                  = "disabled"
 	StatusUnhealthy                 = "UNHEALTHY"
 	StatusRemove                    = "REMOVE"
 	ConnectionId                    = "Connection-Id"
@@ -268,10 +269,6 @@ func (c *Client4) teamStatsRoute(teamId string) clientRoute {
 	return c.teamRoute(teamId).Join("stats")
 }
 
-func (c *Client4) teamImportRoute(teamId string) clientRoute {
-	return c.teamRoute(teamId).Join("import")
-}
-
 func (c *Client4) channelsRoute() clientRoute {
 	return newClientRoute("channels")
 }
@@ -310,6 +307,14 @@ func (c *Client4) postsRoute() clientRoute {
 
 func (c *Client4) contentFlaggingRoute() clientRoute {
 	return newClientRoute("content_flagging")
+}
+
+func (c *Client4) deliveryTrackingRoute() clientRoute {
+	return newClientRoute("delivery_tracking")
+}
+
+func (c *Client4) healthFindingsRoute() clientRoute {
+	return newClientRoute("health").Join("findings")
 }
 
 func (c *Client4) postsEphemeralRoute() clientRoute {
@@ -356,6 +361,10 @@ func (c *Client4) systemRoute() clientRoute {
 	return newClientRoute("system")
 }
 
+func (c *Client4) aiBridgeTestHelperRoute() clientRoute {
+	return c.systemRoute().Join("e2e", "ai_bridge")
+}
+
 func (c *Client4) cloudRoute() clientRoute {
 	return newClientRoute("cloud")
 }
@@ -378,6 +387,10 @@ func (c *Client4) testSiteURLRoute() clientRoute {
 
 func (c *Client4) testS3Route() clientRoute {
 	return newClientRoute("file").Join("s3_test")
+}
+
+func (c *Client4) testFileStoreRoute() clientRoute {
+	return newClientRoute("file").Join("test")
 }
 
 func (c *Client4) databaseRoute() clientRoute {
@@ -641,6 +654,18 @@ func (c *Client4) bookmarkRoute(channelId, bookmarkId string) clientRoute {
 	return c.bookmarksRoute(channelId).Join(bookmarkId)
 }
 
+func (c *Client4) boardsRoute() clientRoute {
+	return newClientRoute("boards")
+}
+
+func (c *Client4) viewsRoute(channelId string) clientRoute {
+	return c.channelRoute(channelId).Join("views")
+}
+
+func (c *Client4) viewRoute(channelId, viewId string) clientRoute {
+	return c.viewsRoute(channelId).Join(viewId)
+}
+
 func (c *Client4) clientPerfMetricsRoute() clientRoute {
 	return newClientRoute("client_perf")
 }
@@ -661,6 +686,30 @@ func (c *Client4) customProfileAttributeValuesRoute() clientRoute {
 	return c.customProfileAttributesRoute().Join("values")
 }
 
+func (c *Client4) propertyFieldsRoute(groupName, objectType string) clientRoute {
+	return newClientRoute("properties").Join("groups", groupName, objectType, "fields")
+}
+
+func (c *Client4) propertyFieldRoute(groupName, objectType, fieldID string) clientRoute {
+	return c.propertyFieldsRoute(groupName, objectType).Join(fieldID)
+}
+
+func (c *Client4) propertyFieldOptionsRoute(groupName, objectType, fieldID string) clientRoute {
+	return c.propertyFieldRoute(groupName, objectType, fieldID).Join("options")
+}
+
+func (c *Client4) propertyFieldsSearchRoute(groupName string) clientRoute {
+	return newClientRoute("properties").Join("groups", groupName, "fields", "search")
+}
+
+func (c *Client4) propertyValuesRoute(groupName, objectType, targetID string) clientRoute {
+	return newClientRoute("properties").Join("groups", groupName, objectType, "values", targetID)
+}
+
+func (c *Client4) propertySystemValuesRoute(groupName string) clientRoute {
+	return newClientRoute("properties").Join("groups", groupName, PropertyFieldObjectTypeSystem, "values")
+}
+
 func (c *Client4) accessControlPoliciesRoute() clientRoute {
 	return newClientRoute("access_control_policies")
 }
@@ -671,6 +720,10 @@ func (c *Client4) celRoute() clientRoute {
 
 func (c *Client4) accessControlPolicyRoute(policyID string) clientRoute {
 	return c.accessControlPoliciesRoute().Join(url.PathEscape(policyID))
+}
+
+func (c *Client4) accessControlDecisionsRoute() clientRoute {
+	return newClientRoute("access_control").Join("decisions")
 }
 
 func (c *Client4) logsRoute() clientRoute {
@@ -1153,6 +1206,18 @@ func (c *Client4) GetUserByEmail(ctx context.Context, email, etag string) (*User
 	return DecodeJSONFromResponse[*User](r)
 }
 
+// GetUserByAuthData returns a user by auth_data (external AuthData).
+func (c *Client4) GetUserByAuthData(ctx context.Context, authData, etag string) (*User, *Response, error) {
+	values := url.Values{}
+	values.Set("value", authData)
+	r, err := c.doAPIGetWithQuery(ctx, c.usersRoute().Join("auth_data"), values, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*User](r)
+}
+
 // AutocompleteUsersInTeam returns the users on a team based on search term.
 func (c *Client4) AutocompleteUsersInTeam(ctx context.Context, teamId string, username string, limit int, etag string) (*UserAutocomplete, *Response, error) {
 	values := url.Values{}
@@ -1361,14 +1426,16 @@ func (c *Client4) GetUsersNotInChannel(ctx context.Context, teamId, channelId st
 // GetUsersNotInChannelWithOptionsStruct returns a page of users not in a channel using the options struct.
 func (c *Client4) GetUsersNotInChannelWithOptions(ctx context.Context, channelId string, options *GetUsersNotInChannelOptions) ([]*User, *Response, error) {
 	values := url.Values{}
+	var etag string
 	if options != nil {
 		values.Set("in_team", options.TeamID)
 		values.Set("not_in_channel", channelId)
 		values.Set("page", strconv.Itoa(options.Page))
 		values.Set("per_page", strconv.Itoa(options.Limit))
 		values.Set("cursor_id", options.CursorID)
+		etag = options.Etag
 	}
-	r, err := c.doAPIGetWithQuery(ctx, c.usersRoute(), values, options.Etag)
+	r, err := c.doAPIGetWithQuery(ctx, c.usersRoute(), values, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1727,6 +1794,20 @@ func (c *Client4) RevokeSessionsFromAllUsers(ctx context.Context) (*Response, er
 	return BuildResponse(r), nil
 }
 
+// GetSessionAttributesManifest returns the enabled session attribute schema for the caller's platform inferred from User-Agent.
+func (c *Client4) GetSessionAttributesManifest(ctx context.Context) ([]*SessionAttributeManifestEntry, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.usersRoute().Join("sessions", "attributes", "manifest"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	manifest, _, err := DecodeJSONFromResponse[[]*SessionAttributeManifestEntry](r)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	return manifest, BuildResponse(r), nil
+}
+
 // AttachDeviceProps attaches a mobile device ID to the current session and other props.
 func (c *Client4) AttachDeviceProps(ctx context.Context, newProps map[string]string) (*Response, error) {
 	r, err := c.doAPIPutJSON(ctx, c.usersRoute().Join("sessions", "device"), newProps)
@@ -1842,8 +1923,12 @@ func (c *Client4) SetProfileImage(ctx context.Context, userId string, data []byt
 // of a session token to access the REST API. Must have the 'create_user_access_token'
 // permission and if generating for another user, must have the 'edit_other_users'
 // permission. A non-blank description is required.
-func (c *Client4) CreateUserAccessToken(ctx context.Context, userId, description string) (*UserAccessToken, *Response, error) {
-	requestBody := map[string]string{"description": description}
+//
+// expiresAt is the Unix-millis expiry for the token; 0 means the token does not
+// expire, subject to server policy (ServiceSettings.MaximumPersonalAccessTokenLifetimeDays:
+// a value > 0 requires tokens to expire within that many days and rejects 0).
+func (c *Client4) CreateUserAccessToken(ctx context.Context, userId, description string, expiresAt int64) (*UserAccessToken, *Response, error) {
+	requestBody := &UserAccessToken{Description: description, ExpiresAt: expiresAt}
 	r, err := c.doAPIPostJSON(ctx, c.userRoute(userId).Join("tokens"), requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -1865,6 +1950,31 @@ func (c *Client4) GetUserAccessTokens(ctx context.Context, page int, perPage int
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[[]*UserAccessToken](r)
+}
+
+// GetNonCompliantUserAccessTokenCount returns the number of active personal
+// access tokens that violate the configured maximum lifetime policy. It lets an
+// admin preview the blast radius before revoking. Must have the 'manage_system'
+// permission.
+func (c *Client4) GetNonCompliantUserAccessTokenCount(ctx context.Context) (*NonCompliantUserAccessTokenResult, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.userAccessTokensRoute().Join("non_compliant", "count"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*NonCompliantUserAccessTokenResult](r)
+}
+
+// RevokeNonCompliantUserAccessTokens revokes (hard-deletes) every active personal
+// access token that violates the configured maximum lifetime policy and returns
+// the number of tokens revoked. Must have the 'manage_system' permission.
+func (c *Client4) RevokeNonCompliantUserAccessTokens(ctx context.Context) (*NonCompliantUserAccessTokenResult, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("tokens", "non_compliant", "revoke"), nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*NonCompliantUserAccessTokenResult](r)
 }
 
 // GetUserAccessToken will get a user access tokens' id, description, is_active
@@ -1907,6 +2017,24 @@ func (c *Client4) RevokeUserAccessToken(ctx context.Context, tokenId string) (*R
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// RotateUserAccessToken generates a new secret for the token identified by tokenId,
+// sets a new expiry, and immediately invalidates the old secret and its sessions.
+// The returned token carries the new secret (shown once, like CreateUserAccessToken).
+// Must have the 'create_user_access_token' permission and if rotating for another
+// user, must have the 'edit_other_users' permission.
+func (c *Client4) RotateUserAccessToken(ctx context.Context, tokenId string, expiresAt int64) (*UserAccessToken, *Response, error) {
+	requestBody := struct {
+		TokenId   string `json:"token_id"`
+		ExpiresAt int64  `json:"expires_at"`
+	}{TokenId: tokenId, ExpiresAt: expiresAt}
+	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("tokens", "rotate"), requestBody)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*UserAccessToken](r)
 }
 
 // SearchUserAccessTokens returns user access tokens matching the provided search term.
@@ -1982,6 +2110,12 @@ func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportO
 	}
 	if options.DateRange != "" {
 		values.Set("date_range", options.DateRange)
+	}
+	if options.GuestFilter != "" {
+		values.Set("guest_filter", options.GuestFilter)
+	}
+	if options.SearchTerm != "" {
+		values.Set("search_term", options.SearchTerm)
 	}
 
 	r, err := c.doAPIGetWithQuery(ctx, c.reportsRoute().Join("users"), values, "")
@@ -2212,10 +2346,10 @@ func (c *Client4) SearchTeams(ctx context.Context, search *TeamSearch) ([]*Team,
 // SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
 func (c *Client4) SearchTeamsPaged(ctx context.Context, search *TeamSearch) ([]*Team, int64, *Response, error) {
 	if search.Page == nil {
-		search.Page = NewPointer(0)
+		search.Page = new(0)
 	}
 	if search.PerPage == nil {
-		search.PerPage = NewPointer(100)
+		search.PerPage = new(100)
 	}
 	r, err := c.doAPIPostJSON(ctx, c.teamsRoute().Join("search"), search)
 	if err != nil {
@@ -2507,50 +2641,6 @@ func (c *Client4) GetTeamUnread(ctx context.Context, teamId, userId string) (*Te
 	return DecodeJSONFromResponse[*TeamUnread](r)
 }
 
-// ImportTeam will import an exported team from other app into a existing team.
-func (c *Client4) ImportTeam(ctx context.Context, data []byte, filesize int, importFrom, filename, teamId string) (map[string]string, *Response, error) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	part, err := writer.CreateFormFile("file", filename)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
-		return nil, nil, err
-	}
-
-	part, err = writer.CreateFormField("filesize")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err = io.Copy(part, strings.NewReader(strconv.Itoa(filesize))); err != nil {
-		return nil, nil, err
-	}
-
-	part, err = writer.CreateFormField("importFrom")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err = io.Copy(part, strings.NewReader(importFrom)); err != nil {
-		return nil, nil, err
-	}
-
-	if err = writer.Close(); err != nil {
-		return nil, nil, err
-	}
-
-	r, err := c.doAPIRequestReaderRoute(ctx, http.MethodPost, c.teamImportRoute(teamId), writer.FormDataContentType(), body, nil)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[map[string]string](r)
-}
-
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeam(ctx context.Context, teamId string, userEmails []string) (*Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.teamRoute(teamId).Join("invite", "email"), userEmails)
@@ -2595,6 +2685,19 @@ func (c *Client4) InviteUsersToTeamAndChannelsGracefully(ctx context.Context, te
 		ChannelIds: channelIds,
 		Message:    message,
 	}
+	values := url.Values{}
+	values.Set("graceful", c.boolString(true))
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.teamRoute(teamId).Join("invite", "email"), values, memberInvite)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*EmailInviteWithError](r)
+}
+
+// InviteMembersToTeamGracefully invite users by email to the team, optionally carrying
+// per-email profile fields to pre-set on the accounts created from the invitations.
+func (c *Client4) InviteMembersToTeamGracefully(ctx context.Context, teamId string, memberInvite *MemberInvite) ([]*EmailInviteWithError, *Response, error) {
 	values := url.Values{}
 	values.Set("graceful", c.boolString(true))
 	r, err := c.doAPIPostJSONWithQuery(ctx, c.teamRoute(teamId).Join("invite", "email"), values, memberInvite)
@@ -2742,6 +2845,30 @@ func (c *Client4) GetAllChannelsWithCount(ctx context.Context, page int, perPage
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.channelsRoute(), channel)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Channel](r)
+}
+
+// CreateChannelWithPropertyValues creates a channel and its attribute values in
+// one request, which is what lets the server refuse a channel that would not
+// satisfy its own required attributes.
+func (c *Client4) CreateChannelWithPropertyValues(ctx context.Context, req *ChannelCreateRequest) (*Channel, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.channelsRoute(), req)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Channel](r)
+}
+
+// CreateBoard creates a board channel. The channel.Type must be ChannelTypeOpenBoard
+// or ChannelTypePrivateBoard. Requires the IntegratedBoards feature flag to be enabled
+// on the server; otherwise the route is not registered and returns 404.
+func (c *Client4) CreateBoard(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.boardsRoute(), channel)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2977,6 +3104,20 @@ func (c *Client4) SearchChannels(ctx context.Context, teamId string, search *Cha
 // SearchAllChannels search in all the channels. Must be a system administrator.
 func (c *Client4) SearchAllChannels(ctx context.Context, search *ChannelSearch) (ChannelListWithTeamData, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.channelsRoute().Join("search"), search)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[ChannelListWithTeamData](r)
+}
+
+// SearchAllChannelsForUserWithOpts searches channels for a regular user with additional filter options.
+// Sends system_console=false so the server applies user-visibility scoping (membership-gated for private channels).
+func (c *Client4) SearchAllChannelsForUserWithOpts(ctx context.Context, search *ChannelSearch) (ChannelListWithTeamData, *Response, error) {
+	values := url.Values{}
+	values.Set("system_console", "false")
+
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.channelsRoute().Join("search"), values, search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3220,6 +3361,25 @@ func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, chann
 	return DecodeJSONFromResponse[*ChannelViewResponse](r)
 }
 
+// ReadAllMessages performs a view action on all direct and group messages for a user
+func (c *Client4) ReadAllMessages(ctx context.Context, userId string) (*ChannelViewResponse, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.channelsRoute().Join("members", userId, "direct", "read"), nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelViewResponse](r)
+}
+
+func (c *Client4) ReadAllInTeam(ctx context.Context, userId string, teamId string) (*ChannelViewResponse, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.userRoute(userId).Join("teams", teamId, "read"), nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelViewResponse](r)
+}
+
 // GetChannelUnread will return a ChannelUnread object that contains the number of
 // unread messages and mentions for a user.
 func (c *Client4) GetChannelUnread(ctx context.Context, channelId, userId string) (*ChannelUnread, *Response, error) {
@@ -3293,6 +3453,49 @@ func (c *Client4) AddChannelMembers(ctx context.Context, channelId, postRootId s
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[[]*ChannelMember](r)
+}
+
+// SetChannelMembers performs a bulk set (replace) of channel memberships. It accepts the complete
+// desired membership list and reconciles it against the current state. Results are streamed back
+// as NDJSON, one line per batch. The batchSize and batchDelayMs parameters control the processing
+// rate; pass 0 to use server defaults.
+func (c *Client4) SetChannelMembers(ctx context.Context, channelId string, req *SetChannelMembersRequest, batchSize, batchDelayMs int) ([]*SetChannelMembersResponse, *Response, error) {
+	route := c.channelMembersRoute(channelId)
+	routePath, err := route.String()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if batchSize > 0 || batchDelayMs > 0 {
+		params := url.Values{}
+		if batchSize > 0 {
+			params.Set("batch_size", strconv.Itoa(batchSize))
+		}
+		if batchDelayMs > 0 {
+			params.Set("batch_delay_ms", strconv.Itoa(batchDelayMs))
+		}
+		routePath = fmt.Sprintf("%s?%s", routePath, params.Encode())
+	}
+
+	r, err := c.DoAPIPutJSON(ctx, routePath, req)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var results []*SetChannelMembersResponse
+	dec := json.NewDecoder(r.Body)
+	for {
+		var result SetChannelMembersResponse
+		if err := dec.Decode(&result); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return results, BuildResponse(r), err
+		}
+		results = append(results, &result)
+	}
+	return results, BuildResponse(r), nil
 }
 
 // AddChannelMemberWithRootId adds user to channel and return a channel member. Post add to channel message has the postRootId.
@@ -3447,6 +3650,23 @@ func (c *Client4) GetPostIncludeDeleted(ctx context.Context, postId string, etag
 	return DecodeJSONFromResponse[*Post](r)
 }
 
+// GetPostWithOptions gets a single post, applying every option the endpoint supports.
+func (c *Client4) GetPostWithOptions(ctx context.Context, postId string, etag string, opts GetPostOptions) (*Post, *Response, error) {
+	values := url.Values{}
+	if opts.IncludeDeleted {
+		values.Set("include_deleted", c.boolString(true))
+	}
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.postRoute(postId), values, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
+
 // DeletePost deletes a post from the provided post id string.
 func (c *Client4) DeletePost(ctx context.Context, postId string) (*Response, error) {
 	r, err := c.doAPIDelete(ctx, c.postRoute(postId))
@@ -3511,7 +3731,38 @@ func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag
 	if opts.Direction != "" {
 		values.Set("direction", opts.Direction)
 	}
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
+	}
 	r, err := c.doAPIGetWithQuery(ctx, c.postRoute(postID).Join("thread"), values, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PostList](r)
+}
+
+// GetPostsForChannelWithOpts gets a page of posts for a channel, applying every option the endpoint supports.
+func (c *Client4) GetPostsForChannelWithOpts(ctx context.Context, channelId, etag string, opts GetPostsOptions) (*PostList, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(opts.Page))
+	values.Set("per_page", strconv.Itoa(opts.PerPage))
+	if opts.CollapsedThreads {
+		values.Set("collapsedThreads", "true")
+	}
+	if opts.SkipFetchThreads {
+		values.Set("skipFetchThreads", "true")
+	}
+	if opts.CollapsedThreadsExtended {
+		values.Set("collapsedThreadsExtended", "true")
+	}
+	if opts.IncludeDeleted {
+		values.Set("include_deleted", "true")
+	}
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.channelRoute(channelId).Join("posts"), values, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3795,6 +4046,24 @@ func (c *Client4) GetContentFlaggingSettings(ctx context.Context) (*ContentFlagg
 	return DecodeJSONFromResponse[*ContentFlaggingSettingsRequest](r)
 }
 
+func (c *Client4) GetDeliveryTrackingConfig(ctx context.Context) (*DeliveryTrackingConfig, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.deliveryTrackingRoute().Join("config"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*DeliveryTrackingConfig](r)
+}
+
+func (c *Client4) UpdateDeliveryTrackingConfig(ctx context.Context, config *DeliveryTrackingConfig) (*Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.deliveryTrackingRoute().Join("config"), config)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) AssignContentFlaggingReviewer(ctx context.Context, postId, reviewerId string) (*Response, error) {
 	r, err := c.doAPIPost(ctx, c.contentFlaggingRoute().Join("post", postId, "assign", reviewerId), "")
 	if err != nil {
@@ -3834,6 +4103,26 @@ func (c *Client4) KeepFlaggedPost(ctx context.Context, postId string, actionRequ
 
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// GenerateFlaggedPostReport generates and downloads a ZIP archive containing the
+// flagged post report for the given post.
+func (c *Client4) GenerateFlaggedPostReport(ctx context.Context, postId string, actionRequest *FlagContentActionRequest) ([]byte, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.contentFlaggingRoute().Join("post", postId, "report"), actionRequest)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return ReadBytesFromResponse(r)
+}
+
+func (c *Client4) GeneratePostExposureReport(ctx context.Context, postId string) ([]byte, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.contentFlaggingRoute().Join("post", postId, "exposure_report"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return ReadBytesFromResponse(r)
 }
 
 // SearchFiles returns any posts with matching terms string.
@@ -3923,9 +4212,9 @@ func (c *Client4) DoPostAction(ctx context.Context, postId, actionId string) (*R
 }
 
 // DoPostActionWithCookie performs a post action with extra arguments
-func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, selected, cookieStr string) (*Response, error) {
+func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, selected, cookieStr string, query map[string]string, integrationFormat string) (*Response, error) {
 	route := c.postRoute(postId).Join("actions", actionId)
-	if selected == "" && cookieStr == "" {
+	if selected == "" && cookieStr == "" && len(query) == 0 && integrationFormat == "" {
 		r, err := c.doAPIPost(ctx, route, "")
 		if err != nil {
 			return BuildResponse(r), err
@@ -3935,8 +4224,10 @@ func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, 
 	}
 
 	req := DoPostActionRequest{
-		SelectedOption: selected,
-		Cookie:         cookieStr,
+		SelectedOption:    selected,
+		Cookie:            cookieStr,
+		Query:             query,
+		IntegrationFormat: integrationFormat,
 	}
 	r, err := c.doAPIPostJSON(ctx, route, req)
 	if err != nil {
@@ -4255,8 +4546,24 @@ func (c *Client4) TestSiteURL(ctx context.Context, siteURL string) (*Response, e
 }
 
 // TestS3Connection will attempt to connect to the AWS S3.
+//
+// Deprecated: use TestFileStoreConnection instead. The underlying endpoint
+// is kept for backwards compatibility but now routes through the same
+// backend-agnostic handler as TestFileStoreConnection.
 func (c *Client4) TestS3Connection(ctx context.Context, config *Config) (*Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.testS3Route(), config)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// TestFileStoreConnection attempts to connect to the configured file storage
+// backend (Amazon S3, Azure Blob Storage, or local), based on the FileSettings
+// in the supplied config.
+func (c *Client4) TestFileStoreConnection(ctx context.Context, config *Config) (*Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.testFileStoreRoute(), config)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4407,6 +4714,33 @@ func (c *Client4) UploadLicenseFile(ctx context.Context, data []byte) (*Response
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// PreviewLicenseFile will validate and parse a license file without saving it.
+// This allows users to preview the license details before applying it.
+func (c *Client4) PreviewLicenseFile(ctx context.Context, data []byte) (*License, *Response, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("license", "test-license.mattermost-license")
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create form file for license preview: %w", err)
+	}
+
+	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, nil, fmt.Errorf("failed to copy license data to form file: %w", err)
+	}
+
+	if err = writer.Close(); err != nil {
+		return nil, nil, fmt.Errorf("failed to close multipart writer for license preview: %w", err)
+	}
+
+	r, err := c.doAPIRequestReaderRoute(ctx, http.MethodPost, c.licenseRoute().Join("preview"), writer.FormDataContentType(), body, nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*License](r)
 }
 
 // RemoveLicenseFile will remove the server license it exists. Note that this will
@@ -5231,6 +5565,20 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[[]string](r)
+}
+
+// QueryLogs returns a page of logs, filtered by the given LogFilter, keyed by node id.
+func (c *Client4) QueryLogs(ctx context.Context, page, perPage int, filter *LogFilter) (map[string][]json.RawMessage, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("logs_per_page", strconv.Itoa(perPage))
+
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.logsRoute().Join("query"), values, filter)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[map[string][]json.RawMessage](r)
 }
 
 // Download logs as mattermost.log file
@@ -6079,16 +6427,6 @@ func (c *Client4) DeleteReaction(ctx context.Context, reaction *Reaction) (*Resp
 	return BuildResponse(r), nil
 }
 
-// FetchBulkReactions returns a map of postIds and corresponding reactions
-func (c *Client4) GetBulkReactions(ctx context.Context, postIds []string) (map[string][]*Reaction, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.postsRoute().Join("ids", "reactions"), postIds)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[map[string][]*Reaction](r)
-}
-
 // Timezone Section
 
 // GetSupportedTimezone returns a page of supported timezones on the system.
@@ -6130,9 +6468,16 @@ func (c *Client4) GetJobs(ctx context.Context, jobType string, status string, pa
 
 // GetJobsByType gets all jobs of a given type, sorted with the job that was created most recently first.
 func (c *Client4) GetJobsByType(ctx context.Context, jobType string, page int, perPage int) ([]*Job, *Response, error) {
+	return c.GetJobsByTypeForTeam(ctx, jobType, page, perPage, "")
+}
+
+func (c *Client4) GetJobsByTypeForTeam(ctx context.Context, jobType string, page int, perPage int, teamID string) ([]*Job, *Response, error) {
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
+	if teamID != "" {
+		values.Set("team_id", teamID)
+	}
 	r, err := c.doAPIGetWithQuery(ctx, c.jobsRoute().Join("type", jobType), values, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -7551,6 +7896,33 @@ func (c *Client4) GetAppliedSchemaMigrations(ctx context.Context) ([]AppliedMigr
 	return DecodeJSONFromResponse[[]AppliedMigration](r)
 }
 
+func (c *Client4) SetAIBridgeTestHelper(ctx context.Context, config *AIBridgeTestHelperConfig) (*AIBridgeTestHelperState, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.aiBridgeTestHelperRoute(), config)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*AIBridgeTestHelperState](r)
+}
+
+func (c *Client4) GetAIBridgeTestHelper(ctx context.Context) (*AIBridgeTestHelperState, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.aiBridgeTestHelperRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*AIBridgeTestHelperState](r)
+}
+
+func (c *Client4) DeleteAIBridgeTestHelper(ctx context.Context) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.aiBridgeTestHelperRoute())
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // Usage Section
 
 // GetPostsUsage returns rounded off total usage of posts for the instance
@@ -7681,6 +8053,112 @@ func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId 
 	return DecodeJSONFromResponse[[]*ChannelBookmarkWithFileInfo](r)
 }
 
+// CreateView creates a view for a channel.
+func (c *Client4) CreateView(ctx context.Context, channelId string, view *View) (*View, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.viewsRoute(channelId), view)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*View](r)
+}
+
+// GetView gets a single view by ID.
+func (c *Client4) GetView(ctx context.Context, channelId, viewId string) (*View, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.viewRoute(channelId, viewId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*View](r)
+}
+
+// GetViewsForChannel lists views for a channel with page-based pagination.
+func (c *Client4) GetViewsForChannel(ctx context.Context, channelId string, opts ...ViewQueryOpts) ([]*View, *Response, error) {
+	r, err := c.doAPIGetWithQuery(ctx, c.viewsRoute(channelId), c.viewQueryValues(opts...), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*View](r)
+}
+
+// GetViewsForChannelWithCount lists views for a channel with page-based pagination and total count.
+func (c *Client4) GetViewsForChannelWithCount(ctx context.Context, channelId string, opts ...ViewQueryOpts) ([]*View, int64, *Response, error) {
+	query := c.viewQueryValues(opts...)
+	query.Set("include_total_count", c.boolString(true))
+
+	r, err := c.doAPIGetWithQuery(ctx, c.viewsRoute(channelId), query, "")
+	if err != nil {
+		return nil, 0, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	vwc, resp, err := DecodeJSONFromResponse[*ViewsWithCount](r)
+	if err != nil {
+		return nil, 0, resp, err
+	}
+	return vwc.Views, vwc.TotalCount, resp, nil
+}
+
+func (c *Client4) viewQueryValues(opts ...ViewQueryOpts) url.Values {
+	query := url.Values{}
+	if len(opts) > 0 {
+		o := opts[0]
+		if o.PerPage > 0 {
+			query.Set("per_page", strconv.Itoa(o.PerPage))
+		}
+		if o.Page > 0 {
+			query.Set("page", strconv.Itoa(o.Page))
+		}
+	}
+	return query
+}
+
+// GetPostsForView gets a page of posts for a specific view (board) in a channel.
+// TODO: Pagination will change once we support filtering/sorting by property values.
+func (c *Client4) GetPostsForView(ctx context.Context, channelId, viewId string, page, perPage int) (*PostList, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.viewRoute(channelId, viewId).Join("posts"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PostList](r)
+}
+
+// UpdateView patches a view.
+func (c *Client4) UpdateView(ctx context.Context, channelId, viewId string, patch *ViewPatch) (*View, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.viewRoute(channelId, viewId), patch)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*View](r)
+}
+
+// DeleteView soft-deletes a view.
+func (c *Client4) DeleteView(ctx context.Context, channelId, viewId string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.viewRoute(channelId, viewId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// UpdateViewSortOrder moves a view to a new position within its channel.
+func (c *Client4) UpdateViewSortOrder(ctx context.Context, channelId, viewId string, sortOrder int64) ([]*View, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.viewRoute(channelId, viewId).Join("sort_order"), sortOrder)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*View](r)
+}
+
 func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceReport) (*Response, error) {
 	res, err := c.doAPIPostJSON(ctx, c.clientPerfMetricsRoute(), report)
 	if err != nil {
@@ -7789,6 +8267,211 @@ func (c *Client4) PatchCPAValuesForUser(ctx context.Context, userID string, valu
 	return DecodeJSONFromResponse[map[string]json.RawMessage](r)
 }
 
+func (c *Client4) CreatePropertyField(ctx context.Context, groupName, objectType string, field *PropertyField) (*PropertyField, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.propertyFieldsRoute(groupName, objectType), field)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PropertyField](r)
+}
+
+// GetPropertyFields returns property fields matching the given search parameters.
+func (c *Client4) GetPropertyFields(ctx context.Context, groupName, objectType string, search PropertyFieldSearch) ([]*PropertyField, *Response, error) {
+	values := url.Values{}
+	if search.PerPage > 0 {
+		values.Set("per_page", strconv.Itoa(search.PerPage))
+	}
+	if search.TargetType != "" {
+		values.Set("target_type", search.TargetType)
+	}
+	if search.TargetID != "" {
+		values.Set("target_id", search.TargetID)
+	}
+	if search.ChannelID != "" {
+		values.Set("channel_id", search.ChannelID)
+	}
+	if search.TeamID != "" {
+		values.Set("team_id", search.TeamID)
+	}
+	if search.SinceUpdateAt != 0 {
+		values.Set("since", strconv.FormatInt(search.SinceUpdateAt, 10))
+	}
+	if search.CursorID != "" {
+		values.Set("cursor_id", search.CursorID)
+	}
+	if search.CursorCreateAt != 0 {
+		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
+	}
+	if search.CursorUpdateAt != 0 {
+		values.Set("cursor_update_at", strconv.FormatInt(search.CursorUpdateAt, 10))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldsRoute(groupName, objectType), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyField](r)
+}
+
+func (c *Client4) SearchPropertyFields(ctx context.Context, groupName string, search PropertyFieldSearch) ([]*PropertyField, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.propertyFieldsSearchRoute(groupName), search)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyField](r)
+}
+
+func (c *Client4) PatchPropertyField(ctx context.Context, groupName, objectType, fieldID string, patch *PropertyFieldPatch) (*PropertyField, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertyFieldRoute(groupName, objectType, fieldID), patch)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PropertyField](r)
+}
+
+func (c *Client4) DeletePropertyField(ctx context.Context, groupName, objectType, fieldID string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.propertyFieldRoute(groupName, objectType, fieldID))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// GetPropertyFieldOptions returns one page of a property field's options, in
+// creation order. Continue while the page's HasMore is true, passing its
+// NextCursorCreateAt and NextCursorID back on the next call: the page length
+// alone does not say whether the listing is over, and the cursor names the last
+// row the page query examined rather than the last option it returned.
+func (c *Client4) GetPropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*PropertyFieldOptionPage, *Response, error) {
+	values := url.Values{}
+	if perPage > 0 {
+		values.Set("per_page", strconv.Itoa(perPage))
+	}
+	if cursorID != "" {
+		values.Set("cursor_id", cursorID)
+	}
+	if cursorCreateAt > 0 {
+		values.Set("cursor_create_at", strconv.FormatInt(cursorCreateAt, 10))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PropertyFieldOptionPage](r)
+}
+
+// CreatePropertyFieldOptions adds options to a property field. Each option may
+// name the options it sits below, by name, including others in the same call.
+func (c *Client4) CreatePropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, options []*PropertyFieldOption) ([]*PropertyFieldOption, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), options)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyFieldOption](r)
+}
+
+// PatchPropertyFieldOptions changes options a property field owns. Only the
+// options named are touched, and only the parts of each that the option
+// carries — except Name, which every option must carry, since it is how the
+// payload names the option to begin with.
+func (c *Client4) PatchPropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, options []*PropertyFieldOption) ([]*PropertyFieldOption, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), options)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyFieldOption](r)
+}
+
+// DeletePropertyFieldOptions removes options a property field owns. The whole
+// list is judged together, so a branch of a hierarchy goes in one call.
+func (c *Client4) DeletePropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, optionIDs []string) (*Response, error) {
+	r, err := c.doAPIDeleteJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), optionIDs)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, targetID string, search PropertyValueSearch) ([]*PropertyValue, *Response, error) {
+	values := url.Values{}
+	if search.PerPage > 0 {
+		values.Set("per_page", strconv.Itoa(search.PerPage))
+	}
+	if search.SinceUpdateAt > 0 {
+		values.Set("since", strconv.FormatInt(search.SinceUpdateAt, 10))
+	}
+	if search.CursorID != "" {
+		values.Set("cursor_id", search.CursorID)
+	}
+	if search.CursorCreateAt > 0 {
+		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
+	}
+	if search.CursorUpdateAt > 0 {
+		values.Set("cursor_update_at", strconv.FormatInt(search.CursorUpdateAt, 10))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyValuesRoute(groupName, objectType, targetID), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
+}
+
+func (c *Client4) PatchPropertyValues(ctx context.Context, groupName, objectType, targetID string, items []PropertyValuePatchItem) ([]*PropertyValue, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertyValuesRoute(groupName, objectType, targetID), items)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
+}
+
+// GetSystemPropertyValues returns the property values attached to the Mattermost
+// system itself in the given group.
+func (c *Client4) GetSystemPropertyValues(ctx context.Context, groupName string, search PropertyValueSearch) ([]*PropertyValue, *Response, error) {
+	values := url.Values{}
+	if search.PerPage > 0 {
+		values.Set("per_page", strconv.Itoa(search.PerPage))
+	}
+	if search.SinceUpdateAt > 0 {
+		values.Set("since", strconv.FormatInt(search.SinceUpdateAt, 10))
+	}
+	if search.CursorID != "" {
+		values.Set("cursor_id", search.CursorID)
+	}
+	if search.CursorCreateAt > 0 {
+		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
+	}
+	if search.CursorUpdateAt > 0 {
+		values.Set("cursor_update_at", strconv.FormatInt(search.CursorUpdateAt, 10))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertySystemValuesRoute(groupName), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
+}
+
+// PatchSystemPropertyValues upserts property values attached to the Mattermost
+// system itself in the given group.
+func (c *Client4) PatchSystemPropertyValues(ctx context.Context, groupName string, items []PropertyValuePatchItem) ([]*PropertyValue, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertySystemValuesRoute(groupName), items)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
+}
+
 func (c *Client4) GetPostPropertyValues(ctx context.Context, postId string) ([]PropertyValue, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.contentFlaggingRoute().Join("post", postId, "field_values"), "")
 	if err != nil {
@@ -7865,6 +8548,18 @@ func (c *Client4) SearchAccessControlPolicies(ctx context.Context, options Acces
 	return DecodeJSONFromResponse[*AccessControlPoliciesWithCount](r)
 }
 
+// SearchAccessControlDecisionActions returns non-authoritative, render-time ABAC
+// decisions for the current session user on a resource. Results are for UI
+// rendering only; enforcement always re-evaluates the PDP server-side.
+func (c *Client4) SearchAccessControlDecisionActions(ctx context.Context, req ActionSearchRequest) (*ActionSearchResponse, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.accessControlDecisionsRoute().Join("actions", "search"), req)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ActionSearchResponse](r)
+}
+
 func (c *Client4) AssignAccessControlPolicies(ctx context.Context, policyID string, resourceIDs []string) (*Response, error) {
 	var assignments struct {
 		ChannelIds []string `json:"channel_ids"`
@@ -7908,7 +8603,15 @@ func (c *Client4) GetChannelsForAccessControlPolicy(ctx context.Context, policyI
 }
 
 func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, policyID string, options ChannelSearch) (*ChannelsWithCount, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.accessControlPolicyRoute(policyID).Join("resources", "channels", "search"), options)
+	return c.SearchChannelsForAccessControlPolicyForTeam(ctx, policyID, "", options)
+}
+
+func (c *Client4) SearchChannelsForAccessControlPolicyForTeam(ctx context.Context, policyID, teamID string, options ChannelSearch) (*ChannelsWithCount, *Response, error) {
+	var query url.Values
+	if teamID != "" {
+		query = url.Values{"team_id": []string{teamID}}
+	}
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.accessControlPolicyRoute(policyID).Join("resources", "channels", "search"), query, options)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7945,6 +8648,42 @@ func (c *Client4) RevealPost(ctx context.Context, postID string) (*Post, *Respon
 // If the user is not the author, the post will be expired for that user by updating their read receipt expiration time.
 func (c *Client4) BurnPost(ctx context.Context, postID string) (*Response, error) {
 	r, err := c.doAPIDelete(ctx, c.postRoute(postID).Join("burn"))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// Health Dashboard Section
+
+// GetHealthFindings returns the stored health findings, rendered in the client's locale, and
+// when the server last evaluated them. Only filter.Muted is sent; the server decides which
+// surfaces are returned.
+func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFilter) (*HealthFindingList, *Response, error) {
+	query := url.Values{}
+	if filter.Muted != MutedExcluded {
+		query.Set("muted", string(filter.Muted))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.healthFindingsRoute(), query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*HealthFindingList](r)
+}
+
+func (c *Client4) MuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {
+	r, err := c.doAPIPost(ctx, c.healthFindingsRoute().Join(fingerprint, "mute"), "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) UnmuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.healthFindingsRoute().Join(fingerprint, "mute"))
 	if err != nil {
 		return BuildResponse(r), err
 	}

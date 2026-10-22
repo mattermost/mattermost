@@ -10,8 +10,8 @@
 // Group: @channels @enterprise @not_cloud
 
 describe('Self hosted Pricing modal', () => {
-    let urlL: string | undefined;
-    let createdUser: Cypress.UserProfile | undefined;
+    let urlL: string;
+    let createdUser: Cypress.UserProfile;
 
     before(() => {
         cy.apiInitSetup().then(({user, offTopicUrl: url}) => {
@@ -183,7 +183,7 @@ describe('Self hosted Pricing modal', () => {
     }
 
     function withTrialLicense(trial: string) {
-        cy.intercept('GET', '**/api/v4/license/client?format=old', {
+        cy.intercept('GET', '**/api/v4/license/client', {
             statusCode: 200,
             body: {
                 IsLicensed: 'true',

@@ -11,9 +11,9 @@
 // Group: @channels @channel
 
 describe('Restrict Direct Message Channels', () => {
-    let testTeam;
-    let testUser;
-    let otherUser;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
+    let otherUser: Cypress.UserProfile;
 
     before(() => {
         cy.apiUpdateConfig({

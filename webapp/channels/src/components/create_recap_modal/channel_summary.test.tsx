@@ -191,6 +191,37 @@ describe('ChannelSummary', () => {
             const icon = channelItem?.querySelector('.icon-globe');
             expect(icon).toBeInTheDocument();
         });
+
+        it('renders override icon-shield-outline when matcher matches', () => {
+            renderWithContext(
+                <ChannelSummary
+                    {...defaultProps}
+                    selectedChannelIds={['channel1']}
+                />,
+                {plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'p', matcher: () => true, iconName: 'shield-outline'}]}}} as any,
+            );
+
+            const channelItem = screen.getByText('Town Square').closest('.summary-channel-item');
+            const icon = channelItem?.querySelector('i');
+            expect(icon).toBeInTheDocument();
+            expect(icon).toHaveClass('icon-shield-outline');
+            expect(icon).not.toHaveClass('icon-globe');
+        });
+
+        it('falls back to icon-globe for open channel when matcher returns false', () => {
+            renderWithContext(
+                <ChannelSummary
+                    {...defaultProps}
+                    selectedChannelIds={['channel1']}
+                />,
+                {plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'p', matcher: () => false, iconName: 'shield-outline'}]}}} as any,
+            );
+
+            const channelItem = screen.getByText('Town Square').closest('.summary-channel-item');
+            const icon = channelItem?.querySelector('i');
+            expect(icon).toBeInTheDocument();
+            expect(icon).toHaveClass('icon-globe');
+        });
     });
 
     describe('Channel Filtering', () => {

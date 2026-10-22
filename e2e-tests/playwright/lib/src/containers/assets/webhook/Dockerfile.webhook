@@ -1,0 +1,20 @@
+# webhook_serve.js, utils/webhook_utils.js, and tests/plugins/post_message_as.js are vendored
+# copies of e2e-tests/cypress's files of the same name (shared sidecar, also used by Cypress) —
+# copied on 2026-07-20. Dependencies match e2e-tests/.ci/server.generate.sh's "playwright" Compose
+# service, just installed at build time instead of on every container start.
+FROM node:24-alpine
+
+WORKDIR /webhook
+
+RUN npm init -y >/dev/null && \
+    npm install express@5.1.0 axios@1.11.0 client-oauth2@github:larkox/js-client-oauth2#e24e2eb5dfcbbbb3a59d095e831dbe0012b0ac49
+
+COPY webhook_serve.js ./webhook_serve.js
+COPY utils/ ./utils/
+COPY tests/plugins/post_message_as.js ./tests/plugins/post_message_as.js
+
+RUN chown -R node:node /webhook
+USER node
+
+EXPOSE 3000
+CMD ["node", "webhook_serve.js"]

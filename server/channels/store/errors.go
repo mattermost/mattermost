@@ -188,3 +188,18 @@ func IsErrNotFound(err error) bool {
 	_, ok := err.(*ErrNotFound)
 	return ok
 }
+
+// ErrResultsMismatch indicates that a batch lookup returned fewer results
+// than the number of IDs requested, meaning some IDs were not found.
+type ErrResultsMismatch struct {
+	Got      int
+	Expected int
+}
+
+func NewErrResultsMismatch(got, expected int) *ErrResultsMismatch {
+	return &ErrResultsMismatch{Got: got, Expected: expected}
+}
+
+func (e *ErrResultsMismatch) Error() string {
+	return fmt.Sprintf("results mismatch: got %d results of the %d ids passed", e.Got, e.Expected)
+}

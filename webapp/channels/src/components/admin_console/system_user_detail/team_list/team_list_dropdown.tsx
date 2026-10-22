@@ -16,7 +16,7 @@ type Props = {
     doMakeUserTeamAdmin: (teamId: string) => void;
     doMakeUserTeamMember: (teamId: string) => void;
     isDisabled?: boolean;
-}
+};
 
 const TeamListDropdown = ({
     team,

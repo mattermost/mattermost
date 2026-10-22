@@ -4,13 +4,13 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-import WithTooltip from 'components/with_tooltip';
 
 export type BaseProps = {
     config?: DeepPartial<AdminConfig>;
@@ -18,21 +18,21 @@ export type BaseProps = {
     setNavigationBlocked?: (blocked: boolean) => void;
     isDisabled?: boolean;
     patchConfig?: (config: DeepPartial<AdminConfig>) => {data: AdminConfig; error: ClientErrorPlaceholder};
-}
+};
 
 export type BaseState = {
     saveNeeded: boolean;
     saving: boolean;
-    serverError: string|null;
+    serverError: string | null;
     serverErrorId?: string;
-}
+};
 
 // Placeholder type until ClientError is exported from redux.
 // TODO: remove ClientErrorPlaceholder and change the return type of patchConfig
 type ClientErrorPlaceholder = {
     message: string;
     server_error_id: string;
-}
+};
 
 export default abstract class OLDAdminSettings <Props extends BaseProps, State extends BaseState> extends React.Component<Props, State> {
     public constructor(props: Props) {
@@ -53,11 +53,11 @@ export default abstract class OLDAdminSettings <Props extends BaseProps, State e
 
     protected abstract getConfigFromState(config: DeepPartial<AdminConfig>): unknown;
 
-    protected abstract renderTitle(): React.ReactElement;
+    protected abstract renderTitle(): React.ReactElement<any>;
 
-    protected abstract renderSettings(): React.ReactElement;
+    protected abstract renderSettings(): React.ReactElement<any>;
 
-    protected handleSaved?: ((config: AdminConfig) => React.ReactElement | void);
+    protected handleSaved?: ((config: AdminConfig) => React.ReactElement<any> | void);
 
     protected canSave?: () => boolean;
 

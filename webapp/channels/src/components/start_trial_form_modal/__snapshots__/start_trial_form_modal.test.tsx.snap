@@ -11,166 +11,251 @@ Object {
       aria-hidden="true"
     />
     <div
-      role="none"
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-modal="true"
+      class="fade StartTrialFormModal in modal"
+      id="StartTrialFormModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
       <div
-        class="fade modal-backdrop in"
-      />
-      <div
-        class="fade StartTrialFormModal in modal"
-        id="StartTrialFormModal"
-        role="dialog"
-        style="display: block; padding-right: 0px;"
-        tabindex="-1"
+        class="a11y__modal modal-dialog"
       >
         <div
-          class="a11y__modal modal-dialog"
+          class="modal-content"
+          role="document"
         >
           <div
-            class="modal-content"
-            role="document"
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <div
+              class="title"
+            >
+              Start Trial
+            </div>
+            <div
+              class="description"
+            >
+              Just a few quick items to help us tailor your trial experience.
+            </div>
+          </div>
+          <div
+            class="modal-body"
           >
             <div
-              class="modal-header"
+              class="Input_container"
             >
-              <button
-                aria-label="Close"
-                class="close"
-                type="button"
-              >
-                <span
-                  aria-hidden="true"
-                >
-                  ×
-                </span>
-                <span
-                  class="sr-only"
-                >
-                  Close
-                </span>
-              </button>
               <div
-                class="title"
+                class="Input_fieldset name_input"
+                data-testid="input-wrapper"
               >
-                Start Trial
-              </div>
-              <div
-                class="description"
-              >
-                Just a few quick items to help us tailor your trial experience.
+                <label
+                  class="Input_legend"
+                  for="input_name"
+                >
+                                          
+                </label>
+                <div
+                  class="Input_wrapper"
+                >
+                  <input
+                    aria-label="Name"
+                    class="Input form-control large"
+                    id="input_name"
+                    name="name"
+                    placeholder="Name"
+                    type="text"
+                    value=""
+                  />
+                </div>
               </div>
             </div>
             <div
-              class="modal-body"
+              class="Input_container"
             >
               <div
-                class="Input_container"
+                class="Input_fieldset email_input Input_fieldset___error Input_fieldset___legend"
+                data-testid="input-wrapper"
               >
-                <div
-                  class="Input_fieldset name_input"
-                  data-testid="input-wrapper"
+                <label
+                  class="Input_legend Input_legend___focus"
+                  for="input_email"
                 >
-                  <label
-                    class="Input_legend"
-                    for="input_name"
-                  >
-                                            
-                  </label>
-                  <div
-                    class="Input_wrapper"
-                  >
-                    <input
-                      aria-label="Name"
-                      class="Input form-control large"
-                      id="input_name"
-                      name="name"
-                      placeholder="Name"
-                      type="text"
-                      value=""
-                    />
-                  </div>
-                </div>
-              </div>
-              <div
-                class="Input_container"
-              >
+                                          
+                  Business Email
+                </label>
                 <div
-                  class="Input_fieldset email_input Input_fieldset___error Input_fieldset___legend"
-                  data-testid="input-wrapper"
+                  class="Input_wrapper"
                 >
-                  <label
-                    class="Input_legend Input_legend___focus"
-                    for="input_email"
-                  >
-                                            
-                    Business Email
-                  </label>
-                  <div
-                    class="Input_wrapper"
-                  >
-                    <input
-                      aria-describedby="error_email"
-                      aria-invalid="true"
-                      aria-label="Business Email"
-                      class="Input form-control large Input__focus"
-                      id="input_email"
-                      name="email"
-                      placeholder="Business Email"
-                      type="text"
-                      value="test@mattermost.com"
-                    />
-                  </div>
-                </div>
-                <div
-                  class="Input___customMessage Input___error"
-                  id="error_email"
-                  role="alert"
-                >
-                  <i
-                    aria-hidden="true"
-                    aria-label=""
-                    class="icon error icon-alert-circle-outline"
-                    role="img"
+                  <input
+                    aria-describedby="error_email"
+                    aria-invalid="true"
+                    aria-label="Business Email"
+                    class="Input form-control large Input__focus"
+                    id="input_email"
+                    name="email"
+                    placeholder="Business Email"
+                    type="text"
+                    value="test@mattermost.com"
                   />
-                  <span>
-                    Please enter a valid business email address.
-                  </span>
                 </div>
               </div>
               <div
-                class="Input_container"
+                class="Input___customMessage Input___error"
+                id="error_email"
+                role="alert"
               >
-                <div
-                  class="Input_fieldset company_name_input"
-                  data-testid="input-wrapper"
+                <i
+                  aria-hidden="true"
+                  aria-label=""
+                  class="icon error icon-alert-circle-outline"
+                  role="img"
+                />
+                <span>
+                  Please enter a valid business email address.
+                </span>
+              </div>
+            </div>
+            <div
+              class="Input_container"
+            >
+              <div
+                class="Input_fieldset company_name_input"
+                data-testid="input-wrapper"
+              >
+                <label
+                  class="Input_legend"
+                  for="input_company_name"
                 >
-                  <label
-                    class="Input_legend"
-                    for="input_company_name"
-                  >
-                                            
-                  </label>
-                  <div
-                    class="Input_wrapper"
-                  >
-                    <input
-                      aria-label="Company Name"
-                      class="Input form-control large"
-                      id="input_company_name"
-                      name="company_name"
-                      placeholder="Company Name"
-                      type="text"
-                      value=""
-                    />
-                  </div>
+                                          
+                </label>
+                <div
+                  class="Input_wrapper"
+                >
+                  <input
+                    aria-label="Company Name"
+                    class="Input form-control large"
+                    id="input_company_name"
+                    name="company_name"
+                    placeholder="Company Name"
+                    type="text"
+                    value=""
+                  />
                 </div>
               </div>
+            </div>
+            <div
+              class="DropdownInput Input_container"
+              data-testid=""
+            >
+              <fieldset
+                class="Input_fieldset company_size_dropdown"
+              >
+                <legend
+                  class="Input_legend"
+                />
+                <div
+                  class="Input_wrapper"
+                >
+                  <div
+                    class="Input company_size_dropdown css-b62m3t-container"
+                    id="DropdownInput_company_size_dropdown"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-2-live-region"
+                    />
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                      role="log"
+                    />
+                    <div
+                      class="DropdownInput__controlContainer"
+                    >
+                      <div
+                        class="DropDown__control css-2vz60i-control"
+                      >
+                        <div
+                          class="DropDown__value-container css-hlgwow"
+                        >
+                          <div
+                            class="DropDown__placeholder css-1jqq78o-placeholder"
+                            id="react-select-2-placeholder"
+                          >
+                            Company Size
+                          </div>
+                          <div
+                            class="DropDown__input-container css-19yuyn7"
+                            data-value=""
+                          >
+                            <input
+                              aria-activedescendant=""
+                              aria-autocomplete="list"
+                              aria-describedby="react-select-2-placeholder"
+                              aria-expanded="false"
+                              aria-haspopup="true"
+                              autocapitalize="none"
+                              autocomplete="off"
+                              autocorrect="off"
+                              class="DropDown__input"
+                              id="react-select-2-input"
+                              role="combobox"
+                              spellcheck="false"
+                              style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                              tabindex="0"
+                              type="text"
+                              value=""
+                            />
+                          </div>
+                        </div>
+                        <div
+                          class="DropdownInput__indicatorsContainer"
+                        >
+                          <div
+                            class="DropDown__indicators css-1wy0on6"
+                          >
+                            <i
+                              class="icon icon-chevron-down"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+            <div
+              class="countries-section"
+            >
               <div
                 class="DropdownInput Input_container"
-                data-testid=""
+                data-testid="CountrySelector"
               >
                 <fieldset
-                  class="Input_fieldset company_size_dropdown"
+                  class="Input_fieldset"
                 >
                   <legend
                     class="Input_legend"
@@ -179,12 +264,12 @@ Object {
                     class="Input_wrapper"
                   >
                     <div
-                      class="Input company_size_dropdown css-b62m3t-container"
-                      id="DropdownInput_company_size_dropdown"
+                      class="Input css-b62m3t-container"
+                      id="DropdownInput_country_dropdown"
                     >
                       <span
                         class="css-1f43avz-a11yText-A11yText"
-                        id="react-select-2-live-region"
+                        id="react-select-3-live-region"
                       />
                       <span
                         aria-atomic="false"
@@ -204,9 +289,9 @@ Object {
                           >
                             <div
                               class="DropDown__placeholder css-1jqq78o-placeholder"
-                              id="react-select-2-placeholder"
+                              id="react-select-3-placeholder"
                             >
-                              Company Size
+                              Country/Region
                             </div>
                             <div
                               class="DropDown__input-container css-19yuyn7"
@@ -215,14 +300,14 @@ Object {
                               <input
                                 aria-activedescendant=""
                                 aria-autocomplete="list"
-                                aria-describedby="react-select-2-placeholder"
+                                aria-describedby="react-select-3-placeholder"
                                 aria-expanded="false"
                                 aria-haspopup="true"
                                 autocapitalize="none"
                                 autocomplete="off"
                                 autocorrect="off"
                                 class="DropDown__input"
-                                id="react-select-2-input"
+                                id="react-select-3-input"
                                 role="combobox"
                                 spellcheck="false"
                                 style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
@@ -249,128 +334,40 @@ Object {
                   </div>
                 </fieldset>
               </div>
-              <div
-                class="countries-section"
+            </div>
+            <div
+              class="disclaimer"
+            >
+              By selecting Start trial, I agree to the 
+              <a
+                href="https://mattermost.com/software-evaluation-agreement/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123&edition=team&server_version="
+                location="start_trial_form_modal"
+                rel="noopener noreferrer"
+                target="_blank"
               >
-                <div
-                  class="DropdownInput Input_container"
-                  data-testid="CountrySelector"
-                >
-                  <fieldset
-                    class="Input_fieldset"
-                  >
-                    <legend
-                      class="Input_legend"
-                    />
-                    <div
-                      class="Input_wrapper"
-                    >
-                      <div
-                        class="Input css-b62m3t-container"
-                        id="DropdownInput_country_dropdown"
-                      >
-                        <span
-                          class="css-1f43avz-a11yText-A11yText"
-                          id="react-select-3-live-region"
-                        />
-                        <span
-                          aria-atomic="false"
-                          aria-live="polite"
-                          aria-relevant="additions text"
-                          class="css-1f43avz-a11yText-A11yText"
-                          role="log"
-                        />
-                        <div
-                          class="DropdownInput__controlContainer"
-                        >
-                          <div
-                            class="DropDown__control css-2vz60i-control"
-                          >
-                            <div
-                              class="DropDown__value-container css-hlgwow"
-                            >
-                              <div
-                                class="DropDown__placeholder css-1jqq78o-placeholder"
-                                id="react-select-3-placeholder"
-                              >
-                                Country/Region
-                              </div>
-                              <div
-                                class="DropDown__input-container css-19yuyn7"
-                                data-value=""
-                              >
-                                <input
-                                  aria-activedescendant=""
-                                  aria-autocomplete="list"
-                                  aria-describedby="react-select-3-placeholder"
-                                  aria-expanded="false"
-                                  aria-haspopup="true"
-                                  autocapitalize="none"
-                                  autocomplete="off"
-                                  autocorrect="off"
-                                  class="DropDown__input"
-                                  id="react-select-3-input"
-                                  role="combobox"
-                                  spellcheck="false"
-                                  style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
-                                  tabindex="0"
-                                  type="text"
-                                  value=""
-                                />
-                              </div>
-                            </div>
-                            <div
-                              class="DropdownInput__indicatorsContainer"
-                            >
-                              <div
-                                class="DropDown__indicators css-1wy0on6"
-                              >
-                                <i
-                                  class="icon icon-chevron-down"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </fieldset>
-                </div>
-              </div>
-              <div
-                class="disclaimer"
+                Mattermost Software Evaluation Agreement
+              </a>
+              , 
+              <a
+                href="https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123&edition=team&server_version="
+                location="start_trial_form_modal"
+                rel="noopener noreferrer"
+                target="_blank"
               >
-                By selecting Start trial, I agree to the 
-                <a
-                  href="https://mattermost.com/software-evaluation-agreement/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123&edition=team&server_version="
-                  location="start_trial_form_modal"
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  Mattermost Software Evaluation Agreement
-                </a>
-                , 
-                <a
-                  href="https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123&edition=team&server_version="
-                  location="start_trial_form_modal"
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  Privacy Policy
-                </a>
-                , and receiving product emails.
-              </div>
-              <div
-                class="buttons"
+                Privacy Policy
+              </a>
+              , and receiving product emails.
+            </div>
+            <div
+              class="buttons"
+            >
+              <button
+                class="btn btn-primary"
+                disabled=""
+                type="button"
               >
-                <button
-                  class="btn btn-primary btn btn-default"
-                  disabled=""
-                  type="button"
-                >
-                  Start trial
-                </button>
-              </div>
+                Start trial
+              </button>
             </div>
           </div>
         </div>

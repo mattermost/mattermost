@@ -40,4 +40,5 @@ SEE ALSO
 * `mmctl token generate <mmctl_token_generate.rst>`_ 	 - Generate token for a user
 * `mmctl token list <mmctl_token_list.rst>`_ 	 - List users tokens
 * `mmctl token revoke <mmctl_token_revoke.rst>`_ 	 - Revoke tokens for a user
+* `mmctl token rotate <mmctl_token_rotate.rst>`_ 	 - Rotate a personal access token
 

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import type EmojiMap from 'utils/emoji_map';
 
 import TermsOfService from './terms_of_service';
@@ -33,64 +33,104 @@ describe('components/terms_of_service/TermsOfService', () => {
         history: {} as any,
     };
 
-    test('should match snapshot', () => {
+    beforeEach(() => {
+        getTermsOfService.mockClear();
+        updateMyTermsOfServiceStatus.mockClear();
+        (emitUserLoggedOutEvent as jest.Mock).mockClear();
+    });
+
+    test('should match snapshot', async () => {
         const props = {...baseProps};
-        const wrapper = shallow<TermsOfService>(<TermsOfService {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<TermsOfService {...props}/>);
+        await waitFor(() => {
+            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should call getTermsOfService on mount', () => {
         const props = {...baseProps};
-        shallow<TermsOfService>(<TermsOfService {...props}/>);
+        renderWithContext(<TermsOfService {...props}/>);
         expect(props.actions.getTermsOfService).toHaveBeenCalledTimes(1);
     });
 
     test('should match snapshot on loading', () => {
-        const props = {...baseProps};
-        const wrapper = shallow<TermsOfService>(<TermsOfService {...props}/>);
-        wrapper.setState({loading: true});
-        expect(wrapper).toMatchSnapshot();
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                getTermsOfService: jest.fn().mockReturnValue(new Promise(() => {})),
+            },
+        };
+        const {container} = renderWithContext(<TermsOfService {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on accept terms', () => {
-        const props = {...baseProps};
-        const wrapper = shallow<TermsOfService>(<TermsOfService {...props}/>);
-        wrapper.setState({loadingAgree: true});
-        expect(wrapper).toMatchSnapshot();
+    test('should match snapshot, on accept terms', async () => {
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                updateMyTermsOfServiceStatus: jest.fn().mockReturnValue(new Promise(() => {})),
+            },
+        };
+        const {container} = renderWithContext(<TermsOfService {...props}/>);
+        await waitFor(() => {
+            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+        });
+        await userEvent.click(screen.getByText('I Agree'));
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on reject terms', () => {
-        const props = {...baseProps};
-        const wrapper = shallow<TermsOfService>(<TermsOfService {...props}/>);
-        wrapper.setState({loadingDisagree: true});
-        expect(wrapper).toMatchSnapshot();
+    test('should match snapshot, on reject terms', async () => {
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                updateMyTermsOfServiceStatus: jest.fn().mockReturnValue(new Promise(() => {})),
+            },
+        };
+        const {container} = renderWithContext(<TermsOfService {...props}/>);
+        await waitFor(() => {
+            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+        });
+        await userEvent.click(screen.getByText('I Disagree'));
+        expect(container).toMatchSnapshot();
     });
 
     test('should call updateTermsOfServiceStatus on registerUserAction', async () => {
-        const wrapper = shallow<TermsOfService>(<TermsOfService {...baseProps}/>);
-        await wrapper.instance().registerUserAction(true, jest.fn());
+        renderWithContext(<TermsOfService {...baseProps}/>);
+        await waitFor(() => {
+            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+        });
+        await userEvent.click(screen.getByText('I Agree'));
         expect(baseProps.actions.updateMyTermsOfServiceStatus).toHaveBeenCalledTimes(1);
     });
 
-    test('should match state and call updateTermsOfServiceStatus on handleAcceptTerms', () => {
-        const wrapper = shallow<TermsOfService>(<TermsOfService {...baseProps}/>);
-        wrapper.instance().handleAcceptTerms();
-        expect(wrapper.state('loadingAgree')).toEqual(true);
-        expect(wrapper.state('serverError')).toEqual(null);
+    test('should match state and call updateTermsOfServiceStatus on handleAcceptTerms', async () => {
+        renderWithContext(<TermsOfService {...baseProps}/>);
+        await waitFor(() => {
+            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+        });
+        await userEvent.click(screen.getByText('I Agree'));
         expect(baseProps.actions.updateMyTermsOfServiceStatus).toHaveBeenCalledTimes(1);
     });
 
-    test('should match state and call updateTermsOfServiceStatus on handleRejectTerms', () => {
-        const wrapper = shallow<TermsOfService>(<TermsOfService {...baseProps}/>);
-        wrapper.instance().handleRejectTerms();
-        expect(wrapper.state('loadingDisagree')).toEqual(true);
-        expect(wrapper.state('serverError')).toEqual(null);
+    test('should match state and call updateTermsOfServiceStatus on handleRejectTerms', async () => {
+        renderWithContext(<TermsOfService {...baseProps}/>);
+        await waitFor(() => {
+            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+        });
+        await userEvent.click(screen.getByText('I Disagree'));
         expect(baseProps.actions.updateMyTermsOfServiceStatus).toHaveBeenCalledTimes(1);
     });
 
-    test('should call emitUserLoggedOutEvent on handleLogoutClick', () => {
-        const wrapper = shallow<TermsOfService>(<TermsOfService {...baseProps}/>);
-        wrapper.instance().handleLogoutClick({preventDefault: jest.fn()} as unknown as React.MouseEvent<HTMLAnchorElement, MouseEvent>);
+    test('should call emitUserLoggedOutEvent on handleLogoutClick', async () => {
+        renderWithContext(<TermsOfService {...baseProps}/>);
+        await waitFor(() => {
+            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+        });
+        await userEvent.click(screen.getByText('Logout'));
         expect(emitUserLoggedOutEvent).toHaveBeenCalledTimes(1);
         expect(emitUserLoggedOutEvent).toHaveBeenCalledWith('/login');
     });

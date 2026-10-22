@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/configservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -30,6 +31,7 @@ type AppIface interface {
 	FileSize(path string) (int64, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	BulkImportWithPath(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError)
+	BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, opts model.BulkImportOpts) (int, *model.AppError)
 	Log() *mlog.Logger
 }
 
@@ -100,32 +102,88 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		}
 
 		// find JSONL import file.
-		var jsonFile io.ReadCloser
+		var jsonZipFile *zip.File
 		for _, f := range importZipReader.File {
-			if filepath.Ext(f.Name) != ".jsonl" {
-				continue
+			if imports.IsRootJsonlFile(f.Name) {
+				jsonZipFile = f
+				break
 			}
-			// avoid "zip slip"
-			if strings.Contains(f.Name, "..") {
-				return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFilePath contains path traversal", http.StatusForbidden)
-			}
-
-			jsonFile, err = f.Open()
-			if err != nil {
-				return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-
-			defer jsonFile.Close()
-			break
 		}
-
-		if jsonFile == nil {
+		if jsonZipFile == nil {
 			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.missing_jsonl", nil, "jsonFile was nil", http.StatusBadRequest)
 		}
 
+		// avoid "zip slip"
+		if strings.Contains(jsonZipFile.Name, "..") {
+			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFilePath contains path traversal", http.StatusForbidden)
+		}
+
+		jsonFile, err := jsonZipFile.Open()
+		if err != nil {
+			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		defer jsonFile.Close()
+
 		extractContent := job.Data["extract_content"] == "true"
+
+		numWorkers := runtime.NumCPU()
+		if workersStr, ok := job.Data["workers"]; ok {
+			if n, err := strconv.Atoi(workersStr); err == nil && n > 0 {
+				numWorkers = n
+			}
+		}
+
+		// Resolve resume checkpoint if the job was previously interrupted.
+		resumeFromLine := 0
+		if checkpoint, ok := job.Data["checkpoint"]; ok && checkpoint != "" {
+			if n, err := strconv.Atoi(checkpoint); err == nil {
+				// Only resume if the file identity matches — a different file would
+				// make the stored line number meaningless.
+				if job.Data["checkpoint_file"] == importFileName {
+					resumeFromLine = n
+					logger.Info("Resuming import from checkpoint",
+						mlog.Int("resume_from_line", resumeFromLine),
+						mlog.String("import_file", importFileName))
+				} else {
+					logger.Warn("Import file changed since last checkpoint; starting from beginning",
+						mlog.String("checkpoint_file", job.Data["checkpoint_file"]),
+						mlog.String("current_file", importFileName))
+				}
+			}
+		}
+
+		// Enable checkpointing for large imports so a failure can be resumed
+		// without restarting from line 1. Use the uncompressed JSONL size since
+		// zip compression can reduce a large import to a fraction of its actual size.
+		const checkpointThresholdBytes = 100 * 1024 * 1024 // 100 MB uncompressed
+		jsonlUncompressedSize := int64(jsonZipFile.UncompressedSize64)
+		var onCheckpoint func(int)
+		if jsonlUncompressedSize >= checkpointThresholdBytes {
+			onCheckpoint = func(lineNumber int) {
+				if lineNumber < 0 {
+					// Negative signals total line count from pre-creation pass —
+					// store separately so resume can show percentage progress.
+					job.Data["total_lines"] = strconv.Itoa(-lineNumber)
+				} else {
+					job.Data["checkpoint"] = strconv.Itoa(lineNumber)
+					job.Data["checkpoint_file"] = importFileName
+				}
+				if _, uErr := jobServer.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress); uErr != nil {
+					logger.Warn("Failed to persist import checkpoint", mlog.Err(uErr))
+				}
+			}
+		}
+
 		// do the actual import.
-		lineNumber, appErr := app.BulkImportWithPath(appContext, jsonFile, importZipReader, false, extractContent, runtime.NumCPU(), model.ExportDataDir)
+		importOpts := model.BulkImportOpts{
+			DestinationTeamName:    job.Data["destination_team_name"],
+			DestinationChannelName: job.Data["destination_channel_name"],
+			SkipPreflight:          job.Data["skip_preflight"] == "true",
+			ImportedUsers:          model.ImportedUsersPosture(job.Data["imported_users"]),
+			ResumeFromLine:         resumeFromLine,
+			OnCheckpoint:           onCheckpoint,
+		}
+		lineNumber, appErr := app.BulkImportWithPathAndOpts(appContext, jsonFile, importZipReader, false, extractContent, numWorkers, model.ExportDataDir, importOpts)
 		if appErr != nil {
 			job.Data["line_number"] = strconv.Itoa(lineNumber)
 			return appErr

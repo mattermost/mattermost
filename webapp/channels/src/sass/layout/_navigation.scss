@@ -46,19 +46,6 @@
         justify-content: center;
     }
 
-    .browser--ie & {
-        .navbar-default {
-            .navbar-brand {
-                overflow: visible;
-                padding: 1px;
-
-                .heading {
-                    max-width: 100px;
-                }
-            }
-        }
-    }
-
     .navbar-default {
         position: absolute;
         min-height: 50px;

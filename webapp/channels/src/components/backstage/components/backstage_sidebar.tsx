@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
@@ -24,7 +24,7 @@ type Props = {
     enableOutgoingOAuthConnections: boolean;
     canCreateOrDeleteCustomEmoji: boolean;
     canManageIntegrations: boolean;
-}
+};
 
 export default class BackstageSidebar extends React.PureComponent<Props> {
     renderCustomEmoji() {

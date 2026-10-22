@@ -4,7 +4,9 @@
 import React, {memo, useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
+import type {ButtonVariant} from '@mattermost/shared/components/button';
 
 import {focusElement} from 'utils/a11y_utils';
 
@@ -29,9 +31,9 @@ type Props = {
     message?: React.ReactNode;
 
     /*
-     * The CSS class to apply to the confirm button
+     * The variant to use for the confirm button
      */
-    confirmButtonClass?: string;
+    confirmButtonVariant?: ButtonVariant;
 
     /*
      * The CSS class to apply to the modal
@@ -119,7 +121,7 @@ type Props = {
 const ConfirmModal = ({
     title = '',
     message = '',
-    confirmButtonClass = 'btn btn-primary',
+    confirmButtonVariant,
     confirmButtonText = '',
     modalClass = '',
     id,
@@ -194,15 +196,15 @@ const ConfirmModal = ({
     let cancelButton;
     if (!hideCancel) {
         cancelButton = (
-            <button
+            <Button
                 type='button'
                 data-testid='cancel-button'
-                className='btn btn-tertiary'
+                emphasis='tertiary'
                 onClick={handleCancel}
                 id='cancelModalButton'
             >
                 {cancelText}
-            </button>
+            </Button>
         );
     }
 
@@ -213,7 +215,6 @@ const ConfirmModal = ({
             show={show}
             onHide={handleCancel}
             onExited={handleExited}
-            ariaLabelledby='confirmModalLabel'
             compassDesign={true}
             modalHeaderText={title}
             isStacked={isStacked}
@@ -232,16 +233,17 @@ const ConfirmModal = ({
                     {checkboxInFooter && checkbox}
                     {cancelButton}
                     {!hideConfirm && (
-                        <button
+                        <Button
                             type='button'
-                            className={confirmButtonClass}
+                            emphasis='primary'
+                            destructive={confirmButtonVariant === 'destructive'}
                             onClick={handleConfirm}
                             id='confirmModalButton'
                             autoFocus={true}
                             disabled={confirmDisabled}
                         >
                             {confirmButtonText}
-                        </button>
+                        </Button>
                     )}
                 </div>
             </div>

@@ -22,6 +22,7 @@ type Context struct {
 	path           string
 	userAgent      string
 	acceptLanguage string
+	connectionId   string
 	logger         mlog.LoggerIFace
 	context        context.Context
 }
@@ -96,6 +97,17 @@ func (c *Context) AcceptLanguage() string {
 	return c.acceptLanguage
 }
 
+// ConnectionId returns the identifier of the WebSocket connection associated
+// with the request, when present. It is populated from the "Connection-Id"
+// HTTP header that authenticated clients set when they have an active
+// WebSocket connection, allowing handlers and plugins to correlate an HTTP
+// request with its originating WebSocket connection. Returns an empty string
+// when the header is absent (e.g., requests from clients without an active
+// WebSocket connection or from non-WebSocket integrations).
+func (c *Context) ConnectionId() string {
+	return c.connectionId
+}
+
 func (c *Context) Logger() mlog.LoggerIFace {
 	return c.logger
 }
@@ -156,6 +168,12 @@ func (c *Context) WithAcceptLanguage(s string) CTX {
 	return rctx
 }
 
+func (c *Context) WithConnectionId(s string) CTX {
+	rctx := c.clone()
+	rctx.connectionId = s
+	return rctx
+}
+
 func (c *Context) WithContext(ctx context.Context) CTX {
 	rctx := c.clone()
 	rctx.context = ctx
@@ -188,6 +206,7 @@ type CTX interface {
 	Path() string
 	UserAgent() string
 	AcceptLanguage() string
+	ConnectionId() string
 	Logger() mlog.LoggerIFace
 	Context() context.Context
 	WithT(i18n.TranslateFunc) CTX
@@ -198,6 +217,7 @@ type CTX interface {
 	WithPath(string) CTX
 	WithUserAgent(string) CTX
 	WithAcceptLanguage(string) CTX
+	WithConnectionId(string) CTX
 	WithLogger(mlog.LoggerIFace) CTX
 	WithLogFields(fields ...mlog.Field) CTX
 	WithContext(ctx context.Context) CTX

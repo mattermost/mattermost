@@ -87,7 +87,8 @@
 }
 
 // Style for the Remove policy button
-#channel_access_control_with_policy {
+#channel_access_control_with_policy,
+#team_access_control_with_policy {
     .btn.btn-primary {
         border-color: var(--dnd-indicator);
         background-color: var(--dnd-indicator);

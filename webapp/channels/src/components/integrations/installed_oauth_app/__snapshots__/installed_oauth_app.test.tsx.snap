@@ -1,585 +1,425 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`components/integrations/InstalledOAuthApp should filter out OAuthApp 1`] = `""`;
+exports[`components/integrations/InstalledOAuthApp should filter out OAuthApp 1`] = `<div />`;
 
 exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
-<div
-  className="backstage-list__item"
->
+<div>
   <div
-    className="integration__icon integration-list__icon"
-  >
-    <img
-      alt="get app screenshot"
-      src="https://test.com/icon"
-    />
-  </div>
-  <div
-    className="item-details"
+    class="backstage-list__item"
   >
     <div
-      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      class="integration__icon integration-list__icon"
     >
-      <strong
-        className="item-details__name"
-      >
-        testApp
-      </strong>
+      <img
+        alt="get app screenshot"
+        src="https://test.com/icon"
+      />
+    </div>
+    <div
+      class="item-details"
+    >
       <div
-        className="item-actions"
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
       >
-        <button
-          className="style--none color--link"
-          id="showSecretButton"
-          onClick={[Function]}
+        <strong
+          class="item-details__name"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Show Secret"
-            id="installed_integrations.showSecret"
-          />
-        </button>
-         - 
-        <button
-          className="style--none color--link"
-          id="regenerateSecretButton"
-          onClick={[Function]}
+          testApp
+        </strong>
+        <div
+          class="item-actions"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Regenerate Secret"
-            id="installed_integrations.regenSecret"
-          />
-        </button>
-         - 
-        <Link
-          key="edit"
-          to="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Edit"
-            id="installed_integrations.edit"
-          />
-        </Link>
-         - 
-        <Connect(DeleteIntegrationLink)
-          key="delete"
-          modalMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="This action permanently deletes the OAuth 2.0 application and breaks any integrations using it. Are you sure you want to delete it?"
-              id="installed_oauth_apps.delete.confirm"
-            />
-          }
-          onDelete={[Function]}
-        />
+          <button
+            class="style--none color--link"
+            id="showSecretButton"
+          >
+            Show Secret
+          </button>
+           - 
+          <button
+            class="style--none color--link"
+            id="regenerateSecretButton"
+          >
+            Regenerate Secret
+          </button>
+           - 
+          <a
+            href="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+          >
+            Edit
+          </a>
+           - 
+          <button>
+            Delete
+          </button>
+        </div>
       </div>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__description"
+      <div
+        class="item-details__row"
       >
-        testing
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__url word-break--all"
+        <span
+          class="item-details__description"
+        >
+          testing
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Is Trusted: "
-          id="installed_oauth_apps.is_trusted"
-        />
-        <strong>
-          <MemoizedFormattedMessage
-            defaultMessage="Yes"
-            id="installed_oauth_apps.trusted.yes"
+        <span
+          class="item-details__url word-break--all"
+        >
+          Is Trusted: 
+          <strong>
+            Yes
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client ID: 
+          <strong>
+            facxd9wpzpbpfp8pad78xj75pr
+          </strong>
+          <button
+            aria-label="Copy Client Id"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
           />
-        </strong>
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__token"
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Client ID: "
-          id="installed_integrations.client_id"
-        />
-        <strong>
-          facxd9wpzpbpfp8pad78xj75pr
-        </strong>
-        <Memo(CopyText)
-          label={
-            Object {
-              "defaultMessage": "Copy Client Id",
-              "id": "integrations.copy_client_id",
-            }
-          }
-          value="facxd9wpzpbpfp8pad78xj75pr"
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__token"
+        <span
+          class="item-details__token"
+        >
+          Client Secret: 
+          <strong>
+            ***************
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Client Secret: "
-          id="installed_integrations.client_secret"
-        />
-        <strong>
-          ***************
-        </strong>
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__url word-break--all"
+        <span
+          class="item-details__url word-break--all"
+        >
+          Callback URLs: https://test.com/callback, https://test.com/callback2
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Callback URLs: {urls}"
-          id="installed_integrations.callback_urls"
-          values={
-            Object {
-              "urls": "https://test.com/callback, https://test.com/callback2",
-            }
-          }
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__creation"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Created by {creator} on {createAt, date, full}"
-          id="installed_integrations.creation"
-          values={
-            Object {
-              "createAt": 1501365458934,
-              "creator": "somename",
-            }
-          }
-        />
-      </span>
+        <span
+          class="item-details__creation"
+        >
+          Created by somename on Saturday, July 29, 2017
+        </span>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/integrations/InstalledOAuthApp should match snapshot from app 1`] = `
-<div
-  className="backstage-list__item"
->
+<div>
   <div
-    className="integration__icon integration-list__icon"
-  >
-    <img
-      alt="get app screenshot"
-      src="https://test.com/icon"
-    />
-  </div>
-  <div
-    className="item-details"
+    class="backstage-list__item"
   >
     <div
-      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      class="integration__icon integration-list__icon"
     >
-      <strong
-        className="item-details__name"
-      >
-        testApp
-      </strong>
+      <img
+        alt="get app screenshot"
+        src="https://test.com/icon"
+      />
     </div>
     <div
-      className="item-details__row"
+      class="item-details"
     >
-      <span
-        className="item-details__description"
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
       >
-        testing
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__creation"
+        <strong
+          class="item-details__name"
+        >
+          testApp
+        </strong>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Managed by Apps Framework"
-          id="installed_integrations.fromApp"
-        />
-      </span>
+        <span
+          class="item-details__description"
+        >
+          testing
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Managed by Apps Framework
+        </span>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/integrations/InstalledOAuthApp should match snapshot, on error 1`] = `
-<div
-  className="backstage-list__item"
->
+<div>
   <div
-    className="integration__icon integration-list__icon"
-  >
-    <img
-      alt="get app screenshot"
-      src="https://test.com/icon"
-    />
-  </div>
-  <div
-    className="item-details"
+    class="backstage-list__item"
   >
     <div
-      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      class="integration__icon integration-list__icon"
     >
-      <strong
-        className="item-details__name"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Unnamed OAuth 2.0 Application"
-          id="installed_integrations.unnamed_oauth_app"
-        />
-      </strong>
+      <img
+        alt="get app screenshot"
+        src="https://test.com/icon"
+      />
+    </div>
+    <div
+      class="item-details"
+    >
       <div
-        className="item-actions"
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
       >
-        <button
-          className="style--none color--link"
-          id="showSecretButton"
-          onClick={[Function]}
+        <strong
+          class="item-details__name"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Show Secret"
-            id="installed_integrations.showSecret"
-          />
-        </button>
-         - 
-        <button
-          className="style--none color--link"
-          id="regenerateSecretButton"
-          onClick={[Function]}
+          testApp
+        </strong>
+        <div
+          class="item-actions"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Regenerate Secret"
-            id="installed_integrations.regenSecret"
-          />
-        </button>
-         - 
-        <Link
-          key="edit"
-          to="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Edit"
-            id="installed_integrations.edit"
-          />
-        </Link>
-         - 
-        <Connect(DeleteIntegrationLink)
-          key="delete"
-          modalMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="This action permanently deletes the OAuth 2.0 application and breaks any integrations using it. Are you sure you want to delete it?"
-              id="installed_oauth_apps.delete.confirm"
-            />
-          }
-          onDelete={[Function]}
-        />
+          <button
+            class="style--none color--link"
+            id="showSecretButton"
+          >
+            Show Secret
+          </button>
+           - 
+          <button
+            class="style--none color--link"
+            id="regenerateSecretButton"
+          >
+            Regenerate Secret
+          </button>
+           - 
+          <a
+            href="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+          >
+            Edit
+          </a>
+           - 
+          <button>
+            Delete
+          </button>
+        </div>
       </div>
-    </div>
-    <Memo(FormError)
-      error="error"
-    />
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__description"
+      <div
+        class="item-details__row"
       >
-        testing
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__url word-break--all"
+        <span
+          class="item-details__description"
+        >
+          testing
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Is Trusted: "
-          id="installed_oauth_apps.is_trusted"
-        />
-        <strong>
-          <MemoizedFormattedMessage
-            defaultMessage="No"
-            id="installed_oauth_apps.trusted.no"
+        <span
+          class="item-details__url word-break--all"
+        >
+          Is Trusted: 
+          <strong>
+            Yes
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client ID: 
+          <strong>
+            facxd9wpzpbpfp8pad78xj75pr
+          </strong>
+          <button
+            aria-label="Copy Client Id"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
           />
-        </strong>
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__token"
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Client ID: "
-          id="installed_integrations.client_id"
-        />
-        <strong>
-          facxd9wpzpbpfp8pad78xj75pr
-        </strong>
-        <Memo(CopyText)
-          label={
-            Object {
-              "defaultMessage": "Copy Client Id",
-              "id": "integrations.copy_client_id",
-            }
-          }
-          value="facxd9wpzpbpfp8pad78xj75pr"
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__token"
+        <span
+          class="item-details__token"
+        >
+          Client Secret: 
+          <strong>
+            ***************
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Client Secret: "
-          id="installed_integrations.client_secret"
-        />
-        <strong>
-          ***************
-        </strong>
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__url word-break--all"
+        <span
+          class="item-details__url word-break--all"
+        >
+          Callback URLs: https://test.com/callback, https://test.com/callback2
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Callback URLs: {urls}"
-          id="installed_integrations.callback_urls"
-          values={
-            Object {
-              "urls": "https://test.com/callback, https://test.com/callback2",
-            }
-          }
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__creation"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Created by {creator} on {createAt, date, full}"
-          id="installed_integrations.creation"
-          values={
-            Object {
-              "createAt": 1501365458934,
-              "creator": "somename",
-            }
-          }
-        />
-      </span>
+        <span
+          class="item-details__creation"
+        >
+          Created by somename on Saturday, July 29, 2017
+        </span>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/integrations/InstalledOAuthApp should match snapshot, when oauthApp is without name and not trusted 1`] = `
-<div
-  className="backstage-list__item"
->
+<div>
   <div
-    className="integration__icon integration-list__icon"
-  >
-    <img
-      alt="get app screenshot"
-      src="https://test.com/icon"
-    />
-  </div>
-  <div
-    className="item-details"
+    class="backstage-list__item"
   >
     <div
-      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      class="integration__icon integration-list__icon"
     >
-      <strong
-        className="item-details__name"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Unnamed OAuth 2.0 Application"
-          id="installed_integrations.unnamed_oauth_app"
-        />
-      </strong>
+      <img
+        alt="get app screenshot"
+        src="https://test.com/icon"
+      />
+    </div>
+    <div
+      class="item-details"
+    >
       <div
-        className="item-actions"
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
       >
-        <button
-          className="style--none color--link"
-          id="showSecretButton"
-          onClick={[Function]}
+        <strong
+          class="item-details__name"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Show Secret"
-            id="installed_integrations.showSecret"
-          />
-        </button>
-         - 
-        <button
-          className="style--none color--link"
-          id="regenerateSecretButton"
-          onClick={[Function]}
+          Unnamed OAuth 2.0 Application
+        </strong>
+        <div
+          class="item-actions"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Regenerate Secret"
-            id="installed_integrations.regenSecret"
-          />
-        </button>
-         - 
-        <Link
-          key="edit"
-          to="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Edit"
-            id="installed_integrations.edit"
-          />
-        </Link>
-         - 
-        <Connect(DeleteIntegrationLink)
-          key="delete"
-          modalMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="This action permanently deletes the OAuth 2.0 application and breaks any integrations using it. Are you sure you want to delete it?"
-              id="installed_oauth_apps.delete.confirm"
-            />
-          }
-          onDelete={[Function]}
-        />
+          <button
+            class="style--none color--link"
+            id="showSecretButton"
+          >
+            Show Secret
+          </button>
+           - 
+          <button
+            class="style--none color--link"
+            id="regenerateSecretButton"
+          >
+            Regenerate Secret
+          </button>
+           - 
+          <a
+            href="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+          >
+            Edit
+          </a>
+           - 
+          <button>
+            Delete
+          </button>
+        </div>
       </div>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__description"
+      <div
+        class="item-details__row"
       >
-        testing
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__url word-break--all"
+        <span
+          class="item-details__description"
+        >
+          testing
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Is Trusted: "
-          id="installed_oauth_apps.is_trusted"
-        />
-        <strong>
-          <MemoizedFormattedMessage
-            defaultMessage="No"
-            id="installed_oauth_apps.trusted.no"
+        <span
+          class="item-details__url word-break--all"
+        >
+          Is Trusted: 
+          <strong>
+            No
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client ID: 
+          <strong>
+            facxd9wpzpbpfp8pad78xj75pr
+          </strong>
+          <button
+            aria-label="Copy Client Id"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
           />
-        </strong>
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__token"
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Client ID: "
-          id="installed_integrations.client_id"
-        />
-        <strong>
-          facxd9wpzpbpfp8pad78xj75pr
-        </strong>
-        <Memo(CopyText)
-          label={
-            Object {
-              "defaultMessage": "Copy Client Id",
-              "id": "integrations.copy_client_id",
-            }
-          }
-          value="facxd9wpzpbpfp8pad78xj75pr"
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__token"
+        <span
+          class="item-details__token"
+        >
+          Client Secret: 
+          <strong>
+            ***************
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Client Secret: "
-          id="installed_integrations.client_secret"
-        />
-        <strong>
-          ***************
-        </strong>
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__url word-break--all"
+        <span
+          class="item-details__url word-break--all"
+        >
+          Callback URLs: https://test.com/callback, https://test.com/callback2
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Callback URLs: {urls}"
-          id="installed_integrations.callback_urls"
-          values={
-            Object {
-              "urls": "https://test.com/callback, https://test.com/callback2",
-            }
-          }
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__creation"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Created by {creator} on {createAt, date, full}"
-          id="installed_integrations.creation"
-          values={
-            Object {
-              "createAt": 1501365458934,
-              "creator": "somename",
-            }
-          }
-        />
-      </span>
+        <span
+          class="item-details__creation"
+        >
+          Created by somename on Saturday, July 29, 2017
+        </span>
+      </div>
     </div>
   </div>
 </div>

@@ -12,8 +12,8 @@ import SuggestionListContents from './suggestion_list_contents';
 import {hasResults} from './suggestion_results';
 
 export default class SearchSuggestionList extends SuggestionList {
-    popoverRef: React.RefObject<BSPopover>;
-    itemsContainerRef: React.RefObject<HTMLDivElement>;
+    popoverRef: React.RefObject<BSPopover | null>;
+    itemsContainerRef: React.RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);

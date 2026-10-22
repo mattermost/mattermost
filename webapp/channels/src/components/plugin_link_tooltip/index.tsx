@@ -72,7 +72,10 @@ export default function PluginLinkTooltip(props: Props) {
 
             {isMounted && (
                 <FloatingPortal id={RootHtmlPortalId}>
-                    <FloatingOverlay className='plugin-link-tooltip-floating-overlay'>
+                    <FloatingOverlay
+                        className='plugin-link-tooltip-floating-overlay'
+                        style={{pointerEvents: 'none'}}
+                    >
                         <div
                             ref={setFloating}
                             style={{...floatingStyles, ...transitionStyles}}

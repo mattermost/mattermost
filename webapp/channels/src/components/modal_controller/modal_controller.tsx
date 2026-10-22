@@ -7,7 +7,7 @@ type Modal = {
     open: boolean;
     dialogType: React.ComponentType;
     dialogProps?: Record<string, any>;
-}
+};
 
 type Props = {
 
@@ -30,7 +30,7 @@ type Props = {
          */
         closeModal: (modalId: string) => void;
     };
-}
+};
 
 const ModalController = ({
     modals,

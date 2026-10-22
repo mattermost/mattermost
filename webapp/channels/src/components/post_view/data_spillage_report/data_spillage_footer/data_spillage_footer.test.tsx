@@ -28,11 +28,16 @@ describe('DataSpillageFooter', () => {
         const post = TestHelper.getPostMock();
 
         renderWithContext(
-            <DataSpillageFooter post={post}/>,
+            <DataSpillageFooter
+                post={post}
+                flaggedPostID='flaggedPostID'
+            />,
         );
 
         expect(screen.getByTestId('data-spillage-footer')).toBeVisible();
-        expect(screen.getByTestId('data-spillage-action-view-details')).toBeVisible();
+        expect(
+            screen.getByTestId('data-spillage-action-view-details_flaggedPostID'),
+        ).toBeVisible();
         expect(screen.getByText('View details')).toBeVisible();
     });
 
@@ -43,10 +48,13 @@ describe('DataSpillageFooter', () => {
         });
 
         renderWithContext(
-            <DataSpillageFooter post={post}/>,
+            <DataSpillageFooter
+                post={post}
+                flaggedPostID='flaggedPostID'
+            />,
         );
 
-        const viewDetailsButton = screen.getByTestId('data-spillage-action-view-details');
+        const viewDetailsButton = screen.getByTestId('data-spillage-action-view-details_flaggedPostID');
         await userEvent.click(viewDetailsButton);
 
         expect(mockedSelectPostFromRightHandSideSearch).toHaveBeenCalledTimes(1);

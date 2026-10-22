@@ -1,50 +1,29 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/threading/common/follow_button should say follow 1`] = `
-<Memo(FollowButton)
-  isFollowing={false}
-  onClick={[MockFunction]}
->
-  <Button
-    className="FollowButton"
-    disabled={false}
-    isActive={false}
-    onClick={[MockFunction]}
+<div>
+  <button
+    class="Button Button___transparent FollowButton"
   >
-    <button
-      className="Button Button___transparent FollowButton"
-      disabled={false}
-      onClick={[MockFunction]}
+    <span
+      class="Button_label"
     >
-      <span
-        className="Button_label"
-      >
-        Follow
-      </span>
-    </button>
-  </Button>
-</Memo(FollowButton)>
+      Follow
+    </span>
+  </button>
+</div>
 `;
 
 exports[`components/threading/common/follow_button should say following 1`] = `
-<Memo(FollowButton)
-  isFollowing={true}
->
-  <Button
-    className="FollowButton"
-    disabled={false}
-    isActive={true}
+<div>
+  <button
+    class="Button Button___transparent is-active FollowButton"
   >
-    <button
-      className="Button Button___transparent is-active FollowButton"
-      disabled={false}
+    <span
+      class="Button_label"
     >
-      <span
-        className="Button_label"
-      >
-        Following
-      </span>
-    </button>
-  </Button>
-</Memo(FollowButton)>
+      Following
+    </span>
+  </button>
+</div>
 `;

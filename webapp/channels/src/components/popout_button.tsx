@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {canPopout} from 'utils/popouts/popout_windows';
 

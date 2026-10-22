@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-const latinMap: { [key: string]: string } = {
+const latinMap: {[key: string]: string} = {
     Á: 'A', // LATIN CAPITAL LETTER A WITH ACUTE
     Ă: 'A', // LATIN CAPITAL LETTER A WITH BREVE
     Ắ: 'A', // LATIN CAPITAL LETTER A WITH BREVE AND ACUTE

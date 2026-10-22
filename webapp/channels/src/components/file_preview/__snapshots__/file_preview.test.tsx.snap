@@ -4,20 +4,25 @@ exports[`FilePreview should match snapshot 1`] = `
 <div>
   <div
     class="file-preview__container"
+    data-testid="file-preview-container"
   >
     <div
       class="file-preview post-image__column"
+      data-testid="file-preview-item"
     >
-      <div
+      <a
+        aria-label="file thumbnail test_filename"
         class="post-image__thumbnail"
+        href="#"
       >
         <div
           class="post-image normal"
           style="background-image: url(\\"/api/v4/files/file_id_1/thumbnail\\"); background-size: cover;"
         />
-      </div>
+      </a>
       <div
         class="post-image__details"
+        data-testid="post-image-details"
       >
         <div
           class="post-image__detail_wrapper"
@@ -45,6 +50,7 @@ exports[`FilePreview should match snapshot 1`] = `
         <div>
           <a
             class="file-preview__remove"
+            data-testid="file-preview-remove"
           >
             <i
               class="icon icon-close"
@@ -98,14 +104,15 @@ exports[`FilePreview should match snapshot 1`] = `
           </a>
         </div>
         <div
-          class="post-image__progressBar progress"
+          aria-label="Progress"
+          aria-valuemax="100"
+          aria-valuemin="0"
+          aria-valuenow="50"
+          class="_progress-bar_as2vp_10 _progress-bar--size-small_as2vp_16 post-image__progressBar"
+          role="progressbar"
         >
           <div
-            aria-valuemax="100"
-            aria-valuemin="0"
-            aria-valuenow="50"
-            class="progress-bar"
-            role="progressbar"
+            class="_progress-bar__fill_as2vp_20 _progress-bar__fill--default_as2vp_37"
             style="width: 50%;"
           />
         </div>
@@ -119,20 +126,25 @@ exports[`FilePreview should match snapshot when props are changed 1`] = `
 <div>
   <div
     class="file-preview__container"
+    data-testid="file-preview-container"
   >
     <div
       class="file-preview post-image__column"
+      data-testid="file-preview-item"
     >
-      <div
+      <a
+        aria-label="file thumbnail test_filename"
         class="post-image__thumbnail"
+        href="#"
       >
         <div
           class="post-image normal"
           style="background-image: url(\\"/api/v4/files/file_id_1/thumbnail\\"); background-size: cover;"
         />
-      </div>
+      </a>
       <div
         class="post-image__details"
+        data-testid="post-image-details"
       >
         <div
           class="post-image__detail_wrapper"
@@ -160,6 +172,7 @@ exports[`FilePreview should match snapshot when props are changed 1`] = `
         <div>
           <a
             class="file-preview__remove"
+            data-testid="file-preview-remove"
           >
             <i
               class="icon icon-close"
@@ -213,14 +226,15 @@ exports[`FilePreview should match snapshot when props are changed 1`] = `
           </a>
         </div>
         <div
-          class="post-image__progressBar progress"
+          aria-label="Progress"
+          aria-valuemax="100"
+          aria-valuemin="0"
+          aria-valuenow="50"
+          class="_progress-bar_as2vp_10 _progress-bar--size-small_as2vp_16 post-image__progressBar"
+          role="progressbar"
         >
           <div
-            aria-valuemax="100"
-            aria-valuemin="0"
-            aria-valuenow="50"
-            class="progress-bar"
-            role="progressbar"
+            class="_progress-bar__fill_as2vp_20 _progress-bar__fill--default_as2vp_37"
             style="width: 50%;"
           />
         </div>
@@ -234,20 +248,25 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
 <div>
   <div
     class="file-preview__container"
+    data-testid="file-preview-container"
   >
     <div
       class="file-preview post-image__column"
+      data-testid="file-preview-item"
     >
-      <div
+      <a
+        aria-label="file thumbnail test_filename"
         class="post-image__thumbnail"
+        href="#"
       >
         <div
           class="post-image normal"
           style="background-image: url(\\"/api/v4/files/file_id_1/thumbnail\\"); background-size: cover;"
         />
-      </div>
+      </a>
       <div
         class="post-image__details"
+        data-testid="post-image-details"
       >
         <div
           class="post-image__detail_wrapper"
@@ -275,6 +294,7 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
         <div>
           <a
             class="file-preview__remove"
+            data-testid="file-preview-remove"
           >
             <i
               class="icon icon-close"
@@ -285,17 +305,21 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
     </div>
     <div
       class="file-preview post-image__column"
+      data-testid="file-preview-item"
     >
-      <div
+      <a
+        aria-label="file thumbnail file_two.jpg"
         class="post-image__thumbnail"
+        href="#"
       >
         <div
           class="post-image normal"
           style="background-image: url(\\"/api/v4/files/file_id_2/thumbnail\\"); background-size: cover;"
         />
-      </div>
+      </a>
       <div
         class="post-image__details"
+        data-testid="post-image-details"
       >
         <div
           class="post-image__detail_wrapper"
@@ -323,6 +347,7 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
         <div>
           <a
             class="file-preview__remove"
+            data-testid="file-preview-remove"
           >
             <i
               class="icon icon-close"

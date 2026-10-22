@@ -18,13 +18,7 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 }));
 
 describe('components/analytics/system_analytics/system_analytics.tsx', () => {
-    const baseProps = {
-        stats: null,
-        license: {
-            IsLicensed: 'true',
-            Cloud: 'true',
-        },
-    };
+    const baseProps = {};
 
     const initialState = {
         entities: {
@@ -45,6 +39,14 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
             },
             admin: {
                 analytics: {},
+            },
+            limits: {
+                serverLimits: {
+                    activeUserCount: 0,
+                    maxUsersLimit: 0,
+                    singleChannelGuestCount: 0,
+                    singleChannelGuestLimit: 0,
+                },
             },
         },
         plugins: {
@@ -247,5 +249,166 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
 
         expect(screen.getByText('Calls per channel')).toBeInTheDocument();
         expect(screen.getByText('Calls per day')).toBeInTheDocument();
+    });
+
+    test('shows single-channel guests card when licensed, not entry, and guest accounts enabled', () => {
+        const state = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    ...initialState.entities.general,
+                    license: {
+                        IsLicensed: 'true',
+                        Cloud: 'false',
+                        SkuShortName: 'enterprise',
+                        GuestAccounts: 'true',
+                        Users: '100',
+                    },
+                    config: {
+                        ...initialState.entities.general.config,
+                        EnableGuestAccounts: 'true',
+                    },
+                },
+                admin: {
+                    analytics: {
+                        [StatTypes.SINGLE_CHANNEL_GUESTS]: 500,
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 0,
+                        singleChannelGuestLimit: 1000,
+                        activeUserCount: 0,
+                        maxUsersLimit: 0,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
+
+        expect(screen.getByTestId('singleChannelGuests')).toBeInTheDocument();
+    });
+
+    test('does not show single-channel guests card for Entry SKU', () => {
+        const state = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    ...initialState.entities.general,
+                    license: {
+                        IsLicensed: 'true',
+                        Cloud: 'false',
+                        SkuShortName: 'entry',
+                        GuestAccounts: 'true',
+                        Users: '100',
+                    },
+                    config: {
+                        ...initialState.entities.general.config,
+                        EnableGuestAccounts: 'true',
+                    },
+                },
+                admin: {
+                    analytics: {
+                        [StatTypes.SINGLE_CHANNEL_GUESTS]: 500,
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 0,
+                        singleChannelGuestLimit: 1000,
+                        activeUserCount: 0,
+                        maxUsersLimit: 0,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
+
+        expect(screen.queryByTestId('singleChannelGuests')).not.toBeInTheDocument();
+    });
+
+    test('does not show single-channel guests card when guest accounts disabled', () => {
+        const state = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    ...initialState.entities.general,
+                    license: {
+                        IsLicensed: 'true',
+                        Cloud: 'false',
+                        SkuShortName: 'enterprise',
+                        GuestAccounts: 'true',
+                        Users: '100',
+                    },
+                    config: {
+                        ...initialState.entities.general.config,
+                        EnableGuestAccounts: 'false',
+                    },
+                },
+                admin: {
+                    analytics: {
+                        [StatTypes.SINGLE_CHANNEL_GUESTS]: 500,
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 0,
+                        singleChannelGuestLimit: 1000,
+                        activeUserCount: 0,
+                        maxUsersLimit: 0,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
+
+        expect(screen.queryByTestId('singleChannelGuests')).not.toBeInTheDocument();
+    });
+
+    test('shows error status when single-channel guests exceed limit', () => {
+        const state = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    ...initialState.entities.general,
+                    license: {
+                        IsLicensed: 'true',
+                        Cloud: 'false',
+                        SkuShortName: 'enterprise',
+                        GuestAccounts: 'true',
+                        Users: '100',
+                    },
+                    config: {
+                        ...initialState.entities.general.config,
+                        EnableGuestAccounts: 'true',
+                    },
+                },
+                admin: {
+                    analytics: {
+                        [StatTypes.SINGLE_CHANNEL_GUESTS]: 150,
+                    },
+                },
+                limits: {
+                    serverLimits: {
+                        singleChannelGuestCount: 0,
+                        singleChannelGuestLimit: 100,
+                        activeUserCount: 0,
+                        maxUsersLimit: 0,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
+
+        const titleElement = screen.getByTestId('singleChannelGuestsTitle');
+        expect(titleElement).toHaveClass('team_statistics--error');
     });
 });

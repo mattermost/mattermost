@@ -5,7 +5,7 @@ import React, {useState, useCallback, useMemo} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {CheckAllIcon, ArrowExpandIcon, ChevronDownIcon, ChevronUpIcon} from '@mattermost/compass-icons/components';
+import {CheckAllIcon, ArrowExpandIcon} from '@mattermost/compass-icons/components';
 import type {RecapChannel} from '@mattermost/types/recaps';
 
 import {readMultipleChannels} from 'mattermost-redux/actions/channels';
@@ -76,6 +76,16 @@ const RecapChannelCard = ({channel}: Props) => {
         }
     }, [dispatch, channelObject]);
 
+    const handleHeaderKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.target !== e.currentTarget) {
+            return;
+        }
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsCollapsed((prev) => !prev);
+        }
+    }, []);
+
     const menuActions: RecapMenuAction[] = useMemo(() => [
 
         {
@@ -103,22 +113,32 @@ const RecapChannelCard = ({channel}: Props) => {
     }
 
     return (
-        <div className='recap-channel-card'>
-            <div className='recap-channel-header'>
+        <div
+            className={`recap-channel-card${isCollapsed ? ' collapsed' : ''}`}
+            data-testid='recap-channel-card'
+        >
+            <div
+                className='recap-channel-header'
+                data-testid='recap-channel-collapse-button'
+                role='button'
+                tabIndex={0}
+                onClick={(e) => e.target === e.currentTarget && setIsCollapsed(!isCollapsed)}
+                onKeyDown={handleHeaderKeyDown}
+                aria-expanded={!isCollapsed}
+            >
                 <button
                     className='recap-channel-name-tag'
+                    data-testid='recap-channel-name-tag'
                     onClick={handleChannelClick}
                     disabled={!channelObject}
                 >
                     {channel.channel_name}
                 </button>
-                <div className='recap-channel-header-actions'>
-                    <button
-                        className='recap-channel-collapse-button'
-                        onClick={() => setIsCollapsed(!isCollapsed)}
-                    >
-                        {isCollapsed ? <ChevronDownIcon size={16}/> : <ChevronUpIcon size={16}/>}
-                    </button>
+                <div
+                    className='recap-channel-header-actions'
+                    data-testid='recap-channel-header-actions'
+                    onClick={(e) => e.stopPropagation()}
+                >
                     <RecapMenu
                         actions={menuActions}
                         ariaLabel={formatMessage(

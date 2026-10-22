@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -418,9 +419,9 @@ func TestBotPatch(t *testing.T) {
 				DeleteAt:       4,
 			},
 			&BotPatch{
-				Username:    NewPointer("new_username"),
+				Username:    new("new_username"),
 				DisplayName: nil,
-				Description: NewPointer("new description"),
+				Description: new("new description"),
 			},
 			&Bot{
 				UserId:         userId1,
@@ -448,9 +449,9 @@ func TestBotPatch(t *testing.T) {
 				DeleteAt:       4,
 			},
 			&BotPatch{
-				Username:    NewPointer("new_username"),
-				DisplayName: NewPointer("new display name"),
-				Description: NewPointer("new description"),
+				Username:    new("new_username"),
+				DisplayName: new("new display name"),
+				Description: new("new description"),
 			},
 			&Bot{
 				UserId:         userId1,
@@ -492,7 +493,7 @@ func TestBotWouldPatch(t *testing.T) {
 
 	t.Run("patch", func(t *testing.T) {
 		patch := &BotPatch{
-			DisplayName: NewPointer("BotName"),
+			DisplayName: new("BotName"),
 		}
 		ok := b.WouldPatch(patch)
 		require.True(t, ok)
@@ -500,7 +501,7 @@ func TestBotWouldPatch(t *testing.T) {
 
 	t.Run("no patch", func(t *testing.T) {
 		patch := &BotPatch{
-			DisplayName: NewPointer("BotName"),
+			DisplayName: new("BotName"),
 		}
 		b.Patch(patch)
 		ok := b.WouldPatch(patch)
@@ -698,4 +699,67 @@ func TestIsBotChannel(t *testing.T) {
 			assert.Equal(t, test.Expected, IsBotDMChannel(test.Channel, "botUserID"))
 		})
 	}
+}
+
+func TestBotIsSystemOwned(t *testing.T) {
+	for username := range ProtectedBotUsernames {
+		t.Run(username, func(t *testing.T) {
+			bot := &Bot{Username: username}
+			assert.True(t, bot.IsSystemOwned())
+		})
+	}
+
+	t.Run("regular bot", func(t *testing.T) {
+		bot := &Bot{Username: "some-plugin-bot"}
+		assert.False(t, bot.IsSystemOwned())
+	})
+
+	t.Run("mixed-case username", func(t *testing.T) {
+		bot := &Bot{Username: "System-Bot"}
+		assert.True(t, bot.IsSystemOwned())
+	})
+}
+
+func TestBotHasUserOwner(t *testing.T) {
+	t.Run("user owner", func(t *testing.T) {
+		assert.True(t, (&Bot{OwnerId: NewId()}).HasUserOwner())
+	})
+
+	t.Run("deleted user owner is still a user owner", func(t *testing.T) {
+		assert.True(t, (&Bot{OwnerId: "abcdefghijklmnopqrstuvwxyz"}).HasUserOwner())
+	})
+
+	for _, pluginID := range []string{"com.mattermost.calls", "playbooks", "focalboard"} {
+		t.Run(pluginID, func(t *testing.T) {
+			assert.False(t, (&Bot{OwnerId: pluginID}).HasUserOwner())
+		})
+	}
+
+	t.Run("empty owner", func(t *testing.T) {
+		assert.False(t, (&Bot{}).HasUserOwner())
+	})
+}
+
+func TestBotMarshalJSON(t *testing.T) {
+	t.Run("system-owned bot", func(t *testing.T) {
+		bot := &Bot{UserId: NewId(), Username: BotSystemBotUsername}
+
+		data, err := json.Marshal(bot)
+		require.NoError(t, err)
+
+		var decoded map[string]any
+		require.NoError(t, json.Unmarshal(data, &decoded))
+		assert.Equal(t, true, decoded["system_owned"])
+	})
+
+	t.Run("regular bot", func(t *testing.T) {
+		bot := &Bot{UserId: NewId(), Username: "some-plugin-bot"}
+
+		data, err := json.Marshal(bot)
+		require.NoError(t, err)
+
+		var decoded map[string]any
+		require.NoError(t, json.Unmarshal(data, &decoded))
+		assert.Equal(t, false, decoded["system_owned"])
+	})
 }

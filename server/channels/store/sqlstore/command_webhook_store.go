@@ -118,6 +118,18 @@ func (s SqlCommandWebhookStore) TryUse(id string, limit int) error {
 	return nil
 }
 
+func (s SqlCommandWebhookStore) PermanentDeleteByUser(userId string) error {
+	query := s.getQueryBuilder().
+		Delete("CommandWebhooks").
+		Where(sq.Eq{"UserId": userId})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete CommandWebhooks with userId=%s", userId)
+	}
+
+	return nil
+}
+
 func (s SqlCommandWebhookStore) Cleanup() {
 	exptime := model.GetMillis() - model.CommandWebhookLifetime
 

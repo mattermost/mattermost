@@ -371,7 +371,6 @@ body {
 
         .icon {
             height: 20px;
-            margin: 0 -8px 0 15px;
             cursor: pointer;
             float: left;
             opacity: 0.45;
@@ -424,6 +423,26 @@ body {
         float: left;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    .signup-team-dir__recommended {
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        padding: 0 6px;
+        border-radius: 4px;
+        margin: 0 20px;
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 18px;
+        white-space: nowrap;
+
+        i {
+            margin-right: 2px;
+            font-size: 12px;
+        }
     }
 
     .signup-team__icon {

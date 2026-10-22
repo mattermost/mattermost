@@ -33,7 +33,7 @@ func (seb *Broker) UpdateConfig(cfg *model.Config) *model.AppError {
 
 func (seb *Broker) GetActiveEngines() []SearchEngineInterface {
 	engines := []SearchEngineInterface{}
-	if seb.ElasticsearchEngine != nil && seb.ElasticsearchEngine.IsActive() {
+	if seb.ElasticsearchEngine != nil && seb.ElasticsearchEngine.IsActive() && seb.ElasticsearchEngine.IsHealthy() {
 		engines = append(engines, seb.ElasticsearchEngine)
 	}
 	return engines

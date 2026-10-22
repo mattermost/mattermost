@@ -12,15 +12,19 @@ import BackIcon from 'components/widgets/icons/fa_back_icon';
 type Props = {
     team?: Team;
     siteName?: string;
-}
+};
 
 const BackstageNavbar = ({team, siteName}: Props) => {
     const teamExists = team?.delete_at === 0;
 
     return (
-        <div className='backstage-navbar'>
+        <div
+            className='backstage-navbar'
+            data-testid='backstage-navbar'
+        >
             <BlockableLink
                 className='backstage-navbar__back'
+                data-testid='backstage-navbar-back'
                 to={`/${teamExists ? team?.name : ''}`}
             >
                 <BackIcon/>
@@ -29,7 +33,7 @@ const BackstageNavbar = ({team, siteName}: Props) => {
                         <FormattedMessage
                             id='backstage_navbar.backToMattermost'
                             defaultMessage='Back to {siteName}'
-                            values={{siteName: siteName ?? team?.name}}
+                            values={{siteName: siteName ?? team?.display_name}}
                         />
                     ) : (
                         <FormattedMessage

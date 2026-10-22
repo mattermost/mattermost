@@ -20,7 +20,7 @@ type Props = {
     channel?: Channel;
     selected: Post | FakePost;
     previousRhsState?: RhsState;
-}
+};
 
 const RhsThread = ({
     currentTeam,
@@ -63,4 +63,3 @@ const RhsThread = ({
 };
 
 export default memo(RhsThread);
-

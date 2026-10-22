@@ -8,6 +8,7 @@ const axios = require('axios');
 const ClientOAuth2 = require('client-oauth2');
 
 const webhookUtils = require('./utils/webhook_utils');
+const gridUtils = require('./utils/webhook_grid_utils');
 const postMessageAs = require('./tests/plugins/post_message_as');
 
 const port = 3000;
@@ -23,18 +24,38 @@ server.post('/setup', doSetup);
 server.post('/message_menus', postMessageMenus);
 server.post('/dialog_request', onDialogRequest);
 server.post('/simple_dialog_request', onSimpleDialogRequest);
+server.post('/basic_dialog_request', onBasicDialogRequest);
 server.post('/user_and_channel_dialog_request', onUserAndChannelDialogRequest);
 server.post('/dialog_submit', onDialogSubmit);
 server.post('/boolean_dialog_request', onBooleanDialogRequest);
+server.post('/checkbox_group_dialog_request', onCheckboxGroupDialogRequest);
 server.post('/multiselect_dialog_request', onMultiSelectDialogRequest);
 server.post('/dynamic_select_dialog_request', onDynamicSelectDialogRequest);
+server.post('/file_upload_dialog_request', onFileUploadDialogRequest);
 server.post('/dynamic_select_source', onDynamicSelectSource);
 server.post('/dialog/field-refresh', onFieldRefreshDialogRequest);
 server.post('/dialog/multistep', onMultistepDialogRequest);
+server.post('/dialog/action_button_request', onActionButtonDialogRequest);
+server.post('/dialog/open_child', onOpenChildDialog);
+server.post('/dialog/grid', onGridDialogRequest);
+server.post('/dialog/grid_source', onGridDialogSource);
+server.post('/dialog/mission', onMissionDialogRequest);
+server.post('/dialog/mission/cargo', onMissionCargoDialog);
+server.post('/dialog/mission/cargo_source', onMissionCargoSource);
+server.post('/dialog/mission/schedule', onMissionScheduleDialog);
+server.post('/dialog/submit_buttons', onSubmitButtonsDialogRequest);
+server.post('/dialog/reset', onResetDialogDemoData);
 server.post('/field_refresh_source', onFieldRefreshSource);
+server.post('/dialog/refresh_nav', onRefreshNavDialogRequest);
+server.post('/refresh_nav_source', onRefreshNavSource);
 server.post('/datetime_dialog_request', onDateTimeDialogRequest);
 server.post('/datetime_dialog_submit', onDateTimeDialogSubmit);
 server.post('/slack_compatible_message_response', postSlackCompatibleMessageResponse);
+server.post('/mm_blocks_integration', postMmBlocksIntegration);
+server.post('/mm_blocks_integration_update', postMmBlocksIntegrationUpdate);
+server.post('/mm_blocks_integration_static_select', postMmBlocksIntegrationStaticSelect);
+server.post('/mm_blocks_integration_echo_query', postMmBlocksIntegrationEchoQuery);
+server.post('/mm_blocks_integration_echo_context', postMmBlocksIntegrationEchoContext);
 server.post('/send_message_to_channel', postSendMessageToChannel);
 server.post('/post_outgoing_webhook', postOutgoingWebhook);
 server.post('/send_oauth_credentials', postSendOauthCredentials);
@@ -42,7 +63,13 @@ server.get('/start_oauth', getStartOAuth);
 server.get('/complete_oauth', getCompleteOauth);
 server.post('/post_oauth_message', postOAuthMessage);
 
-server.listen(port, () => console.log(`Webhook test server listening on port ${port}!`));
+server.listen(port, (err) => {
+    if (err) {
+        console.error(err);
+        throw err;
+    }
+    console.log(`Webhook test server listening on port ${port}!`);
+});
 
 function ping(req, res) {
     return res.json({
@@ -53,18 +80,37 @@ function ping(req, res) {
             'POST /message_menus',
             'POST /dialog_request',
             'POST /simple_dialog_request',
+            'POST /basic_dialog_request',
             'POST /user_and_channel_dialog_request',
             'POST /dialog_submit',
             'POST /boolean_dialog_request',
+            'POST /checkbox_group_dialog_request',
             'POST /multiselect_dialog_request',
             'POST /dynamic_select_dialog_request',
+            'POST /file_upload_dialog_request',
             'POST /dynamic_select_source',
             'POST /dialog/field-refresh',
             'POST /dialog/multistep',
+            'POST /dialog/action_button_request',
+            'POST /dialog/open_child',
+            'POST /dialog/grid',
+            'POST /dialog/grid_source',
+            'POST /dialog/mission',
+            'POST /dialog/mission/cargo',
+            'POST /dialog/mission/cargo_source',
+            'POST /dialog/mission/schedule',
+            'POST /dialog/submit_buttons',
             'POST /field_refresh_source',
+            'POST /dialog/refresh_nav',
+            'POST /refresh_nav_source',
             'POST /datetime_dialog_request',
             'POST /datetime_dialog_submit',
             'POST /slack_compatible_message_response',
+            'POST /mm_blocks_integration',
+            'POST /mm_blocks_integration_update',
+            'POST /mm_blocks_integration_static_select',
+            'POST /mm_blocks_integration_echo_query',
+            'POST /mm_blocks_integration_echo_context',
             'POST /send_message_to_channel',
             'POST /post_outgoing_webhook',
             'POST /send_oauth_credentials',
@@ -86,7 +132,29 @@ function doSetup(req, res) {
     adminUsername = req.body.adminUsername;
     adminPassword = req.body.adminPassword;
 
+    console.log(`Webhook server configured: baseUrl=${baseUrl}, webhookBaseUrl=${webhookBaseUrl}`);
+
     return res.status(201).send('Successfully setup the new base URLs and credential.');
+}
+
+async function handleDialogOpen(req, res, getDialog, successText) {
+    const {body} = req;
+    if (!body.trigger_id) {
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(400).json({text: 'Missing trigger_id'});
+    }
+
+    try {
+        const dialog = getDialog(body.trigger_id, webhookBaseUrl);
+        console.log(JSON.stringify(dialog, null, 2));
+        await openDialog(dialog);
+        res.setHeader('Content-Type', 'application/json');
+        return res.json({text: successText});
+    } catch (err) {
+        console.error('Failed to open dialog:', err.message);
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(500).json({text: `Failed to open dialog: ${err.message}`});
+    }
 }
 
 let client;
@@ -159,6 +227,81 @@ function postSlackCompatibleMessageResponse(req, res) {
     });
 }
 
+/**
+ * Mattermost mm_blocks external actions POST the same integration envelope as legacy message buttons.
+ * @see model.PostActionIntegrationResponse
+ */
+function postMmBlocksIntegration(req, res) {
+    const userName = req.body && req.body.user_name ? req.body.user_name : 'unknown';
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        ephemeral_text: `Playwright mm_blocks integration OK (user: ${userName}).`,
+        skip_slack_parsing: true,
+    });
+}
+
+/**
+ * Returns a PostActionIntegrationResponse update so the interactive post is edited in-place
+ * (persisted webhook post or ephemeral mm_blocks post).
+ */
+function postMmBlocksIntegrationUpdate(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        update: {
+            message: 'E2E mm_blocks post updated (message field).',
+            props: {
+                mm_blocks: [
+                    {
+                        type: 'text',
+                        text: 'PLAYWRIGHT_MM_BLOCKS_UPDATED',
+                    },
+                ],
+            },
+        },
+        skip_slack_parsing: true,
+    });
+}
+
+/** Echoes URL query parameters Mattermost merged onto the integration request (action query + block query). */
+function postMmBlocksIntegrationEchoQuery(req, res) {
+    const entries = Object.keys(req.query || {}).
+        sort().
+        map((k) => `${k}=${String(req.query[k])}`);
+    const summary = entries.join('&');
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        ephemeral_text: `Playwright mm_blocks query OK (${summary})`,
+        skip_slack_parsing: true,
+    });
+}
+
+/** Echoes `context.test_marker` from the Mattermost integration POST body for mm_blocks external actions. */
+function postMmBlocksIntegrationEchoContext(req, res) {
+    const ctx = (req.body && req.body.context) || {};
+    const marker =
+        typeof ctx.test_marker === 'string' ? ctx.test_marker : JSON.stringify(ctx.test_marker ?? null);
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        ephemeral_text: `Playwright mm_blocks context OK (test_marker: ${marker}).`,
+        skip_slack_parsing: true,
+    });
+}
+
+/** Echoes `context.selected_option` from the Mattermost integration POST for mm_blocks static_select. */
+function postMmBlocksIntegrationStaticSelect(req, res) {
+    const selected = req.body && req.body.context && req.body.context.selected_option;
+    const label = typeof selected === 'string' ? selected : JSON.stringify(selected ?? null);
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        ephemeral_text: `Playwright mm_blocks static_select OK (selected_option: ${label}).`,
+        skip_slack_parsing: true,
+    });
+}
+
 function postMessageMenus(req, res) {
     let responseData = {};
     const {body} = req;
@@ -173,79 +316,73 @@ function postMessageMenus(req, res) {
 }
 
 async function openDialog(dialog) {
-    await axios({
-        method: 'post',
-        url: `${baseUrl}/api/v4/actions/dialogs/open`,
-        data: dialog,
-    });
+    // Callers invoke this fire-and-forget (no await/catch), so any rejection here
+    // would become an unhandled rejection and crash the whole webhook process.
+    // Guard against a missing baseUrl (set by /setup) and swallow request errors.
+    if (!baseUrl) {
+        console.error('openDialog called before /setup ran — baseUrl is not set; skipping dialog open');
+        return;
+    }
+
+    try {
+        await axios({
+            method: 'post',
+            url: `${baseUrl}/api/v4/actions/dialogs/open`,
+            data: dialog,
+        });
+    } catch (err) {
+        const status = err.response && err.response.status;
+        const body = err.response && err.response.data;
+        console.error('openDialog request failed:', status || err.code || err.message, body ? JSON.stringify(body) : '');
+    }
 }
 
 function onDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getFullDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
-
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Full dialog triggered via slash command!'});
+    return handleDialogOpen(req, res, webhookUtils.getFullDialog, 'Full dialog triggered via slash command!');
 }
 
 function onSimpleDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getSimpleDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
+    return handleDialogOpen(req, res, webhookUtils.getSimpleDialog, 'Simple dialog triggered via slash command!');
+}
 
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Simple dialog triggered via slash command!'});
+function onBasicDialogRequest(req, res) {
+    return handleDialogOpen(req, res, webhookUtils.getBasicDialog, 'Basic dialog triggered via slash command!');
 }
 
 function onUserAndChannelDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getUserAndChannelDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
-
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Simple dialog triggered via slash command!'});
+    return handleDialogOpen(req, res, webhookUtils.getUserAndChannelDialog, 'Simple dialog triggered via slash command!');
 }
 
 function onBooleanDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getBooleanDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
+    return handleDialogOpen(req, res, webhookUtils.getBooleanDialog, 'Simple dialog triggered via slash command!');
+}
 
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Simple dialog triggered via slash command!'});
+function onCheckboxGroupDialogRequest(req, res) {
+    return handleDialogOpen(req, res, webhookUtils.getCheckboxGroupDialog, 'Checkbox dialog feature demo triggered via slash command!');
 }
 
 function onMultiSelectDialogRequest(req, res) {
     const {body} = req;
-    if (body.trigger_id) {
-        // Check URL parameters or body for includeDefaults flag
-        const includeDefaults = req.query.includeDefaults === 'true' || req.query.includeDefaults === true;
-        const dialog = webhookUtils.getMultiSelectDialog(body.trigger_id, webhookBaseUrl, includeDefaults);
-        openDialog(dialog);
+    if (!body.trigger_id) {
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(400).json({text: 'Missing trigger_id'});
     }
 
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Multiselect dialog triggered via slash command!'});
+    const includeDefaults = req.query.includeDefaults === 'true' || req.query.includeDefaults === true;
+    return handleDialogOpen(
+        req,
+        res,
+        (triggerId, webhookUrl) => webhookUtils.getMultiSelectDialog(triggerId, webhookUrl, includeDefaults),
+        'Multiselect dialog triggered via slash command!',
+    );
 }
 
 function onDynamicSelectDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getDynamicSelectDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
+    return handleDialogOpen(req, res, webhookUtils.getDynamicSelectDialog, 'Dynamic select dialog triggered via slash command!');
+}
 
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Dynamic select dialog triggered via slash command!'});
+function onFileUploadDialogRequest(req, res) {
+    return handleDialogOpen(req, res, webhookUtils.getFileUploadDialog, 'File upload dialog triggered via slash command!');
 }
 
 function onDynamicSelectSource(req, res) {
@@ -270,11 +407,9 @@ function onDynamicSelectSource(req, res) {
     ];
 
     // Filter options based on search text
-    const filteredOptions = searchText ?
-        allOptions.filter((option) =>
-            option.text.toLowerCase().includes(searchText) ||
-            option.value.toLowerCase().includes(searchText)) :
-        allOptions.slice(0, 6); // Limit to first 6 if no search
+    const filteredOptions = searchText ? allOptions.filter((option) =>
+        option.text.toLowerCase().includes(searchText) ||
+            option.value.toLowerCase().includes(searchText)) : allOptions.slice(0, 6); // Limit to first 6 if no search
 
     res.setHeader('Content-Type', 'application/json');
     return res.json({
@@ -282,13 +417,17 @@ function onDynamicSelectSource(req, res) {
     });
 }
 
-function onDateTimeDialogRequest(req, res) {
+async function onDateTimeDialogRequest(req, res) {
     const {body} = req;
-    if (body.trigger_id) {
+    if (!body.trigger_id) {
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(400).json({text: 'Missing trigger_id'});
+    }
+
+    try {
         let dialog;
         const command = body.text ? body.text.trim() : '';
 
-        // Use focused dialog functions based on command parameter
         switch (command) {
         case 'basic':
             dialog = webhookUtils.getBasicDateDialog(body.trigger_id, webhookBaseUrl);
@@ -306,16 +445,18 @@ function onDateTimeDialogRequest(req, res) {
             dialog = webhookUtils.getTimezoneManualDialog(body.trigger_id, webhookBaseUrl);
             break;
         default:
-            // Default to basic datetime dialog for backward compatibility
             dialog = webhookUtils.getBasicDateTimeDialog(body.trigger_id, webhookBaseUrl);
             break;
         }
         console.log('Opening DateTime dialog', dialog.dialog.title);
-        openDialog(dialog);
+        await openDialog(dialog);
+        res.setHeader('Content-Type', 'application/json');
+        return res.json({text: 'DateTime dialog triggered via slash command!'});
+    } catch (err) {
+        console.error('Failed to open dialog:', err.message);
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(500).json({text: `Failed to open dialog: ${err.message}`});
     }
-
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'DateTime dialog triggered via slash command!'});
 }
 
 function onDateTimeDialogSubmit(req, res) {
@@ -366,6 +507,7 @@ function onDialogSubmit(req, res) {
     let message;
     if (body.cancelled) {
         message = 'Dialog cancelled';
+        console.log('[WEBHOOK] Dialog cancelled');
         sendSysadminResponse(message, body.channel_id);
         return res.json({text: message});
     }
@@ -398,6 +540,60 @@ function onDialogSubmit(req, res) {
         return res.json({text: message});
     }
 
+    // Mission demo: submitting closes the current dialog and returns to the one
+    // beneath it. The schedule dialog also saves its task checkboxes first.
+    if (body.callback_id === 'mission_schedule') {
+        // state carries the sortie id; each task is a bool field keyed by its index.
+        const sortie = mission.sorties.find((s) => s.id === body.state);
+        const submission = body.submission || {};
+        if (sortie) {
+            sortie.schedule.forEach((t, i) => {
+                const value = submission[`task_${i}`];
+                if (value !== undefined) {
+                    t.done = value === true || value === 'true';
+                }
+            });
+        }
+        return res.json({});
+    }
+    if (body.callback_id && body.callback_id.startsWith('mission_')) {
+        return res.json({});
+    }
+
+    // Submit-buttons demo: "add" keeps the dialog open with an updated note count
+    // (state carries the count); any other button closes the dialog.
+    if (body.callback_id === 'submit_buttons_demo') {
+        const submission = body.submission || {};
+        if (submission.action === 'add') {
+            const count = (parseInt(body.state, 10) || 0) + 1;
+            return res.json({type: 'form', form: getSubmitButtonsForm(count, submission.note)});
+        }
+        return res.json({});
+    }
+
+    // Refresh-nav: after a SourceURL refresh the Redux dialog state retains
+    // callback_id 'refresh_nav_board'. If mission_id is in the submission the
+    // user submitted the detail task-list view — save the tasks and return a
+    // fresh board. If mission_id is absent the user clicked "Close" on the
+    // board itself — let the dialog close normally.
+    if (body.callback_id === 'refresh_nav_board') {
+        const submission = body.submission || {};
+        const missionId = submission.mission_id;
+        if (missionId) {
+            const navMission = refreshNavMissions.find((m) => m.id === missionId);
+            if (navMission) {
+                for (const task of navMission.tasks) {
+                    if (task.id in submission) {
+                        task.done = submission[task.id] === true || submission[task.id] === 'true';
+                    }
+                }
+            }
+            return res.json({type: 'form', form: buildRefreshNavBoardForm()});
+        }
+
+        // No mission selected — board "Close" clicked, fall through to normal close.
+    }
+
     // Check if this is a field refresh dialog submission
     if (body.callback_id === 'field_refresh_callback') {
         const submission = body.submission || {};
@@ -407,7 +603,23 @@ function onDialogSubmit(req, res) {
     }
 
     // Regular dialog submission
-    message = 'Dialog submitted';
+    // Format submission data for the channel message
+    const formatSubmissionValue = (value) => {
+        if (Array.isArray(value)) {
+            return JSON.stringify(value);
+        }
+        if (value && typeof value === 'object') {
+            return JSON.stringify(value);
+        }
+        return String(value);
+    };
+
+    const sanitize = (str) => String(str).replace(/[<>&"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
+    const submissionData = Object.entries(body.submission || {}).
+        map(([key, value]) => `**${sanitize(key)}**: ${sanitize(formatSubmissionValue(value))}`).
+        join('\n');
+
+    message = `Dialog submitted successfully!\n\n**Submission Data:**\n${submissionData}`;
 
     sendSysadminResponse(message, body.channel_id);
     return res.json({text: message});
@@ -496,25 +708,475 @@ function postOutgoingWebhook(req, res) {
 }
 
 function onFieldRefreshDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getFieldRefreshDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
-
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Field refresh dialog triggered via slash command!'});
+    return handleDialogOpen(req, res, webhookUtils.getFieldRefreshDialog, 'Field refresh dialog triggered via slash command!');
 }
 
 function onMultistepDialogRequest(req, res) {
+    return handleDialogOpen(req, res, webhookUtils.getMultistepStep1Dialog, 'Multistep dialog triggered via slash command!');
+}
+
+// ---------------------------------------------------------------------------
+// Refresh-nav demo: single dialog slot that morphs between board and detail.
+// ---------------------------------------------------------------------------
+
+// Mutable in-memory mission state shared across all refresh-nav requests.
+const refreshNavMissions = [
+    {
+        id: 'M-1',
+        name: 'Operation Falcon',
+        status: 'active',
+        tasks: [
+            {id: 'rn_t1', name: 'Secure perimeter', done: false},
+            {id: 'rn_t2', name: 'Establish comms', done: true},
+            {id: 'rn_t3', name: 'Deploy assets', done: false},
+        ],
+    },
+    {
+        id: 'M-2',
+        name: 'Operation Raven',
+        status: 'standby',
+        tasks: [
+            {id: 'rn_t4', name: 'Brief team', done: false},
+            {id: 'rn_t5', name: 'Check equipment', done: false},
+        ],
+    },
+];
+
+// Snapshots of the demo data, restored by /dialog/reset so specs start from a known
+// state even after manual demo runs against the same webhook server.
+const initialRefreshNavMissions = JSON.stringify(refreshNavMissions);
+
+function onResetDialogDemoData(req, res) {
+    refreshNavMissions.splice(0, refreshNavMissions.length, ...JSON.parse(initialRefreshNavMissions));
+    mission.sorties = JSON.parse(initialMissionSorties);
+    res.json({});
+}
+
+function buildRefreshNavBoardIntro() {
+    let intro = '| Mission | Name | Status | Progress |\n|---|---|---|---|\n';
+    for (const m of refreshNavMissions) {
+        const done = m.tasks.filter((t) => t.done).length;
+        intro += `| **${m.id}** | ${m.name} | ${m.status} | ${done}/${m.tasks.length} |\n`;
+    }
+    intro += '\nChoose a mission below to view and update its tasks.';
+    return intro;
+}
+
+function buildRefreshNavBoardForm() {
+    return {
+        callback_id: 'refresh_nav_board',
+        title: 'Mission Board',
+        introduction_text: buildRefreshNavBoardIntro(),
+        submit_label: 'Close',
+        notify_on_cancel: true,
+        source_url: `${webhookBaseUrl}/refresh_nav_source`,
+        elements: [{
+            display_name: 'Mission',
+            name: 'mission_id',
+            type: 'radio',
+            refresh: true,
+
+            // Optional so the board's "Close" submit passes validation with no selection.
+            optional: true,
+            options: refreshNavMissions.map((m) => {
+                const done = m.tasks.filter((t) => t.done).length;
+                return {text: `${m.id} — ${m.name} (${done}/${m.tasks.length})`, value: m.id};
+            }),
+        }],
+    };
+}
+
+function onRefreshNavDialogRequest(req, res) {
     const {body} = req;
     if (body.trigger_id) {
-        const dialog = webhookUtils.getMultistepStep1Dialog(body.trigger_id, webhookBaseUrl);
+        const dialog = {
+            trigger_id: body.trigger_id,
+            url: `${webhookBaseUrl}/dialog_submit`,
+            dialog: buildRefreshNavBoardForm(),
+        };
+        openDialog(dialog);
+    }
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'Mission board opened!'});
+}
+
+function onRefreshNavSource(req, res) {
+    const {body} = req;
+    const submission = body.submission || {};
+    const missionId = submission.mission_id;
+    const navMission = refreshNavMissions.find((m) => m.id === missionId);
+
+    res.setHeader('Content-Type', 'application/json');
+
+    if (!navMission) {
+        // No selection yet — return the board unchanged
+        return res.json({type: 'form', form: buildRefreshNavBoardForm()});
+    }
+
+    const done = navMission.tasks.filter((t) => t.done).length;
+
+    // The SourceURL refresh replaces the form visually but does NOT update Redux
+    // dialog state (callback_id, state, url stay as the original board dialog).
+    // Task values accumulate alongside mission_id in accumulatedValues, so the
+    // submit handler can detect which mission was being viewed via mission_id.
+    return res.json({
+        type: 'form',
+        form: {
+            title: `${navMission.id} — ${navMission.name}`,
+            introduction_text: `**Status:** ${navMission.status} · **Progress:** ${done}/${navMission.tasks.length} tasks complete\n\nCheck off completed tasks:`,
+            submit_label: 'Save & Return to Board',
+            notify_on_cancel: true,
+            elements: navMission.tasks.map((t) => ({
+                display_name: t.name,
+                name: t.id,
+                type: 'bool',
+                default: t.done ? 'true' : 'false',
+                optional: true,
+            })),
+        },
+    });
+}
+
+// ---------------------------------------------------------------------------
+
+function onActionButtonDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        const dialog = webhookUtils.getActionButtonParentDialog(body.trigger_id, webhookBaseUrl);
         openDialog(dialog);
     }
 
     res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Multistep dialog triggered via slash command!'});
+    return res.json({text: 'Action button dialog triggered!'});
+}
+
+async function onOpenChildDialog(req, res) {
+    const {body} = req;
+
+    // context.source identifies which action button on the parent dialog was
+    // pressed; it is forwarded by the server in the PostActionIntegrationRequest.
+    const source = (body.context && body.context.source) || 'Unknown';
+    console.log('onOpenChildDialog called with trigger_id:', body.trigger_id, 'source:', source);
+    if (body.trigger_id) {
+        const childDialog = webhookUtils.getActionButtonChildDialog(body.trigger_id, webhookBaseUrl, source);
+
+        // Await the dialog open before responding. The server's /execute call
+        // (DoActionRequest) waits for this response, so awaiting here ensures the
+        // child's WS open_dialog event is published before the browser's
+        // executeDialogAction promise resolves — removing the render race in tests.
+        await openDialog(childDialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({});
+}
+
+function onGridDialogRequest(req, res) {
+    return handleDialogOpen(req, res, gridUtils.getGridDialog, 'Grid dialog triggered via slash command!');
+}
+
+// onGridDialogSource is both the refresh target and the submit target for the
+// grid dialog. Because every cell is an ordinary element, there is no bespoke
+// grid payload to decode: cell values arrive in body.submission like any other
+// field, and errors go back in the ordinary errors map keyed by cell name.
+function onGridDialogSource(req, res) {
+    const {body} = req;
+
+    res.setHeader('Content-Type', 'application/json');
+
+    if (body.cancelled) {
+        return res.json({});
+    }
+
+    // The cell values round trip as ordinary fields, so folding them back onto
+    // the rows is all it takes to keep half-finished input on screen. The width
+    // selector folds back the same way, which is why a refresh for any other
+    // reason keeps the width the user picked.
+    let state = gridUtils.gridApplySubmission(gridUtils.gridDecodeState(body.state), body.submission);
+
+    if (body.type === 'refresh') {
+        if (body.submission && body.submission.selected_field === gridUtils.GRID_ADD_ROW_FIELD) {
+            state = gridUtils.gridAddRow(state);
+        }
+
+        return res.json({type: 'form', form: gridUtils.getGridForm(webhookBaseUrl, state)});
+    }
+
+    const errors = gridUtils.gridValidate(state);
+    if (Object.keys(errors).length > 0) {
+        // Returning only errors keeps the modal open with the user's values.
+        return res.json({errors});
+    }
+
+    const message = `Grid submitted: ${JSON.stringify(state.rows)}`;
+    sendSysadminResponse(message, body.channel_id);
+    return res.json({text: message});
+}
+
+// ---------------------------------------------------------------------------
+// Mission demo: dialogs within dialogs.
+// Mission (slash command) → Cargo (action button) → Sortie schedule (action button per sortie)
+// ---------------------------------------------------------------------------
+
+const mission = {
+    id: 'M-1',
+    name: 'Operation Falcon',
+    commander: 'Col. Reyes',
+    status: 'Active',
+    start: '2026-10-06',
+    end: '2026-10-09',
+    sorties: [
+        {
+            id: 'S-101',
+            origin: 'KADW',
+            destination: 'ETAR',
+            aircraft: 'C-17',
+            cargo: [
+                {item: 'Medical supplies', pallets: 6, weight: 18000},
+                {item: 'Generators', pallets: 4, weight: 22000},
+                {item: 'Rations', pallets: 2, weight: 5000},
+            ],
+            schedule: [
+                {time: '0600Z', task: 'Load cargo', done: true},
+                {time: '0730Z', task: 'Fuel aircraft', done: true},
+                {time: '0830Z', task: 'Depart KADW', done: false},
+                {time: '1645Z', task: 'Arrive ETAR / offload', done: false},
+            ],
+        },
+        {
+            id: 'S-102',
+            origin: 'ETAR',
+            destination: 'OKAS',
+            aircraft: 'C-130J',
+            cargo: [
+                {item: 'Vehicle parts', pallets: 5, weight: 14000},
+                {item: 'Water', pallets: 3, weight: 9000},
+            ],
+            schedule: [
+                {time: '0500Z', task: 'Customs inspection', done: true},
+                {time: '0630Z', task: 'Load cargo', done: false},
+                {time: '0900Z', task: 'Depart ETAR', done: false},
+                {time: '1930Z', task: 'Arrive OKAS / offload', done: false},
+            ],
+        },
+        {
+            id: 'S-103',
+            origin: 'OKAS',
+            destination: 'KADW',
+            aircraft: 'C-17',
+            cargo: [
+                {item: 'Return equipment', pallets: 3, weight: 7500},
+            ],
+            schedule: [
+                {time: '1000Z', task: 'Load cargo', done: false},
+                {time: '1200Z', task: 'Depart OKAS', done: false},
+                {time: '0300Z', task: 'Arrive KADW', done: false},
+            ],
+        },
+    ],
+};
+
+const initialMissionSorties = JSON.stringify(mission.sorties);
+
+function getMissionDialog(triggerId) {
+    const pallets = mission.sorties.reduce((sum, s) => sum + s.cargo.reduce((n, c) => n + c.pallets, 0), 0);
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/dialog_submit`,
+        dialog: {
+            callback_id: 'mission_overview',
+            title: `${mission.id} — ${mission.name}`,
+            introduction_text: [
+                `| **Commander** | ${mission.commander} |`,
+                '|---|---|',
+                `| **Status** | ${mission.status} |`,
+                `| **Window** | ${mission.start} → ${mission.end} |`,
+                `| **Sorties** | ${mission.sorties.length} |`,
+                `| **Total cargo** | ${pallets} pallets |`,
+            ].join('\n'),
+            submit_label: 'Close',
+            notify_on_cancel: true,
+            elements: [{
+                display_name: 'Cargo',
+                name: 'open_cargo',
+                type: 'action_button',
+                action_button: {
+                    url: `${webhookBaseUrl}/dialog/mission/cargo`,
+                    context: {mission_id: mission.id},
+                },
+            }],
+        },
+    };
+}
+
+function getMissionCargoDialog(triggerId) {
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/dialog_submit`,
+        dialog: buildMissionCargoForm(),
+    };
+}
+
+// refresh_on_return calls source_url when a stacked schedule dialog closes, so the
+// rows pick up task progress saved in the schedule.
+function buildMissionCargoForm() {
+    return {
+        callback_id: 'mission_cargo',
+        title: `Cargo by Sortie — ${mission.id}`,
+        introduction_text: 'Select a sortie to view its schedule.',
+        submit_label: 'Close',
+        notify_on_cancel: true,
+        source_url: `${webhookBaseUrl}/dialog/mission/cargo_source`,
+        refresh_on_return: true,
+        elements: [
+            {
+                display_name: 'Notes',
+                name: 'dispatcher_notes',
+                type: 'text',
+                placeholder: 'Typed values are kept when the schedule closes',
+                optional: true,
+            },
+
+            // Each sortie is an action button whose help_text renders as the row
+            // summary to the left of a short "Schedule" button.
+            ...mission.sorties.map((s) => ({
+                display_name: 'Schedule',
+                help_text: getSortieRowLabel(s),
+                name: `schedule_${s.id}`,
+                type: 'action_button',
+                action_button: {
+                    url: `${webhookBaseUrl}/dialog/mission/schedule`,
+                    context: {sortie_id: s.id},
+                },
+            })),
+        ],
+    };
+}
+
+function onMissionCargoSource(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({type: 'form', form: buildMissionCargoForm()});
+}
+
+function getSortieRowLabel(sortie) {
+    const pallets = sortie.cargo.reduce((n, c) => n + c.pallets, 0);
+    const weight = sortie.cargo.reduce((n, c) => n + c.weight, 0);
+    const items = sortie.cargo.map((c) => c.item).join(', ');
+    const done = sortie.schedule.filter((t) => t.done).length;
+    return `${sortie.id} · ${sortie.origin} → ${sortie.destination} · ${sortie.aircraft} · ${pallets} pallets · ${weight.toLocaleString('en-US')} lb · tasks ${done}/${sortie.schedule.length} · ${items}`;
+}
+
+function getMissionScheduleDialog(triggerId, sortie) {
+    const done = sortie.schedule.filter((t) => t.done).length;
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/dialog_submit`,
+        dialog: {
+            callback_id: 'mission_schedule',
+            title: `${sortie.id} Schedule — ${sortie.destination}`,
+            introduction_text: `**Route:** ${sortie.origin} → ${sortie.destination} · **Aircraft:** ${sortie.aircraft} · **Progress:** ${done}/${sortie.schedule.length}`,
+            submit_label: 'Save',
+            notify_on_cancel: true,
+            state: sortie.id,
+            elements: sortie.schedule.map((t, i) => ({
+                display_name: t.time,
+                name: `task_${i}`,
+                type: 'bool',
+                placeholder: t.task,
+                default: t.done ? 'true' : 'false',
+                optional: true,
+            })),
+        },
+    };
+}
+
+function onMissionDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        openDialog(getMissionDialog(body.trigger_id));
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'Mission dialog opened!'});
+}
+
+async function onMissionCargoDialog(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        // Await so the WS open_dialog event is published before the action
+        // button's request resolves (see onOpenChildDialog).
+        await openDialog(getMissionCargoDialog(body.trigger_id));
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({});
+}
+
+async function onMissionScheduleDialog(req, res) {
+    const {body} = req;
+    const sortieId = body.context && body.context.sortie_id;
+    const sortie = mission.sorties.find((s) => s.id === sortieId);
+
+    res.setHeader('Content-Type', 'application/json');
+    if (!sortie) {
+        return res.status(400).json({error: {message: `Unknown sortie: ${sortieId}`}});
+    }
+
+    if (body.trigger_id) {
+        await openDialog(getMissionScheduleDialog(body.trigger_id, sortie));
+    }
+    return res.json({});
+}
+
+// ---------------------------------------------------------------------------
+// Submit-buttons demo: the `action` select is rendered as one submit button per
+// option (submit_buttons), and the clicked option's value is submitted as `action`.
+// ---------------------------------------------------------------------------
+
+function getSubmitButtonsForm(count, lastNote) {
+    let intro = `Notes added: ${count}`;
+    if (lastNote) {
+        intro += `\n\nLast note: ${lastNote}`;
+    }
+    return {
+        callback_id: 'submit_buttons_demo',
+        title: 'Submit Buttons Demo',
+        introduction_text: intro,
+        notify_on_cancel: true,
+        state: String(count),
+        submit_buttons: 'action',
+        elements: [
+            {
+                display_name: 'Note',
+                name: 'note',
+                type: 'text',
+                optional: true,
+            },
+            {
+                display_name: 'Action',
+                name: 'action',
+                type: 'select',
+                options: [
+                    {text: 'Add Note', value: 'add'},
+                    {text: 'Save & Close', value: 'save'},
+                ],
+            },
+        ],
+    };
+}
+
+function onSubmitButtonsDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        openDialog({
+            trigger_id: body.trigger_id,
+            url: `${webhookBaseUrl}/dialog_submit`,
+            dialog: getSubmitButtonsForm(0),
+        });
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'Submit buttons dialog opened!'});
 }
 
 function onFieldRefreshSource(req, res) {

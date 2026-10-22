@@ -13,7 +13,7 @@ type Props = {
     handleOpen: (e: React.MouseEvent) => void;
     handleDismiss: () => void;
     showTip: boolean;
-}
+};
 
 const title = (
     <FormattedMessage

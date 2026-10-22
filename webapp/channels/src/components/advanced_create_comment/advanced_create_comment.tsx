@@ -26,7 +26,7 @@ export type Props = {
      * Used by plugins to act after the post is made
      */
     afterSubmit?: (response: SubmitPostReturnType) => void;
-}
+};
 
 const AdvancedCreateComment = ({
     channelId,

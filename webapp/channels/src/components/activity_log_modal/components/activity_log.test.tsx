@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, type ShallowWrapper} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -9,6 +8,7 @@ import {General} from 'mattermost-redux/constants';
 
 import ActivityLog from 'components/activity_log_modal/components/activity_log';
 
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/activity_log_modal/ActivityLog', () => {
@@ -25,63 +25,57 @@ describe('components/activity_log_modal/ActivityLog', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ActivityLog {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with mobile props', () => {
         const mobileDeviceIdProps = Object.assign({}, baseProps, {currentSession: {...baseProps.currentSession, device_id: 'apple'}});
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ActivityLog {...mobileDeviceIdProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('submitRevoke is called correctly', () => {
-        const wrapper = shallow<ActivityLog>(
+    test('submitRevoke is called correctly', async () => {
+        renderWithContext(
             <ActivityLog {...baseProps}/>,
         );
 
-        const event = {preventDefault: jest.fn()};
-        wrapper.instance().submitRevoke(event as unknown as React.MouseEvent);
+        await userEvent.click(screen.getByRole('button', {name: 'Log Out'}));
         expect(baseProps.submitRevoke).toHaveBeenCalled();
         expect(baseProps.submitRevoke).toHaveBeenCalledTimes(1);
-        expect(baseProps.submitRevoke).toHaveBeenCalledWith('sessionId', event);
+        expect(baseProps.submitRevoke).toHaveBeenCalledWith('sessionId', expect.anything());
     });
 
-    test('handleMoreInfo updates state correctly', () => {
-        const wrapper = shallow<ActivityLog>(
+    test('handleMoreInfo updates state correctly', async () => {
+        renderWithContext(
             <ActivityLog {...baseProps}/>,
         );
 
-        wrapper.instance().handleMoreInfo();
-        expect(wrapper.state()).toEqual({moreInfo: true});
+        await userEvent.click(screen.getByText('More info'));
+        expect(screen.getByText(/First time active:/)).toBeInTheDocument();
     });
 
     test('should match when isMobileSession is called', () => {
-        const wrapper = shallow<ActivityLog>(
-            <ActivityLog {...baseProps}/>,
-        );
+        const instance = new ActivityLog(baseProps as any);
 
-        const isMobileSession = wrapper.instance().isMobileSession;
+        const isMobileSession = instance.isMobileSession;
         expect(isMobileSession(TestHelper.getSessionMock({device_id: 'apple'}))).toEqual(true);
         expect(isMobileSession(TestHelper.getSessionMock({device_id: 'android'}))).toEqual(true);
         expect(isMobileSession(TestHelper.getSessionMock({device_id: 'none'}))).toEqual(false);
     });
 
     describe('sessionInfo', () => {
-        let wrapper: ShallowWrapper<any, any, ActivityLog>;
         let sessionInfo: ActivityLog['sessionInfo'];
 
         beforeEach(() => {
-            wrapper = shallow<ActivityLog>(
-                <ActivityLog {...baseProps}/>,
-            );
-            sessionInfo = wrapper.instance().sessionInfo;
+            const instance = new ActivityLog(baseProps as any);
+            sessionInfo = instance.sessionInfo;
         });
 
         test('should handle Windows platform', () => {

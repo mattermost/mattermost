@@ -1,12 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {waitForElementToBeRemoved} from '@testing-library/react';
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Modal} from 'react-bootstrap';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, waitForElementToBeRemoved} from 'tests/react_testing_utils';
 
 import SubMenuModal from './submenu_modal';
 
@@ -50,10 +47,10 @@ describe('components/submenu_modal', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <SubMenuModal {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should hide on modal body click', async () => {
@@ -91,12 +88,16 @@ describe('components/submenu_modal', () => {
         expect(action3).toHaveBeenCalledTimes(1);
     });
 
-    test('should have called props.onExited when Modal.onExited is called', () => {
-        const wrapper = shallow(
+    test('should have called props.onExited when Modal.onExited is called', async () => {
+        renderWithContext(
             <SubMenuModal {...baseProps}/>,
         );
 
-        wrapper.find(Modal).props().onExited!(document.createElement('div'));
-        expect(baseProps.onExited).toHaveBeenCalledTimes(1);
+        // Trigger modal close by clicking the body
+        await userEvent.click(screen.getByTestId('SubMenuModalBody'));
+
+        await waitFor(() => {
+            expect(baseProps.onExited).toHaveBeenCalledTimes(1);
+        });
     });
 });

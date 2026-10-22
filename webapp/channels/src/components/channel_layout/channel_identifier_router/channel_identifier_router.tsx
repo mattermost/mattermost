@@ -17,7 +17,7 @@ export type Match = match<{
     path: string;
 }>;
 
-export type MatchAndHistory = Pick<Props, 'match' | 'history'>
+export type MatchAndHistory = Pick<Props, 'match' | 'history'>;
 
 type Props = {
     match: Match;

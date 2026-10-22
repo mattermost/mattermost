@@ -28,12 +28,27 @@ func (ps *PlatformService) NewClusterDiscoveryService() *ClusterDiscoveryService
 	return ds
 }
 
+// PlatformService.IsLeader returns true if this server is the leader of its cluster. If the server isn't in a cluster
+// (because it's not supported by the server or its license), this will always return true.
 func (ps *PlatformService) IsLeader() bool {
-	if ps.License() != nil && *ps.Config().ClusterSettings.Enable && ps.clusterIFace != nil {
-		return ps.clusterIFace.IsLeader()
+	license := ps.License()
+	if license == nil || license.Features == nil || license.Features.Cluster == nil || !*license.Features.Cluster {
+		// Clustering can't be enabled without a valid license that supports it
+		return true
 	}
 
-	return true
+	if !*ps.Config().ClusterSettings.Enable {
+		// Clustering is disabled
+		return true
+	}
+
+	if ps.clusterIFace == nil {
+		// Clustering isn't supported by this server
+		return true
+	}
+
+	// Check with the clustering code
+	return ps.clusterIFace.IsLeader()
 }
 
 func (ps *PlatformService) SetCluster(impl einterfaces.ClusterInterface) { //nolint:unused
@@ -136,7 +151,7 @@ func (ps *PlatformService) KVDelete(productID, key string) *model.AppError {
 func (ps *PlatformService) KVList(productID string, page, perPage int) ([]string, *model.AppError) {
 	data, err := ps.Store.Plugin().List(productID, page*perPage, perPage)
 	if err != nil {
-		ps.logger.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("perPage", perPage), mlog.Err(err))
+		ps.logger.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("per_page", perPage), mlog.Err(err))
 		return nil, model.NewAppError("ListPluginKeys", "app.plugin_store.list.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -231,7 +246,7 @@ func (ps *PlatformService) PublishSkipClusterSend(event *model.WebSocketEvent) {
 func (ps *PlatformService) ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError) {
 	data, err := ps.Store.Plugin().List(pluginID, page*perPage, perPage)
 	if err != nil {
-		mlog.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("perPage", perPage), mlog.Err(err))
+		mlog.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("per_page", perPage), mlog.Err(err))
 		return nil, model.NewAppError("ListPluginKeys", "app.plugin_store.list.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -12,13 +13,14 @@ import (
 	"maps"
 	"net/http"
 	"regexp"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
 	"unicode/utf8"
 
 	"github.com/hashicorp/go-multierror"
+
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -28,7 +30,7 @@ type PostContextKey string
 const (
 	PostSystemMessagePrefix       = "system_"
 	PostTypeDefault               = ""
-	PostTypeSlackAttachment       = "slack_attachment"
+	PostTypeMessageAttachment     = "slack_attachment"
 	PostTypeSystemGeneric         = "system_generic"
 	PostTypeJoinLeave             = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
 	PostTypeJoinChannel           = "system_join_channel"
@@ -45,27 +47,35 @@ const (
 	PostTypeMoveChannel           = "system_move_channel"
 	PostTypeAddToTeam             = "system_add_to_team"
 	PostTypeRemoveFromTeam        = "system_remove_from_team"
-	PostTypeHeaderChange          = "system_header_change"
-	PostTypeDisplaynameChange     = "system_displayname_change"
-	PostTypeConvertChannel        = "system_convert_channel"
-	PostTypePurposeChange         = "system_purpose_change"
-	PostTypeChannelDeleted        = "system_channel_deleted"
-	PostTypeChannelRestored       = "system_channel_restored"
-	PostTypeEphemeral             = "system_ephemeral"
-	PostTypeChangeChannelPrivacy  = "system_change_chan_privacy"
-	PostTypeWrangler              = "system_wrangler"
-	PostTypeGMConvertedToChannel  = "system_gm_to_channel"
-	PostTypeAddBotTeamsChannels   = "add_bot_teams_channels"
-	PostTypeMe                    = "me"
-	PostCustomTypePrefix          = "custom_"
-	PostTypeReminder              = "reminder"
-	PostTypeBurnOnRead            = "burn_on_read"
+	// Values stay within the Posts.Type varchar(26) limit (see note below), so
+	// these use the shorter "abac" instead of spelling out "access_control".
+	PostTypeAccessControlTeamRemoval  = "system_team_abac_removal"  // 24 chars
+	PostTypeAccessControlTeamAddition = "system_team_abac_addition" // 25 chars
+	PostTypeHeaderChange              = "system_header_change"
+	PostTypeDisplaynameChange         = "system_displayname_change"
+	PostTypeConvertChannel            = "system_convert_channel"
+	PostTypePurposeChange             = "system_purpose_change"
+	PostTypeChannelDeleted            = "system_channel_deleted"
+	PostTypeChannelRestored           = "system_channel_restored"
+	PostTypeEphemeral                 = "system_ephemeral"
+	PostTypeChangeChannelPrivacy      = "system_change_chan_privacy"
+	PostTypeWrangler                  = "system_wrangler"
+	PostTypeGMConvertedToChannel      = "system_gm_to_channel"
+	PostTypeAddBotTeamsChannels       = "add_bot_teams_channels"
+	PostTypeMe                        = "me"
+	PostCustomTypePrefix              = "custom_"
+	PostTypeReminder                  = "reminder"
+	PostTypeBurnOnRead                = "burn_on_read"
+	PostTypeCard                      = "card"
+	// PostTypeSharedChannelState is a system post for share/unshare events; the client translates using props.
+	// Name must fit Posts.Type varchar(26) (see store migrations).
+	PostTypeSharedChannelState = "system_shared_chan_state"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
 	PostHashtagsMaxRunes  = 1000
 	PostMessageMaxRunesV1 = 4000
-	PostMessageMaxBytesV2 = 65535
+	PostMessageMaxBytesV2 = 1048576
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
 
 	// Reporting API constants
@@ -88,12 +98,12 @@ const (
 	PostPropsFromBot                  = "from_bot"
 	PostPropsFromOAuthApp             = "from_oauth_app"
 	PostPropsWebhookDisplayName       = "webhook_display_name"
-	PostPropsAttachments              = "attachments"
 	PostPropsFromPlugin               = "from_plugin"
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 	PostPropsPreviewedPost            = "previewed_post"
 	PostPropsForceNotification        = "force_notification"
+	PostPropsSilentNotification       = "silent_notification"
 	PostPropsChannelMentions          = "channel_mentions"
 	PostPropsCurrentTeamId            = "current_team_id"
 	PostPropsUnsafeLinks              = "unsafe_links"
@@ -101,6 +111,16 @@ const (
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
 	PostPropsExpireAt                 = "expire_at"
 	PostPropsReadDurationSeconds      = "read_duration"
+	// Shared-channel state posts (PostTypeSharedChannelState): props for client-side i18n.
+	PostPropsSharedChannelState         = "shared_channel_state"
+	PostPropsSharedChannelWorkspaceName = "workspace_name"
+
+	// Interactive Messages
+	PostPropsAttachments     = "attachments"
+	PostPropsMmBlocks        = "mm_blocks"
+	PostPropsBlockKitBlocks  = "blocks"
+	PostPropsAdaptiveCards   = "cards"
+	PostPropsMmBlocksActions = "mm_blocks_actions"
 
 	PostPriorityUrgent = "urgent"
 
@@ -110,40 +130,46 @@ const (
 	PostContextKeyIsScheduledPost PostContextKey = "isScheduledPost"
 )
 
-type Post struct {
-	Id         string `json:"id"`
-	CreateAt   int64  `json:"create_at"`
-	UpdateAt   int64  `json:"update_at"`
-	EditAt     int64  `json:"edit_at"`
-	DeleteAt   int64  `json:"delete_at"`
-	IsPinned   bool   `json:"is_pinned"`
-	UserId     string `json:"user_id"`
-	ChannelId  string `json:"channel_id"`
-	RootId     string `json:"root_id"`
-	OriginalId string `json:"original_id"`
+// Values for PostPropsSharedChannelState on posts with Type PostTypeSharedChannelState.
+const (
+	SharedChannelStatePostValueShared   = "shared"
+	SharedChannelStatePostValueUnshared = "unshared"
+)
 
-	Message string `json:"message"`
+type Post struct {
+	Id         string `json:"id" xml:"Id"`
+	CreateAt   int64  `json:"create_at" xml:"CreateAt"`
+	UpdateAt   int64  `json:"update_at" xml:"UpdateAt"`
+	EditAt     int64  `json:"edit_at" xml:"EditAt"`
+	DeleteAt   int64  `json:"delete_at" xml:"DeleteAt"`
+	IsPinned   bool   `json:"is_pinned" xml:"IsPinned"`
+	UserId     string `json:"user_id" xml:"UserId"`
+	ChannelId  string `json:"channel_id" xml:"ChannelId"`
+	RootId     string `json:"root_id" xml:"RootId"`
+	OriginalId string `json:"original_id" xml:"OriginalId"`
+
+	Message string `json:"message" xml:"Message"`
 	// MessageSource will contain the message as submitted by the user if Message has been modified
 	// by Mattermost for presentation (e.g if an image proxy is being used). It should be used to
 	// populate edit boxes if present.
-	MessageSource string `json:"message_source,omitempty"`
+	MessageSource string `json:"message_source,omitempty" xml:"MessageSource,omitempty"`
 
-	Type          string          `json:"type"`
-	propsMu       sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Post.Props.
-	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
-	Hashtags      string          `json:"hashtags"`
-	Filenames     StringArray     `json:"-"` // Deprecated, do not use this field any more
-	FileIds       StringArray     `json:"file_ids"`
-	PendingPostId string          `json:"pending_post_id"`
-	HasReactions  bool            `json:"has_reactions,omitempty"`
-	RemoteId      *string         `json:"remote_id,omitempty"`
+	Type          string          `json:"type" xml:"Type"`
+	propsMu       sync.RWMutex    `db:"-"`                   // Unexported mutex used to guard Post.Props.
+	Props         StringInterface `json:"props" xml:"Props"` // Deprecated: use GetProps()
+	Hashtags      string          `json:"hashtags" xml:"Hashtags"`
+	Filenames     StringArray     `json:"-" xml:"-"` // Deprecated, do not use this field any more
+	FileIds       StringArray     `json:"file_ids" xml:"FileIds>Id"`
+	PendingPostId string          `json:"pending_post_id" xml:"PendingPostId"`
+	HasReactions  bool            `json:"has_reactions,omitempty" xml:"HasReactions,omitempty"`
+	RemoteId      *string         `json:"remote_id,omitempty" xml:"RemoteId,omitempty"`
 
 	// Transient data populated before sending a post to the client
-	ReplyCount   int64         `json:"reply_count"`
-	LastReplyAt  int64         `json:"last_reply_at"`
-	Participants []*User       `json:"participants"`
-	IsFollowing  *bool         `json:"is_following,omitempty"` // for root posts in collapsed thread mode indicates if the current user is following this thread
-	Metadata     *PostMetadata `json:"metadata,omitempty"`
+	ReplyCount   int64         `json:"reply_count" xml:"ReplyCount"`
+	LastReplyAt  int64         `json:"last_reply_at" xml:"LastReplyAt"`
+	Participants []*User       `json:"participants" xml:"Participants>User"`
+	IsFollowing  *bool         `json:"is_following,omitempty" xml:"IsFollowing,omitempty"` // for root posts in collapsed thread mode indicates if the current user is following this thread
+	Metadata     *PostMetadata `json:"metadata,omitempty" xml:"-"`
 }
 
 func (o *Post) Auditable() map[string]any {
@@ -190,6 +216,10 @@ type PostPatch struct {
 	Props        *StringInterface `json:"props"`
 	FileIds      *StringArray     `json:"file_ids"`
 	HasReactions *bool            `json:"has_reactions"`
+}
+
+func (o *PostPatch) IsEmpty() bool {
+	return o.IsPinned == nil && o.Message == nil && o.Props == nil && o.FileIds == nil && o.HasReactions == nil
 }
 
 type PostReminder struct {
@@ -299,6 +329,7 @@ type PostForIndexing struct {
 	Post
 	TeamId         string `json:"team_id"`
 	ParentCreateAt *int64 `json:"parent_create_at"`
+	ChannelType    string `json:"channel_type"`
 }
 
 type FileForIndexing struct {
@@ -357,7 +388,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
 	if o.IsFollowing != nil {
-		dst.IsFollowing = NewPointer(*o.IsFollowing)
+		dst.IsFollowing = new(*o.IsFollowing)
 	}
 	dst.RemoteId = o.RemoteId
 	return nil
@@ -383,19 +414,38 @@ func (o *Post) EncodeJSON(w io.Writer) error {
 }
 
 type CreatePostFlags struct {
-	TriggerWebhooks   bool
-	SetOnline         bool
-	ForceNotification bool
+	TriggerWebhooks     bool
+	SetOnline           bool
+	ForceNotification   bool
+	SilentNotification  bool
+	FromIncomingWebhook bool
+	FromPlugin          bool
+	// AllowMmBlocksActions permits props.mm_blocks_actions on create. Set only
+	// by CreateWebhookPost — from_webhook is user-forgeable on the REST API.
+	AllowMmBlocksActions bool
+
+	// Display-identity overrides applied by trusted integration entry points
+	// (incoming webhooks, slash commands). SanitizeProps strips the matching
+	// post.Props keys by default so clients cannot forge them; the CreatePost
+	// handler re-injects these values onto the saved post only when
+	// FromIncomingWebhook is set — not for FromPlugin, bot, or OAuth-app
+	// authors, since no render path honors an override for those (see the
+	// reinjection block in CreatePost).
+	OverrideUsername   string
+	OverrideIconURL    string
+	OverrideIconEmoji  string
+	WebhookDisplayName string
 }
 
 type GetPostsSinceOptions struct {
-	UserId                   string
-	ChannelId                string
-	Time                     int64
-	SkipFetchThreads         bool
-	CollapsedThreads         bool
-	CollapsedThreadsExtended bool
-	SortAscending            bool
+	UserId                       string
+	ChannelId                    string
+	Time                         int64
+	SkipFetchThreads             bool
+	CollapsedThreads             bool
+	CollapsedThreadsExtended     bool
+	SortAscending                bool
+	ExcludeMembershipSystemPosts bool
 }
 
 type GetPostsSinceForSyncCursor struct {
@@ -413,26 +463,47 @@ type GetPostsSinceForSyncOptions struct {
 	ChannelId                         string
 	ExcludeRemoteId                   string
 	IncludeDeleted                    bool
-	SinceCreateAt                     bool // determines whether the cursor will be based on CreateAt or UpdateAt
-	ExcludeChannelMetadataSystemPosts bool // if true, exclude channel metadata system posts (header, display name, purpose changes)
+	SinceCreateAt                     bool     // determines whether the cursor will be based on CreateAt or UpdateAt
+	ExcludeChannelMetadataSystemPosts bool     // if true, exclude channel metadata system posts (header, display name, purpose changes)
+	ExcludedPostTypes                 []string // post types to exclude from sync
+}
+
+// GetPostOptions are the options for fetching a single post. Its plural sibling
+// GetPostsOptions covers the list endpoints.
+type GetPostOptions struct {
+	// IncludeDeleted returns the post even if it is soft-deleted.
+	IncludeDeleted bool
+
+	// PropertyGroup names a single PSAv2 property group whose values should be hydrated
+	// onto the post's metadata. Empty means no hydration.
+	PropertyGroup string
 }
 
 type GetPostsOptions struct {
-	UserId                   string
-	ChannelId                string
-	PostId                   string
-	Page                     int
-	PerPage                  int
-	SkipFetchThreads         bool
-	CollapsedThreads         bool
-	CollapsedThreadsExtended bool
-	FromPost                 string // PostId after which to send the items
-	FromCreateAt             int64  // CreateAt after which to send the items
-	FromUpdateAt             int64  // UpdateAt after which to send the items. This cannot be used with FromCreateAt.
-	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
-	UpdatesOnly              bool   // This flag is used to make the API work with the updateAt value.
-	IncludeDeleted           bool
-	IncludePostPriority      bool
+	UserId                       string
+	ChannelId                    string
+	PostId                       string
+	Page                         int
+	PerPage                      int
+	SkipFetchThreads             bool
+	CollapsedThreads             bool
+	CollapsedThreadsExtended     bool
+	FromPost                     string // PostId after which to send the items
+	FromCreateAt                 int64  // CreateAt after which to send the items
+	FromUpdateAt                 int64  // UpdateAt after which to send the items. This cannot be used with FromCreateAt.
+	Direction                    string // Only accepts up|down. Indicates the order in which to send the items.
+	UpdatesOnly                  bool   // This flag is used to make the API work with the updateAt value.
+	IncludeDeleted               bool
+	IncludePostPriority          bool
+	ExcludeMembershipSystemPosts bool
+	// ExcludeExpiredBurnOnReadPosts, when set, makes the query skip burn-on-read
+	// posts whose read receipt has already expired for UserId. It is only set by
+	// the app layer when the burn-on-read feature is enabled, so it adds no query
+	// overhead otherwise.
+	ExcludeExpiredBurnOnReadPosts bool
+	// PropertyGroup names a single PSAv2 property group whose values should be hydrated
+	// onto each post's metadata. Empty means no hydration.
+	PropertyGroup string
 }
 
 type PostCountOptions struct {
@@ -512,7 +583,9 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeMoveChannel,
 		PostTypeAddToTeam,
 		PostTypeRemoveFromTeam,
-		PostTypeSlackAttachment,
+		PostTypeAccessControlTeamRemoval,
+		PostTypeAccessControlTeamAddition,
+		PostTypeMessageAttachment,
 		PostTypeHeaderChange,
 		PostTypePurposeChange,
 		PostTypeDisplaynameChange,
@@ -526,7 +599,9 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeWrangler,
 		PostTypeGMConvertedToChannel,
 		PostTypeAutotranslationChange,
-		PostTypeBurnOnRead:
+		PostTypeBurnOnRead,
+		PostTypeCard,
+		PostTypeSharedChannelState:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -548,13 +623,61 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	return nil
 }
 
+// SanitizeProps is for the create/update write path only — it strips
+// display-identity props unconditionally so a caller can re-inject them under
+// verified authority. Calling it on a read path that returns an
+// already-persisted post to a client wipes that legitimately-settled identity;
+// use SanitizeNonIdentityProps for reads instead.
 func (o *Post) SanitizeProps() {
 	if o == nil {
 		return
 	}
 	membersToSanitize := []string{
 		PropsAddChannelMember,
-		PostPropsForceNotification,
+	}
+
+	// Notification-policy markers (silent_notification, force_notification) are
+	// authorization-load-bearing: they change notification delivery for everyone
+	// in the channel, so they must be stripped on every locally-originated post-
+	// creation path. The server re-injects them in app.CreatePost under verified
+	// authority: silent_notification via isIntegrationPostAuthor, force_notification
+	// via the server-set CreatePostFlags.ForceNotification flag.
+	//
+	// The from_* identity markers (from_webhook, from_bot, from_oauth_app,
+	// from_plugin) are stripped here so a regular client cannot forge them;
+	// trusted integration entry points re-set from_bot/from_oauth_app/
+	// from_plugin/from_webhook directly in app.CreatePost based on user/session
+	// type or the FromIncomingWebhook/FromPlugin flag (see isIntegrationPostAuthor
+	// and the reinjection block in CreatePost).
+	//
+	// The display-identity overrides (override_username, override_icon_url,
+	// override_icon_emoji, webhook_display_name) are also stripped here, but
+	// re-injected only for FromIncomingWebhook — not the broader
+	// isIntegrationPostAuthor set — since override display has been an
+	// incoming-webhook-specific feature since 2015 and no render path honors it
+	// for bot/OAuth/plugin authors. This closes the user-PAT-impersonation idiom
+	// (forge from_webhook + override_username/override_icon_url) that
+	// previously rendered a post as another identity in thread lists, push
+	// notifications, edit history, and post previews.
+	//
+	// For posts that arrived through Shared Channels federation (RemoteId is set
+	// by the receiving cluster, never by an API caller — see SanitizeInput), the
+	// origin cluster has already enforced its own integration-prop authority, so
+	// we preserve all of these to keep notification and identity semantics
+	// consistent across federation.
+	if !o.IsRemote() {
+		membersToSanitize = append(membersToSanitize,
+			PostPropsForceNotification,
+			PostPropsSilentNotification,
+			PostPropsFromWebhook,
+			PostPropsFromBot,
+			PostPropsFromOAuthApp,
+			PostPropsFromPlugin,
+			PostPropsOverrideUsername,
+			PostPropsOverrideIconURL,
+			PostPropsOverrideIconEmoji,
+			PostPropsWebhookDisplayName,
+		)
 	}
 
 	for _, member := range membersToSanitize {
@@ -567,10 +690,74 @@ func (o *Post) SanitizeProps() {
 	}
 }
 
+// SanitizeNonIdentityProps strips PropsAddChannelMember and, for
+// non-federated posts, the notification-policy markers (force_notification,
+// silent_notification) — the same set SanitizeProps stripped before v12 added
+// identity-marker stripping to it.
+//
+// Use this instead of SanitizeProps on read paths that return an
+// already-persisted post to a client (Threads, CRT notifications, etc.).
+// Those posts had their from_*/override_* props settled once already at
+// create/update time via SanitizeProps plus the server's verified-identity
+// re-injection — calling the stronger SanitizeProps again on read would wipe
+// that legitimately-stored identity from the response.
+func (o *Post) SanitizeNonIdentityProps() {
+	if o == nil {
+		return
+	}
+	membersToSanitize := []string{
+		PropsAddChannelMember,
+	}
+	if !o.IsRemote() {
+		membersToSanitize = append(membersToSanitize,
+			PostPropsForceNotification,
+			PostPropsSilentNotification,
+		)
+	}
+	for _, member := range membersToSanitize {
+		if _, ok := o.GetProps()[member]; ok {
+			o.DelProp(member)
+		}
+	}
+	for _, p := range o.Participants {
+		p.Sanitize(map[string]bool{})
+	}
+}
+
+// postIdentityPropsPreservedOnUpdate are server-controlled markers re-applied after
+// SanitizeProps during UpdatePost so edits cannot strip integration identity.
+// The display-identity overrides are restored from the prior post because v12
+// SanitizeProps strips them on every edit; the caller of UpdatePost typically
+// does not re-supply them, and PostActionRetainPropKeys also relies on this
+// path to carry override_username/override_icon_url through interactive action
+// updates (see app/integration_action.go).
+var postIdentityPropsPreservedOnUpdate = []string{
+	PostPropsSilentNotification,
+	PostPropsFromBot,
+	PostPropsFromWebhook,
+	PostPropsFromOAuthApp,
+	PostPropsFromPlugin,
+	PostPropsOverrideUsername,
+	PostPropsOverrideIconURL,
+	PostPropsOverrideIconEmoji,
+	PostPropsWebhookDisplayName,
+}
+
+func (o *Post) PreserveIdentityPropsFrom(old *Post) {
+	if o == nil || old == nil {
+		return
+	}
+	for _, key := range postIdentityPropsPreservedOnUpdate {
+		if v := old.GetProp(key); v != nil {
+			o.AddProp(key, v)
+		}
+	}
+}
+
 // Remove any input data from the post object that is not user controlled
 func (o *Post) SanitizeInput() {
 	o.DeleteAt = 0
-	o.RemoteId = NewPointer("")
+	o.RemoteId = new("")
 
 	if o.Metadata != nil {
 		o.Metadata.Embeds = nil
@@ -594,10 +781,14 @@ func ContainsIntegrationsReservedProps(props StringInterface) []string {
 	if props != nil {
 		reservedProps := []string{
 			PostPropsFromWebhook,
+			PostPropsFromPlugin,
+			PostPropsSilentNotification,
+			PostPropsForceNotification,
 			PostPropsOverrideUsername,
 			PostPropsWebhookDisplayName,
 			PostPropsOverrideIconURL,
 			PostPropsOverrideIconEmoji,
+			PostPropsMmBlocksActions,
 		}
 
 		for _, key := range reservedProps {
@@ -684,6 +875,117 @@ func (o *Post) GetProp(key string) any {
 	o.propsMu.RLock()
 	defer o.propsMu.RUnlock()
 	return o.Props[key]
+}
+
+// HasUnsafeLinks reports whether props.unsafe_links is the string "true", meaning integrations
+// have marked the post as carrying untrusted URLs (see PostPropsUnsafeLinks and post metadata handling).
+func (o *Post) HasUnsafeLinks() bool {
+	v := o.GetProp(PostPropsUnsafeLinks)
+	if v == nil {
+		return false
+	}
+	s, ok := v.(string)
+	return ok && s == "true"
+}
+
+type AllStringsOptions struct {
+	OmitInteractiveBlocks bool
+}
+
+// AllStrings returns human-readable text from the post: the post Message as stored when it is not
+// whitespace-only (same bytes as Message so markdown structure is preserved), then message attachment
+// author name, title, text, pretext, footer, each attachment field title, each attachment field
+// value (strings trimmed; non-strings rendered like fmt.Sprint for indexing), plus
+// strings from interactive blocks (mm_blocks, Block Kit blocks, Adaptive cards).
+// It is intended for mention checks, search indexing, and similar uses alongside integration metadata.
+func (o *Post) AllStrings(opts AllStringsOptions) []string {
+	out := appendNonWhitespaceOnlyMessage(nil, o.Message)
+	for _, attachment := range o.Attachments() {
+		if attachment == nil {
+			continue
+		}
+		out = appendNonWhitespaceOnlyMessage(out, attachment.AuthorName)
+		out = appendNonWhitespaceOnlyMessage(out, attachment.Title)
+		out = appendNonWhitespaceOnlyMessage(out, attachment.Text)
+		out = appendNonWhitespaceOnlyMessage(out, attachment.Pretext)
+		out = appendNonWhitespaceOnlyMessage(out, attachment.Footer)
+		for _, field := range attachment.Fields {
+			if field == nil {
+				continue
+			}
+			out = appendNonWhitespaceOnlyMessage(out, field.Title)
+			if field.Value == nil {
+				continue
+			}
+			switch v := field.Value.(type) {
+			case string:
+				out = appendNonWhitespaceOnlyMessage(out, v)
+			default:
+				if s := strings.TrimSpace(fmt.Sprint(v)); s != "" {
+					out = append(out, s)
+				}
+			}
+		}
+	}
+	if !opts.OmitInteractiveBlocks {
+		out = appendHumanReadableInteractiveStrings(o, out)
+	}
+	return out
+}
+
+// InteractiveBlocksImageURLs collects non-markdown image URLs from props.mm_blocks, props.blocks
+// (Block Kit), props.cards (Adaptive Cards), and message attachments (image_url, thumb_url, author_icon, footer_icon).
+// Direct mm_blocks image URLs, Block Kit image blocks, and Adaptive Card Image elements are included.
+// Markdown ![alt](url) in interactive text is not included; merge with URLs from Post.AllStrings separately.
+// Link preview restrictions (e.g. RestrictLinkPreviews) are not applied here; callers enforce policy when fetching metadata.
+func (o *Post) InteractiveBlocksImageURLs(mmBlocksEnabled bool) []string {
+	props := o.GetProps()
+	if props == nil {
+		return nil
+	}
+	var out []string
+	if mmBlocksEnabled {
+		if raw, ok := props[PostPropsMmBlocks]; ok {
+			out = appendMmBlockImageURLs(out, raw)
+		}
+		if raw, ok := props[PostPropsBlockKitBlocks]; ok {
+			out = appendBlockKitImageURLs(out, raw)
+		}
+		if raw, ok := props[PostPropsAdaptiveCards]; ok {
+			out = appendAdaptiveCardImageURLs(out, raw)
+		}
+	}
+	return appendAttachmentsImageURLs(out, o.Attachments())
+}
+
+func appendNonWhitespaceOnlyMessage(out []string, s string) []string {
+	if strings.TrimSpace(s) == "" {
+		return out
+	}
+	return append(out, s)
+}
+
+// nonEmptyInteractivePayloadPropKeys lists non-empty interactive payload props (mm_blocks,
+// Block Kit blocks, Adaptive cards, message attachments). The client uses a single priority; more than one is invalid.
+func (o *Post) nonEmptyInteractivePayloadPropKeys() []string {
+	props := o.GetProps()
+	if props == nil {
+		return nil
+	}
+	var keys []string
+	if interactivePropJSONArrayNonEmpty(props[PostPropsMmBlocks]) {
+		keys = append(keys, PostPropsMmBlocks)
+	}
+	if interactivePropJSONArrayNonEmpty(props[PostPropsBlockKitBlocks]) {
+		keys = append(keys, PostPropsBlockKitBlocks)
+	}
+	if interactivePropJSONArrayNonEmpty(props[PostPropsAdaptiveCards]) {
+		keys = append(keys, PostPropsAdaptiveCards)
+	}
+	if len(o.Attachments()) > 0 {
+		keys = append(keys, PostPropsAttachments)
+	}
+	return keys
 }
 
 // ValidateProps checks all known props for validity.
@@ -808,6 +1110,12 @@ func (o *Post) propsIsValid() error {
 		}
 	}
 
+	if props[PostPropsSilentNotification] != nil {
+		if _, ok := props[PostPropsSilentNotification].(bool); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("silent_notification prop must be a boolean"))
+		}
+	}
+
 	if props[PostPropsAIGeneratedByUserID] != nil {
 		if aiGenUserID, ok := props[PostPropsAIGeneratedByUserID].(string); !ok {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by prop must be a string"))
@@ -822,17 +1130,78 @@ func (o *Post) propsIsValid() error {
 		}
 	}
 
+	if err := ValidateMmBlocksActions(o); err != nil {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid mm_blocks_actions: %w", err))
+	}
+
 	for i, a := range o.Attachments() {
 		if err := a.IsValid(); err != nil {
 			multiErr = multierror.Append(multiErr, multierror.Prefix(err, fmt.Sprintf("message attachtment at index %d is invalid:", i)))
 		}
 	}
 
+	if keys := o.nonEmptyInteractivePayloadPropKeys(); len(keys) > 1 {
+		multiErr = multierror.Append(multiErr, fmt.Errorf(
+			"at most one interactive payload may be set among mm_blocks, blocks, cards, and attachments; found: %s",
+			strings.Join(keys, ", ")))
+	}
+
 	return multiErr.ErrorOrNil()
 }
 
+// IsSystemMessagePostType reports whether the given post type string is reserved for
+// system-generated messages.
+func IsSystemMessagePostType(postType string) bool {
+	return strings.HasPrefix(postType, PostSystemMessagePrefix)
+}
+
 func (o *Post) IsSystemMessage() bool {
-	return len(o.Type) >= len(PostSystemMessagePrefix) && o.Type[:len(PostSystemMessagePrefix)] == PostSystemMessagePrefix
+	return IsSystemMessagePostType(o.Type)
+}
+
+// IsAccessControlTeamMembershipNotification reports whether the post is a team
+// membership-policy DM (removal/auto-add). These suppress email so a bulk policy
+// sync doesn't mail every affected user.
+func (o *Post) IsAccessControlTeamMembershipNotification() bool {
+	return o.Type == PostTypeAccessControlTeamRemoval || o.Type == PostTypeAccessControlTeamAddition
+}
+
+func (o *Post) HasForceNotification() bool {
+	switch v := o.GetProp(PostPropsForceNotification).(type) {
+	case bool:
+		return v
+	case string:
+		return v != ""
+	default:
+		return false
+	}
+}
+
+func (o *Post) HasSilentNotification() bool {
+	prop := o.GetProp(PostPropsSilentNotification)
+	if prop == nil {
+		return false
+	}
+	if silent, ok := prop.(bool); ok {
+		return silent
+	}
+	return false
+}
+
+// IsNotificationSuppressed reports whether the post should not trigger delivery-side
+// notifications (push, email, mention counts, CRT thread_updated). Force notification wins.
+func (o *Post) IsNotificationSuppressed() bool {
+	if o.HasForceNotification() {
+		return false
+	}
+	return o.HasSilentNotification()
+}
+
+// ExcludesFromChannelMessageCount reports whether the post should not advance channel message counts.
+// Mirrors IsNotificationSuppressed so force_notification overrides silent_notification consistently
+// across the notification and unread paths.
+func (o *Post) ExcludesFromChannelMessageCount() bool {
+	return o.IsJoinLeaveMessage() || o.IsNotificationSuppressed()
 }
 
 // IsRemote returns true if the post originated on a remote cluster.
@@ -848,17 +1217,46 @@ func (o *Post) GetRemoteID() string {
 	return ""
 }
 
+// JoinLeaveMessagePostTypes returns the post types checked by IsJoinLeaveMessage.
+func JoinLeaveMessagePostTypes() []string {
+	return []string{
+		PostTypeJoinLeave,
+		PostTypeAddRemove,
+		PostTypeJoinChannel,
+		PostTypeLeaveChannel,
+		PostTypeJoinTeam,
+		PostTypeLeaveTeam,
+		PostTypeAddToChannel,
+		PostTypeRemoveFromChannel,
+		PostTypeAddToTeam,
+		PostTypeRemoveFromTeam,
+	}
+}
+
 func (o *Post) IsJoinLeaveMessage() bool {
-	return o.Type == PostTypeJoinLeave ||
-		o.Type == PostTypeAddRemove ||
-		o.Type == PostTypeJoinChannel ||
-		o.Type == PostTypeLeaveChannel ||
-		o.Type == PostTypeJoinTeam ||
-		o.Type == PostTypeLeaveTeam ||
-		o.Type == PostTypeAddToChannel ||
-		o.Type == PostTypeRemoveFromChannel ||
-		o.Type == PostTypeAddToTeam ||
-		o.Type == PostTypeRemoveFromTeam
+	return slices.Contains(JoinLeaveMessagePostTypes(), o.Type)
+}
+
+// MembershipSystemPostTypes is the superset of JoinLeaveMessagePostTypes that
+// additionally includes guest join/add types, used by the per-channel
+// disable-join-leave-messages read filter.
+func MembershipSystemPostTypes() []string {
+	return append(JoinLeaveMessagePostTypes(), PostTypeGuestJoinChannel, PostTypeAddGuestToChannel)
+}
+
+func IsMembershipSystemPost(post *Post) bool {
+	return post != nil && slices.Contains(MembershipSystemPostTypes(), post.Type)
+}
+
+// IsAddMembershipSystemPost returns true for posts that notify a user they were
+// added to a channel or team.
+func IsAddMembershipSystemPost(post *Post) bool {
+	if post == nil {
+		return false
+	}
+	return post.Type == PostTypeAddToChannel ||
+		post.Type == PostTypeAddGuestToChannel ||
+		post.Type == PostTypeAddToTeam
 }
 
 func (o *Post) Patch(patch *PostPatch) {
@@ -888,34 +1286,18 @@ func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
 
-// ChannelMentionsAll returns all channel mentions from both the message and attachments.
-// This is used by FillInPostProps to populate channel_mentions for rendering.
+// Deprecated: Use ChannelMentionsAllWithOptions instead.
+// ChannelMentionsAll returns all ~channel mentions from the same human-readable strings as
+// model.Post.AllStrings (message, attachments, interactive blocks are omitted).
 func (o *Post) ChannelMentionsAll() []string {
-	// Get mentions from message
-	messageMentions := ChannelMentions(o.Message)
+	return ChannelMentionsFromStrings(o.AllStrings(AllStringsOptions{OmitInteractiveBlocks: false}))
+}
 
-	// Get mentions from attachments
-	attachmentMentions := ChannelMentionsFromAttachments(o.Attachments())
-
-	// Combine and deduplicate
-	alreadyMentioned := make(map[string]bool)
-	var allMentions []string
-
-	for _, mention := range messageMentions {
-		if !alreadyMentioned[mention] {
-			allMentions = append(allMentions, mention)
-			alreadyMentioned[mention] = true
-		}
-	}
-
-	for _, mention := range attachmentMentions {
-		if !alreadyMentioned[mention] {
-			allMentions = append(allMentions, mention)
-			alreadyMentioned[mention] = true
-		}
-	}
-
-	return allMentions
+// ChannelMentionsAllWithOptions returns all ~channel mentions from the same human-readable strings as
+// model.Post.AllStrings (message, attachments, mm_blocks, blocks, cards). This is used by
+// FillInPostProps to populate channel_mentions for rendering.
+func (o *Post) ChannelMentionsAllWithOptions(opts AllStringsOptions) []string {
+	return ChannelMentionsFromStrings(o.AllStrings(opts))
 }
 
 // DisableMentionHighlights disables a posts mention highlighting and returns the first channel mention that was present in the message.
@@ -949,15 +1331,15 @@ func findAtChannelMention(message string) (mention string, found bool) {
 	return
 }
 
-func (o *Post) Attachments() []*SlackAttachment {
-	if attachments, ok := o.GetProp(PostPropsAttachments).([]*SlackAttachment); ok {
+func (o *Post) Attachments() []*MessageAttachment {
+	if attachments, ok := o.GetProp(PostPropsAttachments).([]*MessageAttachment); ok {
 		return attachments
 	}
-	var ret []*SlackAttachment
+	var ret []*MessageAttachment
 	if attachments, ok := o.GetProp(PostPropsAttachments).([]any); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
-				var decoded SlackAttachment
+				var decoded MessageAttachment
 				if json.Unmarshal(enc, &decoded) == nil {
 					// Ignoring nil actions
 					i := 0
@@ -1012,7 +1394,8 @@ var markdownDestinationEscaper = strings.NewReplacer(
 )
 
 // WithRewrittenImageURLs returns a new shallow copy of the post where the message has been
-// rewritten via RewriteImageURLs.
+// rewritten via RewriteImageURLs. Interactive payloads (mm_blocks, Block Kit, Adaptive Cards) are
+// not rewritten here; the client applies the image proxy via ExternalImage and related components.
 func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 	pCopy := o.Clone()
 	pCopy.Message = RewriteImageURLs(o.Message, f)
@@ -1051,8 +1434,8 @@ func RewriteImageURLs(message string, f func(string) string) string {
 		return message
 	}
 
-	sort.Slice(ranges, func(i, j int) bool {
-		return ranges[i].Position < ranges[j].Position
+	slices.SortFunc(ranges, func(a, b markdown.Range) int {
+		return cmp.Compare(a.Position, b.Position)
 	})
 
 	copyRanges := make([]markdown.Range, 0, len(ranges))
@@ -1176,6 +1559,38 @@ func (o *Post) CleanPost() *Post {
 type UpdatePostOptions struct {
 	SafeUpdate    bool
 	IsRestorePost bool
+
+	// AllowMmBlocksActionsUpdate grants the caller permission to add,
+	// remove, or modify the mm_blocks_actions prop. Without it,
+	// non-integration sessions cannot change mm_blocks_actions and the
+	// prop is reset to its prior value. Set only from trusted paths (e.g.
+	// the post-action integration response handler which has already
+	// validated the incoming value).
+	AllowMmBlocksActionsUpdate bool
+
+	// AllowIdentityPropsUpdate grants the caller permission to change the
+	// display-identity props (override_username, override_icon_url,
+	// override_icon_emoji, webhook_display_name) on edit. Without it,
+	// UpdatePost restores those props from the prior post — so a regular
+	// user editing a bot's post cannot strip or replace the bot's identity,
+	// but it also blocks the bot from updating its own identity. Shared
+	// Channels federation receive (the only production caller) sets this
+	// to true, paired with a genuine RemoteId, to forward the remote's new
+	// override values into the saved post. SanitizeProps still strips the
+	// props on the incoming payload for a non-federated post — UpdatePost
+	// captures the values BEFORE that strip and re-applies them after
+	// PreserveIdentityPropsFrom when this flag is set.
+	//
+	// Empty-string semantics: a captured value of "" is treated as "not
+	// supplied" and the prior post's value is preserved. This means a
+	// hypothetical non-federated opted-in caller cannot CLEAR an override
+	// via UpdatePost this way — only set it to a new non-empty value.
+	// The one real caller (federation receive) is not subject to this
+	// limitation: for a federated post, SanitizeProps leaves the remote's
+	// complete prop set untouched (including a prop's absence), so a
+	// remote genuinely clearing an override propagates via the payload
+	// itself, not through this empty-string mechanism.
+	AllowIdentityPropsUpdate bool
 }
 
 func DefaultUpdatePostOptions() *UpdatePostOptions {
@@ -1191,6 +1606,11 @@ type PreparePostForClientOpts struct {
 	IncludePriority bool
 	RetainContent   bool
 	IncludeDeleted  bool
+
+	// PropertyGroupID, when set, hydrates each post's property values for that group onto
+	// Metadata.PropertyValues. Empty means no hydration, so the zero value is always safe and
+	// callers opt in rather than out.
+	PropertyGroupID string
 }
 
 // ReportPostOptions contains options for querying posts for reporting/compliance purposes

@@ -56,7 +56,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	// Update BasicUser to SAML
 	expectedUserAuth := &model.UserAuth{
 		AuthService: model.UserAuthServiceSaml,
-		AuthData:    model.NewPointer("saml_auth_data"),
+		AuthData:    new("saml_auth_data"),
 	}
 	_, appErr = p.API.UpdateUserAuth(p.configuration.BasicUserID, expectedUserAuth)
 	if appErr != nil {
@@ -75,7 +75,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	// Update BasicUser to LDAP
 	expectedUserAuth = &model.UserAuth{
 		AuthService: model.UserAuthServiceLdap,
-		AuthData:    model.NewPointer("ldap_auth_data"),
+		AuthData:    new("ldap_auth_data"),
 	}
 	_, appErr = p.API.UpdateUserAuth(p.configuration.BasicUserID, expectedUserAuth)
 	if appErr != nil {

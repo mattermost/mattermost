@@ -9,7 +9,7 @@
 
 // Group: @channels @search @smoke @filesearch
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 /**
  * create new DM channel

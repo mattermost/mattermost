@@ -46,8 +46,10 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelGuestCounts(msg *
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelById(msg *model.ClusterMessage) {
 	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.channelByIdCache.Purge()
+		s.rootStore.deliveryTracking.purgeChannels()
 	} else {
 		s.rootStore.channelByIdCache.Remove(string(msg.Data))
+		s.rootStore.deliveryTracking.invalidateChannel(string(msg.Data))
 	}
 }
 
@@ -121,6 +123,7 @@ func (s LocalCacheChannelStore) InvalidateGuestCount(channelId string) {
 
 func (s LocalCacheChannelStore) InvalidateChannel(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByIdCache, channelId, nil)
+	s.rootStore.deliveryTracking.invalidateChannel(channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelByIdCache.Name())
 	}
@@ -222,6 +225,25 @@ func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCa
 	return count, nil
 }
 
+func (s LocalCacheChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+	newChannel, err := s.ChannelStore.Save(rctx, channel, maxChannelsPerTeam, channelOptions...)
+	// Space backing channels are excluded from the generic by-id Get/GetMany (SQL) and resolve
+	// only through GetChannelOfType; caching them here would let the generic cached lookups
+	// return them and defeat that exclusion.
+	if err == nil && !newChannel.IsSpace() {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelByIdCache, newChannel.Id, newChannel)
+	}
+	return newChannel, err
+}
+
+func (s LocalCacheChannelStore) Update(rctx request.CTX, channel *model.Channel) (*model.Channel, error) {
+	updatedChannel, err := s.ChannelStore.Update(rctx, channel)
+	if err == nil {
+		s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByIdCache, channel.Id, nil)
+	}
+	return updatedChannel, err
+}
+
 func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	if allowFromCache {
 		var cacheItem *model.Channel
@@ -248,7 +270,7 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 	}
 
 	toPass := allocateCacheTargets[*model.Channel](len(ids))
-	errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, ids, toPass)
+	errs := s.rootStore.doMultiReadCache(s.rootStore.channelByIdCache, ids, toPass)
 	for i, err := range errs {
 		if err != nil {
 			if err != cache.ErrKeyNotFound {
@@ -349,7 +371,7 @@ func (s LocalCacheChannelStore) getByNames(teamId string, names []string, allowF
 		}
 
 		toPass := allocateCacheTargets[*model.Channel](len(newKeys))
-		errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, newKeys, toPass)
+		errs := s.rootStore.doMultiReadCache(s.rootStore.channelByNameCache, newKeys, toPass)
 		for i, err := range errs {
 			if err != nil {
 				if err != cache.ErrKeyNotFound {
@@ -466,7 +488,7 @@ func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string) (_ m
 	remainingChannels := make([]string, 0)
 
 	toPass := allocateCacheTargets[int64](len(channelIDs))
-	errs := s.rootStore.doMultiReadCache(s.rootStore.reaction.rootStore.channelMemberCountsCache, channelIDs, toPass)
+	errs := s.rootStore.doMultiReadCache(s.rootStore.channelMemberCountsCache, channelIDs, toPass)
 	for i, err := range errs {
 		if err != nil {
 			if err != cache.ErrKeyNotFound {

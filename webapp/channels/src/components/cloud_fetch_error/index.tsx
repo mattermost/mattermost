@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+
+import {Button} from '@mattermost/shared/components/button';
 
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 
@@ -27,8 +27,8 @@ export default function CloudFetchError() {
                 defaultMessage='Error fetching billing data. Please try again later.'
             />
         </div>
-        <button
-            className='btn btn-primary'
+        <Button
+            emphasis='primary'
             onClick={() => {
                 dispatch(retryFailedCloudFetches());
             }}
@@ -37,6 +37,6 @@ export default function CloudFetchError() {
                 id='cloud.fetch_error.retry'
                 defaultMessage='Retry'
             />
-        </button>
+        </Button>
     </div>);
 }

@@ -9,6 +9,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import type {Timezone} from 'timezones.json';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile, UserTimezone} from '@mattermost/types/users';
 
@@ -64,9 +65,9 @@ type Option = {
         more?: MessageDescriptor;
     };
     childOption?: ChildOption;
-}
+};
 
-type SectionProps ={
+type SectionProps = {
     section: string;
     display: string;
     defaultDisplay: string;
@@ -78,13 +79,13 @@ type SectionProps ={
     description: MessageDescriptor;
     disabled?: boolean;
     onSubmit?: () => void;
-}
+};
 
 export type OwnProps = {
     user: UserProfile;
     adminMode?: boolean;
     userPreferences?: PreferencesType;
-}
+};
 
 type Props = OwnProps & {
     user: UserProfile;
@@ -126,7 +127,7 @@ type Props = OwnProps & {
         updateMe: (user: UserProfile) => Promise<ActionResult>;
         patchUser: (user: UserProfile) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     [key: string]: any;
@@ -145,7 +146,7 @@ type State = {
     clickToReply: string;
     handleSubmit?: () => void;
     serverError?: string;
-}
+};
 
 export default class UserSettingsDisplay extends React.PureComponent<Props, State> {
     public prevSections: {
@@ -490,19 +491,14 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 };
 
                 thirdSection = (
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id={name + 'C'}
-                                type='radio'
-                                name={name}
-                                checked={format[2]}
-                                onChange={(e) => this.handleOnChange(e, thirdDisplay)}
-                            />
-                            {thirdMessage}
-                        </label>
-                        <br/>
-                    </div>
+                    <Radio
+                        id={name + 'C'}
+                        name={name}
+                        checked={format[2]}
+                        onChange={(e) => this.handleOnChange(e, thirdDisplay)}
+                    >
+                        {thirdMessage}
+                    </Radio>
                 );
             }
 
@@ -544,37 +540,29 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     <legend className='form-legend hidden-label'>
                         {messageTitle}
                     </legend>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id={name + 'A'}
-                                type='radio'
-                                name={name}
-                                checked={format[0]}
-                                onChange={(e) => this.handleOnChange(e, firstDisplay)}
-                            />
+                    <div className='settings-radio-group'>
+                        <Radio
+                            id={name + 'A'}
+                            name={name}
+                            checked={format[0]}
+                            onChange={(e) => this.handleOnChange(e, firstDisplay)}
+                        >
                             {firstMessage}
                             {moreColon}
                             {firstMessageMore}
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id={name + 'B'}
-                                type='radio'
-                                name={name}
-                                checked={format[1]}
-                                onChange={(e) => this.handleOnChange(e, secondDisplay)}
-                            />
+                        </Radio>
+                        <Radio
+                            id={name + 'B'}
+                            name={name}
+                            checked={format[1]}
+                            onChange={(e) => this.handleOnChange(e, secondDisplay)}
+                        >
                             {secondMessage}
                             {moreColon}
                             {secondMessageMore}
-                        </label>
-                        <br/>
+                        </Radio>
+                        {thirdSection}
                     </div>
-                    {thirdSection}
                     <div>
                         <br/>
                         {messageDesc}
@@ -815,7 +803,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             },
             description: defineMessage({
                 id: 'user.settings.display.teammateNameDisplayDescription',
-                defaultMessage: 'Set how to display other user\'s names in posts and the Direct Messages list.',
+                defaultMessage: 'Set how to display other users\' names in posts and the Direct Messages list.',
             }),
             disabled: this.props.lockTeammateNameDisplay,
         });

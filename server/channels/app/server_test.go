@@ -16,7 +16,6 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -32,10 +31,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
-func newServer(t *testing.T) (*Server, error) {
-	return newServerWithConfig(t, func(_ *model.Config) {})
-}
-
 func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, error) {
 	configStore, err := config.NewMemoryStore()
 	require.NoError(t, err)
@@ -50,7 +45,7 @@ func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, erro
 	_, _, err = store.Set(cfg)
 	require.NoError(t, err)
 
-	return NewServer(ConfigStore(store))
+	return NewServer(ConfigStore(store), DisableGlobalLogger())
 }
 
 func TestStartServerSuccess(t *testing.T) {
@@ -72,17 +67,20 @@ func TestStartServerSuccess(t *testing.T) {
 
 func TestStartServerPortUnavailable(t *testing.T) {
 	mainHelper.Parallel(t)
-	// Listen on the next available port
-	listener, err := net.Listen("tcp", "localhost:0")
+	// Pin to IPv4 so the blocked port exactly matches the address Start() will bind.
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	defer listener.Close()
+
+	_, port, err := net.SplitHostPort(listener.Addr().String())
 	require.NoError(t, err)
 
-	s, err := newServer(t)
-	require.NoError(t, err)
+	blockedAddr := net.JoinHostPort("127.0.0.1", port)
 
-	// Attempt to listen on the port used above.
-	s.platform.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = listener.Addr().String()
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.ListenAddress = blockedAddr
 	})
+	require.NoError(t, err)
 
 	serverErr := s.Start()
 	s.Shutdown()
@@ -110,11 +108,11 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 		DriverName:              model.NewPointer(model.ImageDriverS3),
 		AmazonS3AccessKeyId:     model.NewPointer(model.MinioAccessKey),
 		AmazonS3SecretAccessKey: model.NewPointer(model.MinioSecretKey),
-		AmazonS3Bucket:          model.NewPointer("nosuchbucket"),
-		AmazonS3Endpoint:        model.NewPointer(s3Endpoint),
-		AmazonS3Region:          model.NewPointer(""),
-		AmazonS3PathPrefix:      model.NewPointer(""),
-		AmazonS3SSL:             model.NewPointer(false),
+		AmazonS3Bucket:          new("nosuchbucket"),
+		AmazonS3Endpoint:        new(s3Endpoint),
+		AmazonS3Region:          new(""),
+		AmazonS3PathPrefix:      new(""),
+		AmazonS3SSL:             new(false),
 	}
 	*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	*cfg.AnnouncementSettings.AdminNoticesEnabled = false
@@ -125,7 +123,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 
 	s, err := NewServer(func(server *Server) error {
 		var err2 error
-		server.platform, err2 = platform.New(platform.ServiceConfig{}, platform.ConfigStore(store))
+		server.platform, err2 = platform.New(platform.ServiceConfig{}, platform.ConfigStore(store), platform.DisableGlobalLogger())
 		require.NoError(t, err2)
 
 		return nil
@@ -187,7 +185,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 	_, _, err := store.Set(cfg)
 	require.NoError(t, err)
 
-	s, err := NewServer(ConfigStore(store))
+	s, err := NewServer(ConfigStore(store), DisableGlobalLogger())
 	require.NoError(t, err)
 
 	serverErr := s.Start()
@@ -298,9 +296,9 @@ func TestPanicLog(t *testing.T) {
 	logger, _ := mlog.NewLogger()
 
 	logSettings := model.NewLogSettings()
-	logSettings.EnableConsole = model.NewPointer(true)
-	logSettings.ConsoleJson = model.NewPointer(true)
-	logSettings.EnableFile = model.NewPointer(true)
+	logSettings.EnableConsole = new(true)
+	logSettings.ConsoleJson = new(true)
+	logSettings.EnableFile = new(true)
 	logSettings.FileLocation = &tmpDir
 	logSettings.FileLevel = &mlog.LvlInfo.Name
 
@@ -320,7 +318,7 @@ func TestPanicLog(t *testing.T) {
 	require.NoError(t, err)
 
 	// Creating a server with logger
-	s, err := NewServer(ConfigStore(store), SetLogger(logger))
+	s, err := NewServer(ConfigStore(store), SetLogger(logger), DisableGlobalLogger())
 	require.NoError(t, err)
 
 	// Route for just panicking
@@ -393,7 +391,8 @@ func TestSentry(t *testing.T) {
 	testDir, _ := fileutils.FindDir("tests")
 
 	setSentryDSN := func(t *testing.T, dsn *sentry.Dsn) {
-		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
 
 		// Allow Playbooks to startup
 		oldBuildHash := model.BuildHash
@@ -402,7 +401,6 @@ func TestSentry(t *testing.T) {
 		oldSentryDSN := SentryDSN
 		SentryDSN = dsn.String()
 		t.Cleanup(func() {
-			os.Unsetenv("MM_SERVICEENVIRONMENT")
 			model.BuildHash = oldBuildHash
 			SentryDSN = oldSentryDSN
 		})
@@ -499,16 +497,6 @@ func TestSentry(t *testing.T) {
 	})
 }
 
-func TestCancelTaskSetsTaskToNil(t *testing.T) {
-	mainHelper.Parallel(t)
-	var taskMut sync.Mutex
-	task := model.CreateRecurringTaskFromNextIntervalTime("a test task", func() {}, 5*time.Minute)
-	require.NotNil(t, task)
-	cancelTask(&taskMut, &task)
-	require.Nil(t, task)
-	require.NotPanics(t, func() { cancelTask(&taskMut, &task) })
-}
-
 func TestOriginChecker(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -565,5 +553,52 @@ func TestOriginChecker(t *testing.T) {
 		}
 		res := th.App.OriginChecker()(r)
 		require.Equalf(t, tc.Pass, res, "Test case (%d)", i)
+	}
+}
+
+func TestEmailBatchingSettingChanged(t *testing.T) {
+	t.Parallel()
+
+	cfg := func(enabled bool, interval int) *model.Config {
+		c := &model.Config{}
+		c.EmailSettings.EnableEmailBatching = model.NewPointer(enabled)
+		c.EmailSettings.EmailBatchingInterval = model.NewPointer(interval)
+		return c
+	}
+
+	tests := []struct {
+		name     string
+		oldCfg   *model.Config
+		newCfg   *model.Config
+		expected bool
+	}{
+		{name: "nil old config", oldCfg: nil, newCfg: cfg(true, 30), expected: true},
+		{name: "nil new config", oldCfg: cfg(true, 30), newCfg: nil, expected: true},
+		{name: "unchanged disabled", oldCfg: cfg(false, 30), newCfg: cfg(false, 30), expected: false},
+		{name: "unchanged enabled", oldCfg: cfg(true, 30), newCfg: cfg(true, 30), expected: false},
+		{name: "enabled", oldCfg: cfg(false, 30), newCfg: cfg(true, 30), expected: true},
+		{name: "disabled", oldCfg: cfg(true, 30), newCfg: cfg(false, 30), expected: true},
+		{name: "interval changed", oldCfg: cfg(true, 30), newCfg: cfg(true, 300), expected: true},
+		{
+			name: "push notification server change is ignored",
+			oldCfg: func() *model.Config {
+				c := cfg(false, 30)
+				c.EmailSettings.PushNotificationServer = model.NewPointer(model.MHPNSGlobal)
+				return c
+			}(),
+			newCfg: func() *model.Config {
+				c := cfg(false, 30)
+				c.EmailSettings.PushNotificationServer = model.NewPointer(model.GenericNotificationServer)
+				return c
+			}(),
+			expected: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tc.expected, emailBatchingSettingChanged(tc.oldCfg, tc.newCfg))
+		})
 	}
 }

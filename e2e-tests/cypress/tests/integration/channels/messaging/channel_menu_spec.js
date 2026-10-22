@@ -9,7 +9,7 @@
 
 // Group: @channels @messaging
 
-import {getAdminAccount} from '../../../support/env';
+import {getAdminAccount} from '@/support/env';
 
 function demoteUserToGuest(user, admin) {
     // # Issue a Request to demote the user to guest

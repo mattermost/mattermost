@@ -4,6 +4,7 @@
 import * as PreferencesSelectors from 'mattermost-redux/selectors/entities/preferences';
 
 import type {GlobalState} from 'types/store';
+import {LhsPage} from 'types/store/lhs';
 
 import * as Lhs from './lhs';
 
@@ -24,6 +25,41 @@ describe('Selectors.Lhs', () => {
 
     beforeEach(() => {
         state = {};
+    });
+
+    describe('getIsGlobalThreadsView', () => {
+        it('returns true when currentStaticPageId is the Threads page', () => {
+            state = {
+                views: {
+                    lhs: {
+                        currentStaticPageId: LhsPage.Threads,
+                    },
+                },
+            };
+            expect(Lhs.getIsGlobalThreadsView(state as GlobalState)).toBe(true);
+        });
+
+        it('returns false when currentStaticPageId is a different static page', () => {
+            state = {
+                views: {
+                    lhs: {
+                        currentStaticPageId: LhsPage.Drafts,
+                    },
+                },
+            };
+            expect(Lhs.getIsGlobalThreadsView(state as GlobalState)).toBe(false);
+        });
+
+        it('returns false when no static page is active (channel view)', () => {
+            state = {
+                views: {
+                    lhs: {
+                        currentStaticPageId: '',
+                    },
+                },
+            };
+            expect(Lhs.getIsGlobalThreadsView(state as GlobalState)).toBe(false);
+        });
     });
 
     describe('should return the open state of the sidebar menu', () => {

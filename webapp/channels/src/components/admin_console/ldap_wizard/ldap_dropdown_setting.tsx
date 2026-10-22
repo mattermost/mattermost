@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {useIntl} from 'react-intl';
 
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
@@ -21,7 +21,7 @@ type Props = {
     onChange(id: string, value: any): void;
     disabled: boolean;
     setByEnv: boolean;
-} & GeneralSettingProps
+} & GeneralSettingProps;
 
 const LDAPDropdownSetting = (props: Props) => {
     const intl = useIntl();

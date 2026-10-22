@@ -28,10 +28,12 @@ exports[`components/ColorSetting should match snapshot, all 1`] = `
         />
         <span
           class="input-group-addon color-pad"
+          data-testid="color-togglerButton"
           id="id-squareColorIcon"
         >
           <i
             class="color-icon"
+            data-testid="color-icon"
             id="id-squareColorIconValue"
             style="background-color: rgb(255, 255, 255);"
           />
@@ -76,10 +78,12 @@ exports[`components/ColorSetting should match snapshot, clicked on color setting
         />
         <span
           class="input-group-addon color-pad"
+          data-testid="color-togglerButton"
           id="id-squareColorIcon"
         >
           <i
             class="color-icon"
+            data-testid="color-icon"
             id="id-squareColorIconValue"
             style="background-color: rgb(255, 255, 255);"
           />
@@ -123,6 +127,18 @@ exports[`components/ColorSetting should match snapshot, disabled 1`] = `
           type="text"
           value="#fff"
         />
+        <span
+          class="input-group-addon color-pad color-pad--disabled"
+          data-testid="color-togglerButton"
+          id="id-squareColorIcon"
+        >
+          <i
+            class="color-icon"
+            data-testid="color-icon"
+            id="id-squareColorIconValue"
+            style="background-color: rgb(255, 255, 255);"
+          />
+        </span>
       </div>
       <div
         class="help-text"
@@ -161,10 +177,12 @@ exports[`components/ColorSetting should match snapshot, no help text 1`] = `
         />
         <span
           class="input-group-addon color-pad"
+          data-testid="color-togglerButton"
           id="id-squareColorIcon"
         >
           <i
             class="color-icon"
+            data-testid="color-icon"
             id="id-squareColorIconValue"
             style="background-color: rgb(255, 255, 255);"
           />

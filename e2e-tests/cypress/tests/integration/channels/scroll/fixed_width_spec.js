@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-const timeouts = require('../../../fixtures/timeouts');
+const timeouts = require('@/fixtures/timeouts');
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)

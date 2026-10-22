@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -14,33 +16,45 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/updatebyquery"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/highlighterencoder"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/operator"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/scriptlanguage"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
+	"github.com/opensearch-project/opensearch-go/v4"
+	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
-
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/highlighterencoder"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/operator"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
-	"github.com/opensearch-project/opensearch-go/v4"
-	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 )
 
-const opensearchMaxVersion = 2
+const opensearchMinVersion = 2
+const opensearchMaxVersion = 3
 
 var (
 	purgeIndexListAllowedIndexes = []string{common.IndexBaseChannels}
 )
 
+// isIndexNotFound reports whether err is a 404 index_not_found_exception from
+// OpenSearch. This happens when an index has never been created (e.g. no
+// reindex has run yet) and should be treated as an empty result, not an error.
+func isIndexNotFound(err error) bool {
+	var osErr *opensearch.StructError
+	return errors.As(err, &osErr) && osErr.Status == http.StatusNotFound && osErr.Err.Type == "index_not_found_exception"
+}
+
 type OpensearchInterfaceImpl struct {
 	client      *opensearchapi.Client
 	mutex       sync.RWMutex
-	ready       int32
+	ready       atomic.Int32
+	healthy     atomic.Int32 // 1 = reachable, 0 = unreachable (set by watcher)
 	version     int
 	fullVersion string
 	plugins     []string
@@ -71,7 +85,19 @@ func (os *OpensearchInterfaceImpl) IsEnabled() bool {
 }
 
 func (os *OpensearchInterfaceImpl) IsActive() bool {
-	return *os.Platform.Config().ElasticsearchSettings.EnableIndexing && atomic.LoadInt32(&os.ready) == 1
+	return *os.Platform.Config().ElasticsearchSettings.EnableIndexing && os.ready.Load() == 1
+}
+
+func (os *OpensearchInterfaceImpl) IsHealthy() bool {
+	return os.healthy.Load() == 1
+}
+
+func (os *OpensearchInterfaceImpl) SetHealthy(healthy bool) {
+	if healthy {
+		os.healthy.Store(1)
+	} else {
+		os.healthy.Store(0)
+	}
 }
 
 func (os *OpensearchInterfaceImpl) IsIndexingEnabled() bool {
@@ -90,7 +116,36 @@ func (os *OpensearchInterfaceImpl) IsIndexingSync() bool {
 	return *os.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize <= 1
 }
 
-func (os *OpensearchInterfaceImpl) Start() *model.AppError {
+// fetchServerInfo retrieves and stores the server version and plugins from the given client.
+func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *opensearchapi.Client) *model.AppError {
+	version, major, appErr := checkVersion(ctx, client, os.Platform.Log())
+	if appErr != nil {
+		return appErr
+	}
+
+	os.version = major
+	os.fullVersion = version
+
+	// CAT plugins is used because internally it calls nodes, but for some reason AWS's nodes
+	// endpoint doesn't correctly return its list (but CAT does). However, CAT omits nodes with no
+	// plugins, so this inventory must not be used to prove cluster-wide absence.
+	resp, err := client.Cat.Plugins(ctx, nil)
+	if err != nil {
+		os.Platform.Log().Warn("Error retrieving opensearch plugins", mlog.Err(err))
+		return nil
+	}
+
+	os.plugins = nil
+	for _, plugin := range resp.Plugins {
+		if plugin.Component != "" {
+			os.plugins = append(os.plugins, plugin.Component)
+		}
+	}
+
+	return nil
+}
+
+func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 	if license := os.Platform.License(); license == nil || !*license.Features.Elasticsearch || !*os.Platform.Config().ElasticsearchSettings.EnableIndexing {
 		return nil
 	}
@@ -98,7 +153,7 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 	os.mutex.Lock()
 	defer os.mutex.Unlock()
 
-	if atomic.LoadInt32(&os.ready) != 0 {
+	if os.ready.Load() != 0 {
 		// Elasticsearch is already started. We don't return an error
 		// because "Test Connection" already re-initializes the client. So this
 		// can be a valid scenario.
@@ -110,59 +165,21 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 		return appErr
 	}
 
-	version, major, appErr := checkMaxVersion(os.client)
-	if appErr != nil {
+	if appErr = os.fetchServerInfo(ctx, os.client); appErr != nil {
 		return appErr
 	}
 
-	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
-	// Instead, we will log it and move forward
-	resp, err := os.client.Cat.Plugins(context.Background(), nil)
-	if err != nil {
-		os.Platform.Log().Warn("Error retrieving opensearch plugins", mlog.Err(err))
-	} else {
-		for _, p := range resp.Plugins {
-			os.plugins = append(os.plugins, p.Component)
-		}
-	}
-
-	os.version = major
-	os.fullVersion = version
-
-	ctx := context.Background()
-
 	esSettings := os.Platform.Config().ElasticsearchSettings
-	if *esSettings.LiveIndexingBatchSize > 1 {
-		os.bulkProcessor = NewBulk(
-			common.BulkSettings{
-				FlushBytes:    0,
-				FlushInterval: common.BulkFlushInterval,
-				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
-			},
-			os.client,
-			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
-			os.Platform.Log())
-	}
-	os.syncBulkProcessor = NewBulk(
-		common.BulkSettings{
-			FlushBytes:    common.BulkFlushBytes,
-			FlushInterval: 0,
-			FlushNumReqs:  0,
-		},
-		os.client,
-		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
-		os.Platform.Log())
-
 	opts := []func(*types.IndexTemplateMapping){}
 	// Set up additional analyzers to use in the post index template if CJK analyzers are enabled
 	if *os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers {
-		if slices.Contains(os.plugins, "analysis-nori") {
+		if common.HasAnalysisPlugin(os.plugins, "analysis-nori") {
 			opts = append(opts, common.WithNoriAnalyzer())
 		}
-		if slices.Contains(os.plugins, "analysis-kuromoji") {
+		if common.HasAnalysisPlugin(os.plugins, "analysis-kuromoji") {
 			opts = append(opts, common.WithKuromojiAnalyzer())
 		}
-		if slices.Contains(os.plugins, "analysis-smartcn") {
+		if common.HasAnalysisPlugin(os.plugins, "analysis-smartcn") {
 			opts = append(opts, common.WithSmartCNAnalyzer())
 		}
 
@@ -223,7 +240,59 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	atomic.StoreInt32(&os.ready, 1)
+	if *esSettings.LiveIndexingBatchSize > 1 {
+		os.bulkProcessor = NewBulk(
+			common.BulkSettings{
+				FlushBytes:    0,
+				FlushInterval: common.BulkFlushInterval,
+				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
+			},
+			os.client,
+			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+			os.Platform.Log())
+	}
+	os.syncBulkProcessor = NewBulk(
+		common.BulkSettings{
+			FlushBytes:    common.BulkFlushBytes,
+			FlushInterval: 0,
+			FlushNumReqs:  0,
+		},
+		os.client,
+		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+		os.Platform.Log())
+
+	os.ready.Store(1)
+	os.healthy.Store(1)
+
+	return nil
+}
+
+// snapshotClient returns the current client reference under the read lock,
+// releasing the lock before returning. This lets HealthCheck make a blocking
+// network call without holding the RLock for its full duration.
+// See ElasticsearchInterfaceImpl.snapshotClient for the full rationale.
+func (os *OpensearchInterfaceImpl) snapshotClient() (*opensearchapi.Client, bool) {
+	os.mutex.RLock()
+	defer os.mutex.RUnlock()
+
+	if os.ready.Load() == 0 {
+		return nil, false
+	}
+	return os.client, true
+}
+
+func (os *OpensearchInterfaceImpl) HealthCheck(_ request.CTX) *model.AppError {
+	client, ok := os.snapshotClient()
+	if !ok {
+		return model.NewAppError("Opensearch.HealthCheck", "ent.elasticsearch.healthcheck.not_started.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*os.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
+	defer cancel()
+
+	if _, err := client.Cluster.Health(ctx, nil); err != nil {
+		return model.NewAppError("Opensearch.HealthCheck", "ent.elasticsearch.healthcheck.unreachable.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusBadGateway).Wrap(err)
+	}
 
 	return nil
 }
@@ -232,20 +301,25 @@ func (os *OpensearchInterfaceImpl) Stop() *model.AppError {
 	os.mutex.Lock()
 	defer os.mutex.Unlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.stop.already_stopped.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
-	}
+	os.ready.Store(0)
+	os.healthy.Store(0)
 
-	// Flushing any pending requests
-	if os.bulkProcessor != nil {
-		if err := os.bulkProcessor.Stop(); err != nil {
+	bulkProcessor := os.bulkProcessor
+	syncBulkProcessor := os.syncBulkProcessor
+	os.bulkProcessor = nil
+	os.syncBulkProcessor = nil
+	os.client = nil
+
+	if bulkProcessor != nil {
+		if err := bulkProcessor.Stop(); err != nil && os.Platform != nil {
 			os.Platform.Log().Warn("Error stopping bulk processor", mlog.Err(err))
 		}
-		os.bulkProcessor = nil
 	}
-
-	os.client = nil
-	atomic.StoreInt32(&os.ready, 0)
+	if syncBulkProcessor != nil {
+		if err := syncBulkProcessor.Stop(); err != nil && os.Platform != nil {
+			os.Platform.Log().Warn("Error stopping synchronous bulk processor", mlog.Err(err))
+		}
+	}
 
 	return nil
 }
@@ -262,18 +336,18 @@ func (os *OpensearchInterfaceImpl) GetPlugins() []string {
 	return os.plugins
 }
 
-func (os *OpensearchInterfaceImpl) IndexPost(post *model.Post, teamId string) *model.AppError {
+func (os *OpensearchInterfaceImpl) IndexPost(post *model.Post, teamId string, channelType string) *model.AppError {
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.IndexPost", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
 	indexName := common.BuildPostIndexName(*os.Platform.Config().ElasticsearchSettings.AggregatePostsAfterDays,
 		*os.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts, *os.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts_MONTH, time.Now(), post.CreateAt)
 
-	searchPost, err := common.ESPostFromPost(post, teamId)
+	searchPost, err := common.ESPostFromPost(post, teamId, channelType, os.Platform.Config().FeatureFlags.MmBlocksEnabled)
 	if err != nil {
 		return model.NewAppError("Opensearch.IndexPost", "ent.elasticsearch.index_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -281,8 +355,8 @@ func (os *OpensearchInterfaceImpl) IndexPost(post *model.Post, teamId string) *m
 	var postBuf []byte
 	if os.bulkProcessor != nil {
 		err = os.bulkProcessor.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchPost.Id),
+			Index_: new(indexName),
+			Id_:    new(searchPost.Id),
 		}, searchPost)
 		if err != nil {
 			return model.NewAppError("Opensearch.IndexPost", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -324,7 +398,7 @@ func (os *OpensearchInterfaceImpl) getPostIndexNames() ([]string, error) {
 		return nil, err
 	}
 	postIndexes := make([]string, 0)
-	for name := range indexes.Indices {
+	for name := range *indexes.IndicesGetRespData {
 		if strings.HasPrefix(name, *os.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts) {
 			postIndexes = append(postIndexes, name)
 		}
@@ -341,15 +415,15 @@ func (os *OpensearchInterfaceImpl) getFieldVariants(fieldName string, query stri
 		return variants
 	}
 
-	if slices.Contains(os.plugins, "analysis-nori") {
+	if common.HasAnalysisPlugin(os.plugins, "analysis-nori") {
 		variants = append(variants, fieldName+".nori")
 	}
 
-	if slices.Contains(os.plugins, "analysis-kuromoji") {
+	if common.HasAnalysisPlugin(os.plugins, "analysis-kuromoji") {
 		variants = append(variants, fieldName+".kuromoji")
 	}
 
-	if slices.Contains(os.plugins, "analysis-smartcn") {
+	if common.HasAnalysisPlugin(os.plugins, "analysis-smartcn") {
 		variants = append(variants, fieldName+".smartcn")
 	}
 
@@ -360,7 +434,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return []string{}, nil, model.NewAppError("Opensearch.SearchPosts", "ent.elasticsearch.search_posts.disabled", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -420,8 +494,8 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 				filters = append(filters, types.Query{
 					Range: map[string]types.RangeQuery{
 						"create_at": types.NumberRangeQuery{
-							Gte: model.NewPointer(types.Float64(before)),
-							Lte: model.NewPointer(types.Float64(after)),
+							Gte: new(types.Float64(before)),
+							Lte: new(types.Float64(after)),
 						},
 					},
 				})
@@ -429,11 +503,11 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 				if params.AfterDate != "" || params.BeforeDate != "" {
 					nrQuery := types.NumberRangeQuery{}
 					if params.AfterDate != "" {
-						nrQuery.Gte = model.NewPointer(types.Float64(params.GetAfterDateMillis()))
+						nrQuery.Gte = new(types.Float64(params.GetAfterDateMillis()))
 					}
 
 					if params.BeforeDate != "" {
-						nrQuery.Lte = model.NewPointer(types.Float64(params.GetBeforeDateMillis()))
+						nrQuery.Lte = new(types.Float64(params.GetBeforeDateMillis()))
 					}
 
 					query := types.Query{
@@ -450,8 +524,8 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Gte: model.NewPointer(types.Float64(before)),
-									Lte: model.NewPointer(types.Float64(after)),
+									Gte: new(types.Float64(before)),
+									Lte: new(types.Float64(after)),
 								},
 							},
 						})
@@ -461,7 +535,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Gte: model.NewPointer(types.Float64(params.GetExcludedAfterDateMillis())),
+									Gte: new(types.Float64(params.GetExcludedAfterDateMillis())),
 								},
 							},
 						})
@@ -471,7 +545,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Lte: model.NewPointer(types.Float64(params.GetExcludedBeforeDateMillis())),
+									Lte: new(types.Float64(params.GetExcludedBeforeDateMillis())),
 								},
 							},
 						})
@@ -595,12 +669,47 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 		fullHighlightsQuery.Must = append([]types.Query(nil), highlightQueries...)
 	}
 
-	filters = append(filters,
-		types.Query{
+	// Build channel access filter, optionally including non-member public channels.
+	cfg := os.Platform.Config()
+	includePublicChannels := model.SafeDereference(cfg.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership) &&
+		!model.SafeDereference(cfg.ComplianceSettings.Enable)
+
+	var channelFilter types.Query
+	if includePublicChannels {
+		teamIdSet := make(map[string]struct{})
+		for _, channel := range channels {
+			if channel.TeamId != "" {
+				teamIdSet[channel.TeamId] = struct{}{}
+			}
+		}
+		var teamIds []string
+		for id := range teamIdSet {
+			teamIds = append(teamIds, id)
+		}
+
+		channelFilter = types.Query{
+			Bool: &types.BoolQuery{
+				Should: []types.Query{
+					{Terms: &types.TermsQuery{TermsQuery: map[string]types.TermsQueryField{"channel_id": channelIds}}},
+					{Bool: &types.BoolQuery{
+						Filter: []types.Query{
+							{Term: map[string]types.TermQuery{"channel_type": {Value: "O"}}},
+							{Terms: &types.TermsQuery{TermsQuery: map[string]types.TermsQueryField{"team_id": teamIds}}},
+						},
+					}},
+				},
+			},
+		}
+	} else {
+		channelFilter = types.Query{
 			Terms: &types.TermsQuery{
 				TermsQuery: map[string]types.TermsQueryField{"channel_id": channelIds},
 			},
-		},
+		}
+	}
+
+	filters = append(filters,
+		channelFilter,
 		types.Query{
 			Bool: &types.BoolQuery{
 				Should: []types.Query{
@@ -678,12 +787,12 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 	}
 
 	var searchResult searchResp
-	_, err = os.client.Client.Do(ctx, &opensearchapi.SearchReq{
+	_, err = os.client.Client.Do(ctx, http.MethodPost, &opensearchapi.SearchReq{
 		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBasePosts+"*")},
 		Body:    bytes.NewReader(searchBuf),
 		Params: opensearchapi.SearchParams{
-			From: model.NewPointer(page * perPage),
-			Size: model.NewPointer(perPage),
+			From: new(page * perPage),
+			Size: new(perPage),
 		},
 	}, &searchResult)
 	if err != nil {
@@ -719,7 +828,7 @@ func (os *OpensearchInterfaceImpl) DeletePost(post *model.Post) *model.AppError 
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.DeletePost", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -741,13 +850,16 @@ func (os *OpensearchInterfaceImpl) DeleteChannelPosts(rctx request.CTX, channelI
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.DeleteChannelPosts", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
 	postIndexes, err := os.getPostIndexNames()
 	if err != nil {
 		return model.NewAppError("Opensearch.DeleteChannelPosts", "ent.elasticsearch.delete_channel_posts.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(postIndexes) == 0 {
+		return nil
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*os.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
@@ -778,17 +890,159 @@ func (os *OpensearchInterfaceImpl) DeleteChannelPosts(rctx request.CTX, channelI
 	return nil
 }
 
+func (os *OpensearchInterfaceImpl) UpdatePostsChannelTypeByChannelId(rctx request.CTX, channelID string, channelType string) *model.AppError {
+	os.mutex.RLock()
+	defer os.mutex.RUnlock()
+
+	if os.ready.Load() == 0 {
+		return model.NewAppError("Opensearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
+	}
+
+	postIndexes, err := os.getPostIndexNames()
+	if err != nil {
+		return model.NewAppError("Opensearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.update_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(postIndexes) == 0 {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*os.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
+	defer cancel()
+
+	query := &types.Query{
+		Bool: &types.BoolQuery{
+			Filter: []types.Query{{
+				Term: map[string]types.TermQuery{"channel_id": {Value: channelID}},
+			}},
+		},
+	}
+
+	scriptSource := "ctx._source.channel_type = params.channel_type"
+	lang := scriptlanguage.Painless
+	channelTypeJSON, jsonErr := json.Marshal(channelType)
+	if jsonErr != nil {
+		return model.NewAppError("Opensearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.update_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	queryBuf, err := json.Marshal(updatebyquery.Request{
+		Query: query,
+		Script: &types.Script{
+			Source: &scriptSource,
+			Lang:   &lang,
+			Params: map[string]json.RawMessage{
+				"channel_type": channelTypeJSON,
+			},
+		},
+	})
+	if err != nil {
+		return model.NewAppError("Opensearch.UpdatePostsChannelTypeByChannelId", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	response, err := os.client.UpdateByQuery(ctx, opensearchapi.UpdateByQueryReq{
+		Indices: postIndexes,
+		Body:    bytes.NewReader(queryBuf),
+	})
+	if err != nil {
+		return model.NewAppError("Opensearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.update_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(response.Failures) > 0 {
+		rctx.Logger().Warn("UpdatePostsChannelTypeByChannelId had partial failures; consider a full bulk reindex to prevent missing posts",
+			mlog.String("channel_id", channelID),
+			mlog.Int("failure_count", len(response.Failures)),
+			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))
+	}
+	rctx.Logger().Info("Posts channel_type updated", mlog.String("channel_id", channelID), mlog.String("channel_type", channelType), mlog.Int("updated", response.Updated))
+
+	return nil
+}
+
+func (os *OpensearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX, channelIDs []string, channelType string) *model.AppError {
+	os.mutex.RLock()
+	defer os.mutex.RUnlock()
+
+	if os.ready.Load() == 0 {
+		return model.NewAppError("Opensearch.BackfillPostsChannelType", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
+	}
+
+	postIndexes, err := os.getPostIndexNames()
+	if err != nil {
+		return model.NewAppError("Opensearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(postIndexes) == 0 {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
+	defer cancel()
+
+	query := &types.Query{
+		Bool: &types.BoolQuery{
+			Filter: []types.Query{{
+				Terms: &types.TermsQuery{
+					TermsQuery: map[string]types.TermsQueryField{
+						"channel_id": channelIDs,
+					},
+				},
+			}},
+		},
+	}
+
+	scriptSource := "ctx._source.channel_type = params.channel_type"
+	lang := scriptlanguage.Painless
+	channelTypeJSON, jsonErr := json.Marshal(channelType)
+	if jsonErr != nil {
+		return model.NewAppError("Opensearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	queryBuf, err := json.Marshal(updatebyquery.Request{
+		Query: query,
+		Script: &types.Script{
+			Source: &scriptSource,
+			Lang:   &lang,
+			Params: map[string]json.RawMessage{
+				"channel_type": channelTypeJSON,
+			},
+		},
+	})
+	if err != nil {
+		return model.NewAppError("Opensearch.BackfillPostsChannelType", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	requestsPerSecond := 10000
+	response, err := os.client.UpdateByQuery(ctx, opensearchapi.UpdateByQueryReq{
+		Indices: postIndexes,
+		Body:    bytes.NewReader(queryBuf),
+		Params: opensearchapi.UpdateByQueryParams{
+			RequestsPerSecond: &requestsPerSecond,
+		},
+	})
+	if err != nil {
+		return model.NewAppError("Opensearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(response.Failures) > 0 {
+		rctx.Logger().Warn("BackfillPostsChannelType had partial failures; consider a full bulk reindex to prevent missing posts",
+			mlog.String("channel_type", channelType),
+			mlog.Int("failure_count", len(response.Failures)),
+			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))
+	}
+	rctx.Logger().Info("Backfilled channel_type on posts", mlog.Int("updated", response.Updated), mlog.String("channel_type", channelType), mlog.Int("channel_count", len(channelIDs)))
+
+	return nil
+}
+
 func (os *OpensearchInterfaceImpl) DeleteUserPosts(rctx request.CTX, userID string) *model.AppError {
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.DeleteUserPosts", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
 	postIndexes, err := os.getPostIndexNames()
 	if err != nil {
 		return model.NewAppError("Opensearch.DeleteUserPosts", "ent.elasticsearch.delete_user_posts.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(postIndexes) == 0 {
+		return nil
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*os.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
@@ -824,8 +1078,8 @@ func (os *OpensearchInterfaceImpl) deletePost(indexName, postID string) *model.A
 	var err error
 	if os.bulkProcessor != nil {
 		err = os.bulkProcessor.DeleteOp(&types.DeleteOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(postID),
+			Index_: new(indexName),
+			Id_:    new(postID),
 		})
 		if err != nil {
 			return model.NewAppError("Opensearch.IndexPost", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -848,7 +1102,7 @@ func (os *OpensearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *model
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.IndexChannel", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -860,8 +1114,8 @@ func (os *OpensearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *model
 	var buf []byte
 	if os.bulkProcessor != nil {
 		err = os.bulkProcessor.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchChannel.Id),
+			Index_: new(indexName),
+			Id_:    new(searchChannel.Id),
 		}, searchChannel)
 		if err != nil {
 			return model.NewAppError("Opensearch.IndexChannel", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -899,7 +1153,7 @@ func (os *OpensearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, chann
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.SyncBulkIndexChannels", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -915,8 +1169,8 @@ func (os *OpensearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, chann
 		searchChannel := common.ESChannelFromChannel(channel, userIDs, teamMemberIDs)
 
 		err = os.syncBulkProcessor.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchChannel.Id),
+			Index_: new(indexName),
+			Id_:    new(searchChannel.Id),
 		}, searchChannel)
 		if err != nil {
 			return model.NewAppError("Opensearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -938,7 +1192,7 @@ func (os *OpensearchInterfaceImpl) SearchChannels(teamId, userID string, term st
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return []string{}, model.NewAppError("Opensearch.SearchChannels", "ent.elasticsearch.search_channels.disabled", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1045,15 +1299,15 @@ func (os *OpensearchInterfaceImpl) DeleteChannel(channel *model.Channel) *model.
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.DeleteChannel", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
 	var err error
 	if os.bulkProcessor != nil {
 		err = os.bulkProcessor.DeleteOp(&types.DeleteOperation{
-			Index_: model.NewPointer(*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels),
-			Id_:    model.NewPointer(channel.Id),
+			Index_: new(*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels),
+			Id_:    new(channel.Id),
 		})
 		if err != nil {
 			return model.NewAppError("Opensearch.IndexPost", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1078,7 +1332,7 @@ func (os *OpensearchInterfaceImpl) IndexUser(rctx request.CTX, user *model.User,
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.IndexUser", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1090,8 +1344,8 @@ func (os *OpensearchInterfaceImpl) IndexUser(rctx request.CTX, user *model.User,
 	var buf []byte
 	if os.bulkProcessor != nil {
 		err = os.bulkProcessor.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchUser.Id),
+			Index_: new(indexName),
+			Id_:    new(searchUser.Id),
 		}, searchUser)
 		if err != nil {
 			return model.NewAppError("Opensearch.IndexUser", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1126,7 +1380,7 @@ func (os *OpensearchInterfaceImpl) autocompleteUsers(contextCategory string, cat
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return nil, model.NewAppError("Opensearch.autocompleteUsers", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1170,7 +1424,7 @@ func (os *OpensearchInterfaceImpl) autocompleteUsers(contextCategory string, cat
 					{
 						Range: map[string]types.RangeQuery{
 							"delete_at": types.DateRangeQuery{
-								Lte: model.NewPointer("0"),
+								Lte: new("0"),
 							},
 						},
 					}, {
@@ -1204,7 +1458,7 @@ func (os *OpensearchInterfaceImpl) autocompleteUsers(contextCategory string, cat
 		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBaseUsers)},
 		Body:    bytes.NewReader(buf),
 		Params: opensearchapi.SearchParams{
-			Size: model.NewPointer(options.Limit),
+			Size: new(options.Limit),
 		},
 	})
 
@@ -1245,7 +1499,7 @@ func (os *OpensearchInterfaceImpl) autocompleteUsersNotInChannel(teamId, channel
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return nil, model.NewAppError("Opensearch.autocompleteUsersNotInChannel", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1299,7 +1553,7 @@ func (os *OpensearchInterfaceImpl) autocompleteUsersNotInChannel(teamId, channel
 		deleteRangeQuery := types.Query{
 			Range: map[string]types.RangeQuery{
 				"delete_at": types.DateRangeQuery{
-					Lte: model.NewPointer("0"),
+					Lte: new("0"),
 				},
 			},
 		}
@@ -1330,7 +1584,7 @@ func (os *OpensearchInterfaceImpl) autocompleteUsersNotInChannel(teamId, channel
 		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBaseUsers)},
 		Body:    bytes.NewReader(buf),
 		Params: opensearchapi.SearchParams{
-			Size: model.NewPointer(options.Limit),
+			Size: new(options.Limit),
 		},
 	})
 	if err != nil {
@@ -1414,15 +1668,15 @@ func (os *OpensearchInterfaceImpl) DeleteUser(user *model.User) *model.AppError 
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.DeleteUser", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
 	var err error
 	if os.bulkProcessor != nil {
 		err = os.bulkProcessor.DeleteOp(&types.DeleteOperation{
-			Index_: model.NewPointer(*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers),
-			Id_:    model.NewPointer(user.Id),
+			Index_: new(*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers),
+			Id_:    new(user.Id),
 		})
 		if err != nil {
 			return model.NewAppError("Opensearch.DeleteUser", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1457,13 +1711,12 @@ func (os *OpensearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Confi
 		return appErr
 	}
 
-	_, _, appErr = checkMaxVersion(client)
-	if appErr != nil {
+	if appErr = os.fetchServerInfo(context.Background(), client); appErr != nil {
 		return appErr
 	}
 
 	// Resetting the state.
-	if atomic.CompareAndSwapInt32(&os.ready, 0, 1) {
+	if os.ready.CompareAndSwap(0, 1) {
 		// Re-assign the client.
 		// This is necessary in case opensearch was started
 		// after server start.
@@ -1483,7 +1736,7 @@ func (os *OpensearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppErro
 		return model.NewAppError("Opensearch.PurgeIndexes", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 	}
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.PurgeIndexes", "ent.elasticsearch.generic.disabled", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1536,7 +1789,7 @@ func (os *OpensearchInterfaceImpl) PurgeIndexList(rctx request.CTX, indexes []st
 		return model.NewAppError("Opensearch.PurgeIndexList", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 	}
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.PurgeIndexList", "ent.elasticsearch.generic.disabled", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1601,7 +1854,7 @@ func (os *OpensearchInterfaceImpl) DataRetentionDeleteIndexes(rctx request.CTX, 
 		return model.NewAppError("Opensearch.DataRetentionDeleteIndexes", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 	}
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.DataRetentionDeleteIndexes", "ent.elasticsearch.generic.disabled", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1613,7 +1866,7 @@ func (os *OpensearchInterfaceImpl) DataRetentionDeleteIndexes(rctx request.CTX, 
 	if err != nil {
 		return model.NewAppError("Opensearch.DataRetentionDeleteIndexes", "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
-	for index := range postIndexesResult.Indices {
+	for index := range *postIndexesResult.IndicesGetRespData {
 		if indexDate, err := time.Parse(dateFormat, index); err != nil {
 			rctx.Logger().Warn("Failed to parse date from posts index. Ignoring index.", mlog.String("index", index))
 		} else {
@@ -1634,7 +1887,7 @@ func (os *OpensearchInterfaceImpl) IndexFile(file *model.FileInfo, channelId str
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.IndexFile", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1646,8 +1899,8 @@ func (os *OpensearchInterfaceImpl) IndexFile(file *model.FileInfo, channelId str
 	var fileBuf []byte
 	if os.bulkProcessor != nil {
 		err = os.bulkProcessor.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchFile.Id),
+			Index_: new(indexName),
+			Id_:    new(searchFile.Id),
 		}, searchFile)
 		if err != nil {
 			return model.NewAppError("Opensearch.IndexFile", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1681,7 +1934,7 @@ func (os *OpensearchInterfaceImpl) SearchFiles(channels model.ChannelList, searc
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return []string{}, model.NewAppError("Opensearch.SearchPosts", "ent.elasticsearch.search_files.disabled", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1753,8 +2006,8 @@ func (os *OpensearchInterfaceImpl) SearchFiles(channels model.ChannelList, searc
 				filters = append(filters, types.Query{
 					Range: map[string]types.RangeQuery{
 						"create_at": types.NumberRangeQuery{
-							Gte: model.NewPointer(types.Float64(before)),
-							Lte: model.NewPointer(types.Float64(after)),
+							Gte: new(types.Float64(before)),
+							Lte: new(types.Float64(after)),
 						},
 					},
 				})
@@ -1762,11 +2015,11 @@ func (os *OpensearchInterfaceImpl) SearchFiles(channels model.ChannelList, searc
 				if params.AfterDate != "" || params.BeforeDate != "" {
 					nrQuery := types.NumberRangeQuery{}
 					if params.AfterDate != "" {
-						nrQuery.Gte = model.NewPointer(types.Float64(params.GetAfterDateMillis()))
+						nrQuery.Gte = new(types.Float64(params.GetAfterDateMillis()))
 					}
 
 					if params.BeforeDate != "" {
-						nrQuery.Lte = model.NewPointer(types.Float64(params.GetBeforeDateMillis()))
+						nrQuery.Lte = new(types.Float64(params.GetBeforeDateMillis()))
 					}
 					query := types.Query{
 						Range: map[string]types.RangeQuery{
@@ -1782,8 +2035,8 @@ func (os *OpensearchInterfaceImpl) SearchFiles(channels model.ChannelList, searc
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Gte: model.NewPointer(types.Float64(before)),
-									Lte: model.NewPointer(types.Float64(after)),
+									Gte: new(types.Float64(before)),
+									Lte: new(types.Float64(after)),
 								},
 							},
 						})
@@ -1793,7 +2046,7 @@ func (os *OpensearchInterfaceImpl) SearchFiles(channels model.ChannelList, searc
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Gte: model.NewPointer(types.Float64(params.GetExcludedAfterDateMillis())),
+									Gte: new(types.Float64(params.GetExcludedAfterDateMillis())),
 								},
 							},
 						})
@@ -1803,7 +2056,7 @@ func (os *OpensearchInterfaceImpl) SearchFiles(channels model.ChannelList, searc
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Lte: model.NewPointer(types.Float64(params.GetExcludedBeforeDateMillis())),
+									Lte: new(types.Float64(params.GetExcludedBeforeDateMillis())),
 								},
 							},
 						})
@@ -1899,11 +2152,14 @@ func (os *OpensearchInterfaceImpl) SearchFiles(channels model.ChannelList, searc
 		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBaseFiles)},
 		Body:    bytes.NewReader(searchBuf),
 		Params: opensearchapi.SearchParams{
-			From: model.NewPointer(page * perPage),
-			Size: model.NewPointer(perPage),
+			From: new(page * perPage),
+			Size: new(perPage),
 		},
 	})
 	if err != nil {
+		if isIndexNotFound(err) {
+			return []string{}, nil
+		}
 		errorStr := "err=" + err.Error()
 		if *os.Platform.Config().ElasticsearchSettings.Trace == "error" {
 			errorStr = "Query=" + getJSONOrErrorStr(query) + ", " + errorStr
@@ -1928,15 +2184,15 @@ func (os *OpensearchInterfaceImpl) DeleteFile(fileID string) *model.AppError {
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.DeleteFile", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
 	var err error
 	if os.bulkProcessor != nil {
 		err = os.bulkProcessor.DeleteOp(&types.DeleteOperation{
-			Index_: model.NewPointer(*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles),
-			Id_:    model.NewPointer(fileID),
+			Index_: new(*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles),
+			Id_:    new(fileID),
 		})
 		if err != nil {
 			return model.NewAppError("Opensearch.DeleteFile", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1961,7 +2217,7 @@ func (os *OpensearchInterfaceImpl) DeleteUserFiles(rctx request.CTX, userID stri
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.DeleteFilesBatch", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1987,6 +2243,9 @@ func (os *OpensearchInterfaceImpl) DeleteUserFiles(rctx request.CTX, userID stri
 		Body:    bytes.NewReader(queryBuf),
 	})
 	if err != nil {
+		if isIndexNotFound(err) {
+			return nil
+		}
 		return model.NewAppError("Opensearch.DeleteUserFiles", "ent.elasticsearch.delete_user_files.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	rctx.Logger().Info("User files deleted", mlog.String("user_id", userID), mlog.Int("deleted", response.Deleted))
@@ -1998,7 +2257,7 @@ func (os *OpensearchInterfaceImpl) DeletePostFiles(rctx request.CTX, postID stri
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.DeleteFilesBatch", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -2023,6 +2282,9 @@ func (os *OpensearchInterfaceImpl) DeletePostFiles(rctx request.CTX, postID stri
 		Body:    bytes.NewReader(queryBuf),
 	})
 	if err != nil {
+		if isIndexNotFound(err) {
+			return nil
+		}
 		return model.NewAppError("Opensearch.DeletePostFiles", "ent.elasticsearch.delete_post_files.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	rctx.Logger().Info("Post files deleted", mlog.String("post_id", postID), mlog.Int("deleted", response.Deleted))
@@ -2034,7 +2296,7 @@ func (os *OpensearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime, l
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if atomic.LoadInt32(&os.ready) == 0 {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.DeleteFilesBatch", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -2046,7 +2308,7 @@ func (os *OpensearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime, l
 			Filter: []types.Query{{
 				Range: map[string]types.RangeQuery{
 					"create_at": types.NumberRangeQuery{
-						Lte: model.NewPointer(types.Float64(endTime)),
+						Lte: new(types.Float64(endTime)),
 					},
 				},
 			}},
@@ -2057,7 +2319,7 @@ func (os *OpensearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime, l
 		Query: query,
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.DeleteUserFiles", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.DeleteFilesBatch", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	response, err := os.client.Document.DeleteByQuery(ctx, opensearchapi.DocumentDeleteByQueryReq{
 		Indices: []string{*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles},
@@ -2066,30 +2328,41 @@ func (os *OpensearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime, l
 			// Note that max_docs is slightly different than size.
 			// Size will just limit the number of elements returned, which is not
 			// what we want. We want to limit the number of elements to be deleted.
-			MaxDocs: model.NewPointer(int(limit)),
+			MaxDocs: new(int(limit)),
 		},
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.DeleteUserPosts", "ent.elasticsearch.delete_user_posts.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if isIndexNotFound(err) {
+			return nil
+		}
+		return model.NewAppError("Opensearch.DeleteFilesBatch", "ent.elasticsearch.delete_files_batch.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	rctx.Logger().Info("Files batch deleted", mlog.Int("end_time", endTime), mlog.Int("limit", limit), mlog.Int("deleted", response.Deleted))
 
 	return nil
 }
 
-func checkMaxVersion(client *opensearchapi.Client) (string, int, *model.AppError) {
-	resp, err := client.Info(context.Background(), nil)
+// checkVersion returns the version of the connected OpenSearch server. An
+// unsupported version is logged but not treated as fatal, allowing the server to
+// start regardless.
+func checkVersion(ctx context.Context, client *opensearchapi.Client, logger mlog.LoggerIFace) (string, int, *model.AppError) {
+	resp, err := client.Info(ctx, nil)
 	if err != nil {
-		return "", 0, model.NewAppError("Opensearch.checkMaxVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("Opensearch.checkVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	major, _, _, esErr := common.GetVersionComponents(resp.Version.Number)
 	if esErr != nil {
-		return "", 0, model.NewAppError("Opensearch.checkMaxVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("Opensearch.checkVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(esErr)
 	}
 
-	if major > opensearchMaxVersion {
-		return "", 0, model.NewAppError("Opensearch.checkMaxVersion", "ent.elasticsearch.max_version.app_error", map[string]any{"Version": major, "MaxVersion": opensearchMaxVersion, "Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusBadRequest)
+	if major < opensearchMinVersion || major > opensearchMaxVersion {
+		logger.Error("Unsupported OpenSearch version. Running an unsupported version may lead to unexpected behaviour.",
+			mlog.String("version", resp.Version.Number),
+			mlog.Int("min_version", opensearchMinVersion),
+			mlog.Int("max_version", opensearchMaxVersion),
+		)
 	}
+
 	return resp.Version.Number, major, nil
 }

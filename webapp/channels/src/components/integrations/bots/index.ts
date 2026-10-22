@@ -6,23 +6,27 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import type {Bot as BotType} from '@mattermost/types/bots';
-import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {loadBots, disableBot, enableBot} from 'mattermost-redux/actions/bots';
 import {getAppsBotIDs as fetchAppsBotIDs} from 'mattermost-redux/actions/integrations';
-import {createUserAccessToken, revokeUserAccessToken, enableUserAccessToken, disableUserAccessToken, getUserAccessTokensForUser, getUser} from 'mattermost-redux/actions/users';
+import {createUserAccessToken, revokeUserAccessToken, enableUserAccessToken, disableUserAccessToken, getUserAccessTokensForUser, getUser, rotateUserAccessToken} from 'mattermost-redux/actions/users';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAppsBotIDs} from 'mattermost-redux/selectors/entities/integrations';
 import * as UserSelectors from 'mattermost-redux/selectors/entities/users';
 
+import {getPluginDisplayName} from 'selectors/plugins';
+
+import type {GlobalState} from 'types/store';
+
 import Bots from './bots';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
     const createBots = config.EnableBotAccountCreation === 'true';
+    const maxLifetimeDays = parseInt(config.MaximumPersonalAccessTokenLifetimeDays || '0', 10);
     const bots = getExternalBotAccounts(state);
     const botValues = Object.values(bots);
     const owners = botValues.
@@ -35,6 +39,11 @@ function mapStateToProps(state: GlobalState) {
             result[bot.user_id] = UserSelectors.getUser(state, bot.user_id);
             return result;
         }, {});
+    const pluginDisplayNames = botValues.
+        reduce((result: Record<string, string>, bot: BotType) => {
+            result[bot.user_id] = getPluginDisplayName(state, bot.owner_id);
+            return result;
+        }, {});
 
     return {
         createBots,
@@ -42,8 +51,10 @@ function mapStateToProps(state: GlobalState) {
         accessTokens: state.entities.admin.userAccessTokensByUser,
         owners,
         users,
+        pluginDisplayNames,
         appsBotIDs: getAppsBotIDs(state),
         appsEnabled: appsEnabled(state),
+        maxLifetimeDays: Number.isFinite(maxLifetimeDays) ? maxLifetimeDays : 0,
     };
 }
 
@@ -57,6 +68,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             revokeUserAccessToken,
             enableUserAccessToken,
             disableUserAccessToken,
+            rotateUserAccessToken,
             getUser,
             disableBot,
             enableBot,

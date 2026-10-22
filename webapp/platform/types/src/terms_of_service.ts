@@ -6,4 +6,4 @@ export type TermsOfService = {
     create_at: number;
     user_id: string;
     text: string;
-}
+};

@@ -14,7 +14,7 @@
 * Note: This test requires webhook server running. Initiate `npm run start:webhook` to start.
 */
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 let createdCommand;
 
@@ -30,7 +30,7 @@ describe('Interactive Dialog - Multiform (Step-by-step Form Submissions)', () =>
         cy.apiCreateTeam('test-team', 'Test Team').then(({team}) => {
             cy.visit(`/${team.name}`);
 
-            const webhookBaseUrl = Cypress.env().webhookBaseUrl;
+            const webhookBaseUrl = Cypress.expose().webhookBaseUrl;
 
             const command = {
                 auto_complete: false,
@@ -118,8 +118,9 @@ describe('Interactive Dialog - Multiform (Step-by-step Form Submissions)', () =>
                 cy.wrap(doc).find('.react-select__option').contains('Engineering').click();
             });
 
-            // Select experience level (radio)
-            cy.get('input[type="radio"][value="senior"]').click();
+            // Select experience level (radio). Compass Radio hides the native
+            // input (opacity:0), so force the check on the underlying control.
+            cy.get('input[type="radio"][value="senior"]').check({force: true});
 
             // # Submit Step 2 - this should create Step 3 dialog
             cy.get('#appsModalSubmit').click();

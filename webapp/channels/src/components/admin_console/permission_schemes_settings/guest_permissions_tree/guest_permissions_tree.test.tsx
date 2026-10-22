@@ -57,7 +57,7 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
                 readOnly: true,
                 scope: 'team_scope',
             }),
-            expect.anything(),
+            undefined,
         );
     });
 
@@ -71,6 +71,7 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
             expect(permissionIds).toContain('guest_create_post');
             expect(permissionIds).toContain('guest_reactions');
             expect(permissionIds).toContain('guest_use_channel_mentions');
+            expect(permissionIds).toContain('guest_edit_file_attachment');
 
             if (includeGroupMentions) {
                 expect(permissionIds).toContain('guest_use_group_mentions');

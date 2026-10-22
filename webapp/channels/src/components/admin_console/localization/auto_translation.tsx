@@ -2,9 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo, useState} from 'react';
-import {defineMessage, defineMessages, FormattedMessage} from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Switch} from '@mattermost/compass-ui/components/switch';
 import type {AutoTranslationSettings} from '@mattermost/types/config';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
@@ -17,10 +18,9 @@ import {
 } from 'components/admin_console/system_properties/controls';
 import TextSetting from 'components/admin_console/text_setting';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
-import Toggle from 'components/toggle';
 import BetaTag from 'components/widgets/tag/beta_tag';
 
-import * as I18n from 'i18n/i18n.jsx';
+import * as I18n from 'i18n/i18n';
 
 import AgentsSettings from './agents_settings';
 import AutoTranslationInfo from './auto_translation_info';
@@ -47,6 +47,7 @@ const messages = defineMessages({
 export const searchableStrings: SearchableStrings = Object.values(messages);
 
 export default function AutoTranslation(props: SystemConsoleCustomSettingsComponentProps) {
+    const {formatMessage} = useIntl();
     const {available: isAgentsBridgeEnabled, reason: agentsBridgeUnavailableReason} = useGetAgentsBridgeEnabled();
     const [autoTranslationSettings, setAutoTranslationSettings] = useState<AutoTranslationSettings>(() => {
         const settings = props.value as AutoTranslationSettings;
@@ -151,7 +152,10 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
     return (
         <AdminSection>
             <SectionHeader>
-                <div className='autotranslation-section-header'>
+                <div
+                    data-testid='autotranslation-section-header'
+                    className='autotranslation-section-header'
+                >
                     <hgroup>
                         <h1 className='localization-section-title'>
                             <FormattedMessage {...messages.enableAutoTranslationTitle}/>
@@ -163,18 +167,22 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                             <FormattedMessage {...messages.enableAutoTranslationDescription}/>
                         </h5>
                     </hgroup>
-                    <div className='autotranslation-section-toggle'>
+                    <div
+                        data-testid='autotranslation-section-toggle'
+                        className='autotranslation-section-toggle'
+                    >
                         <span style={{marginRight: '12px'}}>
                             {autoTranslationSettings.Enable ? on : off}
                         </span>
-                        <Toggle
-                            size='btn-md'
+                        <Switch
+                            id='Enable'
+                            size='medium'
                             disabled={props.disabled || props.setByEnv}
-                            toggled={autoTranslationSettings.Enable}
-                            id={'Enable'}
+                            checked={autoTranslationSettings.Enable}
+                            onChange={handleToggle}
+                            data-testid='Enable-button'
                             tabIndex={-1}
-                            toggleClassName='btn-toggle-primary'
-                            onToggle={handleToggle}
+                            aria-label={formatMessage(messages.enableAutoTranslationTitle)}
                         />
                     </div>
                 </div>

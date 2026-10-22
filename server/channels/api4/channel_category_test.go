@@ -107,10 +107,11 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 
 	t.Run("should return error when user tries to create a category for a team they're not a member of", func(t *testing.T) {
 		// Create a user
+		password := model.NewTestPassword()
 		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
-			Password: "password",
+			Password: password,
 		})
 		require.Nil(t, appErr)
 
@@ -127,7 +128,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 
 		// Create a client and log in
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "password")
+		_, _, err := client.Login(context.Background(), user.Email, password)
 		require.NoError(t, err)
 
 		// Now remove the user from the team
@@ -494,10 +495,11 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 
 	t.Run("should return error when user tries to update a category for a team they're not a member of", func(t *testing.T) {
 		// Create a user
+		password := model.NewTestPassword()
 		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
-			Password: "password",
+			Password: password,
 		})
 		require.Nil(t, appErr)
 
@@ -514,7 +516,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 
 		// Create a client and log in
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "password")
+		_, _, err := client.Login(context.Background(), user.Email, password)
 		require.NoError(t, err)
 
 		// Get categories to have valid category IDs
@@ -643,10 +645,11 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 
 	t.Run("should return error when user tries to update categories for a team they're not a member of", func(t *testing.T) {
 		// Create a user
+		password := model.NewTestPassword()
 		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
-			Password: "password",
+			Password: password,
 		})
 		require.Nil(t, appErr)
 
@@ -663,7 +666,7 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 
 		// Create a client and log in
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "password")
+		_, _, err := client.Login(context.Background(), user.Email, password)
 		require.NoError(t, err)
 
 		// Get categories to have valid category IDs
@@ -711,15 +714,16 @@ func TestGetCategoriesForTeamForUser(t *testing.T) {
 
 	t.Run("should return error when user doesn't have permission", func(t *testing.T) {
 		// Create a new user that's not on the team
+		password := model.NewTestPassword()
 		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
-			Password: "password",
+			Password: password,
 		})
 		require.Nil(t, appErr)
 
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "password")
+		_, _, err := client.Login(context.Background(), user.Email, password)
 		require.NoError(t, err)
 
 		// Attempt to get categories for the basic user
@@ -730,10 +734,11 @@ func TestGetCategoriesForTeamForUser(t *testing.T) {
 
 	t.Run("should return error for a team the user is not a member of", func(t *testing.T) {
 		// Create a new user and team
+		password := model.NewTestPassword()
 		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
-			Password: "password",
+			Password: password,
 		})
 		require.Nil(t, appErr)
 
@@ -747,7 +752,7 @@ func TestGetCategoriesForTeamForUser(t *testing.T) {
 
 		// Log in as the new user
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "password")
+		_, _, err := client.Login(context.Background(), user.Email, password)
 		require.NoError(t, err)
 
 		// Attempt to get categories for a team the user is not a member of
@@ -797,15 +802,16 @@ func TestGetCategoryOrderForTeamForUser(t *testing.T) {
 
 	t.Run("should return error when user doesn't have permission", func(t *testing.T) {
 		// Create a new user that's not on the team
+		password := model.NewTestPassword()
 		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
-			Password: "password",
+			Password: password,
 		})
 		require.Nil(t, appErr)
 
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "password")
+		_, _, err := client.Login(context.Background(), user.Email, password)
 		require.NoError(t, err)
 
 		// Attempt to get order for the basic user
@@ -835,10 +841,11 @@ func TestGetCategoryOrderForTeamForUser(t *testing.T) {
 
 	t.Run("should return error when user tries to get category order for a team they're not a member of", func(t *testing.T) {
 		// Create a user
+		password := model.NewTestPassword()
 		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
-			Password: "password",
+			Password: password,
 		})
 		require.Nil(t, appErr)
 
@@ -855,7 +862,7 @@ func TestGetCategoryOrderForTeamForUser(t *testing.T) {
 
 		// Create a client and log in
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "password")
+		_, _, err := client.Login(context.Background(), user.Email, password)
 		require.NoError(t, err)
 
 		// Verify the user can access categories initially
@@ -904,15 +911,16 @@ func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
 
 	t.Run("should return error when user doesn't have permission", func(t *testing.T) {
 		// Create a new user that's not on the team
+		password := model.NewTestPassword()
 		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
-			Password: "password",
+			Password: password,
 		})
 		require.Nil(t, appErr)
 
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "password")
+		_, _, err := client.Login(context.Background(), user.Email, password)
 		require.NoError(t, err)
 
 		// Get categories for basic user to try to update
@@ -992,10 +1000,11 @@ func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
 
 	t.Run("should return error when user tries to update category order for a team they're not a member of", func(t *testing.T) {
 		// Create a user
+		password := model.NewTestPassword()
 		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
-			Password: "password",
+			Password: password,
 		})
 		require.Nil(t, appErr)
 
@@ -1012,7 +1021,7 @@ func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
 
 		// Create a client and log in
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "password")
+		_, _, err := client.Login(context.Background(), user.Email, password)
 		require.NoError(t, err)
 
 		// Get categories to have a valid order
@@ -1055,15 +1064,16 @@ func TestGetCategoryForTeamForUser(t *testing.T) {
 
 	t.Run("should return error when user doesn't have permission", func(t *testing.T) {
 		// Create a new user that's not on the team
+		password := model.NewTestPassword()
 		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
-			Password: "password",
+			Password: password,
 		})
 		require.Nil(t, appErr)
 
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "password")
+		_, _, err := client.Login(context.Background(), user.Email, password)
 		require.NoError(t, err)
 
 		// Get categories for basic user to get a valid category ID
@@ -1130,10 +1140,11 @@ func TestGetCategoryForTeamForUser(t *testing.T) {
 
 	t.Run("should return error when user tries to get category for a team they're not a member of", func(t *testing.T) {
 		// Create a user
+		password := model.NewTestPassword()
 		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
-			Password: "password",
+			Password: password,
 		})
 		require.Nil(t, appErr)
 
@@ -1150,7 +1161,7 @@ func TestGetCategoryForTeamForUser(t *testing.T) {
 
 		// Create a client and log in
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "password")
+		_, _, err := client.Login(context.Background(), user.Email, password)
 		require.NoError(t, err)
 
 		// Get categories to have valid category IDs
@@ -1470,15 +1481,16 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 
 	t.Run("should return error when user doesn't have permission", func(t *testing.T) {
 		// Create a new user that's not on the team
+		password := model.NewTestPassword()
 		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
-			Password: "password",
+			Password: password,
 		})
 		require.Nil(t, appErr)
 
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "password")
+		_, _, err := client.Login(context.Background(), user.Email, password)
 		require.NoError(t, err)
 
 		// Get categories for basic user to get a valid category ID
@@ -1551,10 +1563,11 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 
 	t.Run("should return error when user tries to delete a category for a team they're not a member of", func(t *testing.T) {
 		// Create a user
+		password := model.NewTestPassword()
 		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
-			Password: "password",
+			Password: password,
 		})
 		require.Nil(t, appErr)
 
@@ -1571,7 +1584,7 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 
 		// Create a client and log in
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "password")
+		_, _, err := client.Login(context.Background(), user.Email, password)
 		require.NoError(t, err)
 
 		// Create a custom category
@@ -1598,7 +1611,7 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 }
 
 func setupUserForSubtest(t *testing.T, th *TestHelper) (*model.User, *model.Client4) {
-	password := "password"
+	password := model.NewTestPassword()
 	user, appErr := th.App.CreateUser(th.Context, &model.User{
 		Email:    th.GenerateTestEmail(),
 		Username: "user_" + model.NewId(),

@@ -9,7 +9,7 @@
 
 // Group: @channels @enterprise @system_console
 
-import {getAdminAccount} from '../../../../support/env';
+import {getAdminAccount} from '@/support/env';
 
 describe('System Scheme Channel Mentions Permissions Test', () => {
     let testUser;

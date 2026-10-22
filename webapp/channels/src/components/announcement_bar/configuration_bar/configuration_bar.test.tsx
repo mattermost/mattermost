@@ -5,7 +5,7 @@ import React from 'react';
 
 import ConfigurationBar from 'components/announcement_bar/configuration_bar/configuration_bar';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/ConfigurationBar', () => {
     const millisPerDay = 24 * 60 * 60 * 1000;
@@ -35,56 +35,56 @@ describe('components/ConfigurationBar', () => {
 
     test('should match snapshot, expired, in grace period', () => {
         const props = {...baseProps, license: {Id: '1234', IsLicensed: 'true', ExpiresAt: Date.now() - millisPerDay, SkuShortName: 'enterprise'}};
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ConfigurationBar {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, expired', () => {
         const props = {...baseProps, license: {Id: '1234', IsLicensed: 'true', ExpiresAt: Date.now() - (11 * millisPerDay), SkuShortName: 'enterprise'}};
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ConfigurationBar {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, expired, regular user', () => {
         const props = {...baseProps, canViewSystemErrors: false, license: {Id: '1234', IsLicensed: 'true', ExpiresAt: Date.now() - (11 * millisPerDay), SkuShortName: 'enterprise'}};
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ConfigurationBar {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, expired, cloud license, show nothing', () => {
         const props = {...baseProps, canViewSystemErrors: false, license: {Id: '1234', IsLicensed: 'true', Cloud: 'true', ExpiresAt: Date.now() - (11 * millisPerDay)}};
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ConfigurationBar {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, expiring, cloud license, show nothing', () => {
         const props = {...baseProps, canViewSystemErrors: false, license: {Id: '1234', IsLicensed: 'true', Cloud: 'true', ExpiresAt: Date.now()}};
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ConfigurationBar {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, show nothing', () => {
         const props = {...baseProps, license: {Id: '1234', IsLicensed: 'true', ExpiresAt: Date.now() + (61 * millisPerDay)}};
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ConfigurationBar {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, expiring, trial license, mobile viewport', () => {
@@ -96,11 +96,11 @@ describe('components/ConfigurationBar', () => {
 
         window.dispatchEvent(new Event('500'));
         const props = {...baseProps, canViewSystemErrors: true, license: {Id: '1234', IsLicensed: 'true', IsTrial: 'true', ExpiresAt: Date.now() + 1}};
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ConfigurationBar {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, expiring, trial license', () => {
@@ -112,10 +112,10 @@ describe('components/ConfigurationBar', () => {
 
         window.dispatchEvent(new Event('500'));
         const props = {...baseProps, canViewSystemErrors: true, license: {Id: '1234', IsLicensed: 'true', IsTrial: 'true', ExpiresAt: Date.now() + 1}};
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ConfigurationBar {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

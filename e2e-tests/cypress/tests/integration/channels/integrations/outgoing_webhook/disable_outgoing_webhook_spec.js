@@ -9,7 +9,7 @@
 
 // Group: @channels @integrations
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Integrations', () => {
     let testTeam;
@@ -18,7 +18,7 @@ describe('Integrations', () => {
     let outgoingWebhook;
 
     before(() => {
-        const callbackUrl = `${Cypress.env().webhookBaseUrl}/post_outgoing_webhook`;
+        const callbackUrl = `${Cypress.expose().webhookBaseUrl}/post_outgoing_webhook`;
 
         cy.requireWebhookServer();
 

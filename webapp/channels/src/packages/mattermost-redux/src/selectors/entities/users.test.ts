@@ -28,19 +28,29 @@ describe('Selectors.Users', () => {
     const group2 = TestHelper.fakeGroupWithId('');
 
     const user1 = TestHelper.fakeUserWithId('');
+    user1.username = 'user1';
     user1.position = 'Software Engineer at Mattermost';
     user1.notify_props = {mention_keys: 'testkey1,testkey2'} as UserProfile['notify_props'];
     user1.roles = 'system_admin system_user';
     const user2 = TestHelper.fakeUserWithId();
+    user2.username = 'user2';
     user2.delete_at = 1;
     const user3 = TestHelper.fakeUserWithId();
+    user3.username = 'user3';
     const user4 = TestHelper.fakeUserWithId();
+    user4.username = 'user4';
     const user5 = TestHelper.fakeUserWithId();
+    user5.username = 'user5';
     const user6 = TestHelper.fakeUserWithId();
+    user6.username = 'user6';
     user6.roles = 'system_admin system_user';
     const user7 = TestHelper.fakeUserWithId();
+    user7.username = 'user7';
     user7.delete_at = 1;
     user7.roles = 'system_admin system_user';
+    const user8 = TestHelper.fakeUserWithId();
+    user8.username = 'user8';
+    user8.nickname = 'some.body';
     const profiles: Record<string, UserProfile> = {};
     profiles[user1.id] = user1;
     profiles[user2.id] = user2;
@@ -49,6 +59,7 @@ describe('Selectors.Users', () => {
     profiles[user5.id] = user5;
     profiles[user6.id] = user6;
     profiles[user7.id] = user7;
+    profiles[user8.id] = user8;
 
     const profilesInTeam: Record<Team['id'], Set<UserProfile['id']>> = {};
     profilesInTeam[team1.id] = new Set([user1.id, user2.id, user7.id]);
@@ -75,7 +86,7 @@ describe('Selectors.Users', () => {
     profilesNotInTeam[team1.id] = new Set([user3.id, user4.id]);
 
     const profilesInChannel: Record<Channel['id'], Set<UserProfile['id']>> = {};
-    profilesInChannel[channel1.id] = new Set([user1.id]);
+    profilesInChannel[channel1.id] = new Set([user1.id, user8.id]);
     profilesInChannel[channel2.id] = new Set([user1.id, user2.id]);
 
     const membersInChannel: Record<Channel['id'], Record<UserProfile['id'], ChannelMembership>> = {};
@@ -84,6 +95,10 @@ describe('Selectors.Users', () => {
         ...TestHelper.fakeChannelMember(user1.id, channel1.id),
         scheme_user: true,
         scheme_admin: true,
+    };
+    membersInChannel[channel1.id][user8.id] = {
+        ...TestHelper.fakeChannelMember(user8.id, channel1.id),
+        scheme_user: true,
     };
     membersInChannel[channel2.id] = {};
     membersInChannel[channel2.id][user1.id] = {
@@ -264,7 +279,7 @@ describe('Selectors.Users', () => {
 
     describe('getProfiles', () => {
         it('getProfiles without filter', () => {
-            const users = [user1, user2, user3, user4, user5, user6, user7].sort(sortByUsername);
+            const users = [user1, user2, user3, user4, user5, user6, user7, user8].sort(sortByUsername);
             expect(Selectors.getProfiles(testState)).toEqual(users);
         });
 
@@ -277,7 +292,7 @@ describe('Selectors.Users', () => {
             expect(Selectors.getProfiles(testState, {inactive: true})).toEqual(users);
         });
         it('getProfiles with active', () => {
-            const users = [user1, user3, user4, user5, user6].sort(sortByUsername);
+            const users = [user1, user3, user4, user5, user6, user8].sort(sortByUsername);
             expect(Selectors.getProfiles(testState, {active: true})).toEqual(users);
         });
         it('getProfiles with multiple filters', () => {
@@ -465,6 +480,7 @@ describe('Selectors.Users', () => {
         expect(Selectors.searchProfilesInCurrentChannel(testState, user1.username)).toEqual([user1]);
         expect(Selectors.searchProfilesInCurrentChannel(testState, 'engineer at mattermost')).toEqual([user1]);
         expect(Selectors.searchProfilesInCurrentChannel(testState, user1.username, true)).toEqual([]);
+        expect(Selectors.searchProfilesInCurrentChannel(testState, 'body', true)).toEqual([user8]);
     });
 
     it('searchProfilesNotInCurrentChannel', () => {
@@ -525,7 +541,7 @@ describe('Selectors.Users', () => {
 
     it('makeGetProfilesInChannel', () => {
         const getProfilesInChannel = Selectors.makeGetProfilesInChannel();
-        expect(getProfilesInChannel(testState, channel1.id)).toEqual([user1]);
+        expect(getProfilesInChannel(testState, channel1.id)).toEqual([user1, user8]);
 
         const users = [user1, user2].sort(sortByUsername);
         expect(getProfilesInChannel(testState, channel2.id)).toEqual(users);
@@ -555,8 +571,8 @@ describe('Selectors.Users', () => {
         };
 
         const getProfilesInChannel = Selectors.makeGetProfilesInChannel();
-        expect(getProfilesInChannel(state, channel1.id)).toEqual([user1]);
-        expect(getProfilesInChannel(state, channel1.id, {})).toEqual([user1]);
+        expect(getProfilesInChannel(state, channel1.id)).toEqual([user1, user8]);
+        expect(getProfilesInChannel(state, channel1.id, {})).toEqual([user1, user8]);
     });
 
     it('makeGetProfilesNotInChannel', () => {
@@ -874,7 +890,7 @@ describe('Selectors.Users', () => {
 
     describe('filterProfiles', () => {
         it('no filter, return all users', () => {
-            expect(Object.keys(Selectors.filterProfiles(profiles)).length).toEqual(7);
+            expect(Object.keys(Selectors.filterProfiles(profiles)).length).toEqual(8);
         });
 
         it('filter role', () => {
@@ -901,7 +917,7 @@ describe('Selectors.Users', () => {
             const filter = {
                 exclude_roles: ['system_admin'],
             };
-            expect(Object.keys(Selectors.filterProfiles(profiles, filter)).length).toEqual(4);
+            expect(Object.keys(Selectors.filterProfiles(profiles, filter)).length).toEqual(5);
         });
 
         it('exclude bots', () => {
@@ -920,7 +936,7 @@ describe('Selectors.Users', () => {
                 ...profiles,
                 [botUser.id]: botUser,
             };
-            expect(Object.keys(Selectors.filterProfiles(newProfiles, filter)).length).toEqual(7);
+            expect(Object.keys(Selectors.filterProfiles(newProfiles, filter)).length).toEqual(8);
         });
 
         it('filter inactive', () => {
@@ -934,7 +950,7 @@ describe('Selectors.Users', () => {
             const filter = {
                 active: true,
             };
-            expect(Object.keys(Selectors.filterProfiles(profiles, filter)).length).toEqual(5);
+            expect(Object.keys(Selectors.filterProfiles(profiles, filter)).length).toEqual(6);
         });
     });
 });
