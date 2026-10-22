@@ -103,9 +103,10 @@ writeJSON(p.strings, strings);
 const c = counts(plan);
 const locales = Object.keys(c).sort();
 const row = (cells) => console.log(cells.map((cell, i) => (i ? String(cell).padStart(8) : String(cell).padEnd(8))).join(''));
-row(['locale', 'new', 'changed']);
+row(['locale', 'new', 'changed', 'carried', 'pruned']);
 for (const locale of locales) {
-    row([locale, c[locale].new, c[locale].changed]);
+    const l = c[locale];
+    row([locale, l.new, l.changed, l.carry, l.prune]);
 }
 const total = Object.values(c).reduce((a, l) => a + l.new + l.changed, 0);
 console.log(`\nbase ${base}`);

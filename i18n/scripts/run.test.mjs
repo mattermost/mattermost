@@ -154,7 +154,7 @@ describe('a translation run', () => {
         try {
             const r = repo.run('plan.mjs', scratch, '--base', base);
             assert.equal(r.status, 1);
-            assert.match(r.stderr, /webapp: 1004 distinct new keys/);
+            assert.match(r.stderr, /webapp: 1002 distinct new keys/);
             assert.equal(fs.existsSync(path.join(scratch, 'plan.json')), false);
             assert.equal(repo.run('plan.mjs', scratch, '--base', base, '--accept-unusual').status, 0);
         } finally {
@@ -178,19 +178,22 @@ describe('a translation run', () => {
         }
     });
 
-    test('plan finds new and changed keys', () => {
+    test('plan finds new, changed, renamed and removed keys', () => {
         const r = repo.run('plan.mjs', workdir, '--base', base);
         assert.equal(r.status, 0, r.stderr);
         const plan = JSON.parse(fs.readFileSync(path.join(workdir, 'plan.json'), 'utf8'));
         const ru = plan.surfaces.webapp.locales.ru;
 
+        assert.deepEqual(ru.carry, {'app.remove_member': 'app.old'});
+        assert.deepEqual(Object.keys(ru.prune).sort(), ['app.archive', 'app.gone', 'app.old']);
         const kinds = Object.fromEntries(Object.entries(ru.items).map(([k, item]) => [k, item.kind]));
         assert.deepEqual(kinds, {
-            'app.archive_channel': 'new',
+            'app.archive_channel': 'changed',
             'app.new': 'new',
-            'app.remove_member': 'new',
             'app.reword': 'changed',
         });
+        assert.equal(ru.items['app.archive_channel'].carriedFrom, 'app.archive');
+        assert.equal(ru.items['app.archive_channel'].current, 'Архив');
         assert.equal(ru.items['app.reword'].previous.english, 'Delete the post');
         assert.equal(ru.items['app.reword'].current, 'Удалить сообщение');
         assert.deepEqual(Object.keys(plan.surfaces.server.locales.ru.items), ['api.retry']);
