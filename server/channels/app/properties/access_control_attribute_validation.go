@@ -42,6 +42,8 @@ type DirectChannelChecker func(rctx request.CTX, channelID string) (bool, error)
 //     ([model.ValidateCPAFieldName]); on update this fires only when Name
 //     actually changes, so pre-existing fields with non-conforming names
 //     remain editable on all other attrs (lenient grandfather)
+//   - refuses the field types access policies cannot read (number,
+//     checkbox; see PropertyFieldType.SupportsAccessControl)
 //   - trims whitespace on string attrs
 //   - applies the visibility default when unset
 //   - clears attrs that don't apply to the field type (options on non-select,
@@ -145,6 +147,14 @@ func (h *AccessControlAttributeValidationHook) requiredEnforced() bool {
 // prevType is empty on creation of a new field. prevActions is the field's
 // attrs["actions"] before this operation, nil on creation.
 func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField, prevType model.PropertyFieldType, prevActions any, prevRequired bool) error {
+	// Access policies and the attribute views they read have no notion of a
+	// number or a boolean, so those types are refused here, whether a field is
+	// created with one or changed to one, rather than stored and then ignored or
+	// misread by every rule.
+	if !field.Type.SupportsAccessControl() {
+		return fmt.Errorf("a %s field cannot be an access control attribute: %w", field.Type, ErrInvalidFieldAttrs)
+	}
+
 	if field.Attrs == nil {
 		field.Attrs = model.StringInterface{}
 	}
